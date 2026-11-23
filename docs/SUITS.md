@@ -1,15 +1,15 @@
-# The ten suits: one per school of the Hundred Schools (百家争鸣)
+# The nine suits: one per stream of the Hundred Schools (九流)
 
-Owner, 23 Nov 18:58-19:00: "redo the 10 甲 as they are base of 百家争鸣; in a way Kaymuse is the Qin emperor." Owner, 23 Nov 19:57: go for the suits as one per school; clean the GDD of outside influences.
-Status: APPROVED DESIGN (owner 19:57). Kits are built in batch 16 (法甲 sample, owner plays and approves) and batch 17 (the other nine). Numbers go in CONFIG at build time.
+Owner, 23 Nov 18:58-19:00: "redo the 10 甲 as they are base of 百家争鸣; in a way Kaymuse is the Qin emperor." Owner, 23 Nov 19:57: go for the suits as one per school; 20:03: nine schools in the match, 稗甲 dropped; clean the GDD of outside influences.
+Status: APPROVED DESIGN (owner 19:57). Kits are built in batch 16 (法甲 sample, owner plays and approves) and batch 17 (the other eight). Numbers go in CONFIG at build time.
 
-## Why the ten are exactly these ten
-The Han court catalogue (《汉书·艺文志》) lists 九流十家: 儒、道、阴阳、法、名、墨、纵横、杂、农、小说. These are our ten suits. It also says only nine are "worth reading" (可观者九家而已); the tales school 小说家 is the one the court does not count. That is the underdog suit, 稗甲.
+## Why these nine
+The Han court catalogue (《汉书·艺文志》) lists 九流十家: ten schools, of which it counts only nine as worth reading (可观者九家而已): 儒、道、阴阳、法、名、墨、纵横、杂、农. These nine are the suits in the match (owner 23 Nov 20:03: "start with the 9 schools since that is accurate"). The tenth, the tales school 小说家 (稗甲), is not counted by the court and is not summoned by Kaymuse; its design is kept at the end for reference only.
 
 ## Kaymuse as the first-emperor figure (never named, never quoted)
 Tone rule kept: no real ruler is named or quoted. She is the archetype, shown through what she does:
 - **One answer for all schools.** She ends the Hundred Schools' debate by decree. That is the unifier's move: one script, one axle width, one law (书同文，车同轨).
-- **The royale is her burning of the books.** Nine schools' suits are broken in her palace; only one doctrine may remain. Her collapses fall on the schools' own halls.
+- **The royale is her burning of the books.** Eight of the nine schools' suits are broken in her palace; only one doctrine may remain. Her collapses fall on the schools' own halls.
 - **朕 ("We").** Already her voice. Historically the first emperor made 朕 the ruler's own word.
 - **Water and black.** The first emperor's court claimed the Water virtue (水德) and the colour black. Her dais, banners and the Tiger Demon's cracks glow are black and water-blue at the art stage.
 - **Her decrees are law (法), enforced by the two handles (二柄): reward and punishment.** The bounty is the reward handle (赏); the slow and mark for breaking a decree is the punishment handle (罚). The systems already built get their names, and no new system is added.
@@ -25,7 +25,7 @@ Dread stays aimed at her rules and her palace. No school's teaching is mocked; e
 5. **First kit sample: 法甲 (4), 儒甲 (2), 纵横甲 (1).** 法甲 is the empress's own doctrine and interacts with decrees and the mark, so it shows the theme fastest.
 6. **Owner fixes (19:57, the lead's two recommendations taken):** 农甲's sprouts heal and feed 农甲 only (as the GDD said); 杂甲 gets a dash of its own.
 
-## The ten (free-for-all: every kit must work solo)
+## The nine (free-for-all: every kit must work solo)
 Slots: attack, Q, W, R (ultimate), passive. Most kits have one dash, as in the GDD. Numbers come later in CONFIG. Stats are relative: Low, Mid or High.
 
 | Suit | Title | Role | HP | Speed | Range | Dash |
@@ -36,7 +36,6 @@ Slots: attack, Q, W, R (ultimate), passive. Most kits have one dash, as in the G
 | 墨甲 | 墨守 Mo Defender | Tank (zone) | High | Low | Mid | none |
 | 阴阳甲 | 五行 Five Phases | Mage (artillery) | Low | Mid | Long | W (short) |
 | 杂甲 | 门客 Retainer | Mage (control) | Mid | Mid | Mid | W |
-| 稗甲 | 稗官 Tale Officer | Support (trickster) | Low | Mid | Mid | Q |
 | 名甲 | 辩者 Debater | Marksman (swords) | Low | Mid | Long | Q (blink) |
 | 纵横甲 | 说客 Persuader | Control | Mid | Mid | Mid | W |
 | 农甲 | 耕者 Tiller | Support (sustain) | High | Low | Melee | W |
@@ -90,15 +89,6 @@ Slots: attack, Q, W, R (ultimate), passive. Most kits have one dash, as in the G
 - R **Encyclopaedia**: for a few seconds, every hit taken stores its skill and casts it back.
 - Plays with: every other kit.
 
-### 稗甲 · 稗官 (Tales school: street talk and rumour, the school the court does not count)
-- Owner decision kept: attacks with calligraphy and painting (brush strokes as projectiles and marks).
-- Passive **Hearsay**: sees decree warnings 2 s early.
-- Attack: ink stroke, mid range.
-- Q **Painted Double**: dash and leave a painted decoy that walks on (bots chase it).
-- W **Rumour**: a cone that reveals suits behind curtains and in fog for a moment.
-- R **Tall Tale**: paint an ink zone; enemies inside see their vision shrink and are slowed.
-- Plays with: bots, fog and hiding.
-
 ### 名甲 · 辩者 (School of Names: "a white horse is not a horse", the paradoxes)
 - Owner decision kept: attacks with the sword.
 - Passive **Hard and White Apart (离坚白)**: hits from range and hits up close are counted apart; alternating them adds damage.
@@ -127,5 +117,16 @@ Slots: attack, Q, W, R (ultimate), passive. Most kits have one dash, as in the G
 - Plays with: altars and the "Altars are dry" decree (its sprouts still work when altars are dry).
 
 ## Build notes
-- Code: none yet. Batch 16 builds 法甲 as the sample; batch 17 the other nine, with the panel per kit.
+- Code: none yet. Batch 16 builds 法甲 as the sample; batch 17 the other eight, with the panel per kit.
 - Art (after the owner says the loop works): black and water-blue for Kaymuse's court; each suit's look from its school's doctrine.
+
+## Not summoned (reference only, not in the match)
+### 稗甲 (dropped 23 Nov 20:03) · 稗官 (Tales school: street talk and rumour, the school the court does not count)
+- Owner decision kept: attacks with calligraphy and painting (brush strokes as projectiles and marks).
+- Passive **Hearsay**: sees decree warnings 2 s early.
+- Attack: ink stroke, mid range.
+- Q **Painted Double**: dash and leave a painted decoy that walks on (bots chase it).
+- W **Rumour**: a cone that reveals suits behind curtains and in fog for a moment.
+- R **Tall Tale**: paint an ink zone; enemies inside see their vision shrink and are slowed.
+- Plays with: bots, fog and hiding.
+
