@@ -39,8 +39,16 @@ Cause (diagnostic, seeds 12345/6/4): with no opening peace, 'near' and 'hit' fig
 and hit-back chains spread them; deaths begin at 5-14 s and 5-6 of 8 bots are out by about 60 s. The ramp length does not reach the cause. Batch 9 saw the same: without the peace, matches ended at 40-110 s.
 Owner chose to keep the current pacing (run about 4-5 min: royale 177-220 s + wake 3 s + hunt 62-68 s). Code stays at 14A; royale band stays 165-255 s (check 65).
 
-## Next batch: 15 ultimate charge (queue below). Panel note first, then ask the owner for go in ONE AskUserQuestion.
-Panel note 15 (lead, 23 Nov 21:40; proposal, waiting for owner go):
+## Batch 15 (STOPPED at gate 65, not committed; owner decision needed). Built as the panel note below (owner go 23 Nov 21:45), not tuned.
+Patch: /home/claude/batch15_wip.patch (session disk only; game code only: CONFIG.ULT, meter, R HUD ring and number, hooks setCharge/chargeOf/charge; checks not yet updated).
+Result: static PASS; runtime 83 of 91. Gate 65 FAILS: decided 152.3-211.4 s over 12 seeds (seed 3 at 152.3 s under 165; 12345 165.3, 9 166.9 at the edge); 14A was 176.9-220.2.
+The other 7 failures are checks that read the old R cooldown on purpose (26, 32, 48, 54, 60, 71, 76): they need setCharge / charge reads, not yet done.
+Cause (probe /home/claude/probe15, seeds 12345, 3, 9, 4): bots cast R 2-6 times per royale (12 seeds) vs 8-13 before; first R at 121-138 s (63 s in seed 3) vs 37-77 s. Control: the same build with ULT.modeOf ['lock'] (plain R cooldown) gives 220.0, 208.0, 181.1, 219.0 s (14A: 220.2, 181.1, 181.1, 219.0; seed 3 differs by the removed ult2x cooldown stand-in). So the meter's fewer ultimates shorten the royale. Why fewer ultimates mean shorter matches (e.g. R tells making bots dodge out of fights): NOT proven.
+Player R casts per royale (old autopilot): 0-2. Other sims (12 seeds): decrees per match 2-3; plate rate 2 of 12 (kennel autopilot 11 of 12); leader win share 4 of 12 (kennel 4 of 12); kennel autopilot decided 148.2-214.6 s.
+Choices (owner): accept a lower royale band, change one number (e.g. start charge, passive rate), or keep R ready at spawn as before. Mutation round not run (stopped first).
+
+## Next batch: 15 (blocked on the owner choice above), then 16 法甲 kit sample.
+Panel note 15 (lead, 23 Nov 21:40; owner go 21:45):
 - Model (6-1): R has a charge meter 0-100; R casts only at 100 and empties it. No cooldown in the royale. Tiger Demon unchanged (has its ultimate from the start).
 - Sources (one number set, CONFIG.ULT): passive 0.5/s; 0.25 per hp dealt to suits; 0.1 per hp taken; kill +20; plate +30 (GDD); crab 'ult' boon +20 x amount; bounty claimed = full 100; ult2x decree = every gain x2 (5-2; critic: 2x gains, not 2x passive only). Estimate (guess, not measured): an active fighter fills in about 30-40 s, close to today's 30 s cooldown.
 - Start: every run begins at 0 (7-0). Hunt: the wake fills it and the hunt keeps the 30 s cooldown as now (7-0; owner: no hunt tuning; check 42 unchanged).
@@ -54,6 +62,7 @@ Panel note 15 (lead, 23 Nov 21:40; proposal, waiting for owner go):
 15 ultimate charge (replaces the plate, crab, bounty and ultimates-2x stand-ins); 16 法甲 kit + suit stats sample (owner plays and approves); 17 the other eight kits (docs/SUITS.md); 18 hiding (curtains, 道甲 stillness, sight blocked by walls); 19 the ending + WINNER_STATUE; 20 final map size + balancing pass (re-measure, retune the CONFIG timing list once). Hunt sweep re-check with kits (0.15 s bot now loses demon-first).
 
 ## Owner decisions (dated)
+- 23 Nov 21:45: batch 15 "Go as written" (panel note 15).
 - 23 Nov 21:28: "4 5 min ok": batch 14B (10-minute game) dropped; a run of about 4-5 min (royale + wake + hunt) is fine; current pacing kept. Replaces 18:46 "each game about 10 min".
 - 23 Nov 20:56: the 10th spawn disc stays empty ON PURPOSE (it foreshadows the apex); no visual or text for it until art (comment above CONFIG.BOTS.count).
 - 23 Nov 20:42: hand off; restart batch 14 with the 9-suit change folded in (the stopped worker's edits discarded).
