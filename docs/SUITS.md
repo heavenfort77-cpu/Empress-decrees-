@@ -36,7 +36,7 @@ Slots: attack, Q, W, R (ultimate), passive. Most kits have one dash, as in the G
 | 墨甲 | 墨守 Mo Defender | Tank (zone) | High | Low | Mid | none |
 | 阴阳甲 | 太极 Taiji | Mage (artillery) | Low | Mid | Long | Q backstep (built into 阴) |
 | 杂甲 | 门客 Retainer | Mage (control) | Mid | Mid | Mid | W |
-| 名甲 | 辩者 Debater | Marksman | Low | Mid | Long | Q (blink) |
+| 名甲 | 辩者 Debater | Marksman | Low | Mid | Long | Q (shadow blink) |
 | 纵横甲 | 说客 Persuader | Control | Mid | Mid | Mid | W |
 | 农甲 | 耕者 Tiller | Support (sustain) | High | Low | Melee | W |
 
@@ -94,14 +94,14 @@ Source: 《周礼·地官·保氏》「乃教之六艺：一曰五礼，二曰�
 - R **Encyclopaedia**: for a few seconds, every hit taken stores its skill and casts it back.
 - Plays with: every other kit.
 
-### 名甲 · 辩者 (School of Names: "a white horse is not a horse", the paradoxes)
-- Owner, 23 Nov 20:25: the sword rule is removed; the weapon follows the frame the owner picks. The kit below is the old draft until then.
-- Passive **Hard and White Apart (离坚白)**: hits from range and hits up close are counted apart; alternating them adds damage.
-- Attack: thrown flying sword, long range.
-- Q **White Horse**: blink. A sword stays where you stood and strikes after a moment.
-- W **Flying Arrow at Rest** (from the debaters' paradox that a flying arrowhead has a moment when it neither moves nor stops): swords hang in the air in a line, then all fly.
-- R **Hundred Paradoxes**: a ring of hanging swords around a point that fires inward after a full tell.
-- Plays with: tells and dodging (every hanging sword is a visible tell).
+### 名甲 · 辩者 (School of Names; frame: the debaters' paradoxes, 辩者二十一事 in 《庄子·天下》; owner 23 Nov 20:25, sword rule removed)
+- Passive **一尺之棰，日取其半，万世不竭** (the rod halved each day never runs out): each hit in a row on the same target adds half of the bonus still left, so the bonus climbs toward +40% (the game cap) and never quite reaches it; switching target starts again.
+- Attack **轮不蹍地** (the wheel never touches the ground): a thrown bronze wheel, long range, that flies out and back (two chances to hit). Distinct from 儒甲's bow.
+- Q **飞鸟之景未尝动也** (the flying bird's shadow never moves), dash: he blinks; his shadow stays where he stood for about 1 s, and bots and auto-target take it for him.
+- W **镞矢之疾，而有不行不止之时** (the swift arrowhead has a moment when it neither moves nor stops): arrowheads hang in a line in the air, shown for about 1 s (anyone touching one is slowed), then all fly along the line.
+- R **指不至，至不绝** (pointing never arrives; arriving never ends): he points along a very long line, shown for about 1 s, then a piercing strike runs its whole length; every suit it passes is hit.
+- Panel (20:25): the wheel as the attack so 名甲 does not repeat 儒甲's bow 6-1; the halving passive capped at +40% 7-0; the shadow decoy 5-2 (players: decoys can feel cheap; answer: 1 s and only once per cast); full tells on W and R 7-0.
+- Plays with: tells and dodging, bots (the shadow), long sightlines from the heights.
 
 ### 纵横甲 · 说客 (Diplomatists: the vertical alliance 合纵 against the strong state, and the horizontal alliance 连横 that served it)
 - GDD decision kept: links two enemies so they share damage.

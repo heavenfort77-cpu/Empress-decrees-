@@ -138,7 +138,7 @@ Each suit's title, role and kit come from its school's own doctrine.
 | 墨家 | 墨甲 | 墨守 | Tank (zone), no dash | against aggression: holds ground, walls, crossbow engine |
 | 阴阳家 | 阴阳甲 | 太极 | Mage (artillery) | yin and yang skills unlock the 太极 ultimate |
 | 杂家 | 杂甲 | 门客 | Mage (control) | stores and casts back the last skill that hit it |
-| 名家 | 名甲 | 辩者 | Marksman | paradoxes of names (frame pending; sword rule removed 20:25) |
+| 名家 | 名甲 | 辩者 | Marksman | the debaters' paradoxes: thrown wheel, shadow blink, hanging arrowheads, endless-rod passive |
 | 纵横家 | 纵横甲 | 说客 | Control | links two enemies so they share damage; swaps places |
 | 农家 | 农甲 | 耕者 | Support (sustain) | plants heal and feed it; harvest ultimate |
 Match size: 9 suits, one per school (owner 20:03). The player plus 8 bots (built now: 9 bots; changes in the next code batch). Royale length: owner wants each game about 10 min (batch 14, not built yet); built now: about 3-4 min.
