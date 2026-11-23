@@ -20,10 +20,30 @@
 - Phone review link: https://claude.ai/artifact/3nQ67JCTmb1JfPKC3Y416z. Republish after each batch: copy index.html, swap the importmap path for https://cdn.jsdelivr.net/npm/three@0.171.0/build/three.module.min.js, publish to slug 1688f9ba-a0e5-4f7b-ac2e-3a68d6fc67c3 (get_artifact first for base_version). Live: version 1795421416-227f = batch 12 (6ab86c8).; batch 12 republish is done by the lead.
 - Project docs (claude/HANDOFF.md, claude/GDD.md, claude/code/index.html, claude/code/tests/run.mjs, claude/code/tests/static-check.mjs) are copies of repo files. The LEAD session syncs them after each batch with project_write local_path (a background worker cannot). If a write is refused, project_read first (code files print in full: do it once, then write).
 
-## Next batch: 13 (not chosen yet; ask the owner)
-Open items: decrees per royale under the GDD 3-4 (cause: the batch 11 queue keeps decree warnings 20 s clear of collapse warnings, and the bounty shares the slot; options: shorter clearS, or let a decree run over a collapse) - owner or panel; player plate rate and leader win share (tune or wait for kits); heights decree over a collapse forces a crossing (fair penalty or skip heights while a collapse is warned?); hiding; ultimate charge (bounty reward and ultimates 2x are cooldown stand-ins); school kits (W dash is a placeholder); the ending.
+## Batch 13 = decree pacing (13a) + plate rate (13b). Owner go 23 Nov 16:11; panel decided (judges, players, critics, design/tech leads; majority followed)
+Two scopes, two commits, each with its own checks, measure run and mutation round. 13a first.
+
+### 13a Decree pacing (GDD: about one a minute, 3-4 per royale; batch 12 gave 1-3)
+Cause (batch 12 log): decree warnings must start 20 s clear of a collapse warning; collapse warnings come every 40 s, so only a 20 s window in each 40 s is open, and a 30-45 s decree plus gap usually misses the next window (about one decree per 80 s).
+- P1 (vote 6-1): the clearance only keeps banners apart. A decree warning waits while a collapse or kennel banner shows or one starts within the next 5 s (was 20 s). A decree already in force runs on through a collapse. Against (critic): more rules at once for a new player; answered by one banner at a time and the HUD line.
+- P2 (vote 5-2): gap bag [5, 10, 10, 15] s (was [10, 15, 20, 25]). Length bag stays 30-45 s (GDD). Expected cycle about 52 s: warnings near 40, 92, 145, 197 s.
+- P3 (vote 7-0): the bounty counts as one of the 3-4 (it is in the GDD decree list).
+- P4 fairness (vote 6-1): no heights break while the suit stands on a warned section or within 3 s of leaving one (leaving a collapse must never cost a penalty; batch 12 seed 3 had 7 forced breaks). Same rule for the player and bots.
+- Gate: every one of the 12 seeded matches has 3 or 4 decrees (bounty included) announced before it is decided; banners never overlap; 0 heights breaks during or within 3 s of leaving a warned section. Report per seed.
+
+### 13b Plate rate (GDD: the player takes at least 1 plate in 70% of runs on average bots; batch 12 autopilot 2 of 12)
+Cause not yet proven. Order (lead rule: name the cause before the fix):
+- M1 measure first (no game change): per wave and seed, who took each plate, the autopilot's distance to the announced camps, whether it was alive, fighting or fleeing at the wave.
+- P5 (vote 5-2): the autopilot stands in for a human who reads the kennel banner: when not fighting, fleeing or healing, it walks to the nearest announced standing camp. Test-tool change in its own commit; report the plate rate with the old and the new autopilot side by side (never only the better number). Against (critic): tuning the proxy can hide a game problem; answered by reporting both.
+- P6 fallback, only if the new proxy is still under 70% (vote 4-2-1): each kennel wave puts one cub at every standing camp (up to 4 a wave, pool of 7 is enough; budget check 57 already draws 7). Lost: plate to the suit with most damage (2), first wave at 20 s (1).
+- Report leader win share too (batch 12: 25%, band edge); more plates may move it.
+- Gate: report the numbers; the 70% target is a GDD target for a human player, so a miss after P6 goes to the owner, not into further tuning.
+
+## Later
+Hiding; ultimate charge (bounty reward and ultimates 2x are cooldown stand-ins); school kits (W dash is a placeholder); the ending; hunt sweep re-check with kits (0.15 s bot now loses demon-first).
 
 ## Owner decisions (dated)
+- 23 Nov 16:11: go for batch 13 (decree pacing + plate rate) as decided by the panel; see "Batch 13".
 - 23 Nov 15:13: go for batch 12 (built as below).
 - 23 Nov 15:11 panel votes (batch 12): (1) placeholder W becomes a 4 m Dash, burst on landing, dash flag (6-1); (2) bridges: true silence with 'Silenced' feedback (7-0); (3) a marked suit: up to 2 bots may target it (4-2-1); (4) 'Our roof' becomes 'Our heights' (whole upper level) (5-2); (5) her break line, gold zone tint and outline, dry altars look empty (7-0); (6) ultimates 2x and altars dry as written.
 - 23 Nov 15:1x (batch 12 questions): bags draw decree, gap, length and zone; all 5 decrees now, none cut later; breaking = slow + mark; design note first, no code yet.
