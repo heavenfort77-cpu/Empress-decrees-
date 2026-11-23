@@ -30,7 +30,7 @@ Slots: attack, Q, W, R (ultimate), passive. Most kits have one dash, as in the G
 
 | Suit | Title | Role | HP | Speed | Range | Dash |
 |---|---|---|---|---|---|---|
-| 儒甲 | 君子 Junzi | Fighter | High | Mid | Melee | Q |
+| 儒甲 | 君子 Junzi | Fighter | High | Mid | Melee + Mid (auto) | Q |
 | 道甲 | 真人 Zhenren | Evasive duelist | Low | High | Melee | Q |
 | 法甲 | 廷尉 Law Officer | Assassin | Mid | High | Melee | Q |
 | 墨甲 | 墨守 Mo Defender | Tank (zone) | High | Low | Mid | none |
@@ -40,13 +40,15 @@ Slots: attack, Q, W, R (ultimate), passive. Most kits have one dash, as in the G
 | 纵横甲 | 说客 Persuader | Control | Mid | Mid | Mid | W |
 | 农甲 | 耕者 Tiller | Support (sustain) | High | Low | Melee | W |
 
-### 儒甲 · 君子 (Confucian: benevolence 仁, ritual 礼, rectifying names 正名)
-- Passive **Propriety (礼)**: bonus damage to the suit that last hit you. You answer the offender.
-- Attack: bronze ritual halberd, melee.
-- Q **Measured Step (中庸)**: 4 m dash ending in a short guard (less damage taken for a moment).
-- W **Rectify Names (正名)**: a short cone that strips the target's buffs (plates, boons). Its signature: answers a plate leader.
-- R **Benevolence (仁)**: heals over a few seconds; while it lasts, each hit taken heals a little.
-- Plays with: plates and the leader.
+### 儒甲 · 君子 (Confucian; kit = 君子六艺, owner 23 Nov 20:08-20:12)
+Source: 《周礼·地官·保氏》「乃教之六艺：一曰五礼，二曰六乐，三曰五射，四曰五驭，五曰六书，六曰九数」. Six arts in five slots; 射 and 数 share the attack.
+- Passive **礼 · 君子之争** (「君子无所争，必也射乎……其争也君子」): bonus damage to the suit that last hit him; less damage taken while only one enemy is near (a fair duel).
+- Attack **射 + 数, range-switching (owner 20:12)**: the basic attack changes with distance, no button. Close (target within about 2.5 m): **佩剑**, the gentleman's sword, a melee cut. Mid (out to about 6 m): **五射**, an arrow. **数**: every 6th hit of either kind is the strong one: 参连 (a three-arrow volley) at mid, a heavy cut that pushes back at close.
+- Q **御 · 五驭 · 逐禽左** (dash): chariot charge about 5 m; a suit it hits is driven to the side.
+- W **书 · 六书 · 正名**: brush-seal shot; the target's plates and boons stop working for a few seconds.
+- R **乐 · 六乐 · 编钟**: bronze bells ring three times around him over about 2 s, each ring shown on the ground first; each ring damages and slows, the third stuns briefly; every suit hit heals him (仁).
+- Panel (23 Nov 20:08): 射 as the attack 5-2 (then the owner's close/mid switch answered the players' melee wish); 数 as the 6th hit 6-1; 书·正名 strips plates and boons 7-0; 乐 bells with a full tell 7-0.
+- Plays with: plates and the leader (正名), the bounty, duels under the hunter cap.
 
 ### 道甲 · 真人 (Daoist: non-action 无为, water, "the soft overcomes the hard" 柔弱胜刚强)
 - Passive **Non-action (无为)**: standing still and not attacking for 2 s hides you (a shimmer within about 3 m). This is the suit's own hiding; silk curtains hide every suit.
