@@ -3068,6 +3068,8 @@ function tellsOf(list) {
     return { by: u.kind, move: u.cur, shape: m.shape, x: m.shape === 'line' ? u.x : u.tx, z: m.shape === 'line' ? u.z : u.tz, r: m.radius || 0, fx: u.fx, fz: u.fz, len: u.tl, w: m.width || 0,
       age: u.tellT, left: u.t, shown: mesh.visible, look: mesh.material === M.tellS ? 'S' : mesh.material === M.tellH ? 'H' : 'D' }; });
 }
+// Test hook helper (batch 14): true when an object's parent chain reaches the scene (it is drawn when visible).
+function onStage(o) { while (o) { if (o === scene) return true; o = o.parent; } return false; }
 window.__game = {
   step(n) { for (let i = 0; i < n; i++) step(CONFIG.STEP); },
   setMove(x, z) { testMove.on = true; testMove.x = x; testMove.z = z; },
@@ -3114,7 +3116,7 @@ window.__game = {
   startState: () => JSON.stringify([G.warnGen, G.decNext, P.pathGen, P.gx, P.gz, P.declined ? P.declined.id : -1, P.declinedT, P.lastByT, P.castT, P.tgtT, !!P.heal, !!P.skip, P.direct]),
   setDecNext(t) { G.decNext = t; }, drawDecBag(name) { return draw(DBAGS[name]); },
   pickDec(n) { const out = []; for (let i = 0; i < n; i++) { endDecree('test'); out.push(pickBagged() ? DEC.key + (DEC.zone ? ':' + DEC.zone.id : '') : '-'); DEC.key = ''; DEC.zone = null; DEC.len = 0; } return out; },
-  suits: () => SUITS.map((s) => ({ id: s.id, x: s.x, y: s.y, z: s.z, markT: s.markT, breaks: s.breaks, marker: s.marker.visible, slowT: s.slowT, slowK: s.slowK, dash: s.dashLeft, air: s.air, dead: s.dead,
+  suits: () => SUITS.map((s) => ({ id: s.id, x: s.x, y: s.y, z: s.z, markT: s.markT, breaks: s.breaks, marker: s.marker.visible, markerIn: onStage(s.marker), slowT: s.slowT, slowK: s.slowK, dash: s.dashLeft, air: s.air, dead: s.dead,
     hi: onHeights(s), floor: s.floor ? s.floor.sec : null, wsT: s.wsT })),
   sees: (i, j) => botSees(BOTLIST[i], j < 0 ? P : BOTLIST[j], CONFIG.VISION_R), zoneTinted: (id) => SEC[id].floorMeshes.every((m) => m.material === zoneMat),
   breakBy(i) { breakDecree(i < 0 ? P : BOTLIST[i]); }, setFace(x, z) { P.faceX = x; P.faceZ = z; },

@@ -1,14 +1,14 @@
-# Handoff (2026-11-23 20:45, after batch 13 + the design day: lore v2, nine suits and kits; written for a fresh session). GDD: docs/GDD.md (also Project "empress decrees", claude/GDD.md)
+# Handoff (2026-11-23, after batch 14A; 14B stopped at its band gate, owner decision needed). GDD: docs/GDD.md (also Project "empress decrees", claude/GDD.md)
 
 ## Session start (every session)
 1. Attach both repos: add_repo heavenfort77-cpu/Empress-decrees- (access push) and heavenfort77-cpu/dawnpunk (read; public, anonymous clone works). Dawnpunk = reference for frame-rate rules and bug pitfalls; read only the part needed.
 2. Clone with `--no-single-branch`; check out `batches-3-5` (PR #1 still open, not merged; use main only if it is merged: `gh api repos/heavenfort77-cpu/empress-decrees-/pulls/1 --jq .merged`, GraphQL is blocked).
 3. Read this file, then only the GDD section being changed (docs/SUITS.md for kits). Do not read the whole codebase. NEXT JOB: "Next batch: 14 (RESTART)" below.
-4. Run the checks before and after any change: `node tests/static-check.mjs && node tests/run.mjs` (`-v` for details, `-vv 56,65` for named checks). Report pass/fail as N of N and failing lines only. `-sims` prints the GDD sim numbers. Expected now: static PASS, runtime 91 of 91 (after 13b).
+4. Run the checks before and after any change: `node tests/static-check.mjs && node tests/run.mjs` (`-v` for details, `-vv 56,65` for named checks). Report pass/fail as N of N and failing lines only. `-sims` prints the GDD sim numbers. Expected now: static PASS, runtime 91 of 91 (after 14A + check 81 fix).
 5. Ask the owner the open questions under "Next batch" in ONE AskUserQuestion before building. Open design questions go to the panel (owner, 23 Nov 15:11).
 
 ## Status
-- Batches 1-13 done on branch `batches-3-5` (PR #1 open). The owner has NOT yet said the loop works; no art before that.
+- Batches 1-13 and 14A done on branch `batches-3-5` (PR #1 open). 14B (10-minute game) built but NOT committed: its band gate failed (below). The owner has NOT yet said the loop works; no art before that.
 - Built so far on boxes: map v2 (2 layers, collapses, hazards, altars), LoL/MLBB controls, fog of war, minimap, apex hunt (demon + 2 minions, skill transfer), royale cubs and plates, buff creatures from marble bags, 9 bots with a brain, royale end, player-target cap (hunter slot), leader + crown + HUD line, decree slot, bounty decree, five bagged decrees, W dash, slow + mark penalty.
 - Static PASS. Runtime 91 of 91 after 13b (13a: 83 decree pacing, 84 bounty paced like a decree; 13b: 85 kennel autopilot over 12 matches, 86 kennel autopilot fixed scene; headless Chromium, software GPU: correctness and counts only). Fixed seed 12345. Checks 1-55 run with ?bots=0 (map test); 56+ set bots themselves. Whole-match checks (65, 67, 69, 72, 78) run 12 seeds since batch 12 (was 6).
 - Mutation rounds: batches 4-8 all caught (batch 7 12 of 13, the miss an equivalent change); batch 9 32 of 32; batch 10 6 of 6; batch 11 10 of 10; batch 13a 8 of 8 fail the suite (6 fail the named check 83/56; 'gap old' fails 65, 'bounty ignores gap' fails 84; log /home/claude/batch13.log); batch 13b proxy 4 of 4 (85/86; 'no cub fight' missed 85 alone, closed by the fixed scene 86); batch 12 14 of 14 (first round 12 of 13: check 80 marked before the wake too early; fixed; plus check 82 catches the replay fix reverted). Script: /home/claude/probe12/mut.py (session disk).
@@ -23,7 +23,23 @@
 
 ## Batch 13 (done): decree pacing 13a (62f8f0d) + plate-rate test proxy 13b (fcc6d0e). Details in git history and the Status numbers above.
 
-## Next batch: 14 (RESTART, owner 23 Nov 20:42) = 10-minute game + the 9-suit match
+## Batch 14A (done, 517473a): nine schools. BOTS.count 8; 10 spawn discs, the 10th empty on purpose (owner 20:56). Dropped school's HUD name and colour removed (Bai): suit_1-8 = Dao, Fa, Mo, Yinyang, Za, Ming, Zongheng, Nong, each keeps its colour.
+Checks 56, 57, 64, 65, 67, 74, 81 and every bot setup read the count from CONFIG. Static PASS, runtime 91 of 91. Mutation round: 6 tried, 5 fail the suite, 4 the named check
+('count back to 9' aborts the runner: no TEXT key suit_9; 'marker never added to the scene' passed 81 -> closed by the check 81 fix commit: 81 now also requires each marker in the scene graph, hook suits().markerIn; 2 of 2 caught).
+12-seed sims (A, old timings): decided 176.9-220.2 s; kennel autopilot decided 175-226.6 s, plate 12 of 12, leader win share 0 of 12; decrees per match 2-3 (2 in 4 matches); old autopilot plate 3 of 12, leader win share 6 of 12.
+
+## Batch 14B (STOPPED at the band gate, not committed; owner decision needed)
+Built as planned (one number set): FIRST_WAVE_S 90, WAVE_INTERVAL_S 75 (last wave 390 s); KENNEL.firstS 20, six waves 20-320 s; BAGS.firstAddS -5 (creatures from 20 s); BOT.engage peaceS 0, rampS 360;
+CONFIG.ROYALE band [475, 589] and acts [300, 480]; HUD next-to-fall line with act and m:ss left (rebuilt only on change); checks 53, 65, 66, 83, 85 updated, 87 (band, kennel autopilot) and 88 (act line) added.
+Patch: /home/claude/batch14b_wip.patch and /home/claude/probe14/b_wip/ (session disk only; made on 14A; its check 81 / markerIn / onStage parts are already committed, skip those hunks when re-applying).
+M1: hunt won by the sweep bot in 62, 64, 68 s (test 42; losses 7-26 s); wake 3 s; run 9-11 min -> royale band 475-589 s.
+Result (12 seeds): kennel autopilot decided 86-260 s (12345 260, 2 191.1, 3 209.7, 4 86, 5 230.7, 6 206, 7 96.8, 8 140.4, 9 214.2, 10 159.2, 11 255.8, 12 158.6): 0 of 12 in band. Old autopilot 68-220.9 s, player out 15-71 s.
+Also failing under these numbers: 71 (scripted bounty scene) - not investigated. Suite wall 54 s (short matches).
+Cause (diagnostic, seeds 12345/6/4): with no opening peace, 'near' and 'hit' fights start at 4-11 s; a 3 m radius with p0 0.1 redrawn every declineS 4 s still starts fights within seconds of spawn,
+and hit-back chains spread them; deaths begin at 5-14 s and 5-6 of 8 bots are out by about 60 s. The ramp length does not reach the cause. Batch 9 saw the same: without the peace, matches ended at 40-110 s.
+Needs an owner/panel choice (a second number set or a rule change), per the owner's one-number-set rule: not tuned.
+
+## Next batch: 14B (blocked on the owner/panel choice above). Plan as written (owner 23 Nov 20:42) = 10-minute game + the 9-suit match
 The first batch 14 worker was stopped by the owner before any commit; its edits were discarded (patch kept only on the old session disk). Start clean from the branch head.
 Scope A, 9-suit match (owner 20:03): CONFIG.BOTS.count 9 -> 8 (player + 8 bots = the nine schools); keep the 10 spawn discs (one stays empty) unless the panel prefers 9; update every check that expects 9 bots or 10 suits (at least 56 n/distinct spawns, 57 bots in view, 64 "Place 10 of 10", 65/67 per-spawn win counts and matches); if a start line with "ten schools" exists in TEXT, it becomes "Hear ye Our decree: nine schools, one answer. Begin." Changed checks get a comment saying the game changed on purpose.
 Scope B, 10-minute game (owner 18:46, 18:48, 18:51, 18:53; panel plan below): a run that reaches the hunt lasts about 10 min (royale + wake + hunt). M1 first: measure the hunt length (test 42 sweep runs) and the royale length; set the royale band from it. No opening peace; bots' fight radius ramps from 3 m to full vision over about 6 min with the start chance rising with it; hunter cap unchanged (1, 2 marked, 3 bounty); cubs and creatures from about 20 s; two acts (skirmish 0-5 min, collapses from about 1:30 every about 75 s; closing 5-8 min, decided about 7:30-8:30); HUD "next to fall" line also shows the act and time left (TEXT keys, written only on change).
@@ -36,6 +52,7 @@ Panel record for B (23 Nov 18:46-18:48): same density, more of it (6-1, not stre
 15 ultimate charge (replaces the plate, crab, bounty and ultimates-2x stand-ins); 16 法甲 kit + suit stats sample (owner plays and approves); 17 the other eight kits (docs/SUITS.md); 18 hiding (curtains, 道甲 stillness, sight blocked by walls); 19 the ending + WINNER_STATUE; 20 final map size + balancing pass (re-measure, retune the CONFIG timing list once). Hunt sweep re-check with kits (0.15 s bot now loses demon-first).
 
 ## Owner decisions (dated)
+- 23 Nov 20:56: the 10th spawn disc stays empty ON PURPOSE (it foreshadows the apex); no visual or text for it until art (comment above CONFIG.BOTS.count).
 - 23 Nov 20:42: hand off; restart batch 14 with the 9-suit change folded in (the stopped worker's edits discarded).
 - 23 Nov 20:07-20:40: all nine kits designed with the owner, one per school (docs/SUITS.md): 儒 六艺 (range-switching attack), 道 道德经 counters, 阴阳 yin-yang lock on 太极, 法 法术势, 名 debaters' paradoxes (sword rule removed), 墨 墨守/墨经/非攻, 纵横 合纵/连横/不攻自破, 杂 兼儒墨，合名法, 农 播百谷/并耕/百草生机 (sprout cap 9, CONFIG). Hunt rules confirmed 20:40 for 纵横 (不攻自破 turns apex units on each other; minions hesitate) and 杂 (正名 seals the demon's stolen skills). 道甲 and 阴阳甲 keep their own ultimate rules when ultimate charge lands (batch 15).
 - 23 Nov 20:03: nine schools in the match (九流, "since that is accurate"): 稗甲 dropped and not summoned; player + 8 bots; her line "nine schools, one answer". Docs updated; code change (BOTS.count 9 -> 8 and the checks that expect 9 bots / 10 suits) goes in the next code batch.
@@ -99,7 +116,7 @@ Panel record for B (23 Nov 18:46-18:48): same density, more of it (6-1, not stre
 
 ## Files
 - index.html: whole game (one module script, CONFIG block at top, TEXT keys, map data). lib/: three.js r171 (MIT).
-- tests/static-check.mjs: per-frame rules, text keys, CONFIG comments, syntax, no Math.random. tests/run.mjs: 87 checks (33-45 apex hunt, 46-51 royale minions, 52-55 bags and buff creatures, 56-58 bot movement, 59-63 bot brain, 64-66 royale end and whole matches, 67-68 hunter slot, 69-74 leader, crown, bounty, player cap, budget with crown, 75-81 decree bags, the five decrees, penalty and mark, decrees in matches, W dash, wake/new run/keys, budget with marks, 82 replay of one seed).
+- tests/static-check.mjs: per-frame rules, text keys, CONFIG comments, syntax, no Math.random. tests/run.mjs: 91 checks (33-45 apex hunt, 46-51 royale minions, 52-55 bags and buff creatures, 56-58 bot movement, 59-63 bot brain, 64-66 royale end and whole matches, 67-68 hunter slot, 69-74 leader, crown, bounty, player cap, budget with crown, 75-81 decree bags, the five decrees, penalty and mark, decrees in matches, W dash, wake/new run/keys, budget with marks, 82 replay of one seed).
 - Suit object: SUITS[0] is the player (still named P in code); fields include hp, dead, cause, diedAt, killer, plates, boons, pk/pt (plate slots), bT/bV (boons). Generic helpers: hurtSuit(s, n, cause, by), suitDown, tickSuit, stepBody, hitTarget(by, d, n), hasPlate(s, k), cutUlt(s, sec).
 - Batch 11 hooks: leader, suitsState, plateTo, decreeKeys, ultOf; hunters() now has capOnP and max = current cap.
 - Batch 12 hooks: decree, forceDecree(key, zone, len, next), setDecNext, drawDecBag, pickDec, suits, sees, zoneTinted, breakBy, setFace, startState; hunters() has bountyP and markP; bots() list has markT, breaks, cd.

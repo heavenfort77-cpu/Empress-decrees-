@@ -1331,7 +1331,7 @@ try {
     dw.dryOn && dw.wake.st === 0 && dw.wake.zone === null && !dw.wake.tint && dw.wake.marks === 0 && dw.wake.hud === 'none' && dw.wake.altars && dw.hunt.st === 0 && dw.hunt.n === 0
     && dw.runs.every((r) => r.st === 0 && r.n === 0 && C0.DECREES.first.includes(r.next) && r.brk === 0 && r.log === 0 && r.marks === 0 && r.hud === 'none')
     && /West courtyard, south/.test(dw.voice) && /West courtyard, south/.test(dw.hud) && dw.keys.length === 0, JSON.stringify(dw));
-  // 81 Budget with every mark and the crown: heaviest royale (every suit; batch 14: 9 on purpose, 7 cubs, tells) with every suit's marker shown, the crown and the gold zone tint; no shader compile, geometry flat.
+  // 81 Budget with every mark and the crown: heaviest royale (every suit; batch 14: 9 on purpose, 7 cubs, tells) with every suit's marker shown and in the scene graph (batch 14: visible alone was not enough), the crown and the gold zone tint; no shader compile, geometry flat.
   const bk = await g(() => {
     const G = __game, C = G.config, K = window.__k, waves = C.KENNEL.waves; let best = null;
     try {
@@ -1341,7 +1341,7 @@ try {
       for (let n = 0; n < 600; n++) {
         for (let i = 0; i < G.config.BOTS.count; i++) G.placeBot(i, cx - 4 + (i % 3) * 3, cz + 2 + Math.floor(i / 3) * 1.5);
         for (let i = -1; i < G.config.BOTS.count; i++) if (G.suits()[i + 1].markT < 0.5) G.breakBy(i);
-        G.step(1); const c = G.cubs(), l = G.leader(), marks = G.suits().filter((s) => s.marker).length;
+        G.step(1); const c = G.cubs(), l = G.leader(), marks = G.suits().filter((s) => s.marker && s.markerIn).length;
         if (l.crownShown && marks === G.config.BOTS.count + 1 && G.zoneTinted('W1') && (!best || c.tells.length > best.tells)) { const r = G.render(true); best = { tells: c.tells.length, marks, crown: l.crownShown, calls: r.calls, tris: r.tris, programs: r.programs, geoms: r.geoms }; }
       }
     } finally { C.KENNEL.waves = waves; G.setBots(0); G.reset(); }
