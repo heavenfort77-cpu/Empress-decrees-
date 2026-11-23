@@ -250,7 +250,8 @@ try {
     G.reset(); G.teleport(d.x, d.z - 5); G.step(2);
     const q1 = G.cast(0, d.x, d.z), afterQ = hp(), q2 = G.cast(0, d.x, d.z), cdQ = G.skills()[0];
     sp(C.SKILLS[0].cd + 0.1); const q3 = G.cast(0, d.x, d.z), afterQ2 = hp();
-    const w = G.cast(1, d.x, d.z), afterW = hp();
+    // Batch 12 (panel, 23 Nov 15:11): W is now a 4 m dash with its burst on landing, so the hit comes when the dash ends (changed on purpose).
+    const w = G.cast(1, d.x, d.z); sp(0.3); const afterW = hp();
     const r = G.cast(2, d.x, d.z), pendNow = G.pending(), beforeR = hp(); sp(C.SKILLS[2].delay + 0.05); const afterR = hp(), pendAfter = G.pending();
     G.reset(); G.teleport(d.x, d.z - C.VISION_R - 2); G.step(2); G.cast(0, d.x, d.z); const hidden = hp();
     return { q1, afterQ, q2, cdQ: +cdQ.toFixed(2), q3, afterQ2, w, afterW, r, pendNow, beforeR, afterR, pendAfter, hidden };
@@ -289,7 +290,8 @@ try {
     const G = __game, d = G.dummies()[1];
     G.reset(); G.teleport(d.x, d.z - 5); G.step(2); G.render(false);
     const [nx, ny] = G.project(d.x, 1, d.z), a = G.aimKey(0, nx, ny); G.releaseKey(); const hpQ = G.dummies()[1].hp;
-    const b = G.aimKey(1, nx, ny); G.releaseKey(); const hpW = G.dummies()[1].hp;
+    // Batch 12: W dashes 4 m toward the cursor and bursts on landing (changed on purpose): step past the dash before reading.
+    const b = G.aimKey(1, nx, ny); G.releaseKey(); G.step(20); const hpW = G.dummies()[1].hp;
     return { q: a.ind, hpQ, w: b.ind, hpW };
   });
   check('29 desktop key aim: indicators, release casts at cursor', key.q[0] && key.q[1] && !key.q[2] && key.hpQ === 75 && key.w[0] && key.w[2] && key.hpW === 55, JSON.stringify(key));
@@ -504,6 +506,8 @@ try {
           if (Math.hypot(p.x - lastX, p.z - lastZ) < 0.01) turn++; else turn = 0;
           if (turn > 2) { const t = mx; mx = -mz; mz = t; }
           const l = Math.hypot(mx, mz) || 1; G.setMove(mx / l, mz / l);
+          // Batch 12: W is a dash now (changed on purpose); the bot uses it to leave a tell it has seen (the owner's reason for dashes vs the apex).
+          if (G.skills()[1] === 0) G.cast(1, p.x + mx / l * 4, p.z + mz / l * 4);
         } else {
           G.clearMove();
           let ti = -1; for (const i of order) if (h.units[i].alive) { ti = i; break; }
@@ -511,7 +515,7 @@ try {
           if (u.seen) {
             G.attackUnit(ti);
             const cd = G.skills();
-            for (let s = 0; s < 3; s++) if (cd[s] === 0 && d <= C.SKILLS[s].range && !(s === 2 && G.pending())) G.cast(s, u.x, u.z);
+            for (let s = 0; s < 3; s++) if (s !== 1 && cd[s] === 0 && d <= C.SKILLS[s].range && !(s === 2 && G.pending())) G.cast(s, u.x, u.z);
           } else G.setMove((u.x - p.x) / d, (u.z - p.z) / d);
         }
         lastX = p.x; lastZ = p.z; G.step(1); steps++;
@@ -732,7 +736,8 @@ try {
       const b = G.bots(), s = G.state();
       for (const q of b.list) {
         if (!q.standOk) bad(`t${t} bot${q.id} off floor`);
-        if (q.seen && Math.hypot(q.x - s.x, q.z - s.z) > G.neutrals().visR + 1e-6) bad(`t${t} bot${q.id} seen outside vision`);
+        // Batch 12: a marked suit is seen from anywhere (panel, 23 Nov 15:11); otherwise only inside the player's vision.
+        if (q.seen && q.markT <= 0 && Math.hypot(q.x - s.x, q.z - s.z) > G.neutrals().visR + 1e-6) bad(`t${t} bot${q.id} seen outside vision`);
         if (q.dead && q.inScene) bad(`t${t} bot${q.id} out but drawn`);
       }
     }
@@ -849,7 +854,7 @@ try {
   // 65 Whole matches, 6 seeds (12345, 2, 3, 4, 5, 6), the player driven by the bot brain (autopilot) and the match watched to the end:
   // decided in about 3-4 min (165-255 s), always-true checks every tick, every suit that is out has a cause, bots took plates and boons, no spawn wins more than 3 of 6.
   const ms = await g(() => {
-    const G = __game, C = G.config, out = [], viol = [], bad = (s) => { if (viol.length < 5) viol.push(s); }, wins = {};
+    const G = __game, C = G.config, out = [], viol = [], bad = (s) => { if (viol.length < 5) viol.push(s); }, wins = {}, wins6 = {};
     const CAUSES = ['hit', 'hazard', 'fall', 'bleed', 'drop'];
     let plates = 0, boons = 0;
     // Hunter slot (batch 10): every tick at most maxHunters bots target the player by the on-sight switch; flags, slots and targets agree.
@@ -860,11 +865,17 @@ try {
     const lv = [], lbad = (x) => { if (lv.length < 5) lv.push(x); }; let lchanges = 0, leadersSeen = 0, preLeadBad = 0;
     const cv = [], cbad = (x) => { if (cv.length < 5) cv.push(x); }; let capOff = 0, capOn = 0, bountyPTicks = 0;
     const sh = { onSee: 0, onFight: 0, offSee: 0, offFight: 0 }, sims = [];
+    // Batch 12: decree slot over the matches: every warning >= DECREE.warnS before its start, never begun under a collapse banner, slots never overlap
+    // (bagged and bounty), HUD writes only on change; bots off Our heights unless crossing them to leave a warned section; breaks and marks counted.
+    const dv = [], dbad = (x) => { if (dv.length < 5) dv.push(x); }; let capMark = 0, markPTicks = 0, hiStay = 0; const dsum = [];
     const rule = (st, prev) => { let best = -1, bp = 0, bk = 0; st.forEach((v, i) => { if (v < 0) return; const p = v % 4, k = (v - p) / 4; if (p > bp || (p === bp && k > bk)) { best = i; bp = p; bk = k; } });
       if (best >= 0 && prev >= 0 && st[prev] >= 0 && st[prev] === st[best]) best = prev; return best; };
-    for (const seed of [12345, 2, 3, 4, 5, 6]) {
+    // Batch 12: 12 seeds (was 6): bagged decrees share the slot with the bounty by design, so bounties are rarer per match; more matches keep the
+    // bounty share in 72 at its sample bar. The 6-seed win rule of 65 stays on the first 6; every other rule holds for all 12.
+    for (const seed of [12345, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]) {
       G.setSeed(seed); G.setBots(9); G.reset(); G.autoPlayer(true); G.setWatch(true);
       let prevAlive = 10, t = 0, prevL = -1; const leadS = {};
+      let prevSt = 0, prevKey = '', cur = null; const iv = [], stay = {};
       for (; t < 300 / C.STEP; t++) {
         G.step(1); const r = G.royale();
         const l = G.leader(), st = G.suitsState();
@@ -875,8 +886,18 @@ try {
           if ((l.crownOn && l.crownId !== l.id) || (!l.crownOn && l.id >= 0)) lbad(`s${seed} t${t} crown on ${l.crownId} leader ${l.id}`);
           prevL = l.id;
         }
-        const hc = G.hunters(); if (hc.bountyP) { bountyPTicks++; if (hc.capOnP > capOn) capOn = hc.capOnP; } else if (hc.capOnP > capOff) capOff = hc.capOnP;
-        if (hc.capOnP > hc.max || hc.max !== (hc.bountyP ? C.BOUNTY.maxHunters : C.BOT.maxHunters)) cbad(`s${seed} t${t} ${JSON.stringify(hc)}`);
+        // Batch 12 (panel 23 Nov 15:11): a marked player raises the cap to DECREES.markCap (the bounty's 3 still wins); changed on purpose.
+        const hc = G.hunters(); if (hc.bountyP) { bountyPTicks++; if (hc.capOnP > capOn) capOn = hc.capOnP; } else if (hc.markP) { markPTicks++; if (hc.capOnP > capMark) capMark = hc.capOnP; } else if (hc.capOnP > capOff) capOff = hc.capOnP;
+        if (hc.capOnP > hc.max || hc.max !== (hc.bountyP ? C.BOUNTY.maxHunters : hc.markP ? C.DECREES.markCap : C.BOT.maxHunters)) cbad(`s${seed} t${t} ${JSON.stringify(hc)}`);
+        const dc = G.decree();
+        if (dc.st >= 2 && (prevSt < 2 || dc.key !== prevKey)) { if (cur && cur.end < 0) cur.end = G.royale().t; if (l.bw >= 0) dbad(`s${seed} t${t} ${dc.key} warning under a collapse banner`); cur = { key: dc.key, warn: G.royale().t, start: -1, end: -1 }; iv.push(cur); }
+        if (cur && dc.st === 3 && cur.start < 0) cur.start = G.royale().t;
+        if (cur && dc.st < 2 && cur.end < 0) cur.end = G.royale().t;
+        prevSt = dc.st; prevKey = dc.key;
+        if (dc.st === 3 && dc.key === 'heights') {
+          const bl = G.bots().list;
+          for (const q of G.suits()) { if (q.id === 0) continue; const b = bl[q.id - 1]; if (q.hi && b.mode !== 'flee') { stay[q.id] = (stay[q.id] || 0) + C.STEP; if (stay[q.id] > hiStay) hiStay = stay[q.id]; } else stay[q.id] = 0; }
+        }
         if (t % 5 === 0 && l.id >= 0) {
           const pl = G.player(), bl = G.bots().list, L = l.id === 0 ? pl : bl[l.id - 1], on = l.dec === 3 && l.decTgt === l.id;
           for (const q of bl) {
@@ -887,7 +908,8 @@ try {
         if (r.alive > prevAlive) bad(`s${seed} t${t} alive rose`); prevAlive = r.alive;
         const hu = G.hunters();
         if (hu.huntOnP > hu.max || hu.slots > hu.max || hu.flagged !== hu.slots || hu.huntOnP > hu.flagged) hbad(`s${seed} t${t} ${JSON.stringify(hu)}`);
-        if (hu.seeP >= 3) see3++; if (hu.onP > maxOnP) maxOnP = hu.onP; if (hu.huntOnP > maxHunt) maxHunt = hu.huntOnP;
+        // Batch 12: on-sight switches are compared with BOT.maxHunters only while the cap is 1 (a mark or a bounty raises it on purpose).
+        if (hu.seeP >= 3) see3++; if (hu.onP > maxOnP) maxOnP = hu.onP; if (hu.max === C.BOT.maxHunters && hu.huntOnP > maxHunt) maxHunt = hu.huntOnP;
         if (t % 20 === 0) {
           for (const q of G.bots().list) {
             if (!q.dead && (q.hp <= 0 || q.hp > C.MAX_HP + 1e-6)) bad(`s${seed} t${t} bot${q.id} hp ${q.hp}`);
@@ -900,18 +922,28 @@ try {
       const b = G.bots(), p = G.player(), r = G.royale();
       const all = b.list.map((q) => ({ spawn: q.spawn, dead: q.dead, cause: q.cause })).concat([{ spawn: C.PLAYER_SPAWN, dead: p.dead, cause: p.cause }]);
       const win = all.find((q) => !q.dead), nocause = all.filter((q) => q.dead && !CAUSES.includes(q.cause)).length;
-      if (win) wins[win.spawn] = (wins[win.spawn] || 0) + 1;
+      if (win) { wins[win.spawn] = (wins[win.spawn] || 0) + 1; if (out.length < 6) wins6[win.spawn] = (wins6[win.spawn] || 0) + 1; }
       plates += b.list.reduce((a, q) => a + q.plates, 0); boons += b.list.reduce((a, q) => a + q.boons, 0);
+      {
+        const dd = G.decree(); if (cur && cur.end < 0) cur.end = G.royale().t;
+        for (let i = 0; i < iv.length; i++) {
+          const a = iv[i]; if (a.start >= 0 && a.start - a.warn < C.DECREE.warnS - 1e-6) dbad(`s${seed} ${a.key} told ${(a.start - a.warn).toFixed(2)} s`);
+          if (i > 0 && a.warn < iv[i - 1].end - 1e-6) dbad(`s${seed} overlap ${iv[i - 1].key}/${a.key}`);
+        }
+        const inForce = iv.filter((a) => a.start >= 0 && a.key !== 'bounty').reduce((x, a) => x + (a.end - a.start), 0), nb = iv.filter((a) => a.key !== 'bounty').length;
+        if (dd.writes > inForce + 3 * nb + 2) dbad(`s${seed} HUD writes ${dd.writes} for ${inForce.toFixed(0)} s`);
+        dsum.push({ seed, n: dd.n, keys: iv.map((a) => a.key).join(','), brkP: dd.brkP, brkB: dd.brkB, writes: dd.writes });
+      }
       const lw = G.leader(), top = Object.entries(leadS).sort((x, y) => y[1] - x[1])[0], winId = b.list.concat([{ id: 0, dead: p.dead }]).find((q) => !q.dead);
       sims.push({ seed, topLeader: top ? +top[0] : -1, winId: winId ? winId.id : -1, pPlates: p.plates, bounties: lw.n, paid: lw.paid });
       const place = p.dead ? 1 + b.list.filter((q) => !q.dead || q.diedAt > p.diedAt).length : 1, firstOut = Math.min(...b.list.filter((q) => q.dead).map((q) => q.diedAt), p.dead ? p.diedAt : 1e9);
       out.push({ seed, decided: +r.decidedAt.toFixed(1), winner: win ? win.spawn : -1, player: p.dead ? p.cause + '@' + Math.round(p.diedAt) : 'won', place, playerFirst: p.dead && p.diedAt <= firstOut, nocause });
       G.setWatch(false); G.autoPlayer(false);
     }
-    G.setBots(0); G.reset(); return { out, viol, wins, plates, boons, hunt: { hv, see3, maxOnP, maxHunt }, lead: { lv, lchanges, leadersSeen, preLeadBad }, cap: { cv, capOff, capOn, bountyPTicks }, sh, sims };
+    G.setBots(0); G.reset(); return { out, viol, wins, wins6, plates, boons, hunt: { hv, see3, maxOnP, maxHunt }, lead: { lv, lchanges, leadersSeen, preLeadBad }, cap: { cv, capOff, capOn, bountyPTicks, capMark, markPTicks }, sh, sims, dec: { dv, hiStay: +hiStay.toFixed(2), dsum } };
   });
   check('65 whole matches x6: decided in 165-255 s, 0 broken invariants, every out has a cause, bots take plates and boons, no spawn wins more than 3 of 6',
-    ms.out.every((m) => m.decided >= 165 && m.decided <= 255 && m.nocause === 0) && ms.viol.length === 0 && ms.plates > 0 && ms.boons > 0 && Math.max(...Object.values(ms.wins)) <= 3, JSON.stringify(ms));
+    ms.out.every((m) => m.decided >= 165 && m.decided <= 255 && m.nocause === 0) && ms.viol.length === 0 && ms.plates > 0 && ms.boons > 0 && Math.max(...Object.values(ms.wins6)) <= 3, JSON.stringify(ms));
   // 67 Hunter slot over the 6 whole matches of 65 (owner, 23 Nov 14:04): with 3 or more bots seeing the player, at most BOT.maxHunters bots
   // target the player by the on-sight switch at any tick; the case did happen; slot count, flags and targets agree every tick.
   check('67 hunter slot: at most maxHunters bots switch to the player at any tick over 6 matches (3+ bots seeing the player happened)',
@@ -945,6 +977,8 @@ try {
   // with BOUNTY.chase as set vs 0 (control). Same seed, same places.
   const bs = await g(() => {
     const G = __game, C = G.config, keep = C.BOUNTY.chase, o = {};
+    // Batch 12: bagged decrees off for this controlled bounty scene (they share the slot by design), back on at the end.
+    C.DECREES.on = false;
     const one = (ch) => {
       C.BOUNTY.chase = ch; G.setSeed(21); G.setBots(5); G.reset(); G.setHp(1e9); for (let i = 0; i < 5; i++) G.setBotHp(i, 1e9); G.teleport(0, -40);
       const hold = () => { G.placeBot(0, 0, -52); for (let i = 1; i < 5; i++) G.placeBot(i, 6 * Math.cos(i * 1.5708), -52 + 6 * Math.sin(i * 1.5708)); };
@@ -954,11 +988,11 @@ try {
       for (let k = 0; k < 12 / C.STEP; k++) { hold(); G.step(1); for (const q of G.bots().list.slice(1)) { n++; if (q.tgt === 1 && q.mode === 'fight') f++; } }
       return { on, t: +G.leader().t.toFixed(1), share: +(f / n).toFixed(3) };
     };
-    try { o.bounty = one(keep); o.control = one(0); } finally { C.BOUNTY.chase = keep; G.setBots(0); G.reset(); }
+    try { o.bounty = one(keep); o.control = one(0); } finally { C.BOUNTY.chase = keep; C.DECREES.on = true; G.setBots(0); G.reset(); }
     return o;
   });
   check('72 cap and bounty in matches: player cap holds every tick (1, or 3 under a bounty on the player), bots fight a seen leader more under the bounty',
-    ms.cap.cv.length === 0 && ms.cap.capOff <= C0.BOT.maxHunters && ms.cap.capOn <= C0.BOUNTY.maxHunters && ms.sh.onSee > 50 && shOn > shOff
+    ms.cap.cv.length === 0 && ms.cap.capOff <= C0.BOT.maxHunters && ms.cap.capOn <= C0.BOUNTY.maxHunters && ms.cap.capMark <= C0.DECREES.markCap && ms.sh.onSee > 50 && shOn > shOff
     && bs.bounty.on && bs.control.on && bs.bounty.t < 120 && bs.bounty.share >= 0.15 && bs.control.share === 0,
     JSON.stringify(ms.cap) + ` share on ${shOn.toFixed(2)} (${ms.sh.onSee}) off ${shOff.toFixed(2)} (${ms.sh.offSee}) controlled ${JSON.stringify(bs)}`);
   {
@@ -994,6 +1028,8 @@ try {
   // the wake ends it and none in the hunt; new run x3 resets it; text keys exist.
   const bt = await g(() => {
     const G = __game, C = G.config, K = window.__k, o = {}, B = C.BOUNTY, D = C.DECREE;
+    // Batch 12: bagged decrees share the slot by design; this scene tests the bounty alone, so they are switched off here and back on at the end.
+    C.DECREES.on = false;
     const hold = () => { G.placeBot(0, 0, -50); G.placeBot(1, 3, -50); G.placeBot(2, -3, -50); };
     const start = (s) => { G.setSeed(s); G.setBots(3); G.reset(); G.setHp(1e9); for (let i = 0; i < 3; i++) G.setBotHp(i, 1e9); G.teleport(0, -45); hold(); };
     const run = (sec, each) => { for (let n = 0; n < Math.round(sec / C.STEP); n++) { hold(); G.step(1); if (each && each()) return true; } return false; };
@@ -1026,7 +1062,7 @@ try {
     o.fresh = [];
     for (let r = 0; r < 3; r++) { G.setSeed(10 + r); G.setBots(3); G.reset(); const l = G.leader(); o.fresh.push(l.dec === 0 && l.n === 0 && l.paid === 0 && l.id === -1 && !l.crownOn && l.endAt === -1 && G.player().kills === 0); }
     o.keys = G.decreeKeys();
-    G.setBots(0); G.reset(); return o;
+    C.DECREES.on = true; G.setBots(0); G.reset(); return o;
   });
   check('71 bounty: queued off collapse banners, told >= 5 s after 25 s of lead, lasts 40 s, pays only for breaking the leader in force, ends on leader out and at the wake, none in the hunt, new run x3 resets, keys',
     bt.queued === 1 && bt.warn.at >= 60 && bt.warn.sinceLead >= 25 && /bounty lieth/.test(bt.warn.voice) && /Bounty on the leader \(Dao suit\) in \d s/.test(bt.warn.rule) && bt.warn.shown === 'block'
@@ -1039,6 +1075,8 @@ try {
   // in peace the player hits 2 of them: both answer (hitting back is not capped); a bounty on the player lets up to 3 fight it, back to 1 the tick it ends.
   const pc = await g(() => {
     const G = __game, C = G.config, K = window.__k, o = { near: 0, nearMax: 0, hitMax: 0, onMax: 0, afterMax: 0, afterBad: 0 };
+    // Batch 12: bagged decrees off for this bounty scene (they share the slot; a mark would also change the cap), back on at the end.
+    C.DECREES.on = false;
     G.setSeed(7); G.setBots(3); G.reset(); G.setHp(1e9); for (let i = 0; i < 3; i++) G.setBotHp(i, 1e9);
     G.setTime(C.BOT.engage.peaceS + C.BOT.engage.rampS + 1); G.teleport(0, -45);
     const near = () => { G.placeBot(0, 2, -45); G.placeBot(1, -2, -45); G.placeBot(2, 0, -43); };
@@ -1057,7 +1095,7 @@ try {
       if (G.leader().dec === 3) { n = 0; if (h.capOnP > o.onMax) o.onMax = h.capOnP; } else { ended = true; if (h.capOnP > o.afterMax) o.afterMax = h.capOnP; }
       if (n > 1e5) break;
     }
-    G.setBots(0); G.reset(); return o;
+    C.DECREES.on = true; G.setBots(0); G.reset(); return o;
   });
   check('73 player cap: 1 bot by any rule but hitting back, 2 answer the player\'s hits, up to 3 under a bounty on the player and back to 1 after',
     pc.nearMax === 1 && pc.hitMax >= 2 && pc.onP && pc.onMax >= 2 && pc.onMax <= 3 && pc.afterMax <= 1, JSON.stringify(pc));
@@ -1078,6 +1116,155 @@ try {
   });
   check('74 budget with the crown: 10 suits + cubs + tells + crown (calls<500, tris<500k), no shader compile, geometry flat',
     !!bc && bc.crown && bc.tells >= 3 && bc.calls < 500 && bc.tris < 500000 && bc.programs === base.programs && bc.geoms === base.geoms, JSON.stringify(bc));
+  // ===== Batch 12: five bagged decrees, W dash, silence, heights, mark (panel 23 Nov 15:11) =====
+  // Scripted decree scenes: one bot kept in the core hall so the match code runs; bagged requests pushed far away (forced decrees only).
+  await g(() => { const G = __game, C = G.config; window.__d = {
+    start(n) { G.setSeed(12345); G.setBots(n || 1); G.reset(); G.setDecNext(1e9); G.setHp(1e9); for (let i = 0; i < (n || 1); i++) G.setBotHp(i, 1e9); G.placeBot(0, 0, -50); },
+    hold(sec, fn) { for (let k = 0; k < Math.round(sec / C.STEP); k++) { if (fn) fn(); G.step(1); } },
+    park() { G.placeBot(0, 0, -50); } }; });
+  // 75 Decree bags: every cycle is the whole bag in a new order; same seed = same draws, another seed differs; once the bridges and every high floor have
+  // fallen, the bags never pick the bridge or heights decree and no zone that has fallen (gone places skipped).
+  const dbg = await g(() => {
+    const G = __game, C = G.config, D = C.DECREES, names = ['which', 'first', 'gap', 'len', 'zones'], o = { cycles: true };
+    const seq = (seed) => { G.setSeed(seed); G.setBots(1); G.reset(); const out = {}; for (const n of names) { const len = D[n].length; out[n] = []; if (n === 'first') for (let i = 0; i < len - 1; i++) G.drawDecBag(n); for (let i = 0; i < len * 3; i++) out[n].push(G.drawDecBag(n)); } return out; };
+    const a = seq(777), b = seq(777), c = seq(778);
+    for (const n of names) { const want = JSON.stringify(D[n].slice().sort()), len = D[n].length; for (let k = 0; k < 3; k++) if (JSON.stringify(a[n].slice(k * len, (k + 1) * len).sort()) !== want) o.cycles = false; }
+    o.same = JSON.stringify(a) === JSON.stringify(b); o.differs = JSON.stringify(a) !== JSON.stringify(c);
+    G.setBots(0); G.reset(); G.step(Math.round((C.FIRST_WAVE_S + 3 * C.WAVE_INTERVAL_S + C.COLLAPSE_FALL_S + 1) / C.STEP));
+    const sec = G.state().sec, picks = G.pickDec(30);
+    o.picks = [...new Set(picks)].sort().join(' ');
+    o.goneOk = picks.every((k) => k !== 'silence' && k !== 'heights' && (!k.startsWith('nodash') || sec[k.split(':')[1]] === 0)) && picks.some((k) => k.startsWith('nodash')) && picks.every((k) => k !== '-');
+    G.setSeed(12345); G.reset(); return o;
+  });
+  check('75 decree bags: full cycles without repeats, seeded, gone places skipped (no bridge, heights or fallen zone after their collapse)', dbg.cycles && dbg.same && dbg.differs && dbg.goneOk, JSON.stringify(dbg));
+  // 76 The five decrees each do what their rule line says, only while in force: altars dry (heal in the warning, none in force, empty look, back after);
+  // ultimates 2x (player and bot, clamped at 0); silence (no new cast on a bridge with the note, status and button look; a cast released before still lands;
+  // a bot on a bridge only attacks); heights (no break in the warning, break with slow + mark, again every 2 s, none on low ground; slope top counts, its foot does not;
+  // a bot on the terrace at the warning leaves in time); no dash (zone tinted gold and outlined on the minimap, named in her line; a dash in the zone breaks it, outside not).
+  const dfx = await g(() => {
+    const G = __game, C = G.config, D = C.DECREES, H = window.__d, o = {};
+    H.start(); const a = G.altars()[2]; G.teleport(a.x + 1.2, a.z); G.setHp(50);
+    G.forceDecree('dry', null, 4); H.hold(0.5, H.park); o.warnHeal = G.state().hp > 50;
+    G.teleport(0, -14); H.hold(4.6, H.park); G.teleport(a.x + 1.2, a.z); G.setHp(50); H.hold(2, H.park);
+    o.dryHeal = +(G.state().hp - 50).toFixed(3); o.dryLook = G.altars().every((x) => !x.on); o.hud = G.decree().hud; o.hudShown = G.decree().hudShown;
+    H.hold(2.2, H.park); o.endSt = G.decree().st; G.setHp(50); H.hold(1, H.park); o.afterHeal = G.state().hp > 50; o.afterLook = G.altars()[2].on; o.hudGone = G.decree().hudShown;
+    H.start(); G.teleport(0, -14); G.cast(2, 0, -5); G.setBotCd(0, 2, 30); H.hold(5, H.park); const p0 = G.ultOf(-1), b0 = G.ultOf(0);
+    H.hold(0.001, H.park); G.forceDecree('ult2x', null, 10); H.hold(5, H.park); const p1 = G.ultOf(-1), b1 = G.ultOf(0); H.hold(5, H.park); const p2 = G.ultOf(-1), b2 = G.ultOf(0);
+    o.ultWarn = +((p0 - p1) / 5).toFixed(2); o.ultOn = +((p1 - p2) / 5).toFixed(2); o.botOn = +((b1 - b2) / 5).toFixed(2); G.setBotCd(0, 2, 0.5); H.hold(1, H.park); o.botClamp = G.ultOf(0);
+    H.start(); G.forceDecree('silence', null, 30); G.teleport(0, -24); H.hold(5.1, H.park);
+    const nearB = () => G.placeBot(0, -18, 6); G.setBotHp(0, 1000); G.teleport(-15, 6); H.hold(0.1, nearB);
+    o.castOff = G.cast(2, -18, 6); G.teleport(-24, 6); H.hold(1.2, nearB); o.released = 1000 - G.bots().list[0].hp; G.setBotHp(0, 1e9); G.teleport(-30, 6); G.step(1); o.castOn = G.cast(0, -30, -2);
+    const dc = G.decree(); o.silNote = dc.voice; o.silStatus = dc.status; o.silBar = dc.barSilenced;
+    const atB = () => G.placeBot(0, -28.5, 6); G.hitBy(-1, 0, 1); const hp0 = G.state().hp; H.hold(2, atB);
+    o.botCdOn = G.bots().list[0].cd.join(); o.botHit = hp0 - G.state().hp; o.botTgt = G.bots().list[0].tgt;
+    G.teleport(14, -14); const offB = () => G.placeBot(0, 17, -14); G.hitBy(-1, 0, 1); H.hold(2, offB); o.botCdOff = G.bots().list[0].cd.some((v) => v > 0); o.barOff = G.decree().barSilenced;
+    H.start(); G.teleport(-55, -15); G.placeBot(0, -42, -18); G.forceDecree('heights', null, 10); H.hold(4.9);
+    let s = G.suits(); o.warnBrk = s[0].breaks; o.botWarnHi = s[1].hi; H.hold(0.25);
+    s = G.suits(); o.brk1 = s[0].breaks; o.mark = +s[0].markT.toFixed(2); o.marker = s[0].marker; o.slow = [+s[0].slowT.toFixed(2), s[0].slowK]; o.markVoice = G.decree().voice;
+    o.botHi = s[1].hi; o.botBrk = s[1].breaks;
+    H.hold(1); o.brk1b = G.suits()[0].breaks; H.hold(1.1); o.brk2 = G.suits()[0].breaks;
+    G.teleport(0, 0); H.hold(3); o.brkLow = G.suits()[0].breaks;
+    G.teleport(-37.5, -18); G.step(1); o.slopeTop = G.suits()[0].hi; G.teleport(-25.5, -18); G.step(1); o.slopeFoot = G.suits()[0].hi;
+    H.start(); G.teleport(5, 0); G.forceDecree('nodash', 'C2', 20); const z = G.floors().find((f) => f.sec === 'C2');
+    o.tint = G.zoneTinted('C2'); o.zone = G.decree().zoneSec; o.zoneVoice = G.decree().voice; o.miniGold = G.miniPixel(z.x0 + 0.8, (z.z0 + z.z1) / 2);
+    H.hold(5.1, H.park); G.cast(1, 5, 10); H.hold(0.4, H.park); o.dashBrk = G.suits()[0].breaks; o.dashMark = G.suits()[0].markT > 0;
+    H.hold(8.1, H.park); G.teleport(14, -20); G.step(1); G.cast(1, 14, -10); H.hold(0.4, H.park); o.dashOut = G.suits()[0].breaks;
+    o.zoneHud = G.decree().hud; H.hold(12, H.park); o.tintEnd = G.zoneTinted('C2'); o.zoneEnd = G.decree().zoneSec;
+    G.setBots(0); G.reset(); return o;
+  });
+  const gold = (p) => p[0] > 200 && p[1] > 150 && p[2] < 120;
+  check('76 decrees: dry, ultimates 2x, bridge silence, heights, no dash each do what their line says and only while in force',
+    dfx.warnHeal && dfx.dryHeal === 0 && dfx.dryLook && /altars do not heal \(\d+ s\)/.test(dfx.hud) && dfx.hudShown === 'block' && dfx.endSt === 0 && dfx.afterHeal && dfx.afterLook && dfx.hudGone === 'none'
+    && Math.abs(dfx.ultWarn - 1) < 0.05 && Math.abs(dfx.ultOn - 2) < 0.05 && Math.abs(dfx.botOn - 2) < 0.05 && dfx.botClamp === 0
+    && dfx.castOff && dfx.released === 60 && dfx.castOn === false && /stilled/.test(dfx.silNote) && /Silenced/.test(dfx.silStatus) && dfx.silBar
+    && dfx.botCdOn === '0,0,0' && dfx.botHit > 0 && dfx.botTgt === 0 && dfx.botCdOff && !dfx.barOff
+    && dfx.warnBrk === 0 && dfx.brk1 === 1 && dfx.mark > 4.5 && dfx.marker && dfx.slow[0] > 1.5 && dfx.slow[1] === 0.3 && dfx.markVoice === 'Thou art marked.' && !dfx.botHi && dfx.botBrk === 0
+    && dfx.brk1b === 1 && dfx.brk2 === 2 && dfx.brkLow === 2 && dfx.slopeTop && !dfx.slopeFoot
+    && dfx.tint && dfx.zone === 'C2' && /Centre courtyard, south/.test(dfx.zoneVoice) && gold(dfx.miniGold) && dfx.dashBrk === 1 && dfx.dashMark && dfx.dashOut === 1
+    && /no dashing in Centre courtyard, south/.test(dfx.zoneHud) && !dfx.tintEnd && dfx.zoneEnd === null, JSON.stringify(dfx));
+  // 77 Penalty and mark: slowed 30% for 2 s and marked 5 s; a far bot sees the marked player; the player sees a far marked bot (body and minimap);
+  // the marker hides when the mark ends; while the player is marked up to DECREES.markCap bots target it (and that many do), back to 1 the tick it ends.
+  const mkp = await g(() => {
+    const G = __game, C = G.config, D = C.DECREES, H = window.__d, o = { capMax: 0, afterBad: 0 };
+    H.start(); G.teleport(0, 0); G.step(1); o.seesBefore = G.sees(0, -1); G.breakBy(-1);
+    let s = G.suits()[0]; o.slow = [s.slowT, s.slowK]; o.mark = s.markT; o.marker = s.marker; o.seesAfter = G.sees(0, -1); o.cap = G.hunters().max;
+    const x0 = G.state().x; G.setMove(1, 0); G.step(30); G.clearMove(); o.dx = +(G.state().x - x0).toFixed(3); o.want = +(C.PLAYER_SPEED * (1 - D.slow) * 0.5).toFixed(3);
+    G.placeBot(0, 0, -50); G.breakBy(0); G.step(1); const b = G.bots().list[0]; o.botSeen = b.seen; o.botVis = b.vis; const mp = G.miniPixel(b.x, b.z); o.botMini = mp[0] > 200 && mp[1] < 150;
+    H.hold(5.1, H.park); s = G.suits()[0]; o.markEnd = s.markT; o.markerEnd = s.marker; o.seesEnd = G.sees(0, -1); o.capEnd = G.hunters().max; o.botSeenEnd = G.bots().list[0].seen;
+    H.start(3); G.setTime(C.BOT.engage.peaceS + C.BOT.engage.rampS + 1); G.teleport(0, -45);
+    const near = () => { G.placeBot(0, 2, -45); G.placeBot(1, -2, -45); G.placeBot(2, 0, -43); };
+    G.breakBy(-1); for (let n = 0; n < 240; n++) { near(); G.step(1); const h = G.hunters(); if (h.capOnP > o.capMax) o.capMax = h.capOnP; }
+    for (let n = 0; n < 150; n++) { near(); G.step(1); const h = G.hunters(); if (!h.markP && h.capOnP > 1) o.afterBad++; }
+    G.setBots(0); G.reset(); return o;
+  });
+  check('77 penalty and mark: 30% slow 2 s, mark 5 s seen by every bot and by the player, marker hides at the end, cap 2 while the player is marked and 1 after',
+    mkp.slow[0] === 2 && mkp.slow[1] === 0.3 && mkp.mark === 5 && mkp.marker && !mkp.seesBefore && mkp.seesAfter && mkp.cap === 2 && Math.abs(mkp.dx - mkp.want) < 0.05
+    && mkp.botSeen && mkp.botVis && mkp.botMini && mkp.markEnd === 0 && !mkp.markerEnd && !mkp.seesEnd && mkp.capEnd === 1 && !mkp.botSeenEnd && mkp.capMax === 2 && mkp.afterBad === 0, JSON.stringify(mkp));
+  // 78 Decrees in whole matches (the 12 matches of 65): every warning >= DECREE.warnS before its start, none begun under a collapse banner, never two at once
+  // (bagged and bounty), HUD written only on change; bots stay off Our heights while it holds unless crossing them to leave a warned section (<= 1 s);
+  // decrees happened in every match. Numbers per match are reported (-sims).
+  check('78 decrees in 12 matches: told >= 5 s, not under a collapse banner, never two at once, HUD only on change, bots off the heights, decrees every match',
+    ms.dec.dv.length === 0 && ms.dec.hiStay <= 1 && ms.dec.dsum.every((x) => x.n >= 1), JSON.stringify(ms.dec));
+  SIMS.push(`decrees per match ${ms.dec.dsum.map((x) => x.n).join(',')}; order ${ms.dec.dsum.map((x) => x.seed + ':' + x.keys).join(' | ')}; breaks player ${ms.dec.dsum.map((x) => x.brkP).join(',')} bots ${ms.dec.dsum.map((x) => x.brkB).join(',')}; player marked ticks ${ms.cap.markPTicks}, cap max ${ms.cap.capMark}; bots on heights max ${ms.dec.hiStay} s`);
+  // 79 W dash: 4 m on open ground; stops at a bridge rail and at a core hall wall without falling; never off a sloped bridge; burst on landing (not before).
+  const ds = await g(() => {
+    const G = __game, H = window.__d, o = {};
+    H.start(); G.teleport(14, -20); G.step(1); G.cast(1, 14, -10); H.hold(0.4, H.park); let s = G.state(); o.open = +Math.hypot(s.x - 14, s.z + 20).toFixed(3); o.openZone = s.zone;
+    H.start(); G.teleport(-30, 7.5); G.step(1); G.cast(1, -30, 20); H.hold(1.2, H.park); s = G.state(); o.rail = { z: +s.z.toFixed(2), falling: s.falling, zone: s.zone, hp: s.hp };
+    H.start(); G.teleport(-16.5, -55); G.step(1); G.cast(1, -30, -55); H.hold(1, H.park); s = G.state(); o.wall = { x: +s.x.toFixed(2), zone: s.zone, falling: s.falling };
+    H.start(); G.teleport(-30, -18); G.step(1); G.cast(1, -30, -5); H.hold(1.2, H.park); s = G.state(); o.slope = { z: +s.z.toFixed(2), falling: s.falling, zone: s.zone };
+    H.start(); G.teleport(0, -24); G.step(1); G.cast(1, 0, -18); const before = G.dummies()[1].hp; H.hold(0.4, H.park); o.burst = [before, G.dummies()[1].hp]; o.flag = G.config.SKILLS[1].dash === true;
+    G.setBots(0); G.reset(); return o;
+  });
+  check('79 W dash: 4 m on open ground, stops at a rail and a wall without falling, never off a sloped bridge, burst lands on landing',
+    Math.abs(ds.open - 4) < 0.05 && ds.openZone === 'C1' && ds.rail.z <= 9 && ds.rail.z > 7.5 && !ds.rail.falling && ds.rail.zone === 'WB2' && ds.wall.x > -20 && ds.wall.x < -16.5 && ds.wall.zone === 'CORE' && !ds.wall.falling
+    && !ds.slope.falling && ds.slope.zone === 'WB1' && ds.burst[0] === 100 && ds.burst[1] === 80 && ds.flag, JSON.stringify(ds));
+  // 80 The wake ends a decree and its tint, clears marks and the HUD line; none in the hunt; new run x3 resets the slot, the bags and the counts; text keys exist.
+  const dw = await g(() => {
+    const G = __game, C = G.config, H = window.__d, o = {};
+    H.start(); G.forceDecree('nodash', 'C2', 30); H.hold(5.2, H.park); G.forceDecree('dry', null, 30); H.hold(5.2, H.park); o.dryOn = G.decree().key === 'dry' && !G.altars()[0].on;
+    G.breakBy(-1); G.breakBy(0); G.startHunt(); let d = G.decree(); const n0 = d.n; o.wake = { st: d.st, zone: d.zoneSec, tint: G.zoneTinted('C2'), marks: G.suits().filter((s) => s.markT > 0 || s.marker).length, hud: d.hudShown, altars: G.altars().every((a) => a.on) };
+    G.setHp(1e9); H.hold(60); d = G.decree(); o.hunt = { st: d.st, n: d.n - n0 };
+    o.runs = [];
+    for (let r = 0; r < 3; r++) { G.setSeed(40 + r); G.setBots(9); G.reset(); d = G.decree(); o.runs.push({ st: d.st, n: d.n, next: d.next, brk: d.brkP + d.brkB, log: d.log.length, marks: G.suits().filter((s) => s.markT > 0).length, hud: d.hudShown }); }
+    H.start(); G.forceDecree('nodash', 'W2', 10); o.voice = G.decree().voice; H.hold(5.2, H.park); o.hud = G.decree().hud;
+    o.keys = G.decreeKeys(); G.setBots(0); G.reset(); return o;
+  });
+  check('80 wake ends the decree, tint, marks and HUD; none in the hunt; new run x3 resets slot, bags and counts; zone named; text keys',
+    dw.dryOn && dw.wake.st === 0 && dw.wake.zone === null && !dw.wake.tint && dw.wake.marks === 0 && dw.wake.hud === 'none' && dw.wake.altars && dw.hunt.st === 0 && dw.hunt.n === 0
+    && dw.runs.every((r) => r.st === 0 && r.n === 0 && C0.DECREES.first.includes(r.next) && r.brk === 0 && r.log === 0 && r.marks === 0 && r.hud === 'none')
+    && /West courtyard, south/.test(dw.voice) && /West courtyard, south/.test(dw.hud) && dw.keys.length === 0, JSON.stringify(dw));
+  // 81 Budget with every mark and the crown: heaviest royale (10 suits, 7 cubs, tells) with all 10 markers shown, the crown and the gold zone tint; no shader compile, geometry flat.
+  const bk = await g(() => {
+    const G = __game, C = G.config, K = window.__k, waves = C.KENNEL.waves; let best = null;
+    try {
+      C.KENNEL.waves = [[['stalker', 0], ['stalker', 0], ['stalker', 0], ['stalker', 0], ['howler', 0], ['howler', 0], ['howler', 0]]];
+      G.setSeed(12345); G.setBots(9); G.reset(); G.setDecNext(1e9); K.sp(C.KENNEL.firstS + 0.1); G.setHp(1e9); G.plateTo(4, 'stalker'); G.forceDecree('nodash', 'W1', 60);
+      const cx = G.camps[0][0], cz = G.camps[0][1] + 4; G.teleport(cx, cz);
+      for (let n = 0; n < 600; n++) {
+        for (let i = 0; i < 9; i++) G.placeBot(i, cx - 4 + (i % 3) * 3, cz + 2 + Math.floor(i / 3) * 1.5);
+        for (let i = -1; i < 9; i++) if (G.suits()[i + 1].markT < 0.5) G.breakBy(i);
+        G.step(1); const c = G.cubs(), l = G.leader(), marks = G.suits().filter((s) => s.marker).length;
+        if (l.crownShown && marks === 10 && G.zoneTinted('W1') && (!best || c.tells.length > best.tells)) { const r = G.render(true); best = { tells: c.tells.length, marks, crown: l.crownShown, calls: r.calls, tris: r.tris, programs: r.programs, geoms: r.geoms }; }
+      }
+    } finally { C.KENNEL.waves = waves; G.setBots(0); G.reset(); }
+    return best;
+  });
+  check('81 budget with 10 marks, the crown and the zone tint: 10 suits + cubs + tells (calls<500, tris<500k), no shader compile, geometry flat',
+    !!bk && bk.marks === 10 && bk.crown && bk.tells >= 3 && bk.calls < 500 && bk.tris < 500000 && bk.programs === base.programs && bk.geoms === base.geoms, JSON.stringify(bk));
+  // 82 Replays (batch 12 fix): a seed played twice in a row in the same page gives the same match (decided time, player out, decree log, breaks).
+  // Found in batch 12: an ending heights decree bumped warnGen after the restart and the autopilot kept brain fields, so run 1 and run 2 of one seed differed.
+  const rp = await g(() => {
+    const G = __game, C = G.config, out = [];
+    for (let r = 0; r < 2; r++) {
+      G.setSeed(7); G.setBots(9); G.reset(); G.autoPlayer(true); G.setWatch(true); out.push(G.startState());
+      for (let t = 0; t < 300 / C.STEP; t++) { G.step(1); if (G.royale().decidedAt >= 0) break; }
+      const p = G.player(), d = G.decree(); out.push(JSON.stringify([+G.royale().decidedAt.toFixed(2), p.dead ? +p.diedAt.toFixed(2) : -1, d.log.map((v) => +v.toFixed(2)), d.brkP, d.brkB]));
+      G.setWatch(false); G.autoPlayer(false);
+    }
+    G.setBots(0); G.reset(); return out;
+  });
+  check('82 replay: a run starts from the same state and one seed played twice in a row gives the same match', rp[0] === rp[2] && rp[1] === rp[3], rp.join(' vs '));
   // 66 Idle player: standing at the spawn doing nothing loses the royale (frozen loss with a cause) before the last collapse is over.
   const idle = await g(() => {
     const G = __game, C = G.config; G.setSeed(12345); G.setBots(9); G.reset(); let t = 0;

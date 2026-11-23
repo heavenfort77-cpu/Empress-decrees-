@@ -1,78 +1,31 @@
-# Handoff (2026-11-23, after batch 11; written for a fresh session). GDD: docs/GDD.md (also Project "empress decrees", claude/GDD.md)
+# Handoff (2026-11-23, after batch 12; written for a fresh session). GDD: docs/GDD.md (also Project "empress decrees", claude/GDD.md)
 
 ## Session start (every session)
 1. Attach both repos: add_repo heavenfort77-cpu/Empress-decrees- (access push) and heavenfort77-cpu/dawnpunk (read; public, anonymous clone works). Dawnpunk = reference for frame-rate rules and bug pitfalls; read only the part needed.
 2. Clone with `--no-single-branch`; check out `batches-3-5` (PR #1 still open, not merged; use main only if it is merged: `gh api repos/heavenfort77-cpu/empress-decrees-/pulls/1 --jq .merged`, GraphQL is blocked).
-3. Read this file, then only the GDD section being changed (batch 12: "Kaymuse's decrees"). Do not read the whole codebase.
-4. Run the checks before and after any change: `node tests/static-check.mjs && node tests/run.mjs` (`-v` for details, `-vv 56,65` for named checks). Report pass/fail as N of N and failing lines only. `-sims` prints the GDD sim numbers. Expected now: static PASS, runtime 79 of 79.
-5. Ask the owner the open questions under "Next batch" in ONE AskUserQuestion before building.
+3. Read this file, then only the GDD section being changed. Do not read the whole codebase.
+4. Run the checks before and after any change: `node tests/static-check.mjs && node tests/run.mjs` (`-v` for details, `-vv 56,65` for named checks). Report pass/fail as N of N and failing lines only. `-sims` prints the GDD sim numbers. Expected now: static PASS, runtime 87 of 87.
+5. Ask the owner the open questions under "Next batch" in ONE AskUserQuestion before building. Open design questions go to the panel (owner, 23 Nov 15:11).
 
 ## Status
-- Batches 1-11 done on branch `batches-3-5` (PR #1 open). The owner has NOT yet said the loop works; no art before that.
-- Built so far on boxes: map v2 (2 layers, collapses, hazards, altars), LoL/MLBB controls, fog of war, minimap, apex hunt (demon + 2 minions, skill transfer), royale cubs and plates, buff creatures from marble bags, 9 bots with a brain, royale end, player-target cap (hunter slot), leader + crown + HUD line, decree slot, bounty decree.
-- Static PASS. Runtime 79 of 79 (headless Chromium, software GPU: correctness and counts only). Fixed seed 12345. Checks 1-55 run with ?bots=0 (map test); 56+ set bots themselves.
-- Mutation rounds: batches 4-8 all caught (batch 7 12 of 13, the miss an equivalent change); batch 9 32 of 32; batch 10 6 of 6; batch 11 10 of 10 (/home/claude/probe/mut.py, session disk).
-- Counts (software GPU, medium): spawn 27 calls / 2.8k tris; whole map 76 / 8.4k; hunt 17 / 0.9k; heaviest royale (10 suits, 7 cubs, tells) 53 / 3.0k; with the crown 54 / 3.0k. Budget 500 / 0.5M. Shader programs 3, geometries 95 flat.
-- Batch 11 GDD sims (6 seeds, autopilot player, average bots): decided 187.5-222.4 s (in 165-255); longest leader won 1 of 6 (GDD band 25-45%: BELOW); player took >= 1 plate in 1 of 6 (GDD target 70%: MISSED); player out 106-132 s, place 8th-10th; bots fighting a seen leader: 49% with the bounty in force vs 4% otherwise (controlled: 25% vs 0%); bounties per match 0-2, paid 3 of 8.
+- Batches 1-12 done on branch `batches-3-5` (PR #1 open). The owner has NOT yet said the loop works; no art before that.
+- Built so far on boxes: map v2 (2 layers, collapses, hazards, altars), LoL/MLBB controls, fog of war, minimap, apex hunt (demon + 2 minions, skill transfer), royale cubs and plates, buff creatures from marble bags, 9 bots with a brain, royale end, player-target cap (hunter slot), leader + crown + HUD line, decree slot, bounty decree, five bagged decrees, W dash, slow + mark penalty.
+- Static PASS. Runtime 87 of 87 (headless Chromium, software GPU: correctness and counts only). Fixed seed 12345. Checks 1-55 run with ?bots=0 (map test); 56+ set bots themselves. Whole-match checks (65, 67, 69, 72, 78) run 12 seeds since batch 12 (was 6).
+- Mutation rounds: batches 4-8 all caught (batch 7 12 of 13, the miss an equivalent change); batch 9 32 of 32; batch 10 6 of 6; batch 11 10 of 10; batch 12 14 of 14 (first round 12 of 13: check 80 marked before the wake too early; fixed; plus check 82 catches the replay fix reverted). Script: /home/claude/probe12/mut.py (session disk).
+- Counts (software GPU, medium): spawn 27 calls / 2.8k tris; whole map 76 / 8.4k; hunt 17 / 0.9k; heaviest royale (10 suits, 7 cubs, tells) 53 / 3.0k; with the crown 54 / 3.0k; with 10 marks, crown and zone tint 64 / 3.1k. Budget 500 / 0.5M. Shader programs 3, geometries 96 flat (mark marker +1).
+- Batch 12 GDD sims (12 seeds, autopilot player, average bots): decided 166.4-201.2 s (in 165-255); longest leader won 3 of 12 (25%, band 25-45%: at the bottom edge); player took >= 1 plate in 2 of 12 (target 70%: MISSED); player out 76-177 s (won 3 of 12: seeds 5, 10, 11); bagged decrees per match 1-3 (GDD 3-4: MISSED); bounties 0-2 per match (6 in 12 matches; batch 11 had 8 in 6: the shared slot halves them), bot fighting share on a seen leader 0.75 with the bounty vs 0.06 without; decree breaks: player 0, bots 7 (all seed 3: a heights decree over a collapse forced a crossing). Player never marked in matches (autopilot obeys), so the mark cap is proven by the scripted check 77 only.
+- Hunt sweep with the W dash (test 42, the sweep bot dashes out of seen tells): never-dodge loses all; 0.3 s wins howler-first only (batch 11: minions-first only); 0.15 s wins 2 of 3 (lost demon-first; batch 11: all 3).
 - Pathfinding: walk graph built at load (8114 nodes). Worst bot search 0.8 ms (1.8 ms unreachable), player right-click worst 4.0 ms. At most one bot search per step.
 - NOT run: real-GPU fps (needs a GitHub Actions macOS runner; no workflow yet). NOT tried on a real phone.
-- Phone review link: https://claude.ai/artifact/3nQ67JCTmb1JfPKC3Y416z. Republish after each batch: copy index.html, swap the importmap path for https://cdn.jsdelivr.net/npm/three@0.171.0/build/three.module.min.js, publish to slug 1688f9ba-a0e5-4f7b-ac2e-3a68d6fc67c3 (get_artifact first for base_version). Live: version 1795417452-d3db = batch 11 (6f47f27).
+- Phone review link: https://claude.ai/artifact/3nQ67JCTmb1JfPKC3Y416z. Republish after each batch: copy index.html, swap the importmap path for https://cdn.jsdelivr.net/npm/three@0.171.0/build/three.module.min.js, publish to slug 1688f9ba-a0e5-4f7b-ac2e-3a68d6fc67c3 (get_artifact first for base_version). Live: version 1795417452-d3db = batch 11 (6f47f27); batch 12 republish is done by the lead.
 - Project docs (claude/HANDOFF.md, claude/GDD.md, claude/code/index.html, claude/code/tests/run.mjs, claude/code/tests/static-check.mjs) are copies of repo files. The LEAD session syncs them after each batch with project_write local_path (a background worker cannot). If a write is refused, project_read first (code files print in full: do it once, then write).
 
-## Next batch: 12 = the five bagged decrees (DESIGN NOTE FOR OWNER REVIEW; no code until the owner says go)
-Owner answers 23 Nov 15:1x: the bags draw decree, gap, length and zone; all 5 decrees now ("no minimise later", read as: none cut or deferred later); penalty = slow + mark; design note first.
-Readiness about 75 of 100: decree slot, bags and the bounty exist; open points below need the owner.
-
-### Rules (GDD "Kaymuse's decrees"; numbers in CONFIG.DECREES, switch DECREES.on)
-- One decree at a time on the batch 11 decree slot: 5 s warning (her voice, banner, plain rule line with countdown), then in force, then a HUD line until it ends. None in the hunt; cleared at the wake; reset on a new run.
-- Marble bags (seeded, draw without putting back, same rules as batch 8):
-  - which: the 5 decrees below.
-  - first: [35, 45] s from the run start to the first warning.
-  - gap: [10, 15, 20, 25] s from one decree's end to the next warning (with a 5 s warning and 30-45 s length this gives about one a minute, 3-4 per royale).
-  - length: [30, 35, 40, 45] s.
-  - zone (the no-dash decree only): any standing section that is not warned (bag of section ids).
-  - A draw whose place is gone (roof fallen, all bridges fallen, zone fallen) is skipped and the next marble drawn, at most one pass through the bag; none left = wait 5 s.
-- The bounty stays event-driven (one leader for 25 s). It shares the slot: a bounty that comes due while a bagged decree is up waits for it to end; a bagged decree due during a bounty waits. Queue rule from batch 11 kept (no warning within 20 s of a collapse warning or inside a kennel warning).
-- The five:
-  1. "Our altars are dry." / Altars do not heal. Altars stop healing (charge kept); nothing to break.
-  2. "Let none dash within the <zone>." / No dashing: <zone>. Zone from the bag. Using a skill marked dash: true while standing in the zone breaks it. See question 1: the placeholder kit has no dash yet.
-  3. "Upon the bridges, your arts are stilled." / Skills silenced on bridges. Q, W, R cannot be cast while standing on a bridge (button shows silenced); basic attack still works; nothing to break (see question 2).
-  4. "None shall set foot upon Our roof." / Roof forbidden. Standing on the roof breaks it, again every 2 s while there (the shells come with bombardment later).
-  5. "Let your ultimates swell twice as swift." / Ultimates charge 2x. Stand-in until charge exists: ultimate cooldowns tick at 2x for every suit; nothing to break.
-- Penalty for breaking (owner: slow + mark): 30% slow for 2 s, and marked for 5 s: the marked suit shows on every suit's minimap and counts as seen by every bot regardless of range or fog. One mark marker per suit (small red pillar over the head) built once at load, in the warm-up list. Re-broken while marked refreshes both.
-- Bots know the decree (the HUD tells everyone): they leave the roof like a warned section, do not go to dry altars, do not cast on bridges or dash in the zone. A bot that sees a marked suit treats it as seen (target rules and hunter cap unchanged; see question 3).
-
-### Panel decisions (owner 23 Nov 15:11: panel of 2 jam judges, 2 players, 2 critics + design/tech leads proposes, debates, improves, votes; majority followed). These override the rule lines above where they differ.
-1. No dash (vote 6-1 for b, improved): placeholder W becomes "Dash": 4 m dash toward the aim point, then its 2.5 m burst on landing; dash: true; uses the walking rule (edge clamp, walls, no drop off a bridge). Bots use it to close in. Checks 26/29/32 updated on purpose (W changed), hunt sweep (test 42) re-run and reported (owner: dashes should balance the apex). Why: a decree that cannot be broken reads as dead content to judges and confuses a new player; the GDD kits are mostly dashes anyway. Against (tech lead): wider change; accepted with the re-run.
-2. Bridges (vote 7-0 for a, improved): true silence on bridges, nothing to break. Why decisive: tone rule "she never lies": "your arts are stilled" must be literally true. Improvement: skill buttons show a silenced look and the HUD status "Silenced"; a cast released on a bridge shows the "Silenced" note instead of failing silently. The caster's position decides.
-3. Mark (vote 4-2-1 for c, new): while any suit is marked, up to 2 bots may target it (marked player: cap 2 for the 5 s; the bounty's 3 still wins when both apply); every bot sees a marked suit from anywhere. Why: with the cap at 1 the mark changes almost nothing; at 3 one slip is a near-certain loss (jam guidance: let the player win). (a) got 2, (b) got 1.
-4. Roof decree (vote 5-2, improved): the roof falls at 60 s, so a roof-only marble is dead after the first decree. Becomes "None shall set foot upon Our heights." / Heights forbidden: the whole upper layer (roof, both terraces, sloped bridge tops above 3 m). Terrace altars are cut off while it holds (deliberate pressure with "altars dry"). Still counters climbing/hiding later. Gone-place skip when every upper section has fallen.
-5. Learnability (vote 7-0): her line on a break, "Thou art marked." / "You broke the decree: slowed and marked for 5 s."; no-dash zone outlined in gold on the minimap and its floor tinted gold (not red: red means collapse); dry altars switch to the empty look while the decree holds.
-6. Ultimates 2x and altars dry: kept as written (no improvement carried).
-
-### Open after the panel
-- Owner go for batch 12 (design note first was chosen; build waits for "go").
-
-### Checks to add (mutation round on each)
-- Bags: full cycles without repeats, seeded, same seed = same decree sequence; gone places skipped.
-- Each of the 5 does what its rule line says, only while in force; announced >= 5 s before; one at a time; bounty and bagged decrees never overlap; HUD line written only on change.
-- Penalty: only on breaking; slow and mark values; roof re-break every 2 s; marked suit on every minimap and seen by bots; marker hidden when the mark ends.
-- Bots: breaks by bots over the 6 seeded matches reported (target: rare); no bot stands on a forbidden roof past its leave time.
-- None in the hunt, wake clears, new run x3 resets; text keys for every decree, zone name filled in.
-- Whole matches x6 still decided in 165-255 s; GDD sims re-reported (leader share, plate rate, player out time); budget with 10 marks drawn, programs and geometry flat.
-
-### Premortem
-- Roof decree drawn after the roof fell -> skipped by the gone-place rule; check.
-- Decree banner collides with collapse or kennel banners -> batch 11 queue rule; check.
-- Silence leaves a pending ultimate half-cast when stepping onto a bridge -> a cast already released still lands; only new casts are blocked.
-- Mark leaks the player's spot through fog for the whole match -> mark lasts 5 s, refresh only on a new break; check.
-- 2x ultimate cooldown stacks with plate and crab cuts below 0 -> clamp at 0 (cutUlt already clamps); check.
-- Marker meshes added on first mark compile a shader -> built and drawn once at load; programs flat check.
-
-## Later (after batch 12)
-Player plate rate and leader win share are under their GDD targets (Status) - owner to choose tune or wait for kits; hiding; ultimate charge (bounty reward and decree 5 are cooldown stand-ins); school kits; the ending.
+## Next batch: 13 (not chosen yet; ask the owner)
+Open items: decrees per royale under the GDD 3-4 (cause: the batch 11 queue keeps decree warnings 20 s clear of collapse warnings, and the bounty shares the slot; options: shorter clearS, or let a decree run over a collapse) - owner or panel; player plate rate and leader win share (tune or wait for kits); heights decree over a collapse forces a crossing (fair penalty or skip heights while a collapse is warned?); hiding; ultimate charge (bounty reward and ultimates 2x are cooldown stand-ins); school kits (W dash is a placeholder); the ending.
 
 ## Owner decisions (dated)
+- 23 Nov 15:13: go for batch 12 (built as below).
+- 23 Nov 15:11 panel votes (batch 12): (1) placeholder W becomes a 4 m Dash, burst on landing, dash flag (6-1); (2) bridges: true silence with 'Silenced' feedback (7-0); (3) a marked suit: up to 2 bots may target it (4-2-1); (4) 'Our roof' becomes 'Our heights' (whole upper level) (5-2); (5) her break line, gold zone tint and outline, dry altars look empty (7-0); (6) ultimates 2x and altars dry as written.
 - 23 Nov 15:1x (batch 12 questions): bags draw decree, gap, length and zone; all 5 decrees now, none cut later; breaking = slow + mark; design note first, no code yet.
 - 23 Nov 15:11: open design questions go to the panel (judges, players, critics); propose, debate, improve, vote; follow the majority. Batch 12 results under "Panel decisions".
 - 23 Nov 15:06: decrees also use marble bags.
@@ -87,6 +40,12 @@ Player plate rate and leader win share are under their GDD targets (Status) - ow
 - 23 Nov: order bots before decrees.
 
 ## As built: assumptions still standing (all in CONFIG; change by saying so)
+- Batch 12 decrees (CONFIG.DECREES, switch on): bags (own seeded generator DRNG, so creature bags draw the same) for which, first [35, 45], gap [10, 15, 20, 25] after a decree ends, length [30, 35, 40, 45], zone (all 12 sections; fallen or warned skipped). A bagged request is drawn when its warning can start (place re-checked then); none left = retry in 5 s. Bagged decrees run only in a match (bots > 0), like the leader. A due bounty takes the place of a bagged request that is queued but not yet told (assumption: the bounty is the brake). The no-dash zone is tinted gold from the warning on.
+- Batch 12 heights: standing (not airborne) at or above 3 m; breaks again every 2 s. Bots: leave the upper level from the warning on (flee search to a node under 2.5 m), skip high roam goals, altars and creatures, and their path search avoids every floor that reaches 3 m (whole ramps included). A bot crossing the upper level to leave a warned section breaks it (counted).
+- Batch 12 dash (CONFIG.SKILLS[1]): 4 m in 0.2 s, always full length in the aim direction, steps of 0.33 m by the walking rule (a refused point ends it), the burst (2.5 m, 20) lands where it ends; no cast while dashing; a stun ends it. Bots dash at a target 3-5.5 m away on about its layer (BOT.dashMinM/dashMaxM), not inside the no-dash zone.
+- Batch 12 silence: the caster's floor decides (a bridge section); bots and the autopilot do not cast there; the basic attack still works.
+- Batch 12 mark: a marked suit is seen by every bot and by the player from anywhere (body, minimap dot with a red ring); target rules otherwise unchanged; player mark = cap 2 (bounty on the player = 3).
+- Batch 12 fixes found while testing: bots already out keep their cause at the wake (lost when the player won the royale); every run of a seed starts alike (warnGen restarted after clearLeader; autopilot brain fields reset).
 - Batch 11 leader (CONFIG.LEADER, switch on): most plates held now, then kills (suits only); a tie keeps the current leader; on a tie among new suits (old leader out) the first in suit order (player, then bots 1-9); nobody leads before 1 plate or 1 kill, or with every suit back at 0 plates and 0 kills. Re-checked on plate gained or expired, kill, suit out; only in a match (bots > 0). Crown = gold hexagonal box on the leader's body group (hidden with it), warmed at load. School names on the HUD for bots 1-9 follow the GDD table order (Dao ... Nong); the player is "You".
 - Batch 11 decree slot (CONFIG.DECREE): one decree at a time; a request queues until the banner is free, no collapse warning starts within 20 s and no kennel warning within the 5 s warning; then 5 s warning (voice, banner, rule countdown), then in force; other notes (plate taken, fell) are skipped while the decree banner shows.
 - Batch 11 bounty (CONFIG.BOUNTY): after 25 s of one leader, once per suit per run, 40 s. Ends at once when that suit is out or stops leading (assumption), at the wake and on a new run. Reward: the suit that breaks the leader while it is in force gets its ultimate cooldown reset (a fall or a test kill pays nobody; breaking it during the warning pays nothing). Bots that see the leader take it up with chance 0.6 (drawn once per bot per bounty), before new fights and also during the peace time; a bot leader under its bounty goes to an altar under 55 hp (40 otherwise). HUD shows "(bounty N s)".
@@ -110,9 +69,10 @@ Player plate rate and leader win share are under their GDD targets (Status) - ow
 
 ## Files
 - index.html: whole game (one module script, CONFIG block at top, TEXT keys, map data). lib/: three.js r171 (MIT).
-- tests/static-check.mjs: per-frame rules, text keys, CONFIG comments, syntax, no Math.random. tests/run.mjs: 79 checks (33-45 apex hunt, 46-51 royale minions, 52-55 bags and buff creatures, 56-58 bot movement, 59-63 bot brain, 64-66 royale end and whole matches, 67-68 hunter slot, 69-74 leader, crown, bounty, player cap, budget with crown).
+- tests/static-check.mjs: per-frame rules, text keys, CONFIG comments, syntax, no Math.random. tests/run.mjs: 87 checks (33-45 apex hunt, 46-51 royale minions, 52-55 bags and buff creatures, 56-58 bot movement, 59-63 bot brain, 64-66 royale end and whole matches, 67-68 hunter slot, 69-74 leader, crown, bounty, player cap, budget with crown, 75-81 decree bags, the five decrees, penalty and mark, decrees in matches, W dash, wake/new run/keys, budget with marks, 82 replay of one seed).
 - Suit object: SUITS[0] is the player (still named P in code); fields include hp, dead, cause, diedAt, killer, plates, boons, pk/pt (plate slots), bT/bV (boons). Generic helpers: hurtSuit(s, n, cause, by), suitDown, tickSuit, stepBody, hitTarget(by, d, n), hasPlate(s, k), cutUlt(s, sec).
 - Batch 11 hooks: leader, suitsState, plateTo, decreeKeys, ultOf; hunters() now has capOnP and max = current cap.
+- Batch 12 hooks: decree, forceDecree(key, zone, len, next), setDecNext, drawDecBag, pickDec, suits, sees, zoneTinted, breakBy, setFace, startState; hunters() has bountyP and markP; bots() list has markT, breaks, cd.
 - Bot hooks: setBots, bots, botDbg, placeBot, hitBot, hitBy, setBotHp, setBotCd, hitCubBy, hitNeutralBy, autoPlayer, setWatch, royale, player, navTime, navNodes, setTime, hunters. ?bots=N sets the bot count.
 - Test hooks: window.__game (step, setMove, teleport, moveTo, attack, cast, aimKey, render, state, startHunt, hunt, huntUi, cubs, neutrals, drawBag, setSeed, ...). ?lock locks the tier; ?debug shows counts and enables the M overview.
 
@@ -126,11 +86,11 @@ Player plate rate and leader win share are under their GDD targets (Status) - ow
 - Controls: desktop LoL/Dota (right-click move/attack, Q W R hold-aim release-cast, A attack-move, S stop); phone MLBB (stick, ATK auto-target, tap skill = auto-aim, drag = aim, Cancel zone).
 
 ## Open
-- Owner: go for batch 12 (panel decided the 3 questions, 23 Nov 15:11); tune or wait on the plate rate and leader win share (Status).
+- Owner: pick batch 13 (see Next batch); tune or wait on the plate rate and leader win share (Status).
 - Kaymuse's look; game title; apex ultimate rule (built: single use at half health; confirm); ultimate charge amounts; minion names; Tiger Demon hard-surface confirm.
 - Apex balance: wait for real kits, then re-check test 42.
 - Vision is a plain radius: walls/curtains do not block sight yet (comes with hiding).
-- Other decrees (batch 12+) on the decree slot, hiding, ultimate charge, school kits, the ending.
+- Decrees per royale under the GDD 3-4; hiding, ultimate charge, school kits, the ending.
 - Apex trigger: teleport to the core hall (assumed) or walk there.
 - Organiser answer on eligibility; OpenGame CLI test. Real-GPU fps workflow; real phone run.
 - Placeholder skills and 3 training dummies are map-test only; replaced by kits.

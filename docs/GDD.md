@@ -1,6 +1,6 @@
 # Apex-hunt jam game: GDD and handoff (working title TBD)
 
-Status: updated 2026-11-23 after batch 9. Batches 1-2 approved. Batches 3-9 built on boxes (map, controls, apex fight, royale minions, buff creatures from marble bags, 9 bots that play the royale to its end); static PASS, runtime 71 of 71 PASS; waiting for the user's review. Next: decrees. All numbers are proposals, tunable in one CONFIG block.
+Status: updated 2026-11-23 after batch 12 (decrees section; earlier sections as of batch 9). Batches 1-2 approved. Batches 3-9 built on boxes (map, controls, apex fight, royale minions, buff creatures from marble bags, 9 bots that play the royale to its end); static PASS, runtime 71 of 71 PASS; waiting for the user's review. Next: decrees. All numbers are proposals, tunable in one CONFIG block.
 Repo for the code: https://github.com/heavenfort77-cpu/Empress-decrees- (all-new code, nothing from B.O.I).
 
 ## Jam facts (checked 2026-11-23)
@@ -86,6 +86,14 @@ Purpose: give a suit a way to pull ahead, so the royale is not ten equal suits t
 - Each decree is announced with a 5 s warning (voice line, text banner and HUD icon), then lasts 30 to 45 s. One at a time. A decree never causes damage by itself; breaking one costs a small penalty (a brief slow or a mark).
 - Draft decrees (her words / plain rule line): "Our altars are dry." / Altars do not heal. "Let none dash within the west courtyard." / No dashing: west courtyard. "A bounty lieth upon the leader." / Bounty on the leader. "Upon the bridges, your arts are stilled." / Skills silenced on bridges. "None shall set foot upon Our roof." / Roof forbidden (standing there draws shells). "Let your ultimates swell twice as swift." / Ultimates charge 2x.
 - As built (batch 11): one decree slot reused by every decree: queued while another banner shows or a collapse warning starts within 20 s, 5 s warning (voice, banner, rule countdown), then in force. The bounty is the first.
+- As built (batch 12; owner 23 Nov, panel votes 15:11): seeded marble bags draw which decree, the first request (35-45 s), the gap after one ends (10-25 s), its length (30-45 s) and the no-dash zone; a draw whose place has fallen is skipped. The bounty keeps its leader trigger and shares the slot (it takes the place of a bagged request not yet told). Bagged decrees run only in a match (with bots).
+  - "Our altars are dry." / Altars do not heal: no healing in force (charge kept), discs show the empty look.
+  - "Let none dash within the <zone>." / No dashing in <zone>: zone drawn from a bag; floor tinted gold, gold outline on the minimap; a dash cast while standing there breaks it. The placeholder W is a 4 m Dash with its burst on landing (walking rule: rails, walls and the void stop it).
+  - "Upon the bridges, your arts are stilled." / No skills on bridges: true silence (no new cast; "Silenced" note, status and greyed buttons; a cast already released still lands). Nothing to break.
+  - "None shall set foot upon Our heights." / Stay off the upper level (replaces the roof-only line, which was dead after the roof fell at 60 s): roof, terraces and sloped bridge ends at or above 3 m; standing there breaks it, again every 2 s.
+  - "Let your ultimates swell twice as swift." / Ultimates recharge 2x: ultimate cooldowns tick 2x (stand-in until charge exists).
+  - Breaking: "Thou art marked." / 30% slow for 2 s and marked 5 s: a red marker over the head; the marked suit is seen by every suit from anywhere (body and minimap); while the player is marked up to 2 bots may target it (the bounty's 3 wins).
+  - Measured (12 seeded matches): 1-3 bagged decrees per royale (GDD 3-4 not met: the 20 s collapse queue and the bounty leave few windows). A heights decree over a collapse can force a crossing of the upper level (bots break it then; seed 3: 7 breaks).
 - Foreshadowing: her lines hint at the twist ("The survivor shall be... received", "The Empress leaveth not her guests alone"). Decrees pause in the apex phase; she only taunts.
 
 ### Palace arena (proposal)

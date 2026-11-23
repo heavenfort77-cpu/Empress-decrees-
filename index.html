@@ -45,6 +45,9 @@ body.touch #btnHunt{left:160px;top:10px;bottom:auto}
 body.touch #status{left:auto;right:12px;top:82px}
 #leader{position:fixed;left:12px;top:34px;font:bold 13px system-ui,sans-serif;color:#ffd75a;text-shadow:0 1px 2px #000;pointer-events:none;display:none}
 body.touch #leader{left:auto;right:12px;top:61px}
+#decree{position:fixed;left:12px;top:76px;font:bold 13px system-ui,sans-serif;color:#ffe08a;text-shadow:0 1px 2px #000;pointer-events:none;display:none}
+body.touch #decree{left:auto;right:12px;top:103px}
+#bar.silenced .skill{opacity:.35;border-color:#888}
 body.touch #banner{top:26%}
 #cancel{position:fixed;right:20px;top:90px;width:90px;height:56px;border-radius:10px;background:#5a1a1a;color:#fff;font:15px system-ui;display:none;align-items:center;justify-content:center;border:2px solid #f88}
 </style>
@@ -65,6 +68,7 @@ body.touch #banner{top:26%}
 <div id="boss"><div id="bossname"></div><div id="bossbar"><div id="bossfill"></div></div><div id="bossskills"></div></div>
 <div id="status"></div>
 <div id="leader"></div>
+<div id="decree"></div>
 <button id="btnHunt"></button>
 <div id="err"></div>
 <script type="module">
@@ -109,7 +113,9 @@ const CONFIG = {
   // Placeholder skills for aiming tests until the kits arrive. type: line, circle or self; delay = telegraph before the hit (s).
   SKILLS: [
     { key: 'KeyQ', label: 'Q', name: 'Line', type: 'line', range: 8, width: 1.5, dmg: 25, cd: 6, delay: 0 },
-    { key: 'KeyW', label: 'W', name: 'Burst', type: 'circle', range: 7, radius: 2.5, dmg: 20, cd: 8, delay: 0 },
+    // W (panel, 23 Nov 15:11, batch 12): a placeholder Dash until the kits: dashes range metres toward the aim point over dashS seconds by the walking rule
+    // (rails, walls and the void stop it), then its burst of radius hits on landing. dash: true marks it for the no-dash decree.
+    { key: 'KeyW', label: 'W', name: 'Dash', type: 'dash', range: 4, radius: 2.5, dmg: 20, cd: 8, delay: 0, dash: true, dashS: 0.2 },
     { key: 'KeyR', label: 'R', name: 'Ultimate', type: 'circle', range: 9, radius: 4, dmg: 60, cd: 30, delay: 1 },
   ],
   // Training dummies to aim at (map test only): x, z before MAP_SCALE, section.
@@ -272,6 +278,8 @@ const CONFIG = {
     // The ultimate is kept to finish a target (its health at or under the ultimate's damage) or used when the bot's own health is under ultBelowHp.
     // castGapS = seconds between two skills of one bot (a player cannot cast all three in two frames either).
     ultBelowHp: 50, castGapS: 0.8,
+    // Dash (W, batch 12): a bot dashes at a target between dashMinM and dashMaxM away (lands within the burst), to close in.
+    dashMinM: 3, dashMaxM: 5.5,
   },
   // The leader (batch 11, GDD "The leader"): feature switch. Leader = most plates held, then most kills; a tie keeps the current leader; nobody leads before 1 plate or 1 kill.
   // crownY = crown height over the suit's feet (m); crownR = crown radius (m).
@@ -283,6 +291,23 @@ const CONFIG = {
   // chase = chance a bot that sees the leader during the bounty takes it up (drawn once per bot per bounty; assumption 23 Nov).
   // leaderLowHp = altar threshold of a bot leader during its bounty (plays safer; BOT.lowHp otherwise; assumption 23 Nov).
   BOUNTY: { on: true, afterS: 25, durS: 40, maxHunters: 3, chase: 0.6, leaderLowHp: 55 },
+  // Bagged decrees (batch 12; owner 23 Nov 15:06 and 15:1x, panel 15:11): switch. Seeded marble bags (draw without putting back) pick which decree,
+  // first = seconds from the run start to the first request, gap = seconds from a decree's end to the next request, len = seconds in force,
+  // zones = sections the no-dash decree may name (fallen or warned ones skipped). A draw whose place is gone is skipped (one pass), none left = wait waitS.
+  // heightY = standing at or above this height (m) counts as Our heights. reBreakS = seconds between breaks while still breaking (heights).
+  // Penalty for breaking (owner: slow + mark): slow (0-1) for slowS seconds, and marked for markS seconds (seen by every suit; markCap bots may target a marked player).
+  DECREES: {
+    on: true,
+    which: ['dry', 'nodash', 'silence', 'heights', 'ult2x'],
+    first: [35, 45], gap: [10, 15, 20, 25], len: [30, 35, 40, 45],
+    zones: ['CORE', 'C1', 'C2', 'W1', 'W2', 'E1', 'E2', 'WB1', 'WB2', 'EB1', 'EB2', 'ROOF'],
+    waitS: 5, heightY: 3, reBreakS: 2, ultK: 2,
+    slow: 0.3, slowS: 2, markS: 5, markCap: 2,
+    // Gold tint of the no-dash zone's floor (the same shader as the collapse glow: red means collapse, gold means a decree) and its minimap outline.
+    zoneCol: 0xffc23a, zoneGlow: 0.45, zoneMini: '#ffc23a',
+    // Mark marker over a marked suit's head: height above its feet and size (m).
+    markY: 3.5, markW: 0.3, markH: 0.9,
+  },
 };
 
 // Every string shown to the player. Missing keys throw (and fail the text check).
@@ -359,6 +384,27 @@ const TEXT = {
   rule_bounty: 'Bounty on the leader ({who}) in {s} s: break them for a full ultimate.',
   voice_bounty_paid: 'The bounty is thine. We keep Our word.',
   rule_bounty_paid: 'Bounty claimed: your ultimate is ready.',
+  voice_dec_dry: 'Our altars are dry.',
+  rule_dec_dry: 'In {s} s: altars do not heal.',
+  hud_dec_dry: 'Decree: altars do not heal ({s} s)',
+  voice_dec_nodash: 'Let none dash within the {zone}.',
+  rule_dec_nodash: 'In {s} s: no dashing in {zone}.',
+  hud_dec_nodash: 'Decree: no dashing in {zone} ({s} s)',
+  voice_dec_silence: 'Upon the bridges, your arts are stilled.',
+  rule_dec_silence: 'In {s} s: no skills on bridges.',
+  hud_dec_silence: 'Decree: no skills on bridges ({s} s)',
+  voice_dec_heights: 'None shall set foot upon Our heights.',
+  rule_dec_heights: 'In {s} s: stay off the upper level (roof, terraces, high bridge ends).',
+  hud_dec_heights: 'Decree: stay off the upper level ({s} s)',
+  voice_dec_ult2x: 'Let your ultimates swell twice as swift.',
+  rule_dec_ult2x: 'In {s} s: ultimates recharge twice as fast.',
+  hud_dec_ult2x: 'Decree: ultimates recharge 2x ({s} s)',
+  voice_marked: 'Thou art marked.',
+  rule_marked: 'You broke the decree: slowed and marked for {s} s.',
+  voice_silenced: 'Thine arts are stilled here.',
+  rule_silenced: 'Silenced: no skills on bridges.',
+  st_silenced: 'Silenced',
+  st_marked: 'Marked',
   rule_plate_s: 'Stalker plate: your hits cause bleeding for {s} s. Ultimate cooldown cut.',
   rule_plate_h: 'Howler plate: +{p}% speed for {s} s. Ultimate cooldown cut.',
   buff_stalker: 'Stalker plate {s}s',
@@ -428,7 +474,7 @@ const el = {
   hud: $('hud'), next: $('next'), banner: $('banner'), dbg: $('dbg'), help: $('help'),
   btnMap: $('btnMap'), stick: $('stick'), err: $('err'), hpfill: $('hpfill'), hptext: $('hptext'),
   mini: $('mini'), bar: $('bar'), cancel: $('cancel'), boss: $('boss'), bossname: $('bossname'), bossfill: $('bossfill'),
-  bossskills: $('bossskills'), status: $('status'), btnHunt: $('btnHunt'), leader: $('leader'),
+  bossskills: $('bossskills'), status: $('status'), btnHunt: $('btnHunt'), leader: $('leader'), decree: $('decree'),
   voice: document.querySelector('#banner .voice'), rule: document.querySelector('#banner .rule'),
 };
 const textCache = new Map();
@@ -770,7 +816,8 @@ NEUTRALS.forEach((u, i) => { u.hunt = false; u.neutral = true; u.idx = i; });
 const SPOTS = CONFIG.BAGS.spots.map(([x, z, sec]) => [x * K, z * K, sec]);
 // Seeded random numbers (mulberry32) so a run can be replayed; marble bags draw without putting back.
 const RNG = { s: 1 };
-function makeBag(src) { return { src, a: src.slice(), i: src.length }; }
+// d = the bag draws from the decree generator (batch 12), so the creature bags draw the same with or without decrees.
+function makeBag(src, d) { return { src, a: src.slice(), i: src.length, d: !!d }; }
 const BAGS = { times: makeBag(CONFIG.BAGS.times), spots: makeBag(SPOTS.map((_, i) => i)), crab: makeBag(CONFIG.BAGS.crab), wander: makeBag(CONFIG.BAGS.wander), amounts: makeBag(CONFIG.BAGS.amounts) };
 const BOON_IDX = { power: 0, regen: 1, vision: 2, speed: 3 };
 // Bot suits (batch 9b): the player's shape plus a body, a health bar, a path and a brain. Built once; one shared geometry, one material per school colour.
@@ -797,8 +844,33 @@ crown.position.y = CONFIG.LEADER.crownY; crown.castShadow = false;
 const SUIT_KEYS = [];
 for (let i = 0; i <= CONFIG.BOTS.count; i++) SUIT_KEYS.push('suit_' + i);
 // Decrees (reusable): text keys and length per decree; the bounty is the first.
-const DECREES = { bounty: { voice: 'voice_bounty', rule: 'rule_bounty', durS: CONFIG.BOUNTY.durS } };
-const LEADER_VARS = { who: '', s: 0 }, DECREE_VARS = { who: '', s: 0 };
+// Batch 12: the five bagged decrees (bag: true); hud = the HUD line while in force; idx = HUD code.
+const DECREES = { bounty: { voice: 'voice_bounty', rule: 'rule_bounty', idx: 0 },
+  dry: { voice: 'voice_dec_dry', rule: 'rule_dec_dry', hud: 'hud_dec_dry', bag: true, idx: 1 },
+  nodash: { voice: 'voice_dec_nodash', rule: 'rule_dec_nodash', hud: 'hud_dec_nodash', bag: true, idx: 2 },
+  silence: { voice: 'voice_dec_silence', rule: 'rule_dec_silence', hud: 'hud_dec_silence', bag: true, idx: 3 },
+  heights: { voice: 'voice_dec_heights', rule: 'rule_dec_heights', hud: 'hud_dec_heights', bag: true, idx: 4 },
+  ult2x: { voice: 'voice_dec_ult2x', rule: 'rule_dec_ult2x', hud: 'hud_dec_ult2x', bag: true, idx: 5 } };
+const LEADER_VARS = { who: '', s: 0 }, DECREE_VARS = { who: '', s: 0, zone: '' }, MARK_VARS = { s: CONFIG.DECREES.markS };
+// Decree bags (batch 12): seeded by their own generator (DRNG).
+const DRNG = { s: 1 };
+const DD = CONFIG.DECREES;
+const DBAGS = { which: makeBag(DD.which, true), first: makeBag(DD.first, true), gap: makeBag(DD.gap, true), len: makeBag(DD.len, true), zones: makeBag(DD.zones, true) };
+// Bridges (silence decree) and floors that reach Our heights (heights decree: bots plan around them).
+for (const id of ['WB1', 'WB2', 'EB1', 'EB2']) SEC[id].bridge = true;
+for (const f of FLOORS) f.hi = Math.max(f.ramp ? Math.max(f.ya, f.yb) : f.y) >= DD.heightY;
+// No-dash zone floor tint: same shader as the collapse glow (one program), gold instead of red.
+const zoneMat = new THREE.MeshStandardMaterial({ color: COL.court, emissive: DD.zoneCol, emissiveIntensity: DD.zoneGlow, roughness: 0.9 });
+addFow(zoneMat);
+// Mark marker (batch 12): one small red pillar per suit over its head, built once, shared geometry and the ring material; shown while marked.
+const markGeo = new THREE.BoxGeometry(DD.markW, DD.markH, DD.markW);
+for (let k = 0; k < SUITS.length; k++) {
+  const s = SUITS[k], m = new THREE.Mesh(markGeo, M.ring);
+  m.position.y = DD.markY; m.visible = false; m.castShadow = false;
+  (s === P ? playerGroup : s.group).add(m);
+  // markT = seconds marked; brkT = seconds before a new break counts; breaks = decrees broken this run; dashLeft = metres of dash left (0 = not dashing).
+  Object.assign(s, { marker: m, markT: 0, brkT: 0, breaks: 0, dashLeft: 0, dashX: 0, dashZ: 0, dashStep: 0, dashSlot: 1, dashOrd: false, silShown: false });
+}
 // Brain fields on the player too, used only by the test autopilot (__game.autoPlayer).
 Object.assign(P, { cd: [0, 0, 0], navWant: false, gx: 0, gz: 0, gy: 0, goalT: 0, skill: CONFIG.BOT.skills.average, thinkT: 0, tgt: null, tgtT: 0, mode: '', direct: false,
   heal: null, skip: null, castT: 0, lastBy: null, lastByT: -99, declined: null, declinedT: -99, flee: false, pathGen: 0, why: '', hunter: false, huntLostT: 0, mx: 0, mz: 0,
@@ -955,13 +1027,16 @@ function autoCast(slot) {
 // Cast at a world point, clamped to range (MLBB clamps; lines always fly full range).
 function castSkill(slot, tx, tz) {
   const sk = CONFIG.SKILLS[slot], st = SK[slot];
-  if (st.cdT > 0 || !canAct()) return false;
+  if (st.cdT > 0 || !canAct() || P.dashLeft > 0) return false;
+  // "Upon the bridges, your arts are stilled." (decree): no new cast on a bridge; the note says why (a cast already released still lands).
+  if (silenced(P)) { showNote('voice_silenced', 'rule_silenced'); return false; }
   let dx = tx - P.x, dz = tz - P.z; const len = Math.hypot(dx, dz);
   if (len > 0.01) { dx /= len; dz /= len; } else { dx = P.faceX; dz = P.faceZ; }
   const dist = sk.type === 'line' ? sk.range : Math.min(len, sk.range);
   P.faceX = dx; P.faceZ = dz; st.cdT = sk.cd;
   const x = P.x + dx * dist, z = P.z + dz * dist;
-  if (sk.delay > 0) {
+  if (sk.dash) startDash(P, slot, dx, dz, true);
+  else if (sk.delay > 0) {
     PEND.on = true; PEND.slot = slot; PEND.x = x; PEND.z = z; PEND.dx = dx; PEND.dz = dz; PEND.t = sk.delay;
     fxTele.position.set(x, topYUnder(x, z, P.y + 1) + 0.07, z); fxTele.scale.setScalar(sk.radius); fxTele.visible = true;
   } else applySkill(slot, x, z, dx, dz);
@@ -1124,7 +1199,12 @@ NAV.nx = Math.ceil(156 / NAV.st); NAV.nz = Math.ceil(132 / NAV.st);
 // PERFRAME-BEGIN
 // Bit mask of fallen floors (and warned ones when warned is true); a node is usable when none of its floors is in the mask.
 // The section the search starts in is never avoided; a search that starts in a warned section avoids none (a bot leaving it may cross others).
-function navOff(warned, startSec) { let m = 0; for (let i = 0; i < FLOORS.length; i++) if (!FLOORS[i].active || (warned && FLOORS[i].s.state === 1 && FLOORS[i].s !== startSec)) m |= 1 << i; return m; }
+// Batch 12: while the heights decree is told or in force (G.hiAvoid), bot searches also avoid every floor that reaches Our heights.
+function navOff(warned, startSec) {
+  let m = 0;
+  for (let i = 0; i < FLOORS.length; i++) { const f = FLOORS[i]; if (!f.active || (warned && f.s !== startSec && (f.s.state === 1 || (G.hiAvoid && f.hi)))) m |= 1 << i; }
+  return m;
+}
 // Node under a point: its own cell, else the nearest usable neighbour cell (a suit standing near an edge).
 function navNode(x, z, y, off) {
   const st = NAV.st, nx = NAV.nx, NF = FLOORS.length, i = Math.floor((x - NAV.x0) / st), j = Math.floor((z - NAV.z0) / st);
@@ -1222,7 +1302,7 @@ function navFlee(sx, sz, sy, path) {
     if (NAV.closed[node] === gen) continue;
     NAV.closed[node] = gen; opened++;
     const f = FLOORS[NAV.nf[node]], x = NAV.x0 + (NAV.ni[node] + 0.5) * st, z = NAV.z0 + (NAV.nj[node] + 0.5) * st;
-    if (f.s.state === 0 && !nearHazard(x, z, NAV.ny[node])) { found = node; break; }
+    if (f.s.state === 0 && !nearHazard(x, z, NAV.ny[node]) && !(G.hiAvoid && NAV.ny[node] >= CONFIG.DECREES.heightY - 0.5)) { found = node; break; }
     for (let d = 0; d < 8; d++) {
       const nid = NAV.link[node * 8 + d];
       if (nid < 0 || (NAV.mask[nid] & off) !== 0 || NAV.closed[nid] === gen) continue;
@@ -1283,9 +1363,11 @@ const G = { time: 0, view: 'follow', paused: false, ctxLost: false, frames: 0, b
   botN: 0, navRR: 0, navRuns: 0, navPeak: 0, alive: 1, warnGen: 0, autoP: false, lostIn: '', watch: false, decidedAt: -1,
   huntN: 0, huntClaims: 0, huntFrees: 0,
   leader: null, leadT: 0, leaderChanges: 0, leaderCode: -1, leaderWrites: 0, miniLeader: false,
-  bountyN: 0, bountyWarnAt: -1, bountyStartAt: -1, bountyEndAt: -1, bountyEndWhy: '', bountyPaid: 0, bountyPaidTo: -1 };
+  bountyN: 0, bountyWarnAt: -1, bountyStartAt: -1, bountyEndAt: -1, bountyEndWhy: '', bountyPaid: 0, bountyPaidTo: -1,
+  decNext: 0, decN: 0, decCount: { dry: 0, nodash: 0, silence: 0, heights: 0, ult2x: 0 }, decLog: [], brkP: 0, brkB: 0, decCode: -1, decWrites: 0, hiAvoid: false, zoneSec: null, skips: 0 };
 // The one decree slot (batch 11): st 0 idle, 1 queued, 2 warning (banner), 3 in force. key = decree name, tgt = its suit (bounty), t = seconds left in the state.
-const DEC = { st: 0, key: '', tgt: null, t: 0, count: -1, banner: false };
+// Decree slot. st: 0 free, 1 queued, 2 warning, 3 in force. len = seconds in force; zone = the no-dash decree's section; warnAt = when its warning began.
+const DEC = { st: 0, key: '', tgt: null, t: 0, count: -1, banner: false, len: 0, zone: null, warnAt: -1 };
 // Bots in this match: CONFIG.BOTS (switch and count), or ?bots=N in the address (0 = map test with the player alone).
 G.botN = !CONFIG.BOTS.on ? 0 : params.has('bots') ? Math.max(0, Math.min(CONFIG.BOTS.count, parseInt(params.get('bots'), 10) || 0)) : CONFIG.BOTS.count;
 
@@ -1358,11 +1440,13 @@ function step(dt) {
     } else if (h.state === 2) { h.t += dt; if (h.t >= c.cooldown) h.state = 0; }
   }
   // Altars heal a standing suit; a hit pauses healing; an emptied altar refills later.
-  const A = CONFIG.ALTAR;
+  const A = CONFIG.ALTAR, dry = decOn('dry');
   for (let i = 0; i < ALTAR_LIST.length; i++) {
     const a = ALTAR_LIST[i];
     if (a.s.state >= 2) continue;
-    if (a.charge <= 0) { a.emptyT -= dt; if (a.emptyT <= 0) { a.charge = A.charge; a.mesh.material = M.altarOn; } continue; }
+    if (a.charge <= 0) { a.emptyT -= dt; if (a.emptyT <= 0) { a.charge = A.charge; a.mesh.material = dry ? M.altarOff : M.altarOn; } continue; }
+    // "Our altars are dry." (decree): no healing while it is in force; charge is kept.
+    if (dry) continue;
     for (let k = 0; k < SUITS.length && a.charge > 0; k++) {
       const s = SUITS[k];
       if (s.dead || s.air || s.noHealT > 0 || s.hp >= CONFIG.MAX_HP) continue;
@@ -1429,6 +1513,9 @@ function step(dt) {
 // Timers of one suit (fixed step).
 function tickSuit(s, dt) {
   if (s.noHealT > 0) s.noHealT -= dt;
+  if (s.brkT > 0) s.brkT -= dt;
+  // Mark (batch 12): when it ends the marker hides; a player mark ending lowers the hunter cap again.
+  if (s.markT > 0) { s.markT -= dt; if (s.markT <= 0) { s.markT = 0; s.marker.visible = false; if (s === P) shrinkHunters(); } }
   if (s.slowT > 0) { s.slowT -= dt; if (s.slowT <= 0) s.slowK = 0; }
   if (s.stunT > 0) s.stunT -= dt;
   if (s.bleedT > 0) {
@@ -1449,6 +1536,15 @@ function suitSpeed(s) {
 // mx, mz = wanted direction (length up to 1). Sets s.moved (metres this step) and s.floor (floor under the feet or null).
 function stepBody(s, mx, mz, dt) {
   if (s.stunT > 0) { mx = 0; mz = 0; }
+  // A dash (W, batch 12) replaces walking: dashStep metres a step along its line; a stun, or a point the walking rule refuses (rail, wall, void), ends it there.
+  let land = false;
+  if (s.dashLeft > 0) {
+    land = true; mx = 0; mz = 0;
+    if (s.stunT <= 0) {
+      const d = Math.min(s.dashStep, s.dashLeft), nx = s.x + s.dashX * d, nz = s.z + s.dashZ * d;
+      if (tryMove(s, nx, nz, false)) { s.x = nx; s.z = nz; s.dashLeft -= d; land = s.dashLeft <= 1e-6; }
+    }
+  }
   const len = Math.hypot(mx, mz);
   if (len > 1) { mx /= len; mz /= len; }
   const spd = suitSpeed(s);
@@ -1463,6 +1559,8 @@ function stepBody(s, mx, mz, dt) {
   s.moved = Math.hypot(s.x - ox, s.z - oz);
   const f = floorAt(s.x, s.z, s.y), fh = f ? surf(f, s.x, s.z) : -1e9;
   s.floor = f;
+  if (land && f && !s.air && s.y - fh <= STEP_UP) s.y = fh;
+  if (land) dashLand(s);
   if (!s.air) {
     if (f && s.y - fh <= STEP_UP) s.y = fh;
     else { s.air = true; s.vy = 0; s.airFromY = s.y; s.voidT = 0; }
@@ -1480,9 +1578,11 @@ function stepBody(s, mx, mz, dt) {
 }
 // Skills, delayed hits, effects, dummies and their vision.
 function stepCombat(dt) {
+  // "Let your ultimates swell twice as swift." (decree): ultimate cooldowns tick DECREES.ultK times as fast (stand-in until ultimate charge exists).
+  const ultK = decOn('ult2x') ? CONFIG.DECREES.ultK : 1;
   for (let i = 0; i < SK.length; i++) {
     const st = SK[i];
-    if (st.cdT > 0) st.cdT = Math.max(0, st.cdT - dt);
+    if (st.cdT > 0) st.cdT = Math.max(0, st.cdT - (i === 2 ? dt * ultK : dt));
     const c = Math.ceil(st.cdT);
     if (c !== st.shown) { st.shown = c; if (st.cdEl) { setText(st.cdEl, c > 0 ? String(c) : ''); setShow(st.cdEl, c > 0); } }
   }
@@ -1552,6 +1652,7 @@ function setLeader(s) {
 // No leader, no decree (the wake and a new run).
 function clearLeader(why) {
   endDecree(why);
+  clearMarks(); G.hiAvoid = false; G.decCode = -1; updateDecreeHud();
   if (crown.parent) crown.parent.remove(crown);
   G.leader = null; G.leadT = 0;
   updateLeaderHud();
@@ -1561,8 +1662,12 @@ function payBounty(by) {
   G.bountyPaid++; G.bountyPaidTo = by.id;
   if (by === P) showNote('voice_bounty_paid', 'rule_bounty_paid');
 }
-// Bots allowed to target the player at once (hitting back aside): BOUNTY.maxHunters while the bounty lies on the player, else BOT.maxHunters.
-function huntCap() { return DEC.st === 3 && DEC.key === 'bounty' && DEC.tgt === P ? CONFIG.BOUNTY.maxHunters : CONFIG.BOT.maxHunters; }
+// Bots allowed to target the player at once (hitting back aside): BOUNTY.maxHunters while the bounty lies on the player,
+// else DECREES.markCap while the player is marked (panel, 23 Nov 15:11), else BOT.maxHunters.
+function huntCap() {
+  if (DEC.st === 3 && DEC.key === 'bounty' && DEC.tgt === P) return CONFIG.BOUNTY.maxHunters;
+  return P.markT > 0 ? CONFIG.DECREES.markCap : CONFIG.BOT.maxHunters;
+}
 function claimHunt(b) { b.hunter = true; b.huntLostT = 0; G.huntN++; G.huntClaims++; }
 // Free hunter slots above the cap (the bounty on the player ended); a freed hunter drops the player at once unless it is hitting back.
 function shrinkHunters() {
@@ -1586,17 +1691,18 @@ function decreeClear() {
 function stepDecree(dt) {
   if (DEC.st === 1) {
     if (!decreeClear()) return;
-    DEC.st = 2; DEC.t = CONFIG.DECREE.warnS; DEC.count = -1; DEC.banner = true;
-    if (DEC.key === 'bounty') { DEC.tgt.bountied = true; G.bountyN++; G.bountyWarnAt = G.time; }
-    setText(el.voice, T(DECREES[DEC.key].voice)); setShow(el.banner, true);
+    // A bagged request draws its decree now (the place must still stand); none = try again after DECREES.waitS.
+    if (DEC.key === 'bag' && !pickBagged()) { DEC.st = 0; DEC.key = ''; G.decNext = G.time + CONFIG.DECREES.waitS; return; }
+    beginWarning();
   }
   if (DEC.st === 2) {
     DEC.t -= dt;
     if (DEC.banner && G.bannerWave >= 0) DEC.banner = false;
     if (DEC.t <= 0) {
-      DEC.st = 3; DEC.t = DECREES[DEC.key].durS;
+      DEC.st = 3; DEC.t = DEC.len;
       if (DEC.banner) { DEC.banner = false; if (G.fellT <= 0) setShow(el.banner, false); }
       if (DEC.key === 'bounty') G.bountyStartAt = G.time;
+      else { G.decN++; G.decCount[DEC.key]++; G.decLog.push(DECREES[DEC.key].idx, DEC.warnAt, G.time); if (DEC.key === 'dry') altarLooks(); }
       return;
     }
     const c = Math.ceil(DEC.t);
@@ -1609,20 +1715,115 @@ function stepDecree(dt) {
 function endDecree(why) {
   if (DEC.st === 0) return;
   if (DEC.banner) { DEC.banner = false; if (G.bannerWave < 0 && G.fellT <= 0) setShow(el.banner, false); }
-  const wasBountyP = DEC.st === 3 && DEC.key === 'bounty' && DEC.tgt === P;
+  const wasBountyP = DEC.st === 3 && DEC.key === 'bounty' && DEC.tgt === P, bag = DEC.key !== 'bounty' && DEC.key !== 'bag' && DEC.st >= 2, wasDry = DEC.key === 'dry';
   if (DEC.key === 'bounty' && DEC.st >= 2) { G.bountyEndAt = G.time; G.bountyEndWhy = why; }
-  DEC.st = 0; DEC.key = ''; DEC.tgt = null; DEC.t = 0; DEC.count = -1;
+  // A bagged decree's end draws the gap to the next request (bag); its zone tint and the altar looks go back.
+  if (bag) { G.decLog.push(-1, G.time, 0); if (why !== 'reset' && why !== 'wake') G.decNext = G.time + draw(DBAGS.gap); if (DEC.key === 'heights') G.warnGen++; }
+  if (DEC.zone) tintZone(null);
+  DEC.st = 0; DEC.key = ''; DEC.tgt = null; DEC.t = 0; DEC.count = -1; DEC.zone = null; DEC.len = 0;
+  if (wasDry) altarLooks();
   if (wasBountyP) shrinkHunters();
+}
+// The warning begins: her voice, the banner and the rule countdown; the no-dash zone is tinted now so it can be seen coming.
+function beginWarning() {
+  DEC.st = 2; DEC.t = CONFIG.DECREE.warnS; DEC.count = -1; DEC.banner = true; DEC.warnAt = G.time;
+  if (DEC.key === 'bounty') { DEC.tgt.bountied = true; G.bountyN++; G.bountyWarnAt = G.time; DEC.len = CONFIG.BOUNTY.durS; }
+  if (DEC.key === 'nodash') tintZone(DEC.zone);
+  if (DEC.key === 'heights') G.warnGen++;
+  DECREE_VARS.zone = DEC.zone ? DEC.zone.name : '';
+  setText(el.voice, T(DECREES[DEC.key].voice, DECREE_VARS)); setShow(el.banner, true);
+}
+// The decree in force is key.
+function decOn(key) { return DEC.st === 3 && DEC.key === key; }
+// The heights decree is told or in force (bots leave the upper level during its warning).
+function heightsSoon() { return DEC.st >= 2 && DEC.key === 'heights'; }
+// A suit standing on Our heights (at or above DECREES.heightY, not airborne).
+function onHeights(s) { return !s.dead && !s.air && !!s.floor && s.y >= CONFIG.DECREES.heightY - 1e-6; }
+// A suit is silenced: the bridge decree is in force and it stands on a bridge.
+function silenced(s) { return decOn('silence') && !s.air && !!s.floor && !!s.floor.s.bridge; }
+// Draw a bagged decree whose place still stands (one pass through the bag); sets DEC.key, DEC.len and the zone. False = none left.
+function pickBagged() {
+  const n = CONFIG.DECREES.which.length;
+  for (let k = 0; k < n; k++) {
+    const key = draw(DBAGS.which);
+    if (!placeStands(key)) { G.skips++; continue; }
+    DEC.key = key; DEC.len = draw(DBAGS.len);
+    return true;
+  }
+  return false;
+}
+// Does the decree's place still stand? The no-dash decree also draws its zone here (a standing section that is not warned).
+function placeStands(key) {
+  if (key === 'dry') { for (let i = 0; i < ALTAR_LIST.length; i++) if (ALTAR_LIST[i].s.state === 0) return true; return false; }
+  if (key === 'silence') { for (let i = 0; i < SECLIST.length; i++) if (SECLIST[i].bridge && SECLIST[i].state === 0) return true; return false; }
+  if (key === 'heights') { for (let i = 0; i < FLOORS.length; i++) if (FLOORS[i].hi && FLOORS[i].active && FLOORS[i].s.state === 0) return true; return false; }
+  if (key === 'nodash') {
+    const n = CONFIG.DECREES.zones.length;
+    for (let k = 0; k < n; k++) { const z = SEC[draw(DBAGS.zones)]; if (z.state === 0) { DEC.zone = z; return true; } }
+    return false;
+  }
+  return true;
+}
+// Gold tint on the no-dash zone's floors (a warned section keeps its red glow), and its minimap outline. null = back to normal.
+function tintZone(z) {
+  const old = G.zoneSec; G.zoneSec = z; G.miniDirty = true;
+  if (old && old.state === 0) for (let i = 0; i < old.floorMeshes.length; i++) old.floorMeshes[i].material = old.floorMats[i];
+  if (z && z.state === 0) for (let i = 0; i < z.floorMeshes.length; i++) z.floorMeshes[i].material = zoneMat;
+}
+// Altar discs: the empty look while dry (decree) or out of charge.
+function altarLooks() { const dry = decOn('dry'); for (let i = 0; i < ALTAR_LIST.length; i++) { const a = ALTAR_LIST[i]; a.mesh.material = dry || a.charge <= 0 ? M.altarOff : M.altarOn; } }
+// A suit broke the decree in force: slowed and marked (owner: slow + mark). Only the player sees her line.
+function breakDecree(s) {
+  const D = CONFIG.DECREES;
+  if (s.dead) return;
+  s.brkT = D.reBreakS; s.breaks++; if (s === P) G.brkP++; else G.brkB++;
+  s.slowK = Math.max(s.slowT > 0 ? s.slowK : 0, D.slow); s.slowT = Math.max(s.slowT, D.slowS);
+  s.markT = D.markS; s.marker.visible = true;
+  if (s === P) showNote('voice_marked', 'rule_marked', MARK_VARS);
+}
+// Marks off every suit (the wake and a new run).
+function clearMarks() { for (let i = 0; i < SUITS.length; i++) { const s = SUITS[i]; s.markT = 0; s.brkT = 0; s.marker.visible = false; s.dashLeft = 0; } }
+// Start a dash (W): toward dx, dz for the skill's range by the walking rule; ord = a player order (its hits follow the player's own rules), else the bot brain.
+// Dashing while standing in the no-dash zone breaks that decree.
+function startDash(s, slot, dx, dz, ord) {
+  const sk = CONFIG.SKILLS[slot];
+  s.dashLeft = sk.range; s.dashX = dx; s.dashZ = dz; s.dashStep = sk.range / sk.dashS * CONFIG.STEP; s.dashSlot = slot; s.dashOrd = ord;
+  if (decOn('nodash') && s.floor && s.floor.s === DEC.zone) breakDecree(s);
+}
+// Dash over (full length or blocked): the burst lands around the suit.
+function dashLand(s) {
+  s.dashLeft = 0;
+  if (s.dashOrd) applySkill(s.dashSlot, s.x, s.z, s.dashX, s.dashZ);
+  else botSkillHit(s, s.dashSlot, s.x, s.z, s.dashX, s.dashZ);
 }
 // Leader time and the bounty request, then the decree slot (royale, in a match).
 function stepLeader(dt) {
   const L = G.leader;
   if (L) {
     G.leadT += dt;
-    if (CONFIG.BOUNTY.on && DEC.st === 0 && !L.bountied && G.leadT >= CONFIG.BOUNTY.afterS) requestDecree('bounty', L);
+    if (CONFIG.BOUNTY.on && !L.bountied && G.leadT >= CONFIG.BOUNTY.afterS) {
+      // A bagged request not drawn yet (queued) gives way: the bounty is the brake on the leader; the bagged one asks again right after it.
+      if (DEC.st === 1 && DEC.key === 'bag') DEC.st = 0;
+      if (DEC.st === 0) requestDecree('bounty', L);
+    }
   }
+  // Bagged decrees (batch 12): a request when the slot is free and its drawn time has come.
+  if (CONFIG.DECREES.on && DEC.st === 0 && G.time >= G.decNext) requestDecree('bag', null);
   stepDecree(dt);
+  G.hiAvoid = heightsSoon();
+  // Our heights: every suit standing there while it is in force breaks it, again every DECREES.reBreakS while it stays.
+  if (decOn('heights')) for (let i = 0; i < SUITS.length; i++) { const s = SUITS[i]; if (s.brkT <= 0 && onHeights(s)) breakDecree(s); }
   updateLeaderHud();
+  updateDecreeHud();
+}
+// HUD line of the bagged decree in force with its seconds left, for everyone. Written only on change.
+function updateDecreeHud() {
+  const d = DEC.st === 3 && DEC.key !== 'bounty' ? DECREES[DEC.key] : null, code = d ? d.idx * 1000 + Math.ceil(DEC.t) : 0;
+  if (code === G.decCode) return;
+  G.decCode = code; G.decWrites++;
+  if (!d) { setShow(el.decree, false); return; }
+  DECREE_VARS.s = Math.ceil(DEC.t); DECREE_VARS.zone = DEC.zone ? DEC.zone.name : '';
+  setText(el.decree, T(d.hud, DECREE_VARS)); setShow(el.decree, true);
 }
 // HUD line for everyone: the leader, and the bounty's seconds left while it is in force. Written only on change.
 function updateLeaderHud() {
@@ -1649,11 +1850,16 @@ function showNote(voiceKey, ruleKey, vars) {
 }
 function updateStatus() {
   const s0 = Math.ceil(P.pt[0]), s1 = Math.ceil(P.pt[1]);
-  const code = (P.stunT > 0 ? 100 : 0) + (P.slowT > 0 ? 10 : 0) + P.bleedN + s0 * 1e3 + s1 * 1e5 + (P.pk[0] === 'howler' ? 1e7 : 0) + (P.pk[1] === 'howler' ? 2e7 : 0);
+  const sil = silenced(P), mk = P.markT > 0;
+  // Skill buttons show the silence (class written only on change).
+  if (sil !== P.silShown) { P.silShown = sil; el.bar.classList.toggle('silenced', sil); }
+  const code = (P.stunT > 0 ? 100 : 0) + (P.slowT > 0 ? 10 : 0) + P.bleedN + s0 * 1e3 + s1 * 1e5 + (P.pk[0] === 'howler' ? 1e7 : 0) + (P.pk[1] === 'howler' ? 2e7 : 0) + (sil ? 4e7 : 0) + (mk ? 8e7 : 0);
   const tick = P.bT[0] + P.bT[1] + P.bT[2] + P.bT[3] > 0 ? Math.floor(G.time) : -1;
   if (code === P.statusShown && tick === P.statusTick) return;
   P.statusShown = code; P.statusTick = tick;
   let s = '';
+  if (sil) s += T('st_silenced') + '  ';
+  if (mk) s += T('st_marked') + '  ';
   if (P.stunT > 0) s += T('st_stun') + '  ';
   if (P.slowT > 0) s += T('st_slow') + '  ';
   if (P.bleedN > 0) s += T('st_bleed', { n: P.bleedN }) + '  ';
@@ -1970,7 +2176,7 @@ function rnd() {
 function draw(b) {
   if (b.i >= b.a.length) {
     for (let k = 0; k < b.src.length; k++) b.a[k] = b.src[k];
-    for (let k = b.a.length - 1; k > 0; k--) { const j = Math.floor(rnd() * (k + 1)), t = b.a[k]; b.a[k] = b.a[j]; b.a[j] = t; }
+    for (let k = b.a.length - 1; k > 0; k--) { const j = Math.floor((b.d ? drnd() : rnd()) * (k + 1)), t = b.a[k]; b.a[k] = b.a[j]; b.a[j] = t; }
     b.i = 0;
   }
   return b.a[b.i++];
@@ -2035,6 +2241,12 @@ function brnd() {
   t = Math.imul(t ^ (t >>> 15), t | 1); t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
   return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
 }
+// Decree bag draws (batch 12): their own seeded generator.
+function drnd() {
+  DRNG.s = (DRNG.s + 0x6D2B79F5) | 0; let t = DRNG.s;
+  t = Math.imul(t ^ (t >>> 15), t | 1); t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+  return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+}
 function stepBots(dt) {
   // At most one path search per step, taken in turn (measured worst 1.8 ms headless for an unreachable goal).
   let runs = 0;
@@ -2063,7 +2275,7 @@ function stepBots(dt) {
   for (let k = 0; k < BOTLIST.length; k++) {
     const b = BOTLIST[k];
     if (!b.dead) { stepBot(b, dt); if (!b.dead) alive++; }
-    const vis = !b.dead && Math.abs(b.y - P.y) < 6 && Math.hypot(b.x - P.x, b.z - P.z) <= VR;
+    const vis = !b.dead && (b.markT > 0 || (Math.abs(b.y - P.y) < 6 && Math.hypot(b.x - P.x, b.z - P.z) <= VR));
     b.seen = vis;
     if (b.group.visible !== vis) b.group.visible = vis;
   }
@@ -2079,7 +2291,8 @@ function botNav(b) {
 }
 // Timers a bot brain needs each step (bots and the test autopilot).
 function tickBrain(b, dt) {
-  for (let i = 0; i < 3; i++) if (b.cd[i] > 0) b.cd[i] -= dt;
+  const ultK = decOn('ult2x') ? CONFIG.DECREES.ultK : 1;
+  for (let i = 0; i < 3; i++) if (b.cd[i] > 0) b.cd[i] = Math.max(0, b.cd[i] - (i === 2 ? dt * ultK : dt));
   if (b.atkT > 0) b.atkT -= dt;
   if (b.castT > 0) b.castT -= dt;
   b.goalT += dt;
@@ -2112,7 +2325,7 @@ function botThink(b, dt) {
   const B = CONFIG.BOT, sk = b.skill;
   b.mx = 0; b.mz = 0; b.tgtT += dt;
   // Standing on a warned section beats everything: decide now (flee), and do not stop to dodge.
-  const warned = b.zone && b.zone.state === 1;
+  const warned = (b.zone && b.zone.state === 1) || (G.hiAvoid && onHeights(b));
   if (warned && b.mode !== 'flee') b.thinkT = 0;
   // Dodge every step: out of any shown tell it has seen long enough (radius + margin), straight away from its centre or line.
   if (!warned && botDanger(b, b.x, b.z, B.dodgeMargin)) {
@@ -2140,7 +2353,7 @@ function botThink(b, dt) {
 function botDecide(b) {
   const B = CONFIG.BOT, vr = CONFIG.VISION_R + (b.bT[2] > 0 ? b.bV[2] : 0);
   // Leave a warned section for the nearest safe standing spot.
-  if (b.zone && b.zone.state === 1) {
+  if ((b.zone && b.zone.state === 1) || (G.hiAvoid && onHeights(b))) {
     if (b.mode !== 'flee' || (!b.navWant && b.path.i >= b.path.n)) { b.mode = 'flee'; b.tgt = null; botSafeGoal(b); }
     return;
   }
@@ -2205,7 +2418,7 @@ function botDecide(b) {
     let bd = vr;
     for (let i = 0; i < CUBS.length + NEUTRALS.length; i++) {
       const u = i < CUBS.length ? CUBS[i] : NEUTRALS[i - CUBS.length];
-      if (!u.alive || u === b.skip || Math.abs(u.y - b.y) > 1.5) continue;
+      if (!u.alive || u === b.skip || Math.abs(u.y - b.y) > 1.5 || (G.hiAvoid && u.y >= CONFIG.DECREES.heightY - 0.5)) continue;
       const d = Math.hypot(u.x - b.x, u.z - b.z); if (d < bd) { bd = d; c = u; }
     }
     if (c && brnd() > b.skill.aggro) { b.skip = c; c = null; }
@@ -2224,18 +2437,25 @@ function botTarget(b, t, mode) {
   if (!b.direct && (Math.hypot(t.x - b.gx, t.z - b.gz) > CONFIG.BOT.chaseRepathM || b.pathGen !== G.warnGen || (!b.navWant && b.path.i >= b.path.n))) botGoal(b, t.x, t.z, t.y);
 }
 // A bot sees a suit inside its own vision radius, on about its own layer.
-function botSees(b, s, vr) { return !s.dead && Math.abs(s.y - b.y) < 2 && Math.hypot(s.x - b.x, s.z - b.z) <= vr; }
+// A marked suit (batch 12) is seen by every bot from anywhere.
+function botSees(b, s, vr) { return !s.dead && (s.markT > 0 || (Math.abs(s.y - b.y) < 2 && Math.hypot(s.x - b.x, s.z - b.z) <= vr)); }
 // Skills when ready and in range: Q line, W burst, R delayed burst with a ring shown for its whole delay. Aim error from the skill profile.
 function botUseSkills(b, q, d) {
-  const S = CONFIG.SKILLS, err = (1 - b.skill.hit) * CONFIG.BOT.aimErrM;
+  const S = CONFIG.SKILLS, B = CONFIG.BOT, err = (1 - b.skill.hit) * B.aimErrM;
+  // Decrees: silenced on a bridge; no dash inside the no-dash zone. No cast while dashing.
+  if (b.dashLeft > 0 || silenced(b)) return;
+  const noDash = decOn('nodash') && !!b.floor && b.floor.s === DEC.zone;
   for (let slot = 0; slot < 3; slot++) {
     const sk = S[slot];
-    if (b.cd[slot] > 0 || d > sk.range || (slot === 2 && (b.pend || (q.hp > sk.dmg && b.hp >= CONFIG.BOT.ultBelowHp)))) continue;
+    if (b.cd[slot] > 0 || (slot === 2 && (b.pend || (q.hp > sk.dmg && b.hp >= B.ultBelowHp)))) continue;
+    // The dash closes in: only from BOT.dashMinM to BOT.dashMaxM away and on about the target's layer; other skills within their range.
+    if (sk.dash ? (noDash || d < B.dashMinM || d > B.dashMaxM || Math.abs(q.y - b.y) > 0.7) : d > sk.range) continue;
     const a = brnd() * 6.2832, r = brnd() * err, tx = q.x + Math.cos(a) * r, tz = q.z + Math.sin(a) * r;
     let dx = tx - b.x, dz = tz - b.z; const len = Math.hypot(dx, dz) || 1e-6; dx /= len; dz /= len;
     const dist = sk.type === 'line' ? sk.range : Math.min(len, sk.range), x = b.x + dx * dist, z = b.z + dz * dist;
     b.cd[slot] = sk.cd; b.faceX = dx; b.faceZ = dz; b.castT = CONFIG.BOT.castGapS;
-    if (sk.delay > 0) {
+    if (sk.dash) startDash(b, slot, dx, dz, false);
+    else if (sk.delay > 0) {
       b.pend = true; b.pendT = sk.delay; b.pendS = slot; b.pendX = x; b.pendZ = z; b.pendDx = dx; b.pendDz = dz; b.pendAge = 0;
       b.ring.position.set(x, topYUnder(x, z, b.y + 1) + 0.07, z); b.ring.scale.setScalar(sk.radius); scene.add(b.ring);
     } else botSkillHit(b, slot, x, z, dx, dz);
@@ -2305,7 +2525,7 @@ function botAwayGoal(b, s) {
   let best = -1, bd = Math.hypot(b.x - s.x, b.z - s.z);
   for (let t = 0; t < 8; t++) {
     const v = Math.floor(brnd() * NAV.V), f = FLOORS[NAV.nf[v]];
-    if (!f.active || f.s.state !== 0) continue;
+    if (!f.active || f.s.state !== 0 || (G.hiAvoid && f.hi)) continue;
     const x = NAV.x0 + (NAV.ni[v] + 0.5) * NAV.st, z = NAV.z0 + (NAV.nj[v] + 0.5) * NAV.st;
     if (nearHazard(x, z, NAV.ny[v])) continue;
     let d = 1e9;
@@ -2315,11 +2535,12 @@ function botAwayGoal(b, s) {
   if (best >= 0) botGoal(b, NAV.x0 + (NAV.ni[best] + 0.5) * NAV.st, NAV.z0 + (NAV.nj[best] + 0.5) * NAV.st, NAV.ny[best]);
   else botRoamGoal(b);
 }
-// Nearest altar with charge on a standing section.
+// Nearest altar with charge on a standing section; none while Our altars are dry, none up high while the heights decree holds.
 function botAltar(b) {
   let best = null, bd = 1e9;
+  if (decOn('dry')) return null;
   for (let i = 0; i < ALTAR_LIST.length; i++) {
-    const a = ALTAR_LIST[i]; if (a.s.state !== 0 || a.charge <= 0) continue;
+    const a = ALTAR_LIST[i]; if (a.s.state !== 0 || a.charge <= 0 || (G.hiAvoid && a.y >= CONFIG.DECREES.heightY - 0.5)) continue;
     const d = Math.hypot(a.x - b.x, a.z - b.z); if (d < bd) { bd = d; best = a; }
   }
   return best;
@@ -2341,7 +2562,7 @@ function botGoal(b, x, z, y) { b.gx = x; b.gz = z; b.gy = y; b.goalT = 0; b.navW
 function botRoamGoal(b) {
   for (let t = 0; t < 12; t++) {
     const v = Math.floor(brnd() * NAV.V), f = FLOORS[NAV.nf[v]];
-    if (!f.active || f.s.state !== 0) continue;
+    if (!f.active || f.s.state !== 0 || (G.hiAvoid && f.hi)) continue;
     if (nearHazard(NAV.x0 + (NAV.ni[v] + 0.5) * NAV.st, NAV.z0 + (NAV.nj[v] + 0.5) * NAV.st, NAV.ny[v])) continue;
     botGoal(b, NAV.x0 + (NAV.ni[v] + 0.5) * NAV.st, NAV.z0 + (NAV.nj[v] + 0.5) * NAV.st, NAV.ny[v]);
     return;
@@ -2492,6 +2713,11 @@ function drawMiniBase() {
   c.fillStyle = '#c9a040'; c.fillRect(X(-6), Z(DZ), 12 * px, 7 * py);
   c.fillStyle = '#ff8a2a'; for (const [x, z, s] of CAMPS) if (SEC[s].state < 2) c.fillRect(X(x) - 2, Z(z) - 2, 4, 4);
   c.fillStyle = '#cfcabd'; for (const [x, z, s] of LIONS) if (SEC[s].state < 2) c.fillRect(X(x) - 1.5, Z(z) - 1.5, 3, 3);
+  // The no-dash zone (decree, batch 12): gold outline.
+  if (G.zoneSec && G.zoneSec.state < 2) {
+    c.strokeStyle = CONFIG.DECREES.zoneMini; c.lineWidth = 2;
+    for (const f of FLOORS) if (f.s === G.zoneSec) c.strokeRect(X(f.x0) + 1, Z(f.z0) + 1, (f.x1 - f.x0) * px - 2, (f.z1 - f.z0) * py - 2);
+  }
 }
 // PERFRAME-BEGIN
 function drawMini() {
@@ -2524,6 +2750,8 @@ function drawMini() {
   for (let i = 0; i < BOTLIST.length; i++) {
     const b = BOTLIST[i]; if (!b.seen) continue;
     c.beginPath(); c.arc((b.x - MINI.x0) * px, (b.z - MINI.z0) * py, 3, 0, 6.2832); c.fill();
+    // A marked suit (seen from anywhere) gets a red ring.
+    if (b.markT > 0) { c.strokeStyle = '#ff2a10'; c.lineWidth = 1.5; c.beginPath(); c.arc((b.x - MINI.x0) * px, (b.z - MINI.z0) * py, 5.5, 0, 6.2832); c.stroke(); }
   }
   c.fillStyle = '#ffd040';
   for (let i = 0; i < NEUTRALS.length; i++) {
@@ -2567,11 +2795,13 @@ function respawn(kind) {
 
 // Bots into the match at the other spawns (new run), or all out of it (the wake). Not deaths: no cause is recorded.
 function clearBots() {
-  for (const b of BOTLIST) { b.cause = ''; b.diedAt = -1; b.killer = null; b.hunter = false; b.huntLostT = 0; b.why = ''; botOut(b); }
+  // A bot already out keeps its cause, time and killer (the wake after the player won lost them: found in batch 12); spawnBots resets them for a new run.
+  for (const b of BOTLIST) { if (!b.dead) { b.cause = ''; b.diedAt = -1; b.killer = null; } b.hunter = false; b.huntLostT = 0; b.why = ''; botOut(b); }
   G.huntN = 0; G.huntClaims = 0; G.huntFrees = 0;
 }
 function spawnBots() {
   clearBots();
+  for (const b of BOTLIST) { b.cause = ''; b.diedAt = -1; b.killer = null; }
   let k = 0;
   for (let si = 0; si < SPAWNS.length && k < G.botN; si++) {
     if (si === CONFIG.PLAYER_SPAWN) continue;
@@ -2592,8 +2822,9 @@ function spawnBots() {
 // New run: resets everything the run changes (time, waves, sections, floors, player, banner, shadows).
 function reset() {
   P.pt[0] = P.pt[1] = 0; P.pk[0] = P.pk[1] = ''; P.plates = 0; P.boons = 0; P.cause = ''; P.diedAt = -1; P.killer = null; G.platesTaken = 0; G.hits = 0; G.minTell = 99; G.hitDmg = 0; G.bleedDmg = 0;
-  G.seed = G.seedFixed >= 0 ? G.seedFixed : (Date.now() >>> 0); RNG.s = G.seed | 0; BRNG.s = (G.seed ^ 0x5bd1e995) | 0;
+  G.seed = G.seedFixed >= 0 ? G.seedFixed : (Date.now() >>> 0); RNG.s = G.seed | 0; BRNG.s = (G.seed ^ 0x5bd1e995) | 0; DRNG.s = (G.seed ^ 0x2545f491) | 0;
   for (const k in BAGS) BAGS[k].i = BAGS[k].a.length;
+  for (const k in DBAGS) DBAGS[k].i = DBAGS[k].a.length;
   for (let i = 0; i < 4; i++) { P.bT[i] = 0; P.bV[i] = 0; }
   P.statusTick = -1; G.boons = 0; G.visR = CONFIG.VISION_R; if (G.view === 'follow') FOW.uFowR.value = G.visR;
   resetCubs(); resetNeutrals(true);
@@ -2624,6 +2855,11 @@ function reset() {
   for (const s of SUITS) { s.kills = 0; s.bountied = false; s.bId = -1; s.bYes = false; }
   G.leaderChanges = 0; G.leaderCode = -1; G.leaderWrites = 0; G.bountyN = 0; G.bountyWarnAt = -1; G.bountyStartAt = -1; G.bountyEndAt = -1; G.bountyEndWhy = ''; G.bountyPaid = 0; G.bountyPaidTo = -1;
   updateLeaderHud();
+  // Bagged decrees (batch 12): the first request time from the bag; counters back to zero.
+  // warnGen restarts after clearLeader (an ending heights decree bumps it), so every run starts alike (found in batch 12: run 1 and run 2 of one seed differed).
+  G.warnGen = 0; G.decNext = draw(DBAGS.first); G.decN = 0; G.decLog.length = 0; G.brkP = 0; G.brkB = 0; G.decWrites = 0; G.skips = 0; P.floor = null;
+  for (const k in G.decCount) G.decCount[k] = 0;
+  for (const s of SUITS) s.breaks = 0;
   spawnBots();
   setShow(el.banner, false);
   renderer.shadowMap.needsUpdate = true;
@@ -2678,7 +2914,7 @@ function placeView(alpha) {
       const hp = cursorGround();
       if (hp.ok) { const ax = hp.x - x, az = hp.z - z, l = Math.hypot(ax, az); if (l > 0.05) { ORD.dirX = ax / l; ORD.dirZ = az / l; } ORD.dist = Math.min(l, sk.range); }
     }
-    const dist = sk.type === 'line' ? sk.range : ORD.dist;
+    const dist = sk.type === 'line' || sk.dash ? sk.range : ORD.dist;
     ORD.aimX = x + ORD.dirX * dist; ORD.aimZ = z + ORD.dirZ * dist;
     indRange.position.set(x, y + 0.05, z); indRange.scale.setScalar(sk.range); indRange.visible = true;
     if (sk.type === 'line') {
@@ -2755,6 +2991,8 @@ reset();
 const warm = new THREE.Mesh(new THREE.BoxGeometry(0.1, 0.1, 0.1), warnMat);
 warm.receiveShadow = true; warm.castShadow = true; scene.add(warm);
 for (const m of INDICATORS) m.visible = true;
+// Batch 12: the zone tint and the mark marker are drawn once now (no upload or compile on first use).
+const warmZone = new THREE.Mesh(warm.geometry, zoneMat); warmZone.position.set(P.x, P.y, P.z); scene.add(warmZone); P.marker.visible = true;
 // Hunt pieces sit at the player for this one draw so their buffers upload now, not at the wake.
 const warmSeal = new THREE.Mesh(sealMesh.geometry, M.tellD); warmSeal.position.set(P.x, P.y, P.z - (CH.z1 - 0.5));
 // The leader crown is drawn once here too (at the map centre, inside the overview draw), so its buffer uploads at load.
@@ -2776,7 +3014,7 @@ for (const b of BOTLIST) b.group.visible = false;
 for (const o of warmHunt) scene.remove(o);
 for (const u of ENEMIES.concat(NEUTRALS)) hideTell(u);
 for (const m of INDICATORS) m.visible = false;
-scene.remove(warm); warm.geometry.dispose();
+scene.remove(warm, warmZone); warm.geometry.dispose(); P.marker.visible = false;
 drawMini();
 renderer.shadowMap.needsUpdate = true;
 
@@ -2801,7 +3039,7 @@ window.__game = {
   navTime(ax, az, bx, bz, smooth) { const t0 = performance.now(); const ok = navSearch(ax, az, topY(ax, az), bx, bz, topY(bx, bz), NAV_SCRATCH, smooth); return { ms: performance.now() - t0, ok, n: NAV_SCRATCH.n }; },
   navNodes: () => NAV.V,
   setBots(n) { G.botN = Math.max(0, Math.min(CONFIG.BOTS.count, n)); },
-  autoPlayer(on) { G.autoP = !!on; P.mode = ''; P.tgt = null; P.navWant = false; P.flee = false; P.pend = false; if (P.ring.parent) scene.remove(P.ring); P.cd[0] = P.cd[1] = P.cd[2] = 0; P.thinkT = 0; P.lastBy = null; P.goalT = 1e9; PATH.n = 0; PATH.i = 0; },
+  autoPlayer(on) { G.autoP = !!on; P.mode = ''; P.tgt = null; P.pathGen = 0; P.heal = null; P.skip = null; P.direct = false; P.tgtT = 0; P.castT = 0; P.lastByT = -99; P.declined = null; P.declinedT = -99; P.gx = P.x; P.gz = P.z; P.gy = P.y; P.navWant = false; P.flee = false; P.pend = false; if (P.ring.parent) scene.remove(P.ring); P.cd[0] = P.cd[1] = P.cd[2] = 0; P.thinkT = 0; P.lastBy = null; P.goalT = 1e9; PATH.n = 0; PATH.i = 0; },
   setBotHp(i, n) { BOTLIST[i].hp = n; }, setWatch(on) { G.watch = !!on; },
   royale: () => ({ phase: G.phase, lostIn: G.lostIn, alive: G.alive, decidedAt: G.decidedAt, t: G.time, voice: el.voice.textContent, rule: el.rule.textContent, banner: el.banner.style.display, btn: el.btnHunt.style.display, btnText: el.btnHunt.textContent }), setBotCd(i, slot, v) { BOTLIST[i].cd[slot] = v; }, setTime(t) { G.time = t; },
   hitBy(i, j, n) { const a = i < 0 ? P : BOTLIST[i], b = j < 0 ? P : BOTLIST[j]; hurtSuit(b, n, 'hit', a); },
@@ -2809,7 +3047,7 @@ window.__game = {
   player: () => ({ mode: P.mode, tgt: P.tgt ? (P.tgt.kind === 'suit' ? P.tgt.id : -2) : -1, dead: P.dead, cause: P.cause, diedAt: P.diedAt, plates: P.plates, boons: P.boons, x: P.x, y: P.y, z: P.z, kills: P.kills }),
   bots: () => ({ n: G.botN, alive: G.alive, navRuns: G.navRuns, navPeak: G.navPeak, huntN: G.huntN, huntClaims: G.huntClaims, huntFrees: G.huntFrees, list: BOTLIST.slice(0, G.botN).map((b) => ({ id: b.id, x: b.x, y: b.y, z: b.z, hp: b.hp, dead: b.dead, cause: b.cause, diedAt: b.diedAt,
     killer: b.killer ? b.killer.id : -1, stuck: b.stuckMax, zone: b.zone ? b.zone.id : null, seen: b.seen, vis: b.group.visible, inScene: !!b.group.parent, plates: b.plates, boons: b.boons,
-    tgt: b.tgt ? (b.tgt.kind === 'suit' ? b.tgt.id : -2) : -1, mode: b.mode, why: b.why, hunter: b.hunter, spawn: b.spawn, bT: b.bT.slice(), ult: b.cd[2], pk: b.pk.slice(), air: b.air, standOk: b.dead || b.air || !!floorAt(b.x, b.z, b.y + 0.05) })) }),
+    tgt: b.tgt ? (b.tgt.kind === 'suit' ? b.tgt.id : -2) : -1, mode: b.mode, why: b.why, markT: b.markT, breaks: b.breaks, cd: b.cd.slice(), hunter: b.hunter, spawn: b.spawn, bT: b.bT.slice(), ult: b.cd[2], pk: b.pk.slice(), air: b.air, standOk: b.dead || b.air || !!floorAt(b.x, b.z, b.y + 0.05) })) }),
   botDbg(i) { const b = BOTLIST[i]; return { x: b.x, z: b.z, y: b.y, mx: b.mx, mz: b.mz, gx: b.gx, gz: b.gz, n: b.path.n, i: b.path.i, pts: Array.from(b.path.pts.slice(0, b.path.n * 2)), stuckT: b.stuckT, want: b.navWant }; },
   // Batch 11: leader, crown, decree slot and bounty counters.
   leader() {
@@ -2822,7 +3060,19 @@ window.__game = {
   },
   suitsState: () => SUITS.map((s) => (s.dead ? -1 : (s.pt[0] > 0 ? 1 : 0) + (s.pt[1] > 0 ? 1 : 0) + s.kills * 4)),
   plateTo(i, kind) { addPlate(i < 0 ? P : BOTLIST[i], kind); },
-  decreeKeys: () => Object.values(DECREES).flatMap((d) => [d.voice, d.rule]).concat(SUIT_KEYS).filter((k) => !TEXT[k]),
+  decreeKeys: () => Object.values(DECREES).flatMap((d) => [d.voice, d.rule, d.hud || 'hud_leader']).concat(SUIT_KEYS, ['voice_marked', 'rule_marked', 'voice_silenced', 'rule_silenced', 'st_silenced', 'st_marked']).filter((k) => !TEXT[k]),
+  // Batch 12 hooks: decree slot state and logs; force a decree's warning now (tests; next = time of the next bagged request); suit marks and dashes.
+  decree: () => ({ st: DEC.st, key: DEC.key, t: DEC.t, len: DEC.len, zone: DEC.zone ? DEC.zone.id : null, next: G.decNext, n: G.decN, count: Object.assign({}, G.decCount), log: G.decLog.slice(),
+    brkP: G.brkP, brkB: G.brkB, writes: G.decWrites, hud: el.decree.textContent, hudShown: el.decree.style.display, skips: G.skips, hiAvoid: G.hiAvoid, banner: el.banner.style.display,
+    voice: el.voice.textContent, rule: el.rule.textContent, zoneSec: G.zoneSec ? G.zoneSec.id : null, barSilenced: el.bar.classList.contains('silenced'), status: el.status.textContent }),
+  forceDecree(key, zone, len, next) { endDecree('test'); DEC.key = key; DEC.zone = zone ? SEC[zone] : null; DEC.len = len || 30; DEC.tgt = null; beginWarning(); if (next !== undefined) G.decNext = next; },
+  startState: () => JSON.stringify([G.warnGen, G.decNext, P.pathGen, P.gx, P.gz, P.declined ? P.declined.id : -1, P.declinedT, P.lastByT, P.castT, P.tgtT, !!P.heal, !!P.skip, P.direct]),
+  setDecNext(t) { G.decNext = t; }, drawDecBag(name) { return draw(DBAGS[name]); },
+  pickDec(n) { const out = []; for (let i = 0; i < n; i++) { endDecree('test'); out.push(pickBagged() ? DEC.key + (DEC.zone ? ':' + DEC.zone.id : '') : '-'); DEC.key = ''; DEC.zone = null; DEC.len = 0; } return out; },
+  suits: () => SUITS.map((s) => ({ id: s.id, x: s.x, y: s.y, z: s.z, markT: s.markT, breaks: s.breaks, marker: s.marker.visible, slowT: s.slowT, slowK: s.slowK, dash: s.dashLeft, air: s.air, dead: s.dead,
+    hi: onHeights(s), floor: s.floor ? s.floor.sec : null })),
+  sees: (i, j) => botSees(BOTLIST[i], j < 0 ? P : BOTLIST[j], CONFIG.VISION_R), zoneTinted: (id) => SEC[id].floorMeshes.every((m) => m.material === zoneMat),
+  breakBy(i) { breakDecree(i < 0 ? P : BOTLIST[i]); }, setFace(x, z) { P.faceX = x; P.faceZ = z; },
   ultOf: (i) => (i < 0 ? SK[2].cdT : BOTLIST[i].cd[2]),
   hunters() {
     let flagged = 0, huntOnP = 0, capOnP = 0, onP = 0, seeP = 0, id = -1;
@@ -2831,7 +3081,7 @@ window.__game = {
       if (b.tgt === P) { onP++; if (b.why === 'hunt') huntOnP++; if (b.mode === 'fight' && b.why !== 'hit') capOnP++; }
       if (botSees(b, P, CONFIG.VISION_R)) seeP++;
     }
-    return { slots: G.huntN, flagged, huntOnP, capOnP, onP, seeP, id, claims: G.huntClaims, frees: G.huntFrees, max: huntCap(), bountyP: huntCap() > CONFIG.BOT.maxHunters };
+    return { slots: G.huntN, flagged, huntOnP, capOnP, onP, seeP, id, claims: G.huntClaims, frees: G.huntFrees, max: huntCap(), bountyP: DEC.st === 3 && DEC.key === 'bounty' && DEC.tgt === P, markP: P.markT > 0 };
   },
   setBotHp(i, n) { BOTLIST[i].hp = n; },
   hitBot(i, n) { hurtSuit(BOTLIST[i], n, 'test', null); }, placeBot(i, x, z) { const b = BOTLIST[i]; b.x = b.px = x; b.z = b.pz = z; b.y = b.py = topY(x, z); b.air = false; b.vy = 0; },
