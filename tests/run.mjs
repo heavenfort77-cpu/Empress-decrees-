@@ -815,13 +815,16 @@ try {
   // 62 Flee: two bots fighting on the roof (too tough to break each other) stop when its collapse is warned and walk off before it falls (5 s warning).
   const fl = await g(() => {
     const G = __game, C = G.config, K = window.__k, o = {};
+    // Batch 13: decrees are paced about one a minute now (panel 23 Nov 16:11), so a heights decree can be in force at 53 s and send both bots off the roof
+    // before its collapse is warned; this scene tests the collapse flee alone, so bagged decrees are off here and back on at the end (changed on purpose).
+    C.DECREES.on = false;
     G.setSeed(12345); G.setBots(2); G.reset(); G.teleport(0, -50);
     const roof = G.floors().find((f) => f.sec === 'ROOF'), cx = (roof.x0 + roof.x1) / 2, cz = (roof.z0 + roof.z1) / 2;
     K.sp(C.FIRST_WAVE_S - C.COLLAPSE_WARN_S - 1.5);
     G.placeBot(0, cx - 1.5, cz); G.placeBot(1, cx + 1.5, cz); G.setBotHp(0, 1e4); G.setBotHp(1, 1e4); G.hitBy(1, 0, 1); G.hitBy(0, 1, 1); G.step(30);
     const b0 = G.bots().list; o.start = [b0[0].zone, b0[1].zone]; o.fight = [b0[0].mode, b0[1].mode];
     K.sp(C.COLLAPSE_WARN_S + 3); const b = G.bots().list; o.dead = [b[0].dead, b[1].dead]; o.zone = [b[0].zone, b[1].zone];
-    G.setBots(0); G.reset(); return o;
+    C.DECREES.on = true; G.setBots(0); G.reset(); return o;
   });
   check('62 flee: two bots fighting on the roof leave it within the 5 s warning and live', fl.start.every((z) => z === 'ROOF') && fl.fight.every((m) => m === 'fight')
     && !fl.dead[0] && !fl.dead[1] && fl.zone.every((z) => z !== 'ROOF'), JSON.stringify(fl));
@@ -868,6 +871,9 @@ try {
     // Batch 12: decree slot over the matches: every warning >= DECREE.warnS before its start, never begun under a collapse banner, slots never overlap
     // (bagged and bounty), HUD writes only on change; bots off Our heights unless crossing them to leave a warned section; breaks and marks counted.
     const dv = [], dbad = (x) => { if (dv.length < 5) dv.push(x); }; let capMark = 0, markPTicks = 0, hiStay = 0; const dsum = [];
+    // Batch 13a (panel 23 Nov 16:11): banners never overlap (no collapse banner and no kennel warning begins during a decree warning);
+    // heights breaks within DECREES.warnFreeS of standing on a warned section are counted (must be 0).
+    let bannerOv = 0, hiNear = 0, hiBrk = 0;
     const rule = (st, prev) => { let best = -1, bp = 0, bk = 0; st.forEach((v, i) => { if (v < 0) return; const p = v % 4, k = (v - p) / 4; if (p > bp || (p === bp && k > bk)) { best = i; bp = p; bk = k; } });
       if (best >= 0 && prev >= 0 && st[prev] >= 0 && st[prev] === st[best]) best = prev; return best; };
     // Batch 12: 12 seeds (was 6): bagged decrees share the slot with the bounty by design, so bounties are rarer per match; more matches keep the
@@ -875,7 +881,7 @@ try {
     for (const seed of [12345, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]) {
       G.setSeed(seed); G.setBots(9); G.reset(); G.autoPlayer(true); G.setWatch(true);
       let prevAlive = 10, t = 0, prevL = -1; const leadS = {};
-      let prevSt = 0, prevKey = '', cur = null; const iv = [], stay = {};
+      let prevSt = 0, prevKey = '', cur = null, prevKw = false; const iv = [], stay = {}, wsT = {}, brk = {};
       for (; t < 300 / C.STEP; t++) {
         G.step(1); const r = G.royale();
         const l = G.leader(), st = G.suitsState();
@@ -893,6 +899,16 @@ try {
         if (dc.st >= 2 && (prevSt < 2 || dc.key !== prevKey)) { if (cur && cur.end < 0) cur.end = G.royale().t; if (l.bw >= 0) dbad(`s${seed} t${t} ${dc.key} warning under a collapse banner`); cur = { key: dc.key, warn: G.royale().t, start: -1, end: -1 }; iv.push(cur); }
         if (cur && dc.st === 3 && cur.start < 0) cur.start = G.royale().t;
         if (cur && dc.st < 2 && cur.end < 0) cur.end = G.royale().t;
+        if (dc.st === 2 && (l.bw >= 0 || (dc.kw && !prevKw))) { bannerOv++; dbad(`s${seed} t${t} banner over the ${dc.key} warning`); }
+        prevKw = dc.kw;
+        if (dc.st >= 2 && dc.key === 'heights') {
+          const now = G.royale().t, secSt = G.state().sec;
+          for (const q of G.suits()) {
+            if (q.floor && secSt[q.floor] === 1) wsT[q.id] = now;
+            if (brk[q.id] !== undefined && q.breaks > brk[q.id]) { hiBrk++; if (wsT[q.id] !== undefined && now - wsT[q.id] < C.DECREES.warnFreeS - 1e-6) hiNear++; }
+            brk[q.id] = q.breaks;
+          }
+        } else for (const k in brk) delete brk[k];
         prevSt = dc.st; prevKey = dc.key;
         if (dc.st === 3 && dc.key === 'heights') {
           const bl = G.bots().list;
@@ -932,7 +948,7 @@ try {
         }
         const inForce = iv.filter((a) => a.start >= 0 && a.key !== 'bounty').reduce((x, a) => x + (a.end - a.start), 0), nb = iv.filter((a) => a.key !== 'bounty').length;
         if (dd.writes > inForce + 3 * nb + 2) dbad(`s${seed} HUD writes ${dd.writes} for ${inForce.toFixed(0)} s`);
-        dsum.push({ seed, n: dd.n, keys: iv.map((a) => a.key).join(','), brkP: dd.brkP, brkB: dd.brkB, writes: dd.writes });
+        dsum.push({ seed, told: iv.length, w: iv.map((a) => +a.warn.toFixed(2)), n: dd.n, keys: iv.map((a) => a.key).join(','), brkP: dd.brkP, brkB: dd.brkB, writes: dd.writes });
       }
       const lw = G.leader(), top = Object.entries(leadS).sort((x, y) => y[1] - x[1])[0], winId = b.list.concat([{ id: 0, dead: p.dead }]).find((q) => !q.dead);
       sims.push({ seed, topLeader: top ? +top[0] : -1, winId: winId ? winId.id : -1, pPlates: p.plates, bounties: lw.n, paid: lw.paid });
@@ -940,7 +956,7 @@ try {
       out.push({ seed, decided: +r.decidedAt.toFixed(1), winner: win ? win.spawn : -1, player: p.dead ? p.cause + '@' + Math.round(p.diedAt) : 'won', place, playerFirst: p.dead && p.diedAt <= firstOut, nocause });
       G.setWatch(false); G.autoPlayer(false);
     }
-    G.setBots(0); G.reset(); return { out, viol, wins, wins6, plates, boons, hunt: { hv, see3, maxOnP, maxHunt }, lead: { lv, lchanges, leadersSeen, preLeadBad }, cap: { cv, capOff, capOn, bountyPTicks, capMark, markPTicks }, sh, sims, dec: { dv, hiStay: +hiStay.toFixed(2), dsum } };
+    G.setBots(0); G.reset(); return { out, viol, wins, wins6, plates, boons, hunt: { hv, see3, maxOnP, maxHunt }, lead: { lv, lchanges, leadersSeen, preLeadBad }, cap: { cv, capOff, capOn, bountyPTicks, capMark, markPTicks }, sh, sims, dec: { dv, hiStay: +hiStay.toFixed(2), dsum, bannerOv, hiNear, hiBrk } };
   });
   check('65 whole matches x6: decided in 165-255 s, 0 broken invariants, every out has a cause, bots take plates and boons, no spawn wins more than 3 of 6',
     ms.out.every((m) => m.decided >= 165 && m.decided <= 255 && m.nocause === 0) && ms.viol.length === 0 && ms.plates > 0 && ms.boons > 0 && Math.max(...Object.values(ms.wins6)) <= 3, JSON.stringify(ms));
@@ -1034,9 +1050,10 @@ try {
     const start = (s) => { G.setSeed(s); G.setBots(3); G.reset(); G.setHp(1e9); for (let i = 0; i < 3; i++) G.setBotHp(i, 1e9); G.teleport(0, -45); hold(); };
     const run = (sec, each) => { for (let n = 0; n < Math.round(sec / C.STEP); n++) { hold(); G.step(1); if (each && each()) return true; } return false; };
     let overlap = 0; const watch = () => { const l = G.leader(); if (l.banner && l.bw >= 0) overlap++; return false; };
-    // A: leader from t 15; due at 40, within clearS of collapse warning 0 (55 s), so the warning is queued until that banner ends (60 s).
-    start(1); run(15, watch); G.plateTo(0, 'stalker'); const t0 = G.leader().t;
-    run(30, watch); G.plateTo(0, 'howler'); o.queued = G.leader().dec;
+    // A: leader from t 27; due at 52, within clearS of collapse warning 0 (55 s), so the warning is queued until that banner ends (60 s).
+    // Batch 13 (panel 23 Nov 16:11, P1): clearS is 5 s (was 20 s), so the lead starts at 27 s instead of 15 s; changed on purpose.
+    start(1); run(27, watch); G.plateTo(0, 'stalker'); const t0 = G.leader().t;
+    run(27, watch); G.plateTo(0, 'howler'); o.queued = G.leader().dec;
     run(80, () => { watch(); return G.leader().dec === 2; }); const w = G.leader(); o.warn = { at: w.warnAt, voice: w.voice, rule: w.rule, shown: w.bannerShown, sinceLead: +(w.warnAt - t0).toFixed(2) };
     G.plateTo(0, 'stalker');
     run(10, () => { watch(); return G.leader().dec === 3; }); const s1 = G.leader(); o.on = { startAt: s1.startAt, lead: +(s1.startAt - s1.warnAt).toFixed(2), hud: s1.hud, bannerOff: !s1.banner };
@@ -1071,6 +1088,25 @@ try {
     && Math.abs(bt.natural.dur - 40) < 0.1 && bt.natural.why === 'time' && !bt.natural.again
     && bt.inWarn.wasWarn && bt.inWarn.paid === 0 && bt.inWarn.dec === 0 && bt.inWarn.why === 'out' && bt.noBreaker.paid === 0 && bt.noBreaker.dec === 0 && bt.noBreaker.why === 'out'
     && bt.wake.dec === 0 && bt.wake.why === 'wake' && !bt.wake.crown && bt.wake.hud === 'none' && bt.wake.huntDec === 0 && bt.fresh.every((x) => x) && bt.keys.length === 0, JSON.stringify(bt));
+  // 84 Bounty paced like a decree (batch 13 P3, panel 23 Nov 16:11): with bagged decrees on, a bounty that comes due during the gap waits for it (G.decNext),
+  // and a gap drawn from the gap bag follows the bounty before the next bagged decree is told.
+  const bg = await g(() => {
+    const G = __game, C = G.config, o = {}, D = C.DECREES;
+    const hold = () => { G.placeBot(0, 0, -50); G.placeBot(1, 3, -50); G.placeBot(2, -3, -50); };
+    const run = (sec, each) => { for (let n = 0; n < Math.round(sec / C.STEP); n++) { hold(); G.step(1); if (each && each()) return true; } return false; };
+    G.setSeed(7); G.setBots(3); G.reset(); G.setHp(1e9); for (let i = 0; i < 3; i++) G.setBotHp(i, 1e9); G.teleport(0, -45); hold(); G.setDecNext(100);
+    run(61); G.plateTo(0, 'stalker'); const lead = G.leader().t;
+    let early = -1; run(100 - 61 - 0.1, () => { if (G.decree().st !== 0 && early < 0) early = G.royale().t; G.plateTo(0, 'stalker'); return false; });
+    o.due = +(lead + C.BOUNTY.afterS).toFixed(2); o.early = early;
+    run(10, () => G.leader().dec === 2); const w = G.leader(); o.warnAt = +w.warnAt.toFixed(2); o.key = w.decKey;
+    run(C.DECREE.warnS + C.BOUNTY.durS + 2, () => { G.plateTo(0, 'stalker'); return G.leader().dec === 0 && G.leader().endAt > 0; });
+    const e = G.leader(), d = G.decree(); o.endAt = +e.endAt.toFixed(2); o.why = e.endWhy; o.next = +d.next.toFixed(2);
+    let nextWarn = -1; run(40, () => { const x = G.decree(); if (x.st >= 2 && x.key !== 'bounty') { nextWarn = G.royale().t; return true; } return false; });
+    o.nextWarn = +nextWarn.toFixed(2); o.gapMin = Math.min(...D.gap);
+    G.setBots(0); G.reset(); return o;
+  });
+  check('84 bounty paced like a decree: due during the gap it waits for it; a drawn gap follows it before the next decree',
+    bg.early < 0 && bg.due < 100 && bg.warnAt >= 100 - 1e-6 && bg.key === 'bounty' && bg.why === 'time' && bg.next >= bg.endAt + bg.gapMin - 1e-6 && bg.nextWarn >= bg.endAt + bg.gapMin - 1e-6, JSON.stringify(bg));
   // 73 Player cap (scripted): after peace, 3 bots near the player that nobody hit: at most 1 fights the player at any tick, and one does;
   // in peace the player hits 2 of them: both answer (hitting back is not capped); a bounty on the player lets up to 3 fight it, back to 1 the tick it ends.
   const pc = await g(() => {
@@ -1205,6 +1241,13 @@ try {
   // decrees happened in every match. Numbers per match are reported (-sims).
   check('78 decrees in 12 matches: told >= 5 s, not under a collapse banner, never two at once, HUD only on change, bots off the heights, decrees every match',
     ms.dec.dv.length === 0 && ms.dec.hiStay <= 1 && ms.dec.dsum.every((x) => x.n >= 1), JSON.stringify(ms.dec));
+  // 83 Decree pacing (batch 13a, panel 23 Nov 16:11; GDD about one a minute, 3-4 per royale): over the 12 matches of 65 every match has 3 or 4 decrees told
+  // (warnings begun, the bounty included) before it is decided; no banner over a decree warning; no heights break within warnFreeS of a warned section.
+  // "About one a minute": the mean time from one warning to the next over all 12 matches is at most 60 s.
+  const wGaps = ms.dec.dsum.flatMap((x) => x.w.slice(1).map((v, i) => v - x.w[i])), wMean = wGaps.reduce((a, v) => a + v, 0) / Math.max(1, wGaps.length);
+  check('83 decree pacing: 3-4 decrees told (bounty included) in each of 12 matches, about one a minute (mean warning to warning <= 60 s), no banner over a decree warning, no heights break near a warned section',
+    ms.dec.dsum.every((x) => x.told >= 3 && x.told <= 4) && wMean <= 60 && ms.dec.bannerOv === 0 && ms.dec.hiNear === 0,
+    `told ${ms.dec.dsum.map((x) => x.seed + ':' + x.told).join(',')}; mean warning to warning ${wMean.toFixed(1)} s (${wGaps.length} gaps); bannerOv ${ms.dec.bannerOv}; heights breaks ${ms.dec.hiBrk}, near warned ${ms.dec.hiNear}`);
   SIMS.push(`decrees per match ${ms.dec.dsum.map((x) => x.n).join(',')}; order ${ms.dec.dsum.map((x) => x.seed + ':' + x.keys).join(' | ')}; breaks player ${ms.dec.dsum.map((x) => x.brkP).join(',')} bots ${ms.dec.dsum.map((x) => x.brkB).join(',')}; player marked ticks ${ms.cap.markPTicks}, cap max ${ms.cap.capMark}; bots on heights max ${ms.dec.hiStay} s`);
   // 79 W dash: 4 m on open ground; stops at a bridge rail and at a core hall wall without falling; never off a sloped bridge; burst on landing (not before).
   const ds = await g(() => {

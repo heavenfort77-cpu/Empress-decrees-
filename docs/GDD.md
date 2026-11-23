@@ -93,7 +93,8 @@ Purpose: give a suit a way to pull ahead, so the royale is not ten equal suits t
   - "None shall set foot upon Our heights." / Stay off the upper level (replaces the roof-only line, which was dead after the roof fell at 60 s): roof, terraces and sloped bridge ends at or above 3 m; standing there breaks it, again every 2 s.
   - "Let your ultimates swell twice as swift." / Ultimates recharge 2x: ultimate cooldowns tick 2x (stand-in until charge exists).
   - Breaking: "Thou art marked." / 30% slow for 2 s and marked 5 s: a red marker over the head; the marked suit is seen by every suit from anywhere (body and minimap); while the player is marked up to 2 bots may target it (the bounty's 3 wins).
-  - Measured (12 seeded matches): 1-3 bagged decrees per royale (GDD 3-4 not met: the 20 s collapse queue and the bounty leave few windows). A heights decree over a collapse can force a crossing of the upper level (bots break it then; seed 3: 7 breaks).
+  - As built (batch 13a; panel 23 Nov 16:11): the queue only keeps banners apart (no decree warning while a collapse or kennel banner shows or one starts within 5 s); a decree in force runs on through a collapse; gap bag 5-15 s; the bounty counts as a decree (it waits for the gap and a gap follows it); no heights break while standing on a warned section or within 3 s of leaving one.
+  - Measured (12 seeded matches, batch 13a): 3-4 decrees told per royale (bounty included), mean warning to warning 50.7 s; no banner over a decree warning; no heights break near a warned section.
 - Foreshadowing: her lines hint at the twist ("The survivor shall be... received", "The Empress leaveth not her guests alone"). Decrees pause in the apex phase; she only taunts.
 
 ### Palace arena (proposal)

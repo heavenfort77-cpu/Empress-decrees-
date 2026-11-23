@@ -284,8 +284,9 @@ const CONFIG = {
   // The leader (batch 11, GDD "The leader"): feature switch. Leader = most plates held, then most kills; a tie keeps the current leader; nobody leads before 1 plate or 1 kill.
   // crownY = crown height over the suit's feet (m); crownR = crown radius (m).
   LEADER: { on: true, crownY: 2.95, crownR: 0.3 },
-  // Decrees (reusable, batch 11): warnS = warning seconds (voice, banner, rule line) before a decree starts; clearS = no decree warning starts if a collapse warning starts within this many seconds (queued instead).
-  DECREE: { warnS: 5, clearS: 20 },
+  // Decrees (reusable, batch 11): warnS = warning seconds (voice, banner, rule line) before a decree starts; clearS = no decree warning starts while a collapse or kennel
+  // banner shows or one starts within this many seconds (queued instead). Panel 23 Nov 16:11 (batch 13 P1): 5 s, only keeps banners apart (was 20 s); a decree in force runs on through a collapse.
+  DECREE: { warnS: 5, clearS: 5 },
   // Bounty decree: switch; afterS = seconds the same suit must lead first (once per leader); durS = how long it lasts.
   // maxHunters (owner, 23 Nov): up to this many bots may target the player while the bounty lies on the player (else BOT.maxHunters).
   // chase = chance a bot that sees the leader during the bounty takes it up (drawn once per bot per bounty; assumption 23 Nov).
@@ -299,9 +300,11 @@ const CONFIG = {
   DECREES: {
     on: true,
     which: ['dry', 'nodash', 'silence', 'heights', 'ult2x'],
-    first: [35, 45], gap: [10, 15, 20, 25], len: [30, 35, 40, 45],
+    // gap: panel 23 Nov 16:11 (batch 13 P2): [5, 10, 10, 15] s (was [10, 15, 20, 25]) for about one decree a minute, 3-4 per royale.
+    first: [35, 45], gap: [5, 10, 10, 15], len: [30, 35, 40, 45],
     zones: ['CORE', 'C1', 'C2', 'W1', 'W2', 'E1', 'E2', 'WB1', 'WB2', 'EB1', 'EB2', 'ROOF'],
-    waitS: 5, heightY: 3, reBreakS: 2, ultK: 2,
+    // warnFreeS: panel 23 Nov 16:11 (batch 13 P4): no heights break while a suit stands on a warned section or within this many seconds of leaving one.
+    waitS: 5, heightY: 3, reBreakS: 2, ultK: 2, warnFreeS: 3,
     slow: 0.3, slowS: 2, markS: 5, markCap: 2,
     // Gold tint of the no-dash zone's floor (the same shader as the collapse glow: red means collapse, gold means a decree) and its minimap outline.
     zoneCol: 0xffc23a, zoneGlow: 0.45, zoneMini: '#ffc23a',
@@ -869,7 +872,8 @@ for (let k = 0; k < SUITS.length; k++) {
   m.position.y = DD.markY; m.visible = false; m.castShadow = false;
   (s === P ? playerGroup : s.group).add(m);
   // markT = seconds marked; brkT = seconds before a new break counts; breaks = decrees broken this run; dashLeft = metres of dash left (0 = not dashing).
-  Object.assign(s, { marker: m, markT: 0, brkT: 0, breaks: 0, dashLeft: 0, dashX: 0, dashZ: 0, dashStep: 0, dashSlot: 1, dashOrd: false, silShown: false });
+  // wsT = game time this suit last stood on a warned section (heights exemption).
+  Object.assign(s, { marker: m, markT: 0, brkT: 0, breaks: 0, wsT: -99, dashLeft: 0, dashX: 0, dashZ: 0, dashStep: 0, dashSlot: 1, dashOrd: false, silShown: false });
 }
 // Brain fields on the player too, used only by the test autopilot (__game.autoPlayer).
 Object.assign(P, { cd: [0, 0, 0], navWant: false, gx: 0, gz: 0, gy: 0, goalT: 0, skill: CONFIG.BOT.skills.average, thinkT: 0, tgt: null, tgtT: 0, mode: '', direct: false,
@@ -1678,14 +1682,14 @@ function shrinkHunters() {
     if (b.tgt === P && b.why !== 'hit') { b.tgt = null; b.why = ''; b.mode = ''; b.thinkT = 0; }
   }
 }
-// Decree slot: a request waits (queued) until the banner is free and no collapse warning starts within DECREE.clearS
-// (nor a kennel warning within the decree's own warning); then warning (voice, banner, rule countdown), then in force, then the end.
+// Decree slot: a request waits (queued) until the banner is free and no collapse or kennel warning starts within DECREE.clearS;
+// then warning (voice, banner, rule countdown), then in force, then the end.
 function requestDecree(key, tgt) { if (DEC.st !== 0) return false; DEC.st = 1; DEC.key = key; DEC.tgt = tgt; DEC.t = 0; return true; }
 function decreeClear() {
   if (G.bannerWave >= 0 || G.fellT > 0) return false;
   const D = CONFIG.DECREE, Kc = CONFIG.KENNEL;
   for (let i = 0; i < WAVES.length; i++) { const w = WAVES[i]; if (w.state === 0 && w.start - CONFIG.COLLAPSE_WARN_S - G.time <= D.clearS) return false; }
-  if (CONFIG.ROYALE_MINIONS && G.kWave < Kc.waves.length && !G.kWarned && Kc.firstS + G.kWave * Kc.intervalS - Kc.warnS - G.time <= D.warnS + 1) return false;
+  if (CONFIG.ROYALE_MINIONS && G.kWave < Kc.waves.length && !G.kWarned && Kc.firstS + G.kWave * Kc.intervalS - Kc.warnS - G.time <= D.clearS) return false;
   return true;
 }
 function stepDecree(dt) {
@@ -1716,7 +1720,11 @@ function endDecree(why) {
   if (DEC.st === 0) return;
   if (DEC.banner) { DEC.banner = false; if (G.bannerWave < 0 && G.fellT <= 0) setShow(el.banner, false); }
   const wasBountyP = DEC.st === 3 && DEC.key === 'bounty' && DEC.tgt === P, bag = DEC.key !== 'bounty' && DEC.key !== 'bag' && DEC.st >= 2, wasDry = DEC.key === 'dry';
-  if (DEC.key === 'bounty' && DEC.st >= 2) { G.bountyEndAt = G.time; G.bountyEndWhy = why; }
+  if (DEC.key === 'bounty' && DEC.st >= 2) {
+    G.bountyEndAt = G.time; G.bountyEndWhy = why;
+    // Batch 13 P3: a gap follows the bounty too (drawn from the gap bag), as after a bagged decree.
+    if (CONFIG.DECREES.on && why !== 'reset' && why !== 'wake') G.decNext = Math.max(G.decNext, G.time + draw(DBAGS.gap));
+  }
   // A bagged decree's end draws the gap to the next request (bag); its zone tint and the altar looks go back.
   if (bag) { G.decLog.push(-1, G.time, 0); if (why !== 'reset' && why !== 'wake') G.decNext = G.time + draw(DBAGS.gap); if (DEC.key === 'heights') G.warnGen++; }
   if (DEC.zone) tintZone(null);
@@ -1782,7 +1790,7 @@ function breakDecree(s) {
   if (s === P) showNote('voice_marked', 'rule_marked', MARK_VARS);
 }
 // Marks off every suit (the wake and a new run).
-function clearMarks() { for (let i = 0; i < SUITS.length; i++) { const s = SUITS[i]; s.markT = 0; s.brkT = 0; s.marker.visible = false; s.dashLeft = 0; } }
+function clearMarks() { for (let i = 0; i < SUITS.length; i++) { const s = SUITS[i]; s.markT = 0; s.brkT = 0; s.marker.visible = false; s.dashLeft = 0; s.wsT = -99; } }
 // Start a dash (W): toward dx, dz for the skill's range by the walking rule; ord = a player order (its hits follow the player's own rules), else the bot brain.
 // Dashing while standing in the no-dash zone breaks that decree.
 function startDash(s, slot, dx, dz, ord) {
@@ -1801,7 +1809,8 @@ function stepLeader(dt) {
   const L = G.leader;
   if (L) {
     G.leadT += dt;
-    if (CONFIG.BOUNTY.on && !L.bountied && G.leadT >= CONFIG.BOUNTY.afterS) {
+    // Batch 13 P3 (panel 23 Nov 16:11): the bounty counts as a decree, so with bagged decrees on it also waits for the gap (G.decNext).
+    if (CONFIG.BOUNTY.on && !L.bountied && G.leadT >= CONFIG.BOUNTY.afterS && (!CONFIG.DECREES.on || G.time >= G.decNext)) {
       // A bagged request not drawn yet (queued) gives way: the bounty is the brake on the leader; the bagged one asks again right after it.
       if (DEC.st === 1 && DEC.key === 'bag') DEC.st = 0;
       if (DEC.st === 0) requestDecree('bounty', L);
@@ -1811,8 +1820,10 @@ function stepLeader(dt) {
   if (CONFIG.DECREES.on && DEC.st === 0 && G.time >= G.decNext) requestDecree('bag', null);
   stepDecree(dt);
   G.hiAvoid = heightsSoon();
-  // Our heights: every suit standing there while it is in force breaks it, again every DECREES.reBreakS while it stays.
-  if (decOn('heights')) for (let i = 0; i < SUITS.length; i++) { const s = SUITS[i]; if (s.brkT <= 0 && onHeights(s)) breakDecree(s); }
+  // Time each suit last stood on a warned section (leaving a collapse never costs a heights break, batch 13 P4).
+  for (let i = 0; i < SUITS.length; i++) { const s = SUITS[i]; if (!s.dead && s.floor && s.floor.s.state === 1) s.wsT = G.time; }
+  // Our heights: every suit standing there while it is in force breaks it, again every DECREES.reBreakS while it stays (not within DECREES.warnFreeS of a warned section).
+  if (decOn('heights')) for (let i = 0; i < SUITS.length; i++) { const s = SUITS[i]; if (s.brkT <= 0 && onHeights(s) && G.time - s.wsT > CONFIG.DECREES.warnFreeS) breakDecree(s); }
   updateLeaderHud();
   updateDecreeHud();
 }
@@ -2352,6 +2363,9 @@ function botThink(b, dt) {
 }
 function botDecide(b) {
   const B = CONFIG.BOT, vr = CONFIG.VISION_R + (b.bT[2] > 0 ? b.bV[2] : 0);
+  // Airborne (a drop in progress): keep the current decision until landing (batch 13 fix: a bot fleeing Our heights stepped off the ramp edge,
+  // decided again in the air, no longer counted as on the heights, and walked back onto the ramp, over and over).
+  if (b.air) return;
   // Leave a warned section for the nearest safe standing spot.
   if ((b.zone && b.zone.state === 1) || (G.hiAvoid && onHeights(b))) {
     if (b.mode !== 'flee' || (!b.navWant && b.path.i >= b.path.n)) { b.mode = 'flee'; b.tgt = null; botSafeGoal(b); }
@@ -3063,14 +3077,15 @@ window.__game = {
   decreeKeys: () => Object.values(DECREES).flatMap((d) => [d.voice, d.rule, d.hud || 'hud_leader']).concat(SUIT_KEYS, ['voice_marked', 'rule_marked', 'voice_silenced', 'rule_silenced', 'st_silenced', 'st_marked']).filter((k) => !TEXT[k]),
   // Batch 12 hooks: decree slot state and logs; force a decree's warning now (tests; next = time of the next bagged request); suit marks and dashes.
   decree: () => ({ st: DEC.st, key: DEC.key, t: DEC.t, len: DEC.len, zone: DEC.zone ? DEC.zone.id : null, next: G.decNext, n: G.decN, count: Object.assign({}, G.decCount), log: G.decLog.slice(),
-    brkP: G.brkP, brkB: G.brkB, writes: G.decWrites, hud: el.decree.textContent, hudShown: el.decree.style.display, skips: G.skips, hiAvoid: G.hiAvoid, banner: el.banner.style.display,
+    brkP: G.brkP, brkB: G.brkB, writes: G.decWrites, kw: G.kWarned, hud: el.decree.textContent, hudShown: el.decree.style.display, skips: G.skips, hiAvoid: G.hiAvoid, banner: el.banner.style.display,
     voice: el.voice.textContent, rule: el.rule.textContent, zoneSec: G.zoneSec ? G.zoneSec.id : null, barSilenced: el.bar.classList.contains('silenced'), status: el.status.textContent }),
+  setDecNext(t) { G.decNext = t; },
   forceDecree(key, zone, len, next) { endDecree('test'); DEC.key = key; DEC.zone = zone ? SEC[zone] : null; DEC.len = len || 30; DEC.tgt = null; beginWarning(); if (next !== undefined) G.decNext = next; },
   startState: () => JSON.stringify([G.warnGen, G.decNext, P.pathGen, P.gx, P.gz, P.declined ? P.declined.id : -1, P.declinedT, P.lastByT, P.castT, P.tgtT, !!P.heal, !!P.skip, P.direct]),
   setDecNext(t) { G.decNext = t; }, drawDecBag(name) { return draw(DBAGS[name]); },
   pickDec(n) { const out = []; for (let i = 0; i < n; i++) { endDecree('test'); out.push(pickBagged() ? DEC.key + (DEC.zone ? ':' + DEC.zone.id : '') : '-'); DEC.key = ''; DEC.zone = null; DEC.len = 0; } return out; },
   suits: () => SUITS.map((s) => ({ id: s.id, x: s.x, y: s.y, z: s.z, markT: s.markT, breaks: s.breaks, marker: s.marker.visible, slowT: s.slowT, slowK: s.slowK, dash: s.dashLeft, air: s.air, dead: s.dead,
-    hi: onHeights(s), floor: s.floor ? s.floor.sec : null })),
+    hi: onHeights(s), floor: s.floor ? s.floor.sec : null, wsT: s.wsT })),
   sees: (i, j) => botSees(BOTLIST[i], j < 0 ? P : BOTLIST[j], CONFIG.VISION_R), zoneTinted: (id) => SEC[id].floorMeshes.every((m) => m.material === zoneMat),
   breakBy(i) { breakDecree(i < 0 ? P : BOTLIST[i]); }, setFace(x, z) { P.faceX = x; P.faceZ = z; },
   ultOf: (i) => (i < 0 ? SK[2].cdT : BOTLIST[i].cd[2]),
