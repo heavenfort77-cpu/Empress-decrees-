@@ -1547,7 +1547,8 @@ try {
     // Game changed on purpose (batch 16): kits are built ticket by ticket (02 法甲); a built school plays its own kit, every other the placeholder at Mid.
     // Batch 16 ticket 03 (game changed on purpose): 儒甲 built too; the checks' placeholder player (pkit, default pick 儒甲) plays the placeholder, every bot its school's kit when built.
     // Batch 16 ticket 04 (game changed on purpose): 墨甲 built too.
-    o.unbuilt = C.SCHOOLS.filter((k) => C.KITS[k].built).join(',') === 'ru,fa,mo';
+    // Batch 16 ticket 05 (game changed on purpose): 名甲 built too.
+    o.unbuilt = C.SCHOOLS.filter((k) => C.KITS[k].built).join(',') === 'ru,fa,mo,ming';
     o.placeholder = sc.suits.every((q) => (C.KITS[q.school].built && q.id !== 0 ? q.kit === q.school && q.ultMode === C.KITS[q.school].ultMode : q.kit === 'placeholder' && q.ultMode === 'charge'));
     o.player = sc.suits[0].school; o.bots = sc.suits.slice(1).map((q) => q.name).join(','); o.tags = C.SKILLS.map((k) => k.tag).join(',');
     o.speedMid = C.STATS.speed.Mid === C.PLAYER_SPEED && C.STATS.yard === 'Mid'; o.keys = C.SCHOOLS.map((k) => 'school_' + k).concat(['hud_school', 'sel_title', 'sel_rule', 'sel_random', 'sel_key']).filter((k) => !T[k]);
@@ -2034,6 +2035,156 @@ try {
   });
   check('120 budget with 墨甲 effects: every suit + cubs + tells + wall + lever tell + status count (calls<500, tris<500k), no shader compile, geometry flat',
     !!mo120 && mo120.wall && mo120.calls < 500 && mo120.tris < 500000 && mo120.programs === base.programs && mo120.geoms === base.geoms, JSON.stringify(mo120));
+  // ===== Batch 16 ticket 05: 名甲 · 辩者 kit (docs/SUITS.md; numbers in CONFIG.KITS.ming) =====
+  // Page helper: the player plays 名甲 (school 6, the checks' placeholder switch off) against n placeholder bots at Mid with their skills held; decrees pushed away.
+  await g(() => { const G = __game, C = G.config; window.__mi = {
+    start(n) { G.setSeed(12345); G.setPkitP(false); G.setBots(n); G.pickSchool(6); for (let i = 0; i < n; i++) G.placeholderKit(i); G.setDecNext(1e9); for (let i = 0; i < n; i++) { G.setBotHp(i, 100); for (let k = 0; k < 3; k++) G.setBotCd(i, k, 99); } },
+    hold(sec, fn) { for (let k = 0; k < Math.round(sec / C.STEP); k++) { if (fn) fn(); G.step(1); } },
+    end() { G.setPkitP(true); G.pickSchool(0); G.setBots(0); G.reset(); } }; });
+  // 121 Passive 一尺之棰: his hits in a row on the same target take 0, then max/2, then 3max/4 ... of bonus (never reaching max, so under the game cap);
+  // a hit on another target starts again, and so does one more than gapS s after the last; another school's hits get no such bonus. Low armor.
+  const mi121 = await g(() => {
+    const G = __game, C = G.config, M = window.__mi, H = C.KITS.ming.halving, o = {};
+    M.start(2); G.setHp(1e9); G.teleport(14, -20); const park = () => { G.placeBot(0, 18, -20); G.placeBot(1, 14, -30); }; park(); G.step(1);
+    o.kit = G.kitState(-1).kit; o.armor = G.kitState(-1).armor;
+    const hit = (j) => { G.setBotHp(j, 100); G.strike(-1, j, 10); return +(100 - G.bots().list[j].hp).toFixed(4); };
+    o.row = []; for (let k = 0; k < 12; k++) o.row.push(hit(0));
+    o.other = hit(1); o.back = hit(0); o.back2 = hit(0); M.hold(H.gapS + 0.2, park); o.late = hit(0);
+    o.want = []; let b = 0; for (let k = 0; k < 12; k++) { o.want.push(+(10 * (1 + b)).toFixed(4)); b = k === 0 ? H.max / 2 : b + (H.max - b) / 2; }
+    G.setPkitP(true); G.pickSchool(0); G.setBots(2); for (let i = 0; i < 2; i++) G.placeholderKit(i); park(); G.step(1); o.plain = [hit(0), hit(0), hit(0)];
+    M.end(); return o;
+  });
+  check('121 名甲 passive: hits in a row on one target climb 0, max/2, 3max/4 ... toward max (never reached), restart on another target or after gapS s, only 名甲; Low armor',
+    mi121.kit === 'ming' && mi121.row.every((v, k) => Math.abs(v - mi121.want[k]) < 1e-3) && mi121.row[11] < 10 * (1 + C0.KITS.ming.halving.max) && mi121.other === 10 && mi121.back === 10
+    && Math.abs(mi121.back2 - 10 * (1 + C0.KITS.ming.halving.max / 2)) < 1e-3 && mi121.late === 10 && mi121.plain.every((v) => v === 10), JSON.stringify(mi121));
+  // 122 Attack 轮不蹍地 (the wheel): an attack order on a dummy within range throws the wheel without walking in; it is drawn while out, flies out to range m
+  // and back to him, and hits the dummy once out and once back (two chances: dmg, then dmg with the passive's max/2); a standing wall turns it back before the dummy.
+  const mi122 = await g(() => {
+    const G = __game, C = G.config, M = window.__mi, A = C.KITS.ming.attack, H = C.KITS.ming.halving, o = {};
+    M.start(0); G.reset(); const d = G.dummies()[1]; G.teleport(d.x, d.z - 6); G.step(2); const p0 = G.state();
+    G.attack(1); let seenOut = false, maxGone = 0, hpOut = -1; const hp0 = G.dummies()[1].hp;
+    // Watched until the wheel is back (before the next throw is due).
+    for (let k = 0, was = false; k < Math.round(1.5 / C.STEP); k++) { G.step(1); const w = G.mingState(-1).wheel; if (w.on && w.out && w.inScene) seenOut = true; if (w.gone > maxGone) maxGone = w.gone; if (hpOut < 0 && G.dummies()[1].hp < hp0 && w.out) hpOut = G.dummies()[1].hp; if (was && !w.on) break; was = w.on; }
+    const p1 = G.state(); o.moved = +Math.hypot(p1.x - p0.x, p1.z - p0.z).toFixed(3); o.seenOut = seenOut; o.maxGone = +maxGone.toFixed(2); o.hpOut = hpOut; o.hp = G.dummies()[1].hp;
+    o.back = !G.mingState(-1).wheel.on && !G.mingState(-1).wheel.inScene; o.want = +(100 - A.dmg - A.dmg * (1 + H.max / 2)).toFixed(3);
+    G.stop();
+    // A wall (the 墨甲 bot, school 3 is bot 3 when the player picks 名甲) between him and the dummy: the wheel turns back; the dummy is untouched.
+    G.setSeed(12345); G.setBots(4); G.pickSchool(6); for (let i = 0; i < 3; i++) G.placeholderKit(i); G.setDecNext(1e9); for (let i = 0; i < 4; i++) for (let k = 0; k < 3; k++) G.setBotCd(i, k, 99); G.teleport(d.x, d.z - 6); G.placeBot(3, d.x + 3, d.z - 3); G.step(2); G.botCast(3, 0, d.x, d.z - 3); o.wall = G.moState(3).up;
+    G.attack(1); G.step(Math.round(A.interval * 0.9 / C.STEP)); o.wallHp = G.dummies()[1].hp; o.wallGone = +G.mingState(-1).wheel.gone.toFixed(2);
+    G.stop(); M.end(); return o;
+  });
+  check('122 名甲 attack: the wheel is thrown without walking in, drawn while out, flies out to range and back, hits once out and once back (dmg, then with the passive); a wall turns it back',
+    mi122.moved < 0.01 && mi122.seenOut && Math.abs(mi122.maxGone - C0.KITS.ming.attack.range) < 0.3 && mi122.hpOut === 100 - C0.KITS.ming.attack.dmg && Math.abs(mi122.hp - mi122.want) < 1e-3 && mi122.back
+    && mi122.wall && mi122.wallHp === 100 && mi122.wallGone < 4, JSON.stringify(mi122));
+  // 123 Q 飞鸟之景 (shadow blink): he blinks range m by the walking rule (no hit); his shadow stands where he was for shadowS s (drawn, a fake target):
+  // a bot fighting him acts on the shadow for those shadowS s only (he takes no blow), then on him again. A 名甲 bot's blink: the player's auto-target
+  // takes its shadow for it, then the bot itself once the shadow is gone.
+  const mi123 = await g(() => {
+    const G = __game, C = G.config, M = window.__mi, Q = C.KITS.ming.skills[0], o = {};
+    M.start(1); G.setHp(100); G.teleport(14, -20); G.placeBot(0, 16, -20); G.step(1); G.hitBy(-1, 0, 1); for (let k = 0; k < 3; k++) G.setBotCd(0, k, 99); G.step(Math.round(0.5 / C.STEP));
+    o.before = G.actOf(0); const b0 = G.bots().list[0].hp, p0 = G.state();
+    G.cast(0, p0.x, p0.z - 10); o.cd = G.skills()[0]; const hpC = G.state().hp; G.step(1); const ms = G.mingState(-1); o.shadow = { t: +ms.shadowT.toFixed(2), x: +ms.decoy.x.toFixed(2), z: +ms.decoy.z.toFixed(2), in: ms.decoy.inScene, vis: ms.decoy.vis }; o.during = G.actOf(0);
+    G.step(Math.round(0.3 / C.STEP)); const p1 = G.state(); o.blink = +Math.hypot(p1.x - p0.x, p1.z - p0.z).toFixed(2); o.at0 = Math.abs(ms.decoy.x - p0.x) < 0.01 && Math.abs(ms.decoy.z - p0.z) < 0.01;
+    let hpLow = 100; for (let k = 0; k < Math.round((Q.shadowS - 0.4) / C.STEP); k++) { G.step(1); hpLow = Math.min(hpLow, G.state().hp); if (G.actOf(0) !== 'shadow0') o.lost = (o.lost || 0) + 1; }
+    o.hpDuring = hpC - hpLow; o.botHp = b0 - G.bots().list[0].hp; G.step(Math.round(0.2 / C.STEP)); o.after = G.actOf(0); o.gone = !G.mingState(-1).decoy.inScene && G.mingState(-1).shadowN === 0;
+    M.end();
+    // A 名甲 bot (bot 5 with the default pick) blinks away: the player's auto-target picks its shadow, then the bot once the shadow is gone.
+    G.setSeed(12345); G.setPkitP(true); G.setBots(6); G.pickSchool(0); for (let i = 0; i < 5; i++) { G.placeholderKit(i); G.placeBot(i, -60, 10 + i * 2); } G.setDecNext(1e9);
+    G.teleport(14, -20); G.placeBot(5, 18, -20); for (let k = 0; k < 3; k++) G.setBotCd(5, k, 99); G.step(1); o.mingBot = G.schools().suits[6].kit;
+    o.pickBefore = G.autoPick(12); G.botCast(5, 0, 26, -20); G.step(1); o.pickShadow = G.autoPick(12); G.step(Math.round((Q.shadowS + 0.1) / C.STEP)); o.pickAfter = G.autoPick(12);
+    G.setBots(0); G.reset(); return o;
+  });
+  check('123 名甲 Q: blink of range m (no hit), shadow drawn where he stood for shadowS s; a bot fighting him acts on the shadow only for those s (no blow lands), then on him; the auto-target takes a 名甲 bot\'s shadow for it',
+    mi123.before === 0 && mi123.cd > 0 && mi123.shadow.in && mi123.shadow.vis && Math.abs(mi123.shadow.t - C0.KITS.ming.skills[0].shadowS) < 0.05 && mi123.at0 && mi123.during === 'shadow0' && !mi123.lost
+    && Math.abs(mi123.blink - C0.KITS.ming.skills[0].range) < 0.15 && mi123.hpDuring === 0 && mi123.botHp === 0 && mi123.after === 0 && mi123.gone
+    && mi123.mingBot === 'ming' && mi123.pickBefore === 6 && mi123.pickShadow === 'shadow6' && mi123.pickAfter === 6, JSON.stringify(mi123));
+  // 124 W 镞矢之疾 (the hanging arrowheads): the line (range x width m) is shown (drawn, in the scene) for hang s (>= 0.4) with no damage before; a suit
+  // touching it then is slowed by touchSlow; when it strikes, every suit in it takes dmg; a suit off the line is untouched; cooldown started.
+  const mi124 = await g(() => {
+    const G = __game, C = G.config, M = window.__mi, W = C.KITS.ming.skills[1], o = {};
+    M.start(2); G.setHp(1e9); G.teleport(14, -20); const park = () => { G.placeBot(0, 14, -24); G.placeBot(1, 17, -24); }; park(); G.step(1);
+    G.cast(1, 14, -28); o.cd = G.skills()[1]; let told = 0, early = false;
+    for (let k = 0; k < 200; k++) { park(); G.step(1); const h = G.mingState(-1).hang[0]; if (!h.inScene) break; told++; if (G.bots().list[0].hp < 100) early = true; if (k === 0) o.line = { len: h.len, w: h.w, vis: h.vis }; if (k === 5) o.slow = G.kitState(0).slowT > 0; }
+    o.toldS = +(told * C.STEP).toFixed(3); o.early = early; o.hit = 100 - G.bots().list[0].hp; o.off = 100 - G.bots().list[1].hp; o.offSlow = G.kitState(1).slowT > 0;
+    M.end(); return o;
+  });
+  check('124 名甲 W: line of range x width shown hang s (>= 0.4) with no damage before; a suit touching it is slowed; then dmg to a suit in it, none off it; cooldown',
+    mi124.cd > 0 && mi124.line.len === C0.KITS.ming.skills[1].range && mi124.line.w === C0.KITS.ming.skills[1].width && mi124.line.vis && mi124.toldS >= 0.4 && Math.abs(mi124.toldS - C0.KITS.ming.skills[1].hang) < 0.05
+    && !mi124.early && mi124.slow && mi124.hit === C0.KITS.ming.skills[1].dmg && mi124.off === 0 && !mi124.offSlow, JSON.stringify(mi124));
+  // 125 R 指不至 (the pointing strike): on a full meter; the very long line is shown hang s (>= 0.4) with no damage before; then every suit along it takes dmg
+  // (two at different distances, both seen), one off the line none; the meter empties.
+  const mi125 = await g(() => {
+    const G = __game, C = G.config, M = window.__mi, R = C.KITS.ming.skills[2], o = {};
+    M.start(3); G.setHp(1e9); G.teleport(14, -20); const park = () => { G.placeBot(0, 14, -23); G.placeBot(1, 14, -29); G.placeBot(2, 18, -24); }; park(); G.step(1);
+    o.empty = G.cast(2, 14, -30); G.setCharge(-1, 100); o.cast = G.cast(2, 14, -30); o.ch = G.chargeOf(-1); let told = 0, early = false;
+    for (let k = 0; k < 200; k++) { park(); G.step(1); const h = G.mingState(-1).hang[1]; if (!h.inScene) break; told++; if (G.bots().list[0].hp < 100 || G.bots().list[1].hp < 100) early = true; if (k === 0) o.len = h.len; }
+    o.toldS = +(told * C.STEP).toFixed(3); o.early = early; o.hits = G.bots().list.slice(0, 3).map((q) => 100 - q.hp);
+    M.end(); return o;
+  });
+  check('125 名甲 R: only on a full meter (emptied); the long line is shown hang s (>= 0.4) with no damage before; then dmg to every suit along it, none off it',
+    mi125.empty === false && mi125.cast && mi125.ch === 0 && mi125.len === C0.KITS.ming.skills[2].range && mi125.toldS >= 0.4 && !mi125.early
+    && mi125.hits[0] === C0.KITS.ming.skills[2].dmg && mi125.hits[1] === C0.KITS.ming.skills[2].dmg && mi125.hits[2] === 0, JSON.stringify(mi125));
+  // 126 Signature (tells and dodging): a bot fighting him in reach (it stands still to hit him) and standing in his W line steps out once it has seen
+  // the line for its reaction time and takes no damage; the same bot held in place (control) is hit.
+  const mi126 = await g(() => {
+    const G = __game, C = G.config, M = window.__mi, o = {};
+    const one = (hold) => {
+      M.start(1); G.setHp(1e9); G.teleport(14, -20); G.placeBot(0, 14, -22.2); G.step(1); G.hitBy(-1, 0, 1); G.setBotHp(0, 100); for (let k = 0; k < 3; k++) G.setBotCd(0, k, 99);
+      G.step(Math.round(0.6 / C.STEP)); G.placeBot(0, 14, -22.2); G.step(1); o.fight = G.actOf(0); G.cast(1, 14, -28);
+      for (let k = 0; k < 120; k++) { if (hold) G.placeBot(0, 14, -22.2); G.step(1); }
+      const b = G.bots().list[0]; return { hp: +(100 - b.hp).toFixed(3), dx: +Math.abs(b.x - 14).toFixed(2) };
+    };
+    o.free = one(false); o.held = one(true); M.end(); return o;
+  });
+  check('126 名甲 signature: a bot reads the hanging line and steps out of it (no damage); held in it, it is hit',
+    mi126.fight === 0 && mi126.free.hp === 0 && mi126.free.dx > C0.KITS.ming.skills[1].width / 2 && mi126.held.hp === C0.KITS.ming.skills[1].dmg, JSON.stringify(mi126));
+  // 127 名甲 in whole matches: 3 seeds with the 名甲 bot (the player picks 道甲, still on the placeholder) and 1 with the player on 名甲 (autopilot), watched to the end:
+  // 名甲 on a floor every tick, the hunter cap holds, nobody stuck over 3 s, no wheel, shadow or line outlives its time; the bot casts Q, W and R over the 3.
+  const mi127 = await g(() => {
+    const G = __game, C = G.config, K = C.KITS.ming, o = { viol: [], casts: { q: 0, w: 0, r: 0 }, player: { q: 0, w: 0, r: 0 }, decided: [], shadowMax: 0, hangMax: 0 }, bad = (x) => { if (o.viol.length < 5) o.viol.push(x); };
+    const one = (seed, playerMi) => {
+      G.setSeed(seed); G.setBots(C.BOTS.count); G.setPkitP(!playerMi); G.pickSchool(playerMi ? 6 : 1); G.autoPlayer(true); G.setWatch(true);
+      const mi = playerMi ? -1 : G.schools().suits.findIndex((q) => q.school === 'ming') - 1, cnt = playerMi ? o.player : o.casts; let last = [0, 0], ult = 0, sh = 0, hg = 0;
+      if (!playerMi && G.schools().suits[mi + 1].kit !== 'ming') bad('ming bot not on its kit');
+      for (let t = 0; t < 300 / C.STEP; t++) {
+        G.step(1); const r = G.royale(); if (r.decidedAt >= 0) { o.decided.push(+r.decidedAt.toFixed(1)); break; }
+        const k = G.kitState(mi), cd = k.bcd, m = G.mingState(mi);
+        if (cd[0] > last[0] + 1e-9) cnt.q++; if (cd[1] > last[1] + 1e-9) cnt.w++; if (k.ultN > ult) cnt.r += k.ultN - ult; last = [cd[0], cd[1]]; ult = k.ultN;
+        sh = m.decoy.inScene ? sh + C.STEP : 0; if (sh > o.shadowMax) o.shadowMax = +sh.toFixed(3);
+        hg = m.hang.some((h) => h.inScene) ? hg + C.STEP : 0; if (hg > o.hangMax) o.hangMax = +hg.toFixed(3);
+        const h = G.hunters(); if (h.capOnP > h.max) bad(`s${seed} t${t} cap ${h.capOnP}>${h.max}`);
+        if (t % 10 === 0 && mi >= 0) { const q = G.bots().list[mi]; if (!q.standOk) bad(`s${seed} t${t} ming off floor`); if (!Number.isFinite(q.x + q.z + q.hp)) bad(`s${seed} t${t} NaN`); }
+        if (t % 10 === 0 && mi < 0 && !G.player().dead && !G.state().falling && !G.walkable(G.player().x, G.player().z, G.player().y + 0.05)) bad(`s${seed} t${t} player off floor`);
+      }
+      for (const q of G.bots().list) if (q.stuck > 3) bad(`s${seed} bot${q.id} stuck ${q.stuck}`);
+      G.setWatch(false); G.autoPlayer(false);
+    };
+    for (const seed of [12345, 2, 3]) one(seed, false);
+    one(4, true);
+    G.setPkitP(true); G.pickSchool(0); G.setBots(0); G.reset(); const m = G.mingState(-1); o.clean = m.wheelN === 0 && m.shadowN === 0 && m.hangN === 0; return o;
+  });
+  check('127 名甲 in whole matches: on a floor, nobody stuck > 3 s, shadows and lines end on time, hunter cap every tick, the 名甲 bot casts Q, W and R (player 名甲 autopilot reported)',
+    mi127.viol.length === 0 && mi127.shadowMax <= C0.KITS.ming.skills[0].shadowS + 0.02 && mi127.hangMax <= Math.max(C0.KITS.ming.skills[1].hang, C0.KITS.ming.skills[2].hang) * 2 + 0.02
+    && mi127.clean && mi127.casts.q > 0 && mi127.casts.w > 0 && mi127.casts.r > 0, JSON.stringify(mi127));
+  // 128 Budget with 名甲's effects: the heaviest royale (every suit, 7 cubs, tells) with the player's wheel out, shadow standing and both lines hanging;
+  // calls < 500, tris < 500k, no shader compile, geometry flat.
+  const mi128 = await g(() => {
+    const G = __game, C = G.config, K = window.__k, waves = C.KENNEL.waves; let best = null;
+    try {
+      C.KENNEL.waves = [[['stalker', 0], ['stalker', 0], ['stalker', 0], ['stalker', 0], ['howler', 0], ['howler', 0], ['howler', 0]]];
+      G.setSeed(12345); G.setBots(C.BOTS.count); G.setPkitP(false); G.pickSchool(6); G.setDecNext(1e9); K.sp(C.KENNEL.firstS + 0.1); G.setHp(1e9);
+      const cx = G.camps[0][0], cz = G.camps[0][1] + 4; G.teleport(cx, cz);
+      const park = () => { for (let i = 0; i < C.BOTS.count; i++) G.placeBot(i, cx - 4 + (i % 3) * 3, cz + 2 + Math.floor(i / 3) * 1.5); };
+      park(); G.step(1); G.setCharge(-1, 100); G.cast(2, cx, cz + 6); G.cast(1, cx + 3, cz); G.cast(0, cx - 3, cz); G.basicAttackBy(-1, 0);
+      for (let n = 0; n < 30; n++) {
+        park(); G.step(1); const c = G.cubs(), m = G.mingState(-1);
+        if (m.wheel.inScene && m.decoy.inScene && m.hang[0].inScene && m.hang[1].inScene && (!best || c.tells.length > best.tells)) { const r = G.render(true); best = { tells: c.tells.length, calls: r.calls, tris: r.tris, programs: r.programs, geoms: r.geoms }; }
+      }
+    } finally { C.KENNEL.waves = waves; G.setPkitP(true); G.pickSchool(0); G.setBots(0); G.reset(); }
+    return best;
+  });
+  check('128 budget with 名甲 effects: every suit + cubs + tells + wheel + shadow + both hanging lines (calls<500, tris<500k), no shader compile, geometry flat',
+    !!mi128 && mi128.calls < 500 && mi128.tris < 500000 && mi128.programs === base.programs && mi128.geoms === base.geoms, JSON.stringify(mi128));
   // 66 Idle player: standing at the spawn doing nothing loses the royale (frozen loss with a cause) before the last collapse is over.
   const idle = await g(() => {
     const G = __game, C = G.config; G.setSeed(12345); G.setBots(G.config.BOTS.count); G.reset(); let t = 0;

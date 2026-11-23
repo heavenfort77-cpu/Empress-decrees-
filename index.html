@@ -379,8 +379,30 @@ const CONFIG = {
     yinyang: { built: false, armor: 'Low', speed: 'Mid', ultMode: 'lock' },
     // 杂甲 Retainer: control mage.
     za: { built: false, armor: 'Mid', speed: 'Mid', ultMode: 'charge' },
-    // 名甲 Debater: marksman.
-    ming: { built: false, armor: 'Low', speed: 'Mid', ultMode: 'charge' },
+    // 名甲 Debater: marksman (batch 16 ticket 05; docs/SUITS.md; owner 23 Nov 23:3x: one number set from the doc's "about" values, balance when all nine are ready).
+    ming: {
+      built: true, armor: 'Low', speed: 'Mid', ultMode: 'charge',
+      // Passive 一尺之棰，日取其半: 'halving' = each hit in a row on the same target adds half of the bonus still left toward max (0, then max/2, 3max/4 ...;
+      // never reaching it); a hit on another target, or more than gapS s after the last one, starts again.
+      passive: 'halving',
+      // Passive numbers: the bonus it climbs toward (the game cap BONUS_CAP 1.4 = +0.4), seconds a row may pause.
+      halving: { max: 0.4, gapS: 4 },
+      // Attack 轮不蹍地 (the wheel never touches the ground): a bronze wheel thrown at the target out to range m and back to him at speed m/s;
+      // it hits each target it passes once on the way out and once on the way back (two chances), dmg each; a wall turns it back.
+      // radius = how close it must pass (m, plus the target's body); keep = a bot steps back from a target closer than this while its wheel is in reach.
+      attack: { wheel: true, range: 8, speed: 16, radius: 0.7, dmg: 6, interval: 1.0, acquire: 9, keep: 4 },
+      skills: [
+        // Q 飞鸟之景未尝动也 (shadow blink, the dash): a blink of range m (dashS s, by the walking rule); his shadow stays where he stood for shadowS s,
+        // and bots fighting him and the player's auto-target take it for him. No hit. Bots blink away from a target nearer than botNear m.
+        { key: 'KeyQ', label: 'Q', nameKey: 'sk_ming_q', type: 'dash', range: 6, radius: 0, dmg: 0, cd: 9, delay: 0, dash: true, dashS: 0.12, blink: true, shadowS: 1, tag: 'blinkAway', botNear: 3.5 },
+        // W 镞矢之疾 (the hanging arrowheads): a line of range x width m from him, shown hang s (anyone touching it is slowed by touchSlow for touchS s),
+        // then the arrowheads fly along it: every target in the line takes dmg.
+        { key: 'KeyW', label: 'W', nameKey: 'sk_ming_w', type: 'line', range: 8, width: 1.2, hang: 1, touchSlow: 0.3, touchS: 1, dmg: 20, cd: 8, delay: 0 },
+        // R 指不至，至不绝 (pointing never arrives): a very long line of range x width m, shown hang s, then a piercing strike runs its whole length
+        // and every target it passes takes dmg (a standing wall still stops it, like every line skill). cd = the hunt cooldown (the royale runs on the meter).
+        { key: 'KeyR', label: 'R', nameKey: 'sk_ming_r', type: 'line', range: 30, width: 1.4, hang: 1, dmg: 45, cd: 30, delay: 0 },
+      ],
+    },
     // 纵横甲 Persuader: control.
     zongheng: { built: false, armor: 'Mid', speed: 'Mid', ultMode: 'charge' },
     // 农甲 Tiller: support.
@@ -566,6 +588,7 @@ const TEXT = {
   sk_fa_q: 'Pursuit', sk_fa_w: 'Unseen', sk_fa_r: 'Authority',
   sk_ru_q: 'Chariot', sk_ru_w: 'Seal', sk_ru_r: 'Bells',
   sk_mo_q: 'Wall', sk_mo_w: 'Lever', sk_mo_r: 'Nine defences',
+  sk_ming_q: 'Shadow blink', sk_ming_w: 'Arrowheads', sk_ming_r: 'Pointing',
   st_jiu: 'Nine defences {n}',
   st_sealed: 'Sealed: plates and boons off',
   rule_plate_s: 'Stalker plate: your hits cause bleeding for {s} s. +{c} ultimate charge.',
@@ -1051,6 +1074,8 @@ addFow(zoneMat);
 const markGeo = new THREE.BoxGeometry(DD.markW, DD.markH, DD.markW);
 // 墨甲's wall (batch 16 ticket 04): one unit box scaled per wall, the core-hall wall material (already compiled); warmed at load.
 const wallGeo = new THREE.BoxGeometry(1, 1, 1);
+// Most targets one hit can reach (dummies, hunt units, cubs, buff creatures, bots and the player): the size of 名甲's per-pass hit list (ticket 05).
+const TARGET_MAX = DUMMY_LIST.length + ENEMIES.length + CUBS.length + NEUTRALS.length + BOTLIST.length + 1;
 for (let k = 0; k < SUITS.length; k++) {
   const s = SUITS[k], m = new THREE.Mesh(markGeo, M.ring);
   m.position.y = DD.markY; m.visible = false; m.castShadow = false;
@@ -1074,6 +1099,16 @@ for (let k = 0; k < SUITS.length; k++) {
   const wall = { s: SEC.CORE, x0: 0, x1: 0, z0: 0, z1: 0, y: 0, off: true, mesh: wallMesh, owner: s };
   SOLIDS.push(wall);
   Object.assign(s, { wall, wallT: 0, jiuT: 0, jiuN: 0, jiuSk: null, stillT: 0, atkAt: -99 });
+  // 名甲 state (ticket 05): chainT / chainB / chainAt = the target of his hits in a row, the bonus of the next one and when he last hit it (一尺之棰);
+  // wheel = his thrown wheel (built once: the tell ring shape in gold, in the scene only while thrown; hit = targets already hit on this pass);
+  // shadowT = seconds his shadow stands; decoy = that shadow (a fake target with his body, in the scene only while it stands);
+  // hang = his W and R lines hanging before they strike (built once each: the line tell shape; t = seconds left, -1 = none).
+  const wheelMesh = new THREE.Mesh(tellRingGeo, M.gold); wheelMesh.castShadow = false;
+  const wheel = { on: false, out: true, x: 0, z: 0, y: 0, ox: 0, oz: 0, dx: 0, dz: 0, gone: 0, ord: false, hit: new Array(TARGET_MAX), hitN: 0, mesh: wheelMesh };
+  const decoyMesh = new THREE.Mesh(playerBody.geometry, s === P ? M.player : s.mat); decoyMesh.castShadow = false;
+  const decoy = { kind: 'shadow', owner: s, x: 0, z: 0, y: 0, r: CONFIG.PLAYER_RADIUS, hp: 0, seen: false, mesh: decoyMesh };
+  const hang = [M.fx, M.tellD].map((m) => ({ t: -1, sk: null, ox: 0, oz: 0, oy: 0, dx: 0, dz: 0, ord: false, mesh: new THREE.Mesh(tellLineGeo, m) }));
+  Object.assign(s, { chainT: null, chainB: 0, chainAt: -99, wheel, shadowT: 0, decoy, hang });
   applyKit(s, CONFIG.SCHOOLS[0]);
 }
 // Brain fields on the player too, used only by the test autopilot (__game.autoPlayer).
@@ -1211,7 +1246,8 @@ function stopOrders() { ORD.attack = null; PATH.n = 0; PATH.i = 0; }
 function dummyNear(x, z, r) {
   let best = null, bd = r;
   for (let i = 0; i < TARGETS.length; i++) {
-    const d = TARGETS[i]; if (!d.seen || d.hp <= 0) continue;
+    // 名甲's shadow stands in for him while it lasts (the auto-target takes it for him).
+    const d = actTarget(TARGETS[i]); if (!d.seen || d.hp <= 0) continue;
     const dd = Math.hypot(d.x - x, d.z - z); if (dd < bd) { bd = dd; best = d; }
   }
   return best;
@@ -1251,6 +1287,7 @@ function castSkill(slot, tx, tz) {
   if (slot === 2 && onMeter(P)) { P.ch = 0; P.ultN++; } else st.cdT = sk.cd;
   if (sk.self) castSelf(P, sk, true);
   else if (sk.wall) raiseWall(P, sk);
+  else if (sk.hang) startHang(P, slot, dx, dz, true);
   else if (sk.dash) startDash(P, slot, dx, dz, true, suitDashLen(P, sk, tx, tz));
   else if (sk.delay > 0) {
     PEND.on = true; PEND.slot = slot; PEND.x = x; PEND.z = z; PEND.dx = dx; PEND.dz = dz; PEND.t = sk.delay;
@@ -1285,6 +1322,8 @@ function hasPlate(s, kind) { return s.sealT <= 0 && ((s.pt[0] > 0 && s.pk[0] ===
 function boonOn(s, i) { return s.bT[i] > 0 && s.sealT <= 0; }
 // A suit (by) hits a target: dummy, hunt unit, cub, buff creature or another suit. Power boon and Stalker plate come from the hitter.
 function hitTarget(by, d, n) {
+  // 名甲's shadow (ticket 05) is not a body: a blow on it does nothing.
+  if (d.kind === 'shadow') return;
   // Attacking ends the unseen state (batch 16). 法甲's first hit from 术 (W) exposes a suit it hits.
   breakUnseen(by);
   // 非攻 (墨甲): the hitter attacked someone now.
@@ -1293,6 +1332,7 @@ function hitTarget(by, d, n) {
   // Power boon and kit bonuses (法甲 passive and 势) multiply together under the game-wide cap.
   const kb = kitBonus(by, d);
   if (boonOn(by, 0) || kb !== 1) n *= Math.min(CONFIG.BONUS_CAP, (boonOn(by, 0) ? 1 + by.bV[0] : 1) * kb);
+  if (by.kit && by.kit.passive === 'halving') chainHit(by, d);
   if (!d.kind) { hitDummy(d, n); return; }
   if (d.kind === 'suit') { hurtSuit(d, n, 'hit', by); return; }
   hitEnemy(d, n, by);
@@ -1609,7 +1649,7 @@ const G = { time: 0, view: 'follow', paused: false, ctxLost: false, frames: 0, b
   huntN: 0, huntClaims: 0, huntFrees: 0,
   leader: null, leadT: 0, leaderChanges: 0, leaderCode: -1, leaderWrites: 0, miniLeader: false,
   bountyN: 0, bountyWarnAt: -1, bountyStartAt: -1, bountyEndAt: -1, bountyEndWhy: '', bountyPaid: 0, bountyPaidTo: -1,
-  auraN: 0, bellN: 0, wallN: 0, decNext: 0, decN: 0, decCount: { dry: 0, nodash: 0, silence: 0, heights: 0, ult2x: 0 }, decLog: [], brkP: 0, brkB: 0, decCode: -1, decWrites: 0, hiAvoid: false, zoneSec: null, skips: 0, chWrites: 0 , school: 0, selecting: false, selectOn: false, selBtns: [], saveFail: false};
+  auraN: 0, bellN: 0, wallN: 0, wheelN: 0, shadowN: 0, hangN: 0, decNext: 0, decN: 0, decCount: { dry: 0, nodash: 0, silence: 0, heights: 0, ult2x: 0 }, decLog: [], brkP: 0, brkB: 0, decCode: -1, decWrites: 0, hiAvoid: false, zoneSec: null, skips: 0, chWrites: 0 , school: 0, selecting: false, selectOn: false, selBtns: [], saveFail: false};
 // The one decree slot (batch 11): st 0 idle, 1 queued, 2 warning (banner), 3 in force. key = decree name, tgt = its suit (bounty), t = seconds left in the state.
 // Decree slot. st: 0 free, 1 queued, 2 warning, 3 in force. len = seconds in force; zone = the no-dash decree's section; warnAt = when its warning began.
 const DEC = { st: 0, key: '', tgt: null, t: 0, count: -1, banner: false, len: 0, zone: null, warnAt: -1 };
@@ -1713,6 +1753,9 @@ function step(dt) {
   stepAuras(dt);
   stepBells(dt);
   stepWalls(dt);
+  stepWheels(dt);
+  stepShadows(dt);
+  stepHangs(dt);
   const vr = CONFIG.VISION_R + (boonOn(P, 2) ? P.bV[2] : 0);
   if (vr !== G.visR) { G.visR = vr; if (G.view === 'follow') FOW.uFowR.value = vr; }
   if (roy && CONFIG.ROYALE_MINIONS) stepKennel(dt);
@@ -2067,7 +2110,7 @@ function breakDecree(s) {
   if (s === P) showNote('voice_marked', 'rule_marked', MARK_VARS);
 }
 // Marks off every suit (the wake and a new run).
-function clearMarks() { for (let i = 0; i < SUITS.length; i++) { const s = SUITS[i]; s.markT = 0; s.brkT = 0; s.marker.visible = false; s.dashLeft = 0; s.wsT = -99; breakUnseen(s); s.expT = 0; s.expArmT = 0; s.heldT = 0; s.sealT = 0; endAura(s); endBells(s); lowerWall(s); s.jiuT = 0; s.jiuN = 0; s.jiuSk = null; s.stillT = 0; s.atkAt = -99; } }
+function clearMarks() { for (let i = 0; i < SUITS.length; i++) { const s = SUITS[i]; s.markT = 0; s.brkT = 0; s.marker.visible = false; s.dashLeft = 0; s.wsT = -99; breakUnseen(s); s.expT = 0; s.expArmT = 0; s.heldT = 0; s.sealT = 0; endAura(s); endBells(s); lowerWall(s); s.jiuT = 0; s.jiuN = 0; s.jiuSk = null; s.stillT = 0; s.atkAt = -99; endMing(s); } }
 // ----- Unseen state (batch 16, minimal; curtains and walls blocking sight come with hiding in batch 18).
 function goUnseen(s, sec) { s.unseenT = sec; setShimmer(s, true); }
 function breakUnseen(s) { if (s.unseenT <= 0) return; s.unseenT = 0; setShimmer(s, false); }
@@ -2107,6 +2150,8 @@ function kitBonus(by, d) {
   if (by.kit && by.kit.passive === 'junzi' && d === by.lastBy && G.time - by.lastByT < by.kit.junzi.lastS) k += by.kit.junzi.bonus;
   // 墨甲's 非攻: bonus against anyone (suit, cub or hunt unit) who attacked someone in the last aggroS seconds.
   if (by.kit && by.kit.passive === 'feigong' && d.atkAt !== undefined && G.time - d.atkAt < by.kit.feigong.aggroS) k += by.kit.feigong.bonus;
+  // 名甲's 一尺之棰: the bonus of his hits in a row on the same target (chainHit sets it after each hit).
+  if (by.kit && by.kit.passive === 'halving' && d === by.chainT && G.time - by.chainAt <= by.kit.halving.gapS) k += by.chainB;
   if (by.shiT > 0) {
     const max = d.kind === 'suit' ? CONFIG.MAX_HP : d.maxHp || CONFIG.DUMMY_HP;
     k *= 1 + by.shiSk.exec * Math.max(0, max - d.hp) / max;
@@ -2141,6 +2186,8 @@ function foesNear(s, r) {
 // every every-th hit is strong: a volley of arrows, or a heavy cut that pushes a suit back.
 function basicAttack(s, d) {
   const at = s.kit.attack;
+  // 名甲's wheel (ticket 05): thrown, it hits on its way out and back (a player order follows the player's targeting rule).
+  if (at.wheel) { throwWheel(s, d, s === P && !G.autoP); return; }
   // Bolts and arrows (attacks reaching past melee, MELEE_M) stop at a standing wall (墨甲's 距云梯); a cut does not.
   if (!at.closeR) { if (at.range <= CONFIG.MELEE_M || !wallCuts(s.x, s.z, d.x, d.z)) hitTarget(s, d, at.dmg); return; }
   s.atkN++;
@@ -2266,17 +2313,143 @@ function turnBack(s, by, src) {
   if (by && by.kind === 'suit' && !by.dead) { const dx = by.x - s.x, dz = by.z - s.z, l = Math.hypot(dx, dz) || 1; by.kx += dx / l * sk.push; by.kz += dz / l * sk.push; }
   else if (src && src.alive) shoveUnit(src, s.x, s.z, src === DEMON ? sk.demonM : sk.unitM);
 }
+// ----- 名甲 (batch 16 ticket 05): the halving passive, the wheel, the shadow blink and the hanging lines.
+// 一尺之棰 after a hit of suit by on d: the next hit on the same target (within gapS s) adds half of the bonus still left; another target starts again.
+function chainHit(by, d) {
+  const H = by.kit.halving;
+  if (d === by.chainT && G.time - by.chainAt <= H.gapS) by.chainB += (H.max - by.chainB) / 2;
+  else { by.chainT = d; by.chainB = H.max / 2; }
+  by.chainAt = G.time;
+}
+// How near a bot wants its target to cast its ready aura ultimate (radius x botIn), or a huge distance when it has none ready (then it fights from its reach).
+function botAuraIn(b) {
+  const sk = b.kit.skills[2];
+  if (sk.tag !== 'aura' || b.cd[2] > 0 || b.pend || (onMeter(b) && b.ch < CONFIG.ULT.full) || silenced(b)) return 1e9;
+  return sk.radius * sk.botIn;
+}
+// What a bot acts on: its target, or the target's shadow while 名甲's shadow stands (the brain and the player's auto-target take it for him).
+function actTarget(t) { return t && t.shadowT > 0 ? t.decoy : t; }
+// Throw suit s's wheel at d (one in flight at a time): out along the line to d for the attack's range, then back to him.
+// ord = the player's own order (its targets follow the player's rule), else the brain's.
+function throwWheel(s, d, ord) {
+  const w = s.wheel, at = s.kit.attack;
+  if (w.on) return;
+  let dx = d.x - s.x, dz = d.z - s.z; const l = Math.hypot(dx, dz) || 1; dx /= l; dz /= l;
+  w.on = true; w.out = true; w.x = w.ox = s.x; w.z = w.oz = s.z; w.y = s.y; w.dx = dx; w.dz = dz; w.gone = 0; w.ord = ord; w.hitN = 0;
+  w.mesh.scale.setScalar(at.radius); w.mesh.position.set(w.x, w.y + 1, w.z);
+  if (!w.mesh.parent) { scene.add(w.mesh); G.wheelN++; }
+}
+function dropWheel(s) { const w = s.wheel; if (!w.on) return; w.on = false; w.hitN = 0; if (w.mesh.parent) { scene.remove(w.mesh); G.wheelN--; } }
+// Wheels (fixed step): out along their line to the attack's range (a standing wall turns one back), then back to the thrower (over walls);
+// each pass hits each target it comes within radius of once. Drawn where the player can see it.
+function stepWheels(dt) {
+  if (G.wheelN <= 0) return;
+  for (let i = 0; i < SUITS.length; i++) {
+    const s = SUITS[i], w = s.wheel; if (!w.on) continue;
+    if (s.dead) { dropWheel(s); continue; }
+    const at = s.kit.attack, stp = at.speed * dt;
+    if (w.out) {
+      const nx = w.x + w.dx * stp, nz = w.z + w.dz * stp;
+      if (wallCuts(w.x, w.z, nx, nz)) { w.out = false; w.hitN = 0; }
+      else { w.x = nx; w.z = nz; w.gone += stp; if (w.gone >= at.range) { w.out = false; w.hitN = 0; } }
+    } else {
+      const bx = s.x - w.x, bz = s.z - w.z, l = Math.hypot(bx, bz);
+      if (l <= stp) { dropWheel(s); continue; }
+      w.x += bx / l * stp; w.z += bz / l * stp;
+    }
+    wheelHits(s, w, at);
+    w.mesh.position.set(w.x, w.y + 1, w.z);
+    w.mesh.visible = s === P || Math.hypot(w.x - P.x, w.z - P.z) <= G.visR;
+  }
+}
+// The wheel hits every target within radius of it that this pass has not hit yet (the thrower's own rule: a player order or the brain's).
+function wheelHits(s, w, at) {
+  for (let i = -1; i < TARGETS.length; i++) {
+    const d = i < 0 ? P : TARGETS[i];
+    if (!skillTargetOk(s, d, w.ord) || Math.abs(d.y - w.y) > 2 || Math.hypot(d.x - w.x, d.z - w.z) > at.radius + d.r || wheelHad(w, d)) continue;
+    w.hit[w.hitN++] = d; hitTarget(s, d, at.dmg);
+  }
+}
+function wheelHad(w, d) { for (let k = 0; k < w.hitN; k++) if (w.hit[k] === d) return true; return false; }
+// 名甲's shadow (Q): stands where he blinked from for shadowS s, facing his blink.
+function placeShadow(s, sk) {
+  const c = s.decoy;
+  c.x = s.x; c.z = s.z; c.y = s.y; c.hp = 1; s.shadowT = sk.shadowS;
+  c.mesh.position.set(c.x, c.y, c.z); c.mesh.rotation.y = Math.atan2(-s.faceX, -s.faceZ);
+  if (!c.mesh.parent) { scene.add(c.mesh); G.shadowN++; }
+}
+function endShadow(s) {
+  const c = s.decoy; s.shadowT = 0; c.hp = 0; c.seen = false;
+  if (ORD.attack === c) ORD.attack = null;
+  if (c.mesh.parent) { scene.remove(c.mesh); G.shadowN--; }
+}
+// Shadows (fixed step): seen by the player inside its vision (never its own); gone after shadowS s or with him.
+function stepShadows(dt) {
+  if (G.shadowN <= 0) return;
+  for (let i = 0; i < SUITS.length; i++) {
+    const s = SUITS[i], c = s.decoy; if (!c.mesh.parent) continue;
+    s.shadowT -= dt;
+    if (s.shadowT <= 0 || s.dead) { endShadow(s); continue; }
+    c.seen = s !== P && Math.hypot(c.x - P.x, c.z - P.z) <= G.visR; c.mesh.visible = s === P || c.seen;
+  }
+}
+// 名甲's hanging line (W, R) from suit s along dx, dz: shown for hang s, then it strikes. ord as for the wheel.
+function startHang(s, slot, dx, dz, ord) {
+  const sk = skillOf(s, slot), h = s.hang[slot - 1];
+  h.t = sk.hang; h.sk = sk; h.ox = s.x; h.oz = s.z; h.oy = s.y; h.dx = dx; h.dz = dz; h.ord = ord;
+  h.mesh.position.set(s.x, s.y + 0.08, s.z); h.mesh.rotation.y = Math.atan2(-dx, -dz); h.mesh.scale.set(sk.width, 1, sk.range);
+  if (!h.mesh.parent) { scene.add(h.mesh); G.hangN++; }
+}
+function endHang(s, k) { const h = s.hang[k]; h.t = -1; h.sk = null; if (h.mesh.parent) { scene.remove(h.mesh); G.hangN--; } }
+// Hanging lines (fixed step): while shown, a suit touching the W line is slowed; then the line strikes every target in it (the caster's rule) and is gone.
+// Drawn where the line passes within the player's vision (always the player's own).
+function stepHangs(dt) {
+  if (G.hangN <= 0) return;
+  for (let i = 0; i < SUITS.length; i++) {
+    const s = SUITS[i];
+    for (let k = 0; k < 2; k++) {
+      const h = s.hang[k]; if (!h.mesh.parent) continue;
+      if (s.dead) { endHang(s, k); continue; }
+      h.t -= dt;
+      h.mesh.visible = s === P || hangDist(P.x, P.z, h) <= G.visR;
+      if (h.t > 0) { if (h.sk.touchSlow) hangTouch(s, h); continue; }
+      strikeHang(s, h); endHang(s, k);
+    }
+  }
+}
+// Distance from x, z to a hanging line.
+function hangDist(x, z, h) { const qx = x - h.ox, qz = z - h.oz, a = Math.max(0, Math.min(h.sk.range, qx * h.dx + qz * h.dz)); return Math.hypot(qx - h.dx * a, qz - h.dz * a); }
+function hangTouch(s, h) {
+  const sk = h.sk;
+  for (let i = 0; i < SUITS.length; i++) {
+    const o = SUITS[i];
+    if (o === s || o.dead || Math.abs(o.y - h.oy) > 2 || !inSkillShape(sk, o, h.ox, h.oz, 0, 0, h.dx, h.dz)) continue;
+    o.slowK = Math.max(o.slowT > 0 ? o.slowK : 0, sk.touchSlow); o.slowT = Math.max(o.slowT, sk.touchS);
+  }
+}
+function strikeHang(s, h) {
+  for (let i = -1; i < TARGETS.length; i++) {
+    const d = i < 0 ? P : TARGETS[i];
+    if (skillTargetOk(s, d, h.ord) && inSkillShape(h.sk, d, h.ox, h.oz, 0, 0, h.dx, h.dz)) skillHit(s, h.sk, d, h.dx, h.dz);
+  }
+}
+// Everything of 名甲's that is out (a new run, the wake, out of the match).
+function endMing(s) { dropWheel(s); endShadow(s); endHang(s, 0); endHang(s, 1); s.chainT = null; s.chainB = 0; s.chainAt = -99; }
 // Start a dash (W): toward dx, dz for the skill's range by the walking rule; ord = a player order (its hits follow the player's own rules), else the bot brain.
 // Dashing while standing in the no-dash zone breaks that decree.
 // len = metres to dash (a pursuit dash stops at its target, batch 16), else the skill's range.
 function startDash(s, slot, dx, dz, ord, len) {
   const sk = skillOf(s, slot);
   s.dashLeft = len || sk.range; s.dashOx = s.x; s.dashOz = s.z; s.dashX = dx; s.dashZ = dz; s.dashStep = sk.range / sk.dashS * CONFIG.STEP; s.dashSlot = slot; s.dashOrd = ord;
+  // 名甲's blink leaves his shadow where he stood.
+  if (sk.blink) placeShadow(s, sk);
   if (decOn('nodash') && s.floor && s.floor.s === DEC.zone) breakDecree(s);
 }
 // Dash over (full length or blocked): the burst lands around the suit (a line dash hits along its path from where it began).
 function dashLand(s) {
   s.dashLeft = 0;
+  // A blink (名甲's Q) lands with no hit.
+  if (skillOf(s, s.dashSlot).blink) return;
   if (s.dashOrd) applySkill(s.dashSlot, s.x, s.z, s.dashX, s.dashZ, s.dashOx, s.dashOz);
   else botSkillHit(s, s.dashSlot, s.x, s.z, s.dashX, s.dashZ, s.dashOx, s.dashOz);
 }
@@ -2326,7 +2499,7 @@ function updateLeaderHud() {
 function suitFell(s) { if (s === P && G.botN === 0) respawn('fell'); else suitDown(s, 'fall', null); }
 // A bot leaves the match: body out of the scene, no longer a target.
 function botOut(b) {
-  b.dead = true; b.hp = 0; b.seen = false; b.navWant = false; b.path.n = 0; b.pend = false; endAura(b); endBells(b);
+  b.dead = true; b.hp = 0; b.seen = false; b.navWant = false; b.path.n = 0; b.pend = false; endAura(b); endBells(b); endMing(b);
   if (b.group.parent) scene.remove(b.group);
   if (b.ring.parent) scene.remove(b.ring);
   if (ORD.attack === b) ORD.attack = null;
@@ -2833,13 +3006,17 @@ function botThink(b, dt) {
   }
   b.thinkT -= dt;
   if (b.thinkT <= 0) { b.thinkT = B.thinkS; botDecide(b); }
-  // Act on the decision.
-  const q = b.tgt;
+  // Act on the decision (on 名甲's shadow while it stands: the brain takes it for him).
+  const q = actTarget(b.tgt);
   if (q && (b.mode === 'fight' || b.mode === 'creature')) {
     const at = b.kit.attack, dx = q.x - b.x, dz = q.z - b.z, d = Math.hypot(dx, dz) || 1e-6, reach = at.range + q.r;
     if (d > 0.01) { b.faceX = dx / d; b.faceZ = dz / d; }
     if (b.tgtT >= sk.react && b.stunT <= 0 && b.castT <= 0) botUseSkills(b, q, d);
     if (d <= reach) {
+      // A thrower (名甲's wheel) keeps its distance: it steps back from a target nearer than keep m while the step back is a plain walk.
+      if (at.keep && d < at.keep && lineWalk(b.x, b.z, b.y, b.x - dx / d, b.z - dz / d)) { b.mx = -dx / d; b.mz = -dz / d; }
+      // A ready aura ultimate (法甲's 势, 儒甲's 编钟) is cast close: the bot walks in while it keeps attacking.
+      else if (d > botAuraIn(b)) { b.mx = dx / d; b.mz = dz / d; }
       if (b.atkT <= 0 && b.stunT <= 0 && b.tgtT >= sk.react) { basicAttack(b, q); b.atkT = at.interval; }
     } else if (b.direct) { b.mx = dx / d; b.mz = dz / d; }
     else botFollow(b);
@@ -2987,17 +3164,20 @@ function botUseSkills(b, q, d) {
     // 'stealth' (法甲 W) from botMin to botMax before engaging; 'aura' (法甲 R) with the target inside radius x botIn; other skills within their range.
     // 'wall' (墨甲 Q) behind a target botMin to botMax away; 'guard' (墨甲 R) with a target within botR.
     const dMax = sk.pursuit ? (lawTarget(q) ? sk.longRange : sk.range) : B.dashMaxM;
-    if (sk.tag === 'dashIn' ? (noDash || d < B.dashMinM || d > dMax || Math.abs(q.y - b.y) > 0.7)
+    // 'blinkAway' (名甲 Q) blinks away from a target nearer than botNear.
+    if (sk.tag === 'dashIn' ? (noDash || d < B.dashMinM || d > dMax || Math.abs(q.y - b.y) > 0.7) : sk.tag === 'blinkAway' ? (noDash || d > sk.botNear)
       : sk.tag === 'stealth' || sk.tag === 'wall' ? (d < sk.botMin || d > sk.botMax) : sk.tag === 'aura' ? d > sk.radius * sk.botIn
       : sk.tag === 'guard' ? d > sk.botR : d > sk.range) continue;
     const a = brnd() * 6.2832, r = brnd() * err, tx = q.x + Math.cos(a) * r, tz = q.z + Math.sin(a) * r;
     let dx = tx - b.x, dz = tz - b.z; const len = Math.hypot(dx, dz) || 1e-6; dx /= len; dz /= len;
+    if (sk.tag === 'blinkAway') { dx = -dx; dz = -dz; }
     const dist = sk.type === 'line' ? sk.range : Math.min(len, sk.range), x = b.x + dx * dist, z = b.z + dz * dist;
     if (sk.wall && !wallFits(b, sk, q.x + dx * sk.botBehind, q.z + dz * sk.botBehind, dx, dz)) continue;
     if (slot === 2 && onMeter(b)) { b.ch = 0; b.ultN++; } else b.cd[slot] = sk.cd;
     b.faceX = dx; b.faceZ = dz; b.castT = CONFIG.BOT.castGapS; breakUnseen(b);
     if (sk.self) castSelf(b, sk, false);
     else if (sk.wall) raiseWall(b, sk);
+    else if (sk.hang) startHang(b, slot, dx, dz, false);
     else if (sk.dash) startDash(b, slot, dx, dz, false, suitDashLen(b, sk, tx, tz));
     else if (sk.delay > 0) {
       b.pend = true; b.pendT = sk.delay; b.pendS = slot; b.pendX = x; b.pendZ = z; b.pendDx = dx; b.pendDz = dz; b.pendAge = 0;
@@ -3076,6 +3256,15 @@ function botDanger(b, x, z, margin) {
     const o = BOTLIST[i];
     if (o === b || !o.pend || o.pendAge < react) continue;
     if (Math.hypot(x - o.pendX, z - o.pendZ) < skillOf(o, o.pendS).radius + margin) { DNG.ex = b.x - o.pendX; DNG.ez = b.z - o.pendZ; if (DNG.ex === 0 && DNG.ez === 0) DNG.ez = 1; return true; }
+  }
+  // 名甲's hanging lines (W, R), seen for the reaction time: step out sideways.
+  if (G.hangN > 0) for (let i = 0; i < SUITS.length; i++) {
+    const o = SUITS[i]; if (o === b) continue;
+    for (let k = 0; k < 2; k++) {
+      const h = o.hang[k]; if (!h.mesh.parent || h.sk.hang - h.t < react || Math.abs(h.oy - b.y) > 2) continue;
+      const qx = x - h.ox, qz = z - h.oz, along = qx * h.dx + qz * h.dz, side = qx * h.dz - qz * h.dx;
+      if (along >= -margin && along <= h.sk.range + margin && Math.abs(side) <= h.sk.width / 2 + margin) { const sg = side >= 0 ? 1 : -1; DNG.ex = h.dz * sg; DNG.ez = -h.dx * sg; return true; }
+    }
   }
   if (PEND.on && skillOf(P, PEND.slot).delay - PEND.t >= react && Math.hypot(x - PEND.x, z - PEND.z) < skillOf(P, PEND.slot).radius + margin) {
     DNG.ex = b.x - PEND.x; DNG.ez = b.z - PEND.z; if (DNG.ex === 0 && DNG.ez === 0) DNG.ez = 1; return true;
@@ -3619,6 +3808,8 @@ const warmSeal = new THREE.Mesh(sealMesh.geometry, M.tellD); warmSeal.position.s
 const warmHunt = [warmSeal, crown];
 // 墨甲's wall box (batch 16 ticket 04) is drawn once here too, at the player, so its buffer uploads at load.
 P.wall.mesh.scale.set(1, 1, 1); P.wall.mesh.position.set(P.x, P.y, P.z); P.wall.mesh.updateMatrix(); warmHunt.push(P.wall.mesh);
+// 名甲's wheel, shadow and two hanging lines (batch 16 ticket 05; existing shapes and materials) are drawn once here too, at the player.
+for (const o of [P.wheel.mesh, P.decoy.mesh, P.hang[0].mesh, P.hang[1].mesh]) { o.position.set(P.x, P.y, P.z); warmHunt.push(o); }
 for (const u of ENEMIES.concat(NEUTRALS)) {
   warmHunt.push(u.group, u.ring, u.line, u.plate); u.group.visible = u.ring.visible = u.line.visible = true;
   for (const o of [u.group, u.ring, u.line, u.plate]) o.position.set(P.x, P.y, P.z);
@@ -3641,7 +3832,7 @@ drawMini();
 renderer.shadowMap.needsUpdate = true;
 if (G.selectOn) openSelect();
 
-// Test hooks (read-mostly). Batch 16 ticket 04: moState, wallCut. Batch 16 ticket 02: kitState, strike (a hit through hitTarget), castSelfOf, placeholderKit (a suit back on the placeholder kit at Mid, checks only). Batch 16: openSelect, pickSchool, selectKey, setSelectOn, newRun, schools, setStats, bleed, unseen (set), unseenOf (read).
+// Test hooks (read-mostly). Batch 16 ticket 05: mingState, autoPick (what the auto-target picks), actOf (what a bot acts on), botCast (a bot casts a slot now). Batch 16 ticket 04: moState, wallCut. Batch 16 ticket 02: kitState, strike (a hit through hitTarget), castSelfOf, placeholderKit (a suit back on the placeholder kit at Mid, checks only). Batch 16: openSelect, pickSchool, selectKey, setSelectOn, newRun, schools, setStats, bleed, unseen (set), unseenOf (read).
 function tellsOf(list) {
   return list.filter((u) => u.alive && u.st === 1 && u.cur !== 'ult').map((u) => { const m = MOVES[u.cur], mesh = m.shape === 'line' ? u.line : u.ring;
     return { by: u.kind, move: u.cur, shape: m.shape, x: m.shape === 'line' ? u.x : u.tx, z: m.shape === 'line' ? u.z : u.tz, r: m.radius || 0, fx: u.fx, fz: u.fz, len: u.tl, w: m.width || 0,
@@ -3682,6 +3873,19 @@ window.__game = {
   // Batch 16 ticket 03: the checks' placeholder player on or off (applies at the next reset), and the player's school without the select (next reset).
   setPkitP(on) { G.pkitP = !!on; }, setSchool(i) { G.school = i; }, seal(i, sec) { (i < 0 ? P : BOTLIST[i]).sealT = sec; },
   // Batch 16 ticket 04 (read-only): 墨甲 state of a suit (its wall, nine defences, stillness, last attack time) and the wall line test.
+  mingState(i) {
+    const q = i < 0 ? P : BOTLIST[i], w = q.wheel, c = q.decoy, id = (t) => (!t ? null : t === P ? 0 : t.kind === 'suit' ? t.id : t.kind || 'dummy');
+    return { chainT: id(q.chainT), chainB: q.chainB, chainAt: q.chainAt, wheel: { on: w.on, out: w.out, x: w.x, z: w.z, gone: w.gone, hitN: w.hitN, inScene: !!w.mesh.parent, vis: w.mesh.visible },
+      shadowT: q.shadowT, decoy: { x: c.x, z: c.z, hp: c.hp, seen: c.seen, inScene: !!c.mesh.parent, vis: c.mesh.visible },
+      hang: q.hang.map((h) => ({ t: h.t, inScene: !!h.mesh.parent, vis: h.mesh.visible, len: h.mesh.scale.z, w: h.mesh.scale.x, ox: h.ox, oz: h.oz })), wheelN: G.wheelN, shadowN: G.shadowN, hangN: G.hangN };
+  },
+  // A bot casts its skill in slot toward x, z at once (checks only): a hanging line, a dash or blink, or a wall.
+  botCast(i, slot, x, z) {
+    const b = BOTLIST[i], sk = skillOf(b, slot); let dx = x - b.x, dz = z - b.z; const l = Math.hypot(dx, dz) || 1; dx /= l; dz /= l; b.faceX = dx; b.faceZ = dz; b.cd[slot] = sk.cd;
+    if (sk.hang) startHang(b, slot, dx, dz, false); else if (sk.dash) startDash(b, slot, dx, dz, false, suitDashLen(b, sk, x, z)); else if (sk.wall && wallFits(b, sk, x, z, dx, dz)) raiseWall(b, sk);
+  },
+  autoPick(r) { const t = autoTarget(r); return !t ? -1 : t.kind === 'shadow' ? 'shadow' + t.owner.id : t.kind === 'suit' ? t.id : -2; },
+  actOf(i) { const t = actTarget(BOTLIST[i].tgt); return !t ? -1 : t.kind === 'shadow' ? 'shadow' + t.owner.id : t === P ? 0 : t.kind === 'suit' ? t.id : -2; },
   moState(i) { const q = i < 0 ? P : BOTLIST[i], w = q.wall; return { up: !w.off, x0: w.x0, x1: w.x1, z0: w.z0, z1: w.z1, sec: w.s.id, wallT: q.wallT, meshIn: !!w.mesh.parent,
     jiuT: q.jiuT, jiuN: q.jiuN, stillT: q.stillT, atkAt: q.atkAt, wallN: G.wallN, takenK: takenK(q), status: el.status.textContent }; },
   wallCut: (ax, az, bx, bz) => wallCuts(ax, az, bx, bz),
