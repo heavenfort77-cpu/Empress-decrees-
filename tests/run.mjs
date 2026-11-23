@@ -324,8 +324,214 @@ try {
     });
     check('32 phone: MLBB buttons, tap auto-aim hits, cancel zone, drag aim casts', res.touch && res.bar === 4 && res.mini === 140 && res.tapHp === 75
       && res.cancelShown && res.cdW === 0 && res.hpAfterCancel === 75 && res.cdR > 0 && res.pend && perr.length === 0, JSON.stringify(res) + ' ' + perr.join(' | '));
+    // 44 Phone: the Hunt button is a 44 px target and a tap starts the hunt.
+    const hb = await ph.evaluate(() => {
+      const G = __game; G.reset(); const b = document.getElementById('btnHunt'), r = b.getBoundingClientRect();
+      const shown = getComputedStyle(b).display !== 'none'; b.click();
+      return { shown, w: r.width, h: r.height, phase: G.hunt().phase, hidden: G.huntUi().btn === 'none' };
+    });
+    check('44 phone: Hunt button 44 px, tap starts the hunt', hb.shown && hb.w >= 44 && hb.h >= 44 && hb.phase === 'wake' && hb.hidden && perr.length === 0, JSON.stringify(hb));
     await ctx.close();
   }
+
+  // ===== Batch 6: apex hunt on boxes (Tiger Demon, 2 minions, skill transfer) =====
+  // Helpers inside the page: start a hunt past the wake; mute a unit (all its moves on a long cooldown).
+  await g(() => {
+    const G = __game, C = G.config;
+    window.__h = {
+      start() { G.reset(); G.startHunt(); G.step(Math.round(C.APEX.wakeS / C.STEP) + 1); },
+      mute(i, except) { for (const k of G.moves) G.unitCd(i, k, k === except ? 0 : 9999); },
+      until(cond, max) { let n = 0; while (n < max && !cond(G.hunt())) { G.step(1); n++; } return n; },
+    };
+  });
+  // 33 Hunt start: a warned collapse is called off, statue wakes (mesh and solid gone), gate sealed, player at the entrance, nothing can be hit in the wake.
+  const hs = await g(() => {
+    const G = __game, C = G.config, K = G.K; G.reset();
+    G.step(Math.round((C.FIRST_WAVE_S - 2) / C.STEP)); const warned = G.state().sec.ROOF;
+    const blockedBefore = !G.canStand(0, G.hazards()[0].z, 0);
+    G.startHunt(); const h0 = G.hunt(), s0 = G.state(), ui0 = G.huntUi();
+    const canTarget = G.attackUnit(0); G.hitUnit(0, 50); const hpWake = G.hunt().units[0].hp;
+    G.setHp(1e9); G.step(Math.round(10 / C.STEP)); const h1 = G.hunt(), s1 = G.state();
+    return { warned, blockedBefore, phase0: h0.phase, roofAfter: s0.sec.ROOF, wave0: s0.waves[0], statue: h0.statue, solid: h0.statueSolid, openNow: G.canStand(0, G.hazards()[0].z, 0), seal: h0.seal,
+      atEntry: Math.abs(h0.p.x - C.APEX.entry[0] * K) < 0.01 && Math.abs(h0.p.z - C.APEX.entry[1] * K) < 0.01, hp0: h0.p.hp, canTarget, hpWake, full: C.DEMON.hp,
+      boss: ui0.boss, btn: ui0.btn, voice: ui0.voice, phase1: h1.phase, roof10: s1.sec.ROOF, waves10: s1.waves.join(''), inScene: h0.units.every((u) => u.inScene && u.alive) };
+  });
+  check('33 hunt start: collapse called off, statue wakes, gate sealed, wake is safe', hs.warned === 1 && hs.blockedBefore && hs.phase0 === 'wake' && hs.roofAfter === 0 && hs.wave0 === 0
+    && !hs.statue && !hs.solid && hs.openNow && hs.seal && hs.atEntry && hs.hp0 === 100 && !hs.canTarget && hs.hpWake === hs.full && hs.boss === 'block' && hs.btn === 'none'
+    && hs.voice.length > 0 && hs.phase1 === 'hunt' && hs.roof10 === 0 && hs.waves10 === '00000' && hs.inScene, JSON.stringify(hs));
+  // 34 Tell before every hit: claw shows its ring for the whole windup (>= 0.4 s), no damage before it ends; standing takes the hit, stepping out does not.
+  const tell = await g(() => {
+    const G = __game, C = G.config, H = window.__h, out = {};
+    for (const dodge of [false, true]) {
+      H.start(); H.mute(1); H.mute(2); H.mute(0, 'claw'); G.teleport(0, -55 * 1); G.placeUnit(0, 0, -57);
+      const n0 = H.until((h) => h.tells.length > 0, 600); const t0 = G.hunt().tells[0];
+      let n = 0, early = false, shownAll = true;
+      if (dodge) G.setMove(0, 1);
+      while (G.hunt().tells.length > 0 && n < 200) { const h = G.hunt(); if (h.p.hp < 100) early = true; if (!h.tells[0].shown) shownAll = false; G.step(1); n++; }
+      G.clearMove(); const h = G.hunt();
+      out[dodge ? 'dodge' : 'stand'] = { wait: n0, move: t0 && t0.move, look: t0 && t0.look, windupS: n * C.STEP, early, shownAll, hp: h.p.hp, hits: h.hits, minTell: h.minTell };
+    }
+    out.cfgMin = Math.min(C.DEMON_ULT.windup, ...G.moves.map((k) => C.MOVES[k].windup)); out.claw = C.MOVES.claw.dmg;
+    return out;
+  });
+  check('34 tell before the hit (claw): ring for the whole windup >= 0.4 s, stand = hit, step out = no hit', tell.cfgMin >= 0.4 && tell.stand.move === 'claw' && tell.stand.look === 'D'
+    && tell.stand.windupS >= 0.4 && !tell.stand.early && tell.stand.shownAll && tell.stand.hp === 100 - tell.claw && tell.stand.hits === 1 && tell.stand.minTell >= 0.4
+    && tell.dodge.hp === 100 && tell.dodge.hits === 0, JSON.stringify(tell));
+  // 35 The player's attack and skills damage hunt units; only seen units can be ordered.
+  const pd = await g(() => {
+    const G = __game, C = G.config, H = window.__h; H.start(); for (let i = 0; i < 3; i++) H.mute(i);
+    G.setHp(1e9); G.teleport(0, -50); G.placeUnit(1, 0, -53); G.placeUnit(0, -15, -70); G.placeUnit(2, 15, -70); G.step(1);
+    const far = G.attackUnit(0), near = G.attackUnit(1); G.step(Math.round(2 / C.STEP)); const afterAtk = G.hunt().units[1].hp;
+    const u = G.hunt().units[1]; G.stop(); const cast = G.cast(0, u.x, u.z); const afterQ = G.hunt().units[1].hp;
+    return { far, near, afterAtk, afterQ, cast, full: C.STALKER.hp, q: C.SKILLS[0].dmg };
+  });
+  check('35 player attack and skill hit hunt units; unseen unit cannot be ordered', !pd.far && pd.near && pd.afterAtk < pd.full && (pd.full - pd.afterAtk) % 10 === 0 && pd.cast && pd.afterQ === pd.afterAtk - pd.q, JSON.stringify(pd));
+  // 36 Skill transfer: a broken minion's plate is shown flying, then the demon holds that minion's 2 skills (up to 6), with the minion's tell colour.
+  const tr = await g(() => {
+    const G = __game, C = G.config, H = window.__h, fly = Math.round(C.APEX.plateS / C.STEP) + 2; H.start(); for (let i = 0; i < 3; i++) H.mute(i); G.setHp(1e9);
+    G.hitUnit(1, 1e6); const k = G.hunt(); G.step(fly); const a = G.hunt(), uiA = G.huntUi();
+    G.hitUnit(2, 1e6); G.step(fly); const b = G.hunt(), uiB = G.huntUi();
+    H.mute(0, 'lunge'); G.teleport(0, -50); G.placeUnit(0, 0, -53.5); H.until((h) => h.tells.length > 0, 600); const t = G.hunt().tells[0];
+    return { deadNow: !k.units[1].alive && !k.units[1].inScene, plateFlying: k.units[1].plate, before: k.units[0].skills.join(), platesBefore: k.plates,
+      afterA: a.units[0].skills.join(), plateGone: !a.units[1].plate, textA: uiA.bossText, ruleA: uiA.rule, afterB: b.units[0].skills.join(), textB: uiB.bossText, plates: b.plates,
+      stolenMove: t && t.move, stolenLook: t && t.look };
+  });
+  check('36 skill transfer: plate flight shown, demon gains 2 skills per minion (6 total), stolen tell keeps the minion colour', tr.deadNow && tr.plateFlying && tr.before === 'pounce,roar' && tr.platesBefore === 0
+    && tr.afterA === 'pounce,roar,lunge,rend' && tr.plateGone && /Lunge/.test(tr.textA) && /Rend/.test(tr.textA) && /Lunge/.test(tr.ruleA) && tr.afterB === 'pounce,roar,lunge,rend,flank,howl'
+    && /Flank/.test(tr.textB) && /Howl/.test(tr.textB) && tr.plates === 2 && tr.stolenMove === 'lunge' && tr.stolenLook === 'S', JSON.stringify(tr));
+  // 37 Status effects: roar slows, flank stuns (no move, no cast), rend bleeds and stacks to the cap; the HUD names each.
+  const fxs = await g(() => {
+    const G = __game, C = G.config, H = window.__h, o = {};
+    H.start(); H.mute(1); H.mute(2); H.mute(0, 'roar'); G.teleport(0, -55); G.placeUnit(0, 0, -58); H.until((h) => h.p.slow > 0, 900);
+    let h = G.hunt(); o.slowK = h.p.slowK; o.slowText = G.huntUi().status; H.mute(0); const x0 = h.p.x; G.setMove(1, 0); G.step(30); G.clearMove(); o.slowDx = G.hunt().p.x - x0;
+    H.start(); H.mute(0); H.mute(1); H.mute(2, 'flank'); G.teleport(0, -55); G.placeUnit(2, 0, -59); G.placeUnit(0, -15, -70); G.placeUnit(1, 15, -70);
+    H.until((h2) => h2.tells.length > 0, 900); o.flankShape = G.hunt().tells[0].shape; H.until((h2) => h2.p.stun > 0, 200);
+    h = G.hunt(); o.stun = h.p.stun; o.stunText = G.huntUi().status; const sx = h.p.x; G.setMove(1, 0); G.step(10); o.stunDx = G.hunt().p.x - sx; o.stunCast = G.cast(0, 0, -60); G.clearMove();
+    H.until((h2) => h2.p.stun <= 0, 200); G.setMove(1, 0); G.step(10); G.clearMove(); o.freeDx = G.hunt().p.x - sx;
+    H.start(); H.mute(0); H.mute(2); H.mute(1, 'rend'); G.setHp(1e9); G.teleport(0, -55); G.placeUnit(1, 0, -56); G.placeUnit(0, -15, -70); G.placeUnit(2, 15, -70);
+    H.until((h2) => h2.p.bleed > 0, 900); o.bleed1 = G.hunt().p.bleed; o.bleedText = G.huntUi().status;
+    const hpA = G.hunt().p.hp; H.mute(1); G.step(60); o.bleedPerS = hpA - G.hunt().p.hp;
+    for (let i = 0; i < 6; i++) { G.unitCd(1, 'rend', 0); H.until((h2) => h2.tells.length > 0, 300); H.until((h2) => h2.tells.length === 0, 300); }
+    o.bleedMax = G.hunt().p.bleed; H.mute(1); G.step(Math.round(C.BLEED.dur / C.STEP) + 5); o.bleedEnd = G.hunt().p.bleed; o.endText = G.huntUi().status;
+    o.cap = C.BLEED.max; o.dps = C.BLEED.dps; o.speed = C.PLAYER_SPEED;
+    return o;
+  });
+  check('37 status: roar slow, flank stun (no move, no cast), rend bleed with a stack cap, HUD text', fxs.slowK === 0.4 && /Slowed/.test(fxs.slowText) && Math.abs(fxs.slowDx - fxs.speed * 0.6 * 0.5) < 0.05
+    && fxs.flankShape === 'spot' && fxs.stun > 0 && /Stunned/.test(fxs.stunText) && fxs.stunDx === 0 && fxs.stunCast === false && fxs.freeDx > 0.5
+    && fxs.bleed1 === 1 && /Bleeding x1/.test(fxs.bleedText) && Math.abs(fxs.bleedPerS - fxs.dps) < 0.05 && fxs.bleedMax === fxs.cap && fxs.bleedEnd === 0 && fxs.endText === '', JSON.stringify(fxs));
+  // 38 Demon ultimate (once at half health): told first, frenzy for its set length, never a second time.
+  const ult = await g(() => {
+    const G = __game, C = G.config, H = window.__h; H.start(); H.mute(1); H.mute(2); G.setHp(1e9); G.teleport(0, -45);
+    G.step(60); const before = G.hunt().units[0].frenzy;
+    G.hitUnit(0, C.DEMON.hp * 0.5); const n1 = H.until((h) => h.units[0].cur === 'ult' && h.units[0].st === 1, 600), voice = G.huntUi().voice;
+    const tellSteps = H.until((h) => h.units[0].frenzy > 0, 600); const f0 = G.hunt().units[0].frenzy;
+    const lasted = H.until((h) => h.units[0].frenzy <= 0, 2000) * C.STEP;
+    G.step(Math.round(12 / C.STEP)); const again = G.hunt().units[0].frenzy;
+    return { before, n1, voice, tellS: tellSteps * C.STEP, f0, lasted, again, dur: C.DEMON_ULT.dur, windup: C.DEMON_ULT.windup, mode: C.DEMON_ULT.mode };
+  });
+  check('38 demon ultimate: told, frenzy lasts its length, single use', ult.mode === 'once50' && ult.before === 0 && ult.n1 < 600 && ult.voice.length > 0 && ult.tellS >= 0.4
+    && Math.abs(ult.tellS - ult.windup) < 0.05 && Math.abs(ult.lasted - ult.dur) < 0.1 && ult.again <= 0, JSON.stringify(ult));
+  // 39 Gate seal: the player cannot leave the core hall during the hunt and can again after a new run.
+  const seal = await g(() => {
+    const G = __game, H = window.__h; H.start(); for (let i = 0; i < 3; i++) H.mute(i);
+    G.setMove(0, 1); G.step(300); const z1 = G.hunt().p.z, gz = G.hunt().gateZ;
+    G.clearMove(); G.moveTo(0, -30); G.step(300); const z2 = G.hunt().p.z;
+    G.reset(); G.teleport(0, -43.5); G.setMove(0, 1); G.step(200); G.clearMove(); const z3 = G.state().z;
+    return { z1, z2, z3, gz };
+  });
+  check('39 gate seal: no way out in the hunt (walk, path order), open after a new run', seal.z1 <= seal.gz + 1e-6 && seal.z2 <= seal.gz + 1e-6 && seal.z3 > seal.gz + 2, JSON.stringify(seal));
+  // 40 Win: sim frozen, closing line and time shown, no casting; Retry starts a clean hunt.
+  const win = await g(() => {
+    const G = __game, C = G.config, H = window.__h, fly = Math.round(C.APEX.plateS / C.STEP) + 2; H.start(); G.setHp(1e9);
+    G.hitUnit(1, 1e6); G.step(fly); G.setHp(60); G.hitUnit(0, 1e6);
+    const h = G.hunt(), ui = G.huntUi(), t0 = G.state().t; G.step(120); const t1 = G.state().t, cast = G.cast(0, 0, -60);
+    G.huntButton(); const r = G.hunt(), ui2 = G.huntUi();
+    return { phase: h.phase, voice: ui.voice, rule: ui.rule, btn: ui.btn, btnText: ui.btnText, boss: ui.boss, frozen: t0 === t1, cast, phase2: r.phase, hp2: r.p.hp, plates2: r.plates,
+      skills2: r.units.map((u) => u.skills.join()).join('|'), alive2: r.units.every((u) => u.alive && u.inScene && !u.plate), full2: r.units.map((u) => u.hp).join(), btn2: ui2.btn,
+      want: [C.DEMON.hp, C.STALKER.hp, C.HOWLER.hp].join(), closing: G.text.voice_won };
+  });
+  check('40 win: frozen, closing line, retry gives a clean hunt', win.phase === 'won' && win.voice === win.closing && /Victory/.test(win.rule) && win.btn === 'block' && /Retry/.test(win.btnText)
+    && win.boss === 'block' && win.frozen && win.cast === false && win.phase2 === 'wake' && win.hp2 === 100 && win.plates2 === 0 && win.skills2 === 'pounce,roar|lunge,rend|flank,howl'
+    && win.alive2 && win.full2 === win.want && win.btn2 === 'none', JSON.stringify(win));
+  // 41 Loss, then new run x3: frozen on defeat; the royale state is fully back (statue, solid, hazard, UI) and memory and shaders stay flat.
+  const loss = await g(() => {
+    const G = __game, C = G.config, H = window.__h, out = [];
+    for (let r = 0; r < 3; r++) {
+      H.start(); G.hitUnit(2, 1e6); G.step(Math.round(C.APEX.plateS / C.STEP) + 2); G.setHp(1);
+      const n = H.until((h) => h.phase !== 'hunt', 3000), h = G.hunt(), ui = G.huntUi(), t0 = G.state().t; G.step(120); const frozen = G.state().t === t0;
+      G.reset(); const b = G.hunt(), ui2 = G.huntUi(), s = G.state(), info = G.render(true);
+      out.push({ n, lost: h.phase === 'lost' && /Defeat/.test(ui.rule) && frozen && h.tells.every((t) => !t.shown),
+        back: b.phase === 'royale' && b.statue && b.statueSolid && !b.seal && b.units.every((u) => !u.inScene && !u.alive && !u.plate && !u.seen) && ui2.boss === 'none' && ui2.btn === 'block'
+          && /Start/.test(ui2.btnText) && ui2.status === '' && !G.canStand(0, G.hazards()[0].z, 0) && s.hp === 100 && s.t === 0,
+        geoms: info.geoms, texs: info.texs, programs: info.programs });
+    }
+    G.teleport(0, G.hazards()[0].z + 5); G.step(5); const statueTell = G.hazards()[0].state;
+    return { out, statueTell };
+  });
+  check('41 loss, new run x3: defeat frozen, royale state back, statue hazard live, memory and shaders flat', loss.out.every((o) => o.lost && o.back && o.geoms === base.geoms && o.texs === base.texs
+    && o.programs === base.programs) && loss.statueTell === 1, JSON.stringify(loss));
+  // 42 Bot sweep, 3 skill levels x 3 kill orders, with always-true checks every tick: damage only from a shown tell >= 0.4 s (or its bleed),
+  // units on the floor inside the hall, player inside the gate, demon skills = 2 + 2 per plate, finite numbers.
+  const sweep = await g(() => {
+    const runBot = ({ react, order, maxS }) => {
+      const G = __game, C = G.config; window.__h.start();
+      const viol = [], bad = (s) => { if (viol.length < 5) viol.push(s); };
+      let steps = 0, lastX = 0, lastZ = 0, turn = 0; const max = maxS / C.STEP;
+      while (steps < max) {
+        const h = G.hunt(), p = h.p; if (h.phase !== 'hunt') break;
+        if (Math.abs((C.MAX_HP - p.hp) - (h.hitDmg + h.bleedDmg)) > 1e-6) bad('hp loss without a hit at t=' + h.t.toFixed(2));
+        if (h.hits > 0 && h.minTell < 0.4 - 1e-9) bad('tell under 0.4 s: ' + h.minTell);
+        if (p.z > h.gateZ + 1e-6) bad('player past the gate');
+        if (h.units[0].skills.length !== 2 + 2 * h.plates) bad('demon skill count');
+        for (const u of h.units) { if (!u.standOk) bad(u.kind + ' off the floor'); if (!Number.isFinite(u.x + u.z + u.hp)) bad('NaN'); }
+        for (const t of h.tells) if (!t.shown) bad('tell not shown: ' + t.move);
+        let mx = 0, mz = 0, danger = false;
+        for (const t of h.tells) {
+          if (t.age < react) continue;
+          const qx = p.x - t.x, qz = p.z - t.z, m = 0.4;
+          if (t.shape === 'line') {
+            const along = qx * t.fx + qz * t.fz, side = qx * t.fz - qz * t.fx;
+            if (along >= -m && along <= t.len + m && Math.abs(side) <= t.w / 2 + m) { danger = true; const sg = side >= 0 ? 1 : -1; mx += t.fz * sg; mz -= t.fx * sg; }
+          } else { const d = Math.hypot(qx, qz); if (d <= t.r + m) { danger = true; if (d > 0.01) { mx += qx / d; mz += qz / d; } else mx += 1; } }
+        }
+        if (danger) {
+          if (Math.hypot(p.x - lastX, p.z - lastZ) < 0.01) turn++; else turn = 0;
+          if (turn > 2) { const t = mx; mx = -mz; mz = t; }
+          const l = Math.hypot(mx, mz) || 1; G.setMove(mx / l, mz / l);
+        } else {
+          G.clearMove();
+          let ti = -1; for (const i of order) if (h.units[i].alive) { ti = i; break; }
+          const u = h.units[ti], d = Math.hypot(u.x - p.x, u.z - p.z);
+          if (u.seen) {
+            G.attackUnit(ti);
+            const cd = G.skills();
+            for (let s = 0; s < 3; s++) if (cd[s] === 0 && d <= C.SKILLS[s].range && !(s === 2 && G.pending())) G.cast(s, u.x, u.z);
+          } else G.setMove((u.x - p.x) / d, (u.z - p.z) / d);
+        }
+        lastX = p.x; lastZ = p.z; G.step(1); steps++;
+      }
+      G.clearMove(); const h = G.hunt();
+      return { react, order: order.join(''), phase: h.phase, t: Math.round(h.t), hp: Math.round(h.p.hp), demon: Math.round(h.units[0].hp), plates: h.plates, hits: h.hits, viol };
+    };
+    const out = [];
+    for (const react of [99, 0.3, 0.15]) for (const order of [[0, 1, 2], [1, 2, 0], [2, 1, 0]]) out.push(runBot({ react, order, maxS: 300 }));
+    return out;
+  });
+  const lvl = (r) => sweep.filter((o) => o.react === r);
+  check('42 bot sweep 9 runs: 0 broken invariants, every run ends, never-dodge always loses, 0.3 s and 0.15 s reaction each win at least once',
+    sweep.every((o) => o.viol.length === 0 && o.phase !== 'hunt') && lvl(99).every((o) => o.phase === 'lost') && lvl(0.3).some((o) => o.phase === 'won') && lvl(0.15).some((o) => o.phase === 'won'),
+    sweep.map((o) => `${o.react}/${o.order}:${o.phase} ${o.t}s hp${o.hp} demon${o.demon}${o.viol.length ? ' VIOL ' + o.viol.join(';') : ''}`).join(' | '));
+  // 43 Budget and shaders in the hunt with every unit, tell and the seal drawn: under 500 calls / 0.5M tris, no new shader program.
+  const hb2 = await g(() => {
+    const G = __game, H = window.__h; H.start(); G.setHp(1e9); G.teleport(0, -58); for (let i = 0; i < 3; i++) G.placeUnit(i, (i - 1) * 3, -61);
+    let best = null; for (let n = 0; n < 900; n++) { G.step(1); const h = G.hunt(); if (!best || h.tells.length > best.tells) { const r = G.render(true); best = { tells: h.tells.length, calls: r.calls, tris: r.tris, programs: r.programs, geoms: r.geoms }; } }
+    G.reset(); return best;
+  });
+  check('43 hunt budget (calls<500, tris<500k) and no shader compile, units and tells drawn', hb2.tells >= 2 && hb2.calls < 500 && hb2.tris < 500000 && hb2.programs === base.programs && hb2.geoms === base.geoms,
+    JSON.stringify(hb2) + ` base calls ${base.calls}`);
+  // 45 Text keys for every move name.
+  const mk = await g(() => __game.moves.filter((k) => !__game.text['move_' + k]));
+  check('45 text keys for every move', mk.length === 0, mk.join(' '));
 
   // 10 No shader compiles across collapses, hazard tells and empty altars.
   const progAfter = await g(() => __game.render(true));

@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
-<title>Empress Decrees - box map (batch 3)</title>
+<title>Empress Decrees - box prototype (batch 6)</title>
 <style>
 html,body{margin:0;height:100%;overflow:hidden;background:#1b1620;color:#f3e6c8;touch-action:none;user-select:none;-webkit-user-select:none}
 canvas{display:block}
@@ -13,7 +13,7 @@ canvas{display:block}
 #banner .voice{font:italic 24px Georgia,serif;color:#ffd98a}
 #banner .rule{font:15px system-ui,sans-serif;color:#fff;margin-top:6px}
 #dbg{position:fixed;left:12px;bottom:10px;font:12px monospace;display:none;pointer-events:none;text-shadow:0 1px 2px #000}
-#help{position:fixed;left:50%;bottom:12px;transform:translateX(-50%);font:13px system-ui,sans-serif;opacity:.85;pointer-events:none;text-align:center;text-shadow:0 1px 2px #000}
+#help{position:fixed;left:50%;bottom:88px;transform:translateX(-50%);font:13px system-ui,sans-serif;opacity:.85;pointer-events:none;text-align:center;text-shadow:0 1px 2px #000}
 #btnMap{position:fixed;right:12px;bottom:12px;min-width:64px;min-height:44px;font:15px system-ui,sans-serif;background:#3a2a3a;color:#fff;border:1px solid #b99;border-radius:8px}
 #stick{position:fixed;width:110px;height:110px;margin:-55px 0 0 -55px;border-radius:50%;border:2px solid #fff8;display:none;pointer-events:none}
 #err{position:fixed;inset:0;background:#2a0b0b;color:#fff;padding:20px;display:none;font:14px monospace;white-space:pre-wrap;z-index:9}
@@ -33,6 +33,17 @@ body.touch #bar{left:auto;right:18px;bottom:18px;transform:none;width:230px;heig
 body.touch .sk{position:absolute;width:64px;height:64px;border-radius:50%;pointer-events:auto;touch-action:none}
 body.touch .sk.atk{width:88px;height:88px;right:0;bottom:0;font-size:15px}
 body.touch .sk .lb{display:none}
+#boss{position:fixed;left:50%;top:8px;transform:translateX(-50%);width:min(46vw,420px);display:none;pointer-events:none;text-align:center;text-shadow:0 1px 2px #000}
+#bossname{font:15px Georgia,serif;color:#ffd98a}
+#bossbar{height:12px;background:#0008;border:1px solid #fff6;border-radius:3px;margin:3px 0}
+#bossfill{height:100%;width:100%;background:#e0662a;border-radius:2px}
+#bossskills{font:12px system-ui,sans-serif;color:#fff}
+#status{position:fixed;left:12px;top:56px;font:bold 13px system-ui,sans-serif;color:#ffb0a0;text-shadow:0 1px 2px #000;pointer-events:none}
+#btnHunt{position:fixed;left:12px;bottom:40px;min-width:120px;min-height:44px;font:15px system-ui,sans-serif;background:#5a1a1a;color:#fff;border:1px solid #f88;border-radius:8px;display:none}
+body.touch #help{bottom:12px}
+body.touch #btnHunt{left:160px;top:10px;bottom:auto}
+body.touch #status{left:auto;right:12px;top:82px}
+body.touch #banner{top:26%}
 #cancel{position:fixed;right:20px;top:90px;width:90px;height:56px;border-radius:10px;background:#5a1a1a;color:#fff;font:15px system-ui;display:none;align-items:center;justify-content:center;border:2px solid #f88}
 </style>
 <script type="importmap">{"imports":{"three":"./lib/three.module.min.js"}}</script>
@@ -49,6 +60,9 @@ body.touch .sk .lb{display:none}
 <div id="bar"></div>
 <div id="cancel"></div>
 <div id="stick"></div>
+<div id="boss"><div id="bossname"></div><div id="bossbar"><div id="bossfill"></div></div><div id="bossskills"></div></div>
+<div id="status"></div>
+<button id="btnHunt"></button>
 <div id="err"></div>
 <script type="module">
 import * as THREE from 'three';
@@ -171,7 +185,34 @@ const CONFIG = {
     pillar: 0x9a2a22, silk: 0xb0303c, gold: 0xc9a040, bronze: 0x4a3a2a, empress: 0xf0e2c0,
     camp: 0xff8a2a, spawn: 0xe8e8e8, player: 0x3a7bd5, aim: 0xffffff, blob: 0x000000, warn: 0xff2a10,
     stone: 0x9a968c, eyes: 0xff3a1a, ring: 0xff2a10, altarOn: 0x5cff9a, altarOff: 0x2a3a30, broken: 0x2a2624, dummy: 0xc8b070, hit: 0xffffff, ind: 0x7fd0ff, fx: 0xffd060,
+    demon: 0x9a5a22, stalker: 0x7a2a8a, howler: 0x2a7a8a, frenzy: 0xff5a1a, tellD: 0xff2a10, tellS: 0xd050ff, tellH: 0x40e0ff,
   },
+  // Feature switch: the apex hunt on boxes (Tiger Demon, 2 minions, skill transfer). Started by H or the Hunt button until the royale exists.
+  APEX_HUNT: true,
+  // Apex phase: wake seconds, player entry x z and gate seal line z (before MAP_SCALE), plate flight seconds, seconds between enemy skills, seconds an enemy rests after a move.
+  APEX: { wakeS: 3, entry: [0, -29], gateZ: -26.6, plateS: 0.9, skillGap: 1.2, recoverS: 0.25 },
+  // Tiger Demon: health, speed (m/s), hit radius (m), body scale, distance it closes to (m), start offset from the statue x z (m).
+  DEMON: { hp: 1000, speed: 4.6, r: 0.9, scale: 1, keep: 1.8, off: [0, 0] },
+  // Stalker minion: same fields.
+  STALKER: { hp: 120, speed: 5.2, r: 0.5, scale: 0.5, keep: 1.1, off: [-4.5, 3] },
+  // Howler minion: same fields, plus flank = how far behind the player (away from the demon) it tries to stand (m).
+  HOWLER: { hp: 100, speed: 5.4, r: 0.5, scale: 0.5, keep: 0.5, off: [4.5, 3], flank: 1.2 },
+  // Demon ultimate "Shed the limit". mode: 'once50' = one use at or below half health, 'cooldown' = repeats every cd seconds. windup = tell (s), dur = frenzy length (s), speed and dmg = multipliers.
+  DEMON_ULT: { mode: 'once50', windup: 0.8, dur: 8, speed: 1.4, dmg: 1.3, cd: 40 },
+  // Enemy moves. shape: circle (around the user), line (dash strip), spot (circle at a point locked behind the player). windup = tell in seconds (fairness: never under 0.4).
+  // min, max = distance band to the player in which the move starts (m). cd = cooldown (s). dashS = dash travel time (s). slow = speed cut (0-1) for slowS seconds. stun in seconds. bleed = stacks added.
+  MOVES: {
+    claw: { shape: 'circle', radius: 2.6, windup: 0.45, cd: 1.6, dmg: 12, min: 0, max: 2.2 },
+    pounce: { shape: 'line', range: 7.5, width: 2.2, windup: 0.5, cd: 6, dmg: 18, min: 3.5, max: 7.5, dashS: 0.18 },
+    roar: { shape: 'circle', radius: 6, windup: 0.7, cd: 11, dmg: 0, min: 0, max: 5, slow: 0.4, slowS: 2 },
+    bite: { shape: 'circle', radius: 1.7, windup: 0.4, cd: 1.4, dmg: 5, min: 0, max: 1.4 },
+    lunge: { shape: 'line', range: 4.5, width: 1.4, windup: 0.45, cd: 5, dmg: 10, min: 2, max: 4.5, dashS: 0.15 },
+    rend: { shape: 'circle', radius: 1.9, windup: 0.5, cd: 7, dmg: 4, min: 0, max: 1.5, bleed: 1 },
+    flank: { shape: 'spot', back: 1.6, radius: 2.2, windup: 0.6, cd: 8, dmg: 6, min: 2.5, max: 6, dashS: 0.2, stun: 0.6 },
+    howl: { shape: 'circle', radius: 7.5, windup: 0.7, cd: 12, dmg: 0, min: 0, max: 6.5, slow: 0.2, slowS: 3 },
+  },
+  // Bleed on the player: damage per second per stack, seconds it lasts (each new stack refreshes it), most stacks.
+  BLEED: { dps: 2, dur: 4, max: 3 },
   // Feature switches for parts that are not built or approved yet.
   ROYALE_MINIONS: false,
   // Feature switch: next run's statue wears the last winner's school colour (approved, built later).
@@ -200,11 +241,33 @@ const TEXT = {
   hp: 'HP {n}',
   atk: 'ATK',
   cancel: 'Cancel',
-  help_desktop: 'Right-click move / attack · Q W R aim at cursor (release to cast) · S stop · N new run',
+  help_desktop: 'Right-click move / attack · Q W R aim at cursor (release to cast) · S stop · N new run · H hunt (test)',
   help_touch: 'Left thumb move · ATK auto-targets · tap a skill to auto-aim, drag to aim, drag to Cancel to stop',
   btn_map: 'Map',
   btn_follow: 'Back',
   err_title: 'Something broke. Please send this to the developer:',
+  btn_hunt: 'Start hunt (test)',
+  btn_retry: 'Retry hunt',
+  next_hunt: 'The collapses have stopped.',
+  voice_wake: 'The survivor shall be... received.',
+  rule_wake: 'The Tiger Demon wakes. Kill it to win. The gate is sealed.',
+  voice_plate: 'What thou breakest, it weareth.',
+  rule_plate: 'The plate flew home. The demon gained {a} and {b}.',
+  voice_frenzy: 'It sheddeth the limit.',
+  rule_frenzy: 'Frenzy for {s} s: faster, hits harder.',
+  voice_won: 'Heaven chose thee. We chose what thou wouldst become.',
+  rule_won: 'Victory. The Tiger Demon fell in {s} s. {retry}',
+  voice_lost: 'The tiger is fed.',
+  rule_lost: 'Defeat. {retry}',
+  retry_desktop: 'H: hunt again · N: new run',
+  retry_touch: 'Tap Retry hunt',
+  boss_name: 'Tiger Demon',
+  boss_skills: 'Skills: {list}',
+  st_stun: 'Stunned',
+  st_slow: 'Slowed',
+  st_bleed: 'Bleeding x{n}',
+  move_claw: 'Claw swipe', move_pounce: 'Pounce', move_roar: 'Metal roar', move_bite: 'Bite',
+  move_lunge: 'Lunge', move_rend: 'Rend', move_flank: 'Flank', move_howl: 'Howl',
 };
 
 // ===================== MAP DATA (metres before MAP_SCALE; north is -z) =====================
@@ -267,7 +330,8 @@ const $ = (id) => document.getElementById(id);
 const el = {
   hud: $('hud'), next: $('next'), banner: $('banner'), dbg: $('dbg'), help: $('help'),
   btnMap: $('btnMap'), stick: $('stick'), err: $('err'), hpfill: $('hpfill'), hptext: $('hptext'),
-  mini: $('mini'), bar: $('bar'), cancel: $('cancel'),
+  mini: $('mini'), bar: $('bar'), cancel: $('cancel'), boss: $('boss'), bossname: $('bossname'), bossfill: $('bossfill'),
+  bossskills: $('bossskills'), status: $('status'), btnHunt: $('btnHunt'),
   voice: document.querySelector('#banner .voice'), rule: document.querySelector('#banner .rule'),
 };
 const textCache = new Map();
@@ -351,6 +415,10 @@ function addFow(m) {
 }
 for (const k in M) if (k !== 'player' && k !== 'aim' && k !== 'blob' && k !== 'ind' && k !== 'fx') addFow(M[k]);
 addFow(warnMat);
+mat('demon', COL.demon, { metalness: 0.2, roughness: 0.7 }); mat('stalker', COL.stalker, { roughness: 0.6 }); mat('howler', COL.howler, { roughness: 0.6 });
+mat('frenzy', COL.frenzy, { emissive: COL.frenzy, emissiveIntensity: 0.9 });
+mat('tellD', COL.tellD, { emissive: COL.tellD, emissiveIntensity: 1.2 }); mat('tellS', COL.tellS, { emissive: COL.tellS, emissiveIntensity: 1.2 });
+mat('tellH', COL.tellH, { emissive: COL.tellH, emissiveIntensity: 1.2 });
 
 // ===================== Geometry helpers (merge static parts per section and material) =====================
 function box(w, h, d, x, y, z) { const g = new THREE.BoxGeometry(w, h, d); g.translate(x, y, z); return g; }
@@ -454,6 +522,7 @@ const statueParts = [box(2.6, 1.5, 4.0, 0, 1.2, SZ - 0.5), box(1.6, 1.3, 1.4, 0,
   box(0.8, 1.0, 1.4, -1.0, 0.5, SZ - 2.1), box(0.8, 1.0, 1.4, 1.0, 0.5, SZ - 2.1)];
 const statueEyes = mergeGeoms([box(0.25, 0.18, 0.1, -0.4, 2.15, SZ + 2.42), box(0.25, 0.18, 0.1, 0.4, 2.15, SZ + 2.42)]);
 solid('CORE', -1.6, 1.6, SZ - 2.5, SZ + 2.5);
+const statueSolid = SOLIDS[SOLIDS.length - 1];
 for (const [x, z, s] of PILLARS) { const y = topY(x, z); part(s, 'pillar', cyl(0.6, 6, x, y + 3, z)); solid(s, x - 0.6, x + 0.6, z - 0.6, z + 0.6); }
 for (const [x, z, s] of CURTAINS) {
   const y = topY(x, z);
@@ -499,7 +568,7 @@ function ringMesh(r, x, y, z) {
 const HAZARDS = [];
 function addHazard(kind, cfg, x, z, sec) {
   const s = SEC[sec], y = topY(x, z), ring = addStatic(s.group, ringMesh(cfg.radius, x, y, z));
-  HAZARDS.push({ kind, cfg, x, z, y, s, ring, state: 0, t: 0 });
+  HAZARDS.push({ kind, cfg, x, z, y, s, ring, state: 0, t: 0, statue: kind === 'statue' });
 }
 addHazard('statue', CONFIG.STATUE, 0, SZ, 'CORE');
 for (const [x, z, s] of LIONS) addHazard('lion', CONFIG.LION, x, z, s);
@@ -518,7 +587,7 @@ const DUMMY_LIST = CONFIG.DUMMIES.map(([ux, uz, sec]) => {
   const body = new THREE.Mesh(dummyGeo, M.dummy); body.position.set(x, y, z); body.castShadow = true;
   const bar = new THREE.Mesh(dummyBarGeo, M.camp); bar.position.set(x - 0.5, y + 2.5, z);
   s.group.add(body, bar);
-  return { x, z, y, s, body, bar, hp: CONFIG.DUMMY_HP, deadT: 0, flashT: 0, seen: true };
+  return { x, z, y, s, body, bar, r: 0.45, hp: CONFIG.DUMMY_HP, deadT: 0, flashT: 0, seen: true };
 });
 // Aim indicators (range ring, line, target circle) and pooled skill effects (one of each, reused).
 function flatRing(inner, outer, m) { const g = new THREE.RingGeometry(inner, outer, 56); g.rotateX(-Math.PI / 2); return new THREE.Mesh(g, m); }
@@ -542,7 +611,8 @@ const WAVES = CONFIG.WAVES.map((ids, i) => ({
 // ===================== Player =====================
 // air = airborne (dropping a layer or into the void); voidT = time airborne with no floor below.
 const P = { x: 0, z: 0, y: 0, px: 0, pz: 0, py: 0, vy: 0, air: false, airFromY: 0, voidT: 0, dead: false, deadT: 0,
-  hp: 100, hpShown: -1, noHealT: 0, kx: 0, kz: 0, faceX: 0, faceZ: -1, atkT: 0, stuckT: 0, zone: null };
+  hp: 100, hpShown: -1, noHealT: 0, kx: 0, kz: 0, faceX: 0, faceZ: -1, atkT: 0, stuckT: 0, zone: null,
+  slowT: 0, slowK: 0, stunT: 0, bleedN: 0, bleedT: 0, statusShown: -1 };
 const playerGroup = new THREE.Group();
 const playerBody = new THREE.Mesh(mergeGeoms([box(0.9, 1.5, 0.9, 0, 0.75, 0), box(0.6, 0.5, 0.6, 0, 1.8, 0)]), M.player);
 playerBody.castShadow = false;
@@ -552,6 +622,39 @@ const playerBlob = new THREE.Mesh(new THREE.CylinderGeometry(0.6, 0.6, 0.02, 16)
 playerBlob.position.y = 0.03;
 playerGroup.add(playerBody, playerAim, playerBlob);
 scene.add(playerGroup);
+
+// ===================== Apex hunt units: Tiger Demon and 2 minions. Built once; in the scene only during the hunt =====================
+const MOVES = CONFIG.MOVES, MOVE_KEYS = Object.keys(MOVES);
+// Stolen skills keep the minion's look: tell colour per move (others use the user's own colour).
+const MOVE_LOOK = { lunge: 'tellS', rend: 'tellS', flank: 'tellH', howl: 'tellH' };
+const GATE_Z = CONFIG.APEX.gateZ * K;
+const beastGeo = mergeGeoms([box(1.8, 1.1, 3.0, 0, 1.25, 0), box(1.2, 1.0, 1.1, 0, 1.75, -1.9),
+  box(0.5, 0.8, 0.5, -0.65, 0.4, -1.1), box(0.5, 0.8, 0.5, 0.65, 0.4, -1.1), box(0.5, 0.8, 0.5, -0.65, 0.4, 1.1), box(0.5, 0.8, 0.5, 0.65, 0.4, 1.1)]);
+const tellLineGeo = new THREE.BoxGeometry(1, 0.05, 1).translate(0, 0, -0.5);
+const plateGeo = new THREE.BoxGeometry(0.7, 0.15, 0.7);
+function makeUnit(kind, cfg, m, tellMat, atk, skills, gain) {
+  const group = new THREE.Group(), body = new THREE.Mesh(beastGeo, m);
+  body.scale.setScalar(cfg.scale);
+  const bar = new THREE.Mesh(dummyBarGeo, M.camp); bar.position.set(-0.5, 2.3 * cfg.scale + 0.6, 0);
+  group.add(body, bar);
+  const ring = flatRing(0.85, 1, tellMat), line = new THREE.Mesh(tellLineGeo, tellMat), plate = new THREE.Mesh(plateGeo, m);
+  ring.visible = false; line.visible = false;
+  const cd = {}; for (const k of MOVE_KEYS) cd[k] = 0;
+  return { kind, cfg, r: cfg.r, mat: m, tellMat, group, body, bar, ring, line, plate, atk, base: skills, skills: skills.slice(), gain, cd,
+    x: 0, z: 0, y: 0, px: 0, pz: 0, fx: 0, fz: 1, hp: 0, alive: false, seen: false, st: 0, t: 0, cur: '', tellT: 0,
+    tx: 0, tz: 0, tl: 0, ax: 0, az: 0, bx: 0, bz: 0, dashS: 0.2, gapT: 0, rot: 0, flashT: 0, frenzyT: 0, ultUsed: false, ultCd: 0,
+    side: 1, plateOn: false, plateT: 0, sx: 0, sz: 0, hx: 0, hz: 0 };
+}
+const DEMON = makeUnit('demon', CONFIG.DEMON, M.demon, M.tellD, 'claw', ['pounce', 'roar'], null);
+const STALKER = makeUnit('stalker', CONFIG.STALKER, M.stalker, M.tellS, 'bite', ['lunge', 'rend'], ['lunge', 'rend']);
+const HOWLER = makeUnit('howler', CONFIG.HOWLER, M.howler, M.tellH, 'bite', ['flank', 'howl'], ['flank', 'howl']);
+STALKER.side = -1;
+const ENEMIES = [DEMON, STALKER, HOWLER];
+// Everything the player can target: training dummies and hunt units share x, z, r, hp, seen.
+const TARGETS = DUMMY_LIST.concat(ENEMIES);
+// Gate seal shown during the hunt.
+const sealMesh = new THREE.Mesh(new THREE.BoxGeometry((GATE.x1 - GATE.x0), 2.6, 0.3).translate(0, 1.3, CH.z1 - 0.5), M.tellD);
+sealMesh.matrixAutoUpdate = false; sealMesh.updateMatrix();
 
 // ===================== Input and orders =====================
 // Desktop follows LoL/Dota (right-click move/attack, Q W R aimed at the cursor). Phone follows MLBB (left stick, skill buttons).
@@ -576,6 +679,7 @@ addEventListener('keydown', (e) => {
   if (e.code === 'KeyA') ORD.attackMove = true;
   if (e.code === 'Escape') { cancelAim(); ORD.attackMove = false; }
   if (e.code === 'KeyN') reset();
+  if (e.code === 'KeyH') huntButton();
   if (e.code === 'KeyM' && DEBUG) toggleView();
 });
 addEventListener('keyup', (e) => {
@@ -673,8 +777,8 @@ function attackMoveOrder() {
 function stopOrders() { ORD.attack = null; PATH.n = 0; PATH.i = 0; }
 function dummyNear(x, z, r) {
   let best = null, bd = r;
-  for (let i = 0; i < DUMMY_LIST.length; i++) {
-    const d = DUMMY_LIST[i]; if (!d.seen || d.hp <= 0) continue;
+  for (let i = 0; i < TARGETS.length; i++) {
+    const d = TARGETS[i]; if (!d.seen || d.hp <= 0) continue;
     const dd = Math.hypot(d.x - x, d.z - z); if (dd < bd) { bd = dd; best = d; }
   }
   return best;
@@ -682,7 +786,7 @@ function dummyNear(x, z, r) {
 // MLBB-style auto-target: nearest visible target within range of the player.
 function autoTarget(range) { return dummyNear(P.x, P.z, range); }
 function startAim(slot, src) {
-  if (SK[slot].cdT > 0 || P.dead) return;
+  if (SK[slot].cdT > 0 || !canAct()) return;
   ORD.aiming = slot; ORD.src = src;
   if (src === 'touch') { ORD.dirX = P.faceX; ORD.dirZ = P.faceZ; ORD.dist = 0; }
 }
@@ -698,7 +802,7 @@ function autoCast(slot) {
 // Cast at a world point, clamped to range (MLBB clamps; lines always fly full range).
 function castSkill(slot, tx, tz) {
   const sk = CONFIG.SKILLS[slot], st = SK[slot];
-  if (st.cdT > 0 || P.dead) return false;
+  if (st.cdT > 0 || !canAct()) return false;
   let dx = tx - P.x, dz = tz - P.z; const len = Math.hypot(dx, dz);
   if (len > 0.01) { dx /= len; dz /= len; } else { dx = P.faceX; dz = P.faceZ; }
   const dist = sk.type === 'line' ? sk.range : Math.min(len, sk.range);
@@ -712,20 +816,23 @@ function castSkill(slot, tx, tz) {
 }
 function applySkill(slot, x, z, dx, dz) {
   const sk = CONFIG.SKILLS[slot];
-  for (let i = 0; i < DUMMY_LIST.length; i++) {
-    const d = DUMMY_LIST[i]; if (!d.seen || d.hp <= 0) continue;
+  for (let i = 0; i < TARGETS.length; i++) {
+    const d = TARGETS[i]; if (!d.seen || d.hp <= 0) continue;
     let hit = false;
     if (sk.type === 'line') {
       const px = d.x - P.x, pz = d.z - P.z, along = px * dx + pz * dz, side = Math.abs(px * dz - pz * dx);
-      hit = along >= 0 && along <= sk.range + 0.45 && side <= sk.width / 2 + 0.45;
-    } else hit = Math.hypot(d.x - x, d.z - z) <= sk.radius + 0.45;
-    if (hit) hitDummy(d, sk.dmg);
+      hit = along >= 0 && along <= sk.range + d.r && side <= sk.width / 2 + d.r;
+    } else hit = Math.hypot(d.x - x, d.z - z) <= sk.radius + d.r;
+    if (hit) hitTarget(d, sk.dmg);
   }
   const y = topYUnder(x, z, P.y + 1) + 0.08;
   if (sk.type === 'line') { fxLine.position.set(P.x, P.y + 0.08, P.z); fxLine.rotation.y = Math.atan2(-dx, -dz); fxLine.scale.set(sk.width, 1, sk.range); fxLine.visible = true; }
   else { fxRing.position.set(x, y, z); fxRing.scale.setScalar(sk.radius); fxRing.visible = true; }
   G.fxT = 0.25;
 }
+// The player may act: alive, not stunned, and no end screen is up.
+function canAct() { return !P.dead && P.stunT <= 0 && G.phase !== 'won' && G.phase !== 'lost'; }
+function hitTarget(d, n) { if (d.kind) hitEnemy(d, n); else hitDummy(d, n); }
 function hitDummy(d, n) {
   d.hp = Math.max(0, d.hp - n); d.flashT = 0.12; d.body.material = M.hit;
   d.bar.scale.x = Math.max(0.001, d.hp / CONFIG.DUMMY_HP);
@@ -783,7 +890,7 @@ function wallAt(x, z, y) {
 function hitSolid(x, z) {
   for (let i = 0; i < SOLIDS.length; i++) {
     const b = SOLIDS[i];
-    if (b.s.state < 2 && x > b.x0 - R && x < b.x1 + R && z > b.z0 - R && z < b.z1 + R) return true;
+    if (!b.off && b.s.state < 2 && x > b.x0 - R && x < b.x1 + R && z > b.z0 - R && z < b.z1 + R) return true;
   }
   return false;
 }
@@ -798,6 +905,7 @@ function canStand(x, z, y) {
 }
 // Knockback may also carry the player through a broken-rail gap into the void.
 function tryMove(x, z, kb) {
+  if (G.phase !== 'royale' && z > GATE_Z) return false;
   if (canStand(x, z, P.y)) return true;
   return kb && inBroken(x, z, R + 0.05) && !hitSolid(x, z) && !wallAt(x, z, P.y);
 }
@@ -911,7 +1019,8 @@ function heapPop(hs) {
 // PERFRAME-END
 
 // ===================== Game state =====================
-const G = { time: 0, view: 'follow', paused: false, ctxLost: false, frames: 0, bannerWave: -1, fellT: 0, nextWave: -2, fxT: 0, miniDirty: true, miniT: 0 };
+const G = { time: 0, view: 'follow', paused: false, ctxLost: false, frames: 0, bannerWave: -1, fellT: 0, nextWave: -2, fxT: 0, miniDirty: true, miniT: 0,
+  phase: 'royale', phaseT: 0, huntT: 0, plates: 0, bossDirty: true, bossHp: -1, hits: 0, minTell: 99, hitDmg: 0, bleedDmg: 0 };
 
 function warnSection(s) { G.miniDirty = true; s.state = 1; for (let i = 0; i < s.floorMeshes.length; i++) s.floorMeshes[i].material = warnMat; }
 function dropSection(s) {
@@ -922,9 +1031,12 @@ function removeSection(s) { G.miniDirty = true; s.state = 3; scene.remove(s.grou
 
 // PERFRAME-BEGIN
 function step(dt) {
+  // End screens freeze the whole simulation.
+  if (G.phase === 'won' || G.phase === 'lost') return;
   G.time += dt;
-  // Collapse waves.
-  for (let i = 0; i < WAVES.length; i++) {
+  const roy = G.phase === 'royale';
+  // Collapse waves (royale only; they stop for the apex phase).
+  for (let i = 0; roy && i < WAVES.length; i++) {
     const w = WAVES[i];
     if (w.state === 0 && G.time >= w.start - CONFIG.COLLAPSE_WARN_S) {
       w.state = 1; for (let k = 0; k < w.secs.length; k++) warnSection(w.secs[k]);
@@ -951,13 +1063,13 @@ function step(dt) {
   // Announce the next wave one wave ahead.
   let nw = -1;
   for (let i = 0; i < WAVES.length; i++) if (WAVES[i].state === 0) { nw = i; break; }
-  if (nw !== G.nextWave) { G.nextWave = nw; setText(el.next, nw < 0 ? T('next_none') : T('next_wave', { zones: WAVES[nw].names })); }
+  if (roy && nw !== G.nextWave) { G.nextWave = nw; setText(el.next, nw < 0 ? T('next_none') : T('next_wave', { zones: WAVES[nw].names })); }
   // Fell banner timer.
   if (G.fellT > 0) { G.fellT -= dt; if (G.fellT <= 0 && G.bannerWave < 0) setShow(el.banner, false); }
   // Hazards: idle -> tell (red ring, statue eyes glow) -> strike -> cooldown.
   for (let i = 0; i < HAZARDS.length; i++) {
     const h = HAZARDS[i], c = h.cfg;
-    if (h.s.state >= 2) { if (h.ring.visible) h.ring.visible = false; continue; }
+    if (h.s.state >= 2 || (h.statue && !roy)) { if (h.ring.visible) h.ring.visible = false; continue; }
     const hx = P.x - h.x, hz = P.z - h.z, d = Math.hypot(hx, hz);
     const near = !P.dead && Math.abs(P.y - h.y) < 3;
     if (h.state === 0) {
@@ -986,6 +1098,15 @@ function step(dt) {
     if (a.charge <= 1e-6) { a.charge = 0; a.emptyT = A.emptyS; a.mesh.material = M.altarOff; }
   }
   if (P.noHealT > 0) P.noHealT -= dt;
+  // Status effects from the hunt: slow, stun, bleed.
+  if (P.slowT > 0) { P.slowT -= dt; if (P.slowT <= 0) P.slowK = 0; }
+  if (P.stunT > 0) P.stunT -= dt;
+  if (P.bleedT > 0) {
+    P.bleedT -= dt; const b = CONFIG.BLEED.dps * P.bleedN * dt; G.bleedDmg += Math.min(b, P.hp); hurt(b);
+    if (P.bleedT <= 0) P.bleedN = 0;
+  }
+  if (G.phase === 'wake' || G.phase === 'hunt') stepHunt(dt);
+  if (G.phase === 'won' || G.phase === 'lost') { updateHp(); updateStatus(); return; }
   // Player.
   P.px = P.x; P.pz = P.z; P.py = P.y;
   if (P.dead) { P.deadT += dt; if (P.deadT >= CONFIG.RESPAWN_S) respawn(); updateHp(); stepCombat(dt); return; }
@@ -1001,20 +1122,22 @@ function step(dt) {
     else {
       const ax = d.x - P.x, az = d.z - P.z, dist = Math.hypot(ax, az) || 1;
       P.faceX = ax / dist; P.faceZ = az / dist;
-      if (dist > CONFIG.ATTACK.range + 0.45) { mx = ax / dist; mz = az / dist; }
-      else if (P.atkT <= 0) { hitDummy(d, CONFIG.ATTACK.dmg); P.atkT = CONFIG.ATTACK.interval; }
+      if (dist > CONFIG.ATTACK.range + d.r) { mx = ax / dist; mz = az / dist; }
+      else if (P.atkT <= 0 && P.stunT <= 0) { hitTarget(d, CONFIG.ATTACK.dmg); P.atkT = CONFIG.ATTACK.interval; }
     }
   } else if (PATH.i < PATH.n) {
     const tx = PATH.pts[PATH.i * 2] - P.x, tz = PATH.pts[PATH.i * 2 + 1] - P.z, d = Math.hypot(tx, tz);
     if (d < 0.5) PATH.i++;
     else { mx = tx / d; mz = tz / d; }
   }
+  if (P.stunT > 0) { mx = 0; mz = 0; if (ORD.aiming >= 0) cancelAim(); }
   const len = Math.hypot(mx, mz);
   if (len > 1) { mx /= len; mz /= len; }
+  const spd = CONFIG.PLAYER_SPEED * (P.slowT > 0 ? 1 - P.slowK : 1);
   const kd = Math.exp(-CONFIG.KB_DECAY * dt); P.kx *= kd; P.kz *= kd;
   const kbOn = Math.abs(P.kx) + Math.abs(P.kz) > 0.3;
   if (!kbOn) { P.kx = 0; P.kz = 0; }
-  const dx = (mx * CONFIG.PLAYER_SPEED + P.kx) * dt, dz = (mz * CONFIG.PLAYER_SPEED + P.kz) * dt;
+  const dx = (mx * spd + P.kx) * dt, dz = (mz * spd + P.kz) * dt;
   const ox = P.x, oz = P.z;
   if (dx !== 0 && tryMove(P.x + dx, P.z, kbOn)) P.x += dx;
   if (dz !== 0 && tryMove(P.x, P.z + dz, kbOn)) P.z += dz;
@@ -1039,6 +1162,7 @@ function step(dt) {
   }
   if (f && !P.air && P.zone !== f.s) { P.zone = f.s; setText(el.hud, f.s.name); }
   updateHp();
+  updateStatus();
   stepCombat(dt);
 }
 // Skills, delayed hits, effects, dummies and their vision.
@@ -1069,13 +1193,282 @@ function updateHp() {
 function hurt(n) {
   if (P.dead) return;
   P.hp -= n; P.noHealT = CONFIG.ALTAR.hitPauseS;
-  if (P.hp <= 0) { P.hp = 0; P.dead = true; P.deadT = 0; P.kx = P.kz = 0; showNote('voice_died', 'rule_died'); }
+  if (P.hp <= 0) {
+    P.hp = 0; P.dead = true; P.deadT = 0; P.kx = P.kz = 0;
+    if (G.phase === 'royale') showNote('voice_died', 'rule_died'); else endHunt(false);
+  }
 }
-function showNote(voiceKey, ruleKey) {
+function showNote(voiceKey, ruleKey, vars) {
   if (G.bannerWave >= 0) return;
-  setText(el.voice, T(voiceKey)); setText(el.rule, T(ruleKey)); setShow(el.banner, true); G.fellT = 2;
+  setText(el.voice, T(voiceKey)); setText(el.rule, T(ruleKey, vars)); setShow(el.banner, true); G.fellT = 2;
+}
+function updateStatus() {
+  const code = (P.stunT > 0 ? 100 : 0) + (P.slowT > 0 ? 10 : 0) + P.bleedN;
+  if (code === P.statusShown) return;
+  P.statusShown = code;
+  let s = '';
+  if (P.stunT > 0) s += T('st_stun') + '  ';
+  if (P.slowT > 0) s += T('st_slow') + '  ';
+  if (P.bleedN > 0) s += T('st_bleed', { n: P.bleedN });
+  setText(el.status, s);
+}
+
+// ----- Apex hunt: units act in fixed steps. Every hit follows a tell that lasts the move's whole windup.
+function unitOk(x, z, y) { return z <= GATE_Z && canStand(x, z, y); }
+// Walk with axis sliding; when blocked, sidestep around the obstacle.
+function moveUnit(u, mx, mz, sp, dt) {
+  const dx = mx * sp * dt, dz = mz * sp * dt, ox = u.x, oz = u.z;
+  if (dx !== 0 && unitOk(u.x + dx, u.z, u.y)) u.x += dx;
+  if (dz !== 0 && unitOk(u.x, u.z + dz, u.y)) u.z += dz;
+  if (Math.hypot(u.x - ox, u.z - oz) < 0.3 * sp * dt) {
+    const ex = -mz * sp * dt * u.side, ez = mx * sp * dt * u.side;
+    if (ex !== 0 && unitOk(u.x + ex, u.z, u.y)) u.x += ex;
+    if (ez !== 0 && unitOk(u.x, u.z + ez, u.y)) u.z += ez;
+  }
+}
+// Longest free dash from x, z along dx, dz, in half-metre steps.
+function dashLen(x, z, y, dx, dz, range) {
+  let len = 0;
+  while (len + 0.5 <= range && unitOk(x + dx * (len + 0.5), z + dz * (len + 0.5), y)) len += 0.5;
+  return len;
+}
+function hideTell(u) { if (u.ring.visible) u.ring.visible = false; if (u.line.visible) u.line.visible = false; }
+// Next move: a ready skill in rotation (one at a time, with a gap), else the basic attack.
+function pickMove(u, dist) {
+  const n = u.skills.length;
+  if (u.gapT <= 0) for (let i = 0; i < n; i++) {
+    const k = u.skills[(u.rot + i) % n], m = MOVES[k];
+    if (u.cd[k] <= 0 && dist >= m.min && dist <= m.max) { u.rot = (u.rot + i + 1) % n; u.gapT = m.windup + CONFIG.APEX.skillGap; return k; }
+  }
+  const a = MOVES[u.atk];
+  if (u.cd[u.atk] <= 0 && dist <= a.max) return u.atk;
+  return '';
+}
+// Start a move: lock its shape now and show the tell for the whole windup. Returns false when a dash has no room.
+function beginMove(u, k, dx, dz) {
+  const m = MOVES[k], y = u.y + 0.07, tm = MOVE_LOOK[k] ? M[MOVE_LOOK[k]] : u.tellMat;
+  if (m.shape === 'line') {
+    const len = dashLen(u.x, u.z, u.y, dx, dz, m.range);
+    if (len < 1.5) { u.cd[k] = 1; return false; }
+    u.tl = len; u.line.material = tm; u.line.position.set(u.x, y, u.z); u.line.rotation.y = Math.atan2(-dx, -dz);
+    u.line.scale.set(m.width, 1, len); u.line.visible = true;
+  } else {
+    u.tx = u.x; u.tz = u.z;
+    if (m.shape === 'spot') {
+      u.tx = P.x + dx * m.back; u.tz = P.z + dz * m.back;
+      if (!unitOk(u.tx, u.tz, u.y)) { u.tx = P.x; u.tz = P.z; }
+      if (!unitOk(u.tx, u.tz, u.y)) { u.cd[k] = 1; return false; }
+    }
+    u.ring.material = tm; u.ring.position.set(u.tx, y, u.tz); u.ring.scale.setScalar(m.radius); u.ring.visible = true;
+  }
+  u.fx = dx; u.fz = dz; u.st = 1; u.cur = k; u.t = m.windup; u.tellT = 0; u.cd[k] = m.cd;
+  return true;
+}
+// Windup over: the hit lands only if the player is still inside the shape that was shown.
+function resolveMove(u) {
+  const k = u.cur;
+  hideTell(u);
+  if (k === 'ult') {
+    u.frenzyT = CONFIG.DEMON_ULT.dur; u.body.material = M.frenzy; u.st = 3; u.t = CONFIG.APEX.recoverS;
+    return;
+  }
+  const m = MOVES[k];
+  let hit = false;
+  if (!P.dead) {
+    if (m.shape === 'line') {
+      const qx = P.x - u.x, qz = P.z - u.z, along = qx * u.fx + qz * u.fz, side = Math.abs(qx * u.fz - qz * u.fx);
+      hit = along >= 0 && along <= u.tl && side <= m.width / 2;
+    } else hit = Math.hypot(P.x - u.tx, P.z - u.tz) <= m.radius;
+  }
+  if (hit) {
+    const dmg = m.dmg * (u.frenzyT > 0 ? CONFIG.DEMON_ULT.dmg : 1);
+    G.hits++; if (u.tellT < G.minTell) G.minTell = u.tellT;
+    if (m.slow) { P.slowK = Math.max(P.slowT > 0 ? P.slowK : 0, m.slow); P.slowT = Math.max(P.slowT, m.slowS); }
+    if (m.stun) P.stunT = Math.max(P.stunT, m.stun);
+    if (m.bleed) { P.bleedN = Math.min(CONFIG.BLEED.max, P.bleedN + m.bleed); P.bleedT = CONFIG.BLEED.dur; }
+    if (dmg > 0) { G.hitDmg += Math.min(dmg, P.hp); hurt(dmg); }
+  }
+  if (m.shape === 'circle') { u.st = 3; u.t = CONFIG.APEX.recoverS; return; }
+  u.ax = u.x; u.az = u.z; u.dashS = m.dashS; u.st = 2; u.t = 0;
+  if (m.shape === 'line') { u.bx = u.x + u.fx * u.tl; u.bz = u.z + u.fz * u.tl; } else { u.bx = u.tx; u.bz = u.tz; }
+}
+function stepUnit(u, dt) {
+  u.px = u.x; u.pz = u.z;
+  const c = u.cd;
+  for (let i = 0; i < MOVE_KEYS.length; i++) { const k = MOVE_KEYS[i]; if (c[k] > 0) c[k] -= dt; }
+  if (u.gapT > 0) u.gapT -= dt;
+  if (u.ultCd > 0) u.ultCd -= dt;
+  if (u.flashT > 0) { u.flashT -= dt; if (u.flashT <= 0) u.body.material = u.frenzyT > 0 ? M.frenzy : u.mat; }
+  if (u.frenzyT > 0) { u.frenzyT -= dt; if (u.frenzyT <= 0 && u.flashT <= 0) u.body.material = u.mat; }
+  if (u.st === 1) { u.t -= dt; u.tellT += dt; if (u.t <= 0) resolveMove(u); return; }
+  if (u.st === 2) {
+    u.t += dt; const k = Math.min(1, u.t / u.dashS);
+    u.x = u.ax + (u.bx - u.ax) * k; u.z = u.az + (u.bz - u.az) * k;
+    if (k >= 1) { u.st = 3; u.t = CONFIG.APEX.recoverS; }
+    return;
+  }
+  if (u.st === 3) { u.t -= dt; if (u.t <= 0) u.st = 0; return; }
+  const px = P.x - u.x, pz = P.z - u.z, dist = Math.hypot(px, pz) || 1e-6, dx = px / dist, dz = pz / dist;
+  // Demon ultimate: one use at half health, or on cooldown (CONFIG.DEMON_ULT.mode).
+  if (u === DEMON) {
+    const U = CONFIG.DEMON_ULT, ready = U.mode === 'once50' ? (!u.ultUsed && u.hp <= u.cfg.hp * 0.5) : u.ultCd <= 0;
+    if (ready && u.frenzyT <= 0) {
+      u.ultUsed = true; u.ultCd = U.cd; u.st = 1; u.cur = 'ult'; u.t = U.windup; u.tellT = 0;
+      showNote('voice_frenzy', 'rule_frenzy', FRENZY_VARS);
+      return;
+    }
+  }
+  const k = pickMove(u, dist);
+  if (k !== '' && beginMove(u, k, dx, dz)) return;
+  // Chase. The howler aims for a point behind the player, away from the demon.
+  let gx = P.x, gz = P.z;
+  if (u === HOWLER && DEMON.alive) {
+    const ex = P.x - DEMON.x, ez = P.z - DEMON.z, el2 = Math.hypot(ex, ez) || 1;
+    gx += ex / el2 * u.cfg.flank; gz += ez / el2 * u.cfg.flank;
+  }
+  const tx = gx - u.x, tz = gz - u.z, td = Math.hypot(tx, tz);
+  u.fx = dx; u.fz = dz;
+  if (td > u.cfg.keep) moveUnit(u, tx / td, tz / td, u.cfg.speed * (u.frenzyT > 0 ? CONFIG.DEMON_ULT.speed : 1), dt);
+}
+function stepHunt(dt) {
+  const VR = CONFIG.VISION_R, hunting = G.phase === 'hunt';
+  if (G.phase === 'wake') {
+    // The wake: the demon stands where the statue was and the two plates walk off it. Nothing can be hit yet.
+    G.phaseT += dt;
+    const k = Math.min(1, G.phaseT / CONFIG.APEX.wakeS);
+    for (let i = 0; i < ENEMIES.length; i++) {
+      const u = ENEMIES[i]; u.px = u.x; u.pz = u.z;
+      u.x = u.hx + u.cfg.off[0] * k; u.z = u.hz + u.cfg.off[1] * k;
+    }
+    if (k >= 1) G.phase = 'hunt';
+  } else {
+    G.huntT += dt;
+    for (let i = 0; i < ENEMIES.length; i++) {
+      const u = ENEMIES[i];
+      if (u.alive) stepUnit(u, dt);
+      if (G.phase !== 'hunt') return;
+      // A broken minion's plate flies home to the demon; its two skills arrive with it.
+      if (u.plateOn) {
+        u.plateT += dt; const k = Math.min(1, u.plateT / CONFIG.APEX.plateS);
+        u.plate.position.set(u.sx + (DEMON.x - u.sx) * k, u.y + 1 + Math.sin(k * Math.PI) * 2.5, u.sz + (DEMON.z - u.sz) * k);
+        if (k >= 1) grantPlate(u);
+      }
+    }
+  }
+  for (let i = 0; i < ENEMIES.length; i++) {
+    const u = ENEMIES[i], vis = u.alive && Math.hypot(u.x - P.x, u.z - P.z) <= VR;
+    u.seen = vis && hunting;
+    if (u.group.visible !== vis) u.group.visible = vis;
+  }
+  updateBoss();
+}
+function hitEnemy(u, n) {
+  if (G.phase !== 'hunt' || !u.alive) return;
+  u.hp = Math.max(0, u.hp - n); u.flashT = 0.12; u.body.material = M.hit;
+  u.bar.scale.x = Math.max(0.001, u.hp / u.cfg.hp);
+  if (u.hp <= 0) killUnit(u);
+}
+function killUnit(u) {
+  u.alive = false; u.seen = false; u.st = 0; hideTell(u); scene.remove(u.group);
+  if (ORD.attack === u) ORD.attack = null;
+  if (u === DEMON) { endHunt(true); return; }
+  u.plateOn = true; u.plateT = 0; u.sx = u.x; u.sz = u.z; u.plate.position.set(u.x, u.y + 1, u.z); scene.add(u.plate);
+}
+function grantPlate(u) {
+  u.plateOn = false; scene.remove(u.plate);
+  if (!DEMON.alive) return;
+  DEMON.skills.push(u.gain[0], u.gain[1]); G.plates++; G.bossDirty = true;
+  PLATE_VARS.a = T('move_' + u.gain[0]); PLATE_VARS.b = T('move_' + u.gain[1]);
+  showNote('voice_plate', 'rule_plate', PLATE_VARS);
+}
+function updateBoss() {
+  const n = Math.ceil(DEMON.hp);
+  if (n !== G.bossHp) { G.bossHp = n; setBar(el.bossfill, n / DEMON.cfg.hp); }
+  if (G.bossDirty) {
+    G.bossDirty = false;
+    let s = T('move_' + DEMON.atk);
+    for (let i = 0; i < DEMON.skills.length; i++) s += ', ' + T('move_' + DEMON.skills[i]);
+    BOSS_VARS.list = s; setText(el.bossskills, T('boss_skills', BOSS_VARS));
+  }
 }
 // PERFRAME-END
+const PLATE_VARS = { a: '', b: '' }, BOSS_VARS = { list: '' }, FRENZY_VARS = { s: CONFIG.DEMON_ULT.dur }, END_VARS = { s: 0, retry: '' };
+
+// ----- Apex hunt flow (events, not per frame). Everything a hunt changes is reset in startHunt and clearHunt.
+function setStatue(on) {
+  statueSolid.off = !on;
+  if (on && !statue.parent) SEC.CORE.group.add(statue, eyes); else if (!on && statue.parent) SEC.CORE.group.remove(statue, eyes);
+  renderer.shadowMap.needsUpdate = true;
+}
+function resetUnits(active) {
+  for (const u of ENEMIES) {
+    u.hx = 0; u.hz = SZ; u.x = u.px = u.hx; u.z = u.pz = u.hz; u.y = topY(0, SZ + 4);
+    u.fx = 0; u.fz = 1; u.hp = active ? u.cfg.hp : 0; u.alive = active; u.seen = false; u.st = 0; u.t = 0; u.cur = ''; u.tellT = 0;
+    u.gapT = 0; u.rot = 0; u.flashT = 0; u.frenzyT = 0; u.ultUsed = false; u.ultCd = 0; u.plateOn = false; u.plateT = 0;
+    for (const k of MOVE_KEYS) u.cd[k] = 0;
+    u.skills.length = 0; for (const k of u.base) u.skills.push(k);
+    u.body.material = u.mat; u.bar.scale.x = 1; u.group.visible = active; u.group.position.set(u.x, u.y, u.z);
+    hideTell(u);
+    if (u.plate.parent) scene.remove(u.plate);
+    if (active && !u.group.parent) scene.add(u.group, u.ring, u.line);
+    else if (!active && u.group.parent) scene.remove(u.group, u.ring, u.line);
+  }
+  DEMON.bar.visible = false;
+}
+function clearPlayerStatus() {
+  P.slowT = 0; P.slowK = 0; P.stunT = 0; P.bleedN = 0; P.bleedT = 0; P.statusShown = -1; updateStatus();
+}
+function setHuntUi() {
+  const on = G.phase === 'wake' || G.phase === 'hunt', end = G.phase === 'won' || G.phase === 'lost';
+  setShow(el.boss, on || end);
+  setText(el.btnHunt, T(end ? 'btn_retry' : 'btn_hunt'));
+  setShow(el.btnHunt, CONFIG.APEX_HUNT && !on);
+}
+// The apex phase begins: collapses stop, the statue wakes, the gate seals, the player stands at the core hall entrance.
+function startHunt() {
+  if (!CONFIG.APEX_HUNT) return;
+  for (const w of WAVES) {
+    if (w.state === 1) { w.state = 0; w.lastCount = -1; for (const s of w.secs) { s.state = 0; for (let i = 0; i < s.floorMeshes.length; i++) s.floorMeshes[i].material = s.floorMats[i]; } }
+    else if (w.state === 2) { w.state = 3; for (const s of w.secs) removeSection(s); }
+  }
+  G.bannerWave = -1; G.fellT = 0; G.miniDirty = true;
+  G.phase = 'wake'; G.phaseT = 0; G.huntT = 0; G.plates = 0; G.bossDirty = true; G.bossHp = -1;
+  G.hits = 0; G.minTell = 99; G.hitDmg = 0; G.bleedDmg = 0;
+  for (const h of HAZARDS) if (h.statue) { h.state = 0; h.t = 0; h.ring.visible = false; }
+  M.eyes.emissiveIntensity = 0.4;
+  setStatue(false); resetUnits(true);
+  if (!sealMesh.parent) scene.add(sealMesh);
+  for (const st of SK) { st.cdT = 0; st.shown = -1; }
+  ORD.attack = null; ORD.atkHeld = false; ORD.rightHeld = false; ORD.attackMove = false; cancelAim(); PATH.n = 0; PATH.i = 0;
+  PEND.on = false; G.fxT = 0; fxLine.visible = fxRing.visible = fxTele.visible = false;
+  P.x = P.px = CONFIG.APEX.entry[0] * K; P.z = P.pz = CONFIG.APEX.entry[1] * K; P.y = P.py = topY(P.x, P.z);
+  P.vy = 0; P.air = false; P.voidT = 0; P.dead = false; P.deadT = 0; P.kx = P.kz = 0; P.faceX = 0; P.faceZ = -1; P.atkT = 0; P.stuckT = 0;
+  P.hp = CONFIG.MAX_HP; P.hpShown = -1; P.noHealT = 0; P.zone = null;
+  clearPlayerStatus(); updateHp();
+  setText(el.next, T('next_hunt')); G.nextWave = -2;
+  setText(el.bossname, T('boss_name'));
+  setText(el.voice, T('voice_wake')); setText(el.rule, T('rule_wake')); setShow(el.banner, true); G.fellT = CONFIG.APEX.wakeS;
+  setHuntUi(); updateBoss();
+}
+// Win or loss: the simulation freezes and the banner stays until the player retries or starts a new run.
+function endHunt(win) {
+  G.phase = win ? 'won' : 'lost';
+  for (const u of ENEMIES) hideTell(u);
+  ORD.attack = null; ORD.atkHeld = false; ORD.rightHeld = false; PATH.n = 0; PATH.i = 0; cancelAim();
+  END_VARS.s = Math.round(G.huntT); END_VARS.retry = T(TOUCH ? 'retry_touch' : 'retry_desktop');
+  G.bannerWave = -1; G.fellT = 0;
+  setText(el.voice, T(win ? 'voice_won' : 'voice_lost')); setText(el.rule, T(win ? 'rule_won' : 'rule_lost', END_VARS)); setShow(el.banner, true);
+  updateBoss(); setHuntUi();
+}
+// Back to the royale state (new run): statue asleep again, units out of the scene, gate open.
+function clearHunt() {
+  G.phase = 'royale'; G.phaseT = 0; G.huntT = 0; G.plates = 0; G.bossDirty = true; G.bossHp = -1;
+  setStatue(true); resetUnits(false);
+  if (sealMesh.parent) scene.remove(sealMesh);
+  clearPlayerStatus(); setHuntUi();
+}
+function huntButton() { if (G.phase !== 'wake' && G.phase !== 'hunt') startHunt(); }
+el.btnHunt.addEventListener('click', huntButton);
 
 // ===================== Minimap (MOBA corner map; shows only what the player can see) =====================
 const MINI = { x0: -78, z0: -82, w: 156, h: 132, px: 1, py: 1, W: 0, H: 0, base: document.createElement('canvas'), ctx: null, bctx: null };
@@ -1117,6 +1510,10 @@ function drawMini() {
     const d = DUMMY_LIST[i]; if (!d.seen || d.hp <= 0) continue;
     c.beginPath(); c.arc((d.x - MINI.x0) * px, (d.z - MINI.z0) * py, 2.5, 0, 6.2832); c.fill();
   }
+  for (let i = 0; i < ENEMIES.length; i++) {
+    const u = ENEMIES[i]; if (!u.seen) continue;
+    c.beginPath(); c.arc((u.x - MINI.x0) * px, (u.z - MINI.z0) * py, u === DEMON ? 4.5 : 2.5, 0, 6.2832); c.fill();
+  }
   const x = (P.x - MINI.x0) * px, z = (P.z - MINI.z0) * py;
   if (PATH.i < PATH.n) {
     c.strokeStyle = '#7fd0ff'; c.lineWidth = 1; c.beginPath(); c.moveTo(x, z);
@@ -1139,6 +1536,7 @@ function respawn(kind) {
 
 // New run: resets everything the run changes (time, waves, sections, floors, player, banner, shadows).
 function reset() {
+  clearHunt();
   G.time = 0; G.bannerWave = -1; G.fellT = 0; G.nextWave = -2;
   for (const w of WAVES) { w.state = 0; w.lastCount = -1; }
   for (const s of SECLIST) {
@@ -1224,6 +1622,11 @@ function placeView(alpha) {
       indCircle.visible = true; indLine.visible = false;
     }
   }
+  if (G.phase !== 'royale') for (let i = 0; i < ENEMIES.length; i++) {
+    const u = ENEMIES[i]; if (!u.alive) continue;
+    u.group.position.set(u.px + (u.x - u.px) * alpha, u.y, u.pz + (u.z - u.pz) * alpha);
+    u.body.rotation.y = Math.atan2(-u.fx, -u.fz);
+  }
   warnMat.emissiveIntensity = 0.35 + 0.35 * Math.sin(G.time * 10);
 }
 function frame(now) {
@@ -1270,9 +1673,23 @@ reset();
 const warm = new THREE.Mesh(new THREE.BoxGeometry(0.1, 0.1, 0.1), warnMat);
 warm.receiveShadow = true; warm.castShadow = true; scene.add(warm);
 for (const m of INDICATORS) m.visible = true;
+// Hunt pieces sit at the player for this one draw so their buffers upload now, not at the wake.
+const warmSeal = new THREE.Mesh(sealMesh.geometry, M.tellD); warmSeal.position.set(P.x, P.y, P.z - (CH.z1 - 0.5));
+const warmHunt = [warmSeal];
+for (const u of ENEMIES) {
+  warmHunt.push(u.group, u.ring, u.line, u.plate); u.group.visible = u.ring.visible = u.line.visible = true;
+  for (const o of [u.group, u.ring, u.line, u.plate]) o.position.set(P.x, P.y, P.z);
+}
+for (const o of warmHunt) scene.add(o);
+for (const h of HAZARDS) h.ring.visible = true;
 placeView(1);
 renderer.compile(scene, camera);
 renderer.render(scene, camera);
+// One draw of the whole map so every section's buffers upload at load, not when first seen.
+setView('overview'); placeView(1); renderer.render(scene, camera); setView('follow');
+for (const h of HAZARDS) h.ring.visible = false;
+for (const o of warmHunt) scene.remove(o);
+for (const u of ENEMIES) hideTell(u);
 for (const m of INDICATORS) m.visible = false;
 scene.remove(warm); warm.geometry.dispose();
 drawMini();
@@ -1314,7 +1731,23 @@ window.__game = {
     return { calls: renderer.info.render.calls, tris: renderer.info.render.triangles, programs: renderer.info.programs.length,
       geoms: renderer.info.memory.geometries, texs: renderer.info.memory.textures };
   },
-  setView, reset,
+  setView, reset, startHunt, huntButton,
+  hunt() {
+    return { phase: G.phase, t: G.huntT, plates: G.plates, hits: G.hits, minTell: G.minTell, hitDmg: G.hitDmg, bleedDmg: G.bleedDmg, gateZ: GATE_Z,
+      statue: !!statue.parent, statueSolid: !statueSolid.off, seal: !!sealMesh.parent,
+      p: { x: P.x, z: P.z, hp: P.hp, stun: P.stunT, slow: P.slowT, slowK: P.slowK, bleed: P.bleedN },
+      units: ENEMIES.map((u) => ({ kind: u.kind, x: u.x, z: u.z, hp: u.hp, alive: u.alive, seen: u.seen, st: u.st, cur: u.cur, skills: u.skills.slice(), inScene: !!u.group.parent,
+        frenzy: u.frenzyT, plate: !!u.plate.parent, standOk: !u.alive || u.st === 2 || unitOk(u.x, u.z, u.y) })),
+      tells: ENEMIES.filter((u) => u.alive && u.st === 1 && u.cur !== 'ult').map((u) => { const m = MOVES[u.cur];
+        return { by: u.kind, move: u.cur, shape: m.shape, x: m.shape === 'line' ? u.x : u.tx, z: m.shape === 'line' ? u.z : u.tz, r: m.radius || 0, fx: u.fx, fz: u.fz, len: u.tl, w: m.width || 0,
+          age: u.tellT, left: u.t, shown: m.shape === 'line' ? u.line.visible : u.ring.visible,
+          look: (m.shape === 'line' ? u.line : u.ring).material === M.tellS ? 'S' : (m.shape === 'line' ? u.line : u.ring).material === M.tellH ? 'H' : 'D' }; }) };
+  },
+  huntUi: () => ({ boss: el.boss.style.display, bossText: el.bossskills.textContent, btn: el.btnHunt.style.display, btnText: el.btnHunt.textContent,
+    voice: el.voice.textContent, rule: el.rule.textContent, status: el.status.textContent, banner: el.banner.style.display }),
+  attackUnit(i) { const u = ENEMIES[i]; if (u.seen && u.hp > 0) { ORD.attack = u; PATH.n = 0; return true; } return false; },
+  hitUnit(i, n) { hitEnemy(ENEMIES[i], n); }, placeUnit(i, x, z) { const u = ENEMIES[i]; u.x = u.px = x; u.z = u.pz = z; },
+  unitCd(i, k, v) { ENEMIES[i].cd[k] = v; }, moves: MOVE_KEYS,
   floors: () => FLOORS.map((f) => ({ sec: f.sec, x0: f.x0, x1: f.x1, z0: f.z0, z1: f.z1 })),
   config: CONFIG, text: TEXT, sections: SECTION_IDS, spawns: SPAWNS,
   canvasSize: () => [cv.width, cv.height],

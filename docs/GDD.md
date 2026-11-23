@@ -124,6 +124,7 @@ Match size: 10 suits, one per school. The player plus 9 bots, royale about 3 to 
 - Minions flank and harass with their own AI. The apex pushes straight in, one skill at a time with a short gap, each telegraphed.
 - Stolen skills keep the minion's look so the player sees what they gave the boss.
 - Sim target: no kill order is dominant.
+- As built on boxes (batch 6, 23 Nov; numbers in CONFIG): arena is the core hall with the gate sealed; H or the Hunt button starts it until the royale exists. Every enemy move shows its shape for its whole windup (all >= 0.4 s; Pounce 0.5 s, not 320 ms) and hits only a player still inside it. Demon ultimate: one use at half health. A killed minion's plate flies to the demon in 0.9 s and brings both of its skills; stolen moves keep the minion's tell colour. Win and loss freeze the game; retry restarts the hunt. Bot sweep: minions-first is currently the better order for a 0.3 s-reaction bot, so the sim target is not met yet (placeholder player kit).
 
 ## Tiger Demon (apex)
 Assumption to confirm: a hard-surface beast like the war suits.
