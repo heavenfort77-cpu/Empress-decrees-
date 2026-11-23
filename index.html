@@ -48,6 +48,16 @@ body.touch #status{left:auto;right:12px;top:82px}
 body.touch #leader{left:auto;right:12px;top:61px}
 #decree{position:fixed;left:12px;top:76px;font:bold 13px system-ui,sans-serif;color:#ffe08a;text-shadow:0 1px 2px #000;pointer-events:none;display:none}
 body.touch #decree{left:auto;right:12px;top:103px}
+#school{position:fixed;left:12px;top:96px;font:bold 13px system-ui,sans-serif;color:#cfe3ff;text-shadow:0 1px 2px #000;pointer-events:none}
+body.touch #school{left:auto;right:12px;top:124px}
+#select{position:fixed;inset:0;display:none;background:#120d16;z-index:8;overflow:auto}
+.sel__box{max-width:720px;margin:0 auto;padding:24px 16px;text-align:center}
+.sel__title{font:italic 26px Georgia,serif;color:#ffd98a}
+.sel__rule{font:14px system-ui,sans-serif;color:#ddd;margin:8px 0 16px}
+.sel__list{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px}
+.sel__btn{min-width:44px;min-height:44px;padding:10px;font:15px system-ui,sans-serif;color:#fff;background:#2a2030;border:2px solid #6a5a7a;border-radius:8px}
+.sel__btn.is-last{border-color:#c9a040}
+.sel__btn--random{grid-column:1/-1;background:#3a2a1a}
 #bar.silenced .skill{opacity:.35;border-color:#888}
 body.touch #banner{top:26%}
 #cancel{position:fixed;right:20px;top:90px;width:90px;height:56px;border-radius:10px;background:#5a1a1a;color:#fff;font:15px system-ui;display:none;align-items:center;justify-content:center;border:2px solid #f88}
@@ -70,6 +80,8 @@ body.touch #banner{top:26%}
 <div id="status"></div>
 <div id="leader"></div>
 <div id="decree"></div>
+<div id="school"></div>
+<div id="select"><div class="sel__box"><div class="sel__title"></div><div class="sel__rule"></div><div class="sel__list"></div></div></div>
 <button id="btnHunt"></button>
 <div id="err"></div>
 <script type="module">
@@ -112,12 +124,14 @@ const CONFIG = {
   // Basic attack placeholder: range (m), seconds between hits, damage, auto-target search range (m).
   ATTACK: { range: 2.5, interval: 0.8, dmg: 10, acquire: 8 },
   // Placeholder skills for aiming tests until the kits arrive. type: line, circle or self; delay = telegraph before the hit (s).
+  // tag (batch 16, common skill interface) tells the bot brain how to use a skill: 'poke' = cast at a target in range, 'dashIn' = close in from
+  // BOT.dashMinM to BOT.dashMaxM, 'ult' = keep it to finish a target or use it under BOT.ultBelowHp. Slot keys (Q W R) are the same for every kit.
   SKILLS: [
-    { key: 'KeyQ', label: 'Q', name: 'Line', type: 'line', range: 8, width: 1.5, dmg: 25, cd: 6, delay: 0 },
+    { key: 'KeyQ', label: 'Q', name: 'Line', type: 'line', range: 8, width: 1.5, dmg: 25, cd: 6, delay: 0, tag: 'poke' },
     // W (panel, 23 Nov 15:11, batch 12): a placeholder Dash until the kits: dashes range metres toward the aim point over dashS seconds by the walking rule
     // (rails, walls and the void stop it), then its burst of radius hits on landing. dash: true marks it for the no-dash decree.
-    { key: 'KeyW', label: 'W', name: 'Dash', type: 'dash', range: 4, radius: 2.5, dmg: 20, cd: 8, delay: 0, dash: true, dashS: 0.2 },
-    { key: 'KeyR', label: 'R', name: 'Ultimate', type: 'circle', range: 9, radius: 4, dmg: 60, cd: 30, delay: 1 },
+    { key: 'KeyW', label: 'W', name: 'Dash', type: 'dash', range: 4, radius: 2.5, dmg: 20, cd: 8, delay: 0, dash: true, dashS: 0.2, tag: 'dashIn' },
+    { key: 'KeyR', label: 'R', name: 'Ultimate', type: 'circle', range: 9, radius: 4, dmg: 60, cd: 30, delay: 1, tag: 'ult' },
   ],
   // Training dummies to aim at (map test only): x, z before MAP_SCALE, section.
   DUMMIES: [[-36, 12, 'W2'], [0, -12, 'C1'], [6, 2, 'C2']],
@@ -195,7 +209,7 @@ const CONFIG = {
     pillar: 0x9a2a22, silk: 0xb0303c, gold: 0xc9a040, bronze: 0x4a3a2a, empress: 0xf0e2c0,
     camp: 0xff8a2a, spawn: 0xe8e8e8, player: 0x3a7bd5, aim: 0xffffff, blob: 0x000000, warn: 0xff2a10,
     stone: 0x9a968c, eyes: 0xff3a1a, ring: 0xff2a10, altarOn: 0x5cff9a, altarOff: 0x2a3a30, broken: 0x2a2624, dummy: 0xc8b070, hit: 0xffffff, ind: 0x7fd0ff, fx: 0xffd060,
-    suits: [0xd5a03a, 0x6a6a6a, 0x8a2a3a, 0x3a3a3a, 0xe8e8f0, 0xc060a0, 0x40c0c0, 0x9a6ad5],
+    schools: [0xb05a2a, 0xd5a03a, 0x6a6a6a, 0x8a2a3a, 0x3a3a3a, 0xe8e8f0, 0xc060a0, 0x40c0c0, 0x9a6ad5],
     demon: 0x9a5a22, stalker: 0x7a2a8a, howler: 0x2a7a8a, frenzy: 0xff5a1a, tellD: 0xff2a10, tellS: 0xd050ff, tellH: 0x40e0ff, crab: 0xe07030, wander: 0x9adf9a,
   },
   // Feature switch: the apex hunt on boxes (Tiger Demon, 2 minions, skill transfer). Started by H or the Hunt button until the royale exists.
@@ -271,9 +285,52 @@ const CONFIG = {
     plate: 30,
     // Charge for claiming the bounty (fills the meter).
     bounty: 100,
-    // Ultimate mode per suit in suit order (player first, repeats): 'charge' = this meter. Any other mode (later 'lock' for the Yinyang suit, batch 17) keeps the plain R cooldown until it is built.
-    modeOf: ['charge'],
   },
+  // Schools of the match (batch 16; owner 23 Nov 20:03 nine schools; order = docs/SUITS.md table). The player picks one (or a random one); the bots take
+  // the other eight in this order. Index 0 (ru) is the default pick, so the bots keep the order Dao..Nong when nothing was picked (tests, first run).
+  SCHOOLS: ['ru', 'dao', 'fa', 'mo', 'yinyang', 'za', 'ming', 'zongheng', 'nong'],
+  // Suit stats (batch 16, docs/STATS-MATH.md, owner 23 Nov 23:3x "use it as written"): damage a suit takes from suits and creatures (causes hit and bleed)
+  // = raw x (K + armor[yard]) / (K + its armor); statue, lions, drops and the void stay fixed. HP 100 for every suit (MAX_HP).
+  // Mid is the yardstick: every damage number in CONFIG is what a Mid suit takes, so a Mid suit takes it unchanged.
+  STATS: {
+    // Armor constant K (League-style: armor K halves damage).
+    K: 100,
+    // Armor per toughness tier (Low 17%, Mid 29%, High 41% less than no armor).
+    armor: { Low: 20, Mid: 40, High: 70 },
+    // Walk speed per speed tier, metres per second (Mid equals PLAYER_SPEED; cubs and minions stay faster at 6.6).
+    speed: { Low: 5.6, Mid: 6, High: 6.4 },
+    // The tier every damage number is written for.
+    yard: 'Mid',
+  },
+  // Kits per school (batch 16 framework; skills per docs/SUITS.md come in tickets 02-10). built = the school plays its own kit and stats;
+  // until then it plays the placeholder kit (ATTACK, SKILLS) at Mid stats. armor and speed = tiers from the docs/SUITS.md table (HP column = toughness).
+  // ultMode = how its R unlocks: 'charge' (the ULT meter); 'lock' (Yinyang) and 'counters' (Dao) are built with their kits.
+  KITS: {
+    // 儒甲 Junzi: fighter.
+    ru: { built: false, armor: 'High', speed: 'Mid', ultMode: 'charge' },
+    // 道甲 Zhenren: evasive duelist.
+    dao: { built: false, armor: 'Low', speed: 'High', ultMode: 'counters' },
+    // 法甲 Law Officer: assassin.
+    fa: { built: false, armor: 'Mid', speed: 'High', ultMode: 'charge' },
+    // 墨甲 Mo Defender: tank, no dash.
+    mo: { built: false, armor: 'High', speed: 'Low', ultMode: 'charge' },
+    // 阴阳甲 Taiji: artillery mage.
+    yinyang: { built: false, armor: 'Low', speed: 'Mid', ultMode: 'lock' },
+    // 杂甲 Retainer: control mage.
+    za: { built: false, armor: 'Mid', speed: 'Mid', ultMode: 'charge' },
+    // 名甲 Debater: marksman.
+    ming: { built: false, armor: 'Low', speed: 'Mid', ultMode: 'charge' },
+    // 纵横甲 Persuader: control.
+    zongheng: { built: false, armor: 'Mid', speed: 'Mid', ultMode: 'charge' },
+    // 农甲 Tiller: support.
+    nong: { built: false, armor: 'High', speed: 'Low', ultMode: 'charge' },
+  },
+  // School select before each run (batch 16, owner 23 Nov 23:3x: nine buttons plus a random pick, last pick remembered). on = feature switch;
+  // the select never opens with ?bots=N in the address (map test and checks). saveKey = browser storage key of the last pick.
+  SELECT: { on: true, saveKey: 'empressDecrees.school' },
+  // Unseen state (batch 16, minimal; full hiding with curtains and walls is batch 18): an unseen suit is not drawn for others and cannot be
+  // targeted, except within shimmerM metres (drawn as a shimmer) or while marked; attacking or being hit ends it.
+  UNSEEN: { shimmerM: 3 },
   // Feature switch: next run's statue wears the last winner's school colour (approved, built later).
   WINNER_STATUE: false,
   // Bots (batch 9, owner go 23 Nov): feature switch, number of bot suits. Owner 23 Nov 20:03: nine schools, player + 8 bots (10 spawn discs kept, one stays empty). ?bots=N in the address overrides the count (tests use 0 for the map test).
@@ -407,7 +464,14 @@ const TEXT = {
   voice_kennel: 'Our kennels stand open. Take what falleth, if thou canst.',
   rule_kennel: 'Cubs appear in {s} s at: {zones}. Kill one to take its plate.',
   voice_plate_take: 'It is thine. For now.',
-  suit_0: 'You', suit_1: 'Dao suit', suit_2: 'Fa suit', suit_3: 'Mo suit', suit_4: 'Yinyang suit', suit_5: 'Za suit', suit_6: 'Ming suit', suit_7: 'Zongheng suit', suit_8: 'Nong suit',
+  suit_0: 'You',
+  school_ru: 'Ru suit', school_dao: 'Dao suit', school_fa: 'Fa suit', school_mo: 'Mo suit', school_yinyang: 'Yinyang suit', school_za: 'Za suit',
+  school_ming: 'Ming suit', school_zongheng: 'Zongheng suit', school_nong: 'Nong suit',
+  hud_school: 'Your school: {who}',
+  sel_title: 'Choose thy school',
+  sel_rule: 'Pick a suit (keys 1-9), or let Heaven choose (key 0). Enter: last pick.',
+  sel_random: 'Let Heaven choose',
+  sel_key: '{n}. {who}',
   hud_leader: 'Leader: {who}',
   hud_leader_bounty: 'Leader: {who}  (bounty {s} s)',
   voice_bounty: 'A bounty lieth upon the leader.',
@@ -505,7 +569,8 @@ const el = {
   hud: $('hud'), next: $('next'), banner: $('banner'), dbg: $('dbg'), help: $('help'),
   btnMap: $('btnMap'), stick: $('stick'), err: $('err'), hpfill: $('hpfill'), hptext: $('hptext'),
   mini: $('mini'), bar: $('bar'), cancel: $('cancel'), boss: $('boss'), bossname: $('bossname'), bossfill: $('bossfill'),
-  bossskills: $('bossskills'), status: $('status'), btnHunt: $('btnHunt'), leader: $('leader'), decree: $('decree'),
+  bossskills: $('bossskills'), status: $('status'), btnHunt: $('btnHunt'), leader: $('leader'), decree: $('decree'), school: $('school'), select: $('select'),
+  selTitle: document.querySelector('#select .sel__title'), selRule: document.querySelector('#select .sel__rule'), selList: document.querySelector('#select .sel__list'),
   voice: document.querySelector('#banner .voice'), rule: document.querySelector('#banner .rule'),
 };
 const textCache = new Map();
@@ -861,7 +926,7 @@ const BOON_IDX = { power: 0, regen: 1, vision: 2, speed: 3 };
 const BRNG = { s: 1 };
 const BOTLIST = [];
 for (let k = 0; k < CONFIG.BOTS.count; k++) {
-  const m = new THREE.MeshStandardMaterial({ color: COL.suits[k % COL.suits.length], roughness: 0.6 });
+  const m = new THREE.MeshStandardMaterial({ color: COL.schools[(k + 1) % COL.schools.length], roughness: 0.6 });
   const group = new THREE.Group(), body = new THREE.Mesh(playerBody.geometry, m), bar = new THREE.Mesh(dummyBarGeo, M.camp);
   bar.position.set(-0.5, 2.6, 0); group.add(body, bar);
   BOTLIST.push({ x: 0, z: 0, y: 0, px: 0, pz: 0, py: 0, vy: 0, air: false, airFromY: 0, voidT: 0, dead: true, deadT: 0,
@@ -877,8 +942,19 @@ for (let k = 0; k < BOTLIST.length; k++) SUITS.push(BOTLIST[k]);
 // Leader crown (batch 11): one small gold box crown built once at load, shared gold material; it rides on the leader's body group, so it is hidden whenever the leader is unseen.
 const crown = new THREE.Mesh(new THREE.CylinderGeometry(CONFIG.LEADER.crownR, CONFIG.LEADER.crownR * 0.85, 0.26, 6), M.gold);
 crown.position.y = CONFIG.LEADER.crownY; crown.castShadow = false;
-const SUIT_KEYS = [];
-for (let i = 0; i <= CONFIG.BOTS.count; i++) SUIT_KEYS.push('suit_' + i);
+// Name keys of every suit the HUD can name: the player ('You') and each school (batch 16: a bot is named by its school).
+const SUIT_KEYS = ['suit_0'].concat(CONFIG.SCHOOLS.map((sc) => 'school_' + sc));
+// ===================== Kits and suit stats (batch 16 framework) =====================
+// The placeholder kit (ATTACK and SKILLS) at the yardstick stats: every school plays it until its own kit is built (tickets 02-10).
+const PLACEHOLDER_KIT = { id: 'placeholder', armor: CONFIG.STATS.yard, speed: CONFIG.STATS.yard, ultMode: 'charge', attack: CONFIG.ATTACK, skills: CONFIG.SKILLS };
+// The kit a school plays: its own when built, else the placeholder.
+function kitFor(school) { const k = CONFIG.KITS[school]; return k && k.built ? k : PLACEHOLDER_KIT; }
+// A suit's school, kit and stats (set at a new run).
+function applyKit(s, school) { const k = kitFor(school); s.school = school; s.kit = k; s.ultMode = k.ultMode; setStats(s, k.armor, k.speed); }
+// Stats from tiers: armorK = multiplier on damage from suits and creatures (exactly 1 at the yardstick tier), spd = walk speed.
+function setStats(s, armorTier, speedTier) { const S = CONFIG.STATS; s.armor = S.armor[armorTier]; s.armorK = (S.K + S.armor[S.yard]) / (S.K + s.armor); s.spd = S.speed[speedTier]; }
+// The skill a suit has in a slot (common skill interface: player, bots and later kits all cast through this).
+function skillOf(s, slot) { return s.kit.skills[slot]; }
 // Decrees (reusable): text keys and length per decree; the bounty is the first.
 // Batch 12: the five bagged decrees (bag: true); hud = the HUD line while in force; idx = HUD code.
 const DECREES = { bounty: { voice: 'voice_bounty', rule: 'rule_bounty', idx: 0 },
@@ -887,7 +963,7 @@ const DECREES = { bounty: { voice: 'voice_bounty', rule: 'rule_bounty', idx: 0 }
   silence: { voice: 'voice_dec_silence', rule: 'rule_dec_silence', hud: 'hud_dec_silence', bag: true, idx: 3 },
   heights: { voice: 'voice_dec_heights', rule: 'rule_dec_heights', hud: 'hud_dec_heights', bag: true, idx: 4 },
   ult2x: { voice: 'voice_dec_ult2x', rule: 'rule_dec_ult2x', hud: 'hud_dec_ult2x', bag: true, idx: 5 } };
-const CHARGE_VARS = { n: 0 }, LEADER_VARS = { who: '', s: 0 }, DECREE_VARS = { who: '', s: 0, zone: '' }, MARK_VARS = { s: CONFIG.DECREES.markS };
+const SCHOOL_VARS = { who: '' }, CHARGE_VARS = { n: 0 }, LEADER_VARS = { who: '', s: 0 }, DECREE_VARS = { who: '', s: 0, zone: '' }, MARK_VARS = { s: CONFIG.DECREES.markS };
 // Decree bags (batch 12): seeded by their own generator (DRNG).
 const DRNG = { s: 1 };
 const DD = CONFIG.DECREES;
@@ -907,8 +983,9 @@ for (let k = 0; k < SUITS.length; k++) {
   // markT = seconds marked; brkT = seconds before a new break counts; breaks = decrees broken this run; dashLeft = metres of dash left (0 = not dashing).
   // wsT = game time this suit last stood on a warned section (heights exemption).
   Object.assign(s, { marker: m, markT: 0, brkT: 0, breaks: 0, wsT: -99, dashLeft: 0, dashX: 0, dashZ: 0, dashStep: 0, dashSlot: 1, dashOrd: false, silShown: false });
-  // ch = ultimate charge (batch 15); ultMode = how its R unlocks; ultN = ultimates cast this run (sims).
-  Object.assign(s, { ch: CONFIG.ULT.start, ultMode: CONFIG.ULT.modeOf[k % CONFIG.ULT.modeOf.length], ultN: 0 });
+  // ch = ultimate charge (batch 15); ultN = ultimates cast this run (sims); unseenT = seconds unseen (batch 16); school, kit, stats and nameKey set by applyKit and assignSchools.
+  Object.assign(s, { ch: CONFIG.ULT.start, ultN: 0, unseenT: 0, nameKey: 'suit_0' });
+  applyKit(s, CONFIG.SCHOOLS[0]);
 }
 // Brain fields on the player too, used only by the test autopilot (__game.autoPlayer).
 Object.assign(P, { campK: -1, cd: [0, 0, 0], navWant: false, gx: 0, gz: 0, gy: 0, goalT: 0, skill: CONFIG.BOT.skills.average, thinkT: 0, tgt: null, tgtT: 0, mode: '', direct: false,
@@ -938,11 +1015,12 @@ cv.addEventListener('contextmenu', (e) => e.preventDefault());
 el.mini.addEventListener('contextmenu', (e) => e.preventDefault());
 addEventListener('keydown', (e) => {
   if (e.repeat || e.ctrlKey || e.metaKey || e.altKey) return;
+  if (G.selecting) { selectKey(e); return; }
   for (let i = 0; i < CONFIG.SKILLS.length; i++) if (e.code === CONFIG.SKILLS[i].key) { startAim(i, 'key'); e.preventDefault(); return; }
   if (e.code === 'KeyS') stopOrders();
   if (e.code === 'KeyA') ORD.attackMove = true;
   if (e.code === 'Escape') { cancelAim(); ORD.attackMove = false; }
-  if (e.code === 'KeyN') reset();
+  if (e.code === 'KeyN') newRun();
   if (e.code === 'KeyH') huntButton();
   if (e.code === 'KeyM' && DEBUG) toggleView();
 });
@@ -996,7 +1074,7 @@ function buildBar() {
   const pos = [[104, 4], [92, 92], [8, 108]];
   CONFIG.SKILLS.forEach((sk, i) => {
     const x = mk(TOUCH ? sk.label : sk.label, 'skill');
-    if (!TOUCH) { const lb = document.createElement('div'); lb.className = 'lb'; lb.textContent = sk.name; x.b.appendChild(lb); }
+    if (!TOUCH) { const lb = document.createElement('div'); lb.className = 'lb'; lb.textContent = sk.name; x.b.appendChild(lb); SK[i].lb = lb; }
     else {
       x.b.style.right = pos[i][0] + 'px'; x.b.style.bottom = pos[i][1] + 'px';
       x.b.addEventListener('pointerdown', (e) => {
@@ -1011,7 +1089,7 @@ function buildBar() {
   });
 }
 function dragAim(e) {
-  const d = ORD.drag, sk = CONFIG.SKILLS[d.slot], dx = e.clientX - d.ox, dy = e.clientY - d.oy, len = Math.hypot(dx, dy);
+  const d = ORD.drag, sk = skillOf(P, d.slot), dx = e.clientX - d.ox, dy = e.clientY - d.oy, len = Math.hypot(dx, dy);
   if (!d.moved && len < CONFIG.DRAG_MIN_PX) return;
   if (!d.moved) { d.moved = true; startAim(d.slot, 'touch'); }
   if (len > 0) { ORD.dirX = dx / len; ORD.dirZ = dy / len; }
@@ -1062,15 +1140,16 @@ function releaseAim() {
   cancelAim(); castSkill(slot, ORD.aimX, ORD.aimZ);
 }
 function autoCast(slot) {
-  const sk = CONFIG.SKILLS[slot], t = autoTarget(sk.range + 1);
+  const sk = skillOf(P, slot), t = autoTarget(sk.range + 1);
   if (t) castSkill(slot, t.x, t.z); else castSkill(slot, P.x + P.faceX * sk.range, P.z + P.faceZ * sk.range);
 }
 // Cast at a world point, clamped to range (MLBB clamps; lines always fly full range).
 function castSkill(slot, tx, tz) {
-  const sk = CONFIG.SKILLS[slot], st = SK[slot];
+  const sk = skillOf(P, slot), st = SK[slot];
   if (!playerReady(slot) || !canAct() || P.dashLeft > 0) return false;
   // "Upon the bridges, your arts are stilled." (decree): no new cast on a bridge; the note says why (a cast already released still lands).
   if (silenced(P)) { showNote('voice_silenced', 'rule_silenced'); return false; }
+  breakUnseen(P);
   let dx = tx - P.x, dz = tz - P.z; const len = Math.hypot(dx, dz);
   if (len > 0.01) { dx /= len; dz /= len; } else { dx = P.faceX; dz = P.faceZ; }
   const dist = sk.type === 'line' ? sk.range : Math.min(len, sk.range);
@@ -1085,16 +1164,17 @@ function castSkill(slot, tx, tz) {
   } else applySkill(slot, x, z, dx, dz);
   return true;
 }
+// Is target d inside a skill's shape? line = from the caster at ox, oz along dx, dz; otherwise a circle at x, z. One home for the player's and the bots' skills.
+function inSkillShape(sk, d, ox, oz, x, z, dx, dz) {
+  if (sk.type !== 'line') return Math.hypot(d.x - x, d.z - z) <= sk.radius + d.r;
+  const px = d.x - ox, pz = d.z - oz, along = px * dx + pz * dz, side = Math.abs(px * dz - pz * dx);
+  return along >= 0 && along <= sk.range + d.r && side <= sk.width / 2 + d.r;
+}
 function applySkill(slot, x, z, dx, dz) {
-  const sk = CONFIG.SKILLS[slot];
+  const sk = skillOf(P, slot);
   for (let i = 0; i < TARGETS.length; i++) {
     const d = TARGETS[i]; if (!d.seen || d.hp <= 0) continue;
-    let hit = false;
-    if (sk.type === 'line') {
-      const px = d.x - P.x, pz = d.z - P.z, along = px * dx + pz * dz, side = Math.abs(px * dz - pz * dx);
-      hit = along >= 0 && along <= sk.range + d.r && side <= sk.width / 2 + d.r;
-    } else hit = Math.hypot(d.x - x, d.z - z) <= sk.radius + d.r;
-    if (hit) hitTarget(P, d, sk.dmg);
+    if (inSkillShape(sk, d, P.x, P.z, x, z, dx, dz)) hitTarget(P, d, sk.dmg);
   }
   const y = topYUnder(x, z, P.y + 1) + 0.08;
   if (sk.type === 'line') { fxLine.position.set(P.x, P.y + 0.08, P.z); fxLine.rotation.y = Math.atan2(-dx, -dz); fxLine.scale.set(sk.width, 1, sk.range); fxLine.visible = true; }
@@ -1106,6 +1186,8 @@ function canAct() { return !P.dead && P.stunT <= 0 && G.phase !== 'won' && G.pha
 function hasPlate(s, kind) { return (s.pt[0] > 0 && s.pk[0] === kind) || (s.pt[1] > 0 && s.pk[1] === kind); }
 // A suit (by) hits a target: dummy, hunt unit, cub, buff creature or another suit. Power boon and Stalker plate come from the hitter.
 function hitTarget(by, d, n) {
+  // Attacking ends the unseen state (batch 16).
+  breakUnseen(by);
   if (by.bT[0] > 0) n *= Math.min(CONFIG.BONUS_CAP, 1 + by.bV[0]);
   if (!d.kind) { hitDummy(d, n); return; }
   if (d.kind === 'suit') { hurtSuit(d, n, 'hit', by); return; }
@@ -1414,11 +1496,14 @@ const G = { time: 0, view: 'follow', paused: false, ctxLost: false, frames: 0, b
   huntN: 0, huntClaims: 0, huntFrees: 0,
   leader: null, leadT: 0, leaderChanges: 0, leaderCode: -1, leaderWrites: 0, miniLeader: false,
   bountyN: 0, bountyWarnAt: -1, bountyStartAt: -1, bountyEndAt: -1, bountyEndWhy: '', bountyPaid: 0, bountyPaidTo: -1,
-  decNext: 0, decN: 0, decCount: { dry: 0, nodash: 0, silence: 0, heights: 0, ult2x: 0 }, decLog: [], brkP: 0, brkB: 0, decCode: -1, decWrites: 0, hiAvoid: false, zoneSec: null, skips: 0, chWrites: 0 };
+  decNext: 0, decN: 0, decCount: { dry: 0, nodash: 0, silence: 0, heights: 0, ult2x: 0 }, decLog: [], brkP: 0, brkB: 0, decCode: -1, decWrites: 0, hiAvoid: false, zoneSec: null, skips: 0, chWrites: 0 , school: 0, selecting: false, selectOn: false, selBtns: [], saveFail: false};
 // The one decree slot (batch 11): st 0 idle, 1 queued, 2 warning (banner), 3 in force. key = decree name, tgt = its suit (bounty), t = seconds left in the state.
 // Decree slot. st: 0 free, 1 queued, 2 warning, 3 in force. len = seconds in force; zone = the no-dash decree's section; warnAt = when its warning began.
 const DEC = { st: 0, key: '', tgt: null, t: 0, count: -1, banner: false, len: 0, zone: null, warnAt: -1 };
 // Bots in this match: CONFIG.BOTS (switch and count), or ?bots=N in the address (0 = map test with the player alone).
+// School select (batch 16): never with ?bots=N (map test and checks); the last pick is read from storage only when the select is on.
+G.selectOn = CONFIG.SELECT.on && !params.has('bots');
+G.school = G.selectOn ? loadSchool() : 0;
 G.botN = !CONFIG.BOTS.on ? 0 : params.has('bots') ? Math.max(0, Math.min(CONFIG.BOTS.count, parseInt(params.get('bots'), 10) || 0)) : CONFIG.BOTS.count;
 
 function warnSection(s) { G.miniDirty = true; G.warnGen++; s.state = 1; for (let i = 0; i < s.floorMeshes.length; i++) s.floorMeshes[i].material = warnMat; }
@@ -1543,8 +1628,8 @@ function step(dt) {
     else {
       const ax = d.x - P.x, az = d.z - P.z, dist = Math.hypot(ax, az) || 1;
       P.faceX = ax / dist; P.faceZ = az / dist;
-      if (dist > CONFIG.ATTACK.range + d.r) { mx = ax / dist; mz = az / dist; }
-      else if (P.atkT <= 0 && P.stunT <= 0) { hitTarget(P, d, CONFIG.ATTACK.dmg); P.atkT = CONFIG.ATTACK.interval; }
+      if (dist > P.kit.attack.range + d.r) { mx = ax / dist; mz = az / dist; }
+      else if (P.atkT <= 0 && P.stunT <= 0) { hitTarget(P, d, P.kit.attack.dmg); P.atkT = P.kit.attack.interval; }
     }
   } else if (PATH.i < PATH.n) {
     const tx = PATH.pts[PATH.i * 2] - P.x, tz = PATH.pts[PATH.i * 2 + 1] - P.z, d = Math.hypot(tx, tz);
@@ -1568,10 +1653,11 @@ function tickSuit(s, dt) {
   if (s.markT > 0) { s.markT -= dt; if (s.markT <= 0) { s.markT = 0; s.marker.visible = false; if (s === P) shrinkHunters(); } }
   if (s.slowT > 0) { s.slowT -= dt; if (s.slowT <= 0) s.slowK = 0; }
   if (s.stunT > 0) s.stunT -= dt;
+  if (s.unseenT > 0) { s.unseenT -= dt; if (s.unseenT <= 0) { s.unseenT = 0; setShimmer(s, false); } }
   if (s.bleedT > 0) {
     s.bleedT -= dt; const b = CONFIG.BLEED.dps * s.bleedN * dt;
-    if (s === P) G.bleedDmg += Math.min(b, s.hp);
-    hurtSuit(s, b, 'bleed', null);
+    const lost = hurtSuit(s, b, 'bleed', null);
+    if (s === P) G.bleedDmg += lost;
     if (s.bleedT <= 0) s.bleedN = 0;
   }
   for (let i = 0; i < 2; i++) if (s.pt[i] > 0) { s.pt[i] -= dt; if (s.pt[i] <= 0) { s.pt[i] = 0; s.pk[i] = ''; checkLeader(); } }
@@ -1581,7 +1667,7 @@ function tickSuit(s, dt) {
 }
 // Walk speed of a suit with its slow, Howler plate and speed boon (bonuses capped).
 function suitSpeed(s) {
-  return CONFIG.PLAYER_SPEED * (s.slowT > 0 ? 1 - s.slowK : 1) * Math.min(CONFIG.BONUS_CAP, (hasPlate(s, 'howler') ? 1 + CONFIG.PLATE.speed : 1) * (1 + (s.bT[3] > 0 ? s.bV[3] : 0)));
+  return s.spd * (s.slowT > 0 ? 1 - s.slowK : 1) * Math.min(CONFIG.BONUS_CAP, (hasPlate(s, 'howler') ? 1 + CONFIG.PLATE.speed : 1) * (1 + (s.bT[3] > 0 ? s.bV[3] : 0)));
 }
 // Body of a suit for one step: knockback, walking with axis sliding, facing, then floors (step up, drop a layer, or fall into the void).
 // mx, mz = wanted direction (length up to 1). Sets s.moved (metres this step) and s.floor (floor under the feet or null).
@@ -1659,8 +1745,12 @@ function updateHp() {
   if (n !== P.hpShown) { P.hpShown = n; setText(el.hptext, T('hp', { n })); setBar(el.hpfill, n / CONFIG.MAX_HP); }
 }
 // Damage to a suit. cause: hit, hazard, bleed, drop or test; by = the suit that dealt it (null for the map and enemies).
+// Batch 16: blows from suits and creatures (causes hit and bleed) pass the suit's armor (STATS); the map (hazard, drop) and test damage stay fixed.
+// Being hit ends the unseen state. Returns the health lost.
 function hurtSuit(s, n, cause, by) {
-  if (s.dead) return;
+  if (s.dead) return 0;
+  if (cause === 'hit' || cause === 'bleed') n *= s.armorK;
+  if (n > 0) breakUnseen(s);
   const lost = Math.min(n, s.hp);
   s.hp -= n; s.noHealT = CONFIG.ALTAR.hitPauseS;
   // Charge (batch 15): the suit hit gains per health taken; a suit that hit another suit gains per health dealt.
@@ -1669,6 +1759,7 @@ function hurtSuit(s, n, cause, by) {
   if (s.bot && n >= 1) { s.flashT = 0.12; s.body.material = M.hit; }
   if (by) { s.lastBy = by; s.lastByT = G.time; }
   if (s.hp <= 0) suitDown(s, cause, by);
+  return lost;
 }
 // A suit is broken. The player: a note and the map-test respawn in the royale, defeat in the hunt.
 function suitDown(s, cause, by) {
@@ -1767,7 +1858,7 @@ function stepDecree(dt) {
     }
     const c = Math.ceil(DEC.t);
     if (DEC.banner && c !== DEC.count) {
-      DEC.count = c; DECREE_VARS.s = c; DECREE_VARS.who = DEC.tgt ? T(SUIT_KEYS[DEC.tgt.id]) : '';
+      DEC.count = c; DECREE_VARS.s = c; DECREE_VARS.who = DEC.tgt ? T(DEC.tgt.nameKey) : '';
       setText(el.rule, T(DECREES[DEC.key].rule, DECREE_VARS));
     }
   } else if (DEC.st === 3) { DEC.t -= dt; if (DEC.t <= 0) endDecree('time'); }
@@ -1846,11 +1937,18 @@ function breakDecree(s) {
   if (s === P) showNote('voice_marked', 'rule_marked', MARK_VARS);
 }
 // Marks off every suit (the wake and a new run).
-function clearMarks() { for (let i = 0; i < SUITS.length; i++) { const s = SUITS[i]; s.markT = 0; s.brkT = 0; s.marker.visible = false; s.dashLeft = 0; s.wsT = -99; } }
+function clearMarks() { for (let i = 0; i < SUITS.length; i++) { const s = SUITS[i]; s.markT = 0; s.brkT = 0; s.marker.visible = false; s.dashLeft = 0; s.wsT = -99; breakUnseen(s); } }
+// ----- Unseen state (batch 16, minimal; curtains and walls blocking sight come with hiding in batch 18).
+function goUnseen(s, sec) { s.unseenT = sec; setShimmer(s, true); }
+function breakUnseen(s) { if (s.unseenT <= 0) return; s.unseenT = 0; setShimmer(s, false); }
+// The body of an unseen suit is drawn as a shimmer (the indicator material, already compiled at load).
+function setShimmer(s, on) { if (s === P) playerBody.material = on ? M.ind : M.player; else s.body.material = on ? M.ind : s.mat; }
+// Suit s cannot be seen from x, z: unseen, not marked (the mark wins) and farther than UNSEEN.shimmerM.
+function hiddenFrom(s, x, z) { return s.unseenT > 0 && s.markT <= 0 && Math.hypot(s.x - x, s.z - z) > CONFIG.UNSEEN.shimmerM; }
 // Start a dash (W): toward dx, dz for the skill's range by the walking rule; ord = a player order (its hits follow the player's own rules), else the bot brain.
 // Dashing while standing in the no-dash zone breaks that decree.
 function startDash(s, slot, dx, dz, ord) {
-  const sk = CONFIG.SKILLS[slot];
+  const sk = skillOf(s, slot);
   s.dashLeft = sk.range; s.dashX = dx; s.dashZ = dz; s.dashStep = sk.range / sk.dashS * CONFIG.STEP; s.dashSlot = slot; s.dashOrd = ord;
   if (decOn('nodash') && s.floor && s.floor.s === DEC.zone) breakDecree(s);
 }
@@ -1899,7 +1997,7 @@ function updateLeaderHud() {
   if (code === G.leaderCode) return;
   G.leaderCode = code; G.leaderWrites++;
   if (!L) { setShow(el.leader, false); return; }
-  LEADER_VARS.who = T(SUIT_KEYS[L.id]); LEADER_VARS.s = on ? Math.ceil(DEC.t) : 0;
+  LEADER_VARS.who = T(L.nameKey); LEADER_VARS.s = on ? Math.ceil(DEC.t) : 0;
   setText(el.leader, T(on ? 'hud_leader_bounty' : 'hud_leader', LEADER_VARS)); setShow(el.leader, true);
 }
 // A suit fell into the void. The player: back to the centre courtyard in the map test (no bots); in a match it is out like a bot.
@@ -2012,11 +2110,11 @@ function resolveMove(u) {
     } else hit = Math.hypot(s.x - u.tx, s.z - u.tz) <= m.radius;
     if (!hit) continue;
     const dmg = m.dmg * u.dmgK * (u.frenzyT > 0 ? CONFIG.DEMON_ULT.dmg : 1);
-    if (s === P) { G.hits++; if (u.tellT < G.minTell) G.minTell = u.tellT; if (dmg > 0) G.hitDmg += Math.min(dmg, P.hp); }
+    if (s === P) { G.hits++; if (u.tellT < G.minTell) G.minTell = u.tellT; }
     if (m.slow) { s.slowK = Math.max(s.slowT > 0 ? s.slowK : 0, m.slow); s.slowT = Math.max(s.slowT, m.slowS); }
     if (m.stun) s.stunT = Math.max(s.stunT, m.stun);
     if (m.bleed) { s.bleedN = Math.min(CONFIG.BLEED.max, s.bleedN + m.bleed); s.bleedT = CONFIG.BLEED.dur; }
-    if (dmg > 0) hurtSuit(s, dmg, 'hit', null);
+    if (dmg > 0) { const lost = hurtSuit(s, dmg, 'hit', null); if (s === P) G.hitDmg += lost; }
   }
   if (m.shape === 'circle') { u.st = 3; u.t = CONFIG.APEX.recoverS; return; }
   u.ax = u.x; u.az = u.z; u.dashS = m.dashS; u.st = 2; u.t = 0;
@@ -2342,7 +2440,7 @@ function stepBots(dt) {
   for (let k = 0; k < BOTLIST.length; k++) {
     const b = BOTLIST[k];
     if (!b.dead) { stepBot(b, dt); if (!b.dead) alive++; }
-    const vis = !b.dead && (b.markT > 0 || (Math.abs(b.y - P.y) < 6 && Math.hypot(b.x - P.x, b.z - P.z) <= VR));
+    const vis = !b.dead && !hiddenFrom(b, P.x, P.z) && (b.markT > 0 || (Math.abs(b.y - P.y) < 6 && Math.hypot(b.x - P.x, b.z - P.z) <= VR));
     b.seen = vis;
     if (b.group.visible !== vis) b.group.visible = vis;
   }
@@ -2403,11 +2501,11 @@ function botThink(b, dt) {
   // Act on the decision.
   const q = b.tgt;
   if (q && (b.mode === 'fight' || b.mode === 'creature')) {
-    const dx = q.x - b.x, dz = q.z - b.z, d = Math.hypot(dx, dz) || 1e-6, reach = CONFIG.ATTACK.range + q.r;
+    const at = b.kit.attack, dx = q.x - b.x, dz = q.z - b.z, d = Math.hypot(dx, dz) || 1e-6, reach = at.range + q.r;
     if (d > 0.01) { b.faceX = dx / d; b.faceZ = dz / d; }
     if (b.tgtT >= sk.react && b.stunT <= 0 && b.castT <= 0) botUseSkills(b, q, d);
     if (d <= reach) {
-      if (b.atkT <= 0 && b.stunT <= 0 && b.tgtT >= sk.react) { hitTarget(b, q, CONFIG.ATTACK.dmg); b.atkT = CONFIG.ATTACK.interval; }
+      if (b.atkT <= 0 && b.stunT <= 0 && b.tgtT >= sk.react) { hitTarget(b, q, at.dmg); b.atkT = at.interval; }
     } else if (b.direct) { b.mx = dx / d; b.mz = dz / d; }
     else botFollow(b);
   } else if (b.mode === 'heal' && b.heal) {
@@ -2536,24 +2634,26 @@ function botTarget(b, t, mode) {
 }
 // A bot sees a suit inside its own vision radius, on about its own layer.
 // A marked suit (batch 12) is seen by every bot from anywhere.
-function botSees(b, s, vr) { return !s.dead && (s.markT > 0 || (Math.abs(s.y - b.y) < 2 && Math.hypot(s.x - b.x, s.z - b.z) <= vr)); }
+function botSees(b, s, vr) { return !s.dead && !hiddenFrom(s, b.x, b.z) && (s.markT > 0 || (Math.abs(s.y - b.y) < 2 && Math.hypot(s.x - b.x, s.z - b.z) <= vr)); }
 // Skills when ready and in range: Q line, W burst, R delayed burst with a ring shown for its whole delay. Aim error from the skill profile.
 function botUseSkills(b, q, d) {
-  const S = CONFIG.SKILLS, B = CONFIG.BOT, err = (1 - b.skill.hit) * B.aimErrM;
+  const S = b.kit.skills, B = CONFIG.BOT, err = (1 - b.skill.hit) * B.aimErrM;
   // Decrees: silenced on a bridge; no dash inside the no-dash zone. No cast while dashing.
   if (b.dashLeft > 0 || silenced(b)) return;
   const noDash = decOn('nodash') && !!b.floor && b.floor.s === DEC.zone;
   for (let slot = 0; slot < 3; slot++) {
     const sk = S[slot];
     // Batch 15: R on the meter also needs a full meter.
-    if (b.cd[slot] > 0 || (slot === 2 && (b.pend || (onMeter(b) && b.ch < CONFIG.ULT.full) || (q.hp > sk.dmg && b.hp >= B.ultBelowHp)))) continue;
-    // The dash closes in: only from BOT.dashMinM to BOT.dashMaxM away and on about the target's layer; other skills within their range.
-    if (sk.dash ? (noDash || d < B.dashMinM || d > B.dashMaxM || Math.abs(q.y - b.y) > 0.7) : d > sk.range) continue;
+    if (b.cd[slot] > 0 || (slot === 2 && (b.pend || (onMeter(b) && b.ch < CONFIG.ULT.full)))) continue;
+    // Batch 16: the brain reads the skill's tag. 'ult' is kept to finish a target or used under BOT.ultBelowHp.
+    if (sk.tag === 'ult' && q.hp > sk.dmg && b.hp >= B.ultBelowHp) continue;
+    // 'dashIn' closes in: only from BOT.dashMinM to BOT.dashMaxM away and on about the target's layer; other skills within their range.
+    if (sk.tag === 'dashIn' ? (noDash || d < B.dashMinM || d > B.dashMaxM || Math.abs(q.y - b.y) > 0.7) : d > sk.range) continue;
     const a = brnd() * 6.2832, r = brnd() * err, tx = q.x + Math.cos(a) * r, tz = q.z + Math.sin(a) * r;
     let dx = tx - b.x, dz = tz - b.z; const len = Math.hypot(dx, dz) || 1e-6; dx /= len; dz /= len;
     const dist = sk.type === 'line' ? sk.range : Math.min(len, sk.range), x = b.x + dx * dist, z = b.z + dz * dist;
     if (slot === 2 && onMeter(b)) { b.ch = 0; b.ultN++; } else b.cd[slot] = sk.cd;
-    b.faceX = dx; b.faceZ = dz; b.castT = CONFIG.BOT.castGapS;
+    b.faceX = dx; b.faceZ = dz; b.castT = CONFIG.BOT.castGapS; breakUnseen(b);
     if (sk.dash) startDash(b, slot, dx, dz, false);
     else if (sk.delay > 0) {
       b.pend = true; b.pendT = sk.delay; b.pendS = slot; b.pendX = x; b.pendZ = z; b.pendDx = dx; b.pendDz = dz; b.pendAge = 0;
@@ -2564,16 +2664,11 @@ function botUseSkills(b, q, d) {
 }
 // A bot's skill lands: every other suit (the player too), cub and buff creature inside the shape on about its layer is hit.
 function botSkillHit(b, slot, x, z, dx, dz) {
-  const sk = CONFIG.SKILLS[slot];
+  const sk = skillOf(b, slot);
   for (let i = -1; i < TARGETS.length; i++) {
     const d = i < 0 ? P : TARGETS[i];
     if (d === b || !d.kind || (d.kind === 'suit' ? d.dead : !d.alive) || d.hunt || Math.abs(d.y - b.y) > 2) continue;
-    let hit = false;
-    if (sk.type === 'line') {
-      const px = d.x - b.x, pz = d.z - b.z, along = px * dx + pz * dz, side = Math.abs(px * dz - pz * dx);
-      hit = along >= 0 && along <= sk.range + d.r && side <= sk.width / 2 + d.r;
-    } else hit = Math.hypot(d.x - x, d.z - z) <= sk.radius + d.r;
-    if (hit) hitTarget(b, d, sk.dmg);
+    if (inSkillShape(sk, d, b.x, b.z, x, z, dx, dz)) hitTarget(b, d, sk.dmg);
   }
 }
 // Delayed bot skills (the ultimate): the ring stays for the whole delay, then the hit lands.
@@ -2605,9 +2700,9 @@ function botDanger(b, x, z, margin) {
   for (let i = 0; i < BOTLIST.length; i++) {
     const o = BOTLIST[i];
     if (o === b || !o.pend || o.pendAge < react) continue;
-    if (Math.hypot(x - o.pendX, z - o.pendZ) < CONFIG.SKILLS[2].radius + margin) { DNG.ex = b.x - o.pendX; DNG.ez = b.z - o.pendZ; if (DNG.ex === 0 && DNG.ez === 0) DNG.ez = 1; return true; }
+    if (Math.hypot(x - o.pendX, z - o.pendZ) < skillOf(o, o.pendS).radius + margin) { DNG.ex = b.x - o.pendX; DNG.ez = b.z - o.pendZ; if (DNG.ex === 0 && DNG.ez === 0) DNG.ez = 1; return true; }
   }
-  if (PEND.on && CONFIG.SKILLS[PEND.slot].delay - PEND.t >= react && Math.hypot(x - PEND.x, z - PEND.z) < CONFIG.SKILLS[PEND.slot].radius + margin) {
+  if (PEND.on && skillOf(P, PEND.slot).delay - PEND.t >= react && Math.hypot(x - PEND.x, z - PEND.z) < skillOf(P, PEND.slot).radius + margin) {
     DNG.ex = b.x - PEND.x; DNG.ez = b.z - PEND.z; if (DNG.ex === 0 && DNG.ez === 0) DNG.ez = 1; return true;
   }
   return false;
@@ -2776,8 +2871,52 @@ function clearHunt() {
   clearPlayerStatus(); setHuntUi();
 }
 // Hunt button / H: after a royale loss it starts a new run; in a match the royale ends only by the last suit standing (H works with ?debug or without bots).
+// ----- Schools and the school select (batch 16).
+// New run: through the school select when it is on, else straight away.
+function newRun() { if (G.selectOn) openSelect(); else reset(); }
+// The player takes school G.school; the bots take the other eight in CONFIG.SCHOOLS order (kit, stats, colour, name). HUD and bar names written on change.
+function assignSchools() {
+  const L = CONFIG.SCHOOLS;
+  applyKit(P, L[G.school]); P.nameKey = 'suit_0';
+  let k = 0;
+  for (let i = 0; i < L.length && k < BOTLIST.length; i++) {
+    if (i === G.school) continue;
+    const b = BOTLIST[k++]; applyKit(b, L[i]); b.nameKey = 'school_' + L[i]; b.mat.color.setHex(COL.schools[i]);
+  }
+  SCHOOL_VARS.who = T('school_' + L[G.school]); setText(el.school, T('hud_school', SCHOOL_VARS));
+  for (let i = 0; i < SK.length; i++) if (SK[i].lb) setText(SK[i].lb, skillOf(P, i).name);
+}
+function loadSchool() { try { const v = parseInt(localStorage.getItem(CONFIG.SELECT.saveKey), 10); return v >= 0 && v < CONFIG.SCHOOLS.length ? v : 0; } catch (e) { return 0; } }
+function saveSchool(i) { try { localStorage.setItem(CONFIG.SELECT.saveKey, String(i)); } catch (e) { G.saveFail = true; } }
+// The select: nine school buttons and a random one (built once at load); the last pick is outlined.
+function buildSelect() {
+  setText(el.selTitle, T('sel_title')); setText(el.selRule, T('sel_rule'));
+  CONFIG.SCHOOLS.forEach((sc, i) => {
+    const b = document.createElement('button'); b.className = 'sel__btn'; b.textContent = T('sel_key', { n: i + 1, who: T('school_' + sc) });
+    b.addEventListener('click', () => pickSchool(i)); el.selList.appendChild(b); G.selBtns.push(b);
+  });
+  const r = document.createElement('button'); r.className = 'sel__btn sel__btn--random'; r.textContent = T('sel_random');
+  r.addEventListener('click', () => pickSchool(-1)); el.selList.appendChild(r); G.selBtns.push(r);
+}
+// Open the select: the simulation and the drawing stop until a pick (nothing renders behind the opaque menu).
+function openSelect() {
+  G.selecting = true; clearInput(); setShow(el.select, true);
+  for (let i = 0; i < CONFIG.SCHOOLS.length; i++) G.selBtns[i].classList.toggle('is-last', i === G.school);
+}
+// Pick a school (-1 = let Heaven choose), remember it and start a new run with it.
+function pickSchool(i) {
+  if (i < 0) i = (Date.now() >>> 0) % CONFIG.SCHOOLS.length;
+  G.school = i; saveSchool(i); G.selecting = false; setShow(el.select, false); reset();
+}
+// Keys on the select: 1-9 pick a school, 0 lets Heaven choose, Enter takes the last pick.
+function selectKey(e) {
+  const n = e.code.startsWith('Digit') ? parseInt(e.code.slice(5), 10) : -1;
+  if (n >= 1 && n <= CONFIG.SCHOOLS.length) pickSchool(n - 1);
+  else if (n === 0) pickSchool(-1);
+  else if (e.code === 'Enter') pickSchool(G.school);
+}
 function huntButton() {
-  if (G.phase === 'lost' && G.lostIn === 'royale') { reset(); return; }
+  if (G.phase === 'lost' && G.lostIn === 'royale') { newRun(); return; }
   if (G.phase === 'wake' || G.phase === 'hunt') return;
   if (G.phase === 'royale' && G.botN > 0 && !DEBUG) return;
   startHunt();
@@ -2963,6 +3102,7 @@ function reset() {
   G.warnGen = 0; G.decNext = draw(DBAGS.first); G.decN = 0; G.decLog.length = 0; G.brkP = 0; G.brkB = 0; G.decWrites = 0; G.skips = 0; P.floor = null;
   for (const k in G.decCount) G.decCount[k] = 0;
   for (const s of SUITS) s.breaks = 0;
+  assignSchools();
   spawnBots();
   setShow(el.banner, false);
   renderer.shadowMap.needsUpdate = true;
@@ -3012,7 +3152,7 @@ function placeView(alpha) {
   FOW.uFowC.value.set(x, y, z);
   // Aim indicators: desktop aims at the cursor; phone aims by the drag direction and length.
   if (ORD.aiming >= 0) {
-    const sk = CONFIG.SKILLS[ORD.aiming];
+    const sk = skillOf(P, ORD.aiming);
     if (ORD.src === 'key') {
       const hp = cursorGround();
       if (hp.ok) { const ax = hp.x - x, az = hp.z - z, l = Math.hypot(ax, az); if (l > 0.05) { ORD.dirX = ax / l; ORD.dirZ = az / l; } ORD.dist = Math.min(l, sk.range); }
@@ -3055,7 +3195,7 @@ function frame(now) {
   G.frames++;
   try {
     const realMs = last ? now - last : 16; last = now;
-    if (G.paused || G.ctxLost) return;
+    if (G.paused || G.ctxLost || G.selecting) return;
     const dt = Math.min(realMs / 1000, CONFIG.MAX_DT);
     acc += dt;
     while (acc >= CONFIG.STEP) { step(CONFIG.STEP); acc -= CONFIG.STEP; }
@@ -3086,7 +3226,7 @@ function frame(now) {
 setText(el.help, T(TOUCH ? 'help_touch' : 'help_desktop'));
 if (TOUCH) document.body.classList.add('touch');
 setShow(el.btnMap, DEBUG);
-setupMini(); buildBar();
+setupMini(); buildBar(); buildSelect();
 setShow(el.dbg, DEBUG);
 applyTier(tier);
 setView('follow');
@@ -3120,8 +3260,9 @@ for (const m of INDICATORS) m.visible = false;
 scene.remove(warm, warmZone); warm.geometry.dispose(); P.marker.visible = false;
 drawMini();
 renderer.shadowMap.needsUpdate = true;
+if (G.selectOn) openSelect();
 
-// Test hooks (read-mostly).
+// Test hooks (read-mostly). Batch 16: openSelect, pickSchool, selectKey, setSelectOn, newRun, schools, setStats, bleed, unseen (set), unseenOf (read).
 function tellsOf(list) {
   return list.filter((u) => u.alive && u.st === 1 && u.cur !== 'ult').map((u) => { const m = MOVES[u.cur], mesh = m.shape === 'line' ? u.line : u.ring;
     return { by: u.kind, move: u.cur, shape: m.shape, x: m.shape === 'line' ? u.x : u.tx, z: m.shape === 'line' ? u.z : u.tz, r: m.radius || 0, fx: u.fx, fz: u.fz, len: u.tl, w: m.width || 0,
@@ -3144,6 +3285,14 @@ window.__game = {
   navTime(ax, az, bx, bz, smooth) { const t0 = performance.now(); const ok = navSearch(ax, az, topY(ax, az), bx, bz, topY(bx, bz), NAV_SCRATCH, smooth); return { ms: performance.now() - t0, ok, n: NAV_SCRATCH.n }; },
   navNodes: () => NAV.V,
   setBots(n) { G.botN = Math.max(0, Math.min(CONFIG.BOTS.count, n)); },
+  openSelect, pickSchool, selectKey(code) { selectKey({ code }); }, setSelectOn(on) { G.selectOn = !!on; }, newRun,
+  schools: () => ({ pick: G.school, selecting: G.selecting, shown: el.select.style.display, hud: el.school.textContent, saveFail: G.saveFail,
+    buttons: G.selBtns.map((b) => { const r = b.getBoundingClientRect(); return { text: b.textContent, w: r.width, h: r.height, last: b.classList.contains('is-last') }; }),
+    suits: SUITS.map((q) => ({ id: q.id, school: q.school, kit: q.kit.id || q.school, armor: q.armor, armorK: q.armorK, spd: q.spd, ultMode: q.ultMode, name: T(q.nameKey), color: q.mat ? q.mat.color.getHex() : -1 })) }),
+  setStats(i, a, sp) { setStats(i < 0 ? P : BOTLIST[i], a, sp); },
+  bleed(i, n) { const q = i < 0 ? P : BOTLIST[i]; q.bleedN = n; q.bleedT = CONFIG.BLEED.dur; },
+  unseen(i, sec) { const q = i < 0 ? P : BOTLIST[i]; if (sec > 0) goUnseen(q, sec); else breakUnseen(q); return __game.unseenOf(i); },
+  unseenOf(i) { const q = i < 0 ? P : BOTLIST[i]; return { t: q.unseenT, shimmer: (q === P ? playerBody : q.body).material === M.ind }; },
   autoPlayer(on, kennel) { G.autoP = !!on; G.autoK = !!on && !!kennel; P.campK = -1; P.mode = ''; P.tgt = null; P.pathGen = 0; P.heal = null; P.skip = null; P.direct = false; P.tgtT = 0; P.castT = 0; P.lastByT = -99; P.declined = null; P.declinedT = -99; P.gx = P.x; P.gz = P.z; P.gy = P.y; P.navWant = false; P.flee = false; P.pend = false; if (P.ring.parent) scene.remove(P.ring); P.cd[0] = P.cd[1] = P.cd[2] = 0; P.thinkT = 0; P.lastBy = null; P.goalT = 1e9; PATH.n = 0; PATH.i = 0; },
   setBotHp(i, n) { BOTLIST[i].hp = n; }, setWatch(on) { G.watch = !!on; },
   royale: () => ({ phase: G.phase, lostIn: G.lostIn, alive: G.alive, decidedAt: G.decidedAt, t: G.time, voice: el.voice.textContent, rule: el.rule.textContent, banner: el.banner.style.display, btn: el.btnHunt.style.display, btnText: el.btnHunt.textContent }), setBotCd(i, slot, v) { BOTLIST[i].cd[slot] = v; }, setTime(t) { G.time = t; },

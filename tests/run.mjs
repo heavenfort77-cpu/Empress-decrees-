@@ -1462,6 +1462,87 @@ try {
   });
   check('92 HUD charge: written only on change (0 writes while full, one per whole number gained), text and ring match the meter; budget, programs and geometry flat',
     hw.ok && hw.calls < 500 && hw.programs === base.programs && hw.geoms === base.geoms, JSON.stringify(hw));
+  // ===== Batch 16 ticket 01: kit framework, suit stats, school select, unseen state =====
+  // 93 Suit stats (docs/STATS-MATH.md, owner 23 Nov 23:3x): blows from suits and creatures (hit, bleed) pass the armor, taken = raw x (K + Mid) / (K + armor);
+  // statue, lions, drops and test damage stay fixed; a Mid suit takes every number unchanged (factor exactly 1); speed tiers move a suit at their m/s.
+  const st93 = await g(() => {
+    const G = __game, C = G.config, S = C.STATS, H = window.__d, o = {}, f = (a) => (S.K + S.armor[S.yard]) / (S.K + S.armor[a]);
+    H.start(3); const s0 = G.schools().suits; o.mid = s0.every((q) => q.armorK === 1 && q.spd === C.PLAYER_SPEED && q.armor === S.armor.Mid);
+    G.setStats(0, 'Low', 'Mid'); G.setStats(1, 'High', 'Mid'); G.setBotHp(0, 100); G.setBotHp(1, 100); G.setBotHp(2, 100);
+    G.hitBy(-1, 0, 25); G.hitBy(-1, 1, 25); G.hitBy(-1, 2, 25); const b = G.bots().list;
+    o.low = +(100 - b[0].hp).toFixed(4); o.high = +(100 - b[1].hp).toFixed(4); o.midHit = 100 - b[2].hp; o.wantLow = +(25 * f('Low')).toFixed(4); o.wantHigh = +(25 * f('High')).toFixed(4);
+    G.setBotHp(0, 100); G.hitBot(0, 10); o.testFixed = 100 - G.bots().list[0].hp;
+    H.start(1); G.setStats(0, 'High', 'Mid'); G.setBotHp(0, 100); G.bleed(0, 2); H.hold(1, H.park); o.bleed = +(100 - G.bots().list[0].hp).toFixed(3); o.wantBleed = +(C.BLEED.dps * 2 * f('High')).toFixed(3);
+    H.start(1); G.setHp(100); G.setStats(-1, 'Low', 'Mid'); const l = G.hazards()[1]; G.teleport(l.x + 2.5, l.z); G.step(1); G.step(Math.round((C.LION.windup + 0.05) / C.STEP));
+    o.lion = 100 - G.state().hp;
+    H.start(1); G.setHp(100); G.setStats(-1, 'High', 'Mid'); G.teleport(-33 * G.K, -3 * G.K); G.setMove(0, 1); G.step(90); G.clearMove(); G.step(30); o.drop = 100 - G.state().hp;
+    const run = (tier) => { H.start(1); G.setStats(-1, 'Mid', tier); G.teleport(14, -20); G.step(1); const x0 = G.state().x; G.setMove(1, 0); G.step(30); G.clearMove(); return +(G.state().x - x0).toFixed(3); };
+    o.vLow = run('Low'); o.vMid = run('Mid'); o.vHigh = run('High'); o.want = [S.speed.Low * 0.5, S.speed.Mid * 0.5, S.speed.High * 0.5];
+    G.reset(); o.back = G.schools().suits.every((q) => q.armorK === 1 && q.spd === C.PLAYER_SPEED);
+    o.ok = o.mid && Math.abs(o.low - o.wantLow) < 1e-3 && Math.abs(o.high - o.wantHigh) < 1e-3 && o.midHit === 25 && o.wantLow > 25 && o.wantHigh < 25 && o.testFixed === 10
+      && Math.abs(o.bleed - o.wantBleed) < 0.05 && o.lion === C.LION.dmg && o.drop === C.DROP_DAMAGE
+      && Math.abs(o.vLow - o.want[0]) < 0.01 && Math.abs(o.vMid - o.want[1]) < 0.01 && Math.abs(o.vHigh - o.want[2]) < 0.01 && o.back;
+    G.setBots(0); G.reset(); return o;
+  });
+  check('93 suit stats: armor on hits and bleed (Low takes more, High less, Mid unchanged), statue/lion, drop and test damage fixed, speed tiers in m/s, a new run back to its kit',
+    st93.ok, JSON.stringify(st93));
+  // 94 School select (owner 23 Nov 23:3x): nine school buttons plus a random one, every one at least 44 px; while it is open nothing steps;
+  // keys 1-9 pick, 0 lets Heaven choose, Enter takes the last pick (outlined); the pick is remembered in storage; the player takes it and the bots the other eight
+  // in CONFIG.SCHOOLS order with their names and colours; HUD names the player's school; New run opens the select; game keys do nothing while it is open.
+  const sel = await g(async () => {
+    const G = __game, C = G.config, o = {}, frames = (n) => new Promise((r) => { let k = 0; const f = () => (++k >= n ? r() : requestAnimationFrame(f)); requestAnimationFrame(f); });
+    G.setSeed(12345); G.setBots(8); G.reset(); G.setSelectOn(true); G.openSelect();
+    let sc = G.schools(); o.open = sc.selecting && sc.shown === 'block'; o.n = sc.buttons.length; o.small = sc.buttons.filter((b) => b.w < 44 || b.h < 44).length; o.last0 = sc.buttons[0].last;
+    const t0 = G.state().t; await frames(20); o.frozen = G.state().t === t0;
+    dispatchEvent(new KeyboardEvent('keydown', { code: 'KeyN' })); dispatchEvent(new KeyboardEvent('keydown', { code: 'KeyQ' })); o.keysIgnored = G.schools().selecting && G.skills()[0] === 0;
+    G.selectKey('Digit3'); sc = G.schools(); const L = C.SCHOOLS;
+    o.pick = sc.pick; o.closed = !sc.selecting && sc.shown === 'none'; o.hud = sc.hud; o.player = sc.suits[0].school; o.bots = sc.suits.slice(1).map((q) => q.school).join(',');
+    o.wantBots = L.filter((x, i) => i !== 2).join(','); o.names = sc.suits.slice(1).map((q) => q.name).join(','); o.colors = sc.suits.slice(1).every((q) => q.color === C.COL.schools[L.indexOf(q.school)]);
+    let stored = null; try { stored = localStorage.getItem(C.SELECT.saveKey); } catch (e) { stored = 'blocked'; } o.stored = stored;
+    o.runFresh = G.state().t === 0 && G.royale().phase === 'royale' && G.bots().list.every((q) => !q.dead);
+    G.newRun(); o.newRunOpens = G.schools().selecting; o.lastNow = G.schools().buttons[2].last;
+    G.selectKey('Enter'); o.enter = G.schools().pick === 2 && !G.schools().selecting;
+    G.openSelect(); G.selectKey('Digit0'); sc = G.schools(); o.random = sc.pick >= 0 && sc.pick < 9 && !sc.selecting && sc.suits[0].school === L[sc.pick];
+    G.pickSchool(0); o.back = G.schools().suits.slice(1).map((q) => q.name).join(','); try { localStorage.removeItem(C.SELECT.saveKey); } catch (e) { o.cleanFail = true; }
+    G.setSelectOn(false); G.setBots(0); G.reset(); return o;
+  });
+  check('94 school select: 9 schools + random (44 px), frozen while open, keys 1-9 / 0 / Enter, pick stored, bots take the other eight with names and colours, HUD line, New run opens it',
+    sel.open && sel.n === 10 && sel.small === 0 && sel.last0 && sel.frozen && sel.keysIgnored && sel.pick === 2 && sel.closed && sel.hud === 'Your school: Fa suit' && sel.player === 'fa'
+    && sel.bots === sel.wantBots && sel.names === 'Ru suit,Dao suit,Mo suit,Yinyang suit,Za suit,Ming suit,Zongheng suit,Nong suit' && sel.colors && sel.stored === '2' && sel.runFresh
+    && sel.newRunOpens && sel.lastNow && sel.enter && sel.random && sel.back === 'Dao suit,Fa suit,Mo suit,Yinyang suit,Za suit,Ming suit,Zongheng suit,Nong suit', JSON.stringify(sel));
+  // 95 Unseen state (minimal, batch 16): an unseen suit is not seen by the player (not drawn, so no auto-target) or by bots beyond UNSEEN.shimmerM, is seen
+  // as a shimmer within it, is seen while marked; being hit, attacking (a cast that hits nothing) and its timer end it; a new run clears it; programs and geometry flat with the shimmer drawn.
+  const us = await g(() => {
+    const G = __game, C = G.config, H = window.__d, o = {}, put = () => { G.placeBot(0, 0, -50); G.placeBot(1, 6, -50); };
+    H.start(2); G.teleport(0, -44); put(); G.step(1); o.before = { seen: G.bots().list[0].seen, sees: G.sees(1, 0) };
+    o.on = G.unseen(0, 2); put(); G.step(1); let b = G.bots().list[0]; o.far = { seen: b.seen, vis: b.vis, sees: G.sees(1, 0) };
+    G.teleport(0, -48); put(); G.step(1); b = G.bots().list[0]; o.near = { seen: b.seen, vis: b.vis }; const r = G.render(true); o.programs = r.programs; o.geoms = r.geoms;
+    G.teleport(0, -44); G.hitBy(1, 0, 1); put(); G.step(1); o.hit = { t: G.unseenOf(0).t, seen: G.bots().list[0].seen, shimmer: G.unseenOf(0).shimmer };
+    H.start(2); G.teleport(0, -44); put(); G.unseen(0, 1); H.hold(0.5, put); o.mid = G.bots().list[0].seen; H.hold(0.6, put); o.timer = { t: G.unseenOf(0).t, seen: G.bots().list[0].seen };
+    G.unseen(-1, 2); put(); G.step(1); o.pHidden = !G.sees(0, -1); G.cast(0, 0, -36); G.step(1); o.pCast = { t: G.unseenOf(-1).t, sees: G.sees(0, -1) };
+    G.unseen(0, 3); G.breakBy(0); put(); G.step(1); o.marked = { seen: G.bots().list[0].seen, sees: G.sees(1, 0) };
+    G.unseen(0, 3); G.reset(); o.reset = G.unseenOf(0).t;
+    o.ok = o.before.seen && o.before.sees && o.on.shimmer && !o.far.seen && !o.far.vis && !o.far.sees && o.near.seen && o.near.vis && o.hit.t === 0 && o.hit.seen && !o.hit.shimmer
+      && !o.mid && o.timer.t === 0 && o.timer.seen && o.pHidden && o.pCast.t === 0 && o.pCast.sees && o.marked.seen && o.marked.sees && o.reset === 0;
+    G.setBots(0); G.reset(); return o;
+  });
+  check('95 unseen: hidden from the player and bots beyond 3 m, shimmer within it, mark wins, ends on being hit, casting and its timer, new run clears it; programs and geometry flat',
+    us.ok && us.programs === base.programs && us.geoms === base.geoms, JSON.stringify(us));
+  // 96 Kit framework (batch 16 ticket 01): nine schools in the docs/SUITS.md order with their stat tiers from its table, every kit unbuilt yet (placeholder at Mid),
+  // the default pick (Ru) leaves the bots in today's order and names, skills carry their bot tags, Mid speed equals PLAYER_SPEED, school names and select texts exist.
+  const kf96 = await g(() => {
+    const G = __game, C = G.config, T = G.text, o = {};
+    G.setSeed(12345); G.setBots(8); G.reset(); const sc = G.schools();
+    const want = { ru: ['High', 'Mid'], dao: ['Low', 'High'], fa: ['Mid', 'High'], mo: ['High', 'Low'], yinyang: ['Low', 'Mid'], za: ['Mid', 'Mid'], ming: ['Low', 'Mid'], zongheng: ['Mid', 'Mid'], nong: ['High', 'Low'] };
+    o.order = C.SCHOOLS.join(','); o.tiers = C.SCHOOLS.every((k) => C.KITS[k].armor === want[k][0] && C.KITS[k].speed === want[k][1]);
+    o.unbuilt = C.SCHOOLS.every((k) => C.KITS[k].built === false); o.placeholder = sc.suits.every((q) => q.kit === 'placeholder' && q.ultMode === 'charge');
+    o.player = sc.suits[0].school; o.bots = sc.suits.slice(1).map((q) => q.name).join(','); o.tags = C.SKILLS.map((k) => k.tag).join(',');
+    o.speedMid = C.STATS.speed.Mid === C.PLAYER_SPEED && C.STATS.yard === 'Mid'; o.keys = C.SCHOOLS.map((k) => 'school_' + k).concat(['hud_school', 'sel_title', 'sel_rule', 'sel_random', 'sel_key']).filter((k) => !T[k]);
+    G.setBots(0); G.reset(); return o;
+  });
+  check('96 kit framework: nine schools in order with their stat tiers, all on the placeholder kit at Mid until built, default pick keeps the bots\' order, skill tags, text keys',
+    kf96.order === 'ru,dao,fa,mo,yinyang,za,ming,zongheng,nong' && kf96.tiers && kf96.unbuilt && kf96.placeholder && kf96.player === 'ru'
+    && kf96.bots === 'Dao suit,Fa suit,Mo suit,Yinyang suit,Za suit,Ming suit,Zongheng suit,Nong suit' && kf96.tags === 'poke,dashIn,ult' && kf96.speedMid && kf96.keys.length === 0, JSON.stringify(kf96));
   // 66 Idle player: standing at the spawn doing nothing loses the royale (frozen loss with a cause) before the last collapse is over.
   const idle = await g(() => {
     const G = __game, C = G.config; G.setSeed(12345); G.setBots(G.config.BOTS.count); G.reset(); let t = 0;
