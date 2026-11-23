@@ -876,7 +876,7 @@ for (let k = 0; k < SUITS.length; k++) {
   Object.assign(s, { marker: m, markT: 0, brkT: 0, breaks: 0, wsT: -99, dashLeft: 0, dashX: 0, dashZ: 0, dashStep: 0, dashSlot: 1, dashOrd: false, silShown: false });
 }
 // Brain fields on the player too, used only by the test autopilot (__game.autoPlayer).
-Object.assign(P, { cd: [0, 0, 0], navWant: false, gx: 0, gz: 0, gy: 0, goalT: 0, skill: CONFIG.BOT.skills.average, thinkT: 0, tgt: null, tgtT: 0, mode: '', direct: false,
+Object.assign(P, { campK: -1, cd: [0, 0, 0], navWant: false, gx: 0, gz: 0, gy: 0, goalT: 0, skill: CONFIG.BOT.skills.average, thinkT: 0, tgt: null, tgtT: 0, mode: '', direct: false,
   heal: null, skip: null, castT: 0, lastBy: null, lastByT: -99, declined: null, declinedT: -99, flee: false, pathGen: 0, why: '', hunter: false, huntLostT: 0, mx: 0, mz: 0,
   pend: false, pendT: 0, pendS: 2, pendX: 0, pendZ: 0, pendDx: 0, pendDz: 0, pendAge: 0, ring: new THREE.Mesh(fxTele.geometry, M.ring) });
 // Everything the player can target: training dummies, hunt units, cubs, buff creatures and bot suits share x, z, r, hp, seen.
@@ -1364,7 +1364,7 @@ function heapPop(hs) {
 const G = { time: 0, view: 'follow', paused: false, ctxLost: false, frames: 0, bannerWave: -1, fellT: 0, nextWave: -2, fxT: 0, miniDirty: true, miniT: 0,
   phase: 'royale', phaseT: 0, huntT: 0, plates: 0, bossDirty: true, bossHp: -1, hits: 0, minTell: 99, hitDmg: 0, bleedDmg: 0,
   kWave: 0, kWarned: false, platesTaken: 0, visR: CONFIG.VISION_R, seed: 1, seedFixed: -1, nT: [0, 0], boons: 0,
-  botN: 0, navRR: 0, navRuns: 0, navPeak: 0, alive: 1, warnGen: 0, autoP: false, lostIn: '', watch: false, decidedAt: -1,
+  botN: 0, navRR: 0, navRuns: 0, navPeak: 0, alive: 1, warnGen: 0, autoP: false, autoK: false, lostIn: '', watch: false, decidedAt: -1,
   huntN: 0, huntClaims: 0, huntFrees: 0,
   leader: null, leadT: 0, leaderChanges: 0, leaderCode: -1, leaderWrites: 0, miniLeader: false,
   bountyN: 0, bountyWarnAt: -1, bountyStartAt: -1, bountyEndAt: -1, bountyEndWhy: '', bountyPaid: 0, bountyPaidTo: -1,
@@ -2414,6 +2414,8 @@ function botDecide(b) {
   }
   b.heal = null;
   if (t) { botTarget(b, t, 'fight'); return; }
+  // Test autopilot only (batch 13 P5, panel 23 Nov 16:11): it stands in for a player who reads the kennel banner (bots are unchanged).
+  if (b === P && G.autoK && CONFIG.ROYALE_MINIONS && autoKennel(b, vr)) return;
   // Until the ramp ends, keep away from a seen suit that is outside the engage radius but inside BOT.engage.avoidM.
   if (G.time < B.engage.peaceS + B.engage.rampS) {
     let near = null, nd = B.engage.avoidM;
@@ -2441,6 +2443,33 @@ function botDecide(b) {
   // A new warning since this path was made: plan again (the old path may walk or drop into the warned section).
   if (b.mode !== 'roam') { b.mode = 'roam'; b.tgt = null; botRoamGoal(b); }
   else if (b.goalT > B.goalHoldS || b.pathGen !== G.warnGen || (!b.navWant && b.path.i >= b.path.n)) botRoamGoal(b);
+}
+// Autopilot kennel rule (test proxy): when not fighting, fleeing or healing, fight a cub in sight, else walk to the nearest announced camp
+// (a camp of the warned wave, or a camp whose cub still lives) on a standing section, not on Our heights while that decree is told. False = none.
+function autoKennel(b, vr) {
+  let c = null, bd = vr;
+  for (let i = 0; i < CUBS.length; i++) {
+    const u = CUBS[i];
+    if (!u.alive || Math.abs(u.y - b.y) > 1.5 || (G.hiAvoid && u.y >= CONFIG.DECREES.heightY - 0.5)) continue;
+    const d = Math.hypot(u.x - b.x, u.z - b.z); if (d < bd) { bd = d; c = u; }
+  }
+  if (c) { botTarget(b, c, 'creature'); return true; }
+  const Kc = CONFIG.KENNEL, w = G.kWarned && G.kWave < Kc.waves.length ? Kc.waves[G.kWave] : null;
+  let best = -1; bd = 1e9;
+  for (let k = 0; k < CAMPS.length; k++) {
+    let on = false;
+    if (w) for (let i = 0; i < w.length; i++) if (w[i][1] === k) on = true;
+    for (let i = 0; i < CUBS.length && !on; i++) if (CUBS[i].alive && CUBS[i].camp === k) on = true;
+    const cp = CAMPS[k];
+    if (!on || SEC[cp[2]].state !== 0 || (G.hiAvoid && topY(cp[0], cp[1]) >= CONFIG.DECREES.heightY - 0.5)) continue;
+    const d = Math.hypot(cp[0] - b.x, cp[1] - b.z); if (d < bd) { bd = d; best = k; }
+  }
+  if (best < 0) return false;
+  const gx = CAMPS[best][0], gz = CAMPS[best][1] + 3;
+  if (b.mode !== 'camp' || b.campK !== best || b.pathGen !== G.warnGen || (!b.navWant && b.path.i >= b.path.n && Math.hypot(gx - b.x, gz - b.z) > 1.5)) {
+    b.mode = 'camp'; b.campK = best; b.tgt = null; botGoal(b, gx, gz, topY(gx, gz));
+  }
+  return true;
 }
 // Set a target to fight: straight steering when the walk is clear and close, else a path that is refreshed when the target moves.
 function botTarget(b, t, mode) {
@@ -3053,7 +3082,7 @@ window.__game = {
   navTime(ax, az, bx, bz, smooth) { const t0 = performance.now(); const ok = navSearch(ax, az, topY(ax, az), bx, bz, topY(bx, bz), NAV_SCRATCH, smooth); return { ms: performance.now() - t0, ok, n: NAV_SCRATCH.n }; },
   navNodes: () => NAV.V,
   setBots(n) { G.botN = Math.max(0, Math.min(CONFIG.BOTS.count, n)); },
-  autoPlayer(on) { G.autoP = !!on; P.mode = ''; P.tgt = null; P.pathGen = 0; P.heal = null; P.skip = null; P.direct = false; P.tgtT = 0; P.castT = 0; P.lastByT = -99; P.declined = null; P.declinedT = -99; P.gx = P.x; P.gz = P.z; P.gy = P.y; P.navWant = false; P.flee = false; P.pend = false; if (P.ring.parent) scene.remove(P.ring); P.cd[0] = P.cd[1] = P.cd[2] = 0; P.thinkT = 0; P.lastBy = null; P.goalT = 1e9; PATH.n = 0; PATH.i = 0; },
+  autoPlayer(on, kennel) { G.autoP = !!on; G.autoK = !!on && !!kennel; P.campK = -1; P.mode = ''; P.tgt = null; P.pathGen = 0; P.heal = null; P.skip = null; P.direct = false; P.tgtT = 0; P.castT = 0; P.lastByT = -99; P.declined = null; P.declinedT = -99; P.gx = P.x; P.gz = P.z; P.gy = P.y; P.navWant = false; P.flee = false; P.pend = false; if (P.ring.parent) scene.remove(P.ring); P.cd[0] = P.cd[1] = P.cd[2] = 0; P.thinkT = 0; P.lastBy = null; P.goalT = 1e9; PATH.n = 0; PATH.i = 0; },
   setBotHp(i, n) { BOTLIST[i].hp = n; }, setWatch(on) { G.watch = !!on; },
   royale: () => ({ phase: G.phase, lostIn: G.lostIn, alive: G.alive, decidedAt: G.decidedAt, t: G.time, voice: el.voice.textContent, rule: el.rule.textContent, banner: el.banner.style.display, btn: el.btnHunt.style.display, btnText: el.btnHunt.textContent }), setBotCd(i, slot, v) { BOTLIST[i].cd[slot] = v; }, setTime(t) { G.time = t; },
   hitBy(i, j, n) { const a = i < 0 ? P : BOTLIST[i], b = j < 0 ? P : BOTLIST[j]; hurtSuit(b, n, 'hit', a); },

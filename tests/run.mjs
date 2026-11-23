@@ -1248,6 +1248,58 @@ try {
   check('83 decree pacing: 3-4 decrees told (bounty included) in each of 12 matches, about one a minute (mean warning to warning <= 60 s), no banner over a decree warning, no heights break near a warned section',
     ms.dec.dsum.every((x) => x.told >= 3 && x.told <= 4) && wMean <= 60 && ms.dec.bannerOv === 0 && ms.dec.hiNear === 0,
     `told ${ms.dec.dsum.map((x) => x.seed + ':' + x.told).join(',')}; mean warning to warning ${wMean.toFixed(1)} s (${wGaps.length} gaps); bannerOv ${ms.dec.bannerOv}; heights breaks ${ms.dec.hiBrk}, near warned ${ms.dec.hiNear}`);
+  // 85 Kennel autopilot (batch 13b P5, panel 23 Nov 16:11; test proxy, own commit): the autopilot stands in for a player who reads the kennel banner
+  // (when not fighting, fleeing or healing it walks to the nearest announced camp and fights the cub there). The whole-match gates above keep the old autopilot;
+  // these 12 matches report the GDD plate rate (>= 1 plate in 70% of runs) beside it. Gate: the proxy reaches an announced camp (within 8 m) in at least
+  // half of the warnings it is alive and free for, and takes a plate in more matches than the old autopilot (it goes there to fight the cub).
+  const kp = await g(() => {
+    const G = __game, C = G.config, Kc = C.KENNEL, out = []; let warns = 0, reached = 0;
+    for (const seed of [12345, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]) {
+      G.setSeed(seed); G.setBots(9); G.reset(); G.autoPlayer(true, true); G.setWatch(true);
+      let prevW = false, open = null; const leadS = {};
+      for (let t = 0; t < 300 / C.STEP; t++) {
+        G.step(1); const c = G.cubs(), p = G.player(), now = G.royale().t, l = G.leader();
+        if (l.id >= 0) leadS[l.id] = (leadS[l.id] || 0) + 1;
+        if (c.warned && !prevW) {
+          const camps = Kc.waves[c.wave].map((w) => G.camps[w[1]]).filter((cp) => G.state().sec[cp[2]] === 0);
+          open = !p.dead && camps.length && !['fight', 'flee', 'heal'].includes(p.mode) ? { camps, until: now + Kc.warnS + 5, best: 1e9 } : null;
+          if (open) warns++;
+        }
+        prevW = c.warned;
+        if (open) {
+          const st = G.state(); for (const cp of open.camps) open.best = Math.min(open.best, Math.hypot(cp[0] - st.x, cp[1] + 3 - st.z));
+          if (now >= open.until || p.dead) { if (open.best <= 8) reached++; open = null; }
+        }
+        if (G.royale().decidedAt >= 0) break;
+      }
+      const b = G.bots(), p = G.player(), top = Object.entries(leadS).sort((x, y) => y[1] - x[1])[0], win = b.list.concat([{ id: 0, dead: p.dead }]).find((q) => !q.dead);
+      out.push({ seed, decided: +G.royale().decidedAt.toFixed(1), pPlates: p.plates, out: p.dead ? Math.round(p.diedAt) : 'won', topLeader: top ? +top[0] : -1, winId: win ? win.id : -1 });
+      G.setWatch(false); G.autoPlayer(false);
+    }
+    G.setBots(0); G.reset(); return { out, warns, reached };
+  });
+  check('85 kennel autopilot (test proxy): reaches an announced camp in at least half of its free warnings and takes a plate in more of 12 matches than the old autopilot',
+    kp.reached * 2 >= kp.warns && kp.warns > 0 && kp.out.filter((m) => m.pPlates > 0).length > ms.sims.filter((x) => x.pPlates > 0).length, JSON.stringify(kp));
+  // 86 Kennel autopilot, fixed scene (batch 13b, closes the 'no cub fight' gap of 85): one bot kept in the core hall away from the statue, decrees off; the proxy walks from its spawn
+  // to the first announced camp, fights the cub there (mode 'creature') and takes its plate before 75 s. The autopilot is switched on 1 s before the first warning.
+  const kf = await g(() => {
+    const G = __game, C = G.config, o = { modes: {} };
+    C.DECREES.on = false;
+    try {
+      G.setSeed(12345); G.setBots(1); G.reset(); G.setWatch(true);
+      for (let t = 0; t < 75 / C.STEP; t++) {
+        if (t === Math.round((C.KENNEL.firstS - C.KENNEL.warnS - 1) / C.STEP)) G.autoPlayer(true, true);
+        if (t % 30 === 0) G.placeBot(0, 0, -45);
+        G.step(1); const m = G.player().mode; o.modes[m] = (o.modes[m] || 0) + 1;
+        if (G.player().plates > 0) break;
+      }
+      const p = G.player(); o.plates = p.plates; o.dead = p.dead; o.t = +G.royale().t.toFixed(1);
+    } finally { C.DECREES.on = true; G.setWatch(false); G.autoPlayer(false); G.setBots(0); G.reset(); }
+    return o;
+  });
+  check('86 kennel autopilot fixed scene: walks to the announced camp, fights the cub there and takes its plate before 75 s',
+    kf.plates >= 1 && !kf.dead && kf.modes.camp > 0 && kf.modes.creature > 0, JSON.stringify(kf));
+  SIMS.push(`kennel autopilot (P5 proxy): player >=1 plate ${kp.out.filter((m) => m.pPlates > 0).length} of 12 (old autopilot ${ms.sims.filter((x) => x.pPlates > 0).length} of 12); reached camp ${kp.reached} of ${kp.warns} free warnings; leader win share ${kp.out.filter((m) => m.topLeader >= 0 && m.topLeader === m.winId).length} of 12; decided ${kp.out.map((m) => m.decided).join(',')}; player out ${kp.out.map((m) => m.out).join(',')}`);
   SIMS.push(`decrees per match ${ms.dec.dsum.map((x) => x.n).join(',')}; order ${ms.dec.dsum.map((x) => x.seed + ':' + x.keys).join(' | ')}; breaks player ${ms.dec.dsum.map((x) => x.brkP).join(',')} bots ${ms.dec.dsum.map((x) => x.brkB).join(',')}; player marked ticks ${ms.cap.markPTicks}, cap max ${ms.cap.capMark}; bots on heights max ${ms.dec.hiStay} s`);
   // 79 W dash: 4 m on open ground; stops at a bridge rail and at a core hall wall without falling; never off a sloped bridge; burst on landing (not before).
   const ds = await g(() => {
