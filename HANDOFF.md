@@ -19,7 +19,7 @@
 - Pathfinding: walk graph built at load (8114 nodes). Worst bot search 0.8 ms (1.8 ms unreachable), player right-click worst 4.0 ms. At most one bot search per step.
 - NOT run: real-GPU fps (needs a GitHub Actions macOS runner; no workflow yet). NOT tried on a real phone.
 - Phone review link: https://claude.ai/artifact/3nQ67JCTmb1JfPKC3Y416z. Republish after each batch: copy index.html, swap the importmap path for https://cdn.jsdelivr.net/npm/three@0.171.0/build/three.module.min.js, publish to slug 1688f9ba-a0e5-4f7b-ac2e-3a68d6fc67c3 (get_artifact first for base_version). Live: version 1795424808-bd35 = batch 13 (fcc6d0e).; batch 12 republish is done by the lead.
-- Project docs (claude/HANDOFF.md, claude/GDD.md, claude/code/index.html, claude/code/tests/run.mjs, claude/code/tests/static-check.mjs) are copies of repo files. The LEAD session syncs them after each batch with project_write local_path (a background worker cannot). If a write is refused, project_read first (code files print in full: do it once, then write).
+- Project docs (claude/HANDOFF.md, claude/GDD.md, claude/SUITS.md, claude/code/index.html, claude/code/tests/run.mjs, claude/code/tests/static-check.mjs) are copies of repo files. The LEAD session syncs them after each batch with project_write local_path (a background worker cannot). If a write is refused, project_read first (code files print in full: do it once, then write).
 
 ## Batch 13 = decree pacing (13a) + plate rate (13b). Owner go 23 Nov 16:11; panel decided (judges, players, critics, design/tech leads; majority followed)
 Two scopes, two commits, each with its own checks, measure run and mutation round. 13a first.
@@ -59,10 +59,16 @@ Panel (2 jam judges, 2 players, 2 critics, design/tech leads; majority followed)
 
 Gate (12 seeds, new autopilot, old reported beside it): royale decided in 420-510 s (to be set from M1 so royale + hunt = 9-11 min); decrees 6-9 per royale (bounty included), no banner overlaps; player plate rate >= 70%; leader win share 25-45%; idle player still loses before the last collapse; budget, programs and geometry flat; full test suite time reported. Misses reported, not tuned past the CONFIG list.
 
-## Later
-Hiding; ultimate charge (bounty reward and ultimates 2x are cooldown stand-ins); school kits (W dash is a placeholder); the ending; hunt sweep re-check with kits (0.15 s bot now loses demon-first).
+Batch 14 status (23 Nov ~19:5x): the worker was STOPPED by the owner before any commit. Remote stays at the batch 13 code. Its unfinished edits sit uncommitted in index.html and tests/run.mjs (unchecked; may hold a deliberate mutation). Owner to choose: discard them, or restart batch 14. Do not commit them as they are. Owner notes for when it resumes: balancing later (18:51); map size, kits and suit stats change the result, so the royale band and act times live in CONFIG and checks read them (18:53).
+
+## Queue after batch 14 (owner 18:57 "built"; one batch at a time, panel note first each)
+15 ultimate charge (replaces the plate, crab, bounty and ultimates-2x stand-ins); 16 法甲 kit + suit stats sample (owner plays and approves); 17 the other nine kits (docs/SUITS.md); 18 hiding (curtains, 道甲 stillness, sight blocked by walls); 19 the ending + WINNER_STATUE; 20 final map size + balancing pass (re-measure, retune the CONFIG timing list once). Hunt sweep re-check with kits (0.15 s bot now loses demon-first).
 
 ## Owner decisions (dated)
+- 23 Nov 19:57: the ten suits are one per school of the Hundred Schools (docs/SUITS.md, approved; 法甲 first sample; 农甲 sprouts for itself only; 杂甲 own dash). Lore v2 worked out (Kaymuse = unnamed first-emperor archetype, law and the two handles, the burning of the books, the tiger tally). GDD cleaned of every earlier-game element (titles, ape climber and stages, old kit sample, old-version sections, tile units).
+- 23 Nov 19:00: Kaymuse is, in a way, the Qin emperor (kept unnamed per the tone rule).
+- 23 Nov 18:58: redo the ten suits from the Hundred Schools.
+- 23 Nov 18:57: build the remaining parts after batch 14 (queue above).
 - 23 Nov 18:46: each game about 10 min (batch 14 panel plan; waiting for go).
 - 23 Nov 18:48: remove the 0-3 min opening act (no peace; fights from the start).
 - 23 Nov (after a server restart): batch 13 worker resumed by a new worker; a leftover 13b mutation ('warned wave ignored') found applied in index.html and removed before any commit.

@@ -1,17 +1,21 @@
 # Apex-hunt jam game: GDD and handoff (working title TBD)
 
-Status: updated 2026-11-23 after batch 12 (decrees section; earlier sections as of batch 9). Batches 1-2 approved. Batches 3-9 built on boxes (map, controls, apex fight, royale minions, buff creatures from marble bags, 9 bots that play the royale to its end); static PASS, runtime 71 of 71 PASS; waiting for the user's review. Next: decrees. All numbers are proposals, tunable in one CONFIG block.
-Repo for the code: https://github.com/heavenfort77-cpu/Empress-decrees- (all-new code, nothing from B.O.I).
+Status: updated 2026-11-23 evening. Lore v2 and the ten suits (one per school, docs/SUITS.md) approved by the owner 19:57. Batches 1-13 built on boxes (map, controls, apex fight, royale minions, buff creatures, 9 bots, leader and bounty, five bagged decrees, W dash); static PASS, runtime 91 of 91 (batch 13). Batch 14 (10-minute game) stopped by the owner, not built. The owner has not yet said the loop works. All numbers are proposals, tunable in one CONFIG block.
+Repo for the code: https://github.com/heavenfort77-cpu/Empress-decrees- (all-new code).
 
 ## Jam facts (checked 2026-11-23)
 - Jamference (itch.io), theme "The Game is Out to Get You", restriction "Follow OpenGame Game Jam rules and be entered in one of its categories". Submit by **4 Dec 2026, 4:00 PM (Brunei time)**. Scored equally on Fun, Polish, AI use, Theme. Guidance: fail fast, make it learnable, leave a way out, let the player win. Rule 3: must be built inside the build window; existing projects are not eligible. Rule 7: disclose team (solo, AI built under direction). Rule 5: flag flashing imagery (hit flashes, bombardment) and combat on the page.
 - OpenGame rules (https://opengame.io/rules): entries close 18 Dec 2026 11:59 pm PT, submitted through the OpenGame CLI (not yet checked that it can run from the cloud workspace). Individuals 18+, up to 2 entries. Desktop browser only, mouse and keyboard, static files, `index.html` at root, no login, no ads or payments. Must resize across 1920x1080, 1366x768, 2560x1440, 3440x1440, 1024x640. Perf target 45 fps at 1080p, under 50 MB before first frame. Must be a complete game. Judged on creativity, depth, fun, performance, visual fidelity. AI-made assets allowed if the tool's terms permit; credit what needs crediting.
-- **Eligibility risk (open):** OpenGame bans remakes of your own earlier games and pre-existing game-specific gameplay, levels or systems. User's position: nothing of the original remains except the base concept of the characters and world. Code, systems, art, kit system, core loop, arena and rules are new. Never call it a remake or sequel on any page. Organiser question drafted, not yet sent, no answer. Assessment: grey area, more likely accepted than not, not certain.
+- **Eligibility risk (open):** OpenGame bans remakes of your own earlier games and pre-existing game-specific gameplay, levels or systems. Since 23 Nov 19:57 the world framing, the ten suits (names, titles, roles, kits), systems, arena, rules and art are all designed inside the build window from the history of the Hundred Schools; no earlier game's characters, titles or systems remain. Never call it a remake or sequel on any page. Organiser question drafted, not yet sent, no answer. Assessment: grey area, more likely accepted than not, not certain.
 - User confirmed 18+ and individual entry.
 
-## Lore (batch 1, proposal)
-- **The world.** An empire in the age of the Hundred Schools (百家争鸣). Each school forged one war suit (甲): hard-surface armour that fights with the school's doctrine. The schools have argued for generations over which doctrine should rule.
-- **Kaymuse.** The Empress ends the argument her way: "Let the schools dispute with steel. We shall judge." She calls one suit from each school into her palace. The prize she announces: the surviving school becomes the empire's one doctrine.
+## Lore (v2, owner 23 Nov 19:57; panel votes in brackets)
+- **The world.** The age of the Hundred Schools (百家争鸣). The ten schools of the court catalogue, 九流十家 (儒、道、阴阳、法、名、墨、纵横、杂、农、小说), each forged one war suit (甲): hard-surface armour that fights with its school's doctrine (docs/SUITS.md). The catalogue counts only nine as worth reading; the tales school (稗甲) is the one the court does not count. The schools have argued for generations over which doctrine should rule.
+- **Kaymuse, the unifier (owner: "in a way Kaymuse is the Qin emperor").** She is the first-emperor archetype, never named and never quoting a real ruler [7-0]. She has already made the warring realms one: one script, one axle width, one measure (书同文，车同轨). The schools are the last thing left to unify. She took for herself a word no one else may speak, 朕 ("We"). Her court wears black and her emblem is water [art stage].
+- **Her law and its two handles [6-1].** Her decrees are law (法). She rules with the two handles, reward and punishment (赏罚): the bounty is the reward handle; the slow and mark for breaking a decree is the punishment handle. These names live in her lines and this GDD; the HUD keeps plain words.
+- **The summons.** "Let the schools dispute with steel. We shall judge." She calls one suit from each school into her palace. The prize she announces: the surviving school becomes the empire's one doctrine.
+- **The burning [5-2].** The royale is her burning of the books. The palace courts are the schools' halls; her fire falls on them wave by wave and they collapse for good. Nine doctrines are to be broken in front of her.
+- **The tiger tally [6-1].** The tiger statue under her throne is the empire's tiger tally (虎符) made beast: a bronze tiger whose two halves must match before an army may move. Her half sleeps under the throne. "The survivor shall be... received": the last suit standing is meant to become the other half.
 - **Kaymuse on screen (user, 23 Nov).** She sits on a throne on a high dais in the core hall and watches the whole royale. Under her throne crouches a great tiger statue: the apex, asleep in metal. She never leaves the throne and cannot be attacked (out of reach on the dais).
 - **The truth.** There is no prize. The palace is her hunting ground and the survivor is the meal for her **Tiger Demon**, the statue under her throne. She is "the game" that is out to get you: she sets the rules (decrees), shells the palace, and picks who lives.
 - **The minions are the demon's own plates.** When the Tiger Demon sheds an outer plate (its Pounce sheds one), the plate grows legs and becomes a feral cub: Stalker or Howler. A broken plate flies to the nearest strong metal and fuses with it, carrying the cub's tricks.
@@ -21,7 +25,7 @@ Repo for the code: https://github.com/heavenfort77-cpu/Empress-decrees- (all-new
 - **The wake.** When one suit is left, Kaymuse rises, lays a hand on the statue's head and it wakes: cracks glow, it steps down from the dais, two plates peel off as the apex minions. About 3 s, the player watches it happen (the fairness tell). She stays on the throne for the hunt and only taunts.
 - **Win, and the ending (user, 23 Nov: "even if the player defeats the apex, he becomes the next apex").** Killing the Tiger Demon is a real win: victory banner, time and stats, recorded as a win. Then the ending plays (about 10-15 s, skippable):
   - The demon falls and all its plates come loose. By the plate rule they fly to the nearest strong metal: the player's suit.
-  - The plates close over the suit. It drops to four legs and becomes the new tiger, in the suit's school colour and emblem.
+  - The plates close over the suit. It drops to four legs and becomes the new tiger, in the suit's school colour and emblem. The two halves of the tally are whole: even the surviving doctrine becomes the throne's beast.
   - Kaymuse sits back down. The new tiger crouches under her throne and turns to metal. Her closing line, then "Hear ye Our decree: ten schools, one answer. Begin." starts over as the credits roll.
   - Both of the user's foreshadow lines pay off here: "The survivor shall be... received." / "The Empress leaveth not her guests alone."
   - Losing to the apex: the player's suit is broken; the old statue goes back under the throne. Short line from her, retry.
@@ -29,7 +33,7 @@ Repo for the code: https://github.com/heavenfort77-cpu/Empress-decrees- (all-new
 
 ## Tone brief: Kaymuse (proposal)
 - Speaker: only Kaymuse. No narrator.
-- Attitude (user, 23 Nov: "always haughty, like every empress and emperor"): imperial and haughty at all times. Speaks of herself as "We / Us / Our" (朕). Uses decree forms ("By Our decree", "It is Our will"). Everyone else is a subject beneath her. Never says please or thanks, never explains herself, never raises her voice; contempt is calm. Imperial register in general, never quoting or naming a real ruler.
+- Attitude (user, 23 Nov: "always haughty, like every empress and emperor"): imperial and haughty at all times. Speaks of herself as "We / Us / Our" (朕). Uses decree forms ("By Our decree", "It is Our will"). Everyone else is a subject beneath her. Never says please or thanks, never explains herself, never raises her voice; contempt is calm. Imperial register in general, never quoting or naming a real ruler. She is the unifying first-emperor archetype (lore v2): she speaks of one script, one measure, one law, and of reward and punishment, never of a historical name or event by name.
 - Rule: she never lies outright. Every line is true in a second sense the player only sees after the twist.
 - Dread is aimed at her rules and her palace, never at a real school's teaching or a real person.
 - Never: modern slang, jokes that break the mood, gore, a shouting villain.
@@ -49,10 +53,10 @@ Repo for the code: https://github.com/heavenfort77-cpu/Empress-decrees- (all-new
 - Camera (user, 23 Nov): follow camera, pitch 40, distance 14.
 - Kit per suit follows Mobile Legends: Bang Bang: 1 attack, 2 skills (mostly dashes of different range and effect, some suits no dash), 1 ultimate. Ultimate unlocks from charge, then cooldown. The Tiger Demon has it from the start.
 - Minions: independent, smaller four-legged feral versions of the Tiger Demon, 2 skills each. In the apex phase, killing a minion adds its 2 skills to the apex (up to 6 skills plus ultimate). Royale cubs work the other way (see Royale minions). Intended punishment for beating minions.
-- Not a remake: new code, new systems, new art written inside the window. Reuse only general-purpose tools (Three.js).
+- All new: code, systems, suits, art and rules written inside the window. Reuse only general-purpose tools (Three.js).
 
-## Royale changes from B.O.I
-Chosen: Kaymuse's decrees; one palace arena with levels, bombardment collapses sections. Not chosen: kills feeding the apex, bot school behaviours, no-truce rule. Dropped from B.O.I: the 64x64 grid, shrinking ring and poison fog, growth pickups, followers, bush and tile-vision rules.
+## Royale structure
+One palace arena with two levels; her fire collapses the halls section by section (no shrinking ring); Kaymuse's decrees; cubs from the tiger's plates; buff creatures; ten suits, one per school. Kills do not feed the apex.
 
 ### Royale minions (batch 2, proposal; user: "minions appear for suits to defeat, else no one will have a lead")
 Purpose: give a suit a way to pull ahead, so the royale is not ten equal suits trading hits.
@@ -99,7 +103,7 @@ Purpose: give a suit a way to pull ahead, so the royale is not ten equal suits t
 - Foreshadowing: her lines hint at the twist ("The survivor shall be... received", "The Empress leaveth not her guests alone"). Decrees pause in the apex phase; she only taunts.
 
 ### Palace arena (proposal)
-- One 3D palace, no tile grid. Zones: courtyards (west, east, centre), bridges, a roof tier, and a core hall.
+- One 3D palace. Zones: courtyards (west, east, centre), bridges, a roof tier, and a core hall.
 - **Bombardment collapses sections for good.** Every shell wave shows a warning, then a whole section (a bridge span, a courtyard, a roof tier) falls and stays gone. No ring, no fog.
 - Collapse order is announced by Kaymuse one wave ahead and telegraphed on the section itself.
 - The core hall is never destroyed. It holds Kaymuse's throne dais with the tiger statue under it, and its floor is the apex arena. Bombardment and collapse stop in the apex phase.
@@ -118,28 +122,27 @@ Purpose: give a suit a way to pull ahead, so the royale is not ten equal suits t
 - Tiger statue strikes anyone within 6 m of the throne (0.6 s red ring and glowing eyes first; 30 damage, knockback). 4 stone lions (gate pair and centre bridgeheads) strike within 3.5 m (0.6 s ring; 20 damage).
 - 3 incense altars (W1, E1, C2): 8 HP/s while standing, a hit pauses healing 2 s, 40 HP per charge, then dry 30 s. Planned decree: "The altars are dry".
 
-### Hiding (replaces B.O.I bushes; working decision, can change)
+### Hiding (working decision, can change; batch 18)
 - **General cover: silk curtains.** Hanging silks hide any suit standing behind them. Attacking or being hit breaks it.
-- **猿魔 (道甲): climb and hang.** The ape climbs pillars and beams and hangs above sight lines, hidden from the ground. Its staff vault drops it onto a target as an ambush. Weakest early, so hiding is how it survives until its stages come.
-- A faint shimmer shows within about 3 m; an attack or hit breaks the hide; the decree "the roof is forbidden" counters it. A hidden suit is still hit by shells and collapses.
-- 猿魔 has 3 stages, time-based. In a 3 to 4 minute royale they come about once a minute (exact times in CONFIG).
+- **道甲 · 真人: non-action (无为).** Standing still and not attacking for 2 s hides the Daoist anywhere (docs/SUITS.md).
+- A faint shimmer shows within about 3 m; an attack or hit breaks the hide. 稗甲's Rumour and the Howler's Howl reveal hidden suits; a hidden suit on the upper level still breaks "None shall set foot upon Our heights". A hidden suit is still hit by collapses.
+- Walls and curtains block sight (vision is a plain radius until this batch).
 
-## Ten schools (百家争鸣), suit = school + 甲 (CONFIRMED)
-Old names stay as titles so the flavour is kept.
-| School | Suit | Title | Role label (ML) |
-|---|---|---|---|
-| 儒家 | 儒甲 | 天兵 | Fighter |
-| 道家 | 道甲 | 猿魔 | Tank |
-| 法家 | 法甲 | 冥将 | Assassin |
-| 墨家 | 墨甲 | 墨将 | Tank (zone) |
-| 阴阳家 | 阴阳甲 | 天龙 | Mage (artillery) |
-| 杂家 | 杂甲 | 蛊师 | Mage (control) |
-| 小说家 | 稗甲 | 巫师 | Support |
-| 名家 | 名甲 | 剑仙 | Marksman |
-| 纵横家 | 纵横甲 | new | Control (links two enemies so they share damage) |
-| 农家 | 农甲 | new | Support (plants heal or feed it, harvest ultimate) |
-Attack methods: 名甲 attacks with the sword (剑); 稗甲 attacks with calligraphy and painting (书画, brush strokes as projectiles or marks). Names stay 名甲 and 稗甲.
-Match size: 10 suits, one per school. The player plus 9 bots, royale about 3 to 4 minutes.
+## Ten schools (百家争鸣), suit = school + 甲 (owner 23 Nov 19:57; full kits in docs/SUITS.md)
+Each suit's title, role and kit come from its school's own doctrine.
+| School | Suit | Title | Role | Doctrine in play |
+|---|---|---|---|---|
+| 儒家 | 儒甲 | 君子 | Fighter | propriety, rectifying names (strips a leader's plates), benevolence |
+| 道家 | 道甲 | 真人 | Evasive duelist | non-action hides it, water dash through suits, yield (parry) |
+| 法家 | 法甲 | 廷尉 | Assassin | law binds all: bonus on marked decree-breakers; two handles |
+| 墨家 | 墨甲 | 墨守 | Tank (zone), no dash | against aggression: holds ground, walls, crossbow engine |
+| 阴阳家 | 阴阳甲 | 五行 | Mage (artillery) | five-phase wheel changes each skill |
+| 杂家 | 杂甲 | 门客 | Mage (control) | stores and casts back the last skill that hit it |
+| 小说家 | 稗甲 | 稗官 | Support (trickster) | calligraphy and painting: ink strokes, painted decoy, rumour reveal |
+| 名家 | 名甲 | 辩者 | Marksman | the sword: flying swords that hang, then strike (paradoxes) |
+| 纵横家 | 纵横甲 | 说客 | Control | links two enemies so they share damage; swaps places |
+| 农家 | 农甲 | 耕者 | Support (sustain) | plants heal and feed it; harvest ultimate |
+Match size: 10 suits, one per school. The player plus 9 bots. Royale length: owner wants each game about 10 min (batch 14, not built yet); built now: about 3-4 min.
 
 ## Apex phase (proposal)
 - Trigger: the player is the last suit alive. Bombardment and decrees stop. The statue wakes under the throne (about 3 s, see The wake), the 2 minions peel off it, and the hunt starts from the dais. The player is moved to the core hall entrance under a short card if they are elsewhere (open: walk there instead?).
@@ -154,27 +157,22 @@ Assumption to confirm: a hard-surface beast like the war suits.
 | Slot | Name | Effect |
 |---|---|---|
 | Attack | Claw swipe | short cone, range 1.5 |
-| Skill 1 (dash) | Pounce | low flat leap, 5 tiles, damage, sheds an outer plate. Windup 320 ms is the telegraph |
+| Skill 1 (dash) | Pounce | low flat leap, 7.5 m (CONFIG.MOVES), damage, sheds an outer plate. Windup 0.5 s is the telegraph |
 | Skill 2 | Metal roar | radius 4, slows 40% for 2 s, interrupts channels |
 | Ultimate | Shed the limit | 8 s frenzy: +40% speed, +30% attack, cannot be stunned or slowed. Open: single use below 50% HP |
 
 ## Minions (working names)
 | Minion | Attack | Skill 1 | Skill 2 | Apex gains |
 |---|---|---|---|---|
-| Stalker | bite | Lunge: straight 3-tile dash, damage | Rend: bleed 4 s, stacks | a second dash, bleed on hits |
-| Howler | bite | Flank: curved 4-tile dash ending behind the player, 0.6 s stun if it lands | Howl: radius 5, reveals the player through cover 5 s, slows 20% | a stunning flank, reveal through cover |
+| Stalker | bite | Lunge: straight 4.5 m dash, damage | Rend: bleed 4 s, stacks | a second dash, bleed on hits |
+| Howler | bite | Flank: dash ending behind the player, 0.6 s stun if it lands | Howl: radius 5, reveals the player through cover 5 s, slows 20% | a stunning flank, reveal through cover |
 
 ## Bombardment (proposal)
 Telegraphed shells land in waves; a wave ends with a section collapse. Every shell shows a warning circle first; a hit must always be avoidable at human reaction time. CONFIG: warning time, radius, damage, shells per wave, wave interval, sections per wave, collapse warning time.
 
-## Kit sample: 儒甲「天兵」 (balanced fighter, range 1)
-| Slot | Name | Effect | Numbers |
-|---|---|---|---|
-| Attack | Halberd thrust | single target | 10 damage, about 0.8 s |
-| Q (dash) | Skyfall leap | arcs to the cursor, untargetable in air, ring on landing | 4 tiles, cd 8 s, ring radius 1.5, 1.2x attack, 0.5 s stun |
-| E | Overdrive | +50% attack and speed | 8 s, cd 40 s |
-| R | Pagoda fall | pagoda drops on the cursor point (range 6), 1 s telegraph | radius 3, 3x attack, 1.5 s stun, cd 60 s |
-Ultimate charges from kills and shared hits; exact amounts TBD. Kits for the other nine come after this one is approved. Dashes all differ; 墨甲 has no dash.
+## Kit sample: 法甲「廷尉」 (assassin; first sample, panel 4-2-1, owner 19:57)
+Kit in docs/SUITS.md: passive Law Binds All (bonus on marked suits), Q Pursuit (dash, longer at a marked or low target), W Two Handles (slow a target or speed yourself), R Sentence (delayed strike shown on the ground, grows with the target's missing health). Numbers go in CONFIG at build (batch 16).
+Ultimate charges from kills and shared hits; exact amounts TBD (batch 15). Kits for the other nine come after this one is approved. Dashes all differ; 墨甲 has no dash.
 
 ### Bots (batch 9, owner go 23 Nov; numbers in CONFIG.BOT)
 - 9 bots, one per other spawn, with the player's placeholder kit until school kits exist; all 'average' (0.3 s reaction) for now. They act only through the player's actions and see only their own 11 m.
@@ -183,11 +181,11 @@ Ultimate charges from kills and shared hits; exact amounts TBD. Kits for the oth
 - End: the player broken (or fallen) = loss banner with the place and New run; the last suit standing wakes the demon (no H key except with ?debug or without bots).
 
 ## Sims (headless, pass/fail)
-Duel matrix 10x10 plus apex and minions; bombardment and collapse fairness (never dodge, 0.3 s reaction, perfect dodge; target 0 unavoidable hits); decree fairness; 猿魔 ambush win share within band; full match win share per school and length; apex phase by kill order and bot skill; ultimate timing; idle-versus-active. Frame rate on a real GPU is not testable in the cloud workspace.
+Duel matrix 10x10 plus apex and minions; bombardment and collapse fairness (never dodge, 0.3 s reaction, perfect dodge; target 0 unavoidable hits); decree fairness; 道甲 hide-and-strike win share within band; full match win share per school and length; apex phase by kill order and bot skill; ultimate timing; idle-versus-active. Frame rate on a real GPU is not testable in the cloud workspace.
 
 ## Plan to 4 Dec 4 PM (submit with buffer on 3 Dec)
 1. 23-26 Nov, boxes. Order set by the user on 23 Nov: lore (batch 1), royale minions (batch 2), box palace map (batch 3, with zones, minion camps and collapse sections), then the apex fight, decrees, hiding, ultimate charge, sims. User approves the loop before 3D.
-2. 27 Nov - 1 Dec, 3D: one suit for approval, then the rest. Tiger Demon and minions are hardest. Kaymuse needs one on-screen design. First cuts: the two new schools, then 3D detail.
+2. 27 Nov - 1 Dec, 3D: one suit for approval, then the rest. Tiger Demon and minions are hardest. Kaymuse needs one on-screen design. First cuts: 3D detail.
 3. 2-4 Dec: polish, itch page (disclose AI use, team, flashing imagery), release zip, submit. OpenGame CLI entry before 18 Dec.
 
 ## Open questions
