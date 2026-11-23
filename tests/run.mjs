@@ -829,6 +829,63 @@ try {
     G.setBots(0); G.reset(); return o;
   });
   check('63 heal: a bot at 30 health walks to a charged altar and heals past 60', hl.mode === 'heal' && hl.hp >= 60, JSON.stringify(hl));
+  // 64 Royale end (batch 9d): in a match H and the Hunt button do nothing; the player broken by a bot = frozen loss banner with the place and New run;
+  // New run brings every bot back; a fall into the void in a match is a loss too; the last suit standing starts the hunt by itself.
+  const re = await g(() => {
+    const G = __game, C = G.config, K = window.__k, o = {};
+    G.setSeed(12345); G.setBots(9); G.reset(); let r = G.royale();
+    o.btnHidden = r.btn === 'none'; G.huntButton(); dispatchEvent(new KeyboardEvent('keydown', { code: 'KeyH' })); o.hNoop = G.royale().phase === 'royale';
+    G.hitBy(0, -1, 1e4); r = G.royale(); o.lost = r.phase === 'lost' && r.lostIn === 'royale'; o.place = r.rule; o.voice = r.voice; o.btn = r.btn; o.btnText = r.btnText; o.cause = G.player().cause;
+    const t0 = r.t, b0 = JSON.stringify(G.bots().list.map((q) => [q.x, q.z])); G.step(60); o.frozen = G.royale().t === t0 && JSON.stringify(G.bots().list.map((q) => [q.x, q.z])) === b0;
+    G.huntButton(); const b1 = G.bots(); o.newRun = G.royale().phase === 'royale' && b1.list.every((q) => !q.dead && q.inScene) && !G.state().dead && G.state().hp === 100;
+    G.teleport(0, 40.5); G.knock(0, 14); K.sp(C.RESPAWN_S + 1); r = G.royale(); o.fall = r.phase === 'lost' && G.player().cause === 'fall';
+    G.reset(); for (let i = 0; i < 9; i++) G.hitBot(i, 1e4); G.step(1); r = G.royale(); const h = G.hunt();
+    o.hunt = r.phase === 'wake' && !h.statue && h.seal && G.bots().list.every((q) => q.dead && !q.inScene);
+    G.setBots(0); G.reset(); return o;
+  });
+  check('64 royale end: H off in a match, broken player = frozen loss with place and New run, New run restores bots, void fall = loss, last suit standing starts the hunt',
+    re.btnHidden && re.hNoop && re.lost && /Place 10 of 10/.test(re.place) && re.voice.length > 0 && re.btn === 'block' && re.btnText === 'New run' && re.cause === 'hit' && re.frozen && re.newRun && re.fall && re.hunt, JSON.stringify(re));
+  // 65 Whole matches, 6 seeds (12345, 2, 3, 4, 5, 6), the player driven by the bot brain (autopilot) and the match watched to the end:
+  // decided in about 3-4 min (165-255 s), always-true checks every tick, every suit that is out has a cause, bots took plates and boons, no spawn wins more than 3 of 6.
+  const ms = await g(() => {
+    const G = __game, C = G.config, out = [], viol = [], bad = (s) => { if (viol.length < 5) viol.push(s); }, wins = {};
+    const CAUSES = ['hit', 'hazard', 'fall', 'bleed', 'drop'];
+    let plates = 0, boons = 0;
+    for (const seed of [12345, 2, 3, 4, 5, 6]) {
+      G.setSeed(seed); G.setBots(9); G.reset(); G.autoPlayer(true); G.setWatch(true);
+      let prevAlive = 10, t = 0;
+      for (; t < 300 / C.STEP; t++) {
+        G.step(1); const r = G.royale();
+        if (r.alive > prevAlive) bad(`s${seed} t${t} alive rose`); prevAlive = r.alive;
+        if (t % 20 === 0) {
+          for (const q of G.bots().list) {
+            if (!q.dead && (q.hp <= 0 || q.hp > C.MAX_HP + 1e-6)) bad(`s${seed} t${t} bot${q.id} hp ${q.hp}`);
+            if (!q.standOk) bad(`s${seed} t${t} bot${q.id} off floor`);
+            if (q.dead && q.inScene) bad(`s${seed} t${t} bot${q.id} out but drawn`);
+          }
+        }
+        if (r.decidedAt >= 0) break;
+      }
+      const b = G.bots(), p = G.player(), r = G.royale();
+      const all = b.list.map((q) => ({ spawn: q.spawn, dead: q.dead, cause: q.cause })).concat([{ spawn: C.PLAYER_SPAWN, dead: p.dead, cause: p.cause }]);
+      const win = all.find((q) => !q.dead), nocause = all.filter((q) => q.dead && !CAUSES.includes(q.cause)).length;
+      if (win) wins[win.spawn] = (wins[win.spawn] || 0) + 1;
+      plates += b.list.reduce((a, q) => a + q.plates, 0); boons += b.list.reduce((a, q) => a + q.boons, 0);
+      out.push({ seed, decided: +r.decidedAt.toFixed(1), winner: win ? win.spawn : -1, player: p.dead ? p.cause + '@' + Math.round(p.diedAt) : 'won', nocause });
+      G.setWatch(false); G.autoPlayer(false);
+    }
+    G.setBots(0); G.reset(); return { out, viol, wins, plates, boons };
+  });
+  check('65 whole matches x6: decided in 165-255 s, 0 broken invariants, every out has a cause, bots take plates and boons, no spawn wins more than 3 of 6',
+    ms.out.every((m) => m.decided >= 165 && m.decided <= 255 && m.nocause === 0) && ms.viol.length === 0 && ms.plates > 0 && ms.boons > 0 && Math.max(...Object.values(ms.wins)) <= 3, JSON.stringify(ms));
+  // 66 Idle player: standing at the spawn doing nothing loses the royale (frozen loss with a cause) before the last collapse is over.
+  const idle = await g(() => {
+    const G = __game, C = G.config; G.setSeed(12345); G.setBots(9); G.reset(); let t = 0;
+    for (; t < 260 / C.STEP; t++) { G.step(1); if (G.royale().phase !== 'royale') break; }
+    const r = G.royale(), o = { phase: r.phase, lostIn: r.lostIn, at: +(t * C.STEP).toFixed(1), cause: G.player().cause };
+    G.setBots(0); G.reset(); return o;
+  });
+  check('66 idle player loses the royale (frozen loss, cause recorded) within 260 s', idle.phase === 'lost' && idle.lostIn === 'royale' && idle.cause !== '', JSON.stringify(idle));
 
   // 10 No shader compiles across collapses, hazard tells and empty altars.
   const progAfter = await g(() => __game.render(true));
@@ -890,4 +947,6 @@ const pass = results.filter((r) => r.ok).length;
 for (const r of results) if (!r.ok) console.log('FAIL', r.name, '::', r.detail);
 console.log(`RUNTIME ${pass} of ${results.length} pass`);
 if (process.argv.includes('-v')) for (const r of results) console.log(r.ok ? 'ok  ' : 'FAIL', r.name, r.detail ? ':: ' + String(r.detail).slice(0, 200) : '');
+// -vv: full detail of the checks whose number is given after it (e.g. -vv 56,65).
+const vv = process.argv.indexOf('-vv'); if (vv > 0) { const want = (process.argv[vv + 1] || '').split(','); for (const r of results) if (want.some((n) => r.name.startsWith(n + ' '))) console.log(r.name, '::', r.detail); }
 process.exit(pass === results.length ? 0 : 1);

@@ -307,6 +307,11 @@ const TEXT = {
   voice_lost: 'The tiger is fed.',
   rule_lost: 'Defeat. {retry}',
   retry_desktop: 'H: hunt again · N: new run',
+  voice_royale_lost: 'Broken before Our eyes. We shall not trouble to remember thy school.',
+  rule_royale_lost: 'Your suit is broken. Place {place} of {n}. {retry}',
+  retry_run_desktop: 'N: new run',
+  retry_run_touch: 'Tap New run',
+  btn_new_run: 'New run',
   retry_touch: 'Tap Retry hunt',
   boss_name: 'Tiger Demon',
   boss_skills: 'Skills: {list}',
@@ -1241,7 +1246,7 @@ function heapPop(hs) {
 const G = { time: 0, view: 'follow', paused: false, ctxLost: false, frames: 0, bannerWave: -1, fellT: 0, nextWave: -2, fxT: 0, miniDirty: true, miniT: 0,
   phase: 'royale', phaseT: 0, huntT: 0, plates: 0, bossDirty: true, bossHp: -1, hits: 0, minTell: 99, hitDmg: 0, bleedDmg: 0,
   kWave: 0, kWarned: false, platesTaken: 0, visR: CONFIG.VISION_R, seed: 1, seedFixed: -1, nT: [0, 0], boons: 0,
-  botN: 0, navRR: 0, navRuns: 0, navPeak: 0, alive: 1, warnGen: 0, autoP: false };
+  botN: 0, navRR: 0, navRuns: 0, navPeak: 0, alive: 1, warnGen: 0, autoP: false, lostIn: '', watch: false, decidedAt: -1 };
 // Bots in this match: CONFIG.BOTS (switch and count), or ?bots=N in the address (0 = map test with the player alone).
 G.botN = !CONFIG.BOTS.on ? 0 : params.has('bots') ? Math.max(0, Math.min(CONFIG.BOTS.count, parseInt(params.get('bots'), 10) || 0)) : CONFIG.BOTS.count;
 
@@ -1334,12 +1339,16 @@ function step(dt) {
   if (vr !== G.visR) { G.visR = vr; if (G.view === 'follow') FOW.uFowR.value = vr; }
   if (roy && CONFIG.ROYALE_MINIONS) stepKennel(dt);
   if (roy && CONFIG.NEUTRALS) stepNeutrals(dt);
-  if (roy && G.botN > 0) stepBots(dt);
+  if (roy && G.botN > 0) {
+    stepBots(dt);
+    // The last suit standing wakes the demon (batch 9d): the hunt starts by itself.
+    if (G.phase === 'royale' && !P.dead && G.alive === 1) { startHunt(); return; }
+  }
   if (G.phase === 'wake' || G.phase === 'hunt') stepHunt(dt);
   if (G.phase === 'won' || G.phase === 'lost') { updateHp(); updateStatus(); return; }
   // Player.
   P.px = P.x; P.pz = P.z; P.py = P.y;
-  if (P.dead) { P.deadT += dt; if (P.deadT >= CONFIG.RESPAWN_S) respawn(); updateHp(); stepCombat(dt); return; }
+  if (P.dead) { P.deadT += dt; if (G.botN === 0 && P.deadT >= CONFIG.RESPAWN_S) respawn(); updateHp(); stepCombat(dt); return; }
   // Test autopilot (checks only, __game.autoPlayer): the bot brain drives the player; its searches are its own, outside the bots' queue.
   if (G.autoP) {
     tickBrain(P, dt); if (P.navWant) botNav(P);
@@ -1465,11 +1474,11 @@ function hurtSuit(s, n, cause, by) {
 // A suit is broken. The player: a note and the map-test respawn in the royale, defeat in the hunt.
 function suitDown(s, cause, by) {
   s.hp = 0; s.dead = true; s.deadT = 0; s.kx = s.kz = 0; s.cause = cause; s.diedAt = G.time; s.killer = by;
-  if (s === P) { if (G.phase === 'royale') showNote('voice_died', 'rule_died'); else endHunt(false); }
+  if (s === P) { if (G.phase !== 'royale') endHunt(false); else if (G.botN > 0) endRoyale(); else showNote('voice_died', 'rule_died'); }
   else botOut(s);
 }
-// A suit fell into the void. The player: back to the centre courtyard (map test). A bot is out of the match.
-function suitFell(s) { if (s === P) respawn('fell'); else suitDown(s, 'fall', null); }
+// A suit fell into the void. The player: back to the centre courtyard in the map test (no bots); in a match it is out like a bot.
+function suitFell(s) { if (s === P && G.botN === 0) respawn('fell'); else suitDown(s, 'fall', null); }
 // A bot leaves the match: body out of the scene, no longer a target.
 function botOut(b) {
   b.dead = true; b.hp = 0; b.seen = false; b.navWant = false; b.path.n = 0; b.pend = false;
@@ -1885,6 +1894,8 @@ function stepBots(dt) {
     if (b.group.visible !== vis) b.group.visible = vis;
   }
   G.alive = alive;
+  // Time the royale was decided (one suit or none left), for the match-length checks.
+  if (G.decidedAt < 0 && alive <= 1) G.decidedAt = G.time;
 }
 // Run the path search a bot asked for (a flee search or a goal search).
 function botNav(b) {
@@ -2156,7 +2167,7 @@ function resetNeutrals(redraw) {
     if (redraw) G.nT[u.idx] = draw(BAGS.times);
   }
 }
-const PLATE_VARS = { a: '', b: '' }, BOSS_VARS = { list: '' }, FRENZY_VARS = { s: CONFIG.DEMON_ULT.dur }, END_VARS = { s: 0, retry: '' };
+const ROYALE_VARS = { place: 0, n: 0, retry: '' }, PLATE_VARS = { a: '', b: '' }, BOSS_VARS = { list: '' }, FRENZY_VARS = { s: CONFIG.DEMON_ULT.dur }, END_VARS = { s: 0, retry: '' };
 const KENNEL_VARS = { s: CONFIG.KENNEL.warnS, zones: '' }, TAKE_VARS = { s: CONFIG.PLATE.buffS, p: Math.round(CONFIG.PLATE.speed * 100) }, BUFF_VARS = { s: 0 };
 // Cubs back into the pool (new run, or the wake: live cubs fuse into the statue).
 function resetCubs() {
@@ -2197,8 +2208,8 @@ function clearPlayerStatus() {
 function setHuntUi() {
   const on = G.phase === 'wake' || G.phase === 'hunt', end = G.phase === 'won' || G.phase === 'lost';
   setShow(el.boss, on || end);
-  setText(el.btnHunt, T(end ? 'btn_retry' : 'btn_hunt'));
-  setShow(el.btnHunt, CONFIG.APEX_HUNT && !on);
+  setText(el.btnHunt, T(end ? (G.lostIn === 'royale' ? 'btn_new_run' : 'btn_retry') : 'btn_hunt'));
+  setShow(el.btnHunt, CONFIG.APEX_HUNT && !on && (end || G.botN === 0 || DEBUG));
 }
 // The apex phase begins: collapses stop, the statue wakes, the gate seals, the player stands at the core hall entrance.
 function startHunt() {
@@ -2231,7 +2242,7 @@ function startHunt() {
 }
 // Win or loss: the simulation freezes and the banner stays until the player retries or starts a new run.
 function endHunt(win) {
-  G.phase = win ? 'won' : 'lost';
+  G.phase = win ? 'won' : 'lost'; G.lostIn = win ? '' : 'hunt';
   for (const u of ENEMIES) hideTell(u);
   ORD.attack = null; ORD.atkHeld = false; ORD.rightHeld = false; PATH.n = 0; PATH.i = 0; cancelAim();
   END_VARS.s = Math.round(G.huntT); END_VARS.retry = T(TOUCH ? 'retry_touch' : 'retry_desktop');
@@ -2247,7 +2258,24 @@ function clearHunt() {
   if (sealMesh.parent) scene.remove(sealMesh);
   clearPlayerStatus(); setHuntUi();
 }
-function huntButton() { if (G.phase !== 'wake' && G.phase !== 'hunt') startHunt(); }
+// Hunt button / H: after a royale loss it starts a new run; in a match the royale ends only by the last suit standing (H works with ?debug or without bots).
+function huntButton() {
+  if (G.phase === 'lost' && G.lostIn === 'royale') { reset(); return; }
+  if (G.phase === 'wake' || G.phase === 'hunt') return;
+  if (G.phase === 'royale' && G.botN > 0 && !DEBUG) return;
+  startHunt();
+}
+// The player is broken in a match: the simulation freezes on the loss banner with the place (suits still standing + 1). __game.watch keeps the bots going (checks only).
+function endRoyale() {
+  if (G.watch) return;
+  G.phase = 'lost'; G.lostIn = 'royale';
+  ORD.attack = null; ORD.atkHeld = false; ORD.rightHeld = false; PATH.n = 0; PATH.i = 0; cancelAim();
+  let left = 0; for (let i = 0; i < BOTLIST.length; i++) if (!BOTLIST[i].dead) left++;
+  ROYALE_VARS.place = left + 1; ROYALE_VARS.n = G.botN + 1; ROYALE_VARS.retry = T(TOUCH ? 'retry_run_touch' : 'retry_run_desktop');
+  G.bannerWave = -1; G.fellT = 0;
+  setText(el.voice, T('voice_royale_lost')); setText(el.rule, T('rule_royale_lost', ROYALE_VARS)); setShow(el.banner, true);
+  setHuntUi();
+}
 el.btnHunt.addEventListener('click', huntButton);
 
 // ===================== Minimap (MOBA corner map; shows only what the player can see) =====================
@@ -2356,7 +2384,7 @@ function spawnBots() {
     b.bar.scale.x = 1; b.seen = false; b.group.visible = false; b.group.position.set(b.x, b.y, b.z);
     scene.add(b.group);
   }
-  G.navRR = 0; G.navPeak = 0; G.alive = 1 + k;
+  G.navRR = 0; G.navPeak = 0; G.alive = 1 + k; G.decidedAt = -1;
 }
 // New run: resets everything the run changes (time, waves, sections, floors, player, banner, shadows).
 function reset() {
@@ -2366,6 +2394,7 @@ function reset() {
   for (let i = 0; i < 4; i++) { P.bT[i] = 0; P.bV[i] = 0; }
   P.statusTick = -1; G.boons = 0; G.visR = CONFIG.VISION_R; if (G.view === 'follow') FOW.uFowR.value = G.visR;
   resetCubs(); resetNeutrals(true);
+  G.lostIn = '';
   clearHunt();
   G.time = 0; G.bannerWave = -1; G.fellT = 0; G.nextWave = -2;
   for (const w of WAVES) { w.state = 0; w.lastCount = -1; }
@@ -2565,7 +2594,8 @@ window.__game = {
   navNodes: () => NAV.V,
   setBots(n) { G.botN = Math.max(0, Math.min(CONFIG.BOTS.count, n)); },
   autoPlayer(on) { G.autoP = !!on; P.mode = ''; P.tgt = null; P.navWant = false; P.flee = false; P.pend = false; if (P.ring.parent) scene.remove(P.ring); P.cd[0] = P.cd[1] = P.cd[2] = 0; P.thinkT = 0; P.lastBy = null; P.goalT = 1e9; PATH.n = 0; PATH.i = 0; },
-  setBotHp(i, n) { BOTLIST[i].hp = n; }, setBotCd(i, slot, v) { BOTLIST[i].cd[slot] = v; }, setTime(t) { G.time = t; },
+  setBotHp(i, n) { BOTLIST[i].hp = n; }, setWatch(on) { G.watch = !!on; },
+  royale: () => ({ phase: G.phase, lostIn: G.lostIn, alive: G.alive, decidedAt: G.decidedAt, t: G.time, voice: el.voice.textContent, rule: el.rule.textContent, banner: el.banner.style.display, btn: el.btnHunt.style.display, btnText: el.btnHunt.textContent }), setBotCd(i, slot, v) { BOTLIST[i].cd[slot] = v; }, setTime(t) { G.time = t; },
   hitBy(i, j, n) { const a = i < 0 ? P : BOTLIST[i], b = j < 0 ? P : BOTLIST[j]; hurtSuit(b, n, 'hit', a); },
   hitCubBy(i, j, n) { hitEnemy(CUBS[i], n, j < 0 ? P : BOTLIST[j]); }, hitNeutralBy(i, j, n) { hitEnemy(NEUTRALS[i], n, j < 0 ? P : BOTLIST[j]); },
   player: () => ({ mode: P.mode, tgt: P.tgt ? (P.tgt.kind === 'suit' ? P.tgt.id : -2) : -1, dead: P.dead, cause: P.cause, diedAt: P.diedAt, plates: P.plates, boons: P.boons }),

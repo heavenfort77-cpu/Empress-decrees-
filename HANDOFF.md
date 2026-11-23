@@ -1,4 +1,4 @@
-# Handoff (2026-11-23, batch 9 in progress; written for a fresh session). GDD: docs/GDD.md (also Project "empress decrees", claude/GDD.md)
+# Handoff (2026-11-23, after batch 9; written for a fresh session). GDD: docs/GDD.md (also Project "empress decrees", claude/GDD.md)
 
 ## Session start (every session)
 1. Attach both repos: add_repo heavenfort77-cpu/Empress-decrees- (access push) and heavenfort77-cpu/dawnpunk (read; public, anonymous clone works). Dawnpunk = reference for frame-rate rules and bug pitfalls; read only the part needed.
@@ -6,9 +6,9 @@
 3. Run the checks before and after any change: `node tests/static-check.mjs` then `node tests/run.mjs` (`-v` for details). Report pass/fail and failing lines only.
 
 ## Status
-- Batches 1-8 done. All code is on branch `batches-3-5` (PR #1 open; merge to main when the user agrees). The owner has NOT yet said the loop works; no art before that.
+- Batches 1-9 done. All code is on branch `batches-3-5` (PR #1 open; merge to main when the user agrees). The owner has NOT yet said the loop works; no art before that.
 - Batch 6 = apex fight on boxes (H key or Hunt button). Batch 7 = royale minions (kennel waves, cubs, plates). Batch 8 = faster cubs and minions, buff creatures from marble bags, cubs fuse into the statue at the wake.
-- Static check PASS. Runtime 60 of 60 PASS (headless Chromium, software GPU: correctness and counts only). Tests run with a fixed seed (12345).
+- Static check PASS. Runtime 71 of 71 PASS (headless Chromium, software GPU: correctness and counts only; about 40 s). Tests run with a fixed seed (12345); checks 1-55 run with ?bots=0 (map test), 56-66 set the bots themselves. `node tests/run.mjs -vv 56,65` prints full details.
 - Mutation rounds: batch 3 edge clamp caught after a fix; batch 4 5 of 5; batch 5 6 of 6; batch 6 11 of 11; batch 7 12 of 13 (the miss is an equivalent change); batch 8 11 of 11.
 - Counts (software GPU, medium tier): spawn 27 calls / 2.8k tris; whole map 76 / 8.4k; hunt with all units and 3 tells 17 / 0.9k; 7 cubs with 3 tells 33 / 2.3k. Budget 500 / 0.5M. Shader programs 3 at load and after play; geometry count flat.
 - Bot sweep in the hunt (test 42) with the faster minions, reaction / kill order (0 demon, 1 stalker, 2 howler): never-dodge loses all 3 (7-8 s); 0.3 s: demon-first loses (17 s), minions-first wins (57 s, 3-13 hp left); 0.15 s wins all 3.
@@ -18,7 +18,9 @@
 - Phone review link (claude.ai artifact, same page with three.js from jsDelivr): https://claude.ai/artifact/3nQ67JCTmb1JfPKC3Y416z (version 1795409517-3475 = batch 8). Republish it after each batch: copy index.html, swap the importmap path for https://cdn.jsdelivr.net/npm/three@0.171.0/build/three.module.min.js, publish to slug 1688f9ba-a0e5-4f7b-ac2e-3a68d6fc67c3.
 - Project docs (claude/HANDOFF.md, claude/GDD.md, claude/code/index.html, claude/code/tests/run.mjs) are copies of the repo files; rewrite them after each batch. A project_read of a code file dumps the whole file into the session: avoid it, write from the local file.
 
-## Next batch: 9 = bots (owner, 23 Nov: bots are what make the royale end and start the hunt on its own)
+## Next batch: 10 = decrees (owner order: bots before decrees). Waiting for the owner's go. Also open from batch 9: the player-first observation (below), real-GPU fps, real phone.
+
+## Batch 9 = bots (owner, 23 Nov: bots are what make the royale end and start the hunt on its own). DONE 23 Nov, commits 870fa84 (9a), 5e0e7cc (9b), 1aaf1d0 (9c), 9d below.
 Owner said go for 9a to 9d on 23 Nov (see Owner decisions). Progress:
 - 9a DONE: suit refactor. P stays the name of SUITS[0] (no 390-line rename); generic: hurtSuit(s, n, cause, by), suitDown, suitFell, tickSuit, suitSpeed, stepBody (knockback, walk, floors, void), tryMove(s, ...), hitTarget(by, d, n), hasPlate(s, k), cutUlt(s, sec). Hazards and altars loop over SUITS; enemy moves hit every suit in the shape; cubs pick the nearest suit on their layer (u.tgt) and keep it to the leash; plates and boons go to the last hitter (u.by, bleed kills to u.bleedBy). Static check PASS; runtime 60 of 60; counts unchanged (27/2.8k, 76/8.4k, hunt 17/0.9k). Mutation 9 of 9 (the x-axis knockback mutation was missed at first: test 20 now also knocks sideways through the west terrace gap). Static check now also fails on Math.random (mutation caught).
 - 9b DONE: bot bodies and movement. 9 bots (box suits, school colours, health bars) spawn at the 9 other spawns; they roam to random spots on safe sections (9c replaces this with the brain). ?bots=N or __game.setBots(n); the map-test checks run with bots=0 (URL in tests/run.mjs).
@@ -30,6 +32,9 @@ Owner said go for 9a to 9d on 23 Nov (see Owner decisions). Progress:
   - Bot-only matches (player parked, invulnerable; session scratch runs, seeds 12345, 2-8): royale decided at 185, 199, 173, 163, 235, 246, 217, 215 s. 3 of 64 bot deaths were collapse falls (late drops off a terrace into a section warned seconds before).
   - New checks 59-63 (68 of 68): target rule (answers its attacker, switches to the player on sight, keeps the player while seen, lets go out of sight); plates and boons to the bot that took them, none to the player; dodge a stone lion 8 s with no damage; two bots fighting on the roof leave it in the 5 s warning; heal at an altar. Mutation 7 of 7 (the flee check was first passing without flee: rewritten with two fighting bots).
   - Test autopilot __game.autoPlayer(on): the same brain drives the player (checks only).
+- 9d DONE: royale end. In a match (bots > 0) the player broken or fallen = frozen loss banner (Kaymuse line, 'Place N of 10', New run button / N); no map-test respawn. The last suit standing starts the hunt by itself. H and the Hunt button only with ?debug or with no bots (map test). __game.setWatch(on) keeps the bots going after the player is out (checks only).
+  - New checks 64-66 (71 of 71): royale end flow; 6 whole matches with the player on autopilot: decided at 211, 181, 196, 206, 188, 209 s (band 165-255 = about 3-4 min), 0 broken invariants (alive count only falls, live suits on a floor with health in range, out bots not drawn), every out has a cause, bots took 14 plates and 22 boons, 6 different winning spawns; idle player loses (fell with W2 at 141 s). Mutation 8 of 8.
+  - Seen in those runs, for the owner: the autopilot player (average bot) was the first suit broken in all 6 matches, at 121-146 s, i.e. right after the 2:00 peace. Cause: the owner's rule (bots switch to the player on sight) makes every fighting bot nearby go for the player at once. A real player can run, but the royale is hard. Options: keep; or only one bot at a time may switch (CONFIG); or shorten the switch to bots already fighting within N m. Not changed.
 - Goal: 9 bot suits so the royale plays out and the last suit alive wakes the demon without the H key. Then leader, crown marker and bounty become possible; decrees come after.
 - Readiness now about 75 of 100: audit done (below); Dawnpunk read (src/bots.js: its bots are test players, not opponents; patterns taken: bots use only the player's actions, skill profiles {react, hit} in CONFIG, waypoint walk between floors). Unknown: navSearch worst-case time (measured first in 9b).
 - Audit (P.* references per function, index.html @ 89629c9): step 125, reset 28, updateStatus 23, startHunt 23, respawn 17, resolveMove 17, placeView 11, hurt 9, castSkill 9, grantPlayerPlate 7, stepUnit 6, applySkill 6, grantBoon 5, stepKennel 4, drawMini 4, cubThink 3; the ~39 in the test-hook object stay player-only. navSearch writes one shared PATH (1024 floats); grid A* 1 m cells, cap NAV_MAX 15000 nodes per search.
@@ -100,7 +105,8 @@ Owner said go for 9a to 9d on 23 Nov (see Owner decisions). Progress:
 
 ## Files
 - index.html: whole game (one module script, CONFIG block at top, TEXT keys, map data). lib/: three.js r171 (MIT, lib/three-LICENSE.txt).
-- tests/static-check.mjs: static rules. tests/run.mjs: 60 headless checks (33-45 = apex hunt, 46-51 = royale minions, 52-55 = bags and buff creatures); starts its own static server.
+- tests/static-check.mjs: static rules (incl. no Math.random). tests/run.mjs: 71 headless checks (33-45 = apex hunt, 46-51 = royale minions, 52-55 = bags and buff creatures, 56-58 bot movement, 59-63 bot brain, 64-66 royale end and whole matches); starts its own static server.
+- Bot hooks: setBots, bots, botDbg, placeBot, hitBot, hitBy, setBotHp, setBotCd, hitCubBy, hitNeutralBy, autoPlayer, setWatch, royale, player, navTime, navNodes, setTime. ?bots=N sets the bot count.
 - Test hooks: window.__game (step, setMove, teleport, moveTo, attack, cast, aimKey, render, state, startHunt, hunt, huntUi, attackUnit, hitUnit, placeUnit, unitCd, cubs, hitCub, placeCub, cubCd, attackCub, givePlate, neutrals, hitNeutral, forceNeutral, drawBag, setSeed, ...). ?lock locks the tier; ?debug shows counts and enables the M overview.
 
 ## Decisions (user, 23 Nov)
@@ -115,7 +121,8 @@ Owner said go for 9a to 9d on 23 Nov (see Owner decisions). Progress:
 ## Open
 - Kaymuse's look; game title; apex ultimate rule (built as single use at half health; confirm); ultimate charge amounts; minion names; Tiger Demon hard-surface confirm.
 - Apex balance: kill-order target not met (see Status); demon 1000 hp against the placeholder kit gives a 50-60 s fight.
-- Vision is a plain radius: walls/curtains do not block sight yet (comes with bots and hiding).
+- Vision is a plain radius: walls/curtains do not block sight yet (comes with hiding); bots use the same plain radius.
+- Bots: no school behaviours (GDD: not chosen); bot Q/W show no flash yet (only R shows its ring, for fairness); bodies are boxes in school colours.
 - Apex trigger: teleport to the core hall under a card (assumed) or walk there.
 - Organiser answer on eligibility; OpenGame CLI test.
 - Placeholder skills (line, burst, delayed ultimate) and 3 training dummies are map-test only; replaced by kits.

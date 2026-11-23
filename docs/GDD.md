@@ -1,6 +1,6 @@
 # Apex-hunt jam game: GDD and handoff (working title TBD)
 
-Status: updated 2026-11-23 after batch 8. Batches 1-2 approved. Batches 3-8 built on boxes (map, controls, apex fight, royale minions, buff creatures from marble bags); static PASS, runtime 60 of 60 PASS; waiting for the user's review. Next: bots. All numbers are proposals, tunable in one CONFIG block.
+Status: updated 2026-11-23 after batch 9. Batches 1-2 approved. Batches 3-9 built on boxes (map, controls, apex fight, royale minions, buff creatures from marble bags, 9 bots that play the royale to its end); static PASS, runtime 71 of 71 PASS; waiting for the user's review. Next: decrees. All numbers are proposals, tunable in one CONFIG block.
 Repo for the code: https://github.com/heavenfort77-cpu/Empress-decrees- (all-new code, nothing from B.O.I).
 
 ## Jam facts (checked 2026-11-23)
@@ -78,7 +78,7 @@ Purpose: give a suit a way to pull ahead, so the royale is not ten equal suits t
 - Two neutral creatures that never attack and give a boon to the last hitter, in the manner of a MOBA jungle crab and river wanderer. Own names, look and code (working names: crab, wanderer).
 - Marble-bag rule (draw without putting back, refill when empty, seeded) decides four things: when (25/35/45/55 s), where (6 spots; fallen or warned sections skipped), which boon, and how big (0.5x, 1x, 1x, 1.5x).
 - Crab boons: ultimate cooldown cut (stand-in for exp or charge), damage up, heal. Wanderer boons: regen, wider vision, speed. Every stack is capped at 1.4x.
-- Open: boons for bots too (with batch 9); whether the crab should fight back; final names.
+- Bots take plates and boons too (owner, 23 Nov). Open: whether the crab should fight back; final names.
 
 ### Kaymuse's decrees (proposal)
 - About one decree a minute (3 to 4 per royale). She is a live opponent: she speaks on screen, and decrees hit the player and the bots alike.
@@ -163,6 +163,12 @@ Telegraphed shells land in waves; a wave ends with a section collapse. Every she
 | E | Overdrive | +50% attack and speed | 8 s, cd 40 s |
 | R | Pagoda fall | pagoda drops on the cursor point (range 6), 1 s telegraph | radius 3, 3x attack, 1.5 s stun, cd 60 s |
 Ultimate charges from kills and shared hits; exact amounts TBD. Kits for the other nine come after this one is approved. Dashes all differ; 墨甲 has no dash.
+
+### Bots (batch 9, owner go 23 Nov; numbers in CONFIG.BOT)
+- 9 bots, one per other spawn, with the player's placeholder kit until school kits exist; all 'average' (0.3 s reaction) for now. They act only through the player's actions and see only their own 11 m.
+- Target: the nearest suit they can see; once a bot sees the player it switches to the player and keeps it while seen (owner). Bots take plates and boons.
+- Pacing (assumption): until 2:00 a bot only answers a suit that hit it; then fights start, radius growing to full vision by 3:40. Measured royale length 3:01-3:31 over 6 seeds.
+- End: the player broken (or fallen) = loss banner with the place and New run; the last suit standing wakes the demon (no H key except with ?debug or without bots).
 
 ## Sims (headless, pass/fail)
 Duel matrix 10x10 plus apex and minions; bombardment and collapse fairness (never dodge, 0.3 s reaction, perfect dodge; target 0 unavoidable hits); decree fairness; 猿魔 ambush win share within band; full match win share per school and length; apex phase by kill order and bot skill; ultimate timing; idle-versus-active. Frame rate on a real GPU is not testable in the cloud workspace.
