@@ -40,6 +40,15 @@ and hit-back chains spread them; deaths begin at 5-14 s and 5-6 of 8 bots are ou
 Owner chose to keep the current pacing (run about 4-5 min: royale 177-220 s + wake 3 s + hunt 62-68 s). Code stays at 14A; royale band stays 165-255 s (check 65).
 
 ## Next batch: 15 ultimate charge (queue below). Panel note first, then ask the owner for go in ONE AskUserQuestion.
+Panel note 15 (lead, 23 Nov 21:40; proposal, waiting for owner go):
+- Model (6-1): R has a charge meter 0-100; R casts only at 100 and empties it. No cooldown in the royale. Tiger Demon unchanged (has its ultimate from the start).
+- Sources (one number set, CONFIG.ULT): passive 0.5/s; 0.25 per hp dealt to suits; 0.1 per hp taken; kill +20; plate +30 (GDD); crab 'ult' boon +20 x amount; bounty claimed = full 100; ult2x decree = every gain x2 (5-2; critic: 2x gains, not 2x passive only). Estimate (guess, not measured): an active fighter fills in about 30-40 s, close to today's 30 s cooldown.
+- Start: every run begins at 0 (7-0). Hunt: the wake fills it and the hunt keeps the 30 s cooldown as now (7-0; owner: no hunt tuning; check 42 unchanged).
+- Bots: same meter; their R rule (finish a target or under 50 hp) now also needs 100.
+- 道甲 and 阴阳甲 keep their own rules when their kits land (16/17): CONFIG ultMode per suit ('charge' now for the placeholder; 'lock' for 阴阳 later). Not built in 15.
+- HUD: R button shows charge as a ring plus number, written only on change (integer); text keys: boon_ult, rule_plate_s/_h, rule_dec_ult2x/hud_dec_ult2x say charge, not cooldown.
+- Commits: (1) test hook setCharge + checks that cast R at once get it (test tool, own commit); (2) charge + new checks (each source adds its amount; ult2x doubles; bounty fills; no cast under 100; empties on cast; wake fills; new run resets; HUD only on change; budget flat). Gates: 65 decided 165-255 s still passes; ult casts per suit per royale and the existing sims reported. Mutation round on the new checks.
+- Premortem: royale may run longer if bots ult less (gate 65 catches it; then report, no tuning); new run / wake / bounty end reset; ult2x mid-decree; a pending R ring at the wake; 阴阳 must not be blocked by a meter later (ultMode).
 
 ## Queue after batch 14 (owner 18:57 "built"; one batch at a time, panel note first each; kits already designed with the owner in docs/SUITS.md)
 15 ultimate charge (replaces the plate, crab, bounty and ultimates-2x stand-ins); 16 法甲 kit + suit stats sample (owner plays and approves); 17 the other eight kits (docs/SUITS.md); 18 hiding (curtains, 道甲 stillness, sight blocked by walls); 19 the ending + WINNER_STATUE; 20 final map size + balancing pass (re-measure, retune the CONFIG timing list once). Hunt sweep re-check with kits (0.15 s bot now loses demon-first).
