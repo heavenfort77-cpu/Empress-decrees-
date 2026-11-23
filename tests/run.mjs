@@ -254,6 +254,8 @@ try {
     sp(C.SKILLS[0].cd + 0.1); const q3 = G.cast(0, d.x, d.z), afterQ2 = hp();
     // Batch 12 (panel, 23 Nov 15:11): W is now a 4 m dash with its burst on landing, so the hit comes when the dash ends (changed on purpose).
     const w = G.cast(1, d.x, d.z); sp(0.3); const afterW = hp();
+    // Game changed on purpose (batch 15): R casts only with a full charge meter, so the meter is filled before the cast.
+    G.setCharge(-1, C.ULT.full);
     const r = G.cast(2, d.x, d.z), pendNow = G.pending(), beforeR = hp(); sp(C.SKILLS[2].delay + 0.05); const afterR = hp(), pendAfter = G.pending();
     G.reset(); G.teleport(d.x, d.z - C.VISION_R - 2); G.step(2); G.cast(0, d.x, d.z); const hidden = hp();
     return { q1, afterQ, q2, cdQ: +cdQ.toFixed(2), q3, afterQ2, w, afterW, r, pendNow, beforeR, afterR, pendAfter, hidden };
@@ -329,11 +331,13 @@ try {
       const cancel = document.getElementById('cancel'), cancelShown = getComputedStyle(cancel).display !== 'none';
       const [cx, cy] = c(cancel); ev(window, 'pointermove', wx - 30, wy - 30, 12); ev(window, 'pointermove', cx, cy, 12); ev(window, 'pointerup', cx, cy, 12);
       const cdW = G.skills()[1], hpAfterCancel = G.dummies()[1].hp;
+      // Game changed on purpose (batch 15): R needs a full charge meter and the cast empties it (no R cooldown in the royale).
+      G.setCharge(-1, G.config.ULT.full); const chBefore = G.chargeOf(-1);
       const [rx, ry] = c(btns[3]); ev(btns[3], 'pointerdown', rx, ry, 13); ev(window, 'pointermove', rx, ry - 40, 13); ev(window, 'pointerup', rx, ry - 40, 13);
-      return { bar: btns.length, mini: G.miniSize()[0], touch: G.ui().touch, tapHp, cancelShown, cdW, hpAfterCancel, cdR: G.skills()[2], pend: G.pending() };
+      return { bar: btns.length, mini: G.miniSize()[0], touch: G.ui().touch, tapHp, cancelShown, cdW, hpAfterCancel, chBefore, chR: G.chargeOf(-1), pend: G.pending() };
     });
     check('32 phone: MLBB buttons, tap auto-aim hits, cancel zone, drag aim casts', res.touch && res.bar === 4 && res.mini === 140 && res.tapHp === 75
-      && res.cancelShown && res.cdW === 0 && res.hpAfterCancel === 75 && res.cdR > 0 && res.pend && perr.length === 0, JSON.stringify(res) + ' ' + perr.join(' | '));
+      && res.cancelShown && res.cdW === 0 && res.hpAfterCancel === 75 && res.chBefore === 100 && res.chR === 0 && res.pend && perr.length === 0, JSON.stringify(res) + ' ' + perr.join(' | '));
     // 44 Phone: the Hunt button is a 44 px target and a tap starts the hunt.
     const hb = await ph.evaluate(() => {
       const G = __game; G.reset(); const b = document.getElementById('btnHunt'), r = b.getBoundingClientRect();
@@ -584,14 +588,15 @@ try {
   });
   check('47 cub rules: aggro, told bite (>= 0.4 s) at scaled damage, leash home and heal, no flank over a drop', cf.hot && cf.move === 'bite' && cf.windupS >= 0.4 && !cf.early && cf.hp === cf.wantHp && cf.minTell >= 0.4
     && cf.home && cf.back && cf.healed && cf.flank === 'flank' && cf.edge.ok && cf.edge.y === 4 && Math.abs(cf.edge.floor - cf.edge.y) < 0.7, JSON.stringify(cf));
-  // 48 Plate reward: plate flies to the player, 45 s buff in one of two slots, ultimate cooldown cut, Stalker plate = bleed on hits, Howler plate = speed, oldest slot replaced, buff runs out.
+  // 48 Plate reward: plate flies to the player, 45 s buff in one of two slots, ultimate charge (batch 15), Stalker plate = bleed on hits, Howler plate = speed, oldest slot replaced, buff runs out.
   const pl = await g(() => {
     const G = __game, C = G.config, K = window.__k, o = {}, fly = Math.round(C.PLATE.flyS / C.STEP) + 2; G.reset(); K.sp(C.KENNEL.firstS + 0.1); G.setHp(1e9);
     let c = G.cubs(); const a = c.list.findIndex((u) => u.alive), ua = c.list[a]; K.mute(a);
-    G.teleport(ua.x + 4, ua.z + 3); G.step(2); G.cast(2, ua.x + 40, ua.z + 3); const cd0 = G.cubs().ultCd;
+    // Game changed on purpose (batch 15): the plate gives ULT.plate charge instead of a cooldown cut; the meter starts empty and passive charge during the flight is taken out.
+    G.teleport(ua.x + 4, ua.z + 3); G.step(2); G.setCharge(-1, 0); const ch0 = G.chargeOf(-1);
     G.hitCub(a, 1e6); c = G.cubs(); o.dead = !c.list[a].alive && !c.list[a].inScene && !c.list[a].tellIn; o.flying = c.list[a].plate; o.takenBefore = c.taken;
     G.step(fly); c = G.cubs(); o.slot0 = c.plates[0].kind; o.t0 = c.plates[0].t; o.status = c.status; o.rule = c.rule; o.plateGone = !c.list[a].plate; o.taken = c.taken;
-    o.cut = cd0 - c.ultCd - fly * C.STEP; o.wantCut = C.PLATE.ultCut * C.SKILLS[2].cd;
+    o.gain = G.chargeOf(-1) - ch0 - C.ULT.passive * fly * C.STEP; o.wantGain = C.ULT.plate;
     K.sp(C.KENNEL.intervalS); c = G.cubs(); o.expired = c.plates.every((p) => p.kind === '' && p.t === 0) && c.status === '';
     const h = c.list.findIndex((u) => u.alive && u.kind === 'howler'), uh = c.list[h]; K.mute(h);
     G.teleport(uh.x - 4, uh.z); G.step(2); G.givePlate('stalker'); G.cast(0, uh.x, uh.z); const hp1 = G.cubs().list[h].hp; o.lineHit = uh.hp - hp1; o.bleedOn = G.cubs().list[h].bleed > 0;
@@ -600,8 +605,8 @@ try {
     G.hitCub(h, 1e6); G.step(fly); c = G.cubs(); o.slots = c.plates.map((p) => p.kind).join(); o.taken2 = c.taken; o.status2 = c.status;
     return o;
   });
-  check('48 plate: flight shown, buff slot, ultimate cooldown cut, bleed on hits, speed, oldest slot replaced, expiry', pl.dead && pl.flying && pl.takenBefore === 0 && pl.slot0 === 'stalker' && pl.t0 > 44 && /Stalker plate 4\ds/.test(pl.status)
-    && /Stalker plate/.test(pl.rule) && pl.plateGone && pl.taken === 1 && Math.abs(pl.cut - pl.wantCut) < 0.05 && pl.expired && pl.lineHit === 25 && pl.bleedOn && Math.abs(pl.bleedLoss - pl.wantBleed) < 0.2
+  check('48 plate: flight shown, buff slot, ultimate charge, bleed on hits, speed, oldest slot replaced, expiry', pl.dead && pl.flying && pl.takenBefore === 0 && pl.slot0 === 'stalker' && pl.t0 > 44 && /Stalker plate 4\ds/.test(pl.status)
+    && /Stalker plate/.test(pl.rule) && pl.plateGone && pl.taken === 1 && Math.abs(pl.gain - pl.wantGain) < 0.05 && pl.expired && pl.lineHit === 25 && pl.bleedOn && Math.abs(pl.bleedLoss - pl.wantBleed) < 0.2
     && Math.abs(pl.fastDz - pl.wantDz) < 0.05 && pl.slots === 'howler,howler' && pl.taken2 === 2 && /Howler plate/.test(pl.status2), JSON.stringify(pl));
   // 49 Collapse: a cub whose section falls is lost and gives no plate; a fallen camp spawns nothing.
   const kc = await g(() => {
@@ -695,7 +700,8 @@ try {
   const bo = await g(() => {
     const G = __game, C = G.config, K = window.__k, B = C.BOONS, o = {}, d = G.dummies()[1];
     const give = (i, boon, amt) => { G.forceNeutral(i, 4, boon, amt); G.hitNeutral(i, 1e6); };
-    G.reset(); G.teleport(d.x, d.z - 5); G.step(2); G.cast(2, d.x + 40, d.z - 5); const cd0 = G.neutrals().ultCd; give(0, 'ult', 1.5); o.ult = cd0 - G.neutrals().ultCd; o.wantUlt = B.ult.v * 1.5 * C.SKILLS[2].cd; o.ultRule = G.neutrals().rule;
+    // Game changed on purpose (batch 15): the crab's ult boon gives charge (BOONS.ult.v x amount) instead of a cooldown cut; the kill is instant, so no passive charge is mixed in.
+    G.reset(); G.teleport(d.x, d.z - 5); G.step(2); G.setCharge(-1, 0); const ch0 = G.chargeOf(-1); give(0, 'ult', 1.5); o.ult = G.chargeOf(-1) - ch0; o.wantUlt = B.ult.v * 1.5; o.ultRule = G.neutrals().rule;
     G.setHp(40); give(0, 'heal', 0.5); o.heal = G.state().hp - 40; o.wantHeal = B.heal.v * 0.5;
     give(0, 'power', 1); G.cast(0, d.x, d.z); o.powerHit = 100 - G.dummies()[1].hp; o.wantHit = C.SKILLS[0].dmg * (1 + B.power.v); G.step(1); o.status = G.neutrals().status;
     G.setHp(40); give(1, 'regen', 1); const h0 = G.state().hp; G.step(60); o.regen = G.state().hp - h0; o.wantRegen = B.regen.v;
@@ -706,7 +712,7 @@ try {
     o.cap = C.BONUS_CAP; o.maxSpeed = (1 + C.PLATE.speed) * (1 + B.speed.v * Math.max(...C.BAGS.amounts)); o.maxPower = 1 + B.power.v * Math.max(...C.BAGS.amounts);
     return o;
   });
-  check('54 boons: ultimate cut, heal, power, regen, vision, speed at the drawn size; under the cap; they end; HUD text', Math.abs(bo.ult - bo.wantUlt) < 0.05 && /cooldown/.test(bo.ultRule) && Math.abs(bo.heal - bo.wantHeal) < 0.01
+  check('54 boons: ultimate charge, heal, power, regen, vision, speed at the drawn size; under the cap; they end; HUD text', Math.abs(bo.ult - bo.wantUlt) < 0.05 && /charge/.test(bo.ultRule) && Math.abs(bo.heal - bo.wantHeal) < 0.01
     && Math.abs(bo.powerHit - bo.wantHit) < 0.01 && /Power \d+s/.test(bo.status) && Math.abs(bo.regen - bo.wantRegen) < 0.05 && bo.visR === bo.wantVis && bo.fow === bo.wantVis && bo.seesFar
     && Math.abs(bo.fast - bo.wantFast) < 0.05 && /Speed \d+s/.test(bo.status2) && /Vision \d+s/.test(bo.status2) && bo.ended && bo.maxSpeed <= bo.cap && bo.maxPower <= bo.cap, JSON.stringify(bo));
   // 55 A creature whose section falls is lost with no boon and comes back later elsewhere; the wake clears both; switch off = none; memory and shaders flat.
@@ -791,17 +797,18 @@ try {
   });
   check('59 bot target: answers its attacker, switches to the player on sight, keeps the player while seen, lets go out of sight', rt.first === 2 && rt.onSight === 0 && rt.kept && rt.away !== 0, JSON.stringify(rt));
   const C0 = await g(() => __game.config);
-  // 60 Bots take plates and boons (owner, 23 Nov): a cub broken by a bot sends its plate to that bot (buff slot, ultimate cut); a buff creature's boon goes to its last hitter; the player gets neither.
+  // 60 Bots take plates and boons (owner, 23 Nov): a cub broken by a bot sends its plate to that bot (buff slot, ultimate charge since batch 15); a buff creature's boon goes to its last hitter; the player gets neither.
   const bp = await g(() => {
     const G = __game, C = G.config, K = window.__k, o = {};
     G.setSeed(12345); G.setBots(1); G.reset(); G.teleport(0, -50); K.sp(C.KENNEL.firstS + 0.1);
     const ci = G.cubs().list.findIndex((u) => u.alive); G.placeBot(0, G.camps[0][0] + 9, G.camps[0][1]);
-    G.setBotCd(0, 2, C.SKILLS[2].cd); const ultBefore = G.bots().list[0].ult; G.hitCubBy(ci, 0, 1e4); K.sp(C.PLATE.flyS + 0.1);
-    let b = G.bots().list[0]; o.plates = b.plates; o.slot = b.pk[0]; o.ultCut = +(ultBefore - b.ult).toFixed(2); o.playerPlates = G.player().plates;
+    // Game changed on purpose (batch 15): the bot's plate gives ULT.plate charge instead of a cooldown cut; passive charge over the flight is taken out.
+    G.setCharge(0, 0); const chBefore = G.chargeOf(0), flyN = Math.round((C.PLATE.flyS + 0.1) / C.STEP); G.hitCubBy(ci, 0, 1e4); K.sp(C.PLATE.flyS + 0.1);
+    let b = G.bots().list[0]; o.plates = b.plates; o.slot = b.pk[0]; o.gain = +(G.chargeOf(0) - chBefore - C.ULT.passive * flyN * C.STEP).toFixed(3); o.playerPlates = G.player().plates;
     G.forceNeutral(0, 0, 'power', 1); G.hitNeutralBy(0, 0, 1e4); b = G.bots().list[0]; o.boons = b.boons; o.power = b.bT[0] > 0; o.playerBoons = G.player().boons;
     G.setBots(0); G.reset(); return o;
   });
-  check('60 bots take plates and boons: plate to the bot that broke the cub (slot, ultimate cut), boon to the last hitter, none to the player', bp.plates === 1 && bp.slot !== '' && Math.abs(bp.ultCut - C0.PLATE.ultCut * C0.SKILLS[2].cd - C0.PLATE.flyS - 0.1) < 0.1
+  check('60 bots take plates and boons: plate to the bot that broke the cub (slot, ultimate charge), boon to the last hitter, none to the player', bp.plates === 1 && bp.slot !== '' && Math.abs(bp.gain - C0.ULT.plate) < 0.05
     && bp.boons === 1 && bp.power && bp.playerPlates === 0 && bp.playerBoons === 0, JSON.stringify(bp));
   // 61 Dodge: an average bot (0.3 s reaction) parked by a stone lion for 8 s steps out of every 0.6 s tell: the lion strikes, the bot takes no hazard damage.
   const dg = await g(() => {
@@ -960,8 +967,9 @@ try {
     }
     G.setBots(0); G.reset(); return { out, viol, wins, wins6, plates, boons, hunt: { hv, see3, maxOnP, maxHunt }, lead: { lv, lchanges, leadersSeen, preLeadBad }, cap: { cv, capOff, capOn, bountyPTicks, capMark, markPTicks }, sh, sims, dec: { dv, hiStay: +hiStay.toFixed(2), dsum, bannerOv, hiNear, hiBrk } };
   });
-  check('65 whole matches x6: decided in 165-255 s, 0 broken invariants, every out has a cause, bots take plates and boons, no spawn wins more than 3 of 6',
-    ms.out.every((m) => m.decided >= 165 && m.decided <= 255 && m.nocause === 0) && ms.viol.length === 0 && ms.plates > 0 && ms.boons > 0 && Math.max(...Object.values(ms.wins6)) <= 3, JSON.stringify(ms));
+  // Batch 15: the band is read from CONFIG.ROYALE.band; the owner changed it on purpose (23 Nov 22:05: floor 150 s, was 165).
+  check(`65 whole matches x12: decided in ${C0.ROYALE.band[0]}-${C0.ROYALE.band[1]} s, 0 broken invariants, every out has a cause, bots take plates and boons, no spawn wins more than 3 of 6`,
+    ms.out.every((m) => m.decided >= C0.ROYALE.band[0] && m.decided <= C0.ROYALE.band[1] && m.nocause === 0) && ms.viol.length === 0 && ms.plates > 0 && ms.boons > 0 && Math.max(...Object.values(ms.wins6)) <= 3, JSON.stringify(ms));
   // 67 Hunter slot over the 6 whole matches of 65 (owner, 23 Nov 14:04): with 3 or more bots seeing the player, at most BOT.maxHunters bots
   // target the player by the on-sight switch at any tick; the case did happen; slot count, flags and targets agree every tick.
   check('67 hunter slot: at most maxHunters bots switch to the player at any tick over 6 matches (3+ bots seeing the player happened)',
@@ -1042,7 +1050,7 @@ try {
     && cr.after.id === -1 && !cr.after.crownOn && cr.after.hudShown === 'none', JSON.stringify(cr));
   // 71 Bounty decree (scripted, 3 bots kept in the core hall at huge health): told >= DECREE.warnS before it starts (voice, banner, countdown), only after
   // BOUNTY.afterS of one leader, never over a collapse banner (queued when a collapse warning is near); lasts durS; breaking the leader in the warning pays nothing;
-  // breaking a non-leader pays nothing; breaking the leader in force resets the breaker's ultimate and ends it; a broken leader with no breaker pays nobody;
+  // breaking a non-leader pays nothing; breaking the leader in force fills the breaker's charge meter (batch 15) and ends it; a broken leader with no breaker pays nobody;
   // the wake ends it and none in the hunt; new run x3 resets it; text keys exist.
   const bt = await g(() => {
     const G = __game, C = G.config, K = window.__k, o = {}, B = C.BOUNTY, D = C.DECREE;
@@ -1061,7 +1069,9 @@ try {
     run(10, () => { watch(); return G.leader().dec === 3; }); const s1 = G.leader(); o.on = { startAt: s1.startAt, lead: +(s1.startAt - s1.warnAt).toFixed(2), hud: s1.hud, bannerOff: !s1.banner };
     // C: bot 2 breaks a non-leader in force: nothing paid, bounty goes on; then bot 2 breaks the leader: its ultimate is reset, the bounty ends.
     G.hitBy(1, 2, 1e12); hold(); G.step(1); o.nonLeader = { paid: G.leader().paid, dec: G.leader().dec };
-    G.setBotCd(1, 2, 30); G.hitBy(1, 0, 1e12); hold(); G.step(1); const c = G.leader(); o.paid = { paid: c.paid, to: c.paidTo, ult: G.ultOf(1), dec: c.dec, why: c.endWhy, leader: c.id };
+    // Game changed on purpose (batch 15): the bounty fills the breaker's charge meter (ULT.bounty) instead of resetting a cooldown. The breaker starts empty and the leader at 1 hp,
+    // so the hit and the kill give only ULT.dealt + ULT.kill (well under full): a full meter after the break proves the bounty paid.
+    G.setCharge(1, 0); G.setBotHp(0, 1); G.hitBy(1, 0, 1e12); const chPaid = G.chargeOf(1); hold(); G.step(1); const c = G.leader(); o.paid = { paid: c.paid, to: c.paidTo, ch: chPaid, dec: c.dec, why: c.endWhy, leader: c.id };
     o.overlap = overlap;
     // Natural end: a fresh leader at t 61 (clear window), refreshed plates; the bounty lasts durS.
     start(2); run(61); G.plateTo(1, 'stalker'); run(30); G.plateTo(1, 'howler');
@@ -1086,7 +1096,7 @@ try {
   check('71 bounty: queued off collapse banners, told >= 5 s after 25 s of lead, lasts 40 s, pays only for breaking the leader in force, ends on leader out and at the wake, none in the hunt, new run x3 resets, keys',
     bt.queued === 1 && bt.warn.at >= 60 && bt.warn.sinceLead >= 25 && /bounty lieth/.test(bt.warn.voice) && /Bounty on the leader \(Dao suit\) in \d s/.test(bt.warn.rule) && bt.warn.shown === 'block'
     && bt.on.lead >= 5 - 1e-6 && /bounty \d+ s/.test(bt.on.hud) && bt.on.bannerOff && bt.nonLeader.paid === 0 && bt.nonLeader.dec === 3
-    && bt.paid.paid === 1 && bt.paid.to === 2 && bt.paid.ult === 0 && bt.paid.dec === 0 && bt.paid.why === 'out' && bt.paid.leader === 2 && bt.overlap === 0
+    && bt.paid.paid === 1 && bt.paid.to === 2 && bt.paid.ch === C0.ULT.full && C0.ULT.dealt + C0.ULT.kill < C0.ULT.full && bt.paid.dec === 0 && bt.paid.why === 'out' && bt.paid.leader === 2 && bt.overlap === 0
     && Math.abs(bt.natural.dur - 40) < 0.1 && bt.natural.why === 'time' && !bt.natural.again
     && bt.inWarn.wasWarn && bt.inWarn.paid === 0 && bt.inWarn.dec === 0 && bt.inWarn.why === 'out' && bt.noBreaker.paid === 0 && bt.noBreaker.dec === 0 && bt.noBreaker.why === 'out'
     && bt.wake.dec === 0 && bt.wake.why === 'wake' && !bt.wake.crown && bt.wake.hud === 'none' && bt.wake.huntDec === 0 && bt.fresh.every((x) => x) && bt.keys.length === 0, JSON.stringify(bt));
@@ -1176,7 +1186,7 @@ try {
   });
   check('75 decree bags: full cycles without repeats, seeded, gone places skipped (no bridge, heights or fallen zone after their collapse)', dbg.cycles && dbg.same && dbg.differs && dbg.goneOk, JSON.stringify(dbg));
   // 76 The five decrees each do what their rule line says, only while in force: altars dry (heal in the warning, none in force, empty look, back after);
-  // ultimates 2x (player and bot, clamped at 0); silence (no new cast on a bridge with the note, status and button look; a cast released before still lands;
+  // ultimates 2x (charge gains doubled for player and bot, capped at full; batch 15); silence (no new cast on a bridge with the note, status and button look; a cast released before still lands;
   // a bot on a bridge only attacks); heights (no break in the warning, break with slow + mark, again every 2 s, none on low ground; slope top counts, its foot does not;
   // a bot on the terrace at the warning leaves in time); no dash (zone tinted gold and outlined on the minimap, named in her line; a dash in the zone breaks it, outside not).
   const dfx = await g(() => {
@@ -1186,12 +1196,16 @@ try {
     G.teleport(0, -14); H.hold(4.6, H.park); G.teleport(a.x + 1.2, a.z); G.setHp(50); H.hold(2, H.park);
     o.dryHeal = +(G.state().hp - 50).toFixed(3); o.dryLook = G.altars().every((x) => !x.on); o.hud = G.decree().hud; o.hudShown = G.decree().hudShown;
     H.hold(2.2, H.park); o.endSt = G.decree().st; G.setHp(50); H.hold(1, H.park); o.afterHeal = G.state().hp > 50; o.afterLook = G.altars()[2].on; o.hudGone = G.decree().hudShown;
-    H.start(); G.teleport(0, -14); G.cast(2, 0, -5); G.setBotCd(0, 2, 30); H.hold(5, H.park); const p0 = G.ultOf(-1), b0 = G.ultOf(0);
-    H.hold(0.001, H.park); G.forceDecree('ult2x', null, 10); H.hold(5, H.park); const p1 = G.ultOf(-1), b1 = G.ultOf(0); H.hold(5, H.park); const p2 = G.ultOf(-1), b2 = G.ultOf(0);
-    o.ultWarn = +((p0 - p1) / 5).toFixed(2); o.ultOn = +((p1 - p2) / 5).toFixed(2); o.botOn = +((b1 - b2) / 5).toFixed(2); G.setBotCd(0, 2, 0.5); H.hold(1, H.park); o.botClamp = G.ultOf(0);
+    // Game changed on purpose (batch 15): "Ultimates 2x" doubles every charge gain (was: the R cooldown ticks 2x). Player and bot start empty and gain only passive charge here
+    // (nobody fights), so the gain per second over the passive rate is 1 in the warning and 2 in force; a meter near full is capped at full under the decree.
+    H.start(); G.teleport(0, -14); G.setCharge(-1, 0); G.setCharge(0, 0); const p0 = G.chargeOf(-1);
+    G.forceDecree('ult2x', null, 10); const b0 = G.chargeOf(0); H.hold(5, H.park); const p1 = G.chargeOf(-1), b1 = G.chargeOf(0); H.hold(5, H.park); const p2 = G.chargeOf(-1), b2 = G.chargeOf(0);
+    const pr = C.ULT.passive * 5; o.ultWarn = +((p1 - p0) / pr).toFixed(2); o.ultOn = +((p2 - p1) / pr).toFixed(2); o.botWarn = +((b1 - b0) / pr).toFixed(2); o.botOn = +((b2 - b1) / pr).toFixed(2);
+    G.setCharge(0, C.ULT.full - 0.2); H.hold(1, H.park); o.botCap = G.chargeOf(0) - C.ULT.full;
     H.start(); G.forceDecree('silence', null, 30); G.teleport(0, -24); H.hold(5.1, H.park);
     const nearB = () => G.placeBot(0, -18, 6); G.setBotHp(0, 1000); G.teleport(-15, 6); H.hold(0.1, nearB);
-    o.castOff = G.cast(2, -18, 6); G.teleport(-24, 6); H.hold(1.2, nearB); o.released = 1000 - G.bots().list[0].hp; G.setBotHp(0, 1e9); G.teleport(-30, 6); G.step(1); o.castOn = G.cast(0, -30, -2);
+    // Batch 15: R needs a full charge meter (game changed on purpose).
+    G.setCharge(-1, C.ULT.full); o.castOff = G.cast(2, -18, 6); G.teleport(-24, 6); H.hold(1.2, nearB); o.released = 1000 - G.bots().list[0].hp; G.setBotHp(0, 1e9); G.teleport(-30, 6); G.step(1); o.castOn = G.cast(0, -30, -2);
     const dc = G.decree(); o.silNote = dc.voice; o.silStatus = dc.status; o.silBar = dc.barSilenced;
     const atB = () => G.placeBot(0, -28.5, 6); G.hitBy(-1, 0, 1); const hp0 = G.state().hp; H.hold(2, atB);
     o.botCdOn = G.bots().list[0].cd.join(); o.botHit = hp0 - G.state().hp; o.botTgt = G.bots().list[0].tgt;
@@ -1213,7 +1227,7 @@ try {
   const gold = (p) => p[0] > 200 && p[1] > 150 && p[2] < 120;
   check('76 decrees: dry, ultimates 2x, bridge silence, heights, no dash each do what their line says and only while in force',
     dfx.warnHeal && dfx.dryHeal === 0 && dfx.dryLook && /altars do not heal \(\d+ s\)/.test(dfx.hud) && dfx.hudShown === 'block' && dfx.endSt === 0 && dfx.afterHeal && dfx.afterLook && dfx.hudGone === 'none'
-    && Math.abs(dfx.ultWarn - 1) < 0.05 && Math.abs(dfx.ultOn - 2) < 0.05 && Math.abs(dfx.botOn - 2) < 0.05 && dfx.botClamp === 0
+    && Math.abs(dfx.ultWarn - 1) < 0.05 && Math.abs(dfx.ultOn - 2) < 0.05 && Math.abs(dfx.botWarn - 1) < 0.05 && Math.abs(dfx.botOn - 2) < 0.05 && dfx.botCap === 0
     && dfx.castOff && dfx.released === 60 && dfx.castOn === false && /stilled/.test(dfx.silNote) && /Silenced/.test(dfx.silStatus) && dfx.silBar
     && dfx.botCdOn === '0,0,0' && dfx.botHit > 0 && dfx.botTgt === 0 && dfx.botCdOff && !dfx.barOff
     && dfx.warnBrk === 0 && dfx.brk1 === 1 && dfx.mark > 4.5 && dfx.marker && dfx.slow[0] > 1.5 && dfx.slow[1] === 0.3 && dfx.markVoice === 'Thou art marked.' && !dfx.botHi && dfx.botBrk === 0

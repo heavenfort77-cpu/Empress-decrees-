@@ -28,6 +28,7 @@ body.touch #next{top:10px;right:12px}
 #bar{position:fixed;left:50%;bottom:10px;transform:translateX(-50%);display:flex;gap:8px}
 .sk{position:relative;width:52px;height:52px;border-radius:8px;background:#2a2030;border:2px solid #c9a040;color:#fff;font:bold 16px system-ui,sans-serif;display:flex;align-items:center;justify-content:center;pointer-events:none}
 .sk .cd{position:absolute;inset:0;background:#000a;border-radius:6px;display:none;align-items:center;justify-content:center;font:bold 18px system-ui}
+.sk .ch{position:absolute;inset:-6px;border-radius:inherit;z-index:-1;display:none;pointer-events:none}
 .sk .lb{position:absolute;bottom:-15px;font:11px system-ui;color:#ddd;white-space:nowrap}
 body.touch #bar{left:auto;right:18px;bottom:18px;transform:none;width:230px;height:200px;display:block}
 body.touch .sk{position:absolute;width:64px;height:64px;border-radius:50%;pointer-events:auto;touch-action:none}
@@ -229,8 +230,8 @@ const CONFIG = {
   KENNEL: { firstS: 30, intervalS: 60, warnS: 5, waves: [[['stalker', 0]], [['stalker', 0], ['howler', 1]], [['stalker', 3], ['howler', 1]], [['stalker', 3], ['howler', 3]]] },
   // Cubs: health and damage scale against the apex minions, aggro radius (m), leash radius from the camp (m), heal per second at rest, seconds before a returning cub is put back on its camp, pool sizes.
   CUB: { hpK: 0.8, dmgK: 0.6, aggro: 6, leash: 12, heal: 25, homeMaxS: 6, stalkers: 4, howlers: 3 },
-  // Plate reward (two slots): buff seconds, share of the ultimate cooldown removed (stand-in for ultimate charge), bleed dps and seconds on targets (Stalker plate), speed bonus (Howler plate), plate flight seconds.
-  PLATE: { buffS: 45, ultCut: 0.3, bleedDps: 4, bleedS: 3, speed: 0.1, flyS: 0.7 },
+  // Plate reward (two slots): buff seconds, bleed dps and seconds on targets (Stalker plate), speed bonus (Howler plate), plate flight seconds. Its ultimate charge is ULT.plate.
+  PLATE: { buffS: 45, bleedDps: 4, bleedS: 3, speed: 0.1, flyS: 0.7 },
   // Feature switch: buff creatures (crab and wanderer), drawn from marble bags.
   NEUTRALS: true,
   // Marble bags (draw without putting back; refill and reshuffle when empty). times = seconds until a creature appears (from the run start, then from its death);
@@ -246,15 +247,40 @@ const CONFIG = {
   CRAB: { hp: 110, r: 0.7, scale: 1, roam: 2, rate: 0.8 },
   // Wanderer: health, body radius, box scale, circle radius (m) and rate. It never attacks.
   WANDERER: { hp: 70, r: 0.5, scale: 1, roam: 2.5, rate: 0.6 },
-  // Boons at amount 1 (the bag multiplies v). ult: share of the ultimate cooldown removed. power: damage bonus. heal: health. regen: health per second. vision: metres. speed: speed bonus. s = seconds.
-  BOONS: { ult: { v: 0.2 }, power: { v: 0.1, s: 40 }, heal: { v: 20 }, regen: { v: 2, s: 20 }, vision: { v: 3, s: 40 }, speed: { v: 0.08, s: 30 } },
+  // Boons at amount 1 (the bag multiplies v). ult: ultimate charge points (batch 15). power: damage bonus. heal: health. regen: health per second. vision: metres. speed: speed bonus. s = seconds.
+  BOONS: { ult: { v: 20 }, power: { v: 0.1, s: 40 }, heal: { v: 20 }, regen: { v: 2, s: 20 }, vision: { v: 3, s: 40 }, speed: { v: 0.08, s: 30 } },
   // Highest total multiplier any stack of bonuses may reach (speed, damage).
   BONUS_CAP: 1.4,
+  // Ultimate charge (batch 15, panel note 15, owner go 23 Nov 21:45): R casts only with a full meter and empties it; no cooldown in the royale.
+  // The wake fills the meter and the hunt keeps the old R cooldown (SKILLS[2].cd). Gains only in the royale, only while alive; the ult2x decree multiplies every gain by DECREES.ultK.
+  // The crab's ult boon gives BOONS.ult.v x its drawn amount.
+  ULT: {
+    // Charge needed to cast R (the full meter).
+    full: 100,
+    // Charge every suit has at the start of a run.
+    start: 0,
+    // Charge per second while alive.
+    passive: 0.5,
+    // Charge per point of health dealt to another suit.
+    dealt: 0.25,
+    // Charge per point of health taken (any cause).
+    taken: 0.1,
+    // Charge for breaking a suit.
+    kill: 20,
+    // Charge for a cub's plate.
+    plate: 30,
+    // Charge for claiming the bounty (fills the meter).
+    bounty: 100,
+    // Ultimate mode per suit in suit order (player first, repeats): 'charge' = this meter. Any other mode (later 'lock' for the Yinyang suit, batch 17) keeps the plain R cooldown until it is built.
+    modeOf: ['charge'],
+  },
   // Feature switch: next run's statue wears the last winner's school colour (approved, built later).
   WINNER_STATUE: false,
   // Bots (batch 9, owner go 23 Nov): feature switch, number of bot suits. Owner 23 Nov 20:03: nine schools, player + 8 bots (10 spawn discs kept, one stays empty). ?bots=N in the address overrides the count (tests use 0 for the map test).
   // Owner 23 Nov 20:56: the 10th spawn disc stays empty ON PURPOSE (it foreshadows the apex); no visual or text for it until art.
   BOTS: { on: true, count: 8 },
+  // Royale length band for the whole-match checks (decided time, s). Owner 23 Nov 22:05: floor 150 s (was 165; a run of about 3.6-5 min fits his "4-5 min ok" of 21:28).
+  ROYALE: { band: [150, 255] },
   // Bot brain. skills: reaction (s) = delay before a seen tell or target counts; hit = aim accuracy (0-1); aggro = weight for fighting over roaming.
   // skillOf = skill name per bot (assumption 23 Nov: all 'average'). thinkS = seconds between decisions. goalHoldS = longest a roam goal is kept.
   // stuckRepathS = seconds without progress before a new path; stuckGoalS = seconds before a new goal.
@@ -371,7 +397,7 @@ const TEXT = {
   voice_wander: 'A wanderer strayeth through Our halls.',
   rule_wander: 'A wanderer is in: {zone}. Kill it for a boon.',
   voice_boon: 'A trifle. Keep it.',
-  boon_ult: 'Boon: ultimate cooldown cut by {v} s.',
+  boon_ult: 'Boon: +{v} ultimate charge.',
   boon_power: 'Boon: +{v}% damage for {s} s.',
   boon_heal: 'Boon: healed {v} HP.',
   boon_regen: 'Boon: {v} HP per second for {s} s.',
@@ -401,16 +427,17 @@ const TEXT = {
   rule_dec_heights: 'In {s} s: stay off the upper level (roof, terraces, high bridge ends).',
   hud_dec_heights: 'Decree: stay off the upper level ({s} s)',
   voice_dec_ult2x: 'Let your ultimates swell twice as swift.',
-  rule_dec_ult2x: 'In {s} s: ultimates recharge twice as fast.',
-  hud_dec_ult2x: 'Decree: ultimates recharge 2x ({s} s)',
+  rule_dec_ult2x: 'In {s} s: ultimate charge gains are doubled.',
+  hud_dec_ult2x: 'Decree: ultimate charge 2x ({s} s)',
   voice_marked: 'Thou art marked.',
   rule_marked: 'You broke the decree: slowed and marked for {s} s.',
   voice_silenced: 'Thine arts are stilled here.',
   rule_silenced: 'Silenced: no skills on bridges.',
   st_silenced: 'Silenced',
   st_marked: 'Marked',
-  rule_plate_s: 'Stalker plate: your hits cause bleeding for {s} s. Ultimate cooldown cut.',
-  rule_plate_h: 'Howler plate: +{p}% speed for {s} s. Ultimate cooldown cut.',
+  rule_plate_s: 'Stalker plate: your hits cause bleeding for {s} s. +{c} ultimate charge.',
+  rule_plate_h: 'Howler plate: +{p}% speed for {s} s. +{c} ultimate charge.',
+  ult_charge: '{n}',
   buff_stalker: 'Stalker plate {s}s',
   buff_howler: 'Howler plate {s}s',
   move_claw: 'Claw swipe', move_pounce: 'Pounce', move_roar: 'Metal roar', move_bite: 'Bite',
@@ -489,6 +516,11 @@ function setText(node, s) {
 function setBar(node, frac) {
   const w = Math.round(Math.max(0, Math.min(1, frac)) * 100) + '%';
   if (textCache.get(node) !== w) { textCache.set(node, w); node.style.width = w; }
+}
+// The ultimate's charge ring: a gold arc over pct percent of the circle (written only on change).
+function setRing(node, pct) {
+  const v = 'conic-gradient(#ffd060 ' + pct + '%, #0000 0)';
+  if (textCache.get(node) !== v) { textCache.set(node, v); node.style.background = v; }
 }
 function setShow(node, on) {
   if (showCache.get(node) !== on) { showCache.set(node, on); node.style.display = on ? 'block' : 'none'; }
@@ -855,7 +887,7 @@ const DECREES = { bounty: { voice: 'voice_bounty', rule: 'rule_bounty', idx: 0 }
   silence: { voice: 'voice_dec_silence', rule: 'rule_dec_silence', hud: 'hud_dec_silence', bag: true, idx: 3 },
   heights: { voice: 'voice_dec_heights', rule: 'rule_dec_heights', hud: 'hud_dec_heights', bag: true, idx: 4 },
   ult2x: { voice: 'voice_dec_ult2x', rule: 'rule_dec_ult2x', hud: 'hud_dec_ult2x', bag: true, idx: 5 } };
-const LEADER_VARS = { who: '', s: 0 }, DECREE_VARS = { who: '', s: 0, zone: '' }, MARK_VARS = { s: CONFIG.DECREES.markS };
+const CHARGE_VARS = { n: 0 }, LEADER_VARS = { who: '', s: 0 }, DECREE_VARS = { who: '', s: 0, zone: '' }, MARK_VARS = { s: CONFIG.DECREES.markS };
 // Decree bags (batch 12): seeded by their own generator (DRNG).
 const DRNG = { s: 1 };
 const DD = CONFIG.DECREES;
@@ -875,6 +907,8 @@ for (let k = 0; k < SUITS.length; k++) {
   // markT = seconds marked; brkT = seconds before a new break counts; breaks = decrees broken this run; dashLeft = metres of dash left (0 = not dashing).
   // wsT = game time this suit last stood on a warned section (heights exemption).
   Object.assign(s, { marker: m, markT: 0, brkT: 0, breaks: 0, wsT: -99, dashLeft: 0, dashX: 0, dashZ: 0, dashStep: 0, dashSlot: 1, dashOrd: false, silShown: false });
+  // ch = ultimate charge (batch 15); ultMode = how its R unlocks; ultN = ultimates cast this run (sims).
+  Object.assign(s, { ch: CONFIG.ULT.start, ultMode: CONFIG.ULT.modeOf[k % CONFIG.ULT.modeOf.length], ultN: 0 });
 }
 // Brain fields on the player too, used only by the test autopilot (__game.autoPlayer).
 Object.assign(P, { campK: -1, cd: [0, 0, 0], navWant: false, gx: 0, gz: 0, gy: 0, goalT: 0, skill: CONFIG.BOT.skills.average, thinkT: 0, tgt: null, tgtT: 0, mode: '', direct: false,
@@ -966,12 +1000,14 @@ function buildBar() {
     else {
       x.b.style.right = pos[i][0] + 'px'; x.b.style.bottom = pos[i][1] + 'px';
       x.b.addEventListener('pointerdown', (e) => {
-        e.preventDefault(); if (SK[i].cdT > 0) return;
+        e.preventDefault(); if (!playerReady(i)) return;
         const d = ORD.drag; d.id = e.pointerId; d.slot = i; d.ox = e.clientX; d.oy = e.clientY; d.moved = false; d.cancel = false;
         setShow(el.cancel, true); ORD.cancelRect = el.cancel.getBoundingClientRect();
       });
     }
     SK[i].btn = x.b; SK[i].cdEl = x.cd;
+    // The ultimate's charge ring (batch 15): a gold arc behind the button edge, drawn only on change.
+    if (i === 2) { const ring = document.createElement('div'); ring.className = 'ch'; x.b.appendChild(ring); SK[i].ring = ring; }
   });
 }
 function dragAim(e) {
@@ -1016,7 +1052,7 @@ function dummyNear(x, z, r) {
 // MLBB-style auto-target: nearest visible target within range of the player.
 function autoTarget(range) { return dummyNear(P.x, P.z, range); }
 function startAim(slot, src) {
-  if (SK[slot].cdT > 0 || !canAct()) return;
+  if (!playerReady(slot) || !canAct()) return;
   ORD.aiming = slot; ORD.src = src;
   if (src === 'touch') { ORD.dirX = P.faceX; ORD.dirZ = P.faceZ; ORD.dist = 0; }
 }
@@ -1032,13 +1068,15 @@ function autoCast(slot) {
 // Cast at a world point, clamped to range (MLBB clamps; lines always fly full range).
 function castSkill(slot, tx, tz) {
   const sk = CONFIG.SKILLS[slot], st = SK[slot];
-  if (st.cdT > 0 || !canAct() || P.dashLeft > 0) return false;
+  if (!playerReady(slot) || !canAct() || P.dashLeft > 0) return false;
   // "Upon the bridges, your arts are stilled." (decree): no new cast on a bridge; the note says why (a cast already released still lands).
   if (silenced(P)) { showNote('voice_silenced', 'rule_silenced'); return false; }
   let dx = tx - P.x, dz = tz - P.z; const len = Math.hypot(dx, dz);
   if (len > 0.01) { dx /= len; dz /= len; } else { dx = P.faceX; dz = P.faceZ; }
   const dist = sk.type === 'line' ? sk.range : Math.min(len, sk.range);
-  P.faceX = dx; P.faceZ = dz; st.cdT = sk.cd;
+  P.faceX = dx; P.faceZ = dz;
+  // The ultimate on the meter (royale) empties it and has no cooldown; every other cast starts its cooldown.
+  if (slot === 2 && onMeter(P)) { P.ch = 0; P.ultN++; } else st.cdT = sk.cd;
   const x = P.x + dx * dist, z = P.z + dz * dist;
   if (sk.dash) startDash(P, slot, dx, dz, true);
   else if (sk.delay > 0) {
@@ -1074,8 +1112,15 @@ function hitTarget(by, d, n) {
   hitEnemy(d, n, by);
   if (d.alive && hasPlate(by, 'stalker')) { d.bleedT = CONFIG.PLATE.bleedS; d.bleedBy = by; }
 }
-// Ultimate cooldown cut for a suit (plates and the crab's boon): the player's lives in the ability bar, a bot's in its own list.
-function cutUlt(s, sec) { if (s.bot) s.cd[2] = Math.max(0, s.cd[2] - sec); else SK[2].cdT = Math.max(0, SK[2].cdT - sec); }
+// Ultimate charge (batch 15): a suit's R runs on the meter in the royale (charge mode); the hunt keeps the R cooldown.
+function onMeter(s) { return G.phase === 'royale' && s.ultMode === 'charge'; }
+// The player's skill in this slot can be cast now: its cooldown is over and, for R on the meter, the meter is full.
+function playerReady(slot) { return SK[slot].cdT <= 0 && (slot !== 2 || !onMeter(P) || P.ch >= CONFIG.ULT.full); }
+// Add charge to a suit (only on the meter and alive); the ult2x decree multiplies every gain.
+function gainCharge(s, v) {
+  if (!onMeter(s) || s.dead || v <= 0) return;
+  s.ch = Math.min(CONFIG.ULT.full, s.ch + v * (decOn('ult2x') ? CONFIG.DECREES.ultK : 1));
+}
 function hitDummy(d, n) {
   d.hp = Math.max(0, d.hp - n); d.flashT = 0.12; d.body.material = M.hit;
   d.bar.scale.x = Math.max(0.001, d.hp / CONFIG.DUMMY_HP);
@@ -1369,7 +1414,7 @@ const G = { time: 0, view: 'follow', paused: false, ctxLost: false, frames: 0, b
   huntN: 0, huntClaims: 0, huntFrees: 0,
   leader: null, leadT: 0, leaderChanges: 0, leaderCode: -1, leaderWrites: 0, miniLeader: false,
   bountyN: 0, bountyWarnAt: -1, bountyStartAt: -1, bountyEndAt: -1, bountyEndWhy: '', bountyPaid: 0, bountyPaidTo: -1,
-  decNext: 0, decN: 0, decCount: { dry: 0, nodash: 0, silence: 0, heights: 0, ult2x: 0 }, decLog: [], brkP: 0, brkB: 0, decCode: -1, decWrites: 0, hiAvoid: false, zoneSec: null, skips: 0 };
+  decNext: 0, decN: 0, decCount: { dry: 0, nodash: 0, silence: 0, heights: 0, ult2x: 0 }, decLog: [], brkP: 0, brkB: 0, decCode: -1, decWrites: 0, hiAvoid: false, zoneSec: null, skips: 0, chWrites: 0 };
 // The one decree slot (batch 11): st 0 idle, 1 queued, 2 warning (banner), 3 in force. key = decree name, tgt = its suit (bounty), t = seconds left in the state.
 // Decree slot. st: 0 free, 1 queued, 2 warning, 3 in force. len = seconds in force; zone = the no-dash decree's section; warnAt = when its warning began.
 const DEC = { st: 0, key: '', tgt: null, t: 0, count: -1, banner: false, len: 0, zone: null, warnAt: -1 };
@@ -1532,6 +1577,7 @@ function tickSuit(s, dt) {
   for (let i = 0; i < 2; i++) if (s.pt[i] > 0) { s.pt[i] -= dt; if (s.pt[i] <= 0) { s.pt[i] = 0; s.pk[i] = ''; checkLeader(); } }
   for (let i = 0; i < 4; i++) if (s.bT[i] > 0) { s.bT[i] -= dt; if (s.bT[i] <= 0) { s.bT[i] = 0; s.bV[i] = 0; } }
   if (s.bT[1] > 0 && !s.dead && s.hp < CONFIG.MAX_HP) s.hp = Math.min(CONFIG.MAX_HP, s.hp + s.bV[1] * dt);
+  gainCharge(s, CONFIG.ULT.passive * dt);
 }
 // Walk speed of a suit with its slow, Howler plate and speed boon (bonuses capped).
 function suitSpeed(s) {
@@ -1583,13 +1629,17 @@ function stepBody(s, mx, mz, dt) {
 }
 // Skills, delayed hits, effects, dummies and their vision.
 function stepCombat(dt) {
-  // "Let your ultimates swell twice as swift." (decree): ultimate cooldowns tick DECREES.ultK times as fast (stand-in until ultimate charge exists).
-  const ultK = decOn('ult2x') ? CONFIG.DECREES.ultK : 1;
   for (let i = 0; i < SK.length; i++) {
     const st = SK[i];
-    if (st.cdT > 0) st.cdT = Math.max(0, st.cdT - (i === 2 ? dt * ultK : dt));
-    const c = Math.ceil(st.cdT);
-    if (c !== st.shown) { st.shown = c; if (st.cdEl) { setText(st.cdEl, c > 0 ? String(c) : ''); setShow(st.cdEl, c > 0); } }
+    if (st.cdT > 0) st.cdT = Math.max(0, st.cdT - dt);
+    // R on the meter (batch 15) shows its whole charge on the dark cover until full (code -2 - charge, so -1 never matches) and the gold ring; otherwise the cooldown seconds.
+    const meter = i === 2 && onMeter(P), c = meter ? (P.ch >= CONFIG.ULT.full ? 0 : -2 - Math.floor(P.ch)) : Math.ceil(st.cdT);
+    if (c !== st.shown) {
+      st.shown = c;
+      if (st.cdEl) { CHARGE_VARS.n = -2 - c; setText(st.cdEl, c < 0 ? T('ult_charge', CHARGE_VARS) : c > 0 ? String(c) : ''); setShow(st.cdEl, c !== 0); }
+      if (st.ring) { setShow(st.ring, meter); if (meter) setRing(st.ring, c < 0 ? -2 - c : 100); }
+      if (i === 2) G.chWrites++;
+    }
   }
   if (PEND.on) { PEND.t -= dt; if (PEND.t <= 0) { PEND.on = false; fxTele.visible = false; applySkill(PEND.slot, PEND.x, PEND.z, PEND.dx, PEND.dz); } }
   if (G.fxT > 0) { G.fxT -= dt; if (G.fxT <= 0) { fxLine.visible = false; fxRing.visible = false; } }
@@ -1611,7 +1661,11 @@ function updateHp() {
 // Damage to a suit. cause: hit, hazard, bleed, drop or test; by = the suit that dealt it (null for the map and enemies).
 function hurtSuit(s, n, cause, by) {
   if (s.dead) return;
+  const lost = Math.min(n, s.hp);
   s.hp -= n; s.noHealT = CONFIG.ALTAR.hitPauseS;
+  // Charge (batch 15): the suit hit gains per health taken; a suit that hit another suit gains per health dealt.
+  gainCharge(s, lost * CONFIG.ULT.taken);
+  if (by && by.kind === 'suit' && by !== s) gainCharge(by, lost * CONFIG.ULT.dealt);
   if (s.bot && n >= 1) { s.flashT = 0.12; s.body.material = M.hit; }
   if (by) { s.lastBy = by; s.lastByT = G.time; }
   if (s.hp <= 0) suitDown(s, cause, by);
@@ -1620,7 +1674,7 @@ function hurtSuit(s, n, cause, by) {
 function suitDown(s, cause, by) {
   s.hp = 0; s.dead = true; s.deadT = 0; s.kx = s.kz = 0; s.cause = cause; s.diedAt = G.time; s.killer = by;
   // Kills count suits only (cubs and creatures are not suits).
-  if (by && by.kind === 'suit' && by !== s && G.phase === 'royale') by.kills++;
+  if (by && by.kind === 'suit' && by !== s && G.phase === 'royale') { by.kills++; gainCharge(by, CONFIG.ULT.kill); }
   // The bounty: the suit that breaks the leader while the bounty is in force gets its ultimate back; the leader out ends the bounty (a fall pays nobody).
   if (DEC.key === 'bounty' && DEC.tgt === s) {
     if (DEC.st === 3 && by && by.kind === 'suit' && by !== s && !by.dead) payBounty(by);
@@ -1663,7 +1717,8 @@ function clearLeader(why) {
   updateLeaderHud();
 }
 function payBounty(by) {
-  if (by.bot) by.cd[2] = 0; else SK[2].cdT = 0;
+  // Batch 15: the bounty fills the breaker's meter (ULT.bounty); a suit not on the meter gets its R cooldown reset.
+  if (onMeter(by)) gainCharge(by, CONFIG.ULT.bounty); else if (by.bot) by.cd[2] = 0; else SK[2].cdT = 0;
   G.bountyPaid++; G.bountyPaidTo = by.id;
   if (by === P) showNote('voice_bounty_paid', 'rule_bounty_paid');
 }
@@ -2153,7 +2208,7 @@ function grantSuitPlate(u) {
 function addPlate(s, kind) {
   const Pl = CONFIG.PLATE, slot = s.pt[0] <= 0 ? 0 : s.pt[1] <= 0 ? 1 : (s.pt[0] <= s.pt[1] ? 0 : 1);
   s.pk[slot] = kind; s.pt[slot] = Pl.buffS; s.plates++;
-  cutUlt(s, Pl.ultCut * CONFIG.SKILLS[2].cd);
+  gainCharge(s, CONFIG.ULT.plate);
   checkLeader();
   if (s === P) { G.platesTaken++; showNote('voice_plate_take', kind === 'stalker' ? 'rule_plate_s' : 'rule_plate_h', TAKE_VARS); }
 }
@@ -2211,7 +2266,7 @@ function grantBoon(u) {
   const b = u.nb, B = CONFIG.BOONS[b], v = B.v * u.nv; s.boons++;
   if (s === P) G.boons++;
   BOON_VARS.s = B.s || 0;
-  if (b === 'ult') { const cut = v * CONFIG.SKILLS[2].cd; cutUlt(s, cut); BOON_VARS.v = Math.round(cut); }
+  if (b === 'ult') { gainCharge(s, v); BOON_VARS.v = Math.round(v); }
   else if (b === 'heal') { s.hp = Math.min(CONFIG.MAX_HP, s.hp + v); BOON_VARS.v = Math.round(v); }
   else { const k = BOON_IDX[b]; s.bT[k] = B.s; s.bV[k] = v; BOON_VARS.v = b === 'power' || b === 'speed' ? Math.round(v * 100) : v; }
   if (s === P) showNote('voice_boon', 'boon_' + b, BOON_VARS);
@@ -2303,8 +2358,7 @@ function botNav(b) {
 }
 // Timers a bot brain needs each step (bots and the test autopilot).
 function tickBrain(b, dt) {
-  const ultK = decOn('ult2x') ? CONFIG.DECREES.ultK : 1;
-  for (let i = 0; i < 3; i++) if (b.cd[i] > 0) b.cd[i] = Math.max(0, b.cd[i] - (i === 2 ? dt * ultK : dt));
+  for (let i = 0; i < 3; i++) if (b.cd[i] > 0) b.cd[i] = Math.max(0, b.cd[i] - dt);
   if (b.atkT > 0) b.atkT -= dt;
   if (b.castT > 0) b.castT -= dt;
   b.goalT += dt;
@@ -2491,13 +2545,15 @@ function botUseSkills(b, q, d) {
   const noDash = decOn('nodash') && !!b.floor && b.floor.s === DEC.zone;
   for (let slot = 0; slot < 3; slot++) {
     const sk = S[slot];
-    if (b.cd[slot] > 0 || (slot === 2 && (b.pend || (q.hp > sk.dmg && b.hp >= B.ultBelowHp)))) continue;
+    // Batch 15: R on the meter also needs a full meter.
+    if (b.cd[slot] > 0 || (slot === 2 && (b.pend || (onMeter(b) && b.ch < CONFIG.ULT.full) || (q.hp > sk.dmg && b.hp >= B.ultBelowHp)))) continue;
     // The dash closes in: only from BOT.dashMinM to BOT.dashMaxM away and on about the target's layer; other skills within their range.
     if (sk.dash ? (noDash || d < B.dashMinM || d > B.dashMaxM || Math.abs(q.y - b.y) > 0.7) : d > sk.range) continue;
     const a = brnd() * 6.2832, r = brnd() * err, tx = q.x + Math.cos(a) * r, tz = q.z + Math.sin(a) * r;
     let dx = tx - b.x, dz = tz - b.z; const len = Math.hypot(dx, dz) || 1e-6; dx /= len; dz /= len;
     const dist = sk.type === 'line' ? sk.range : Math.min(len, sk.range), x = b.x + dx * dist, z = b.z + dz * dist;
-    b.cd[slot] = sk.cd; b.faceX = dx; b.faceZ = dz; b.castT = CONFIG.BOT.castGapS;
+    if (slot === 2 && onMeter(b)) { b.ch = 0; b.ultN++; } else b.cd[slot] = sk.cd;
+    b.faceX = dx; b.faceZ = dz; b.castT = CONFIG.BOT.castGapS;
     if (sk.dash) startDash(b, slot, dx, dz, false);
     else if (sk.delay > 0) {
       b.pend = true; b.pendT = sk.delay; b.pendS = slot; b.pendX = x; b.pendZ = z; b.pendDx = dx; b.pendDz = dz; b.pendAge = 0;
@@ -2626,7 +2682,7 @@ function resetNeutrals(redraw) {
   }
 }
 const ROYALE_VARS = { place: 0, n: 0, retry: '' }, PLATE_VARS = { a: '', b: '' }, BOSS_VARS = { list: '' }, FRENZY_VARS = { s: CONFIG.DEMON_ULT.dur }, END_VARS = { s: 0, retry: '' };
-const KENNEL_VARS = { s: CONFIG.KENNEL.warnS, zones: '' }, TAKE_VARS = { s: CONFIG.PLATE.buffS, p: Math.round(CONFIG.PLATE.speed * 100) }, BUFF_VARS = { s: 0 };
+const KENNEL_VARS = { s: CONFIG.KENNEL.warnS, zones: '' }, TAKE_VARS = { s: CONFIG.PLATE.buffS, p: Math.round(CONFIG.PLATE.speed * 100), c: CONFIG.ULT.plate }, BUFF_VARS = { s: 0 };
 // Cubs back into the pool (new run, or the wake: live cubs fuse into the statue).
 function resetCubs() {
   for (const u of CUBS) {
@@ -2693,6 +2749,8 @@ function startHunt() {
   P.x = P.px = CONFIG.APEX.entry[0] * K; P.z = P.pz = CONFIG.APEX.entry[1] * K; P.y = P.py = topY(P.x, P.z);
   P.vy = 0; P.air = false; P.voidT = 0; P.dead = false; P.deadT = 0; P.kx = P.kz = 0; P.faceX = 0; P.faceZ = -1; P.atkT = 0; P.stuckT = 0;
   P.hp = CONFIG.MAX_HP; P.hpShown = -1; P.noHealT = 0; P.zone = null;
+  // The wake fills the meter (batch 15); the hunt keeps the R cooldown.
+  P.ch = CONFIG.ULT.full;
   clearPlayerStatus(); updateHp();
   setText(el.next, T('next_hunt')); G.nextWave = -2;
   setText(el.bossname, T('boss_name'));
@@ -2855,7 +2913,7 @@ function spawnBots() {
     b.kx = b.kz = 0; b.faceX = 0; b.faceZ = -1; b.atkT = 0; b.stuckT = 0; b.stuckMax = 0; b.ax = b.x; b.az = b.z; b.anchorT = 0; b.repathed = false; b.zone = null; b.floor = null; b.moved = 0;
     b.slowT = 0; b.slowK = 0; b.stunT = 0; b.bleedN = 0; b.bleedT = 0; b.pk[0] = b.pk[1] = ''; b.pt[0] = b.pt[1] = 0;
     for (let i = 0; i < 4; i++) { b.bT[i] = 0; b.bV[i] = 0; }
-    b.cause = ''; b.diedAt = -1; b.killer = null; b.plates = 0; b.boons = 0; b.cd[0] = b.cd[1] = b.cd[2] = 0;
+    b.cause = ''; b.diedAt = -1; b.killer = null; b.plates = 0; b.boons = 0; b.cd[0] = b.cd[1] = b.cd[2] = 0; b.ch = CONFIG.ULT.start; b.ultN = 0;
     b.navWant = false; b.path.n = 0; b.path.i = 0; b.gx = b.x; b.gz = b.z; b.gy = b.y; b.goalT = 1e9; b.flashT = 0; b.body.material = b.mat;
     b.thinkT = brnd() * CONFIG.BOT.thinkS; b.tgt = null; b.tgtT = 0; b.mode = ''; b.modeT = 0; b.seenP = false; b.pend = false; b.pendT = 0; b.mx = b.mz = 0; b.direct = false; b.heal = null; b.skip = null; b.castT = 0; b.lastBy = null; b.lastByT = -99; b.declined = null; b.declinedT = -99; b.flee = false; b.pathGen = 0; b.why = ''; b.hunter = false; b.huntLostT = 0;
     b.bar.scale.x = 1; b.seen = false; b.group.visible = false; b.group.position.set(b.x, b.y, b.z);
@@ -2894,6 +2952,7 @@ function reset() {
   P.x = P.px = sp[0]; P.z = P.pz = sp[1]; P.y = P.py = topY(sp[0], sp[1]);
   P.vy = 0; P.air = false; P.voidT = 0; P.dead = false; P.deadT = 0; P.kx = P.kz = 0;
   P.hp = CONFIG.MAX_HP; P.hpShown = -1; P.noHealT = 0; P.zone = null;
+  P.ch = CONFIG.ULT.start; P.ultN = 0;
   updateHp();
   clearLeader('reset');
   for (const s of SUITS) { s.kills = 0; s.bountied = false; s.bId = -1; s.bYes = false; }
@@ -3121,6 +3180,10 @@ window.__game = {
   sees: (i, j) => botSees(BOTLIST[i], j < 0 ? P : BOTLIST[j], CONFIG.VISION_R), zoneTinted: (id) => SEC[id].floorMeshes.every((m) => m.material === zoneMat),
   breakBy(i) { breakDecree(i < 0 ? P : BOTLIST[i]); }, setFace(x, z) { P.faceX = x; P.faceZ = z; },
   ultOf: (i) => (i < 0 ? SK[2].cdT : BOTLIST[i].cd[2]),
+  // Batch 15 hooks: ultimate charge (i < 0 = the player) and the R button's HUD (text, ring, writes).
+  setCharge(i, v) { (i < 0 ? P : BOTLIST[i]).ch = v; }, chargeOf: (i) => (i < 0 ? P : BOTLIST[i]).ch,
+  charge: () => ({ p: P.ch, ultN: P.ultN, meter: onMeter(P), ready: playerReady(2), writes: G.chWrites, text: SK[2].cdEl.textContent, cover: SK[2].cdEl.style.display,
+    ring: SK[2].ring.style.background, ringShown: SK[2].ring.style.display, bots: BOTLIST.slice(0, G.botN).map((b) => ({ ch: b.ch, ultN: b.ultN, dead: b.dead })) }),
   hunters() {
     let flagged = 0, huntOnP = 0, capOnP = 0, onP = 0, seeP = 0, id = -1;
     for (let k = 0; k < G.botN; k++) {
