@@ -15,7 +15,7 @@
   - GDD sim target "no kill order is dominant" is NOT met (minions-first is better for the 0.3 s bot). Player kit is still the placeholder; tuning waits for real kits.
 - Cub farm bot (test 51, 0.3 s reaction, 170 s at the west camp): 2 plates, never hit. Cubs may be too soft for a player who dodges.
 - NOT run: real-GPU fps (needs a GitHub Actions macOS runner; no workflow yet). NOT tried on a real phone (touch checked by simulated pointer events only).
-- Phone review link (claude.ai artifact, same page with three.js from jsDelivr): https://claude.ai/artifact/3nQ67JCTmb1JfPKC3Y416z (version 1795409517-3475 = batch 8). Republish it after each batch: copy index.html, swap the importmap path for https://cdn.jsdelivr.net/npm/three@0.171.0/build/three.module.min.js, publish to slug 1688f9ba-a0e5-4f7b-ac2e-3a68d6fc67c3.
+- Phone review link (claude.ai artifact, same page with three.js from jsDelivr): https://claude.ai/artifact/3nQ67JCTmb1JfPKC3Y416z (version 1795413588-b917 = batch 9, commit a43e632; title 'Empress Decrees - box prototype (batch 9)'). Republish it after each batch: copy index.html, swap the importmap path for https://cdn.jsdelivr.net/npm/three@0.171.0/build/three.module.min.js, publish to slug 1688f9ba-a0e5-4f7b-ac2e-3a68d6fc67c3.
 - Project docs (claude/HANDOFF.md, claude/GDD.md, claude/code/index.html, claude/code/tests/run.mjs) are copies of the repo files; rewrite them after each batch. A project_read of a code file dumps the whole file into the session: avoid it, write from the local file.
 
 ## Next batch: 10 = decrees (owner order: bots before decrees). Waiting for the owner's go. Also open from batch 9: the player-first observation (below), real-GPU fps, real phone.
