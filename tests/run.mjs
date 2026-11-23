@@ -1476,7 +1476,8 @@ try {
     // Batch 16 ticket 03 (game changed on purpose): the checks' placeholder player (pkit, default pick 儒甲) plays the placeholder at Mid, so it is checked against the kit it plays.
     const kitTiers = (q) => { const k = C.KITS[q.school], t = k && k.built && q.kit !== 'placeholder' ? k : { armor: S.yard, speed: S.yard }; return (q.kit === 'placeholder' || (k && k.built)) && q.armor === S.armor[t.armor] && q.spd === S.speed[t.speed] && Math.abs(q.armorK - f(t.armor)) < 1e-12; };
     H.start(3); const s0 = G.schools().suits; o.mid = s0.every(kitTiers) && s0.some((q) => q.armorK === 1 && q.spd === C.PLAYER_SPEED && q.armor === S.armor.Mid);
-    G.setStats(0, 'Low', 'Mid'); G.setStats(1, 'High', 'Mid'); G.setBotHp(0, 100); G.setBotHp(1, 100); G.setBotHp(2, 100);
+    // Batch 16 ticket 04 (game changed on purpose): bot 2 plays 墨甲 (High) now, so the Mid control is set to Mid explicitly.
+    G.setStats(0, 'Low', 'Mid'); G.setStats(1, 'High', 'Mid'); G.setStats(2, 'Mid', 'Mid'); G.setBotHp(0, 100); G.setBotHp(1, 100); G.setBotHp(2, 100);
     G.hitBy(-1, 0, 25); G.hitBy(-1, 1, 25); G.hitBy(-1, 2, 25); const b = G.bots().list;
     o.low = +(100 - b[0].hp).toFixed(4); o.high = +(100 - b[1].hp).toFixed(4); o.midHit = 100 - b[2].hp; o.wantLow = +(25 * f('Low')).toFixed(4); o.wantHigh = +(25 * f('High')).toFixed(4);
     G.setBotHp(0, 100); G.hitBot(0, 10); o.testFixed = 100 - G.bots().list[0].hp;
@@ -1545,7 +1546,8 @@ try {
     o.order = C.SCHOOLS.join(','); o.tiers = C.SCHOOLS.every((k) => C.KITS[k].armor === want[k][0] && C.KITS[k].speed === want[k][1]);
     // Game changed on purpose (batch 16): kits are built ticket by ticket (02 法甲); a built school plays its own kit, every other the placeholder at Mid.
     // Batch 16 ticket 03 (game changed on purpose): 儒甲 built too; the checks' placeholder player (pkit, default pick 儒甲) plays the placeholder, every bot its school's kit when built.
-    o.unbuilt = C.SCHOOLS.filter((k) => C.KITS[k].built).join(',') === 'ru,fa';
+    // Batch 16 ticket 04 (game changed on purpose): 墨甲 built too.
+    o.unbuilt = C.SCHOOLS.filter((k) => C.KITS[k].built).join(',') === 'ru,fa,mo';
     o.placeholder = sc.suits.every((q) => (C.KITS[q.school].built && q.id !== 0 ? q.kit === q.school && q.ultMode === C.KITS[q.school].ultMode : q.kit === 'placeholder' && q.ultMode === 'charge'));
     o.player = sc.suits[0].school; o.bots = sc.suits.slice(1).map((q) => q.name).join(','); o.tags = C.SKILLS.map((k) => k.tag).join(',');
     o.speedMid = C.STATS.speed.Mid === C.PLAYER_SPEED && C.STATS.yard === 'Mid'; o.keys = C.SCHOOLS.map((k) => 'school_' + k).concat(['hud_school', 'sel_title', 'sel_rule', 'sel_random', 'sel_key']).filter((k) => !T[k]);
@@ -1854,6 +1856,184 @@ try {
   });
   check('111 budget with 儒甲 effects: every suit + cubs + tells + 编钟 ring (calls<500, tris<500k), no shader compile, geometry flat',
     !!ru111 && ru111.ring && ru111.calls < 500 && ru111.tris < 500000 && ru111.programs === base.programs && ru111.geoms === base.geoms, JSON.stringify(ru111));
+  // ===== Batch 16 ticket 04: 墨甲 · 墨守 kit (docs/SUITS.md; numbers in CONFIG.KITS.mo) =====
+  // Page helper: the player plays 墨甲 (school 3, the checks' placeholder switch off) against n placeholder bots at Mid; decrees pushed away.
+  await g(() => { const G = __game, C = G.config; window.__mo = {
+    start(n) { G.setSeed(12345); G.setPkitP(false); G.setBots(n); G.pickSchool(3); for (let i = 0; i < n; i++) G.placeholderKit(i); G.setDecNext(1e9); for (let i = 0; i < n; i++) G.setBotHp(i, 100); },
+    hold(sec, fn) { for (let k = 0; k < Math.round(sec / C.STEP); k++) { if (fn) fn(); G.step(1); } },
+    end() { G.setPkitP(true); G.pickSchool(0); G.setBots(0); G.reset(); } }; });
+  // 112 Passive 非攻: his hits take +bonus against a suit that attacked someone in the last aggroS s (not one that did not, not after aggroS);
+  // after standing still stillS s he takes stillK of a blow (High armor on top), full damage again once he moves; no skill of his dashes (GDD: no dash).
+  const mo112 = await g(() => {
+    const G = __game, C = G.config, M = window.__mo, F = C.KITS.mo.feigong, S = C.STATS, o = {};
+    // Both bots are kept apart and their skills held, so only the scripted blows set who attacked.
+    M.start(2); G.setHp(1e9); G.teleport(14, -20); const park = () => { G.placeBot(0, 18, -20); G.placeBot(1, 14, -30); for (let i = 0; i < 2; i++) for (let k = 0; k < 3; k++) G.setBotCd(i, k, 99); }; park(); G.step(1);
+    o.kit = G.kitState(-1).kit; o.noDash = C.KITS.mo.skills.every((k) => !k.dash);
+    const at = (j) => { G.setBotHp(j, 100); G.basicAttackBy(-1, j); return +(100 - G.bots().list[j].hp).toFixed(4); };
+    G.strike(0, 1, 1); park(); G.step(1); o.aggr = at(0); o.calm = at(1);
+    M.hold(F.aggroS + 0.2, park); o.late = at(0);
+    M.hold(F.stillS + 0.1, park); o.stillK = G.moState(-1).takenK; G.setHp(100); G.hitBy(0, -1, 20); o.takenStill = +(100 - G.state().hp).toFixed(4);
+    G.setMove(0, 1); G.step(2); G.clearMove(); o.movedK = G.moState(-1).takenK; G.setHp(100); G.hitBy(0, -1, 20); o.takenMoved = +(100 - G.state().hp).toFixed(4);
+    o.wantStill = +(20 * (S.K + S.armor.Mid) / (S.K + S.armor.High) * F.stillK).toFixed(4); o.wantMoved = +(20 * (S.K + S.armor.Mid) / (S.K + S.armor.High)).toFixed(4);
+    o.wantAggr = +(C.KITS.mo.attack.dmg * (1 + F.bonus)).toFixed(4);
+    M.end(); return o;
+  });
+  check('112 墨甲 passive: +bonus on a suit that attacked someone within aggroS s only; takes stillK after standing still stillS s, full after moving; High armor; no dash skill',
+    mo112.kit === 'mo' && mo112.noDash && Math.abs(mo112.aggr - mo112.wantAggr) < 1e-6 && mo112.calm === C0.KITS.mo.attack.dmg && mo112.late === C0.KITS.mo.attack.dmg
+    && mo112.stillK === C0.KITS.mo.feigong.stillK && mo112.movedK === 1 && Math.abs(mo112.takenStill - mo112.wantStill) < 1e-3 && Math.abs(mo112.takenMoved - mo112.wantMoved) < 1e-3, JSON.stringify(mo112));
+  // 113 Attack 连弩: bolts of dmg out to range m every interval s; an attack order on a dummy within range shoots without walking in; one beyond range is walked to.
+  const mo113 = await g(() => {
+    const G = __game, C = G.config, A = C.KITS.mo.attack, o = {};
+    G.setPkitP(false); G.pickSchool(3); G.setBots(0); G.reset(); const d = G.dummies()[1]; G.teleport(d.x, d.z - 5); G.step(2); const p0 = G.state();
+    G.attack(1); G.step(Math.round((A.interval * 2 + 0.05) / C.STEP)); const p1 = G.state(); o.inRange = { hp: G.dummies()[1].hp, moved: +Math.hypot(p1.x - p0.x, p1.z - p0.z).toFixed(3) };
+    G.stop(); G.reset(); G.teleport(d.x, d.z - A.range - 3); G.step(2); const q0 = G.state(); G.attack(1); G.step(Math.round(0.6 / C.STEP)); const q1 = G.state();
+    o.far = { moved: +Math.hypot(q1.x - q0.x, q1.z - q0.z).toFixed(3) };
+    G.stop(); G.setPkitP(true); G.pickSchool(0); G.reset(); return o;
+  });
+  check('113 墨甲 attack: crossbow bolts of dmg every interval s out to range m without walking in; beyond range he walks',
+    mo113.inRange.hp === 100 - 3 * C0.KITS.mo.attack.dmg && mo113.inRange.moved < 0.01 && mo113.far.moved > 1, JSON.stringify(mo113));
+  // 114 Q 距云梯 (the wall): raised at the aim point (clamped to range), len m across the aim and thick m deep, drawn, cooldown started; it stops walking,
+  // his own and others' bolts and line skills through it (the line test); not raised over a body (no cast, no cooldown); it comes down after dur s and the way is open.
+  const mo114 = await g(() => {
+    const G = __game, C = G.config, M = window.__mo, Q = C.KITS.mo.skills[0], o = {};
+    M.start(1); G.setHp(1e9); G.teleport(14, -20); G.placeBot(0, 18, -20); G.step(1);
+    o.onBody = G.cast(0, 18, -20); o.cdBody = G.kitState(-1).cd[0];
+    const park = () => G.placeBot(0, 20, -20); park(); G.step(1);
+    o.cast = G.cast(0, 18, -20); const w = G.moState(-1); o.wall = { up: w.up, mesh: w.meshIn, dx: +(w.x1 - w.x0).toFixed(3), dz: +(w.z1 - w.z0).toFixed(3), cx: +((w.x0 + w.x1) / 2).toFixed(3), n: w.wallN };
+    o.cd = +G.kitState(-1).cd[0].toFixed(2);
+    G.setBotHp(0, 100); G.basicAttackBy(-1, 0); o.bolt = 100 - G.bots().list[0].hp; o.cut = G.wallCut(14, -20, 20, -20); o.clear = G.wallCut(14, -25, 20, -25);
+    G.teleport(14, -20); G.setMove(1, 0); M.hold(1, park); G.clearMove(); o.walkX = +G.state().x.toFixed(2);
+    M.hold(Q.dur - 1 + 0.1, park); const e = G.moState(-1); o.after = { up: e.up, mesh: e.meshIn, n: e.wallN };
+    G.setBotHp(0, 100); G.teleport(14, -20); G.step(1); G.basicAttackBy(-1, 0); o.boltAfter = 100 - G.bots().list[0].hp;
+    G.setMove(1, 0); M.hold(1, park); G.clearMove(); o.walkAfter = +G.state().x.toFixed(2);
+    M.end(); return o;
+  });
+  check('114 墨甲 Q: wall at the aim point, len x thick across the aim, drawn, cooldown; stops walking and bolts through it, not around it; not over a body; down after dur s',
+    mo114.onBody === false && mo114.cdBody === 0 && mo114.cast && mo114.wall.up && mo114.wall.mesh && mo114.wall.n === 1 && Math.abs(mo114.wall.dx - C0.KITS.mo.skills[0].thick) < 1e-6
+    && Math.abs(mo114.wall.dz - C0.KITS.mo.skills[0].len) < 1e-6 && mo114.wall.cx === 18 && mo114.cd > C0.KITS.mo.skills[0].cd - 1 && mo114.bolt === 0 && mo114.cut && !mo114.clear
+    && mo114.walkX < 17.71 && !mo114.after.up && !mo114.after.mesh && mo114.after.n === 0 && mo114.boltAfter === C0.KITS.mo.attack.dmg && mo114.walkAfter > 18.5, JSON.stringify(mo114));
+  // 115 W 衡 (the lever): the plate is shown (ground tell, radius m) for delay s (>= 0.4) with no damage before it lands; then a suit on it takes dmg and is flung
+  // away from him by knockback; a suit off the plate is untouched. Signature (broken rails): a suit flung toward a broken-rail gap falls into the void; flung against a rail it stays.
+  const mo115 = await g(() => {
+    const G = __game, C = G.config, M = window.__mo, W = C.KITS.mo.skills[1], o = {};
+    M.start(2); G.setHp(1e9); G.teleport(14, -20); const park = () => { G.placeBot(1, 14, -26); }; G.placeBot(0, 18, -20); park(); G.step(1);
+    // The target is held on the plate for the tell (a bot would otherwise step out of a tell it has seen).
+    o.cast = G.cast(1, 18, -20); o.pend = G.pending(); const x0 = 18; let early = false, n = 0;
+    while (G.pending() && n < 120) { if (G.bots().list[0].hp < 100) early = true; G.placeBot(0, 18, -20); park(); G.step(1); n++; }
+    // The flung bot walks back at once (it answers the hit), so the fling is read as the farthest it got.
+    o.tellS = +(n * C.STEP).toFixed(3); o.early = early; o.dmg = 100 - G.bots().list[0].hp; o.kx = +G.kitState(0).kx.toFixed(2); let far = -99; M.hold(0.8, () => { park(); far = Math.max(far, G.bots().list[0].x - x0); });
+    o.flung = +far.toFixed(2); o.off = 100 - G.bots().list[1].hp;
+    const K = G.K, edge = (x) => {
+      M.start(1); G.setHp(1e9); G.teleport(x, 37.5); G.placeBot(0, x, 40.5); G.step(1);
+      G.cast(1, x, 40.5); let fell = false; while (G.pending()) { G.placeBot(0, x, 40.5); G.step(1); }
+      for (let k = 0; k < 150; k++) { G.step(1); const b = G.bots().list[0]; if (b.dead && b.cause === 'fall') fell = true; }
+      const b = G.bots().list[0]; return { fell, dead: b.dead, zone: b.zone };
+    };
+    o.gap = edge(0); o.rail = edge(8 * K);
+    M.end(); return o;
+  });
+  check('115 墨甲 W: lever shown for delay s (>= 0.4) with no damage before, then dmg and a fling away from him; off the plate untouched; through a broken-rail gap only',
+    C0.KITS.mo.skills[1].delay >= 0.4 && mo115.cast && mo115.pend && Math.abs(mo115.tellS - C0.KITS.mo.skills[1].delay) < 0.05 && !mo115.early && mo115.dmg === C0.KITS.mo.skills[1].dmg
+    && Math.abs(mo115.kx - C0.KITS.mo.skills[1].fling) < 0.5 && mo115.flung > 1.5 && mo115.off === 0 && mo115.gap.fell && !mo115.rail.fell && !mo115.rail.dead && mo115.rail.zone === 'ROOF', JSON.stringify(mo115));
+  // 116 R 九距之 (nine defences): the meter empties; the next hits blows on him do no damage and push the attacker away; the status line counts them down
+  // (written only on change) and is gone after the last; the blow after them hurts; unused defences end after dur s.
+  const mo116 = await g(() => {
+    const G = __game, C = G.config, M = window.__mo, R = C.KITS.mo.skills[2], o = { lost: [], left: [], text: [], kx: [] };
+    M.start(1); G.setHp(100); G.teleport(14, -20); G.placeBot(0, 16, -20); G.step(1); G.setCharge(-1, 100);
+    o.cast = G.cast(2, 14, -20); o.ch = G.kitState(-1).ch; G.step(1); o.text0 = G.moState(-1).status;
+    for (let i = 0; i < R.hits + 1; i++) {
+      G.placeBot(0, 16, -20); G.step(1); const k0 = G.kitState(0).kx, h0 = G.state().hp; G.hitBy(0, -1, 10); G.step(1);
+      o.lost.push(+(h0 - G.state().hp).toFixed(3)); o.left.push(G.moState(-1).jiuN); o.text.push(G.moState(-1).status); o.kx.push(+(G.kitState(0).kx - k0).toFixed(2));
+    }
+    M.start(1); G.teleport(14, -20); G.step(1); G.setCharge(-1, 100); G.cast(2, 14, -20); M.hold(R.dur + 0.1, () => G.placeBot(0, 30, -20)); o.timeout = G.moState(-1).jiuN;
+    M.end(); return o;
+  });
+  check('116 墨甲 R: meter emptied; the next nine blows do no damage and push the attacker away, status counts 9 to 0 and clears; the tenth hurts; unused ones end after dur s',
+    mo116.cast && mo116.ch === 0 && /Nine defences 9/.test(mo116.text0) && mo116.lost.slice(0, 9).every((v) => v === 0) && mo116.lost[9] > 0
+    && JSON.stringify(mo116.left) === JSON.stringify([8, 7, 6, 5, 4, 3, 2, 1, 0, 0]) && mo116.text.slice(0, 8).every((t, i) => t.includes('Nine defences ' + (8 - i))) && !/Nine defences/.test(mo116.text[8])
+    && mo116.kx.slice(0, 9).every((v) => v > 0.5) && mo116.timeout === 0, JSON.stringify(mo116));
+  // 117 Against the apex (docs/SUITS.md, owner 20:40): his wall stops the demon's Pounce (the dash ends before the wall, the player behind it is not hit;
+  // control without the wall: hit) and a minion's Flank (refused while the wall cuts the way).
+  const mo117 = await g(() => {
+    const G = __game, C = G.config, H = window.__h, o = {};
+    const run = (wall) => {
+      G.setPkitP(false); G.setSchool(3); H.start(); H.mute(1); H.mute(2); H.mute(0, 'pounce'); G.setHp(100);
+      G.teleport(0, -56); G.placeUnit(0, 0, -63); G.placeUnit(1, -15, -70); G.placeUnit(2, 15, -70);
+      if (wall) o.cast = G.cast(0, 0, -59.5);
+      H.until((h) => h.units[0].st === 3 || h.phase !== 'hunt', 400); const h = G.hunt();
+      return { demonZ: +h.units[0].z.toFixed(2), hp: h.p.hp, hits: h.hits };
+    };
+    o.wall = run(true); o.open = run(false);
+    G.setPkitP(false); G.setSchool(3); H.start(); H.mute(0); H.mute(1); H.mute(2, 'flank'); G.setHp(100); G.teleport(0, -56); G.placeUnit(2, 0, -61); G.placeUnit(0, -15, -70); G.placeUnit(1, 15, -70);
+    o.flankCast = G.cast(0, 0, -59); H.until((h) => h.tells.length > 0, 50); o.flankTells = G.hunt().tells.length; o.flankCut = G.wallCut(0, -61, 0, -56);
+    G.setPkitP(true); G.setSchool(0); G.reset(); return o;
+  });
+  check('117 墨甲 vs the apex: the wall stops the demon\'s Pounce before it (player behind not hit; control without wall is hit) and refuses a minion\'s Flank through it',
+    mo117.cast && mo117.wall.demonZ < -59.7 && mo117.wall.hits === 0 && mo117.wall.hp === 100 && mo117.open.hits >= 1 && mo117.open.hp < 100 && mo117.flankCast && mo117.flankCut && mo117.flankTells === 0, JSON.stringify(mo117));
+  // 118 Against the apex: the lever flings a minion unitM m and shoves the demon only demonM m; 九距之 turns a demon's claw back (no damage, one defence spent, demon shoved demonM m).
+  const mo118 = await g(() => {
+    const G = __game, C = G.config, H = window.__h, W = C.KITS.mo.skills[1], R = C.KITS.mo.skills[2], o = {};
+    G.setPkitP(false); G.setSchool(3); H.start(); for (let i = 0; i < 3; i++) H.mute(i); G.setHp(1e9); G.teleport(0, -50);
+    // Each unit is held on the plate for the tell (it would chase off it), then measured one step after the fling.
+    G.placeUnit(1, 0, -54); G.placeUnit(0, -10, -70); G.placeUnit(2, 10, -70); G.step(1);
+    G.cast(1, 0, -54); while (G.pending()) { G.placeUnit(1, 0, -54); G.step(1); } G.step(1); let u = G.hunt().units; o.minion = +(-54 - u[1].z).toFixed(2);
+    H.start(); for (let i = 0; i < 3; i++) H.mute(i); G.setHp(1e9); G.teleport(-10, -60); G.placeUnit(0, -10, -66); G.placeUnit(1, 10, -70); G.placeUnit(2, 15, -70); G.step(1);
+    G.cast(1, -10, -64); while (G.pending()) { G.placeUnit(0, -10, -66); G.step(1); } G.step(1); u = G.hunt().units; o.demon = +(-66 - u[0].z).toFixed(2);
+    H.start(); H.mute(1); H.mute(2); H.mute(0, 'claw'); G.setHp(100); G.teleport(0, -56); G.placeUnit(0, 0, -57.5); G.placeUnit(1, -15, -70); G.placeUnit(2, 15, -70); G.step(1);
+    G.cast(2, 0, -56); const d0 = G.hunt().units[0]; H.until((h) => h.units[0].st === 3, 300); const h = G.hunt();
+    o.claw = { hp: h.p.hp, left: G.moState(-1).jiuN, shove: +Math.hypot(h.units[0].x - d0.x, h.units[0].z - d0.z).toFixed(2) };
+    G.setPkitP(true); G.setSchool(0); G.reset(); return o;
+  });
+  check('118 墨甲 vs the apex: lever flings a minion about unitM m but the demon only about demonM m; 九距之 turns the demon\'s claw back (no damage, 8 left, demon shoved)',
+    Math.abs(mo118.minion - C0.KITS.mo.skills[1].unitM) < 0.3 && mo118.demon > 0.2 && mo118.demon <= C0.KITS.mo.skills[1].demonM + 0.01 && mo118.claw.hp === 100 && mo118.claw.left === C0.KITS.mo.skills[2].hits - 1
+    && mo118.claw.shove > 0.2, JSON.stringify(mo118));
+  // 119 墨甲 in whole matches: 3 seeds with the 墨甲 bot (the player picks 道甲, still on the placeholder) and 1 with the player on 墨甲 (autopilot), watched to the end:
+  // 墨甲 on a floor every tick, the hunter cap holds, nobody stuck over 3 s (walls come down after dur s), no wall stands longer than dur; the bot casts Q, W and R over the 3.
+  const mo119 = await g(() => {
+    const G = __game, C = G.config, Q = C.KITS.mo.skills[0], o = { viol: [], casts: { q: 0, qFlee: 0, w: 0, r: 0 }, player: { q: 0, qFlee: 0, w: 0, r: 0 }, decided: [], wallMax: 0 }, bad = (x) => { if (o.viol.length < 5) o.viol.push(x); };
+    const one = (seed, playerMo) => {
+      G.setSeed(seed); G.setBots(C.BOTS.count); G.setPkitP(!playerMo); G.pickSchool(playerMo ? 3 : 1); G.autoPlayer(true); G.setWatch(true);
+      const mi = playerMo ? -1 : G.schools().suits.findIndex((q) => q.school === 'mo') - 1, cnt = playerMo ? o.player : o.casts; let last = [0, 0], ult = 0, upT = 0;
+      if (!playerMo && G.schools().suits[mi + 1].kit !== 'mo') bad('mo bot not on its kit');
+      for (let t = 0; t < 300 / C.STEP; t++) {
+        G.step(1); const r = G.royale(); if (r.decidedAt >= 0) { o.decided.push(+r.decidedAt.toFixed(1)); break; }
+        const k = G.kitState(mi), cd = k.bcd, m = G.moState(mi);
+        // A wall raised while fighting counts as q; one raised on the way to heal (between it and its attacker) as qFlee (reported).
+        const mode = mi < 0 ? G.player().mode : G.bots().list[mi].mode;
+        if (cd[0] > last[0] + 1e-9) { if (mode === 'heal') cnt.qFlee++; else cnt.q++; } if (cd[1] > last[1] + 1e-9) cnt.w++; if (k.ultN > ult) cnt.r += k.ultN - ult; last = [cd[0], cd[1]]; ult = k.ultN;
+        upT = m.up ? upT + C.STEP : 0; if (upT > o.wallMax) o.wallMax = +upT.toFixed(3);
+        const h = G.hunters(); if (h.capOnP > h.max) bad(`s${seed} t${t} cap ${h.capOnP}>${h.max}`);
+        if (t % 10 === 0 && mi >= 0) { const q = G.bots().list[mi]; if (!q.standOk) bad(`s${seed} t${t} mo off floor`); if (!Number.isFinite(q.x + q.z + q.hp)) bad(`s${seed} t${t} NaN`); }
+        if (t % 10 === 0 && mi < 0 && !G.player().dead && !G.state().falling && !G.walkable(G.player().x, G.player().z, G.player().y + 0.05)) bad(`s${seed} t${t} player off floor`);
+      }
+      for (const q of G.bots().list) if (q.stuck > 3) bad(`s${seed} bot${q.id} stuck ${q.stuck}`);
+      G.setWatch(false); G.autoPlayer(false);
+    };
+    for (const seed of [12345, 2, 3]) one(seed, false);
+    one(4, true);
+    G.setPkitP(true); G.pickSchool(0); G.setBots(0); G.reset(); return o;
+  });
+  check('119 墨甲 in whole matches: on a floor, nobody stuck > 3 s, walls down after dur, hunter cap every tick, the 墨甲 bot casts Q, W and R (player 墨甲 autopilot reported)',
+    mo119.viol.length === 0 && mo119.wallMax <= C0.KITS.mo.skills[0].dur + 0.02 && mo119.casts.q > 0 && mo119.casts.w > 0 && mo119.casts.r > 0, JSON.stringify(mo119));
+  // 120 Budget with 墨甲's effects: the heaviest royale (every suit, 7 cubs, tells) with the player's wall raised, the lever plate told and the status count shown;
+  // calls < 500, tris < 500k, no shader compile, geometry flat.
+  const mo120 = await g(() => {
+    const G = __game, C = G.config, K = window.__k, waves = C.KENNEL.waves; let best = null;
+    try {
+      C.KENNEL.waves = [[['stalker', 0], ['stalker', 0], ['stalker', 0], ['stalker', 0], ['howler', 0], ['howler', 0], ['howler', 0]]];
+      G.setSeed(12345); G.setBots(C.BOTS.count); G.setPkitP(false); G.pickSchool(3); G.setDecNext(1e9); K.sp(C.KENNEL.firstS + 0.1); G.setHp(1e9);
+      const cx = G.camps[0][0], cz = G.camps[0][1] + 4; G.teleport(cx, cz);
+      const park = () => { for (let i = 0; i < C.BOTS.count; i++) G.placeBot(i, cx - 4 + (i % 3) * 3, cz + 2 + Math.floor(i / 3) * 1.5); };
+      park(); G.step(1); G.setCharge(-1, 100); G.cast(2, cx, cz); G.cast(0, cx + 4, cz); park(); G.step(1); G.cast(1, cx, cz + 3);
+      for (let n = 0; n < 30; n++) {
+        park(); G.step(1); const c = G.cubs(), m = G.moState(-1);
+        if (m.up && (!best || c.tells.length > best.tells)) { const r = G.render(true); best = { tells: c.tells.length, wall: m.meshIn, pend: G.pending(), status: m.status, calls: r.calls, tris: r.tris, programs: r.programs, geoms: r.geoms }; }
+      }
+    } finally { C.KENNEL.waves = waves; G.setPkitP(true); G.pickSchool(0); G.setBots(0); G.reset(); }
+    return best;
+  });
+  check('120 budget with 墨甲 effects: every suit + cubs + tells + wall + lever tell + status count (calls<500, tris<500k), no shader compile, geometry flat',
+    !!mo120 && mo120.wall && mo120.calls < 500 && mo120.tris < 500000 && mo120.programs === base.programs && mo120.geoms === base.geoms, JSON.stringify(mo120));
   // 66 Idle player: standing at the spawn doing nothing loses the royale (frozen loss with a cause) before the last collapse is over.
   const idle = await g(() => {
     const G = __game, C = G.config; G.setSeed(12345); G.setBots(G.config.BOTS.count); G.reset(); let t = 0;
