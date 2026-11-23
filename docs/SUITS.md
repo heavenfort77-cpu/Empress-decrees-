@@ -34,7 +34,7 @@ Slots: attack, Q, W, R (ultimate), passive. Most kits have one dash, as in the G
 | 道甲 | 真人 Zhenren | Evasive duelist (counters) | Low | High | Melee | W (only on a successful counter) |
 | 法甲 | 廷尉 Law Officer | Assassin | Mid | High | Melee | Q |
 | 墨甲 | 墨守 Mo Defender | Tank (zone) | High | Low | Mid | none |
-| 阴阳甲 | 五行 Five Phases | Mage (artillery) | Low | Mid | Long | W (short) |
+| 阴阳甲 | 太极 Taiji | Mage (artillery) | Low | Mid | Long | Q backstep (built into 阴) |
 | 杂甲 | 门客 Retainer | Mage (control) | Mid | Mid | Mid | W |
 | 名甲 | 辩者 Debater | Marksman (swords) | Low | Mid | Long | Q (blink) |
 | 纵横甲 | 说客 Persuader | Control | Mid | Mid | Mid | W |
@@ -76,13 +76,14 @@ Source: 《周礼·地官·保氏》「乃教之六艺：一曰五礼，二曰�
 - No dash.
 - Plays with: collapses and chokepoints such as bridges and gates.
 
-### 阴阳甲 · 五行 (Yin-yang and the Five Phases: generating and overcoming cycles)
-- Passive **Phase Wheel**: each skill cast turns the phase (wood, fire, earth, metal, water); the next skill takes that phase's effect (wood heal, fire burn, earth slow, metal armour break, water push).
-- Attack: phase orb, long range.
-- Q **Yin and Yang**: two orbs, one damages and one heals you.
-- W **Step of Yu**: short hop, the only dash.
-- R **Turning of Heaven**: long-range bombardment with a full ground tell, in the current phase.
-- Plays with: decrees ("Ultimates 2x" and silence on bridges hit it hardest).
+### 阴阳甲 · 太极 (Yin-yang; frame 阴阳 only, owner 23 Nov 20:19: the ultimate is locked; he must cycle through yin and yang to unlock 太极)
+- Passive **阴阳 (the lock)**: a taiji symbol on his HUD and R button. Landing a 阴 skill fills the dark half; landing a 阳 skill fills the light half. A half that is already full gains nothing, so he must alternate. Both halves full = 太极 unlocked. After 太极 both halves empty again. For this suit the lock replaces ultimate charge; under the "Ultimates 2x" decree only the cooldown after use runs 2x, the lock still needs both halves.
+- Attack **两仪**: long-range orb that alternates dark and light each shot (look only; basic attacks do not fill the halves, panel 20:19).
+- Q **阴 · 月** (yin: moon, cold, drawing in): a slow long-range orb; on hit it slows the target and drains a little health to him. Casting it pushes him a short step back (yin withdraws): his only movement skill. Fills the dark half.
+- W **阳 · 日** (yang: sun, heat, going out): a sunburst at a point, shown on the ground first, then a burst that burns. Fills the light half.
+- R **太极** (locked until both halves are full): a great taiji disk at long range, shown in full first. Its dark half pulls inward and slows; its light half burns. After about 1.5 s it turns half a circle, so every suit inside takes both halves. Then the lock resets.
+- Panel (20:19): only skills fill the halves (basic attacks would unlock it too fast) 6-1; a backstep inside 阴 instead of a separate dash 5-2; full ground tells on 阳 and 太极 7-0.
+- Plays with: the "Ultimates 2x" decree (cooldown only), bridges silence (cannot fill halves there), long sightlines from the heights.
 
 ### 杂甲 · 门客 (Syncretist: borrows from every school; its great book was compiled by a chancellor's retainers in the empress-figure's own court)
 - Passive **Many Masters**: keeps the last enemy skill that hit it as a stored copy.

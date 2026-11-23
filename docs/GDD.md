@@ -132,11 +132,11 @@ Purpose: give a suit a way to pull ahead, so the royale is not nine equal suits 
 Each suit's title, role and kit come from its school's own doctrine.
 | School | Suit | Title | Role | Doctrine in play |
 |---|---|---|---|---|
-| 儒家 | 儒甲 | 君子 | Fighter | propriety, rectifying names (strips a leader's plates), benevolence |
-| 道家 | 道甲 | 真人 | Evasive duelist | non-action hides it, water dash through suits, yield (parry) |
+| 儒家 | 儒甲 | 君子 | Fighter | the six arts: sword or bow by range, chariot, brush seal, bells |
+| 道家 | 道甲 | 真人 | Evasive duelist | counters basic attacks and skills; ultimate grows with counters |
 | 法家 | 法甲 | 廷尉 | Assassin | law binds all: bonus on marked decree-breakers; two handles |
 | 墨家 | 墨甲 | 墨守 | Tank (zone), no dash | against aggression: holds ground, walls, crossbow engine |
-| 阴阳家 | 阴阳甲 | 五行 | Mage (artillery) | five-phase wheel changes each skill |
+| 阴阳家 | 阴阳甲 | 太极 | Mage (artillery) | yin and yang skills unlock the 太极 ultimate |
 | 杂家 | 杂甲 | 门客 | Mage (control) | stores and casts back the last skill that hit it |
 | 名家 | 名甲 | 辩者 | Marksman | the sword: flying swords that hang, then strike (paradoxes) |
 | 纵横家 | 纵横甲 | 说客 | Control | links two enemies so they share damage; swaps places |
