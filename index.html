@@ -253,6 +253,10 @@ const CONFIG = {
     skillOf: ['average'], thinkS: 0.25, goalHoldS: 12, stuckRepathS: 0.5, stuckGoalS: 1.5,
     // Owner, 23 Nov: a bot that sees the player switches its target to the player and keeps it while the player stays seen.
     preferPlayerOnSight: true,
+    // Owner, 23 Nov 14:04: only one bot at a time may switch to the player on sight (the hunter slot). Others keep the nearest-suit rule and still hit back.
+    maxHunters: 1,
+    // Seconds a hunter may go without seeing the player before its slot frees (assumption 23 Nov). The slot also frees when the hunter or the player is out.
+    hunterLoseS: 3,
     // lowHp / healTo = go to an altar below this health, leave it at this health. directM = steer straight at a target closer than this (m) when the walk is clear.
     // chaseRepathM = new path when the target moved this far from the path's end (m). dodgeMargin = metres kept outside a tell's edge. aimErrM = aim error at hit 0 (m).
     lowHp: 40, healTo: 85, directM: 7, chaseRepathM: 2, dodgeMargin: 0.8, aimErrM: 2.5,
@@ -762,12 +766,12 @@ for (let k = 0; k < CONFIG.BOTS.count; k++) {
     mat: m, group, body, bar, path: null, cd: [0, 0, 0], navWant: false, gx: 0, gz: 0, gy: 0, goalT: 0, stuckMax: 0, spawn: -1, flashT: 0,
     skill: CONFIG.BOT.skills[CONFIG.BOT.skillOf[k % CONFIG.BOT.skillOf.length]], thinkT: 0, tgt: null, mode: '', modeT: 0, seenP: false,
     pend: false, pendT: 0, pendS: 2, pendX: 0, pendZ: 0, pendDx: 0, pendDz: 0, pendAge: 0, ring: new THREE.Mesh(fxTele.geometry, M.ring), mx: 0, mz: 0, repathed: false, ax: 0, az: 0, anchorT: 0,
-    tgtT: 0, direct: false, heal: null, skip: null, castT: 0, lastBy: null, lastByT: -99, declined: null, declinedT: -99, flee: false, pathGen: 0 });
+    tgtT: 0, direct: false, heal: null, skip: null, castT: 0, lastBy: null, lastByT: -99, declined: null, declinedT: -99, flee: false, pathGen: 0, why: '', hunter: false, huntLostT: 0 });
 }
 for (let k = 0; k < BOTLIST.length; k++) SUITS.push(BOTLIST[k]);
 // Brain fields on the player too, used only by the test autopilot (__game.autoPlayer).
 Object.assign(P, { cd: [0, 0, 0], navWant: false, gx: 0, gz: 0, gy: 0, goalT: 0, skill: CONFIG.BOT.skills.average, thinkT: 0, tgt: null, tgtT: 0, mode: '', direct: false,
-  heal: null, skip: null, castT: 0, lastBy: null, lastByT: -99, declined: null, declinedT: -99, flee: false, pathGen: 0, mx: 0, mz: 0,
+  heal: null, skip: null, castT: 0, lastBy: null, lastByT: -99, declined: null, declinedT: -99, flee: false, pathGen: 0, why: '', hunter: false, huntLostT: 0, mx: 0, mz: 0,
   pend: false, pendT: 0, pendS: 2, pendX: 0, pendZ: 0, pendDx: 0, pendDz: 0, pendAge: 0, ring: new THREE.Mesh(fxTele.geometry, M.ring) });
 // Everything the player can target: training dummies, hunt units, cubs, buff creatures and bot suits share x, z, r, hp, seen.
 const TARGETS = DUMMY_LIST.concat(ENEMIES, CUBS, NEUTRALS, BOTLIST);
@@ -1246,7 +1250,8 @@ function heapPop(hs) {
 const G = { time: 0, view: 'follow', paused: false, ctxLost: false, frames: 0, bannerWave: -1, fellT: 0, nextWave: -2, fxT: 0, miniDirty: true, miniT: 0,
   phase: 'royale', phaseT: 0, huntT: 0, plates: 0, bossDirty: true, bossHp: -1, hits: 0, minTell: 99, hitDmg: 0, bleedDmg: 0,
   kWave: 0, kWarned: false, platesTaken: 0, visR: CONFIG.VISION_R, seed: 1, seedFixed: -1, nT: [0, 0], boons: 0,
-  botN: 0, navRR: 0, navRuns: 0, navPeak: 0, alive: 1, warnGen: 0, autoP: false, lostIn: '', watch: false, decidedAt: -1 };
+  botN: 0, navRR: 0, navRuns: 0, navPeak: 0, alive: 1, warnGen: 0, autoP: false, lostIn: '', watch: false, decidedAt: -1,
+  huntN: 0, huntClaims: 0, huntFrees: 0 };
 // Bots in this match: CONFIG.BOTS (switch and count), or ?bots=N in the address (0 = map test with the player alone).
 G.botN = !CONFIG.BOTS.on ? 0 : params.has('bots') ? Math.max(0, Math.min(CONFIG.BOTS.count, parseInt(params.get('bots'), 10) || 0)) : CONFIG.BOTS.count;
 
@@ -1884,6 +1889,17 @@ function stepBots(dt) {
     break;
   }
   if (runs > G.navPeak) G.navPeak = runs;
+  // Hunter slot: frees when the hunter is out, the player is out, or the hunter has not seen the player for BOT.hunterLoseS.
+  const HB = CONFIG.BOT;
+  for (let k = 0; k < BOTLIST.length; k++) {
+    const b = BOTLIST[k]; if (!b.hunter) continue;
+    if (!b.dead && !P.dead && botSees(b, P, CONFIG.VISION_R + (b.bT[2] > 0 ? b.bV[2] : 0))) b.huntLostT = 0; else b.huntLostT += dt;
+    if (b.dead || P.dead || b.huntLostT >= HB.hunterLoseS) {
+      b.hunter = false; b.huntLostT = 0; G.huntN--; G.huntFrees++;
+      // A freed hunter drops the player at once and decides again next step (no chase left over from the slot).
+      if (b.tgt === P) { b.tgt = null; b.why = ''; b.mode = ''; b.thinkT = 0; }
+    }
+  }
   const VR = G.visR;
   let alive = P.dead && G.botN > 0 ? 0 : 1;
   for (let k = 0; k < BOTLIST.length; k++) {
@@ -1975,8 +1991,9 @@ function botDecide(b) {
   // Target (owner, 23 Nov): the nearest such suit, but a fighting bot that sees the player switches to the player and keeps it while seen.
   // Before peaceS it only answers a suit that hit it in the last retaliateS seconds.
   const E = B.engage, ramp = Math.min(1, Math.max(0, (G.time - E.peaceS) / E.rampS)), er = Math.min(vr, E.startM + (vr - E.startM) * ramp);
-  let t = b.mode === 'fight' && b.tgt && b.tgt.kind === 'suit' && botSees(b, b.tgt, vr) ? b.tgt : null;
-  if (!t && b.lastBy && !b.lastBy.dead && G.time - b.lastByT < E.retaliateS && botSees(b, b.lastBy, vr)) t = b.lastBy;
+  // why = how the target was picked: 'keep' (fight goes on), 'hit' (answers its attacker), 'near' (nearest suit), 'hunt' (hunter slot, player on sight).
+  let t = b.mode === 'fight' && b.tgt && b.tgt.kind === 'suit' && botSees(b, b.tgt, vr) ? b.tgt : null, why = t ? b.why : '';
+  if (!t && b.lastBy && !b.lastBy.dead && G.time - b.lastByT < E.retaliateS && botSees(b, b.lastBy, vr)) { t = b.lastBy; why = 'hit'; }
   if (!t && G.time >= E.peaceS) {
     let bd = er;
     for (let i = 0; i < SUITS.length; i++) {
@@ -1985,8 +2002,14 @@ function botDecide(b) {
     }
     // A new fight is started with chance p0 at the end of peace, rising to 1 with the ramp; a declined suit is not drawn again for declineS.
     if (t && brnd() > E.p0 + (1 - E.p0) * ramp) { b.declined = t; b.declinedT = G.time; t = null; }
+    else if (t) why = 'near';
   }
-  if (t && B.preferPlayerOnSight && b !== P && t !== P && botSees(b, P, vr)) t = P;
+  // Switch to the player on sight only through the hunter slot (BOT.maxHunters at a time; freed in stepBots).
+  if (t && B.preferPlayerOnSight && b !== P && t !== P && botSees(b, P, vr)) {
+    if (!b.hunter && G.huntN < B.maxHunters) { b.hunter = true; b.huntLostT = 0; G.huntN++; G.huntClaims++; }
+    if (b.hunter) { t = P; why = 'hunt'; }
+  }
+  b.why = t ? why : '';
   // Low health: break off for an altar with charge on a standing section.
   if (b.hp < B.lowHp || (b.mode === 'heal' && b.hp < B.healTo)) {
     const a = botAltar(b);
@@ -2365,7 +2388,8 @@ function respawn(kind) {
 
 // Bots into the match at the other spawns (new run), or all out of it (the wake). Not deaths: no cause is recorded.
 function clearBots() {
-  for (const b of BOTLIST) { b.cause = ''; b.diedAt = -1; b.killer = null; botOut(b); }
+  for (const b of BOTLIST) { b.cause = ''; b.diedAt = -1; b.killer = null; b.hunter = false; b.huntLostT = 0; b.why = ''; botOut(b); }
+  G.huntN = 0; G.huntClaims = 0; G.huntFrees = 0;
 }
 function spawnBots() {
   clearBots();
@@ -2380,7 +2404,7 @@ function spawnBots() {
     for (let i = 0; i < 4; i++) { b.bT[i] = 0; b.bV[i] = 0; }
     b.cause = ''; b.diedAt = -1; b.killer = null; b.plates = 0; b.boons = 0; b.cd[0] = b.cd[1] = b.cd[2] = 0;
     b.navWant = false; b.path.n = 0; b.path.i = 0; b.gx = b.x; b.gz = b.z; b.gy = b.y; b.goalT = 1e9; b.flashT = 0; b.body.material = b.mat;
-    b.thinkT = brnd() * CONFIG.BOT.thinkS; b.tgt = null; b.tgtT = 0; b.mode = ''; b.modeT = 0; b.seenP = false; b.pend = false; b.pendT = 0; b.mx = b.mz = 0; b.direct = false; b.heal = null; b.skip = null; b.castT = 0; b.lastBy = null; b.lastByT = -99; b.declined = null; b.declinedT = -99; b.flee = false; b.pathGen = 0;
+    b.thinkT = brnd() * CONFIG.BOT.thinkS; b.tgt = null; b.tgtT = 0; b.mode = ''; b.modeT = 0; b.seenP = false; b.pend = false; b.pendT = 0; b.mx = b.mz = 0; b.direct = false; b.heal = null; b.skip = null; b.castT = 0; b.lastBy = null; b.lastByT = -99; b.declined = null; b.declinedT = -99; b.flee = false; b.pathGen = 0; b.why = ''; b.hunter = false; b.huntLostT = 0;
     b.bar.scale.x = 1; b.seen = false; b.group.visible = false; b.group.position.set(b.x, b.y, b.z);
     scene.add(b.group);
   }
@@ -2599,10 +2623,20 @@ window.__game = {
   hitBy(i, j, n) { const a = i < 0 ? P : BOTLIST[i], b = j < 0 ? P : BOTLIST[j]; hurtSuit(b, n, 'hit', a); },
   hitCubBy(i, j, n) { hitEnemy(CUBS[i], n, j < 0 ? P : BOTLIST[j]); }, hitNeutralBy(i, j, n) { hitEnemy(NEUTRALS[i], n, j < 0 ? P : BOTLIST[j]); },
   player: () => ({ mode: P.mode, tgt: P.tgt ? (P.tgt.kind === 'suit' ? P.tgt.id : -2) : -1, dead: P.dead, cause: P.cause, diedAt: P.diedAt, plates: P.plates, boons: P.boons }),
-  bots: () => ({ n: G.botN, alive: G.alive, navRuns: G.navRuns, navPeak: G.navPeak, list: BOTLIST.slice(0, G.botN).map((b) => ({ id: b.id, x: b.x, y: b.y, z: b.z, hp: b.hp, dead: b.dead, cause: b.cause, diedAt: b.diedAt,
+  bots: () => ({ n: G.botN, alive: G.alive, navRuns: G.navRuns, navPeak: G.navPeak, huntN: G.huntN, huntClaims: G.huntClaims, huntFrees: G.huntFrees, list: BOTLIST.slice(0, G.botN).map((b) => ({ id: b.id, x: b.x, y: b.y, z: b.z, hp: b.hp, dead: b.dead, cause: b.cause, diedAt: b.diedAt,
     killer: b.killer ? b.killer.id : -1, stuck: b.stuckMax, zone: b.zone ? b.zone.id : null, seen: b.seen, vis: b.group.visible, inScene: !!b.group.parent, plates: b.plates, boons: b.boons,
-    tgt: b.tgt ? (b.tgt.kind === 'suit' ? b.tgt.id : -2) : -1, mode: b.mode, spawn: b.spawn, bT: b.bT.slice(), ult: b.cd[2], pk: b.pk.slice(), air: b.air, standOk: b.dead || b.air || !!floorAt(b.x, b.z, b.y + 0.05) })) }),
+    tgt: b.tgt ? (b.tgt.kind === 'suit' ? b.tgt.id : -2) : -1, mode: b.mode, why: b.why, hunter: b.hunter, spawn: b.spawn, bT: b.bT.slice(), ult: b.cd[2], pk: b.pk.slice(), air: b.air, standOk: b.dead || b.air || !!floorAt(b.x, b.z, b.y + 0.05) })) }),
   botDbg(i) { const b = BOTLIST[i]; return { x: b.x, z: b.z, y: b.y, mx: b.mx, mz: b.mz, gx: b.gx, gz: b.gz, n: b.path.n, i: b.path.i, pts: Array.from(b.path.pts.slice(0, b.path.n * 2)), stuckT: b.stuckT, want: b.navWant }; },
+  hunters() {
+    let flagged = 0, huntOnP = 0, onP = 0, seeP = 0, id = -1;
+    for (let k = 0; k < G.botN; k++) {
+      const b = BOTLIST[k]; if (b.hunter) { flagged++; id = b.id; } if (b.dead) continue;
+      if (b.tgt === P) { onP++; if (b.why === 'hunt') huntOnP++; }
+      if (botSees(b, P, CONFIG.VISION_R)) seeP++;
+    }
+    return { slots: G.huntN, flagged, huntOnP, onP, seeP, id, claims: G.huntClaims, frees: G.huntFrees, max: CONFIG.BOT.maxHunters };
+  },
+  setBotHp(i, n) { BOTLIST[i].hp = n; },
   hitBot(i, n) { hurtSuit(BOTLIST[i], n, 'test', null); }, placeBot(i, x, z) { const b = BOTLIST[i]; b.x = b.px = x; b.z = b.pz = z; b.y = b.py = topY(x, z); b.air = false; b.vy = 0; },
   attack(i) { ORD.attack = DUMMY_LIST[i]; PATH.n = 0; }, stop: stopOrders,
   cast(slot, x, z) { return castSkill(slot, x, z); }, autoCast, autoTargetIdx: (r) => DUMMY_LIST.indexOf(autoTarget(r)),

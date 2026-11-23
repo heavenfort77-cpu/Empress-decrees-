@@ -1,4 +1,4 @@
-# Handoff (2026-11-23, after batch 9; written for a fresh session). GDD: docs/GDD.md (also Project "empress decrees", claude/GDD.md)
+# Handoff (2026-11-23, after batch 10; written for a fresh session). GDD: docs/GDD.md (also Project "empress decrees", claude/GDD.md)
 
 ## Session start (every session)
 1. Attach both repos: add_repo heavenfort77-cpu/Empress-decrees- (access push) and heavenfort77-cpu/dawnpunk (read; public, anonymous clone works). Dawnpunk = reference for frame-rate rules and bug pitfalls; read only the part needed.
@@ -6,10 +6,10 @@
 3. Run the checks before and after any change: `node tests/static-check.mjs` then `node tests/run.mjs` (`-v` for details). Report pass/fail and failing lines only.
 
 ## Status
-- Batches 1-9 done. All code is on branch `batches-3-5` (PR #1 open; merge to main when the user agrees). The owner has NOT yet said the loop works; no art before that.
+- Batches 1-10 done. All code is on branch `batches-3-5` (PR #1 open; merge to main when the user agrees). The owner has NOT yet said the loop works; no art before that.
 - Batch 6 = apex fight on boxes (H key or Hunt button). Batch 7 = royale minions (kennel waves, cubs, plates). Batch 8 = faster cubs and minions, buff creatures from marble bags, cubs fuse into the statue at the wake.
-- Static check PASS. Runtime 71 of 71 PASS (headless Chromium, software GPU: correctness and counts only; about 40 s). Tests run with a fixed seed (12345); checks 1-55 run with ?bots=0 (map test), 56-66 set the bots themselves. `node tests/run.mjs -vv 56,65` prints full details.
-- Mutation rounds: batch 3 edge clamp caught after a fix; batch 4 5 of 5; batch 5 6 of 6; batch 6 11 of 11; batch 7 12 of 13 (the miss is an equivalent change); batch 8 11 of 11.
+- Static check PASS. Runtime 73 of 73 PASS (headless Chromium, software GPU: correctness and counts only). Tests run with a fixed seed (12345); checks 1-55 run with ?bots=0 (map test), 56-68 set the bots themselves. `node tests/run.mjs -vv 56,65` prints full details.
+- Mutation rounds: batch 3 edge clamp caught after a fix; batch 4 5 of 5; batch 5 6 of 6; batch 6 11 of 11; batch 7 12 of 13 (the miss is an equivalent change); batch 8 11 of 11; batch 9 32 of 32 (9a-9d); batch 10 6 of 6.
 - Counts (software GPU, medium tier): spawn 27 calls / 2.8k tris; whole map 76 / 8.4k; hunt with all units and 3 tells 17 / 0.9k; 7 cubs with 3 tells 33 / 2.3k. Budget 500 / 0.5M. Shader programs 3 at load and after play; geometry count flat.
 - Bot sweep in the hunt (test 42) with the faster minions, reaction / kill order (0 demon, 1 stalker, 2 howler): never-dodge loses all 3 (7-8 s); 0.3 s: demon-first loses (17 s), minions-first wins (57 s, 3-13 hp left); 0.15 s wins all 3.
   - GDD sim target "no kill order is dominant" is NOT met (minions-first is better for the 0.3 s bot). Player kit is still the placeholder; tuning waits for real kits.
@@ -18,7 +18,14 @@
 - Phone review link (claude.ai artifact, same page with three.js from jsDelivr): https://claude.ai/artifact/3nQ67JCTmb1JfPKC3Y416z (version 1795413588-b917 = batch 9, commit a43e632; title 'Empress Decrees - box prototype (batch 9)'). Republish it after each batch: copy index.html, swap the importmap path for https://cdn.jsdelivr.net/npm/three@0.171.0/build/three.module.min.js, publish to slug 1688f9ba-a0e5-4f7b-ac2e-3a68d6fc67c3.
 - Project docs (claude/HANDOFF.md, claude/GDD.md, claude/code/index.html, claude/code/tests/run.mjs) are copies of the repo files; rewrite them after each batch. A project_read of a code file dumps the whole file into the session: avoid it, write from the local file.
 
-## Next batch: 10 = decrees (owner order: bots before decrees). Waiting for the owner's go. Also open from batch 9: the player-first observation (below), real-GPU fps, real phone.
+## Next batch: 11 = decrees (owner order: bots before decrees). Waiting for the owner's go. Also open: player still out early (batch 10 below), real-GPU fps, real phone.
+
+## Batch 10 = hunter slot (owner, 23 Nov 14:04: only one bot at a time may switch to the player). DONE 23 Nov.
+- Built: one hunter slot (CONFIG.BOT.maxHunters 1). A fighting bot that sees the player takes the slot only if it is free, then targets the player. The slot frees when the hunter is out, the player is out, or the hunter has not seen the player for BOT.hunterLoseS (3 s, assumption); a freed hunter drops the player at once. Switch still BOT.preferPlayerOnSight.
+- Assumptions: the other bots keep the nearest-suit rule (after the 2:00 truce the player can still be their nearest suit) and still hit back at whoever hit them; only the on-sight switch is limited.
+- Checks: 67 (invariant every tick over the 6 matches of 65: at most maxHunters bots on the player by the switch; slots, flags and targets agree; 3+ bots saw the player in 10908 ticks), 68 (slot frees on hunter death and another claims it; held under 3 s out of sight, freed after; claimed again). Check 59 changed on purpose: with one slot either of its 2 bots may take it first, so 59 opens a second slot while it tests the switch itself, then restores it. New test hooks: hunters(), setBotHp(i, n). Mutation 6 of 6.
+- 6 autopilot matches (seed / decided s / player place of 10 / player broken at / first bot out / winner spawn): 12345 211.3 / 7th / 146 s / 121 s / 4; 2 182.7 / 9th / 122 s / 60 s / 8; 3 170.7 / 10th / 121 s / 130 s / 4; 4 178.5 / 10th / 122 s / 123 s / 0; 5 165.7 / 7th / 124 s / 121 s / 1; 6 181.1 / 9th / 121 s / 121 s / 7.
+  - Before batch 10 the player was out first in 6 of 6; now first in 2 of 6, still always at 121-146 s, just after the truce ends (120 s). While alive, 2-4 bots still had the player as target at once (nearest-suit and hit-back rules, not the switch). Not changed: the owner decides whether the nearest/hit-back rules should also count toward the cap.
 
 ## Batch 9 = bots (owner, 23 Nov: bots are what make the royale end and start the hunt on its own). DONE 23 Nov, commits 870fa84 (9a), 5e0e7cc (9b), 1aaf1d0 (9c), 9d below.
 Owner said go for 9a to 9d on 23 Nov (see Owner decisions). Progress:
@@ -60,6 +67,8 @@ Owner said go for 9a to 9d on 23 Nov (see Owner decisions). Progress:
 - Fixed seed covers bot decisions too (one shared seeded RNG, no Math.random in bot code: static check).
 
 ## Owner decisions, 23 Nov (later session)
+- 23 Nov 14:04: only one bot at a time may switch to the player on sight (built as batch 10, hunter slot).
+- 23 Nov 14:04: apex hunt played by the owner: very hard but beatable. Cause per owner: the placeholder kit has no real skills; with real kits (dashes) the player can dodge apex attacks, which should balance it. No hunt tuning now; re-check the hunt sweep (test 42) when kits land.
 - Batch 9 (session 3): go 9a to 9d back to back; bots use the placeholder kit; bots take plates and boons; bots go for the nearest seen suit but switch to the player on sight.
 - Cubs and minions that move on the map are four-legged machines on treads, faster than most suits; their other numbers are to sit at the suits' median. Built now: speed 6.6 m/s against the suit's 6. The tread look waits for the art stage. "Median" is read as health and damage at the median of the ten suits once kits exist (assumption; confirm).
 - Buff creatures in the manner of a MOBA jungle crab and river wanderer, with marble-bag draws for time, place, boon and size. Own names and art only (working names: crab, wanderer).
@@ -120,7 +129,7 @@ Owner said go for 9a to 9d on 23 Nov (see Owner decisions). Progress:
 
 ## Open
 - Kaymuse's look; game title; apex ultimate rule (built as single use at half health; confirm); ultimate charge amounts; minion names; Tiger Demon hard-surface confirm.
-- Apex balance: kill-order target not met (see Status); demon 1000 hp against the placeholder kit gives a 50-60 s fight.
+- Apex balance: kill-order target not met (see Status); demon 1000 hp against the placeholder kit gives a 50-60 s fight. Owner played it 23 Nov 14:04: very hard but beatable; no tuning until real kits (dashes) land, then re-check test 42 (see Owner decisions).
 - Vision is a plain radius: walls/curtains do not block sight yet (comes with hiding); bots use the same plain radius.
 - Bots: no school behaviours (GDD: not chosen); bot Q/W show no flash yet (only R shows its ring, for fairness); bodies are boxes in school colours.
 - Apex trigger: teleport to the core hall under a card (assumed) or walk there.

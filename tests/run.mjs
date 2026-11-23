@@ -772,14 +772,15 @@ try {
   });
   check('58 new run x3 with bots: fresh bots, memory and shaders flat', bm.every((m) => m.fresh && m.geoms === base.geoms && m.texs === base.texs && m.programs === base.programs), JSON.stringify(bm));
   // 59 Target rule (owner, 23 Nov): a bot answers the suit that hit it; once it sees the player it switches to the player, keeps it while seen, and lets go when the player is out of sight.
+  // Batch 10: with the hunter slot (maxHunters 1) either bot may take the slot first, so this check of the switch itself opens a second slot and restores it.
   const rt = await g(() => {
-    const G = __game, K = window.__k, o = {};
+    const G = __game, K = window.__k, o = {}, mh = G.config.BOT.maxHunters; G.config.BOT.maxHunters = 2;
     G.setSeed(12345); G.setBots(2); G.reset(); G.teleport(0, -50); G.setHp(1e9);
     G.placeBot(0, 0, 10); G.placeBot(1, 2.5, 10); G.hitBy(1, 0, 1); K.sp(0.5); o.first = G.bots().list[0].tgt;
     G.teleport(0, 16); K.sp(0.5); o.onSight = G.bots().list[0].tgt;
     let kept = true; for (let n = 0; n < 8; n++) { K.sp(0.25); if (G.bots().list[0].tgt !== 0) kept = false; } o.kept = kept;
     G.teleport(0, -50); K.sp(0.6); o.away = G.bots().list[0].tgt;
-    G.setBots(0); G.reset(); return o;
+    G.config.BOT.maxHunters = mh; G.setBots(0); G.reset(); return o;
   });
   check('59 bot target: answers its attacker, switches to the player on sight, keeps the player while seen, lets go out of sight', rt.first === 2 && rt.onSight === 0 && rt.kept && rt.away !== 0, JSON.stringify(rt));
   const C0 = await g(() => __game.config);
@@ -851,12 +852,17 @@ try {
     const G = __game, C = G.config, out = [], viol = [], bad = (s) => { if (viol.length < 5) viol.push(s); }, wins = {};
     const CAUSES = ['hit', 'hazard', 'fall', 'bleed', 'drop'];
     let plates = 0, boons = 0;
+    // Hunter slot (batch 10): every tick at most maxHunters bots target the player by the on-sight switch; flags, slots and targets agree.
+    const hv = [], hbad = (x) => { if (hv.length < 5) hv.push(x); }; let see3 = 0, maxOnP = 0, maxHunt = 0;
     for (const seed of [12345, 2, 3, 4, 5, 6]) {
       G.setSeed(seed); G.setBots(9); G.reset(); G.autoPlayer(true); G.setWatch(true);
       let prevAlive = 10, t = 0;
       for (; t < 300 / C.STEP; t++) {
         G.step(1); const r = G.royale();
         if (r.alive > prevAlive) bad(`s${seed} t${t} alive rose`); prevAlive = r.alive;
+        const hu = G.hunters();
+        if (hu.huntOnP > hu.max || hu.slots > hu.max || hu.flagged !== hu.slots || hu.huntOnP > hu.flagged) hbad(`s${seed} t${t} ${JSON.stringify(hu)}`);
+        if (hu.seeP >= 3) see3++; if (hu.onP > maxOnP) maxOnP = hu.onP; if (hu.huntOnP > maxHunt) maxHunt = hu.huntOnP;
         if (t % 20 === 0) {
           for (const q of G.bots().list) {
             if (!q.dead && (q.hp <= 0 || q.hp > C.MAX_HP + 1e-6)) bad(`s${seed} t${t} bot${q.id} hp ${q.hp}`);
@@ -871,13 +877,35 @@ try {
       const win = all.find((q) => !q.dead), nocause = all.filter((q) => q.dead && !CAUSES.includes(q.cause)).length;
       if (win) wins[win.spawn] = (wins[win.spawn] || 0) + 1;
       plates += b.list.reduce((a, q) => a + q.plates, 0); boons += b.list.reduce((a, q) => a + q.boons, 0);
-      out.push({ seed, decided: +r.decidedAt.toFixed(1), winner: win ? win.spawn : -1, player: p.dead ? p.cause + '@' + Math.round(p.diedAt) : 'won', nocause });
+      const place = p.dead ? 1 + b.list.filter((q) => !q.dead || q.diedAt > p.diedAt).length : 1, firstOut = Math.min(...b.list.filter((q) => q.dead).map((q) => q.diedAt), p.dead ? p.diedAt : 1e9);
+      out.push({ seed, decided: +r.decidedAt.toFixed(1), winner: win ? win.spawn : -1, player: p.dead ? p.cause + '@' + Math.round(p.diedAt) : 'won', place, playerFirst: p.dead && p.diedAt <= firstOut, nocause });
       G.setWatch(false); G.autoPlayer(false);
     }
-    G.setBots(0); G.reset(); return { out, viol, wins, plates, boons };
+    G.setBots(0); G.reset(); return { out, viol, wins, plates, boons, hunt: { hv, see3, maxOnP, maxHunt } };
   });
   check('65 whole matches x6: decided in 165-255 s, 0 broken invariants, every out has a cause, bots take plates and boons, no spawn wins more than 3 of 6',
     ms.out.every((m) => m.decided >= 165 && m.decided <= 255 && m.nocause === 0) && ms.viol.length === 0 && ms.plates > 0 && ms.boons > 0 && Math.max(...Object.values(ms.wins)) <= 3, JSON.stringify(ms));
+  // 67 Hunter slot over the 6 whole matches of 65 (owner, 23 Nov 14:04): with 3 or more bots seeing the player, at most BOT.maxHunters bots
+  // target the player by the on-sight switch at any tick; the case did happen; slot count, flags and targets agree every tick.
+  check('67 hunter slot: at most maxHunters bots switch to the player at any tick over 6 matches (3+ bots seeing the player happened)',
+    ms.hunt.hv.length === 0 && ms.hunt.see3 > 0 && ms.hunt.maxHunt <= 1 && ms.hunt.maxHunt === 1, JSON.stringify(ms.hunt) + ' places ' + ms.out.map((m) => m.place).join(','));
+  // 68 Hunter slot frees and is claimed again: one hunter among 3 fighting bots that see the player; its death frees the slot and another bot claims it;
+  // out of sight the slot is held until BOT.hunterLoseS, then freed; back in sight it is claimed again.
+  const hs2 = await g(() => {
+    const G = __game, C = G.config, K = window.__k, o = {}, fight = (a, b) => { G.hitBy(a, b, 1); G.hitBy(b, a, 1); };
+    G.setSeed(12345); G.setBots(3); G.reset(); G.teleport(0, -50); G.setHp(1e9);
+    G.placeBot(0, 0, 10); G.placeBot(1, 2.5, 10); G.placeBot(2, -2.5, 10); for (let i = 0; i < 3; i++) G.setBotHp(i, 1e9); fight(0, 1); G.hitBy(1, 2, 1); G.hitBy(2, 0, 1); K.sp(0.5);
+    o.before = G.hunters();
+    G.teleport(0, 16); K.sp(0.6); o.one = G.hunters();
+    const h1 = o.one.id - 1; G.hitBot(h1, 1e12); const rest = [0, 1, 2].filter((i) => i !== h1); fight(rest[0], rest[1]); K.sp(0.1); o.freed = G.hunters();
+    K.sp(0.6); o.two = G.hunters();
+    G.teleport(0, -50); K.sp(C.BOT.hunterLoseS - 0.5); o.held = G.hunters(); K.sp(1); o.lost = G.hunters();
+    G.teleport(0, 16); fight(rest[0], rest[1]); K.sp(0.6); o.again = G.hunters();
+    G.setBots(0); G.reset(); return o;
+  });
+  check('68 hunter slot: one of 3 switches; frees on hunter death and another claims it; held until hunterLoseS out of sight, then freed; claimed again in sight',
+    hs2.before.slots === 0 && hs2.one.seeP === 3 && hs2.one.slots === 1 && hs2.one.onP === 1 && hs2.one.huntOnP === 1 && hs2.freed.slots === 0 && hs2.freed.frees === 1
+    && hs2.two.slots === 1 && hs2.two.id !== hs2.one.id && hs2.two.claims === 2 && hs2.held.slots === 1 && hs2.lost.slots === 0 && hs2.lost.frees === 2 && hs2.again.slots === 1 && hs2.again.claims === 3, JSON.stringify(hs2));
   // 66 Idle player: standing at the spawn doing nothing loses the royale (frozen loss with a cause) before the last collapse is over.
   const idle = await g(() => {
     const G = __game, C = G.config; G.setSeed(12345); G.setBots(9); G.reset(); let t = 0;
