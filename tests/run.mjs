@@ -1376,6 +1376,29 @@ try {
     G.setBots(0); G.reset(); return out;
   });
   check('82 replay: a run starts from the same state and one seed played twice in a row gives the same match', rp[0] === rp[2] && rp[1] === rp[3], rp.join(' vs '));
+  // 87 Charge sources (batch 15 ticket 02; plate 48, crab 54, bot plate 60, bounty 71 and the 2x decree 76 are checked there): passive per second while alive,
+  // per health dealt to a suit and per health taken (any cause, capped at the health actually lost), kill bonus, for the player and a bot; all amounts from CONFIG.ULT.
+  // Hits are read in the same step (no passive in between); the passive is read over whole seconds of game time; a broken suit gains nothing.
+  const cs = await g(() => {
+    const G = __game, C = G.config, U = C.ULT, H = window.__d, o = {}, near = (a, b) => Math.abs(a - b) < 1e-6;
+    H.start(2); G.teleport(0, -40); G.placeBot(1, 6, -50);
+    const zero = () => { G.setCharge(-1, 0); G.setCharge(0, 0); G.setCharge(1, 0); };
+    zero(); H.hold(4, () => { H.park(); G.placeBot(1, 6, -50); });
+    o.passive = [G.chargeOf(-1), G.chargeOf(0), G.chargeOf(1)]; o.wantPassive = 4 * U.passive;
+    zero(); G.hitBy(-1, 0, 10); o.pDealt = G.chargeOf(-1); o.bTaken = G.chargeOf(0);
+    zero(); G.hitBy(0, -1, 8); o.bDealt = G.chargeOf(0); o.pTaken = G.chargeOf(-1);
+    zero(); G.damage(6); o.pTakenNoHitter = G.chargeOf(-1);
+    zero(); G.setBotHp(1, 5); G.hitBy(0, 1, 10); o.bKill = G.chargeOf(0); o.bKillWant = 5 * U.dealt + U.kill; o.victimDead = G.bots().list[1].dead;
+    const victim = G.chargeOf(1); H.hold(2, H.park); o.deadGain = G.chargeOf(1) - victim;
+    zero(); G.setBotHp(0, 4); G.hitBy(-1, 0, 10); o.pKill = G.chargeOf(-1); o.pKillWant = 4 * U.dealt + U.kill;
+    o.ok = o.passive.every((v) => near(v, o.wantPassive)) && near(o.pDealt, 10 * U.dealt) && near(o.bTaken, 10 * U.taken) && near(o.bDealt, 8 * U.dealt) && near(o.pTaken, 8 * U.taken)
+      && near(o.pTakenNoHitter, 6 * U.taken) && near(o.bKill, o.bKillWant) && o.victimDead && o.deadGain === 0 && near(o.pKill, o.pKillWant);
+    G.setBots(0); G.reset(); return o;
+  });
+  check('87 charge sources: passive per second, per health dealt and taken (capped at health lost), kill bonus, player and bot, nothing while broken (CONFIG.ULT)', cs.ok, JSON.stringify(cs));
+  // 88 Charge wording (batch 15): every player-facing line about the ultimate's gains says charge, never cooldown.
+  const cw = await g(() => ['boon_ult', 'rule_plate_s', 'rule_plate_h', 'rule_dec_ult2x', 'hud_dec_ult2x'].map((k) => [k, __game.text[k] || '']));
+  check('88 charge wording: boon, plate and 2x decree lines say charge, not cooldown', cw.every(([, t]) => /charge/i.test(t) && !/cooldown/i.test(t)), JSON.stringify(cw));
   // 66 Idle player: standing at the spawn doing nothing loses the royale (frozen loss with a cause) before the last collapse is over.
   const idle = await g(() => {
     const G = __game, C = G.config; G.setSeed(12345); G.setBots(G.config.BOTS.count); G.reset(); let t = 0;
