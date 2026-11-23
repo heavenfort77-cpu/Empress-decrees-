@@ -19,15 +19,30 @@
 - Project docs (claude/HANDOFF.md, claude/GDD.md, claude/code/index.html, claude/code/tests/run.mjs) are copies of the repo files; rewrite them after each batch. A project_read of a code file dumps the whole file into the session: avoid it, write from the local file.
 
 ## Next batch: 9 = bots (owner, 23 Nov: bots are what make the royale end and start the hunt on its own)
-Not started. Plan to check with the owner in one line, then build:
+Design note written 23 Nov (session 3). No game code changed yet. Waiting for the owner's go and the 4 answers below.
 - Goal: 9 bot suits so the royale plays out and the last suit alive wakes the demon without the H key. Then leader, crown marker and bounty become possible; decrees come after.
-- Biggest change: today every hazard, cub, creature and enemy targets the player object `P` directly. Bots need one "suit" shape (position, layer, health, statuses, plates, boons, orders) shared by the player and bots, and "nearest suit" in place of `P` in: hazards, altars, collapse falls, cubThink, stepUnit (royale only), plates and boons (last hitter), vision.
-- Movement: navSearch uses one shared PATH buffer; bots need a path buffer each and at most one search per tick (time-sliced), or straight steering inside a section plus waypoints between sections.
-- Bot decisions (CONFIG weights): leave a warned section, fight the nearest seen suit, contest a camp or buff creature, stand on an altar when low, never walk into a tell that has been showing longer than its reaction time.
-- End of royale: player dead = loss screen with retry (replaces the map-test respawn); last suit alive = startHunt (keep H as a debug trigger behind ?debug).
-- Checks to add: match length band (GDD 3-4 min), win share per spawn, every bot death has a cause (hit, fall, collapse), idle player loses, no bot stuck longer than N s, invariants every tick, budget with 10 suits + 7 cubs + tells, memory flat over 3 runs.
-- Premortem: path cost with 9 searchers; bots falling at broken rails by knockback only; a cub leashing between two suits; plates and boons going to bots (pool and HUD stay correct); hunt tests must keep passing when the royale has other suits; fixed seed so sims replay.
-- Readiness: about 60 of 100 (no reference bot code read yet; suit refactor not designed in detail). Read Dawnpunk's bot or enemy update only if it has one; write the suit refactor note first.
+- Readiness now about 75 of 100: audit done (below); Dawnpunk read (src/bots.js: its bots are test players, not opponents; patterns taken: bots use only the player's actions, skill profiles {react, hit} in CONFIG, waypoint walk between floors). Unknown: navSearch worst-case time (measured first in 9b).
+- Audit (P.* references per function, index.html @ 89629c9): step 125, reset 28, updateStatus 23, startHunt 23, respawn 17, resolveMove 17, placeView 11, hurt 9, castSkill 9, grantPlayerPlate 7, stepUnit 6, applySkill 6, grantBoon 5, stepKennel 4, drawMini 4, cubThink 3; the ~39 in the test-hook object stay player-only. navSearch writes one shared PATH (1024 floats); grid A* 1 m cells, cap NAV_MAX 15000 nodes per search.
+
+### Split into four batches, one scope each; each passes static + full runtime suite + budget before the next
+- 9a Suit refactor, no bots spawned. P becomes SUITS[0]; per-suit state (pos, layer, hp, statuses, plates pk/pt, boons bT/bV, orders, path). hurt(s, n, cause). Hazards, altars, collapse falls, void, cubs, royale units and neutrals loop over live suits or pick the nearest suit on the same layer; plates and boons go to the last hitter. Player attacks can hit suits. Gate: 60 of 60 unchanged with 0 bots, counts unchanged, mutation round on the new loops.
+- 9b Bot bodies and movement. 9 box suits at spawn points (school colours, one shared geometry). Path buffer per suit (one Float32Array 10x1024 allocated at load). Nav budget: at most one navSearch per tick, round-robin queue; straight steering when the goal is in line of walk. Measure navSearch worst case first; if over 2 ms, lower NAV_MAX for bots or add section waypoints. Gate: budget with 10 suits + 7 cubs + 3 tells, no bot stuck > 3 s, memory flat over 3 runs.
+- 9c Bot brain. Uses only player actions (move, attack, Q W R). Knows only what its own 11 m vision shows (no map hacks). Priority list with CONFIG weights: leave a warned section > dodge a tell older than its reaction time > altar when hp low > fight nearest seen suit > contest camp or buff creature > walk toward centre. Skill profiles {react, hitChance, aggro} in CONFIG.
+- 9d Royale end. Player dead = loss screen with Retry (replaces map-test respawn). Last suit alive = startHunt; H only with ?debug. Checks: match length 3-4 min band, every bot death has a cause (hit, fall, collapse), idle player loses, win share per spawn, invariants every tick (hp in range, alive count only falls, no suit inside a solid), hunt tests still pass.
+
+### Defaults assumed until the owner answers
+1. Bots use the same placeholder kit as the player until school kits exist.
+2. All bots "average" (0.3 s reaction), set per bot in CONFIG.
+3. Bots also take plates and boons (GDD open item).
+4. Bots target the nearest seen suit; no preference for the player.
+
+### Premortem
+- 9 searchers spike a tick: one search per tick cap + measured cost.
+- Bots fall at broken rails only by knockback, never walking in (nav already blocks drops).
+- A cub leashing between two suits: cub keeps its first target until leash or death.
+- Plates and boons to bots: HUD writes only for SUITS[0]; pool counts unchanged.
+- Hunt tests: startHunt removes all bots before the wake; hunt runs as today.
+- Fixed seed covers bot decisions too (one shared seeded RNG, no Math.random in bot code: static check).
 
 ## Owner decisions, 23 Nov (later session)
 - Cubs and minions that move on the map are four-legged machines on treads, faster than most suits; their other numbers are to sit at the suits' median. Built now: speed 6.6 m/s against the suit's 6. The tread look waits for the art stage. "Median" is read as health and damage at the median of the ten suits once kits exist (assumption; confirm).
