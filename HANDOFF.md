@@ -1,19 +1,20 @@
-# Handoff (2026-11-23, after batch 12; written for a fresh session). GDD: docs/GDD.md (also Project "empress decrees", claude/GDD.md)
+# Handoff (2026-11-23, after batch 13; written for a fresh session). GDD: docs/GDD.md (also Project "empress decrees", claude/GDD.md)
 
 ## Session start (every session)
 1. Attach both repos: add_repo heavenfort77-cpu/Empress-decrees- (access push) and heavenfort77-cpu/dawnpunk (read; public, anonymous clone works). Dawnpunk = reference for frame-rate rules and bug pitfalls; read only the part needed.
 2. Clone with `--no-single-branch`; check out `batches-3-5` (PR #1 still open, not merged; use main only if it is merged: `gh api repos/heavenfort77-cpu/empress-decrees-/pulls/1 --jq .merged`, GraphQL is blocked).
 3. Read this file, then only the GDD section being changed. Do not read the whole codebase.
-4. Run the checks before and after any change: `node tests/static-check.mjs && node tests/run.mjs` (`-v` for details, `-vv 56,65` for named checks). Report pass/fail as N of N and failing lines only. `-sims` prints the GDD sim numbers. Expected now: static PASS, runtime 89 of 89 (after 13a).
+4. Run the checks before and after any change: `node tests/static-check.mjs && node tests/run.mjs` (`-v` for details, `-vv 56,65` for named checks). Report pass/fail as N of N and failing lines only. `-sims` prints the GDD sim numbers. Expected now: static PASS, runtime 91 of 91 (after 13b).
 5. Ask the owner the open questions under "Next batch" in ONE AskUserQuestion before building. Open design questions go to the panel (owner, 23 Nov 15:11).
 
 ## Status
-- Batches 1-12 and 13a done on branch `batches-3-5` (PR #1 open). The owner has NOT yet said the loop works; no art before that.
+- Batches 1-13 done on branch `batches-3-5` (PR #1 open). The owner has NOT yet said the loop works; no art before that.
 - Built so far on boxes: map v2 (2 layers, collapses, hazards, altars), LoL/MLBB controls, fog of war, minimap, apex hunt (demon + 2 minions, skill transfer), royale cubs and plates, buff creatures from marble bags, 9 bots with a brain, royale end, player-target cap (hunter slot), leader + crown + HUD line, decree slot, bounty decree, five bagged decrees, W dash, slow + mark penalty.
-- Static PASS. Runtime 89 of 89 after 13a (new 83 decree pacing, 84 bounty paced like a decree; headless Chromium, software GPU: correctness and counts only). Fixed seed 12345. Checks 1-55 run with ?bots=0 (map test); 56+ set bots themselves. Whole-match checks (65, 67, 69, 72, 78) run 12 seeds since batch 12 (was 6).
-- Mutation rounds: batches 4-8 all caught (batch 7 12 of 13, the miss an equivalent change); batch 9 32 of 32; batch 10 6 of 6; batch 11 10 of 10; batch 13a 7 of 8 (the miss: gap bag back to [10, 15, 20, 25] still meets the GDD pacing gate, mean 57.8 s vs 50.7 s; equivalent for the gate); batch 12 14 of 14 (first round 12 of 13: check 80 marked before the wake too early; fixed; plus check 82 catches the replay fix reverted). Script: /home/claude/probe12/mut.py (session disk).
+- Static PASS. Runtime 91 of 91 after 13b (13a: 83 decree pacing, 84 bounty paced like a decree; 13b: 85 kennel autopilot over 12 matches, 86 kennel autopilot fixed scene; headless Chromium, software GPU: correctness and counts only). Fixed seed 12345. Checks 1-55 run with ?bots=0 (map test); 56+ set bots themselves. Whole-match checks (65, 67, 69, 72, 78) run 12 seeds since batch 12 (was 6).
+- Mutation rounds: batches 4-8 all caught (batch 7 12 of 13, the miss an equivalent change); batch 9 32 of 32; batch 10 6 of 6; batch 11 10 of 10; batch 13a 8 of 8 fail the suite (6 fail the named check 83/56; 'gap old' fails 65, 'bounty ignores gap' fails 84; log /home/claude/batch13.log); batch 13b proxy 4 of 4 (85/86; 'no cub fight' missed 85 alone, closed by the fixed scene 86); batch 12 14 of 14 (first round 12 of 13: check 80 marked before the wake too early; fixed; plus check 82 catches the replay fix reverted). Script: /home/claude/probe12/mut.py (session disk).
 - Counts (software GPU, medium): spawn 27 calls / 2.8k tris; whole map 76 / 8.4k; hunt 17 / 0.9k; heaviest royale (10 suits, 7 cubs, tells) 53 / 3.0k; with the crown 54 / 3.0k; with 10 marks, crown and zone tint 64 / 3.1k. Budget 500 / 0.5M. Shader programs 3, geometries 96 flat (mark marker +1).
 - Batch 12 GDD sims (12 seeds, autopilot player, average bots): decided 166.4-201.2 s (in 165-255); longest leader won 3 of 12 (25%, band 25-45%: at the bottom edge); player took >= 1 plate in 2 of 12 (target 70%: MISSED); player out 76-177 s (won 3 of 12: seeds 5, 10, 11); bagged decrees per match 1-3 (GDD 3-4: MISSED); bounties 0-2 per match (6 in 12 matches; batch 11 had 8 in 6: the shared slot halves them), bot fighting share on a seen leader 0.75 with the bounty vs 0.06 without; decree breaks: player 0, bots 7 (all seed 3: a heights decree over a collapse forced a crossing). Player never marked in matches (autopilot obeys), so the mark cap is proven by the scripted check 77 only.
+- Batch 13 GDD sims (12 seeds, code at the 13b proxy commit): old autopilot: decided 177.7-206.9 s, leader win share 5 of 12 (42%), player >= 1 plate 3 of 12, player out 121-179 s (won seed 5). Kennel autopilot (P5 proxy, check 85): player >= 1 plate 9 of 12 (75%, GDD 70% MET, so P6 not built); reached an announced camp in 15 of 24 free warnings; leader win share 2 of 12 (17%, BELOW band); decided 134.9-221.2 s (seeds 11 and 7 at 134.9 and 159.7 under 165: report only, the band gate 65 runs the old autopilot); proxy player out early in seeds 12345 (35 s) and 6 (54 s). Decrees told per match 3-4 in all 12 (bounty included), 0 banner overlaps, 0 heights breaks near a warned section; bots broke heights 2 times each in seeds 3 and 9 (away from collapses); the autopilot player never broke one.
 - Hunt sweep with the W dash (test 42, the sweep bot dashes out of seen tells): never-dodge loses all; 0.3 s wins howler-first only (batch 11: minions-first only); 0.15 s wins 2 of 3 (lost demon-first; batch 11: all 3).
 - Pathfinding: walk graph built at load (8114 nodes). Worst bot search 0.8 ms (1.8 ms unreachable), player right-click worst 4.0 ms. At most one bot search per step.
 - NOT run: real-GPU fps (needs a GitHub Actions macOS runner; no workflow yet). NOT tried on a real phone.
@@ -32,7 +33,8 @@ Cause (batch 12 log): decree warnings must start 20 s clear of a collapse warnin
 - Gate: every one of the 12 seeded matches has 3 or 4 decrees (bounty included) announced before it is decided; banners never overlap; 0 heights breaks during or within 3 s of leaving a warned section. Report per seed.
 
 ### 13b Plate rate (GDD: the player takes at least 1 plate in 70% of runs on average bots; batch 12 autopilot 2 of 12)
-Cause not yet proven. Order (lead rule: name the cause before the fix):
+DONE (as built): M1 cause: the old autopilot never heads for announced camps (acts only on cubs inside its 11 m sight; nearest announced camp median 49.2 m, 0 of 26 within sight) and is out before wave 2 in 10 of 12. P5 built (test proxy, G.autoK via __game.autoPlayer(on, kennel); bots unchanged): 9 of 12 vs old 3 of 12, so P6 (cub at every camp) NOT built. Open for the owner: leader win share with the proxy 2 of 12 (below the 25-45% band) and proxy matches under 165 s in 2 of 12.
+Cause was not yet proven when planned. Order (lead rule: name the cause before the fix):
 - M1 measure first (no game change): per wave and seed, who took each plate, the autopilot's distance to the announced camps, whether it was alive, fighting or fleeing at the wave.
 - P5 (vote 5-2): the autopilot stands in for a human who reads the kennel banner: when not fighting, fleeing or healing, it walks to the nearest announced standing camp. Test-tool change in its own commit; report the plate rate with the old and the new autopilot side by side (never only the better number). Against (critic): tuning the proxy can hide a game problem; answered by reporting both.
 - P6 fallback, only if the new proxy is still under 70% (vote 4-2-1): each kennel wave puts one cub at every standing camp (up to 4 a wave, pool of 7 is enough; budget check 57 already draws 7). Lost: plate to the suit with most damage (2), first wave at 20 s (1).
@@ -43,6 +45,7 @@ Cause not yet proven. Order (lead rule: name the cause before the fix):
 Hiding; ultimate charge (bounty reward and ultimates 2x are cooldown stand-ins); school kits (W dash is a placeholder); the ending; hunt sweep re-check with kits (0.15 s bot now loses demon-first).
 
 ## Owner decisions (dated)
+- 23 Nov (after a server restart): batch 13 worker resumed by a new worker; a leftover 13b mutation ('warned wave ignored') found applied in index.html and removed before any commit.
 - 23 Nov 16:11: go for batch 13 (decree pacing + plate rate) as decided by the panel; see "Batch 13".
 - 23 Nov 15:13: go for batch 12 (built as below).
 - 23 Nov 15:11 panel votes (batch 12): (1) placeholder W becomes a 4 m Dash, burst on landing, dash flag (6-1); (2) bridges: true silence with 'Silenced' feedback (7-0); (3) a marked suit: up to 2 bots may target it (4-2-1); (4) 'Our roof' becomes 'Our heights' (whole upper level) (5-2); (5) her break line, gold zone tint and outline, dry altars look empty (7-0); (6) ultimates 2x and altars dry as written.
@@ -112,7 +115,7 @@ Hiding; ultimate charge (bounty reward and ultimates 2x are cooldown stand-ins);
 - Controls: desktop LoL/Dota (right-click move/attack, Q W R hold-aim release-cast, A attack-move, S stop); phone MLBB (stick, ATK auto-target, tap skill = auto-aim, drag = aim, Cancel zone).
 
 ## Open
-- Owner: pick batch 13 (see Next batch); tune or wait on the plate rate and leader win share (Status).
+- Owner: pick batch 14; leader win share with the kennel proxy is 2 of 12 (band 25-45%) and 2 proxy matches end under 165 s: tune or wait for kits (Status).
 - Kaymuse's look; game title; apex ultimate rule (built: single use at half health; confirm); ultimate charge amounts; minion names; Tiger Demon hard-surface confirm.
 - Apex balance: wait for real kits, then re-check test 42.
 - Vision is a plain radius: walls/curtains do not block sight yet (comes with hiding).
