@@ -1,6 +1,6 @@
 # Apex-hunt jam game: GDD and handoff (working title TBD)
 
-Status: updated 2026-11-23 12:00. Batches 1-2 approved. Batch 3 box map, batch 4 map v2 and batch 5 (minimap, fog of war, MOBA controls) built; static PASS, runtime 37 of 37 PASS; waiting for the user's review. All numbers are proposals, tunable in one CONFIG block.
+Status: updated 2026-11-23 after batch 6. Batches 1-2 approved. Batches 3-5 (box map, map v2, minimap, fog of war, MOBA controls) and batch 6 (apex fight on boxes) built; static PASS, runtime 50 of 50 PASS; waiting for the user's review. All numbers are proposals, tunable in one CONFIG block.
 Repo for the code: https://github.com/heavenfort77-cpu/Empress-decrees- (all-new code, nothing from B.O.I).
 
 ## Jam facts (checked 2026-11-23)
