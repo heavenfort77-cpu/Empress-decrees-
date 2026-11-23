@@ -34,6 +34,8 @@ try {
   await g(() => { __game.setSeed(12345); __game.reset(); });
 
   const base = await g(() => __game.render(true));
+  // Batch 14: bot count read from CONFIG (nine schools: player + 8 bots, owner 23 Nov 20:03); NS = suits in a full match.
+  const NB = await g(() => __game.config.BOTS.count), NS = NB + 1;
   check('02 budget follow view (calls<500, tris<500k)', base.calls < 500 && base.tris < 500000, `calls ${base.calls}, tris ${base.tris}`);
   await g(() => __game.setView('overview'));
   const ov = await g(() => __game.render(true));
@@ -722,13 +724,13 @@ try {
     && nl.wake && nl.off && nl.geoms === base.geoms && nl.programs === base.programs, JSON.stringify(nl));
 
   // ----- Bots (batch 9). Each check sets the bots itself and puts the map test back (0 bots) at the end.
-  // 56 Nine bots spawn at the other spawns and roam 230 s (player parked in the core hall): every tick their centre stays on a floor or they are airborne,
+  // 56 The bots (CONFIG.BOTS.count; batch 14 changed 9 -> 8 on purpose: nine schools) spawn at distinct spawns other than the player's and roam 230 s (player parked in the core hall): every tick their centre stays on a floor or they are airborne,
   // never stuck over 3 s, at most one path search per step, seen only inside the player's vision, every bot that is out has a cause. navSearch timing is reported (not gated: wall clock).
   const bw = await g(() => {
     const G = __game, C = G.config, viol = [], bad = (s) => { if (viol.length < 5) viol.push(s); };
-    G.setSeed(12345); G.setBots(9); G.reset();
+    G.setSeed(12345); G.setBots(G.config.BOTS.count); G.reset();
     const b0 = G.bots(), spawns = new Set(b0.list.map((q) => q.spawn));
-    const o = { n: b0.list.length, distinct: spawns.size === 9 && !spawns.has(C.PLAYER_SPAWN), inScene: b0.list.every((q) => q.inScene && !q.dead && q.hp === 100) };
+    const o = { n: b0.list.length, distinct: spawns.size === G.config.BOTS.count && !spawns.has(C.PLAYER_SPAWN), inScene: b0.list.every((q) => q.inScene && !q.dead && q.hp === 100) };
     G.teleport(0, -50); const steps = Math.round(230 / C.STEP); const runs0 = G.bots().navRuns;
     for (let t = 0; t < steps; t++) {
       G.step(1);
@@ -749,29 +751,29 @@ try {
     o.navMs = { median: +ms[ms.length >> 1].toFixed(2), max: +ms[ms.length - 1].toFixed(2) }; o.viol = viol;
     G.setBots(0); G.reset(); return o;
   });
-  check('56 bots: 9 at the other spawns, roam 230 s: on a floor every tick, never stuck > 3 s, <= 1 path search per step, seen only in vision, every out has a cause',
-    bw.n === 9 && bw.distinct && bw.inScene && bw.viol.length === 0 && bw.stuck <= 3 && bw.navPeak === 1 && bw.noCause === 0, JSON.stringify(bw));
-  // 57 Budget with 10 suits, 7 cubs and their tells in view (default tier): under 500 calls / 0.5M tris, no new shader program, geometry count flat.
+  check(`56 bots: ${NB} at the other spawns, roam 230 s: on a floor every tick, never stuck > 3 s, <= 1 path search per step, seen only in vision, every out has a cause`,
+    bw.n === NB && bw.distinct && bw.inScene && bw.viol.length === 0 && bw.stuck <= 3 && bw.navPeak === 1 && bw.noCause === 0, JSON.stringify(bw));
+  // 57 Budget with every suit (batch 14: 9 on purpose), 7 cubs and their tells in view (default tier): under 500 calls / 0.5M tris, no new shader program, geometry count flat.
   const bb = await g(() => {
     const G = __game, C = G.config, K = window.__k, waves = C.KENNEL.waves; let best = null;
     try {
       C.KENNEL.waves = [[['stalker', 0], ['stalker', 0], ['stalker', 0], ['stalker', 0], ['howler', 0], ['howler', 0], ['howler', 0]]];
-      G.setSeed(12345); G.setBots(9); G.reset(); K.sp(C.KENNEL.firstS + 0.1); G.setHp(1e9);
+      G.setSeed(12345); G.setBots(G.config.BOTS.count); G.reset(); K.sp(C.KENNEL.firstS + 0.1); G.setHp(1e9);
       const cx = G.camps[0][0], cz = G.camps[0][1] + 4; G.teleport(cx, cz);
       for (let n = 0; n < 600; n++) {
-        for (let i = 0; i < 9; i++) G.placeBot(i, cx - 4 + (i % 3) * 3, cz + 2 + Math.floor(i / 3) * 1.5);
+        for (let i = 0; i < G.config.BOTS.count; i++) G.placeBot(i, cx - 4 + (i % 3) * 3, cz + 2 + Math.floor(i / 3) * 1.5);
         G.step(1); const c = G.cubs();
         if (!best || c.tells.length > best.tells) { const r = G.render(true); best = { tells: c.tells.length, bots: G.bots().list.filter((q) => q.vis).length, cubs: c.list.filter((u) => u.alive && u.seen).length, calls: r.calls, tris: r.tris, programs: r.programs, geoms: r.geoms }; }
       }
     } finally { C.KENNEL.waves = waves; G.setBots(0); G.reset(); }
     return best;
   });
-  check('57 budget: 10 suits + 7 cubs + tells drawn (calls<500, tris<500k), no shader compile, geometry flat', bb.bots === 9 && bb.cubs === 7 && bb.tells >= 3 && bb.calls < 500 && bb.tris < 500000
+  check(`57 budget: ${NS} suits + 7 cubs + tells drawn (calls<500, tris<500k), no shader compile, geometry flat`, bb.bots === NB && bb.cubs === 7 && bb.tells >= 3 && bb.calls < 500 && bb.tris < 500000
     && bb.programs === base.programs && bb.geoms === base.geoms, JSON.stringify(bb));
   // 58 Three runs with bots in the same page: bots respawn full, memory and shaders flat.
   const bm = await g(() => {
     const G = __game, K = window.__k, out = [];
-    G.setBots(9);
+    G.setBots(G.config.BOTS.count);
     for (let r = 0; r < 3; r++) { G.setSeed(100 + r); G.reset(); const b = G.bots(); const fresh = b.list.every((q) => !q.dead && q.hp === 100 && q.inScene && q.plates === 0); K.sp(40); const m = G.render(true); out.push({ fresh, geoms: m.geoms, texs: m.texs, programs: m.programs }); }
     G.setBots(0); G.reset(); return out;
   });
@@ -842,18 +844,18 @@ try {
   // New run brings every bot back; a fall into the void in a match is a loss too; the last suit standing starts the hunt by itself.
   const re = await g(() => {
     const G = __game, C = G.config, K = window.__k, o = {};
-    G.setSeed(12345); G.setBots(9); G.reset(); let r = G.royale();
+    G.setSeed(12345); G.setBots(G.config.BOTS.count); G.reset(); let r = G.royale();
     o.btnHidden = r.btn === 'none'; G.huntButton(); dispatchEvent(new KeyboardEvent('keydown', { code: 'KeyH' })); o.hNoop = G.royale().phase === 'royale';
     G.hitBy(0, -1, 1e4); r = G.royale(); o.lost = r.phase === 'lost' && r.lostIn === 'royale'; o.place = r.rule; o.voice = r.voice; o.btn = r.btn; o.btnText = r.btnText; o.cause = G.player().cause;
     const t0 = r.t, b0 = JSON.stringify(G.bots().list.map((q) => [q.x, q.z])); G.step(60); o.frozen = G.royale().t === t0 && JSON.stringify(G.bots().list.map((q) => [q.x, q.z])) === b0;
     G.huntButton(); const b1 = G.bots(); o.newRun = G.royale().phase === 'royale' && b1.list.every((q) => !q.dead && q.inScene) && !G.state().dead && G.state().hp === 100;
     G.teleport(0, 40.5); G.knock(0, 14); K.sp(C.RESPAWN_S + 1); r = G.royale(); o.fall = r.phase === 'lost' && G.player().cause === 'fall';
-    G.reset(); for (let i = 0; i < 9; i++) G.hitBot(i, 1e4); G.step(1); r = G.royale(); const h = G.hunt();
+    G.reset(); for (let i = 0; i < G.config.BOTS.count; i++) G.hitBot(i, 1e4); G.step(1); r = G.royale(); const h = G.hunt();
     o.hunt = r.phase === 'wake' && !h.statue && h.seal && G.bots().list.every((q) => q.dead && !q.inScene);
     G.setBots(0); G.reset(); return o;
   });
   check('64 royale end: H off in a match, broken player = frozen loss with place and New run, New run restores bots, void fall = loss, last suit standing starts the hunt',
-    re.btnHidden && re.hNoop && re.lost && /Place 10 of 10/.test(re.place) && re.voice.length > 0 && re.btn === 'block' && re.btnText === 'New run' && re.cause === 'hit' && re.frozen && re.newRun && re.fall && re.hunt, JSON.stringify(re));
+    re.btnHidden && re.hNoop && re.lost && new RegExp(`Place ${NS} of ${NS}`).test(re.place) && re.voice.length > 0 && re.btn === 'block' && re.btnText === 'New run' && re.cause === 'hit' && re.frozen && re.newRun && re.fall && re.hunt, JSON.stringify(re));
   // 65 Whole matches, 6 seeds (12345, 2, 3, 4, 5, 6), the player driven by the bot brain (autopilot) and the match watched to the end:
   // decided in about 3-4 min (165-255 s), always-true checks every tick, every suit that is out has a cause, bots took plates and boons, no spawn wins more than 3 of 6.
   const ms = await g(() => {
@@ -879,8 +881,8 @@ try {
     // Batch 12: 12 seeds (was 6): bagged decrees share the slot with the bounty by design, so bounties are rarer per match; more matches keep the
     // bounty share in 72 at its sample bar. The 6-seed win rule of 65 stays on the first 6; every other rule holds for all 12.
     for (const seed of [12345, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]) {
-      G.setSeed(seed); G.setBots(9); G.reset(); G.autoPlayer(true); G.setWatch(true);
-      let prevAlive = 10, t = 0, prevL = -1; const leadS = {};
+      G.setSeed(seed); G.setBots(G.config.BOTS.count); G.reset(); G.autoPlayer(true); G.setWatch(true);
+      let prevAlive = G.config.BOTS.count + 1, t = 0, prevL = -1; const leadS = {};
       let prevSt = 0, prevKey = '', cur = null, prevKw = false; const iv = [], stay = {}, wsT = {}, brk = {};
       for (; t < 300 / C.STEP; t++) {
         G.step(1); const r = G.royale();
@@ -1135,22 +1137,22 @@ try {
   });
   check('73 player cap: 1 bot by any rule but hitting back, 2 answer the player\'s hits, up to 3 under a bounty on the player and back to 1 after',
     pc.nearMax === 1 && pc.hitMax >= 2 && pc.onP && pc.onMax >= 2 && pc.onMax <= 3 && pc.afterMax <= 1, JSON.stringify(pc));
-  // 74 Budget with the crown: heaviest royale (10 suits, 7 cubs, tells) plus the crown on a seen bot leader; no shader compile, geometry flat.
+  // 74 Budget with the crown: heaviest royale (every suit; batch 14: 9 on purpose, 7 cubs, tells) plus the crown on a seen bot leader; no shader compile, geometry flat.
   const bc = await g(() => {
     const G = __game, C = G.config, K = window.__k, waves = C.KENNEL.waves; let best = null;
     try {
       C.KENNEL.waves = [[['stalker', 0], ['stalker', 0], ['stalker', 0], ['stalker', 0], ['howler', 0], ['howler', 0], ['howler', 0]]];
-      G.setSeed(12345); G.setBots(9); G.reset(); K.sp(C.KENNEL.firstS + 0.1); G.setHp(1e9); G.plateTo(4, 'stalker');
+      G.setSeed(12345); G.setBots(G.config.BOTS.count); G.reset(); K.sp(C.KENNEL.firstS + 0.1); G.setHp(1e9); G.plateTo(4, 'stalker');
       const cx = G.camps[0][0], cz = G.camps[0][1] + 4; G.teleport(cx, cz);
       for (let n = 0; n < 600; n++) {
-        for (let i = 0; i < 9; i++) G.placeBot(i, cx - 4 + (i % 3) * 3, cz + 2 + Math.floor(i / 3) * 1.5);
+        for (let i = 0; i < G.config.BOTS.count; i++) G.placeBot(i, cx - 4 + (i % 3) * 3, cz + 2 + Math.floor(i / 3) * 1.5);
         G.step(1); const c = G.cubs(), l = G.leader();
         if (l.crownShown && (!best || c.tells.length > best.tells)) { const r = G.render(true); best = { tells: c.tells.length, crown: l.crownShown, cubs: c.list.filter((u) => u.alive && u.seen).length, calls: r.calls, tris: r.tris, programs: r.programs, geoms: r.geoms }; }
       }
     } finally { C.KENNEL.waves = waves; G.setBots(0); G.reset(); }
     return best;
   });
-  check('74 budget with the crown: 10 suits + cubs + tells + crown (calls<500, tris<500k), no shader compile, geometry flat',
+  check(`74 budget with the crown: ${NS} suits + cubs + tells + crown (calls<500, tris<500k), no shader compile, geometry flat`,
     !!bc && bc.crown && bc.tells >= 3 && bc.calls < 500 && bc.tris < 500000 && bc.programs === base.programs && bc.geoms === base.geoms, JSON.stringify(bc));
   // ===== Batch 12: five bagged decrees, W dash, silence, heights, mark (panel 23 Nov 15:11) =====
   // Scripted decree scenes: one bot kept in the core hall so the match code runs; bagged requests pushed far away (forced decrees only).
@@ -1255,7 +1257,7 @@ try {
   const kp = await g(() => {
     const G = __game, C = G.config, Kc = C.KENNEL, out = []; let warns = 0, reached = 0;
     for (const seed of [12345, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]) {
-      G.setSeed(seed); G.setBots(9); G.reset(); G.autoPlayer(true, true); G.setWatch(true);
+      G.setSeed(seed); G.setBots(G.config.BOTS.count); G.reset(); G.autoPlayer(true, true); G.setWatch(true);
       let prevW = false, open = null; const leadS = {};
       for (let t = 0; t < 300 / C.STEP; t++) {
         G.step(1); const c = G.cubs(), p = G.player(), now = G.royale().t, l = G.leader();
@@ -1321,7 +1323,7 @@ try {
     G.breakBy(-1); G.breakBy(0); G.startHunt(); let d = G.decree(); const n0 = d.n; o.wake = { st: d.st, zone: d.zoneSec, tint: G.zoneTinted('C2'), marks: G.suits().filter((s) => s.markT > 0 || s.marker).length, hud: d.hudShown, altars: G.altars().every((a) => a.on) };
     G.setHp(1e9); H.hold(60); d = G.decree(); o.hunt = { st: d.st, n: d.n - n0 };
     o.runs = [];
-    for (let r = 0; r < 3; r++) { G.setSeed(40 + r); G.setBots(9); G.reset(); d = G.decree(); o.runs.push({ st: d.st, n: d.n, next: d.next, brk: d.brkP + d.brkB, log: d.log.length, marks: G.suits().filter((s) => s.markT > 0).length, hud: d.hudShown }); }
+    for (let r = 0; r < 3; r++) { G.setSeed(40 + r); G.setBots(G.config.BOTS.count); G.reset(); d = G.decree(); o.runs.push({ st: d.st, n: d.n, next: d.next, brk: d.brkP + d.brkB, log: d.log.length, marks: G.suits().filter((s) => s.markT > 0).length, hud: d.hudShown }); }
     H.start(); G.forceDecree('nodash', 'W2', 10); o.voice = G.decree().voice; H.hold(5.2, H.park); o.hud = G.decree().hud;
     o.keys = G.decreeKeys(); G.setBots(0); G.reset(); return o;
   });
@@ -1329,30 +1331,30 @@ try {
     dw.dryOn && dw.wake.st === 0 && dw.wake.zone === null && !dw.wake.tint && dw.wake.marks === 0 && dw.wake.hud === 'none' && dw.wake.altars && dw.hunt.st === 0 && dw.hunt.n === 0
     && dw.runs.every((r) => r.st === 0 && r.n === 0 && C0.DECREES.first.includes(r.next) && r.brk === 0 && r.log === 0 && r.marks === 0 && r.hud === 'none')
     && /West courtyard, south/.test(dw.voice) && /West courtyard, south/.test(dw.hud) && dw.keys.length === 0, JSON.stringify(dw));
-  // 81 Budget with every mark and the crown: heaviest royale (10 suits, 7 cubs, tells) with all 10 markers shown, the crown and the gold zone tint; no shader compile, geometry flat.
+  // 81 Budget with every mark and the crown: heaviest royale (every suit; batch 14: 9 on purpose, 7 cubs, tells) with every suit's marker shown, the crown and the gold zone tint; no shader compile, geometry flat.
   const bk = await g(() => {
     const G = __game, C = G.config, K = window.__k, waves = C.KENNEL.waves; let best = null;
     try {
       C.KENNEL.waves = [[['stalker', 0], ['stalker', 0], ['stalker', 0], ['stalker', 0], ['howler', 0], ['howler', 0], ['howler', 0]]];
-      G.setSeed(12345); G.setBots(9); G.reset(); G.setDecNext(1e9); K.sp(C.KENNEL.firstS + 0.1); G.setHp(1e9); G.plateTo(4, 'stalker'); G.forceDecree('nodash', 'W1', 60);
+      G.setSeed(12345); G.setBots(G.config.BOTS.count); G.reset(); G.setDecNext(1e9); K.sp(C.KENNEL.firstS + 0.1); G.setHp(1e9); G.plateTo(4, 'stalker'); G.forceDecree('nodash', 'W1', 60);
       const cx = G.camps[0][0], cz = G.camps[0][1] + 4; G.teleport(cx, cz);
       for (let n = 0; n < 600; n++) {
-        for (let i = 0; i < 9; i++) G.placeBot(i, cx - 4 + (i % 3) * 3, cz + 2 + Math.floor(i / 3) * 1.5);
-        for (let i = -1; i < 9; i++) if (G.suits()[i + 1].markT < 0.5) G.breakBy(i);
+        for (let i = 0; i < G.config.BOTS.count; i++) G.placeBot(i, cx - 4 + (i % 3) * 3, cz + 2 + Math.floor(i / 3) * 1.5);
+        for (let i = -1; i < G.config.BOTS.count; i++) if (G.suits()[i + 1].markT < 0.5) G.breakBy(i);
         G.step(1); const c = G.cubs(), l = G.leader(), marks = G.suits().filter((s) => s.marker).length;
-        if (l.crownShown && marks === 10 && G.zoneTinted('W1') && (!best || c.tells.length > best.tells)) { const r = G.render(true); best = { tells: c.tells.length, marks, crown: l.crownShown, calls: r.calls, tris: r.tris, programs: r.programs, geoms: r.geoms }; }
+        if (l.crownShown && marks === G.config.BOTS.count + 1 && G.zoneTinted('W1') && (!best || c.tells.length > best.tells)) { const r = G.render(true); best = { tells: c.tells.length, marks, crown: l.crownShown, calls: r.calls, tris: r.tris, programs: r.programs, geoms: r.geoms }; }
       }
     } finally { C.KENNEL.waves = waves; G.setBots(0); G.reset(); }
     return best;
   });
-  check('81 budget with 10 marks, the crown and the zone tint: 10 suits + cubs + tells (calls<500, tris<500k), no shader compile, geometry flat',
-    !!bk && bk.marks === 10 && bk.crown && bk.tells >= 3 && bk.calls < 500 && bk.tris < 500000 && bk.programs === base.programs && bk.geoms === base.geoms, JSON.stringify(bk));
+  check(`81 budget with ${NS} marks, the crown and the zone tint: ${NS} suits + cubs + tells (calls<500, tris<500k), no shader compile, geometry flat`,
+    !!bk && bk.marks === NS && bk.crown && bk.tells >= 3 && bk.calls < 500 && bk.tris < 500000 && bk.programs === base.programs && bk.geoms === base.geoms, JSON.stringify(bk));
   // 82 Replays (batch 12 fix): a seed played twice in a row in the same page gives the same match (decided time, player out, decree log, breaks).
   // Found in batch 12: an ending heights decree bumped warnGen after the restart and the autopilot kept brain fields, so run 1 and run 2 of one seed differed.
   const rp = await g(() => {
     const G = __game, C = G.config, out = [];
     for (let r = 0; r < 2; r++) {
-      G.setSeed(7); G.setBots(9); G.reset(); G.autoPlayer(true); G.setWatch(true); out.push(G.startState());
+      G.setSeed(7); G.setBots(G.config.BOTS.count); G.reset(); G.autoPlayer(true); G.setWatch(true); out.push(G.startState());
       for (let t = 0; t < 300 / C.STEP; t++) { G.step(1); if (G.royale().decidedAt >= 0) break; }
       const p = G.player(), d = G.decree(); out.push(JSON.stringify([+G.royale().decidedAt.toFixed(2), p.dead ? +p.diedAt.toFixed(2) : -1, d.log.map((v) => +v.toFixed(2)), d.brkP, d.brkB]));
       G.setWatch(false); G.autoPlayer(false);
@@ -1362,7 +1364,7 @@ try {
   check('82 replay: a run starts from the same state and one seed played twice in a row gives the same match', rp[0] === rp[2] && rp[1] === rp[3], rp.join(' vs '));
   // 66 Idle player: standing at the spawn doing nothing loses the royale (frozen loss with a cause) before the last collapse is over.
   const idle = await g(() => {
-    const G = __game, C = G.config; G.setSeed(12345); G.setBots(9); G.reset(); let t = 0;
+    const G = __game, C = G.config; G.setSeed(12345); G.setBots(G.config.BOTS.count); G.reset(); let t = 0;
     for (; t < 260 / C.STEP; t++) { G.step(1); if (G.royale().phase !== 'royale') break; }
     const r = G.royale(), o = { phase: r.phase, lostIn: r.lostIn, at: +(t * C.STEP).toFixed(1), cause: G.player().cause };
     G.setBots(0); G.reset(); return o;

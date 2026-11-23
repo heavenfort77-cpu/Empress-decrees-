@@ -194,7 +194,7 @@ const CONFIG = {
     pillar: 0x9a2a22, silk: 0xb0303c, gold: 0xc9a040, bronze: 0x4a3a2a, empress: 0xf0e2c0,
     camp: 0xff8a2a, spawn: 0xe8e8e8, player: 0x3a7bd5, aim: 0xffffff, blob: 0x000000, warn: 0xff2a10,
     stone: 0x9a968c, eyes: 0xff3a1a, ring: 0xff2a10, altarOn: 0x5cff9a, altarOff: 0x2a3a30, broken: 0x2a2624, dummy: 0xc8b070, hit: 0xffffff, ind: 0x7fd0ff, fx: 0xffd060,
-    suits: [0xd5a03a, 0x6a6a6a, 0x8a2a3a, 0x3a3a3a, 0xe8e8f0, 0x6a9a3a, 0xc060a0, 0x40c0c0, 0x9a6ad5],
+    suits: [0xd5a03a, 0x6a6a6a, 0x8a2a3a, 0x3a3a3a, 0xe8e8f0, 0xc060a0, 0x40c0c0, 0x9a6ad5],
     demon: 0x9a5a22, stalker: 0x7a2a8a, howler: 0x2a7a8a, frenzy: 0xff5a1a, tellD: 0xff2a10, tellS: 0xd050ff, tellH: 0x40e0ff, crab: 0xe07030, wander: 0x9adf9a,
   },
   // Feature switch: the apex hunt on boxes (Tiger Demon, 2 minions, skill transfer). Started by H or the Hunt button until the royale exists.
@@ -252,8 +252,9 @@ const CONFIG = {
   BONUS_CAP: 1.4,
   // Feature switch: next run's statue wears the last winner's school colour (approved, built later).
   WINNER_STATUE: false,
-  // Bots (batch 9, owner go 23 Nov): feature switch, number of bot suits (the player is the tenth). ?bots=N in the address overrides the count (tests use 0 for the map test).
-  BOTS: { on: true, count: 9 },
+  // Bots (batch 9, owner go 23 Nov): feature switch, number of bot suits. Owner 23 Nov 20:03: nine schools, player + 8 bots (10 spawn discs kept, one stays empty). ?bots=N in the address overrides the count (tests use 0 for the map test).
+  // Owner 23 Nov 20:56: the 10th spawn disc stays empty ON PURPOSE (it foreshadows the apex); no visual or text for it until art.
+  BOTS: { on: true, count: 8 },
   // Bot brain. skills: reaction (s) = delay before a seen tell or target counts; hit = aim accuracy (0-1); aggro = weight for fighting over roaming.
   // skillOf = skill name per bot (assumption 23 Nov: all 'average'). thinkS = seconds between decisions. goalHoldS = longest a roam goal is kept.
   // stuckRepathS = seconds without progress before a new path; stuckGoalS = seconds before a new goal.
@@ -380,7 +381,7 @@ const TEXT = {
   voice_kennel: 'Our kennels stand open. Take what falleth, if thou canst.',
   rule_kennel: 'Cubs appear in {s} s at: {zones}. Kill one to take its plate.',
   voice_plate_take: 'It is thine. For now.',
-  suit_0: 'You', suit_1: 'Dao suit', suit_2: 'Fa suit', suit_3: 'Mo suit', suit_4: 'Yinyang suit', suit_5: 'Za suit', suit_6: 'Bai suit', suit_7: 'Ming suit', suit_8: 'Zongheng suit', suit_9: 'Nong suit',
+  suit_0: 'You', suit_1: 'Dao suit', suit_2: 'Fa suit', suit_3: 'Mo suit', suit_4: 'Yinyang suit', suit_5: 'Za suit', suit_6: 'Ming suit', suit_7: 'Zongheng suit', suit_8: 'Nong suit',
   hud_leader: 'Leader: {who}',
   hud_leader_bounty: 'Leader: {who}  (bounty {s} s)',
   voice_bounty: 'A bounty lieth upon the leader.',
