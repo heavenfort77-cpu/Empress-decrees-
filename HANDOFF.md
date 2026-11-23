@@ -19,11 +19,56 @@
 - Phone review link: https://claude.ai/artifact/3nQ67JCTmb1JfPKC3Y416z. Republish after each batch: copy index.html, swap the importmap path for https://cdn.jsdelivr.net/npm/three@0.171.0/build/three.module.min.js, publish to slug 1688f9ba-a0e5-4f7b-ac2e-3a68d6fc67c3 (get_artifact first for base_version). Live: version 1795417452-d3db = batch 11 (6f47f27).
 - Project docs (claude/HANDOFF.md, claude/GDD.md, claude/code/index.html, claude/code/tests/run.mjs, claude/code/tests/static-check.mjs) are copies of repo files. The LEAD session syncs them after each batch with project_write local_path (a background worker cannot). If a write is refused, project_read first (code files print in full: do it once, then write).
 
-## Next batch: 12 (not chosen yet; ask the owner)
-Open items in order of the GDD: other decrees on the batch 11 decree slot ("Our altars are dry", "Let none dash within the west courtyard", "Upon the bridges, your arts are stilled", "None shall set foot upon Our roof", "Let your ultimates swell twice as swift"; about one a minute, 30-45 s each); player plate rate and leader win share are under their GDD targets (see Status) - ask the owner whether to tune (cub camps, bot contest weights) or wait for kits; hiding; ultimate charge (the bounty reward is a full ultimate cooldown reset until charge exists); school kits; the ending.
+## Next batch: 12 = the five bagged decrees (DESIGN NOTE FOR OWNER REVIEW; no code until the owner says go)
+Owner answers 23 Nov 15:1x: the bags draw decree, gap, length and zone; all 5 decrees now ("no minimise later", read as: none cut or deferred later); penalty = slow + mark; design note first.
+Readiness about 75 of 100: decree slot, bags and the bounty exist; open points below need the owner.
+
+### Rules (GDD "Kaymuse's decrees"; numbers in CONFIG.DECREES, switch DECREES.on)
+- One decree at a time on the batch 11 decree slot: 5 s warning (her voice, banner, plain rule line with countdown), then in force, then a HUD line until it ends. None in the hunt; cleared at the wake; reset on a new run.
+- Marble bags (seeded, draw without putting back, same rules as batch 8):
+  - which: the 5 decrees below.
+  - first: [35, 45] s from the run start to the first warning.
+  - gap: [10, 15, 20, 25] s from one decree's end to the next warning (with a 5 s warning and 30-45 s length this gives about one a minute, 3-4 per royale).
+  - length: [30, 35, 40, 45] s.
+  - zone (the no-dash decree only): any standing section that is not warned (bag of section ids).
+  - A draw whose place is gone (roof fallen, all bridges fallen, zone fallen) is skipped and the next marble drawn, at most one pass through the bag; none left = wait 5 s.
+- The bounty stays event-driven (one leader for 25 s). It shares the slot: a bounty that comes due while a bagged decree is up waits for it to end; a bagged decree due during a bounty waits. Queue rule from batch 11 kept (no warning within 20 s of a collapse warning or inside a kennel warning).
+- The five:
+  1. "Our altars are dry." / Altars do not heal. Altars stop healing (charge kept); nothing to break.
+  2. "Let none dash within the <zone>." / No dashing: <zone>. Zone from the bag. Using a skill marked dash: true while standing in the zone breaks it. See question 1: the placeholder kit has no dash yet.
+  3. "Upon the bridges, your arts are stilled." / Skills silenced on bridges. Q, W, R cannot be cast while standing on a bridge (button shows silenced); basic attack still works; nothing to break (see question 2).
+  4. "None shall set foot upon Our roof." / Roof forbidden. Standing on the roof breaks it, again every 2 s while there (the shells come with bombardment later).
+  5. "Let your ultimates swell twice as swift." / Ultimates charge 2x. Stand-in until charge exists: ultimate cooldowns tick at 2x for every suit; nothing to break.
+- Penalty for breaking (owner: slow + mark): 30% slow for 2 s, and marked for 5 s: the marked suit shows on every suit's minimap and counts as seen by every bot regardless of range or fog. One mark marker per suit (small red pillar over the head) built once at load, in the warm-up list. Re-broken while marked refreshes both.
+- Bots know the decree (the HUD tells everyone): they leave the roof like a warned section, do not go to dry altars, do not cast on bridges or dash in the zone. A bot that sees a marked suit treats it as seen (target rules and hunter cap unchanged; see question 3).
+
+### Questions for the owner (with recommended option)
+1. No-dash decree while no suit has a dash: (a) recommended: rule built on a dash flag in the skill config; nothing has it until the kits, so in play it is announced and cannot be broken yet; checks prove it with a test-only flagged skill; (b) give the placeholder W a short dash now (changes map-test checks 26, 29, 32).
+2. Bridges "stilled": (a) recommended: casting is blocked on a bridge (true silence, nothing to break); (b) casting allowed but breaks the decree (penalty).
+3. Mark on the player: (a) recommended: bots see the marked player from anywhere, but the one-bot cap still holds (only the bounty lifts it to 3); (b) a mark lifts the cap to 3 like the bounty for its 5 s.
+
+### Checks to add (mutation round on each)
+- Bags: full cycles without repeats, seeded, same seed = same decree sequence; gone places skipped.
+- Each of the 5 does what its rule line says, only while in force; announced >= 5 s before; one at a time; bounty and bagged decrees never overlap; HUD line written only on change.
+- Penalty: only on breaking; slow and mark values; roof re-break every 2 s; marked suit on every minimap and seen by bots; marker hidden when the mark ends.
+- Bots: breaks by bots over the 6 seeded matches reported (target: rare); no bot stands on a forbidden roof past its leave time.
+- None in the hunt, wake clears, new run x3 resets; text keys for every decree, zone name filled in.
+- Whole matches x6 still decided in 165-255 s; GDD sims re-reported (leader share, plate rate, player out time); budget with 10 marks drawn, programs and geometry flat.
+
+### Premortem
+- Roof decree drawn after the roof fell -> skipped by the gone-place rule; check.
+- Decree banner collides with collapse or kennel banners -> batch 11 queue rule; check.
+- Silence leaves a pending ultimate half-cast when stepping onto a bridge -> a cast already released still lands; only new casts are blocked.
+- Mark leaks the player's spot through fog for the whole match -> mark lasts 5 s, refresh only on a new break; check.
+- 2x ultimate cooldown stacks with plate and crab cuts below 0 -> clamp at 0 (cutUlt already clamps); check.
+- Marker meshes added on first mark compile a shader -> built and drawn once at load; programs flat check.
+
+## Later (after batch 12)
+Player plate rate and leader win share are under their GDD targets (Status) - owner to choose tune or wait for kits; hiding; ultimate charge (bounty reward and decree 5 are cooldown stand-ins); school kits; the ending.
 
 ## Owner decisions (dated)
-- 23 Nov 15:06: decrees also use marble bags (batch 12 design; details asked in the batch 12 questions).
+- 23 Nov 15:1x (batch 12 questions): bags draw decree, gap, length and zone; all 5 decrees now, none cut later; breaking = slow + mark; design note first, no code yet.
+- 23 Nov 15:06: decrees also use marble bags.
 - 23 Nov 14:35 (batch 11 questions): (1) only one bot at a time may target the player by any rule except hitting back (BOT.maxHunters 1); (2) while the bounty lies on the player, up to 3 bots may (BOUNTY.maxHunters 3); (3) HUD line "Leader: <school>" for everyone, crown over the leader only when the leader is in vision, the leader on the minimap during the bounty (otherwise normal vision).
 - 23 Nov 14:22: next open items are leader, crown marker and bounty decree (batch 11).
 - 23 Nov 14:04: only one bot at a time may switch to the player on sight (built as batch 10, hunter slot).
@@ -74,7 +119,7 @@ Open items in order of the GDD: other decrees on the batch 11 decree slot ("Our 
 - Controls: desktop LoL/Dota (right-click move/attack, Q W R hold-aim release-cast, A attack-move, S stop); phone MLBB (stick, ATK auto-target, tap skill = auto-aim, drag = aim, Cancel zone).
 
 ## Open
-- Owner: pick batch 12; tune or wait on the plate rate and leader win share (Status).
+- Owner: review the batch 12 design note (3 questions, then go); tune or wait on the plate rate and leader win share (Status).
 - Kaymuse's look; game title; apex ultimate rule (built: single use at half health; confirm); ultimate charge amounts; minion names; Tiger Demon hard-surface confirm.
 - Apex balance: wait for real kits, then re-check test 42.
 - Vision is a plain radius: walls/curtains do not block sight yet (comes with hiding).
