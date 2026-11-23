@@ -771,6 +771,64 @@ try {
     G.setBots(0); G.reset(); return out;
   });
   check('58 new run x3 with bots: fresh bots, memory and shaders flat', bm.every((m) => m.fresh && m.geoms === base.geoms && m.texs === base.texs && m.programs === base.programs), JSON.stringify(bm));
+  // 59 Target rule (owner, 23 Nov): a bot answers the suit that hit it; once it sees the player it switches to the player, keeps it while seen, and lets go when the player is out of sight.
+  const rt = await g(() => {
+    const G = __game, K = window.__k, o = {};
+    G.setSeed(12345); G.setBots(2); G.reset(); G.teleport(0, -50); G.setHp(1e9);
+    G.placeBot(0, 0, 10); G.placeBot(1, 2.5, 10); G.hitBy(1, 0, 1); K.sp(0.5); o.first = G.bots().list[0].tgt;
+    G.teleport(0, 16); K.sp(0.5); o.onSight = G.bots().list[0].tgt;
+    let kept = true; for (let n = 0; n < 8; n++) { K.sp(0.25); if (G.bots().list[0].tgt !== 0) kept = false; } o.kept = kept;
+    G.teleport(0, -50); K.sp(0.6); o.away = G.bots().list[0].tgt;
+    G.setBots(0); G.reset(); return o;
+  });
+  check('59 bot target: answers its attacker, switches to the player on sight, keeps the player while seen, lets go out of sight', rt.first === 2 && rt.onSight === 0 && rt.kept && rt.away !== 0, JSON.stringify(rt));
+  const C0 = await g(() => __game.config);
+  // 60 Bots take plates and boons (owner, 23 Nov): a cub broken by a bot sends its plate to that bot (buff slot, ultimate cut); a buff creature's boon goes to its last hitter; the player gets neither.
+  const bp = await g(() => {
+    const G = __game, C = G.config, K = window.__k, o = {};
+    G.setSeed(12345); G.setBots(1); G.reset(); G.teleport(0, -50); K.sp(C.KENNEL.firstS + 0.1);
+    const ci = G.cubs().list.findIndex((u) => u.alive); G.placeBot(0, G.camps[0][0] + 9, G.camps[0][1]);
+    G.setBotCd(0, 2, C.SKILLS[2].cd); const ultBefore = G.bots().list[0].ult; G.hitCubBy(ci, 0, 1e4); K.sp(C.PLATE.flyS + 0.1);
+    let b = G.bots().list[0]; o.plates = b.plates; o.slot = b.pk[0]; o.ultCut = +(ultBefore - b.ult).toFixed(2); o.playerPlates = G.player().plates;
+    G.forceNeutral(0, 0, 'power', 1); G.hitNeutralBy(0, 0, 1e4); b = G.bots().list[0]; o.boons = b.boons; o.power = b.bT[0] > 0; o.playerBoons = G.player().boons;
+    G.setBots(0); G.reset(); return o;
+  });
+  check('60 bots take plates and boons: plate to the bot that broke the cub (slot, ultimate cut), boon to the last hitter, none to the player', bp.plates === 1 && bp.slot !== '' && Math.abs(bp.ultCut - C0.PLATE.ultCut * C0.SKILLS[2].cd - C0.PLATE.flyS - 0.1) < 0.1
+    && bp.boons === 1 && bp.power && bp.playerPlates === 0 && bp.playerBoons === 0, JSON.stringify(bp));
+  // 61 Dodge: an average bot (0.3 s reaction) parked by a stone lion for 8 s steps out of every 0.6 s tell: the lion strikes, the bot takes no hazard damage.
+  const dg = await g(() => {
+    const G = __game, K = window.__k, o = {};
+    G.setSeed(12345); G.setBots(1); G.reset(); G.teleport(0, -50);
+    const lion = G.hazards().find((h) => h.kind === 'lion'); let tells = 0, prev = 0;
+    G.placeBot(0, lion.x + 2.5, lion.z);
+    for (let n = 0; n < 8 * 60; n++) { G.step(1); const h = G.hazards().find((q) => q.x === lion.x && q.z === lion.z); if (h.state === 1 && prev !== 1) tells++; prev = h.state; if (n % 60 === 0 && G.bots().list[0].mode !== 'dodge' && Math.hypot(G.bots().list[0].x - lion.x, G.bots().list[0].z - lion.z) > 6) G.placeBot(0, lion.x + 2.5, lion.z); }
+    const b = G.bots().list[0]; o.tells = tells; o.hp = b.hp; o.dead = b.dead;
+    G.setBots(0); G.reset(); return o;
+  });
+  check('61 dodge: bot by a stone lion 8 s, lion tells at least twice, bot takes no damage', dg.tells >= 2 && dg.hp === 100 && !dg.dead, JSON.stringify(dg));
+  // 62 Flee: two bots fighting on the roof (too tough to break each other) stop when its collapse is warned and walk off before it falls (5 s warning).
+  const fl = await g(() => {
+    const G = __game, C = G.config, K = window.__k, o = {};
+    G.setSeed(12345); G.setBots(2); G.reset(); G.teleport(0, -50);
+    const roof = G.floors().find((f) => f.sec === 'ROOF'), cx = (roof.x0 + roof.x1) / 2, cz = (roof.z0 + roof.z1) / 2;
+    K.sp(C.FIRST_WAVE_S - C.COLLAPSE_WARN_S - 1.5);
+    G.placeBot(0, cx - 1.5, cz); G.placeBot(1, cx + 1.5, cz); G.setBotHp(0, 1e4); G.setBotHp(1, 1e4); G.hitBy(1, 0, 1); G.hitBy(0, 1, 1); G.step(30);
+    const b0 = G.bots().list; o.start = [b0[0].zone, b0[1].zone]; o.fight = [b0[0].mode, b0[1].mode];
+    K.sp(C.COLLAPSE_WARN_S + 3); const b = G.bots().list; o.dead = [b[0].dead, b[1].dead]; o.zone = [b[0].zone, b[1].zone];
+    G.setBots(0); G.reset(); return o;
+  });
+  check('62 flee: two bots fighting on the roof leave it within the 5 s warning and live', fl.start.every((z) => z === 'ROOF') && fl.fight.every((m) => m === 'fight')
+    && !fl.dead[0] && !fl.dead[1] && fl.zone.every((z) => z !== 'ROOF'), JSON.stringify(fl));
+  // 63 Heal: a bot at 30 health goes to the nearest charged altar and heals.
+  const hl = await g(() => {
+    const G = __game, K = window.__k, o = {};
+    G.setSeed(12345); G.setBots(1); G.reset(); G.teleport(0, -50);
+    const a = G.altars()[0]; G.placeBot(0, a.x + 6, a.z); G.setBotHp(0, 30); let mode = '';
+    let top = 0; for (let n = 0; n < 12 * 60; n++) { G.step(1); const q = G.bots().list[0]; if (q.mode === 'heal') mode = 'heal'; top = Math.max(top, q.hp); }
+    const b = G.bots().list[0]; o.mode = mode; o.hp = Math.round(top); o.near = +Math.hypot(b.x - a.x, b.z - a.z).toFixed(1);
+    G.setBots(0); G.reset(); return o;
+  });
+  check('63 heal: a bot at 30 health walks to a charged altar and heals past 60', hl.mode === 'heal' && hl.hp >= 60, JSON.stringify(hl));
 
   // 10 No shader compiles across collapses, hazard tells and empty altars.
   const progAfter = await g(() => __game.render(true));

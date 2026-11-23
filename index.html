@@ -251,6 +251,18 @@ const CONFIG = {
   BOT: {
     skills: { novice: { react: 0.6, hit: 0.55, aggro: 0.6 }, average: { react: 0.3, hit: 0.75, aggro: 0.8 }, expert: { react: 0.15, hit: 0.9, aggro: 1 } },
     skillOf: ['average'], thinkS: 0.25, goalHoldS: 12, stuckRepathS: 0.5, stuckGoalS: 1.5,
+    // Owner, 23 Nov: a bot that sees the player switches its target to the player and keeps it while the player stays seen.
+    preferPlayerOnSight: true,
+    // lowHp / healTo = go to an altar below this health, leave it at this health. directM = steer straight at a target closer than this (m) when the walk is clear.
+    // chaseRepathM = new path when the target moved this far from the path's end (m). dodgeMargin = metres kept outside a tell's edge. aimErrM = aim error at hit 0 (m).
+    lowHp: 40, healTo: 85, directM: 7, chaseRepathM: 2, dodgeMargin: 0.8, aimErrM: 2.5,
+    // engage (pacing; assumption 23 Nov): until peaceS a bot only answers a suit that hit it in the last retaliateS seconds; then the radius in which it
+    // starts a fight grows from startM to its full vision over rampS seconds. Until then it keeps away from suits inside avoidM.
+    // p0 = chance to start a fight with a suit in the radius at the end of peace (1 at the end of the ramp); declineS = seconds before a declined suit is drawn again.
+    engage: { peaceS: 120, rampS: 100, startM: 3, avoidM: 8, retaliateS: 4, p0: 0.15, declineS: 4 },
+    // The ultimate is kept to finish a target (its health at or under the ultimate's damage) or used when the bot's own health is under ultBelowHp.
+    // castGapS = seconds between two skills of one bot (a player cannot cast all three in two frames either).
+    ultBelowHp: 50, castGapS: 0.8,
   },
 };
 
@@ -744,9 +756,14 @@ for (let k = 0; k < CONFIG.BOTS.count; k++) {
     id: k + 1, bot: true, kind: 'suit', r: CONFIG.PLAYER_RADIUS, seen: false, cause: '', diedAt: -1, killer: null, moved: 0, floor: null, plates: 0, boons: 0,
     mat: m, group, body, bar, path: null, cd: [0, 0, 0], navWant: false, gx: 0, gz: 0, gy: 0, goalT: 0, stuckMax: 0, spawn: -1, flashT: 0,
     skill: CONFIG.BOT.skills[CONFIG.BOT.skillOf[k % CONFIG.BOT.skillOf.length]], thinkT: 0, tgt: null, mode: '', modeT: 0, seenP: false,
-    pend: false, pendT: 0, px2: 0, pz2: 0, ring: null, mx: 0, mz: 0, repathed: false, ax: 0, az: 0, anchorT: 0 });
+    pend: false, pendT: 0, pendS: 2, pendX: 0, pendZ: 0, pendDx: 0, pendDz: 0, pendAge: 0, ring: new THREE.Mesh(fxTele.geometry, M.ring), mx: 0, mz: 0, repathed: false, ax: 0, az: 0, anchorT: 0,
+    tgtT: 0, direct: false, heal: null, skip: null, castT: 0, lastBy: null, lastByT: -99, declined: null, declinedT: -99, flee: false, pathGen: 0 });
 }
 for (let k = 0; k < BOTLIST.length; k++) SUITS.push(BOTLIST[k]);
+// Brain fields on the player too, used only by the test autopilot (__game.autoPlayer).
+Object.assign(P, { cd: [0, 0, 0], navWant: false, gx: 0, gz: 0, gy: 0, goalT: 0, skill: CONFIG.BOT.skills.average, thinkT: 0, tgt: null, tgtT: 0, mode: '', direct: false,
+  heal: null, skip: null, castT: 0, lastBy: null, lastByT: -99, declined: null, declinedT: -99, flee: false, pathGen: 0, mx: 0, mz: 0,
+  pend: false, pendT: 0, pendS: 2, pendX: 0, pendZ: 0, pendDx: 0, pendDz: 0, pendAge: 0, ring: new THREE.Mesh(fxTele.geometry, M.ring) });
 // Everything the player can target: training dummies, hunt units, cubs, buff creatures and bot suits share x, z, r, hp, seen.
 const TARGETS = DUMMY_LIST.concat(ENEMIES, CUBS, NEUTRALS, BOTLIST);
 // Gate seal shown during the hunt.
@@ -1066,8 +1083,9 @@ NAV.nx = Math.ceil(156 / NAV.st); NAV.nz = Math.ceil(132 / NAV.st);
   NAV.heap = new Int32Array(V * 8 + 8); NAV.heapF = new Float32Array(V * 8 + 8); NAV.tmp = new Float32Array(2048);
 }
 // PERFRAME-BEGIN
-// Bit mask of fallen floors; a node is usable when none of its floors has fallen.
-function navOff() { let m = 0; for (let i = 0; i < FLOORS.length; i++) if (!FLOORS[i].active) m |= 1 << i; return m; }
+// Bit mask of fallen floors (and warned ones when warned is true); a node is usable when none of its floors is in the mask.
+// The section the search starts in is never avoided; a search that starts in a warned section avoids none (a bot leaving it may cross others).
+function navOff(warned, startSec) { let m = 0; for (let i = 0; i < FLOORS.length; i++) if (!FLOORS[i].active || (warned && FLOORS[i].s.state === 1 && FLOORS[i].s !== startSec)) m |= 1 << i; return m; }
 // Node under a point: its own cell, else the nearest usable neighbour cell (a suit standing near an edge).
 function navNode(x, z, y, off) {
   const st = NAV.st, nx = NAV.nx, NF = FLOORS.length, i = Math.floor((x - NAV.x0) / st), j = Math.floor((z - NAV.z0) / st);
@@ -1083,12 +1101,13 @@ function navNode(x, z, y, off) {
   return -1;
 }
 // Search from s (x, z, y) to g; writes the path into path. Returns false when no step can be taken.
-// smooth: true = straight-walk smoothing with the live walking rule (player orders; most of the cost), false = keep only the turns (bots).
+// smooth: true = straight-walk smoothing with the live walking rule (player orders; most of the cost), false = keep only the turns and avoid warned sections (bots).
 function navSearch(sx, sz, sy, gx, gz, gy, path, smooth) {
   const st = NAV.st, nx = NAV.nx;
   path.n = 0; path.i = 0;
-  const off = navOff(), start = navNode(sx, sz, sy, off);
+  const start = navNode(sx, sz, sy, navOff(false, null));
   if (start < 0) return false;
+  const ss = FLOORS[NAV.nf[start]].s, off = navOff(!smooth && ss.state !== 1, ss);
   const gi = Math.floor((gx - NAV.x0) / st), gj = Math.floor((gz - NAV.z0) / st);
   NAV.gen = (NAV.gen + 1) & 0xffff; if (NAV.gen === 0) { NAV.stamp.fill(0); NAV.closed.fill(0); NAV.gen = 1; }
   const gen = NAV.gen;
@@ -1119,18 +1138,7 @@ function navSearch(sx, sz, sy, gx, gz, gy, path, smooth) {
     node = NAV.parent[node];
   }
   if (NAV.ni[best] === gi && NAV.nj[best] === gj) { NAV.tmp[0] = gx; NAV.tmp[1] = gz; }
-  if (!smooth) {
-    // Start at the start node's centre when off it (after knockback or a corner): the straight links are only checked between centres.
-    let out = 0;
-    const scx = NAV.x0 + (NAV.ni[start] + 0.5) * st, scz = NAV.z0 + (NAV.nj[start] + 0.5) * st;
-    if (Math.hypot(sx - scx, sz - scz) > 0.05) { path.pts[0] = scx; path.pts[1] = scz; out = 1; }
-    for (let k = n - 2; k >= 0 && out < 512; k--) {
-      const turn = k === 0 || (NAV.tmp[k * 2] - NAV.tmp[k * 2 + 2]) * (NAV.tmp[k * 2 - 1] - NAV.tmp[k * 2 + 1]) !== (NAV.tmp[k * 2 + 1] - NAV.tmp[k * 2 + 3]) * (NAV.tmp[k * 2 - 2] - NAV.tmp[k * 2]);
-      if (turn) { path.pts[out * 2] = NAV.tmp[k * 2]; path.pts[out * 2 + 1] = NAV.tmp[k * 2 + 1]; out++; }
-    }
-    path.n = out; path.i = 0;
-    return out > 0;
-  }
+  if (!smooth) return navTurns(n, start, sx, sz, path);
   // Smooth: from the current point, jump to the furthest of the next 30 cells reachable in a straight walk.
   let out = 0, k = n - 1, ax = sx, az = sz, ay = sy;
   while (k > 0 && out < 512) {
@@ -1142,6 +1150,55 @@ function navSearch(sx, sz, sy, gx, gz, gy, path, smooth) {
   }
   path.n = out; path.i = 0;
   return out > 0;
+}
+// Bot paths: the n scratch points (reversed) reduced to their turns, starting at the start node's centre when off it
+// (after knockback or a corner: the straight links are only checked between centres).
+function navTurns(n, start, sx, sz, path) {
+  const st = NAV.st;
+  let out = 0;
+  const scx = NAV.x0 + (NAV.ni[start] + 0.5) * st, scz = NAV.z0 + (NAV.nj[start] + 0.5) * st;
+  if (Math.hypot(sx - scx, sz - scz) > 0.05) { path.pts[0] = scx; path.pts[1] = scz; out = 1; }
+  for (let k = n - 2; k >= 0 && out < 512; k--) {
+    const turn = k === 0 || (NAV.tmp[k * 2] - NAV.tmp[k * 2 + 2]) * (NAV.tmp[k * 2 - 1] - NAV.tmp[k * 2 + 1]) !== (NAV.tmp[k * 2 + 1] - NAV.tmp[k * 2 + 3]) * (NAV.tmp[k * 2 - 2] - NAV.tmp[k * 2]);
+    if (turn) { path.pts[out * 2] = NAV.tmp[k * 2]; path.pts[out * 2 + 1] = NAV.tmp[k * 2 + 1]; out++; }
+  }
+  path.n = out; path.i = 0;
+  return out > 0;
+}
+// Leave a warned section by the shortest walk: search outward (no goal) to the first node on a safe section clear of the hazards.
+// Writes the path and returns the node, or -1.
+function navFlee(sx, sz, sy, path) {
+  const st = NAV.st;
+  path.n = 0; path.i = 0;
+  const start = navNode(sx, sz, sy, navOff(false, null));
+  if (start < 0) return -1;
+  const off = navOff(false, null);
+  NAV.gen = (NAV.gen + 1) & 0xffff; if (NAV.gen === 0) { NAV.stamp.fill(0); NAV.closed.fill(0); NAV.gen = 1; }
+  const gen = NAV.gen;
+  let hs = 0, found = -1, opened = 0;
+  NAV.stamp[start] = gen; NAV.g[start] = 0; NAV.parent[start] = -1;
+  hs = heapPush(hs, start, 0);
+  while (hs > 0 && opened < CONFIG.NAV_MAX) {
+    const node = NAV.heap[0]; hs = heapPop(hs);
+    if (NAV.closed[node] === gen) continue;
+    NAV.closed[node] = gen; opened++;
+    const f = FLOORS[NAV.nf[node]], x = NAV.x0 + (NAV.ni[node] + 0.5) * st, z = NAV.z0 + (NAV.nj[node] + 0.5) * st;
+    if (f.s.state === 0 && !nearHazard(x, z, NAV.ny[node])) { found = node; break; }
+    for (let d = 0; d < 8; d++) {
+      const nid = NAV.link[node * 8 + d];
+      if (nid < 0 || (NAV.mask[nid] & off) !== 0 || NAV.closed[nid] === gen) continue;
+      const g = NAV.g[node] + (d >= 4 ? 1.4142 : 1);
+      if (NAV.stamp[nid] === gen && NAV.g[nid] <= g) continue;
+      NAV.stamp[nid] = gen; NAV.g[nid] = g; NAV.parent[nid] = node;
+      hs = heapPush(hs, nid, g);
+    }
+  }
+  if (found < 0) return -1;
+  let n = 0, node = found;
+  while (node >= 0 && n < 512) { NAV.tmp[n * 2] = NAV.x0 + (NAV.ni[node] + 0.5) * st; NAV.tmp[n * 2 + 1] = NAV.z0 + (NAV.nj[node] + 0.5) * st; n++; node = NAV.parent[node]; }
+  if (n < 2) { path.pts[0] = NAV.tmp[0]; path.pts[1] = NAV.tmp[1]; path.n = 1; return found; }
+  navTurns(n, start, sx, sz, path);
+  return found;
 }
 // True if walking straight from a to b at height ay keeps standing and never drops a layer. Leaves the end height in NAV.lastY.
 function lineWalk(ax, az, ay, bx, bz) {
@@ -1184,11 +1241,11 @@ function heapPop(hs) {
 const G = { time: 0, view: 'follow', paused: false, ctxLost: false, frames: 0, bannerWave: -1, fellT: 0, nextWave: -2, fxT: 0, miniDirty: true, miniT: 0,
   phase: 'royale', phaseT: 0, huntT: 0, plates: 0, bossDirty: true, bossHp: -1, hits: 0, minTell: 99, hitDmg: 0, bleedDmg: 0,
   kWave: 0, kWarned: false, platesTaken: 0, visR: CONFIG.VISION_R, seed: 1, seedFixed: -1, nT: [0, 0], boons: 0,
-  botN: 0, navRR: 0, navRuns: 0, navPeak: 0, alive: 1 };
+  botN: 0, navRR: 0, navRuns: 0, navPeak: 0, alive: 1, warnGen: 0, autoP: false };
 // Bots in this match: CONFIG.BOTS (switch and count), or ?bots=N in the address (0 = map test with the player alone).
 G.botN = !CONFIG.BOTS.on ? 0 : params.has('bots') ? Math.max(0, Math.min(CONFIG.BOTS.count, parseInt(params.get('bots'), 10) || 0)) : CONFIG.BOTS.count;
 
-function warnSection(s) { G.miniDirty = true; s.state = 1; for (let i = 0; i < s.floorMeshes.length; i++) s.floorMeshes[i].material = warnMat; }
+function warnSection(s) { G.miniDirty = true; G.warnGen++; s.state = 1; for (let i = 0; i < s.floorMeshes.length; i++) s.floorMeshes[i].material = warnMat; }
 function dropSection(s) {
   G.miniDirty = true; s.state = 2; s.fallT = 0;
   for (let i = 0; i < FLOORS.length; i++) if (FLOORS[i].s === s) FLOORS[i].active = false;
@@ -1283,6 +1340,14 @@ function step(dt) {
   // Player.
   P.px = P.x; P.pz = P.z; P.py = P.y;
   if (P.dead) { P.deadT += dt; if (P.deadT >= CONFIG.RESPAWN_S) respawn(); updateHp(); stepCombat(dt); return; }
+  // Test autopilot (checks only, __game.autoPlayer): the bot brain drives the player; its searches are its own, outside the bots' queue.
+  if (G.autoP) {
+    tickBrain(P, dt); if (P.navWant) botNav(P);
+    botThink(P, dt); stepBody(P, P.mx, P.mz, dt);
+    if (P.floor && !P.air && P.zone !== P.floor.s) { P.zone = P.floor.s; setText(el.hud, P.zone.name); }
+    updateHp(); updateStatus(); stepCombat(dt);
+    return;
+  }
   // Movement source: test input, phone stick, attack chase, then path (desktop move order).
   let mx = 0, mz = 0;
   if (P.atkT > 0) P.atkT -= dt;
@@ -1394,6 +1459,7 @@ function hurtSuit(s, n, cause, by) {
   if (s.dead) return;
   s.hp -= n; s.noHealT = CONFIG.ALTAR.hitPauseS;
   if (s.bot && n >= 1) { s.flashT = 0.12; s.body.material = M.hit; }
+  if (by) { s.lastBy = by; s.lastByT = G.time; }
   if (s.hp <= 0) suitDown(s, cause, by);
 }
 // A suit is broken. The player: a note and the map-test respawn in the royale, defeat in the hunt.
@@ -1408,6 +1474,7 @@ function suitFell(s) { if (s === P) respawn('fell'); else suitDown(s, 'fall', nu
 function botOut(b) {
   b.dead = true; b.hp = 0; b.seen = false; b.navWant = false; b.path.n = 0; b.pend = false;
   if (b.group.parent) scene.remove(b.group);
+  if (b.ring.parent) scene.remove(b.ring);
   if (ORD.attack === b) ORD.attack = null;
 }
 function showNote(voiceKey, ruleKey, vars) {
@@ -1803,7 +1870,7 @@ function stepBots(dt) {
   for (let n = 0; n < BOTLIST.length; n++) {
     const k = (G.navRR + n) % BOTLIST.length, b = BOTLIST[k];
     if (b.dead || !b.navWant) continue;
-    b.navWant = false; navSearch(b.x, b.z, b.y, b.gx, b.gz, b.gy, b.path, false);
+    botNav(b);
     G.navRR = (k + 1) % BOTLIST.length; G.navRuns++; runs++;
     break;
   }
@@ -1819,12 +1886,24 @@ function stepBots(dt) {
   }
   G.alive = alive;
 }
+// Run the path search a bot asked for (a flee search or a goal search).
+function botNav(b) {
+  b.navWant = false;
+  if (b.flee) { b.flee = false; const v = navFlee(b.x, b.z, b.y, b.path); if (v >= 0) { b.gx = NAV.x0 + (NAV.ni[v] + 0.5) * NAV.st; b.gz = NAV.z0 + (NAV.nj[v] + 0.5) * NAV.st; b.gy = NAV.ny[v]; } }
+  else navSearch(b.x, b.z, b.y, b.gx, b.gz, b.gy, b.path, false);
+}
+// Timers a bot brain needs each step (bots and the test autopilot).
+function tickBrain(b, dt) {
+  for (let i = 0; i < 3; i++) if (b.cd[i] > 0) b.cd[i] -= dt;
+  if (b.atkT > 0) b.atkT -= dt;
+  if (b.castT > 0) b.castT -= dt;
+  b.goalT += dt;
+  stepBotPend(b, dt);
+}
 function stepBot(b, dt) {
   b.px = b.x; b.pz = b.z; b.py = b.y;
   if (b.flashT > 0) { b.flashT -= dt; if (b.flashT <= 0) b.body.material = b.mat; }
-  for (let i = 0; i < 3; i++) if (b.cd[i] > 0) b.cd[i] -= dt;
-  if (b.atkT > 0) b.atkT -= dt;
-  b.goalT += dt;
+  tickBrain(b, dt);
   botThink(b, dt);
   const want = Math.abs(b.mx) + Math.abs(b.mz) > 0.01;
   stepBody(b, b.mx, b.mz, dt);
@@ -1842,11 +1921,204 @@ function stepBot(b, dt) {
   const n = Math.ceil(b.hp);
   if (n !== b.hpShown) { b.hpShown = n; b.bar.scale.x = Math.max(0.001, b.hp / CONFIG.MAX_HP); }
 }
-// Brain (9b: roam). Sets b.mx, b.mz for this step.
+// Brain (batch 9c). Uses only the player's actions (walk, attack, Q W R) and knows only what its own vision shows; map layout (altars, safe floors) is known.
+// Order: dodge a tell it has seen for its reaction time > leave a warned section > heal at an altar when low > fight its target > a camp or buff creature > roam.
 function botThink(b, dt) {
-  b.mx = 0; b.mz = 0;
-  if (b.goalT > CONFIG.BOT.goalHoldS || (!b.navWant && b.path.i >= b.path.n)) botRoamGoal(b);
-  botFollow(b);
+  const B = CONFIG.BOT, sk = b.skill;
+  b.mx = 0; b.mz = 0; b.tgtT += dt;
+  // Standing on a warned section beats everything: decide now (flee), and do not stop to dodge.
+  const warned = b.zone && b.zone.state === 1;
+  if (warned && b.mode !== 'flee') b.thinkT = 0;
+  // Dodge every step: out of any shown tell it has seen long enough (radius + margin), straight away from its centre or line.
+  if (!warned && botDanger(b, b.x, b.z, B.dodgeMargin)) {
+    b.mode = 'dodge'; const l = Math.hypot(DNG.ex, DNG.ez) || 1; b.mx = DNG.ex / l; b.mz = DNG.ez / l; b.path.n = 0; b.navWant = false; b.goalT = 1e9;
+    return;
+  }
+  b.thinkT -= dt;
+  if (b.thinkT <= 0) { b.thinkT = B.thinkS; botDecide(b); }
+  // Act on the decision.
+  const q = b.tgt;
+  if (q && (b.mode === 'fight' || b.mode === 'creature')) {
+    const dx = q.x - b.x, dz = q.z - b.z, d = Math.hypot(dx, dz) || 1e-6, reach = CONFIG.ATTACK.range + q.r;
+    if (d > 0.01) { b.faceX = dx / d; b.faceZ = dz / d; }
+    if (b.tgtT >= sk.react && b.stunT <= 0 && b.castT <= 0) botUseSkills(b, q, d);
+    if (d <= reach) {
+      if (b.atkT <= 0 && b.stunT <= 0 && b.tgtT >= sk.react) { hitTarget(b, q, CONFIG.ATTACK.dmg); b.atkT = CONFIG.ATTACK.interval; }
+    } else if (b.direct) { b.mx = dx / d; b.mz = dz / d; }
+    else botFollow(b);
+  } else if (b.mode === 'heal' && b.heal) {
+    if (Math.hypot(b.heal.x - b.x, b.heal.z - b.z) > CONFIG.ALTAR.radius * 0.6) botFollow(b);
+  } else botFollow(b);
+  // Never step into a tell it has seen long enough (unless leaving a warned section).
+  if (!warned && (b.mx !== 0 || b.mz !== 0) && botDanger(b, b.x + b.mx * 0.8, b.z + b.mz * 0.8, 0.3)) { b.mx = 0; b.mz = 0; }
+}
+function botDecide(b) {
+  const B = CONFIG.BOT, vr = CONFIG.VISION_R + (b.bT[2] > 0 ? b.bV[2] : 0);
+  // Leave a warned section for the nearest safe standing spot.
+  if (b.zone && b.zone.state === 1) {
+    if (b.mode !== 'flee' || (!b.navWant && b.path.i >= b.path.n)) { b.mode = 'flee'; b.tgt = null; botSafeGoal(b); }
+    return;
+  }
+  // Pacing (assumption 23 Nov, for the 3-4 min royale): a bot starts a fight only with a suit inside its engage radius, which grows from
+  // BOT.engage.startM to its full vision over BOT.engage.rampS. A fight goes on while the target stays seen.
+  // Target (owner, 23 Nov): the nearest such suit, but a fighting bot that sees the player switches to the player and keeps it while seen.
+  // Before peaceS it only answers a suit that hit it in the last retaliateS seconds.
+  const E = B.engage, ramp = Math.min(1, Math.max(0, (G.time - E.peaceS) / E.rampS)), er = Math.min(vr, E.startM + (vr - E.startM) * ramp);
+  let t = b.mode === 'fight' && b.tgt && b.tgt.kind === 'suit' && botSees(b, b.tgt, vr) ? b.tgt : null;
+  if (!t && b.lastBy && !b.lastBy.dead && G.time - b.lastByT < E.retaliateS && botSees(b, b.lastBy, vr)) t = b.lastBy;
+  if (!t && G.time >= E.peaceS) {
+    let bd = er;
+    for (let i = 0; i < SUITS.length; i++) {
+      const s = SUITS[i]; if (s === b || !botSees(b, s, vr) || (s === b.declined && G.time - b.declinedT < E.declineS)) continue;
+      const d = Math.hypot(s.x - b.x, s.z - b.z); if (d <= bd) { bd = d; t = s; }
+    }
+    // A new fight is started with chance p0 at the end of peace, rising to 1 with the ramp; a declined suit is not drawn again for declineS.
+    if (t && brnd() > E.p0 + (1 - E.p0) * ramp) { b.declined = t; b.declinedT = G.time; t = null; }
+  }
+  if (t && B.preferPlayerOnSight && b !== P && t !== P && botSees(b, P, vr)) t = P;
+  // Low health: break off for an altar with charge on a standing section.
+  if (b.hp < B.lowHp || (b.mode === 'heal' && b.hp < B.healTo)) {
+    const a = botAltar(b);
+    if (a) { if (b.mode !== 'heal' || b.heal !== a || b.pathGen !== G.warnGen) { b.mode = 'heal'; b.heal = a; b.tgt = null; botGoal(b, a.x, a.z, a.y); } return; }
+  }
+  b.heal = null;
+  if (t) { botTarget(b, t, 'fight'); return; }
+  // Until the ramp ends, keep away from a seen suit that is outside the engage radius but inside BOT.engage.avoidM.
+  if (G.time < B.engage.peaceS + B.engage.rampS) {
+    let near = null, nd = B.engage.avoidM;
+    for (let i = 0; i < SUITS.length; i++) {
+      const s = SUITS[i]; if (s === b || !botSees(b, s, vr)) continue;
+      const d = Math.hypot(s.x - b.x, s.z - b.z); if (d < nd) { nd = d; near = s; }
+    }
+    if (near) {
+      if (b.mode !== 'avoid' || b.tgt !== near) { b.mode = 'avoid'; b.tgt = near; botAwayGoal(b, near); }
+      return;
+    }
+  }
+  // A cub or buff creature in sight (weighted by the bot's aggro, drawn once per sighting).
+  let c = b.mode === 'creature' && b.tgt && b.tgt.alive && Math.hypot(b.tgt.x - b.x, b.tgt.z - b.z) <= vr ? b.tgt : null;
+  if (!c) {
+    let bd = vr;
+    for (let i = 0; i < CUBS.length + NEUTRALS.length; i++) {
+      const u = i < CUBS.length ? CUBS[i] : NEUTRALS[i - CUBS.length];
+      if (!u.alive || u === b.skip || Math.abs(u.y - b.y) > 1.5) continue;
+      const d = Math.hypot(u.x - b.x, u.z - b.z); if (d < bd) { bd = d; c = u; }
+    }
+    if (c && brnd() > b.skill.aggro) { b.skip = c; c = null; }
+  }
+  if (c) { botTarget(b, c, 'creature'); return; }
+  // A new warning since this path was made: plan again (the old path may walk or drop into the warned section).
+  if (b.mode !== 'roam') { b.mode = 'roam'; b.tgt = null; botRoamGoal(b); }
+  else if (b.goalT > B.goalHoldS || b.pathGen !== G.warnGen || (!b.navWant && b.path.i >= b.path.n)) botRoamGoal(b);
+}
+// Set a target to fight: straight steering when the walk is clear and close, else a path that is refreshed when the target moves.
+function botTarget(b, t, mode) {
+  if (b.tgt !== t) { b.tgt = t; b.tgtT = 0; }
+  b.mode = mode;
+  const d = Math.hypot(t.x - b.x, t.z - b.z);
+  b.direct = d < CONFIG.BOT.directM && Math.abs(t.y - b.y) < 0.7 && lineWalk(b.x, b.z, b.y, t.x, t.z);
+  if (!b.direct && (Math.hypot(t.x - b.gx, t.z - b.gz) > CONFIG.BOT.chaseRepathM || b.pathGen !== G.warnGen || (!b.navWant && b.path.i >= b.path.n))) botGoal(b, t.x, t.z, t.y);
+}
+// A bot sees a suit inside its own vision radius, on about its own layer.
+function botSees(b, s, vr) { return !s.dead && Math.abs(s.y - b.y) < 2 && Math.hypot(s.x - b.x, s.z - b.z) <= vr; }
+// Skills when ready and in range: Q line, W burst, R delayed burst with a ring shown for its whole delay. Aim error from the skill profile.
+function botUseSkills(b, q, d) {
+  const S = CONFIG.SKILLS, err = (1 - b.skill.hit) * CONFIG.BOT.aimErrM;
+  for (let slot = 0; slot < 3; slot++) {
+    const sk = S[slot];
+    if (b.cd[slot] > 0 || d > sk.range || (slot === 2 && (b.pend || (q.hp > sk.dmg && b.hp >= CONFIG.BOT.ultBelowHp)))) continue;
+    const a = brnd() * 6.2832, r = brnd() * err, tx = q.x + Math.cos(a) * r, tz = q.z + Math.sin(a) * r;
+    let dx = tx - b.x, dz = tz - b.z; const len = Math.hypot(dx, dz) || 1e-6; dx /= len; dz /= len;
+    const dist = sk.type === 'line' ? sk.range : Math.min(len, sk.range), x = b.x + dx * dist, z = b.z + dz * dist;
+    b.cd[slot] = sk.cd; b.faceX = dx; b.faceZ = dz; b.castT = CONFIG.BOT.castGapS;
+    if (sk.delay > 0) {
+      b.pend = true; b.pendT = sk.delay; b.pendS = slot; b.pendX = x; b.pendZ = z; b.pendDx = dx; b.pendDz = dz; b.pendAge = 0;
+      b.ring.position.set(x, topYUnder(x, z, b.y + 1) + 0.07, z); b.ring.scale.setScalar(sk.radius); scene.add(b.ring);
+    } else botSkillHit(b, slot, x, z, dx, dz);
+    return;
+  }
+}
+// A bot's skill lands: every other suit (the player too), cub and buff creature inside the shape on about its layer is hit.
+function botSkillHit(b, slot, x, z, dx, dz) {
+  const sk = CONFIG.SKILLS[slot];
+  for (let i = -1; i < TARGETS.length; i++) {
+    const d = i < 0 ? P : TARGETS[i];
+    if (d === b || !d.kind || (d.kind === 'suit' ? d.dead : !d.alive) || d.hunt || Math.abs(d.y - b.y) > 2) continue;
+    let hit = false;
+    if (sk.type === 'line') {
+      const px = d.x - b.x, pz = d.z - b.z, along = px * dx + pz * dz, side = Math.abs(px * dz - pz * dx);
+      hit = along >= 0 && along <= sk.range + d.r && side <= sk.width / 2 + d.r;
+    } else hit = Math.hypot(d.x - x, d.z - z) <= sk.radius + d.r;
+    if (hit) hitTarget(b, d, sk.dmg);
+  }
+}
+// Delayed bot skills (the ultimate): the ring stays for the whole delay, then the hit lands.
+function stepBotPend(b, dt) {
+  if (!b.pend) return;
+  b.pendT -= dt; b.pendAge += dt;
+  if (b.pendT > 0) return;
+  b.pend = false; if (b.ring.parent) scene.remove(b.ring);
+  botSkillHit(b, b.pendS, b.pendX, b.pendZ, b.pendDx, b.pendDz);
+}
+// Is the point inside a tell this bot has seen for at least its reaction time (radius + margin)? Leaves the escape direction in DNG.
+const DNG = { ex: 0, ez: 0 };
+function botDanger(b, x, z, margin) {
+  const react = b.skill.react;
+  for (let i = 0; i < HAZARDS.length; i++) {
+    const h = HAZARDS[i];
+    if (h.state !== 1 || h.t < react || Math.abs(h.y - b.y) >= 3) continue;
+    if (Math.hypot(x - h.x, z - h.z) < h.cfg.radius + margin) { DNG.ex = b.x - h.x; DNG.ez = b.z - h.z; if (DNG.ex === 0 && DNG.ez === 0) DNG.ez = 1; return true; }
+  }
+  for (let i = 0; i < CUBS.length; i++) {
+    const u = CUBS[i];
+    if (!u.alive || u.st !== 1 || u.tellT < react || Math.abs(u.y - b.y) >= 1.5) continue;
+    const m = MOVES[u.cur];
+    if (m.shape === 'line') {
+      const qx = x - u.x, qz = z - u.z, along = qx * u.fx + qz * u.fz, side = qx * u.fz - qz * u.fx;
+      if (along >= -margin && along <= u.tl + margin && Math.abs(side) <= m.width / 2 + margin) { const sg = side >= 0 ? 1 : -1; DNG.ex = u.fz * sg; DNG.ez = -u.fx * sg; return true; }
+    } else if (Math.hypot(x - u.tx, z - u.tz) < m.radius + margin) { DNG.ex = b.x - u.tx; DNG.ez = b.z - u.tz; if (DNG.ex === 0 && DNG.ez === 0) DNG.ez = 1; return true; }
+  }
+  for (let i = 0; i < BOTLIST.length; i++) {
+    const o = BOTLIST[i];
+    if (o === b || !o.pend || o.pendAge < react) continue;
+    if (Math.hypot(x - o.pendX, z - o.pendZ) < CONFIG.SKILLS[2].radius + margin) { DNG.ex = b.x - o.pendX; DNG.ez = b.z - o.pendZ; if (DNG.ex === 0 && DNG.ez === 0) DNG.ez = 1; return true; }
+  }
+  if (PEND.on && CONFIG.SKILLS[PEND.slot].delay - PEND.t >= react && Math.hypot(x - PEND.x, z - PEND.z) < CONFIG.SKILLS[PEND.slot].radius + margin) {
+    DNG.ex = b.x - PEND.x; DNG.ez = b.z - PEND.z; if (DNG.ex === 0 && DNG.ez === 0) DNG.ez = 1; return true;
+  }
+  return false;
+}
+// Ask the path queue for the shortest walk off a warned section (navFlee).
+function botSafeGoal(b) { b.flee = true; b.navWant = true; b.goalT = 0; b.path.n = 0; b.path.i = 0; }
+// Within a hazard's trigger range plus one metre.
+function nearHazard(x, z, y) {
+  for (let i = 0; i < HAZARDS.length; i++) { const h = HAZARDS[i]; if (h.s.state < 2 && Math.abs(h.y - y) < 3 && Math.hypot(x - h.x, z - h.z) < h.cfg.range + 1) return true; }
+  return false;
+}
+// Of 8 random safe spots, the one whose nearest seen suit is farthest (and farther than suit s is now).
+function botAwayGoal(b, s) {
+  const vr = CONFIG.VISION_R + (b.bT[2] > 0 ? b.bV[2] : 0);
+  let best = -1, bd = Math.hypot(b.x - s.x, b.z - s.z);
+  for (let t = 0; t < 8; t++) {
+    const v = Math.floor(brnd() * NAV.V), f = FLOORS[NAV.nf[v]];
+    if (!f.active || f.s.state !== 0) continue;
+    const x = NAV.x0 + (NAV.ni[v] + 0.5) * NAV.st, z = NAV.z0 + (NAV.nj[v] + 0.5) * NAV.st;
+    if (nearHazard(x, z, NAV.ny[v])) continue;
+    let d = 1e9;
+    for (let i = 0; i < SUITS.length; i++) { const o = SUITS[i]; if (o !== b && botSees(b, o, vr)) d = Math.min(d, Math.hypot(x - o.x, z - o.z)); }
+    if (d > bd) { bd = d; best = v; }
+  }
+  if (best >= 0) botGoal(b, NAV.x0 + (NAV.ni[best] + 0.5) * NAV.st, NAV.z0 + (NAV.nj[best] + 0.5) * NAV.st, NAV.ny[best]);
+  else botRoamGoal(b);
+}
+// Nearest altar with charge on a standing section.
+function botAltar(b) {
+  let best = null, bd = 1e9;
+  for (let i = 0; i < ALTAR_LIST.length; i++) {
+    const a = ALTAR_LIST[i]; if (a.s.state !== 0 || a.charge <= 0) continue;
+    const d = Math.hypot(a.x - b.x, a.z - b.z); if (d < bd) { bd = d; best = a; }
+  }
+  return best;
 }
 // Walk the path toward its next point and land on it exactly: turn points are cell centres whose straight links were checked,
 // so a bot that cuts a corner early can clip a pillar (seen in batch 9b: stuck beside a pillar 0.1 m off the line).
@@ -1860,12 +2132,13 @@ function botFollow(b) {
   }
 }
 // Set a goal and ask for a path to it.
-function botGoal(b, x, z, y) { b.gx = x; b.gz = z; b.gy = y; b.goalT = 0; b.navWant = true; b.path.n = 0; b.path.i = 0; }
+function botGoal(b, x, z, y) { b.gx = x; b.gz = z; b.gy = y; b.goalT = 0; b.navWant = true; b.flee = false; b.path.n = 0; b.path.i = 0; b.pathGen = G.warnGen; }
 // A random standing spot on a section that is neither warned nor gone (12 tries, else stay).
 function botRoamGoal(b) {
   for (let t = 0; t < 12; t++) {
     const v = Math.floor(brnd() * NAV.V), f = FLOORS[NAV.nf[v]];
     if (!f.active || f.s.state !== 0) continue;
+    if (nearHazard(NAV.x0 + (NAV.ni[v] + 0.5) * NAV.st, NAV.z0 + (NAV.nj[v] + 0.5) * NAV.st, NAV.ny[v])) continue;
     botGoal(b, NAV.x0 + (NAV.ni[v] + 0.5) * NAV.st, NAV.z0 + (NAV.nj[v] + 0.5) * NAV.st, NAV.ny[v]);
     return;
   }
@@ -2079,7 +2352,7 @@ function spawnBots() {
     for (let i = 0; i < 4; i++) { b.bT[i] = 0; b.bV[i] = 0; }
     b.cause = ''; b.diedAt = -1; b.killer = null; b.plates = 0; b.boons = 0; b.cd[0] = b.cd[1] = b.cd[2] = 0;
     b.navWant = false; b.path.n = 0; b.path.i = 0; b.gx = b.x; b.gz = b.z; b.gy = b.y; b.goalT = 1e9; b.flashT = 0; b.body.material = b.mat;
-    b.thinkT = 0; b.tgt = null; b.mode = ''; b.modeT = 0; b.seenP = false; b.pend = false; b.pendT = 0; b.mx = b.mz = 0;
+    b.thinkT = brnd() * CONFIG.BOT.thinkS; b.tgt = null; b.tgtT = 0; b.mode = ''; b.modeT = 0; b.seenP = false; b.pend = false; b.pendT = 0; b.mx = b.mz = 0; b.direct = false; b.heal = null; b.skip = null; b.castT = 0; b.lastBy = null; b.lastByT = -99; b.declined = null; b.declinedT = -99; b.flee = false; b.pathGen = 0;
     b.bar.scale.x = 1; b.seen = false; b.group.visible = false; b.group.position.set(b.x, b.y, b.z);
     scene.add(b.group);
   }
@@ -2291,9 +2564,14 @@ window.__game = {
   navTime(ax, az, bx, bz, smooth) { const t0 = performance.now(); const ok = navSearch(ax, az, topY(ax, az), bx, bz, topY(bx, bz), NAV_SCRATCH, smooth); return { ms: performance.now() - t0, ok, n: NAV_SCRATCH.n }; },
   navNodes: () => NAV.V,
   setBots(n) { G.botN = Math.max(0, Math.min(CONFIG.BOTS.count, n)); },
+  autoPlayer(on) { G.autoP = !!on; P.mode = ''; P.tgt = null; P.navWant = false; P.flee = false; P.pend = false; if (P.ring.parent) scene.remove(P.ring); P.cd[0] = P.cd[1] = P.cd[2] = 0; P.thinkT = 0; P.lastBy = null; P.goalT = 1e9; PATH.n = 0; PATH.i = 0; },
+  setBotHp(i, n) { BOTLIST[i].hp = n; }, setBotCd(i, slot, v) { BOTLIST[i].cd[slot] = v; }, setTime(t) { G.time = t; },
+  hitBy(i, j, n) { const a = i < 0 ? P : BOTLIST[i], b = j < 0 ? P : BOTLIST[j]; hurtSuit(b, n, 'hit', a); },
+  hitCubBy(i, j, n) { hitEnemy(CUBS[i], n, j < 0 ? P : BOTLIST[j]); }, hitNeutralBy(i, j, n) { hitEnemy(NEUTRALS[i], n, j < 0 ? P : BOTLIST[j]); },
+  player: () => ({ mode: P.mode, tgt: P.tgt ? (P.tgt.kind === 'suit' ? P.tgt.id : -2) : -1, dead: P.dead, cause: P.cause, diedAt: P.diedAt, plates: P.plates, boons: P.boons }),
   bots: () => ({ n: G.botN, alive: G.alive, navRuns: G.navRuns, navPeak: G.navPeak, list: BOTLIST.slice(0, G.botN).map((b) => ({ id: b.id, x: b.x, y: b.y, z: b.z, hp: b.hp, dead: b.dead, cause: b.cause, diedAt: b.diedAt,
     killer: b.killer ? b.killer.id : -1, stuck: b.stuckMax, zone: b.zone ? b.zone.id : null, seen: b.seen, vis: b.group.visible, inScene: !!b.group.parent, plates: b.plates, boons: b.boons,
-    tgt: b.tgt ? b.tgt.id : -1, mode: b.mode, spawn: b.spawn, air: b.air, standOk: b.dead || b.air || !!floorAt(b.x, b.z, b.y + 0.05) })) }),
+    tgt: b.tgt ? (b.tgt.kind === 'suit' ? b.tgt.id : -2) : -1, mode: b.mode, spawn: b.spawn, bT: b.bT.slice(), ult: b.cd[2], pk: b.pk.slice(), air: b.air, standOk: b.dead || b.air || !!floorAt(b.x, b.z, b.y + 0.05) })) }),
   botDbg(i) { const b = BOTLIST[i]; return { x: b.x, z: b.z, y: b.y, mx: b.mx, mz: b.mz, gx: b.gx, gz: b.gz, n: b.path.n, i: b.path.i, pts: Array.from(b.path.pts.slice(0, b.path.n * 2)), stuckT: b.stuckT, want: b.navWant }; },
   hitBot(i, n) { hurtSuit(BOTLIST[i], n, 'test', null); }, placeBot(i, x, z) { const b = BOTLIST[i]; b.x = b.px = x; b.z = b.pz = z; b.y = b.py = topY(x, z); b.air = false; b.vy = 0; },
   attack(i) { ORD.attack = DUMMY_LIST[i]; PATH.n = 0; }, stop: stopOrders,
