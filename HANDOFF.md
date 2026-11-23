@@ -42,10 +42,16 @@ Readiness about 75 of 100: decree slot, bags and the bounty exist; open points b
 - Penalty for breaking (owner: slow + mark): 30% slow for 2 s, and marked for 5 s: the marked suit shows on every suit's minimap and counts as seen by every bot regardless of range or fog. One mark marker per suit (small red pillar over the head) built once at load, in the warm-up list. Re-broken while marked refreshes both.
 - Bots know the decree (the HUD tells everyone): they leave the roof like a warned section, do not go to dry altars, do not cast on bridges or dash in the zone. A bot that sees a marked suit treats it as seen (target rules and hunter cap unchanged; see question 3).
 
-### Questions for the owner (with recommended option)
-1. No-dash decree while no suit has a dash: (a) recommended: rule built on a dash flag in the skill config; nothing has it until the kits, so in play it is announced and cannot be broken yet; checks prove it with a test-only flagged skill; (b) give the placeholder W a short dash now (changes map-test checks 26, 29, 32).
-2. Bridges "stilled": (a) recommended: casting is blocked on a bridge (true silence, nothing to break); (b) casting allowed but breaks the decree (penalty).
-3. Mark on the player: (a) recommended: bots see the marked player from anywhere, but the one-bot cap still holds (only the bounty lifts it to 3); (b) a mark lifts the cap to 3 like the bounty for its 5 s.
+### Panel decisions (owner 23 Nov 15:11: panel of 2 jam judges, 2 players, 2 critics + design/tech leads proposes, debates, improves, votes; majority followed). These override the rule lines above where they differ.
+1. No dash (vote 6-1 for b, improved): placeholder W becomes "Dash": 4 m dash toward the aim point, then its 2.5 m burst on landing; dash: true; uses the walking rule (edge clamp, walls, no drop off a bridge). Bots use it to close in. Checks 26/29/32 updated on purpose (W changed), hunt sweep (test 42) re-run and reported (owner: dashes should balance the apex). Why: a decree that cannot be broken reads as dead content to judges and confuses a new player; the GDD kits are mostly dashes anyway. Against (tech lead): wider change; accepted with the re-run.
+2. Bridges (vote 7-0 for a, improved): true silence on bridges, nothing to break. Why decisive: tone rule "she never lies": "your arts are stilled" must be literally true. Improvement: skill buttons show a silenced look and the HUD status "Silenced"; a cast released on a bridge shows the "Silenced" note instead of failing silently. The caster's position decides.
+3. Mark (vote 4-2-1 for c, new): while any suit is marked, up to 2 bots may target it (marked player: cap 2 for the 5 s; the bounty's 3 still wins when both apply); every bot sees a marked suit from anywhere. Why: with the cap at 1 the mark changes almost nothing; at 3 one slip is a near-certain loss (jam guidance: let the player win). (a) got 2, (b) got 1.
+4. Roof decree (vote 5-2, improved): the roof falls at 60 s, so a roof-only marble is dead after the first decree. Becomes "None shall set foot upon Our heights." / Heights forbidden: the whole upper layer (roof, both terraces, sloped bridge tops above 3 m). Terrace altars are cut off while it holds (deliberate pressure with "altars dry"). Still counters climbing/hiding later. Gone-place skip when every upper section has fallen.
+5. Learnability (vote 7-0): her line on a break, "Thou art marked." / "You broke the decree: slowed and marked for 5 s."; no-dash zone outlined in gold on the minimap and its floor tinted gold (not red: red means collapse); dry altars switch to the empty look while the decree holds.
+6. Ultimates 2x and altars dry: kept as written (no improvement carried).
+
+### Open after the panel
+- Owner go for batch 12 (design note first was chosen; build waits for "go").
 
 ### Checks to add (mutation round on each)
 - Bags: full cycles without repeats, seeded, same seed = same decree sequence; gone places skipped.
@@ -68,6 +74,7 @@ Player plate rate and leader win share are under their GDD targets (Status) - ow
 
 ## Owner decisions (dated)
 - 23 Nov 15:1x (batch 12 questions): bags draw decree, gap, length and zone; all 5 decrees now, none cut later; breaking = slow + mark; design note first, no code yet.
+- 23 Nov 15:11: open design questions go to the panel (judges, players, critics); propose, debate, improve, vote; follow the majority. Batch 12 results under "Panel decisions".
 - 23 Nov 15:06: decrees also use marble bags.
 - 23 Nov 14:35 (batch 11 questions): (1) only one bot at a time may target the player by any rule except hitting back (BOT.maxHunters 1); (2) while the bounty lies on the player, up to 3 bots may (BOUNTY.maxHunters 3); (3) HUD line "Leader: <school>" for everyone, crown over the leader only when the leader is in vision, the leader on the minimap during the bounty (otherwise normal vision).
 - 23 Nov 14:22: next open items are leader, crown marker and bounty decree (batch 11).
@@ -119,7 +126,7 @@ Player plate rate and leader win share are under their GDD targets (Status) - ow
 - Controls: desktop LoL/Dota (right-click move/attack, Q W R hold-aim release-cast, A attack-move, S stop); phone MLBB (stick, ATK auto-target, tap skill = auto-aim, drag = aim, Cancel zone).
 
 ## Open
-- Owner: review the batch 12 design note (3 questions, then go); tune or wait on the plate rate and leader win share (Status).
+- Owner: go for batch 12 (panel decided the 3 questions, 23 Nov 15:11); tune or wait on the plate rate and leader win share (Status).
 - Kaymuse's look; game title; apex ultimate rule (built: single use at half health; confirm); ultimate charge amounts; minion names; Tiger Demon hard-surface confirm.
 - Apex balance: wait for real kits, then re-check test 42.
 - Vision is a plain radius: walls/curtains do not block sight yet (comes with hiding).
