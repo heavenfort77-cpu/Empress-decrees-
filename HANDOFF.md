@@ -14,7 +14,7 @@
 - Bot sweep (test 42), reaction / kill order (0 demon, 1 stalker, 2 howler): never-dodge loses all 3 (6-9 s); 0.3 s: demon-first LOSES (13 s), minions-first wins (57-58 s, 20-26 hp left); 0.15 s wins all 3 (50-60 s, 73-100 hp left).
   - GDD sim target "no kill order is dominant" is NOT met: minions-first is better for the 0.3 s bot. Player kit is still the placeholder, so tuning waits for real kits.
 - NOT run: real-GPU fps (needs a GitHub Actions macOS runner; no workflow yet). NOT tried on a real phone (touch checked by simulated pointer events only).
-- Phone review link (claude.ai artifact, same page with three.js from jsDelivr): see the latest session report for the current version.
+- Phone review link (claude.ai artifact, same page with three.js from jsDelivr): https://claude.ai/artifact/3nQ67JCTmb1JfPKC3Y416z (version 1795407242-834c = batch 6). Republish it after each batch.
 
 ## Next
 - Waiting for the user to play the apex fight and say whether the loop works.
