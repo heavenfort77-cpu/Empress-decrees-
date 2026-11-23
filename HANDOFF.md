@@ -23,6 +23,7 @@
 Open items in order of the GDD: other decrees on the batch 11 decree slot ("Our altars are dry", "Let none dash within the west courtyard", "Upon the bridges, your arts are stilled", "None shall set foot upon Our roof", "Let your ultimates swell twice as swift"; about one a minute, 30-45 s each); player plate rate and leader win share are under their GDD targets (see Status) - ask the owner whether to tune (cub camps, bot contest weights) or wait for kits; hiding; ultimate charge (the bounty reward is a full ultimate cooldown reset until charge exists); school kits; the ending.
 
 ## Owner decisions (dated)
+- 23 Nov 15:06: decrees also use marble bags (batch 12 design; details asked in the batch 12 questions).
 - 23 Nov 14:35 (batch 11 questions): (1) only one bot at a time may target the player by any rule except hitting back (BOT.maxHunters 1); (2) while the bounty lies on the player, up to 3 bots may (BOUNTY.maxHunters 3); (3) HUD line "Leader: <school>" for everyone, crown over the leader only when the leader is in vision, the leader on the minimap during the bounty (otherwise normal vision).
 - 23 Nov 14:22: next open items are leader, crown marker and bounty decree (batch 11).
 - 23 Nov 14:04: only one bot at a time may switch to the player on sight (built as batch 10, hunter slot).
