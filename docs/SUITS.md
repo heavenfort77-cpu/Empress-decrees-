@@ -123,6 +123,13 @@ Source: 《周礼·地官·保氏》「乃教之六艺：一曰五礼，二曰�
 - Panel (20:35): enemies trample sprouts 6-1 (it gives a fight to a field); furrow speeds the seeds 7-0; the harvest pulls sprouts in 6-1.
 - Plays with: altars and "Our altars are dry" (his field still heals him), collapses (a field on a falling section is lost), long fights.
 
+## Against the apex (owner question 23 Nov 20:39; panel review, PROPOSED until the owner confirms)
+In the hunt there are no other suits or bots: only the Tiger Demon and its two minions. Every kit must still work there.
+- **墨甲 (works as is; may be the safest pick):** 非攻 is always on (the apex always attacks); the 距云梯 wall stops the demon's Pounce and the minions' dashes at the wall (dash length checks it); the 衡 lever flings minions fully but only shoves the demon a short way (size); 九距之 blocks nine demon hits. Watch in the hunt sweep: it may be too safe.
+- **纵横甲 (two hunt rules proposed):** 合纵 links the demon and a minion, so hits on the demon also hurt the minion (a trade: a broken minion still sends its plate and skills home). 连横 swaps with a demon or minion to escape. Proposed: **不攻自破** turns the apex units on each other: inside the circle the demon and minions attack each other for its length, and a minion broken by the demon still sends its plate home. Proposed: **连横 · 事一强** in the hunt makes a minion that sees him wait about 1 s before its next skill (once per 6 s per minion), since there are no bots to steer.
+- **杂甲 (one hunt rule proposed):** 兼收并蓄 stores the demon's moves; **一字千金** casts the demon's own Pounce or Roar back at it at full strength. 兼儒墨's 墨 slow always applies (the apex always attacks), except in the demon's frenzy. Proposed: **兼儒墨's 正名 on the demon seals its stolen skills** (the ones minion plates brought home) for about 2 s; on a minion it seals one skill. 合名法's exposure matters little in the hunt; its blink is the useful part.
+- Check for all nine: the hunt bot sweep (test 42) is run per suit once kits exist; no suit may make the apex trivial or impossible.
+
 ## Build notes
 - Code: none yet. Batch 16 builds 法甲 as the sample; batch 17 the other eight, with the panel per kit.
 - Art (after the owner says the loop works): black and water-blue for Kaymuse's court; each suit's look from its school's doctrine.
