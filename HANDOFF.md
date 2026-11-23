@@ -63,6 +63,8 @@ Panel note 16 (lead, 23 Nov 23:30; proposal):
 15 ultimate charge (DONE); 16 法甲 kit + suit stats sample (owner plays and approves); 17 the other eight kits (docs/SUITS.md); 18 hiding (curtains, 道甲 stillness, sight blocked by walls); 19 the ending + WINNER_STATUE; 20 final map size + balancing pass (re-measure, retune the CONFIG timing list once). Hunt sweep re-check with kits (0.15 s bot now loses demon-first).
 
 ## Owner decisions (dated)
+- 23 Nov 23:3x (batch 16 questions): player suit = school select (9 buttons) plus a random button, last pick remembered; stats as docs/STATS-MATH.md; hiding: minimal unseen state now ("then draw": read by the lead as art after the loop; confirm); numbers: one set per kit, balance only when all nine are ready ("balance when all is ready").
+- 23 Nov 23:26: "do all 9": batches 16 and 17 merged; all nine kits in batch 16.
 - 23 Nov 22:25: batch 15 split into tickets (tickets/batch-15, 01-04, to-tickets); one ticket per worker, in order.
 - 23 Nov 22:05: gate 65 royale band floor 150 s ("Floor 150 s"; was 165; CONFIG.ROYALE.band [150, 255]); a run of about 3.6-5 min fits his "4-5 min ok".
 - 23 Nov 22:04: owner sent two videos on damage, growth and stats math; proposal in docs/STATS-MATH.md for batch 16.
