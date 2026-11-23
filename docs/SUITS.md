@@ -103,14 +103,14 @@ Source: 《周礼·地官·保氏》「乃教之六艺：一曰五礼，二曰�
 - Panel (20:25): the wheel as the attack so 名甲 does not repeat 儒甲's bow 6-1; the halving passive capped at +40% 7-0; the shadow decoy 5-2 (players: decoys can feel cheap; answer: 1 s and only once per cast); full tells on W and R 7-0.
 - Plays with: tells and dodging, bots (the shadow), long sightlines from the heights.
 
-### 纵横甲 · 说客 (Diplomatists: the vertical alliance 合纵 against the strong state, and the horizontal alliance 连横 that served it)
-- GDD decision kept: links two enemies so they share damage.
-- Passive **Persuasion**: bots that see this suit prefer another target for a moment.
-- Attack: tally token, mid range.
-- Q **Vertical Alliance (合纵)**: tether two enemies; damage to one is shared with the other.
-- W **Horizontal Alliance (连横)**: swap places with a target (the dash).
-- R **Sow Discord**: enemies in an area deal more damage to each other and less to you for a few seconds.
-- Plays with: bots, the leader and the bounty.
+### 纵横甲 · 说客 (Diplomatists; frames 合纵, 连横, 不攻自破; owner 23 Nov 20:30). GDD rule kept: links two enemies so they share damage.
+- Passive **连横 · 事一强** (each state allies with the strong one by one): a bot that sees him takes another target if one is in reach (once per bot every 6 s). The player is never steered.
+- Attack **符节** (the envoy's tally): token shot, mid range.
+- Q **合纵** (the vertical alliance), the link: a cord between two enemies within range for about 5 s; half of all damage to one is also dealt to the other. If they move more than about 8 m apart the cord snaps and both are slowed.
+- W **连横** (the horizontal alliance), the dash: swap places with a suit or cub within range. It can put an enemy where he stood: into a tell, a warned section, a crowd.
+- R **不攻自破** (it breaks without being attacked): a large circle, shown for its whole length (about 5 s). Bots inside turn on the nearest other suit (not the player beyond the hunter cap), and all damage suits inside deal to each other is raised. The player keeps control of their own suit.
+- Panel (20:30): bot-only persuasion, never the player 6-1; the swap dash 7-0; 不攻自破 steering bots only, damage raised for everyone inside 5-2 (critic: hard to read; answer: the circle shows for its whole length and a HUD line names it).
+- Plays with: bots, the hunter cap, the leader and bounty (link the leader to its hunter), tells and collapses (the swap).
 
 ### 农甲 · 耕者 (Agriculturalists: ruler and people till the fields together 并耕)
 - GDD decision kept: plants heal or feed it, harvest ultimate.
