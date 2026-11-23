@@ -185,6 +185,7 @@ const CONFIG = {
     pillar: 0x9a2a22, silk: 0xb0303c, gold: 0xc9a040, bronze: 0x4a3a2a, empress: 0xf0e2c0,
     camp: 0xff8a2a, spawn: 0xe8e8e8, player: 0x3a7bd5, aim: 0xffffff, blob: 0x000000, warn: 0xff2a10,
     stone: 0x9a968c, eyes: 0xff3a1a, ring: 0xff2a10, altarOn: 0x5cff9a, altarOff: 0x2a3a30, broken: 0x2a2624, dummy: 0xc8b070, hit: 0xffffff, ind: 0x7fd0ff, fx: 0xffd060,
+    suits: [0xd5a03a, 0x6a6a6a, 0x8a2a3a, 0x3a3a3a, 0xe8e8f0, 0x6a9a3a, 0xc060a0, 0x40c0c0, 0x9a6ad5],
     demon: 0x9a5a22, stalker: 0x7a2a8a, howler: 0x2a7a8a, frenzy: 0xff5a1a, tellD: 0xff2a10, tellS: 0xd050ff, tellH: 0x40e0ff, crab: 0xe07030, wander: 0x9adf9a,
   },
   // Feature switch: the apex hunt on boxes (Tiger Demon, 2 minions, skill transfer). Started by H or the Hunt button until the royale exists.
@@ -242,6 +243,15 @@ const CONFIG = {
   BONUS_CAP: 1.4,
   // Feature switch: next run's statue wears the last winner's school colour (approved, built later).
   WINNER_STATUE: false,
+  // Bots (batch 9, owner go 23 Nov): feature switch, number of bot suits (the player is the tenth). ?bots=N in the address overrides the count (tests use 0 for the map test).
+  BOTS: { on: true, count: 9 },
+  // Bot brain. skills: reaction (s) = delay before a seen tell or target counts; hit = aim accuracy (0-1); aggro = weight for fighting over roaming.
+  // skillOf = skill name per bot (assumption 23 Nov: all 'average'). thinkS = seconds between decisions. goalHoldS = longest a roam goal is kept.
+  // stuckRepathS = seconds without progress before a new path; stuckGoalS = seconds before a new goal.
+  BOT: {
+    skills: { novice: { react: 0.6, hit: 0.55, aggro: 0.6 }, average: { react: 0.3, hit: 0.75, aggro: 0.8 }, expert: { react: 0.15, hit: 0.9, aggro: 1 } },
+    skillOf: ['average'], thinkS: 0.25, goalHoldS: 12, stuckRepathS: 0.5, stuckGoalS: 1.5,
+  },
 };
 
 // Every string shown to the player. Missing keys throw (and fail the text check).
@@ -720,8 +730,25 @@ const RNG = { s: 1 };
 function makeBag(src) { return { src, a: src.slice(), i: src.length }; }
 const BAGS = { times: makeBag(CONFIG.BAGS.times), spots: makeBag(SPOTS.map((_, i) => i)), crab: makeBag(CONFIG.BAGS.crab), wander: makeBag(CONFIG.BAGS.wander), amounts: makeBag(CONFIG.BAGS.amounts) };
 const BOON_IDX = { power: 0, regen: 1, vision: 2, speed: 3 };
-// Everything the player can target: training dummies, hunt units, cubs and buff creatures share x, z, r, hp, seen.
-const TARGETS = DUMMY_LIST.concat(ENEMIES, CUBS, NEUTRALS);
+// Bot suits (batch 9b): the player's shape plus a body, a health bar, a path and a brain. Built once; one shared geometry, one material per school colour.
+// Bot decisions draw from their own seeded generator, so the marble bags draw the same with or without bots.
+const BRNG = { s: 1 };
+const BOTLIST = [];
+for (let k = 0; k < CONFIG.BOTS.count; k++) {
+  const m = new THREE.MeshStandardMaterial({ color: COL.suits[k % COL.suits.length], roughness: 0.6 });
+  const group = new THREE.Group(), body = new THREE.Mesh(playerBody.geometry, m), bar = new THREE.Mesh(dummyBarGeo, M.camp);
+  bar.position.set(-0.5, 2.6, 0); group.add(body, bar);
+  BOTLIST.push({ x: 0, z: 0, y: 0, px: 0, pz: 0, py: 0, vy: 0, air: false, airFromY: 0, voidT: 0, dead: true, deadT: 0,
+    hp: 0, hpShown: -1, noHealT: 0, kx: 0, kz: 0, faceX: 0, faceZ: -1, atkT: 0, stuckT: 0, zone: null,
+    slowT: 0, slowK: 0, stunT: 0, bleedN: 0, bleedT: 0, statusShown: -1, pk: ['', ''], pt: [0, 0], bT: [0, 0, 0, 0], bV: [0, 0, 0, 0], statusTick: -1,
+    id: k + 1, bot: true, kind: 'suit', r: CONFIG.PLAYER_RADIUS, seen: false, cause: '', diedAt: -1, killer: null, moved: 0, floor: null, plates: 0, boons: 0,
+    mat: m, group, body, bar, path: null, cd: [0, 0, 0], navWant: false, gx: 0, gz: 0, gy: 0, goalT: 0, stuckMax: 0, spawn: -1, flashT: 0,
+    skill: CONFIG.BOT.skills[CONFIG.BOT.skillOf[k % CONFIG.BOT.skillOf.length]], thinkT: 0, tgt: null, mode: '', modeT: 0, seenP: false,
+    pend: false, pendT: 0, px2: 0, pz2: 0, ring: null, mx: 0, mz: 0, repathed: false, ax: 0, az: 0, anchorT: 0 });
+}
+for (let k = 0; k < BOTLIST.length; k++) SUITS.push(BOTLIST[k]);
+// Everything the player can target: training dummies, hunt units, cubs, buff creatures and bot suits share x, z, r, hp, seen.
+const TARGETS = DUMMY_LIST.concat(ENEMIES, CUBS, NEUTRALS, BOTLIST);
 // Gate seal shown during the hunt.
 const sealMesh = new THREE.Mesh(new THREE.BoxGeometry((GATE.x1 - GATE.x0), 2.6, 0.3).translate(0, 1.3, CH.z1 - 0.5), M.tellD);
 sealMesh.matrixAutoUpdate = false; sealMesh.updateMatrix();
@@ -787,7 +814,7 @@ el.mini.addEventListener('pointerdown', (e) => {
   if (e.button !== 2 && e.pointerType === 'mouse') return;
   const r = el.mini.getBoundingClientRect();
   const x = MINI.x0 + (e.clientX - r.left) / r.width * MINI.w, z = MINI.z0 + (e.clientY - r.top) / r.height * MINI.h;
-  ORD.attack = null; navSearch(P.x, P.z, P.y, x, z, topY(x, z));
+  ORD.attack = null; navSearch(P.x, P.z, P.y, x, z, topY(x, z), PATH, true);
 });
 
 // Ability bar: display on desktop, buttons on phone. Built once.
@@ -837,12 +864,12 @@ function rightOrder() {
   const hp = cursorGround(); if (!hp.ok) return;
   const d = dummyNear(hp.x, hp.z, 1.4);
   if (d) { ORD.attack = d; PATH.n = 0; return; }
-  ORD.attack = null; navSearch(P.x, P.z, P.y, hp.x, hp.z, hp.y);
+  ORD.attack = null; navSearch(P.x, P.z, P.y, hp.x, hp.z, hp.y, PATH, true);
 }
 function attackMoveOrder() {
   const hp = cursorGround(); if (!hp.ok) return;
   const d = dummyNear(hp.x, hp.z, 4);
-  if (d) { ORD.attack = d; PATH.n = 0; } else { ORD.attack = null; navSearch(P.x, P.z, P.y, hp.x, hp.z, hp.y); }
+  if (d) { ORD.attack = d; PATH.n = 0; } else { ORD.attack = null; navSearch(P.x, P.z, P.y, hp.x, hp.z, hp.y, PATH, true); }
 }
 function stopOrders() { ORD.attack = null; PATH.n = 0; PATH.i = 0; }
 function dummyNear(x, z, r) {
@@ -983,82 +1010,137 @@ function canStand(x, z, y) {
   if (!floorAt(x, z - R, y) || wallAt(x, z - R, y)) return false;
   return true;
 }
-// Knockback may also carry the player through a broken-rail gap into the void.
+// Knockback may also carry a suit through a broken-rail gap into the void.
+// A suit whose edge lost its floor (a neighbour section fell under its body) may still step while its centre stays on a floor (batch 9b fix: it was trapped).
 function tryMove(s, x, z, kb) {
   if (G.phase !== 'royale' && z > GATE_Z) return false;
   if (canStand(x, z, s.y)) return true;
-  return kb && inBroken(x, z, R + 0.05) && !hitSolid(x, z) && !wallAt(x, z, s.y);
+  if (kb && inBroken(x, z, R + 0.05) && !hitSolid(x, z) && !wallAt(x, z, s.y)) return true;
+  return !canStand(s.x, s.z, s.y) && !!floorAt(x, z, s.y) && !wallAt(x, z, s.y) && !hitSolid(x, z);
 }
 
 // PERFRAME-END
-// ===================== Pathfinding (desktop move orders): A* over (grid cell, floor), arrays allocated once =====================
-// Path points the player walks along: x, z pairs.
-const PATH = { pts: new Float32Array(1024), n: 0, i: 0 };
-const NAV = { st: CONFIG.NAV_CELL, x0: -78, z0: -82, nx: 0, nz: 0, gen: 0, lastY: 0,
+// ===================== Pathfinding: A* over a walk graph of (grid cell, floor) nodes, built once at load =====================
+// Every suit has its own path (x, z pairs) in one shared buffer allocated at load; SUITS[0]'s is PATH.
+const PATH_BUF = new Float32Array((CONFIG.BOTS.count + 2) * 1024);
+function makePath(k) { return { pts: PATH_BUF.subarray(k * 1024, k * 1024 + 1024), n: 0, i: 0 }; }
+const PATH = makePath(0), NAV_SCRATCH = makePath(CONFIG.BOTS.count + 1);
+P.path = PATH;
+for (let k = 0; k < BOTLIST.length; k++) BOTLIST[k].path = makePath(k + 1);
+const NAV = { st: CONFIG.NAV_CELL, x0: -78, z0: -82, nx: 0, nz: 0, gen: 0, lastY: 0, V: 0, off: 0,
   dx: Int8Array.of(1, -1, 0, 0, 1, 1, -1, -1), dz: Int8Array.of(0, 0, 1, -1, 1, -1, 1, -1) };
 NAV.nx = Math.ceil(156 / NAV.st); NAV.nz = Math.ceil(132 / NAV.st);
+// Build the graph (batch 9b): measured 15 ms median and 92 ms worst per search with live walking checks (headless, session machine), so the
+// walking rule runs once per node here. Each node keeps a bit mask of the floors under its body: a fallen floor switches it off without a rebuild.
 {
-  const N = NAV.nx * NAV.nz * FLOORS.length;
-  NAV.g = new Float32Array(N); NAV.parent = new Int32Array(N); NAV.stamp = new Uint16Array(N); NAV.closed = new Uint16Array(N);
-  NAV.heap = new Int32Array(N); NAV.heapF = new Float32Array(N); NAV.tmp = new Float32Array(2048);
+  const st = NAV.st, nx = NAV.nx, nz = NAV.nz, NF = FLOORS.length;
   FLOORS.forEach((f, i) => { f.idx = i; });
+  NAV.node = new Int32Array(nx * nz * NF).fill(-1);
+  const ci = [], cj = [], cf = [], cy = [], cm = [];
+  const bit = (x, z, y) => { const f = floorAt(x, z, y); return f ? 1 << f.idx : 0; };
+  for (let j = 0; j < nz; j++) for (let i = 0; i < nx; i++) for (let fi = 0; fi < NF; fi++) {
+    const f = FLOORS[fi], x = NAV.x0 + (i + 0.5) * st, z = NAV.z0 + (j + 0.5) * st;
+    if (!inRect(f, x, z)) continue;
+    const y = surf(f, x, z);
+    if (floorAt(x, z, y) !== f || !canStand(x, z, y)) continue;
+    NAV.node[(j * nx + i) * NF + fi] = ci.length;
+    ci.push(i); cj.push(j); cf.push(fi); cy.push(y);
+    cm.push(bit(x, z, y) | bit(x + R, z, y) | bit(x - R, z, y) | bit(x, z + R, y) | bit(x, z - R, y));
+  }
+  const V = NAV.V = ci.length;
+  NAV.ni = Int16Array.from(ci); NAV.nj = Int16Array.from(cj); NAV.ny = Float32Array.from(cy); NAV.mask = Uint32Array.from(cm); NAV.nf = Uint8Array.from(cf);
+  NAV.link = new Int32Array(V * 8).fill(-1);
+  for (let v = 0; v < V; v++) {
+    const i = ci[v], j = cj[v], y = cy[v], x0 = NAV.x0 + (i + 0.5) * st, z0 = NAV.z0 + (j + 0.5) * st;
+    for (let d = 0; d < 8; d++) {
+      const di = NAV.dx[d], dj = NAV.dz[d], ni = i + di, nj = j + dj;
+      if (ni < 0 || nj < 0 || ni >= nx || nj >= nz) continue;
+      const x = x0 + di * st, z = z0 + dj * st;
+      if (!canStand(x, z, y)) continue;
+      if (di !== 0 && dj !== 0 && (!canStand(x0 + di * st, z0, y) || !canStand(x0, z0 + dj * st, y))) continue;
+      const nf = floorAt(x, z, y), w = NAV.node[(nj * nx + ni) * NF + nf.idx];
+      if (w >= 0) NAV.link[v * 8 + d] = w;
+    }
+  }
+  NAV.g = new Float32Array(V); NAV.parent = new Int32Array(V); NAV.stamp = new Uint16Array(V); NAV.closed = new Uint16Array(V);
+  NAV.heap = new Int32Array(V * 8 + 8); NAV.heapF = new Float32Array(V * 8 + 8); NAV.tmp = new Float32Array(2048);
 }
 // PERFRAME-BEGIN
-function navSearch(sx, sz, sy, gx, gz, gy) {
-  const st = NAV.st, nx = NAV.nx, NF = FLOORS.length;
-  const si = Math.floor((sx - NAV.x0) / st), sj = Math.floor((sz - NAV.z0) / st);
+// Bit mask of fallen floors; a node is usable when none of its floors has fallen.
+function navOff() { let m = 0; for (let i = 0; i < FLOORS.length; i++) if (!FLOORS[i].active) m |= 1 << i; return m; }
+// Node under a point: its own cell, else the nearest usable neighbour cell (a suit standing near an edge).
+function navNode(x, z, y, off) {
+  const st = NAV.st, nx = NAV.nx, NF = FLOORS.length, i = Math.floor((x - NAV.x0) / st), j = Math.floor((z - NAV.z0) / st);
+  const f = floorAt(x, z, y); if (!f) return -1;
+  for (let d = -1; d < 8; d++) {
+    const a = d < 0 ? i : i + NAV.dx[d], b = d < 0 ? j : j + NAV.dz[d];
+    if (a < 0 || b < 0 || a >= nx || b >= NAV.nz) continue;
+    for (let fi = 0; fi < NF; fi++) {
+      const v = NAV.node[(b * nx + a) * NF + fi];
+      if (v >= 0 && (NAV.mask[v] & off) === 0 && Math.abs(NAV.ny[v] - y) <= STEP_UP + 0.05) return v;
+    }
+  }
+  return -1;
+}
+// Search from s (x, z, y) to g; writes the path into path. Returns false when no step can be taken.
+// smooth: true = straight-walk smoothing with the live walking rule (player orders; most of the cost), false = keep only the turns (bots).
+function navSearch(sx, sz, sy, gx, gz, gy, path, smooth) {
+  const st = NAV.st, nx = NAV.nx;
+  path.n = 0; path.i = 0;
+  const off = navOff(), start = navNode(sx, sz, sy, off);
+  if (start < 0) return false;
   const gi = Math.floor((gx - NAV.x0) / st), gj = Math.floor((gz - NAV.z0) / st);
-  const f0 = floorAt(sx, sz, sy);
-  PATH.n = 0; PATH.i = 0;
-  if (!f0 || si < 0 || sj < 0 || si >= nx || sj >= NAV.nz) return false;
   NAV.gen = (NAV.gen + 1) & 0xffff; if (NAV.gen === 0) { NAV.stamp.fill(0); NAV.closed.fill(0); NAV.gen = 1; }
   const gen = NAV.gen;
   let hs = 0, best = -1, bestH = 1e9, opened = 0;
-  const start = (sj * nx + si) * NF + f0.idx;
   NAV.stamp[start] = gen; NAV.g[start] = 0; NAV.parent[start] = -1;
-  hs = heapPush(hs, start, Math.hypot(gi - si, gj - sj));
+  hs = heapPush(hs, start, Math.hypot(gi - NAV.ni[start], gj - NAV.nj[start]));
   while (hs > 0 && opened < CONFIG.NAV_MAX) {
     const node = NAV.heap[0]; hs = heapPop(hs);
     if (NAV.closed[node] === gen) continue;
     NAV.closed[node] = gen; opened++;
-    const cell = (node / NF) | 0, fi = node - cell * NF, j = (cell / nx) | 0, i = cell - j * nx;
-    const h = Math.hypot(gi - i, gj - j);
+    const i = NAV.ni[node], j = NAV.nj[node], h = Math.hypot(gi - i, gj - j);
     if (h < bestH) { bestH = h; best = node; }
     if (i === gi && j === gj) { best = node; break; }
-    const cx = NAV.x0 + (i + 0.5) * st, cz = NAV.z0 + (j + 0.5) * st, cy = surf(FLOORS[fi], cx, cz);
     for (let d = 0; d < 8; d++) {
-      const di = NAV.dx[d], dj = NAV.dz[d], ni = i + di, nj = j + dj;
-      if (ni < 0 || nj < 0 || ni >= nx || nj >= NAV.nz) continue;
-      const x = cx + di * st, z = cz + dj * st;
-      if (!canStand(x, z, cy)) continue;
-      if (di !== 0 && dj !== 0 && (!canStand(cx + di * st, cz, cy) || !canStand(cx, cz + dj * st, cy))) continue;
-      const nf = floorAt(x, z, cy), nid = (nj * nx + ni) * NF + nf.idx;
-      if (NAV.closed[nid] === gen) continue;
-      const g = NAV.g[node] + (di !== 0 && dj !== 0 ? 1.4142 : 1);
+      const nid = NAV.link[node * 8 + d];
+      if (nid < 0 || (NAV.mask[nid] & off) !== 0 || NAV.closed[nid] === gen) continue;
+      const g = NAV.g[node] + (d >= 4 ? 1.4142 : 1);
       if (NAV.stamp[nid] === gen && NAV.g[nid] <= g) continue;
       NAV.stamp[nid] = gen; NAV.g[nid] = g; NAV.parent[nid] = node;
-      hs = heapPush(hs, nid, g + Math.hypot(gi - ni, gj - nj));
+      hs = heapPush(hs, nid, g + Math.hypot(gi - NAV.ni[nid], gj - NAV.nj[nid]));
     }
   }
   if (best < 0) return false;
-  // Walk parents back into PATH (reversed), then smooth by skipping points that are in a straight walkable line.
+  // Walk parents back into the scratch list (reversed), then smooth by skipping points that are in a straight walkable line.
   let n = 0, node = best;
   while (node >= 0 && n < 512) {
-    const cell = (node / NF) | 0, j = (cell / nx) | 0, i = cell - j * nx;
-    NAV.tmp[n * 2] = NAV.x0 + (i + 0.5) * st; NAV.tmp[n * 2 + 1] = NAV.z0 + (j + 0.5) * st; n++;
+    NAV.tmp[n * 2] = NAV.x0 + (NAV.ni[node] + 0.5) * st; NAV.tmp[n * 2 + 1] = NAV.z0 + (NAV.nj[node] + 0.5) * st; n++;
     node = NAV.parent[node];
   }
-  if (best === ((gj * nx + gi) * NF + (best % NF))) { NAV.tmp[0] = gx; NAV.tmp[1] = gz; }
+  if (NAV.ni[best] === gi && NAV.nj[best] === gj) { NAV.tmp[0] = gx; NAV.tmp[1] = gz; }
+  if (!smooth) {
+    // Start at the start node's centre when off it (after knockback or a corner): the straight links are only checked between centres.
+    let out = 0;
+    const scx = NAV.x0 + (NAV.ni[start] + 0.5) * st, scz = NAV.z0 + (NAV.nj[start] + 0.5) * st;
+    if (Math.hypot(sx - scx, sz - scz) > 0.05) { path.pts[0] = scx; path.pts[1] = scz; out = 1; }
+    for (let k = n - 2; k >= 0 && out < 512; k--) {
+      const turn = k === 0 || (NAV.tmp[k * 2] - NAV.tmp[k * 2 + 2]) * (NAV.tmp[k * 2 - 1] - NAV.tmp[k * 2 + 1]) !== (NAV.tmp[k * 2 + 1] - NAV.tmp[k * 2 + 3]) * (NAV.tmp[k * 2 - 2] - NAV.tmp[k * 2]);
+      if (turn) { path.pts[out * 2] = NAV.tmp[k * 2]; path.pts[out * 2 + 1] = NAV.tmp[k * 2 + 1]; out++; }
+    }
+    path.n = out; path.i = 0;
+    return out > 0;
+  }
   // Smooth: from the current point, jump to the furthest of the next 30 cells reachable in a straight walk.
   let out = 0, k = n - 1, ax = sx, az = sz, ay = sy;
   while (k > 0 && out < 512) {
     let m = k - 1, ok = false;
     for (let c = Math.max(0, k - 30); c < k; c++) if (lineWalk(ax, az, ay, NAV.tmp[c * 2], NAV.tmp[c * 2 + 1])) { m = c; ok = true; break; }
     ax = NAV.tmp[m * 2]; az = NAV.tmp[m * 2 + 1]; ay = ok ? NAV.lastY : topYUnder(ax, az, ay);
-    PATH.pts[out * 2] = ax; PATH.pts[out * 2 + 1] = az; out++;
+    path.pts[out * 2] = ax; path.pts[out * 2 + 1] = az; out++;
     k = m;
   }
-  PATH.n = out; PATH.i = 0;
+  path.n = out; path.i = 0;
   return out > 0;
 }
 // True if walking straight from a to b at height ay keeps standing and never drops a layer. Leaves the end height in NAV.lastY.
@@ -1101,7 +1183,10 @@ function heapPop(hs) {
 // ===================== Game state =====================
 const G = { time: 0, view: 'follow', paused: false, ctxLost: false, frames: 0, bannerWave: -1, fellT: 0, nextWave: -2, fxT: 0, miniDirty: true, miniT: 0,
   phase: 'royale', phaseT: 0, huntT: 0, plates: 0, bossDirty: true, bossHp: -1, hits: 0, minTell: 99, hitDmg: 0, bleedDmg: 0,
-  kWave: 0, kWarned: false, platesTaken: 0, visR: CONFIG.VISION_R, seed: 1, seedFixed: -1, nT: [0, 0], boons: 0 };
+  kWave: 0, kWarned: false, platesTaken: 0, visR: CONFIG.VISION_R, seed: 1, seedFixed: -1, nT: [0, 0], boons: 0,
+  botN: 0, navRR: 0, navRuns: 0, navPeak: 0, alive: 1 };
+// Bots in this match: CONFIG.BOTS (switch and count), or ?bots=N in the address (0 = map test with the player alone).
+G.botN = !CONFIG.BOTS.on ? 0 : params.has('bots') ? Math.max(0, Math.min(CONFIG.BOTS.count, parseInt(params.get('bots'), 10) || 0)) : CONFIG.BOTS.count;
 
 function warnSection(s) { G.miniDirty = true; s.state = 1; for (let i = 0; i < s.floorMeshes.length; i++) s.floorMeshes[i].material = warnMat; }
 function dropSection(s) {
@@ -1192,6 +1277,7 @@ function step(dt) {
   if (vr !== G.visR) { G.visR = vr; if (G.view === 'follow') FOW.uFowR.value = vr; }
   if (roy && CONFIG.ROYALE_MINIONS) stepKennel(dt);
   if (roy && CONFIG.NEUTRALS) stepNeutrals(dt);
+  if (roy && G.botN > 0) stepBots(dt);
   if (G.phase === 'wake' || G.phase === 'hunt') stepHunt(dt);
   if (G.phase === 'won' || G.phase === 'lost') { updateHp(); updateStatus(); return; }
   // Player.
@@ -1307,15 +1393,23 @@ function updateHp() {
 function hurtSuit(s, n, cause, by) {
   if (s.dead) return;
   s.hp -= n; s.noHealT = CONFIG.ALTAR.hitPauseS;
+  if (s.bot && n >= 1) { s.flashT = 0.12; s.body.material = M.hit; }
   if (s.hp <= 0) suitDown(s, cause, by);
 }
 // A suit is broken. The player: a note and the map-test respawn in the royale, defeat in the hunt.
 function suitDown(s, cause, by) {
   s.hp = 0; s.dead = true; s.deadT = 0; s.kx = s.kz = 0; s.cause = cause; s.diedAt = G.time; s.killer = by;
   if (s === P) { if (G.phase === 'royale') showNote('voice_died', 'rule_died'); else endHunt(false); }
+  else botOut(s);
 }
-// A suit fell into the void. The player: back to the centre courtyard (map test).
-function suitFell(s) { if (s === P) respawn('fell'); }
+// A suit fell into the void. The player: back to the centre courtyard (map test). A bot is out of the match.
+function suitFell(s) { if (s === P) respawn('fell'); else suitDown(s, 'fall', null); }
+// A bot leaves the match: body out of the scene, no longer a target.
+function botOut(b) {
+  b.dead = true; b.hp = 0; b.seen = false; b.navWant = false; b.path.n = 0; b.pend = false;
+  if (b.group.parent) scene.remove(b.group);
+  if (ORD.attack === b) ORD.attack = null;
+}
 function showNote(voiceKey, ruleKey, vars) {
   if (G.bannerWave >= 0) return;
   setText(el.voice, T(voiceKey)); setText(el.rule, T(ruleKey, vars)); setShow(el.banner, true); G.fellT = 2;
@@ -1697,6 +1791,86 @@ function stepNeutrals(dt) {
     if (u.group.visible !== vis) u.group.visible = vis;
   }
 }
+// ----- Bots (batch 9b: bodies and movement). Decisions draw from BRNG only.
+function brnd() {
+  BRNG.s = (BRNG.s + 0x6D2B79F5) | 0; let t = BRNG.s;
+  t = Math.imul(t ^ (t >>> 15), t | 1); t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+  return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+}
+function stepBots(dt) {
+  // At most one path search per step, taken in turn (measured worst 1.8 ms headless for an unreachable goal).
+  let runs = 0;
+  for (let n = 0; n < BOTLIST.length; n++) {
+    const k = (G.navRR + n) % BOTLIST.length, b = BOTLIST[k];
+    if (b.dead || !b.navWant) continue;
+    b.navWant = false; navSearch(b.x, b.z, b.y, b.gx, b.gz, b.gy, b.path, false);
+    G.navRR = (k + 1) % BOTLIST.length; G.navRuns++; runs++;
+    break;
+  }
+  if (runs > G.navPeak) G.navPeak = runs;
+  const VR = G.visR;
+  let alive = P.dead && G.botN > 0 ? 0 : 1;
+  for (let k = 0; k < BOTLIST.length; k++) {
+    const b = BOTLIST[k];
+    if (!b.dead) { stepBot(b, dt); if (!b.dead) alive++; }
+    const vis = !b.dead && Math.abs(b.y - P.y) < 6 && Math.hypot(b.x - P.x, b.z - P.z) <= VR;
+    b.seen = vis;
+    if (b.group.visible !== vis) b.group.visible = vis;
+  }
+  G.alive = alive;
+}
+function stepBot(b, dt) {
+  b.px = b.x; b.pz = b.z; b.py = b.y;
+  if (b.flashT > 0) { b.flashT -= dt; if (b.flashT <= 0) b.body.material = b.mat; }
+  for (let i = 0; i < 3; i++) if (b.cd[i] > 0) b.cd[i] -= dt;
+  if (b.atkT > 0) b.atkT -= dt;
+  b.goalT += dt;
+  botThink(b, dt);
+  const want = Math.abs(b.mx) + Math.abs(b.mz) > 0.01;
+  stepBody(b, b.mx, b.mz, dt);
+  if (b.dead) return;
+  // No progress while wanting to move: a new path, then a new goal.
+  if (want && b.stunT <= 0 && b.moved < 0.25 * suitSpeed(b) * dt) {
+    b.stuckT += dt;
+    if (b.stuckT >= CONFIG.BOT.stuckGoalS) { botRoamGoal(b); b.stuckT = 0; }
+    else if (b.stuckT >= CONFIG.BOT.stuckRepathS && !b.repathed) { b.repathed = true; b.navWant = true; }
+  } else { b.stuckT = 0; b.repathed = false; }
+  // Stuck measure for the checks: seconds of wanting to move without getting 1 m from where it last was (goal changes do not reset it).
+  if (Math.hypot(b.x - b.ax, b.z - b.az) > 1) { b.ax = b.x; b.az = b.z; b.anchorT = 0; }
+  else if (want && b.stunT <= 0) { b.anchorT += dt; if (b.anchorT > b.stuckMax) b.stuckMax = b.anchorT; }
+  if (b.floor && !b.air) b.zone = b.floor.s;
+  const n = Math.ceil(b.hp);
+  if (n !== b.hpShown) { b.hpShown = n; b.bar.scale.x = Math.max(0.001, b.hp / CONFIG.MAX_HP); }
+}
+// Brain (9b: roam). Sets b.mx, b.mz for this step.
+function botThink(b, dt) {
+  b.mx = 0; b.mz = 0;
+  if (b.goalT > CONFIG.BOT.goalHoldS || (!b.navWant && b.path.i >= b.path.n)) botRoamGoal(b);
+  botFollow(b);
+}
+// Walk the path toward its next point and land on it exactly: turn points are cell centres whose straight links were checked,
+// so a bot that cuts a corner early can clip a pillar (seen in batch 9b: stuck beside a pillar 0.1 m off the line).
+function botFollow(b) {
+  const p = b.path, stepM = suitSpeed(b) * CONFIG.STEP;
+  while (p.i < p.n) {
+    const tx = p.pts[p.i * 2] - b.x, tz = p.pts[p.i * 2 + 1] - b.z, d = Math.hypot(tx, tz);
+    if (d < 0.02) { p.i++; continue; }
+    const k = d < stepM ? d / stepM : 1;
+    b.mx = tx / d * k; b.mz = tz / d * k; return;
+  }
+}
+// Set a goal and ask for a path to it.
+function botGoal(b, x, z, y) { b.gx = x; b.gz = z; b.gy = y; b.goalT = 0; b.navWant = true; b.path.n = 0; b.path.i = 0; }
+// A random standing spot on a section that is neither warned nor gone (12 tries, else stay).
+function botRoamGoal(b) {
+  for (let t = 0; t < 12; t++) {
+    const v = Math.floor(brnd() * NAV.V), f = FLOORS[NAV.nf[v]];
+    if (!f.active || f.s.state !== 0) continue;
+    botGoal(b, NAV.x0 + (NAV.ni[v] + 0.5) * NAV.st, NAV.z0 + (NAV.nj[v] + 0.5) * NAV.st, NAV.ny[v]);
+    return;
+  }
+  b.goalT = 0;
+}
 function spotTaken(k) { for (let i = 0; i < NEUTRALS.length; i++) if (NEUTRALS[i].alive && NEUTRALS[i].spot === k) return true; return false; }
 // PERFRAME-END
 const ZONE_VARS = { zone: '' }, BOON_VARS = { v: 0, s: 0 }, BOON_TXT = [T('bn_power'), T('bn_regen'), T('bn_vision'), T('bn_speed')];
@@ -1762,7 +1936,7 @@ function startHunt() {
   }
   G.bannerWave = -1; G.fellT = 0; G.miniDirty = true;
   for (const u of CUBS) u.fuseOn = u.alive;
-  resetCubs(); resetNeutrals(false);
+  resetCubs(); resetNeutrals(false); clearBots();
   for (const u of CUBS) if (u.fuseOn) { u.sx = u.x; u.sz = u.z; u.sy = u.y; u.plate.position.set(u.x, u.y + 1, u.z); scene.add(u.plate); }
   G.phase = 'wake'; G.phaseT = 0; G.huntT = 0; G.plates = 0; G.bossDirty = true; G.bossHp = -1;
   G.hits = 0; G.minTell = 99; G.hitDmg = 0; G.bleedDmg = 0;
@@ -1851,6 +2025,11 @@ function drawMini() {
     const u = CUBS[i]; if (!u.seen) continue;
     c.beginPath(); c.arc((u.x - MINI.x0) * px, (u.z - MINI.z0) * py, 2.5, 0, 6.2832); c.fill();
   }
+  c.fillStyle = '#ff7a3a';
+  for (let i = 0; i < BOTLIST.length; i++) {
+    const b = BOTLIST[i]; if (!b.seen) continue;
+    c.beginPath(); c.arc((b.x - MINI.x0) * px, (b.z - MINI.z0) * py, 3, 0, 6.2832); c.fill();
+  }
   c.fillStyle = '#ffd040';
   for (let i = 0; i < NEUTRALS.length; i++) {
     const u = NEUTRALS[i]; if (!u.seen) continue;
@@ -1883,10 +2062,33 @@ function respawn(kind) {
   P.y = P.py = topY(P.x, P.z);
 }
 
+// Bots into the match at the other spawns (new run), or all out of it (the wake). Not deaths: no cause is recorded.
+function clearBots() {
+  for (const b of BOTLIST) { b.cause = ''; b.diedAt = -1; b.killer = null; botOut(b); }
+}
+function spawnBots() {
+  clearBots();
+  let k = 0;
+  for (let si = 0; si < SPAWNS.length && k < G.botN; si++) {
+    if (si === CONFIG.PLAYER_SPAWN) continue;
+    const b = BOTLIST[k++], sp = SPAWNS[si];
+    b.spawn = si; b.x = b.px = sp[0]; b.z = b.pz = sp[1]; b.y = b.py = topY(sp[0], sp[1]);
+    b.vy = 0; b.air = false; b.airFromY = 0; b.voidT = 0; b.dead = false; b.deadT = 0; b.hp = CONFIG.MAX_HP; b.hpShown = -1; b.noHealT = 0;
+    b.kx = b.kz = 0; b.faceX = 0; b.faceZ = -1; b.atkT = 0; b.stuckT = 0; b.stuckMax = 0; b.ax = b.x; b.az = b.z; b.anchorT = 0; b.repathed = false; b.zone = null; b.floor = null; b.moved = 0;
+    b.slowT = 0; b.slowK = 0; b.stunT = 0; b.bleedN = 0; b.bleedT = 0; b.pk[0] = b.pk[1] = ''; b.pt[0] = b.pt[1] = 0;
+    for (let i = 0; i < 4; i++) { b.bT[i] = 0; b.bV[i] = 0; }
+    b.cause = ''; b.diedAt = -1; b.killer = null; b.plates = 0; b.boons = 0; b.cd[0] = b.cd[1] = b.cd[2] = 0;
+    b.navWant = false; b.path.n = 0; b.path.i = 0; b.gx = b.x; b.gz = b.z; b.gy = b.y; b.goalT = 1e9; b.flashT = 0; b.body.material = b.mat;
+    b.thinkT = 0; b.tgt = null; b.mode = ''; b.modeT = 0; b.seenP = false; b.pend = false; b.pendT = 0; b.mx = b.mz = 0;
+    b.bar.scale.x = 1; b.seen = false; b.group.visible = false; b.group.position.set(b.x, b.y, b.z);
+    scene.add(b.group);
+  }
+  G.navRR = 0; G.navPeak = 0; G.alive = 1 + k;
+}
 // New run: resets everything the run changes (time, waves, sections, floors, player, banner, shadows).
 function reset() {
   P.pt[0] = P.pt[1] = 0; P.pk[0] = P.pk[1] = ''; P.plates = 0; P.boons = 0; P.cause = ''; P.diedAt = -1; P.killer = null; G.platesTaken = 0; G.hits = 0; G.minTell = 99; G.hitDmg = 0; G.bleedDmg = 0;
-  G.seed = G.seedFixed >= 0 ? G.seedFixed : (Date.now() >>> 0); RNG.s = G.seed | 0;
+  G.seed = G.seedFixed >= 0 ? G.seedFixed : (Date.now() >>> 0); RNG.s = G.seed | 0; BRNG.s = (G.seed ^ 0x5bd1e995) | 0;
   for (const k in BAGS) BAGS[k].i = BAGS[k].a.length;
   for (let i = 0; i < 4; i++) { P.bT[i] = 0; P.bV[i] = 0; }
   P.statusTick = -1; G.boons = 0; G.visR = CONFIG.VISION_R; if (G.view === 'follow') FOW.uFowR.value = G.visR;
@@ -1913,6 +2115,7 @@ function reset() {
   P.vy = 0; P.air = false; P.voidT = 0; P.dead = false; P.deadT = 0; P.kx = P.kz = 0;
   P.hp = CONFIG.MAX_HP; P.hpShown = -1; P.noHealT = 0; P.zone = null;
   updateHp();
+  spawnBots();
   setShow(el.banner, false);
   renderer.shadowMap.needsUpdate = true;
 }
@@ -1987,6 +2190,11 @@ function placeView(alpha) {
     u.group.position.set(u.px + (u.x - u.px) * alpha, u.y, u.pz + (u.z - u.pz) * alpha);
     u.body.rotation.y = Math.atan2(-u.fx, -u.fz);
   }
+  if (G.phase === 'royale') for (let i = 0; i < BOTLIST.length; i++) {
+    const b = BOTLIST[i]; if (!b.seen) continue;
+    b.group.position.set(b.px + (b.x - b.px) * alpha, b.py + (b.y - b.py) * alpha, b.pz + (b.z - b.pz) * alpha);
+    b.body.rotation.y = Math.atan2(-b.faceX, -b.faceZ);
+  }
   if (G.phase !== 'royale') for (let i = 0; i < ENEMIES.length; i++) {
     const u = ENEMIES[i]; if (!u.alive) continue;
     u.group.position.set(u.px + (u.x - u.px) * alpha, u.y, u.pz + (u.z - u.pz) * alpha);
@@ -2047,12 +2255,14 @@ for (const u of ENEMIES.concat(NEUTRALS)) {
 }
 for (const o of warmHunt) scene.add(o);
 for (const h of HAZARDS) h.ring.visible = true;
+for (const b of BOTLIST) if (b.group.parent) b.group.visible = true;
 placeView(1);
 renderer.compile(scene, camera);
 renderer.render(scene, camera);
 // One draw of the whole map so every section's buffers upload at load, not when first seen.
 setView('overview'); placeView(1); renderer.render(scene, camera); setView('follow');
 for (const h of HAZARDS) h.ring.visible = false;
+for (const b of BOTLIST) b.group.visible = false;
 for (const o of warmHunt) scene.remove(o);
 for (const u of ENEMIES.concat(NEUTRALS)) hideTell(u);
 for (const m of INDICATORS) m.visible = false;
@@ -2076,8 +2286,16 @@ window.__game = {
   altars: () => ALTAR_LIST.map((a) => ({ x: a.x, z: a.z, y: a.y, charge: a.charge, on: a.mesh.material === M.altarOn })),
   topY, broken: () => BROKEN.map((b) => b.slice()), K,
   floorIdx: (x, z, y) => FLOORS.indexOf(floorAt(x, z, y)), surfAt: (i, x, z) => surf(FLOORS[i], x, z),
-  moveTo(x, z) { ORD.attack = null; return navSearch(P.x, P.z, P.y, x, z, topY(x, z)); },
+  moveTo(x, z) { ORD.attack = null; return navSearch(P.x, P.z, P.y, x, z, topY(x, z), PATH, true); },
   path: () => ({ n: PATH.n, i: PATH.i, pts: Array.from(PATH.pts.slice(0, PATH.n * 2)) }),
+  navTime(ax, az, bx, bz, smooth) { const t0 = performance.now(); const ok = navSearch(ax, az, topY(ax, az), bx, bz, topY(bx, bz), NAV_SCRATCH, smooth); return { ms: performance.now() - t0, ok, n: NAV_SCRATCH.n }; },
+  navNodes: () => NAV.V,
+  setBots(n) { G.botN = Math.max(0, Math.min(CONFIG.BOTS.count, n)); },
+  bots: () => ({ n: G.botN, alive: G.alive, navRuns: G.navRuns, navPeak: G.navPeak, list: BOTLIST.slice(0, G.botN).map((b) => ({ id: b.id, x: b.x, y: b.y, z: b.z, hp: b.hp, dead: b.dead, cause: b.cause, diedAt: b.diedAt,
+    killer: b.killer ? b.killer.id : -1, stuck: b.stuckMax, zone: b.zone ? b.zone.id : null, seen: b.seen, vis: b.group.visible, inScene: !!b.group.parent, plates: b.plates, boons: b.boons,
+    tgt: b.tgt ? b.tgt.id : -1, mode: b.mode, spawn: b.spawn, air: b.air, standOk: b.dead || b.air || !!floorAt(b.x, b.z, b.y + 0.05) })) }),
+  botDbg(i) { const b = BOTLIST[i]; return { x: b.x, z: b.z, y: b.y, mx: b.mx, mz: b.mz, gx: b.gx, gz: b.gz, n: b.path.n, i: b.path.i, pts: Array.from(b.path.pts.slice(0, b.path.n * 2)), stuckT: b.stuckT, want: b.navWant }; },
+  hitBot(i, n) { hurtSuit(BOTLIST[i], n, 'test', null); }, placeBot(i, x, z) { const b = BOTLIST[i]; b.x = b.px = x; b.z = b.pz = z; b.y = b.py = topY(x, z); b.air = false; b.vy = 0; },
   attack(i) { ORD.attack = DUMMY_LIST[i]; PATH.n = 0; }, stop: stopOrders,
   cast(slot, x, z) { return castSkill(slot, x, z); }, autoCast, autoTargetIdx: (r) => DUMMY_LIST.indexOf(autoTarget(r)),
   dummies: () => DUMMY_LIST.map((d) => ({ x: d.x, z: d.z, hp: d.hp, seen: d.seen, visible: d.body.visible })),

@@ -13,7 +13,8 @@ const server = createServer(async (req, res) => {
   try { const b = await readFile(p); res.writeHead(200, { 'content-type': TYPES[extname(p)] || 'application/octet-stream' }); res.end(b); }
   catch { res.writeHead(404); res.end(); }
 }).listen(0);
-const URL0 = `http://127.0.0.1:${server.address().port}/?lock&tier=medium`;
+// bots=0: the map-test checks run with the player alone; the bot checks (56+) set the bots themselves.
+const URL0 = `http://127.0.0.1:${server.address().port}/?lock&tier=medium&bots=0`;
 
 const results = [];
 function check(name, ok, detail) { results.push({ name, ok: !!ok, detail }); }
@@ -715,6 +716,61 @@ try {
   });
   check('55 buff creatures: lost with a fallen section (no boon, drawn again), cleared by the wake, switch off, memory and shaders flat', nl.lost && nl.boons === 0 && nl.redrawn && nl.backOnLiveGround
     && nl.wake && nl.off && nl.geoms === base.geoms && nl.programs === base.programs, JSON.stringify(nl));
+
+  // ----- Bots (batch 9). Each check sets the bots itself and puts the map test back (0 bots) at the end.
+  // 56 Nine bots spawn at the other spawns and roam 230 s (player parked in the core hall): every tick their centre stays on a floor or they are airborne,
+  // never stuck over 3 s, at most one path search per step, seen only inside the player's vision, every bot that is out has a cause. navSearch timing is reported (not gated: wall clock).
+  const bw = await g(() => {
+    const G = __game, C = G.config, viol = [], bad = (s) => { if (viol.length < 5) viol.push(s); };
+    G.setSeed(12345); G.setBots(9); G.reset();
+    const b0 = G.bots(), spawns = new Set(b0.list.map((q) => q.spawn));
+    const o = { n: b0.list.length, distinct: spawns.size === 9 && !spawns.has(C.PLAYER_SPAWN), inScene: b0.list.every((q) => q.inScene && !q.dead && q.hp === 100) };
+    G.teleport(0, -50); const steps = Math.round(230 / C.STEP); const runs0 = G.bots().navRuns;
+    for (let t = 0; t < steps; t++) {
+      G.step(1);
+      if (t % 10) continue;
+      const b = G.bots(), s = G.state();
+      for (const q of b.list) {
+        if (!q.standOk) bad(`t${t} bot${q.id} off floor`);
+        if (q.seen && Math.hypot(q.x - s.x, q.z - s.z) > G.neutrals().visR + 1e-6) bad(`t${t} bot${q.id} seen outside vision`);
+        if (q.dead && q.inScene) bad(`t${t} bot${q.id} out but drawn`);
+      }
+    }
+    const b = G.bots(); o.navPeak = b.navPeak; o.navPerStep = +((b.navRuns - runs0) / steps).toFixed(4); o.stuck = +Math.max(...b.list.map((q) => q.stuck)).toFixed(2);
+    o.out = b.list.filter((q) => q.dead).map((q) => q.cause); o.noCause = o.out.filter((c) => !['hit', 'hazard', 'fall', 'bleed', 'drop'].includes(c)).length;
+    const pts = G.spawns.map((s) => [s[0], s[1]]).concat([[0, 30], [-50, -15], [50, -15], [0, -40]]), ms = [];
+    for (const a of pts) for (const c of pts) if (a !== c) ms.push(G.navTime(a[0], a[1], c[0], c[1], false).ms);
+    ms.push(G.navTime(pts[0][0], pts[0][1], 0, 60, false).ms); ms.sort((x, y) => x - y);
+    o.navMs = { median: +ms[ms.length >> 1].toFixed(2), max: +ms[ms.length - 1].toFixed(2) }; o.viol = viol;
+    G.setBots(0); G.reset(); return o;
+  });
+  check('56 bots: 9 at the other spawns, roam 230 s: on a floor every tick, never stuck > 3 s, <= 1 path search per step, seen only in vision, every out has a cause',
+    bw.n === 9 && bw.distinct && bw.inScene && bw.viol.length === 0 && bw.stuck <= 3 && bw.navPeak === 1 && bw.noCause === 0, JSON.stringify(bw));
+  // 57 Budget with 10 suits, 7 cubs and their tells in view (default tier): under 500 calls / 0.5M tris, no new shader program, geometry count flat.
+  const bb = await g(() => {
+    const G = __game, C = G.config, K = window.__k, waves = C.KENNEL.waves; let best = null;
+    try {
+      C.KENNEL.waves = [[['stalker', 0], ['stalker', 0], ['stalker', 0], ['stalker', 0], ['howler', 0], ['howler', 0], ['howler', 0]]];
+      G.setSeed(12345); G.setBots(9); G.reset(); K.sp(C.KENNEL.firstS + 0.1); G.setHp(1e9);
+      const cx = G.camps[0][0], cz = G.camps[0][1] + 4; G.teleport(cx, cz);
+      for (let n = 0; n < 600; n++) {
+        for (let i = 0; i < 9; i++) G.placeBot(i, cx - 4 + (i % 3) * 3, cz + 2 + Math.floor(i / 3) * 1.5);
+        G.step(1); const c = G.cubs();
+        if (!best || c.tells.length > best.tells) { const r = G.render(true); best = { tells: c.tells.length, bots: G.bots().list.filter((q) => q.vis).length, cubs: c.list.filter((u) => u.alive && u.seen).length, calls: r.calls, tris: r.tris, programs: r.programs, geoms: r.geoms }; }
+      }
+    } finally { C.KENNEL.waves = waves; G.setBots(0); G.reset(); }
+    return best;
+  });
+  check('57 budget: 10 suits + 7 cubs + tells drawn (calls<500, tris<500k), no shader compile, geometry flat', bb.bots === 9 && bb.cubs === 7 && bb.tells >= 3 && bb.calls < 500 && bb.tris < 500000
+    && bb.programs === base.programs && bb.geoms === base.geoms, JSON.stringify(bb));
+  // 58 Three runs with bots in the same page: bots respawn full, memory and shaders flat.
+  const bm = await g(() => {
+    const G = __game, K = window.__k, out = [];
+    G.setBots(9);
+    for (let r = 0; r < 3; r++) { G.setSeed(100 + r); G.reset(); const b = G.bots(); const fresh = b.list.every((q) => !q.dead && q.hp === 100 && q.inScene && q.plates === 0); K.sp(40); const m = G.render(true); out.push({ fresh, geoms: m.geoms, texs: m.texs, programs: m.programs }); }
+    G.setBots(0); G.reset(); return out;
+  });
+  check('58 new run x3 with bots: fresh bots, memory and shaders flat', bm.every((m) => m.fresh && m.geoms === base.geoms && m.texs === base.texs && m.programs === base.programs), JSON.stringify(bm));
 
   // 10 No shader compiles across collapses, hazard tells and empty altars.
   const progAfter = await g(() => __game.render(true));
