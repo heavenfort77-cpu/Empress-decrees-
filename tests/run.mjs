@@ -533,6 +533,121 @@ try {
   const mk = await g(() => __game.moves.filter((k) => !__game.text['move_' + k]));
   check('45 text keys for every move', mk.length === 0, mk.join(' '));
 
+  // ===== Batch 7: royale minions (kennel waves, cubs at camps, plate reward) =====
+  await g(() => { const G = __game, C = G.config; window.__k = { sp: (t) => G.step(Math.round(t / C.STEP)), mute: (i, except) => { for (const k of G.moves) G.cubCd(i, k, k === except ? 0 : 9999); },
+    until: (cond, max) => { let n = 0; while (n < max && !cond(G.cubs())) { G.step(1); n++; } return n; } }; });
+  // 46 Kennel wave: 5 s warning (her line, plain rule with the zone), then one Stalker at the camp; it rests while no suit is inside its aggro radius. Switch off = no cubs.
+  const ken = await g(() => {
+    const G = __game, C = G.config, K = window.__k, o = {}; G.reset();
+    K.sp(C.KENNEL.firstS - C.KENNEL.warnS - 0.1); let c = G.cubs(); o.early = c.warned || c.list.some((u) => u.alive);
+    K.sp(0.2); c = G.cubs(); o.warned = c.warned; o.banner = c.banner; o.voiceOk = c.voice === G.text.voice_kennel; o.rule = c.rule; o.noneYet = !c.list.some((u) => u.alive);
+    K.sp(C.KENNEL.warnS); c = G.cubs(); const a = c.list.filter((u) => u.alive); o.n = a.length; o.kind = a[0] && a[0].kind; o.atCamp = a[0] && Math.hypot(a[0].x - G.camps[0][0], a[0].z - G.camps[0][1]) < 0.01;
+    o.hp = a[0] && a[0].hp; o.want = C.STALKER.hp * C.CUB.hpK; o.seenFar = a[0] && a[0].seen; o.wave = c.wave;
+    G.teleport(G.camps[0][0] + C.CUB.aggro + 2, G.camps[0][1]); K.sp(5); c = G.cubs(); const b = c.list.find((u) => u.alive);
+    o.rest = !b.hot && c.tells.length === 0 && Math.hypot(b.x - b.cx, b.z - b.cz) < 0.01 && b.seen; o.warnS = C.KENNEL.warnS;
+    C.ROYALE_MINIONS = false; G.reset(); K.sp(C.KENNEL.firstS + 1); c = G.cubs(); o.off = !c.warned && !c.list.some((u) => u.alive); C.ROYALE_MINIONS = true; G.reset();
+    return o;
+  });
+  check('46 kennel wave: warning with zone, Stalker at the camp, rests outside aggro; switch off = none', !ken.early && ken.warned && ken.banner === 'block' && ken.voiceOk && /West courtyard, north/.test(ken.rule)
+    && ken.noneYet && ken.warnS >= 0.4 && ken.n === 1 && ken.kind === 'stalker' && ken.atCamp && ken.hp === ken.want && !ken.seenFar && ken.wave === 1 && ken.rest && ken.off, JSON.stringify(ken));
+  // 47 Cub fight rules: aggro inside the radius, told bite with scaled damage, leash home and heal; a Flank aimed past a terrace edge never puts the cub over the drop.
+  const cf = await g(() => {
+    const G = __game, C = G.config, K = window.__k, o = {}; G.reset(); K.sp(C.KENNEL.firstS + 0.1);
+    let c = G.cubs(); const a = c.list.findIndex((u) => u.alive), u = c.list[a]; K.mute(a, 'bite');
+    G.teleport(u.x + C.CUB.aggro - 1, u.z); G.step(2); o.hot = G.cubs().list[a].hot;
+    K.until((x) => x.tells.length > 0, 600); const t = G.cubs().tells[0]; o.move = t && t.move; let n = 0, early = false;
+    while (G.cubs().tells.length > 0 && n < 200) { if (G.state().hp < 100) early = true; G.step(1); n++; }
+    o.windupS = n * C.STEP; o.early = early; o.hp = G.state().hp; o.wantHp = 100 - C.MOVES.bite.dmg * C.CUB.dmgK; o.minTell = G.cubs().minTell;
+    K.mute(a); G.hitCub(a, 40); const hurtHp = G.cubs().list[a].hp;
+    G.teleport(u.cx + 6, u.cz + C.CUB.leash + 4); G.step(30); o.home = G.cubs().list[a].home; K.sp(C.CUB.homeMaxS + 2); c = G.cubs(); const b = c.list[a];
+    o.back = Math.hypot(b.x - b.cx, b.z - b.cz) < 0.7 && !b.home && !b.hot; o.healed = hurtHp < b.max && b.hp === b.max;
+    const waves = C.KENNEL.waves, leash = C.CUB.leash;
+    try {
+      C.KENNEL.waves = [[['howler', 0]]]; C.CUB.leash = 40; G.reset(); K.sp(C.KENNEL.firstS + 0.1); G.setHp(1e9);
+      const h = G.cubs().list.findIndex((x) => x.alive); K.mute(h, 'flank'); G.placeCub(h, -54, -5); G.teleport(-54, -0.8); G.step(1);
+      K.until((x) => x.tells.length > 0, 300); o.flank = G.cubs().tells[0] && G.cubs().tells[0].move; K.until((x) => x.tells.length === 0 && x.list[h].st !== 2, 300);
+      const f = G.cubs().list[h]; o.edge = { z: +f.z.toFixed(2), y: f.y, floor: G.topY(f.x, f.z), ok: f.standOk };
+    } finally { C.KENNEL.waves = waves; C.CUB.leash = leash; G.reset(); }
+    return o;
+  });
+  check('47 cub rules: aggro, told bite (>= 0.4 s) at scaled damage, leash home and heal, no flank over a drop', cf.hot && cf.move === 'bite' && cf.windupS >= 0.4 && !cf.early && cf.hp === cf.wantHp && cf.minTell >= 0.4
+    && cf.home && cf.back && cf.healed && cf.flank === 'flank' && cf.edge.ok && cf.edge.y === 4 && Math.abs(cf.edge.floor - cf.edge.y) < 0.7, JSON.stringify(cf));
+  // 48 Plate reward: plate flies to the player, 45 s buff in one of two slots, ultimate cooldown cut, Stalker plate = bleed on hits, Howler plate = speed, oldest slot replaced, buff runs out.
+  const pl = await g(() => {
+    const G = __game, C = G.config, K = window.__k, o = {}, fly = Math.round(C.PLATE.flyS / C.STEP) + 2; G.reset(); K.sp(C.KENNEL.firstS + 0.1); G.setHp(1e9);
+    let c = G.cubs(); const a = c.list.findIndex((u) => u.alive), ua = c.list[a]; K.mute(a);
+    G.teleport(ua.x + 4, ua.z + 3); G.step(2); G.cast(2, ua.x + 40, ua.z + 3); const cd0 = G.cubs().ultCd;
+    G.hitCub(a, 1e6); c = G.cubs(); o.dead = !c.list[a].alive && !c.list[a].inScene && !c.list[a].tellIn; o.flying = c.list[a].plate; o.takenBefore = c.taken;
+    G.step(fly); c = G.cubs(); o.slot0 = c.plates[0].kind; o.t0 = c.plates[0].t; o.status = c.status; o.rule = c.rule; o.plateGone = !c.list[a].plate; o.taken = c.taken;
+    o.cut = cd0 - c.ultCd - fly * C.STEP; o.wantCut = C.PLATE.ultCut * C.SKILLS[2].cd;
+    K.sp(C.KENNEL.intervalS); c = G.cubs(); o.expired = c.plates.every((p) => p.kind === '' && p.t === 0) && c.status === '';
+    const h = c.list.findIndex((u) => u.alive && u.kind === 'howler'), uh = c.list[h]; K.mute(h);
+    G.teleport(uh.x - 4, uh.z); G.step(2); G.givePlate('stalker'); G.cast(0, uh.x, uh.z); const hp1 = G.cubs().list[h].hp; o.lineHit = uh.hp - hp1; o.bleedOn = G.cubs().list[h].bleed > 0;
+    G.step(60); o.bleedLoss = hp1 - G.cubs().list[h].hp; o.wantBleed = C.PLATE.bleedDps;
+    G.givePlate('howler'); G.stop(); const z0 = G.state().z; G.setMove(0, 1); G.step(30); G.clearMove(); o.fastDz = G.state().z - z0; o.wantDz = C.PLAYER_SPEED * (1 + C.PLATE.speed) * 0.5;
+    G.hitCub(h, 1e6); G.step(fly); c = G.cubs(); o.slots = c.plates.map((p) => p.kind).join(); o.taken2 = c.taken; o.status2 = c.status;
+    return o;
+  });
+  check('48 plate: flight shown, buff slot, ultimate cooldown cut, bleed on hits, speed, oldest slot replaced, expiry', pl.dead && pl.flying && pl.takenBefore === 0 && pl.slot0 === 'stalker' && pl.t0 > 44 && /Stalker plate 4\ds/.test(pl.status)
+    && /Stalker plate/.test(pl.rule) && pl.plateGone && pl.taken === 1 && Math.abs(pl.cut - pl.wantCut) < 0.05 && pl.expired && pl.lineHit === 25 && pl.bleedOn && Math.abs(pl.bleedLoss - pl.wantBleed) < 0.2
+    && Math.abs(pl.fastDz - pl.wantDz) < 0.05 && pl.slots === 'howler,howler' && pl.taken2 === 2 && /Howler plate/.test(pl.status2), JSON.stringify(pl));
+  // 49 Collapse: a cub whose section falls is lost and gives no plate; a fallen camp spawns nothing.
+  const kc = await g(() => {
+    const G = __game, C = G.config, K = window.__k, o = {}, waves = C.KENNEL.waves;
+    try {
+      C.KENNEL.waves = [[['stalker', 2]], [['stalker', 2]]]; G.reset(); K.sp(C.KENNEL.firstS + 0.1); let c = G.cubs(); o.onRoof = c.list.filter((u) => u.alive).length;
+      K.sp(C.FIRST_WAVE_S - C.KENNEL.firstS + 1.5); c = G.cubs(); o.lost = !c.list.some((u) => u.alive || u.inScene || u.plate || u.tellIn); o.taken = c.taken; o.slots = c.plates.map((p) => p.kind).join('');
+      K.sp(C.KENNEL.intervalS); c = G.cubs(); o.wave = c.wave; o.noSpawn = !c.list.some((u) => u.alive); o.banner2 = c.voice === G.text.voice_kennel && c.banner === 'block';
+    } finally { C.KENNEL.waves = waves; G.reset(); }
+    return o;
+  });
+  check('49 collapse: cub lost with its section, no plate; fallen camp spawns nothing and is not announced', kc.onRoof === 1 && kc.lost && kc.taken === 0 && kc.slots === '' && kc.wave === 2 && kc.noSpawn && !kc.banner2, JSON.stringify(kc));
+  // 50 The wake clears the cubs; a new run restarts the waves; memory and shaders flat with the whole pool out and tells drawn.
+  const kr = await g(() => {
+    const G = __game, C = G.config, K = window.__k, o = {}, waves = C.KENNEL.waves;
+    G.reset(); K.sp(C.KENNEL.firstS + C.KENNEL.intervalS + 0.1); o.before = G.cubs().list.filter((u) => u.alive).length;
+    G.startHunt(); let c = G.cubs(); o.cleared = !c.list.some((u) => u.alive || u.inScene || u.tellIn || u.plate || u.seen); K.sp(5); o.noneInHunt = !G.cubs().list.some((u) => u.alive);
+    G.reset(); c = G.cubs(); o.reset = c.wave === 0 && !c.warned && !c.list.some((u) => u.alive);
+    try {
+      C.KENNEL.waves = [[['stalker', 0], ['stalker', 0], ['stalker', 0], ['stalker', 0], ['howler', 0], ['howler', 0], ['howler', 0]]]; G.reset(); K.sp(C.KENNEL.firstS + 0.1); G.setHp(1e9);
+      G.teleport(G.camps[0][0], G.camps[0][1] + 4); let best = null;
+      for (let n = 0; n < 600; n++) { G.step(1); c = G.cubs(); if (!best || c.tells.length > best.tells) { const r = G.render(true); best = { tells: c.tells.length, alive: c.list.filter((u) => u.alive).length, calls: r.calls, tris: r.tris, programs: r.programs, geoms: r.geoms }; } }
+      o.best = best;
+    } finally { C.KENNEL.waves = waves; G.reset(); }
+    return o;
+  });
+  check('50 wake clears cubs, new run restarts waves; 7 cubs with tells inside budget, no shader compile, memory flat', kr.before === 3 && kr.cleared && kr.noneInHunt && kr.reset && kr.best.alive === 7 && kr.best.tells >= 3
+    && kr.best.calls < 500 && kr.best.tris < 500000 && kr.best.programs === base.programs && kr.best.geoms === base.geoms, JSON.stringify(kr));
+  // 51 Bot farms the west camp for 170 s (0.3 s reaction) with always-true checks every tick: hits only after a shown tell >= 0.4 s, cubs on their own floor, pool never exceeded.
+  const farm = await g(() => {
+    const G = __game, C = G.config, viol = [], bad = (s) => { if (viol.length < 5) viol.push(s); }; G.reset(); G.teleport(G.camps[0][0] + 5, G.camps[0][1] + 5);
+    let minHp = 100, deaths = 0; const max = Math.round(170 / C.STEP), react = 0.3;
+    for (let n = 0; n < max; n++) {
+      const c = G.cubs(), s = G.state(); minHp = Math.min(minHp, s.hp); if (s.dead) deaths++;
+      if (c.hits > 0 && c.minTell < 0.4 - 1e-9) bad('tell under 0.4 s: ' + c.minTell);
+      if (c.list.filter((u) => u.alive).length > c.list.length) bad('pool exceeded');
+      for (const u of c.list) if (u.alive) { if (!u.standOk) bad(u.kind + ' off its floor'); if (u.st !== 2 && Math.abs(G.topY(u.x, u.z) - u.y) > 0.7) bad(u.kind + ' not on a floor surface'); if (!Number.isFinite(u.x + u.z + u.hp)) bad('NaN'); }
+      for (const t of c.tells) if (!t.shown) bad('tell not shown: ' + t.move);
+      let mx = 0, mz = 0, danger = false;
+      for (const t of c.tells) {
+        if (t.age < react) continue;
+        const qx = s.x - t.x, qz = s.z - t.z, m = 0.4;
+        if (t.shape === 'line') { const along = qx * t.fx + qz * t.fz, side = qx * t.fz - qz * t.fx; if (along >= -m && along <= t.len + m && Math.abs(side) <= t.w / 2 + m) { danger = true; const sg = side >= 0 ? 1 : -1; mx += t.fz * sg; mz -= t.fx * sg; } }
+        else { const d = Math.hypot(qx, qz); if (d <= t.r + m) { danger = true; if (d > 0.01) { mx += qx / d; mz += qz / d; } else mx += 1; } }
+      }
+      if (danger) { const l = Math.hypot(mx, mz) || 1; G.setMove(mx / l, mz / l); }
+      else {
+        G.clearMove(); let ti = -1, bd = 1e9;
+        c.list.forEach((u, i) => { const d = Math.hypot(u.x - s.x, u.z - s.z); if (u.alive && u.seen && d < bd) { bd = d; ti = i; } });
+        if (ti >= 0) { G.attackCub(ti); const cd = G.skills(), u = c.list[ti]; for (let k = 0; k < 2; k++) if (cd[k] === 0 && bd <= C.SKILLS[k].range) G.cast(k, u.x, u.z); }
+      }
+      G.step(1);
+    }
+    G.clearMove(); const c = G.cubs();
+    return { viol, taken: c.taken, minHp: Math.round(minHp), deaths, hits: c.hits, wave: c.wave };
+  });
+  check('51 bot farms the west camp 170 s: 0 broken invariants, takes plates, never dies', farm.viol.length === 0 && farm.taken >= 2 && farm.deaths === 0 && farm.wave === 3, JSON.stringify(farm));
+
   // 10 No shader compiles across collapses, hazard tells and empty altars.
   const progAfter = await g(() => __game.render(true));
   check('10 no shader compile during play', progAfter.programs === base.programs, `programs load ${base.programs}, after ${progAfter.programs}`);

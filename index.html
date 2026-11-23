@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
-<title>Empress Decrees - box prototype (batch 6)</title>
+<title>Empress Decrees - box prototype (batch 7)</title>
 <style>
 html,body{margin:0;height:100%;overflow:hidden;background:#1b1620;color:#f3e6c8;touch-action:none;user-select:none;-webkit-user-select:none}
 canvas{display:block}
@@ -213,8 +213,14 @@ const CONFIG = {
   },
   // Bleed on the player: damage per second per stack, seconds it lasts (each new stack refreshes it), most stacks.
   BLEED: { dps: 2, dur: 4, max: 3 },
-  // Feature switches for parts that are not built or approved yet.
-  ROYALE_MINIONS: false,
+  // Feature switch: royale minions (cubs at the camps, plate reward).
+  ROYALE_MINIONS: true,
+  // Kennel waves: seconds to the first wave, seconds between waves, warning seconds (banner and map ring), and per wave a list of [kind, index into CAMPS]. CAMPS order: W1, E1, roof, C2.
+  KENNEL: { firstS: 30, intervalS: 60, warnS: 5, waves: [[['stalker', 0]], [['stalker', 0], ['howler', 1]], [['stalker', 3], ['howler', 1]], [['stalker', 3], ['howler', 3]]] },
+  // Cubs: health and damage scale against the apex minions, aggro radius (m), leash radius from the camp (m), heal per second at rest, seconds before a returning cub is put back on its camp, pool sizes.
+  CUB: { hpK: 0.8, dmgK: 0.6, aggro: 6, leash: 12, heal: 25, homeMaxS: 6, stalkers: 4, howlers: 3 },
+  // Plate reward (two slots): buff seconds, share of the ultimate cooldown removed (stand-in for ultimate charge), bleed dps and seconds on targets (Stalker plate), speed bonus (Howler plate), plate flight seconds.
+  PLATE: { buffS: 45, ultCut: 0.3, bleedDps: 4, bleedS: 3, speed: 0.1, flyS: 0.7 },
   // Feature switch: next run's statue wears the last winner's school colour (approved, built later).
   WINNER_STATUE: false,
 };
@@ -266,6 +272,13 @@ const TEXT = {
   st_stun: 'Stunned',
   st_slow: 'Slowed',
   st_bleed: 'Bleeding x{n}',
+  voice_kennel: 'Our kennels stand open. Take what falleth, if thou canst.',
+  rule_kennel: 'Cubs appear in {s} s at: {zones}. Kill one to take its plate.',
+  voice_plate_take: 'It is thine. For now.',
+  rule_plate_s: 'Stalker plate: your hits cause bleeding for {s} s. Ultimate cooldown cut.',
+  rule_plate_h: 'Howler plate: +{p}% speed for {s} s. Ultimate cooldown cut.',
+  buff_stalker: 'Stalker plate {s}s',
+  buff_howler: 'Howler plate {s}s',
   move_claw: 'Claw swipe', move_pounce: 'Pounce', move_roar: 'Metal roar', move_bite: 'Bite',
   move_lunge: 'Lunge', move_rend: 'Rend', move_flank: 'Flank', move_howl: 'Howl',
 };
@@ -612,7 +625,7 @@ const WAVES = CONFIG.WAVES.map((ids, i) => ({
 // air = airborne (dropping a layer or into the void); voidT = time airborne with no floor below.
 const P = { x: 0, z: 0, y: 0, px: 0, pz: 0, py: 0, vy: 0, air: false, airFromY: 0, voidT: 0, dead: false, deadT: 0,
   hp: 100, hpShown: -1, noHealT: 0, kx: 0, kz: 0, faceX: 0, faceZ: -1, atkT: 0, stuckT: 0, zone: null,
-  slowT: 0, slowK: 0, stunT: 0, bleedN: 0, bleedT: 0, statusShown: -1 };
+  slowT: 0, slowK: 0, stunT: 0, bleedN: 0, bleedT: 0, statusShown: -1, pk: ['', ''], pt: [0, 0] };
 const playerGroup = new THREE.Group();
 const playerBody = new THREE.Mesh(mergeGeoms([box(0.9, 1.5, 0.9, 0, 0.75, 0), box(0.6, 0.5, 0.6, 0, 1.8, 0)]), M.player);
 playerBody.castShadow = false;
@@ -632,26 +645,36 @@ const beastGeo = mergeGeoms([box(1.8, 1.1, 3.0, 0, 1.25, 0), box(1.2, 1.0, 1.1, 
   box(0.5, 0.8, 0.5, -0.65, 0.4, -1.1), box(0.5, 0.8, 0.5, 0.65, 0.4, -1.1), box(0.5, 0.8, 0.5, -0.65, 0.4, 1.1), box(0.5, 0.8, 0.5, 0.65, 0.4, 1.1)]);
 const tellLineGeo = new THREE.BoxGeometry(1, 0.05, 1).translate(0, 0, -0.5);
 const plateGeo = new THREE.BoxGeometry(0.7, 0.15, 0.7);
+const tellRingGeo = new THREE.RingGeometry(0.85, 1, 56); tellRingGeo.rotateX(-Math.PI / 2);
 function makeUnit(kind, cfg, m, tellMat, atk, skills, gain) {
   const group = new THREE.Group(), body = new THREE.Mesh(beastGeo, m);
   body.scale.setScalar(cfg.scale);
   const bar = new THREE.Mesh(dummyBarGeo, M.camp); bar.position.set(-0.5, 2.3 * cfg.scale + 0.6, 0);
   group.add(body, bar);
-  const ring = flatRing(0.85, 1, tellMat), line = new THREE.Mesh(tellLineGeo, tellMat), plate = new THREE.Mesh(plateGeo, m);
+  const ring = new THREE.Mesh(tellRingGeo, tellMat), line = new THREE.Mesh(tellLineGeo, tellMat), plate = new THREE.Mesh(plateGeo, m);
   ring.visible = false; line.visible = false;
   const cd = {}; for (const k of MOVE_KEYS) cd[k] = 0;
   return { kind, cfg, r: cfg.r, mat: m, tellMat, group, body, bar, ring, line, plate, atk, base: skills, skills: skills.slice(), gain, cd,
     x: 0, z: 0, y: 0, px: 0, pz: 0, fx: 0, fz: 1, hp: 0, alive: false, seen: false, st: 0, t: 0, cur: '', tellT: 0,
     tx: 0, tz: 0, tl: 0, ax: 0, az: 0, bx: 0, bz: 0, dashS: 0.2, gapT: 0, rot: 0, flashT: 0, frenzyT: 0, ultUsed: false, ultCd: 0,
-    side: 1, plateOn: false, plateT: 0, sx: 0, sz: 0, hx: 0, hz: 0 };
+    side: 1, plateOn: false, plateT: 0, sx: 0, sz: 0, hx: 0, hz: 0,
+    maxHp: cfg.hp, dmgK: 1, hunt: true, cub: false, cx: 0, cz: 0, cy: 0, camp: -1, home: false, hot: false, homeT: 0, bleedT: 0 };
 }
 const DEMON = makeUnit('demon', CONFIG.DEMON, M.demon, M.tellD, 'claw', ['pounce', 'roar'], null);
 const STALKER = makeUnit('stalker', CONFIG.STALKER, M.stalker, M.tellS, 'bite', ['lunge', 'rend'], ['lunge', 'rend']);
 const HOWLER = makeUnit('howler', CONFIG.HOWLER, M.howler, M.tellH, 'bite', ['flank', 'howl'], ['flank', 'howl']);
 STALKER.side = -1;
 const ENEMIES = [DEMON, STALKER, HOWLER];
-// Everything the player can target: training dummies and hunt units share x, z, r, hp, seen.
-const TARGETS = DUMMY_LIST.concat(ENEMIES);
+// Royale cubs: a fixed pool with the minions' kits at lower health and damage. They guard a camp and leash back to it.
+const CUBS = [];
+for (let i = 0; i < CONFIG.CUB.stalkers + CONFIG.CUB.howlers; i++) {
+  const st = i < CONFIG.CUB.stalkers;
+  const u = makeUnit(st ? 'stalker' : 'howler', st ? CONFIG.STALKER : CONFIG.HOWLER, st ? M.stalker : M.howler, st ? M.tellS : M.tellH, 'bite', st ? ['lunge', 'rend'] : ['flank', 'howl'], null);
+  u.hunt = false; u.cub = true; u.maxHp = u.cfg.hp * CONFIG.CUB.hpK; u.dmgK = CONFIG.CUB.dmgK; u.side = i % 2 ? 1 : -1;
+  CUBS.push(u);
+}
+// Everything the player can target: training dummies, hunt units and cubs share x, z, r, hp, seen.
+const TARGETS = DUMMY_LIST.concat(ENEMIES, CUBS);
 // Gate seal shown during the hunt.
 const sealMesh = new THREE.Mesh(new THREE.BoxGeometry((GATE.x1 - GATE.x0), 2.6, 0.3).translate(0, 1.3, CH.z1 - 0.5), M.tellD);
 sealMesh.matrixAutoUpdate = false; sealMesh.updateMatrix();
@@ -832,7 +855,12 @@ function applySkill(slot, x, z, dx, dz) {
 }
 // The player may act: alive, not stunned, and no end screen is up.
 function canAct() { return !P.dead && P.stunT <= 0 && G.phase !== 'won' && G.phase !== 'lost'; }
-function hitTarget(d, n) { if (d.kind) hitEnemy(d, n); else hitDummy(d, n); }
+function hasPlate(kind) { return (P.pt[0] > 0 && P.pk[0] === kind) || (P.pt[1] > 0 && P.pk[1] === kind); }
+function hitTarget(d, n) {
+  if (!d.kind) { hitDummy(d, n); return; }
+  hitEnemy(d, n);
+  if (d.alive && hasPlate('stalker')) d.bleedT = CONFIG.PLATE.bleedS;
+}
 function hitDummy(d, n) {
   d.hp = Math.max(0, d.hp - n); d.flashT = 0.12; d.body.material = M.hit;
   d.bar.scale.x = Math.max(0.001, d.hp / CONFIG.DUMMY_HP);
@@ -1020,7 +1048,8 @@ function heapPop(hs) {
 
 // ===================== Game state =====================
 const G = { time: 0, view: 'follow', paused: false, ctxLost: false, frames: 0, bannerWave: -1, fellT: 0, nextWave: -2, fxT: 0, miniDirty: true, miniT: 0,
-  phase: 'royale', phaseT: 0, huntT: 0, plates: 0, bossDirty: true, bossHp: -1, hits: 0, minTell: 99, hitDmg: 0, bleedDmg: 0 };
+  phase: 'royale', phaseT: 0, huntT: 0, plates: 0, bossDirty: true, bossHp: -1, hits: 0, minTell: 99, hitDmg: 0, bleedDmg: 0,
+  kWave: 0, kWarned: false, platesTaken: 0 };
 
 function warnSection(s) { G.miniDirty = true; s.state = 1; for (let i = 0; i < s.floorMeshes.length; i++) s.floorMeshes[i].material = warnMat; }
 function dropSection(s) {
@@ -1105,6 +1134,8 @@ function step(dt) {
     P.bleedT -= dt; const b = CONFIG.BLEED.dps * P.bleedN * dt; G.bleedDmg += Math.min(b, P.hp); hurt(b);
     if (P.bleedT <= 0) P.bleedN = 0;
   }
+  for (let i = 0; i < 2; i++) if (P.pt[i] > 0) { P.pt[i] -= dt; if (P.pt[i] <= 0) { P.pt[i] = 0; P.pk[i] = ''; } }
+  if (roy && CONFIG.ROYALE_MINIONS) stepKennel(dt);
   if (G.phase === 'wake' || G.phase === 'hunt') stepHunt(dt);
   if (G.phase === 'won' || G.phase === 'lost') { updateHp(); updateStatus(); return; }
   // Player.
@@ -1133,7 +1164,7 @@ function step(dt) {
   if (P.stunT > 0) { mx = 0; mz = 0; if (ORD.aiming >= 0) cancelAim(); }
   const len = Math.hypot(mx, mz);
   if (len > 1) { mx /= len; mz /= len; }
-  const spd = CONFIG.PLAYER_SPEED * (P.slowT > 0 ? 1 - P.slowK : 1);
+  const spd = CONFIG.PLAYER_SPEED * (P.slowT > 0 ? 1 - P.slowK : 1) * (hasPlate('howler') ? 1 + CONFIG.PLATE.speed : 1);
   const kd = Math.exp(-CONFIG.KB_DECAY * dt); P.kx *= kd; P.kz *= kd;
   const kbOn = Math.abs(P.kx) + Math.abs(P.kz) > 0.3;
   if (!kbOn) { P.kx = 0; P.kz = 0; }
@@ -1203,33 +1234,41 @@ function showNote(voiceKey, ruleKey, vars) {
   setText(el.voice, T(voiceKey)); setText(el.rule, T(ruleKey, vars)); setShow(el.banner, true); G.fellT = 2;
 }
 function updateStatus() {
-  const code = (P.stunT > 0 ? 100 : 0) + (P.slowT > 0 ? 10 : 0) + P.bleedN;
+  const s0 = Math.ceil(P.pt[0]), s1 = Math.ceil(P.pt[1]);
+  const code = (P.stunT > 0 ? 100 : 0) + (P.slowT > 0 ? 10 : 0) + P.bleedN + s0 * 1e3 + s1 * 1e5 + (P.pk[0] === 'howler' ? 1e7 : 0) + (P.pk[1] === 'howler' ? 2e7 : 0);
   if (code === P.statusShown) return;
   P.statusShown = code;
   let s = '';
   if (P.stunT > 0) s += T('st_stun') + '  ';
   if (P.slowT > 0) s += T('st_slow') + '  ';
-  if (P.bleedN > 0) s += T('st_bleed', { n: P.bleedN });
-  setText(el.status, s);
+  if (P.bleedN > 0) s += T('st_bleed', { n: P.bleedN }) + '  ';
+  if (s0 > 0) { BUFF_VARS.s = s0; s += T(P.pk[0] === 'stalker' ? 'buff_stalker' : 'buff_howler', BUFF_VARS) + '  '; }
+  if (s1 > 0) { BUFF_VARS.s = s1; s += T(P.pk[1] === 'stalker' ? 'buff_stalker' : 'buff_howler', BUFF_VARS); }
+  setText(el.status, s.trim());
 }
 
 // ----- Apex hunt: units act in fixed steps. Every hit follows a tell that lasts the move's whole windup.
-function unitOk(x, z, y) { return z <= GATE_Z && canStand(x, z, y); }
+function unitOk(u, x, z) {
+  if (u.hunt) return z <= GATE_Z && canStand(x, z, u.y);
+  if (!canStand(x, z, u.y)) return false;
+  return u.y - surf(floorAt(x, z, u.y), x, z) <= STEP_UP;
+}
 // Walk with axis sliding; when blocked, sidestep around the obstacle.
 function moveUnit(u, mx, mz, sp, dt) {
   const dx = mx * sp * dt, dz = mz * sp * dt, ox = u.x, oz = u.z;
-  if (dx !== 0 && unitOk(u.x + dx, u.z, u.y)) u.x += dx;
-  if (dz !== 0 && unitOk(u.x, u.z + dz, u.y)) u.z += dz;
+  if (dx !== 0 && unitOk(u, u.x + dx, u.z)) u.x += dx;
+  if (dz !== 0 && unitOk(u, u.x, u.z + dz)) u.z += dz;
   if (Math.hypot(u.x - ox, u.z - oz) < 0.3 * sp * dt) {
     const ex = -mz * sp * dt * u.side, ez = mx * sp * dt * u.side;
-    if (ex !== 0 && unitOk(u.x + ex, u.z, u.y)) u.x += ex;
-    if (ez !== 0 && unitOk(u.x, u.z + ez, u.y)) u.z += ez;
+    if (ex !== 0 && unitOk(u, u.x + ex, u.z)) u.x += ex;
+    if (ez !== 0 && unitOk(u, u.x, u.z + ez)) u.z += ez;
   }
+  if (u.cub) u.y = topYUnder(u.x, u.z, u.y);
 }
 // Longest free dash from x, z along dx, dz, in half-metre steps.
-function dashLen(x, z, y, dx, dz, range) {
+function dashLen(u, dx, dz, range) {
   let len = 0;
-  while (len + 0.5 <= range && unitOk(x + dx * (len + 0.5), z + dz * (len + 0.5), y)) len += 0.5;
+  while (len + 0.5 <= range && unitOk(u, u.x + dx * (len + 0.5), u.z + dz * (len + 0.5))) len += 0.5;
   return len;
 }
 function hideTell(u) { if (u.ring.visible) u.ring.visible = false; if (u.line.visible) u.line.visible = false; }
@@ -1248,7 +1287,7 @@ function pickMove(u, dist) {
 function beginMove(u, k, dx, dz) {
   const m = MOVES[k], y = u.y + 0.07, tm = MOVE_LOOK[k] ? M[MOVE_LOOK[k]] : u.tellMat;
   if (m.shape === 'line') {
-    const len = dashLen(u.x, u.z, u.y, dx, dz, m.range);
+    const len = dashLen(u, dx, dz, m.range);
     if (len < 1.5) { u.cd[k] = 1; return false; }
     u.tl = len; u.line.material = tm; u.line.position.set(u.x, y, u.z); u.line.rotation.y = Math.atan2(-dx, -dz);
     u.line.scale.set(m.width, 1, len); u.line.visible = true;
@@ -1256,8 +1295,8 @@ function beginMove(u, k, dx, dz) {
     u.tx = u.x; u.tz = u.z;
     if (m.shape === 'spot') {
       u.tx = P.x + dx * m.back; u.tz = P.z + dz * m.back;
-      if (!unitOk(u.tx, u.tz, u.y)) { u.tx = P.x; u.tz = P.z; }
-      if (!unitOk(u.tx, u.tz, u.y)) { u.cd[k] = 1; return false; }
+      if (!unitOk(u, u.tx, u.tz)) { u.tx = P.x; u.tz = P.z; }
+      if (!unitOk(u, u.tx, u.tz)) { u.cd[k] = 1; return false; }
     }
     u.ring.material = tm; u.ring.position.set(u.tx, y, u.tz); u.ring.scale.setScalar(m.radius); u.ring.visible = true;
   }
@@ -1274,14 +1313,14 @@ function resolveMove(u) {
   }
   const m = MOVES[k];
   let hit = false;
-  if (!P.dead) {
+  if (!P.dead && Math.abs(P.y - u.y) < 1.5) {
     if (m.shape === 'line') {
       const qx = P.x - u.x, qz = P.z - u.z, along = qx * u.fx + qz * u.fz, side = Math.abs(qx * u.fz - qz * u.fx);
       hit = along >= 0 && along <= u.tl && side <= m.width / 2;
     } else hit = Math.hypot(P.x - u.tx, P.z - u.tz) <= m.radius;
   }
   if (hit) {
-    const dmg = m.dmg * (u.frenzyT > 0 ? CONFIG.DEMON_ULT.dmg : 1);
+    const dmg = m.dmg * u.dmgK * (u.frenzyT > 0 ? CONFIG.DEMON_ULT.dmg : 1);
     G.hits++; if (u.tellT < G.minTell) G.minTell = u.tellT;
     if (m.slow) { P.slowK = Math.max(P.slowT > 0 ? P.slowK : 0, m.slow); P.slowT = Math.max(P.slowT, m.slowS); }
     if (m.stun) P.stunT = Math.max(P.stunT, m.stun);
@@ -1294,6 +1333,11 @@ function resolveMove(u) {
 }
 function stepUnit(u, dt) {
   u.px = u.x; u.pz = u.z;
+  // Bleed from the player's Stalker plate.
+  if (u.bleedT > 0) {
+    u.bleedT -= dt; u.hp -= CONFIG.PLATE.bleedDps * dt; u.bar.scale.x = Math.max(0.001, u.hp / u.maxHp);
+    if (u.hp <= 0) { u.hp = 0; killUnit(u); return; }
+  }
   const c = u.cd;
   for (let i = 0; i < MOVE_KEYS.length; i++) { const k = MOVE_KEYS[i]; if (c[k] > 0) c[k] -= dt; }
   if (u.gapT > 0) u.gapT -= dt;
@@ -1304,11 +1348,12 @@ function stepUnit(u, dt) {
   if (u.st === 2) {
     u.t += dt; const k = Math.min(1, u.t / u.dashS);
     u.x = u.ax + (u.bx - u.ax) * k; u.z = u.az + (u.bz - u.az) * k;
-    if (k >= 1) { u.st = 3; u.t = CONFIG.APEX.recoverS; }
+    if (k >= 1) { u.st = 3; u.t = CONFIG.APEX.recoverS; if (u.cub) u.y = topYUnder(u.x, u.z, u.y); }
     return;
   }
   if (u.st === 3) { u.t -= dt; if (u.t <= 0) u.st = 0; return; }
   const px = P.x - u.x, pz = P.z - u.z, dist = Math.hypot(px, pz) || 1e-6, dx = px / dist, dz = pz / dist;
+  if (u.cub && !cubThink(u, dt, dist)) return;
   // Demon ultimate: one use at half health, or on cooldown (CONFIG.DEMON_ULT.mode).
   if (u === DEMON) {
     const U = CONFIG.DEMON_ULT, ready = U.mode === 'once50' ? (!u.ultUsed && u.hp <= u.cfg.hp * 0.5) : u.ultCd <= 0;
@@ -1363,15 +1408,16 @@ function stepHunt(dt) {
   updateBoss();
 }
 function hitEnemy(u, n) {
-  if (G.phase !== 'hunt' || !u.alive) return;
+  if (!u.alive || G.phase !== (u.hunt ? 'hunt' : 'royale')) return;
   u.hp = Math.max(0, u.hp - n); u.flashT = 0.12; u.body.material = M.hit;
-  u.bar.scale.x = Math.max(0.001, u.hp / u.cfg.hp);
+  u.bar.scale.x = Math.max(0.001, u.hp / u.maxHp);
   if (u.hp <= 0) killUnit(u);
 }
 function killUnit(u) {
   u.alive = false; u.seen = false; u.st = 0; hideTell(u); scene.remove(u.group);
   if (ORD.attack === u) ORD.attack = null;
   if (u === DEMON) { endHunt(true); return; }
+  if (u.cub) scene.remove(u.ring, u.line);
   u.plateOn = true; u.plateT = 0; u.sx = u.x; u.sz = u.z; u.plate.position.set(u.x, u.y + 1, u.z); scene.add(u.plate);
 }
 function grantPlate(u) {
@@ -1391,8 +1437,99 @@ function updateBoss() {
     BOSS_VARS.list = s; setText(el.bossskills, T('boss_skills', BOSS_VARS));
   }
 }
+// ----- Royale minions: kennel waves, cubs guarding camps, plate reward for the last hit.
+// A cub rests at its camp and heals, fights a suit that comes inside the aggro radius, and goes home past the leash. Returns true while it fights.
+function cubThink(u, dt, dist) {
+  const C = CONFIG.CUB, hx = u.cx - u.x, hz = u.cz - u.z, hd = Math.hypot(hx, hz);
+  if (u.home) {
+    u.homeT += dt; healCub(u, dt);
+    if (hd < 0.6) { u.home = false; u.hot = false; }
+    else if (u.homeT > C.homeMaxS) { u.x = u.px = u.cx; u.z = u.pz = u.cz; u.y = u.cy; u.home = false; u.hot = false; }
+    else { u.fx = hx / hd; u.fz = hz / hd; moveUnit(u, hx / hd, hz / hd, u.cfg.speed, dt); }
+    return false;
+  }
+  const can = !P.dead && !P.air && Math.abs(P.y - u.y) < 1.5;
+  if (!u.hot) {
+    if (can && dist <= C.aggro) u.hot = true; else { healCub(u, dt); return false; }
+  }
+  if (hd > C.leash || !can || dist > C.leash) { u.home = true; u.homeT = 0; return false; }
+  return true;
+}
+function healCub(u, dt) {
+  if (u.hp >= u.maxHp) return;
+  u.hp = Math.min(u.maxHp, u.hp + CONFIG.CUB.heal * dt); u.bar.scale.x = u.hp / u.maxHp;
+}
+function announceKennel(wave) {
+  let s = '', last = '';
+  for (let i = 0; i < wave.length; i++) {
+    const sec = SEC[CAMPS[wave[i][1]][2]]; if (sec.state >= 2 || sec.name === last) continue;
+    s += (s ? ', ' : '') + sec.name; last = sec.name;
+  }
+  if (!s) return;
+  KENNEL_VARS.zones = s; showNote('voice_kennel', 'rule_kennel', KENNEL_VARS); G.fellT = CONFIG.KENNEL.warnS;
+}
+function spawnWave(wave) {
+  for (let i = 0; i < wave.length; i++) {
+    const kind = wave[i][0], cp = CAMPS[wave[i][1]]; if (SEC[cp[2]].state >= 2) continue;
+    let u = null;
+    for (let k = 0; k < CUBS.length; k++) if (!CUBS[k].alive && !CUBS[k].plateOn && CUBS[k].kind === kind) { u = CUBS[k]; break; }
+    if (!u) continue;
+    const x = cp[0] + (i - (wave.length - 1) / 2) * 2.4, z = cp[1];
+    u.cx = x; u.cz = z; u.cy = topY(x, z); u.camp = wave[i][1]; u.x = u.px = x; u.z = u.pz = z; u.y = u.cy; u.fx = 0; u.fz = 1;
+    u.hp = u.maxHp; u.alive = true; u.seen = false; u.st = 0; u.t = 0; u.cur = ''; u.tellT = 0; u.gapT = 0; u.rot = 0; u.flashT = 0; u.bleedT = 0;
+    u.home = false; u.hot = false; u.homeT = 0;
+    for (let k = 0; k < MOVE_KEYS.length; k++) u.cd[MOVE_KEYS[k]] = 0;
+    u.body.material = u.mat; u.bar.scale.x = 1; u.group.visible = false; u.group.position.set(x, u.y, z);
+    scene.add(u.group, u.ring, u.line);
+  }
+}
+// A cub with no floor under it (its section fell) is lost and leaves no plate.
+function dropCub(u) {
+  u.alive = false; u.seen = false; u.hp = 0; u.st = 0; hideTell(u); scene.remove(u.group, u.ring, u.line);
+  if (ORD.attack === u) ORD.attack = null;
+}
+function grantPlayerPlate(u) {
+  u.plateOn = false; scene.remove(u.plate);
+  if (P.dead) return;
+  const Pl = CONFIG.PLATE, slot = P.pt[0] <= 0 ? 0 : P.pt[1] <= 0 ? 1 : (P.pt[0] <= P.pt[1] ? 0 : 1);
+  P.pk[slot] = u.kind; P.pt[slot] = Pl.buffS; G.platesTaken++;
+  SK[2].cdT = Math.max(0, SK[2].cdT - Pl.ultCut * CONFIG.SKILLS[2].cd);
+  showNote('voice_plate_take', u.kind === 'stalker' ? 'rule_plate_s' : 'rule_plate_h', TAKE_VARS);
+}
+function stepKennel(dt) {
+  const Kc = CONFIG.KENNEL, VR = CONFIG.VISION_R;
+  if (G.kWave < Kc.waves.length) {
+    const at = Kc.firstS + G.kWave * Kc.intervalS;
+    if (!G.kWarned && G.time >= at - Kc.warnS) { G.kWarned = true; announceKennel(Kc.waves[G.kWave]); }
+    if (G.time >= at) { spawnWave(Kc.waves[G.kWave]); G.kWave++; G.kWarned = false; }
+  }
+  for (let i = 0; i < CUBS.length; i++) {
+    const u = CUBS[i];
+    if (u.alive) { if (!floorAt(u.x, u.z, u.y + 0.1)) dropCub(u); else stepUnit(u, dt); }
+    // The broken cub's plate flies to the suit that broke it.
+    if (u.plateOn) {
+      u.plateT += dt; const k = Math.min(1, u.plateT / CONFIG.PLATE.flyS);
+      u.plate.position.set(u.sx + (P.x - u.sx) * k, u.y + 1 + Math.sin(k * Math.PI) * 1.5, u.sz + (P.z - u.sz) * k);
+      if (k >= 1) grantPlayerPlate(u);
+    }
+    const vis = u.alive && Math.hypot(u.x - P.x, u.z - P.z) <= VR;
+    u.seen = vis;
+    if (u.group.visible !== vis) u.group.visible = vis;
+  }
+}
 // PERFRAME-END
 const PLATE_VARS = { a: '', b: '' }, BOSS_VARS = { list: '' }, FRENZY_VARS = { s: CONFIG.DEMON_ULT.dur }, END_VARS = { s: 0, retry: '' };
+const KENNEL_VARS = { s: CONFIG.KENNEL.warnS, zones: '' }, TAKE_VARS = { s: CONFIG.PLATE.buffS, p: Math.round(CONFIG.PLATE.speed * 100) }, BUFF_VARS = { s: 0 };
+// Cubs back into the pool (new run, or the wake: live cubs fuse into the statue).
+function resetCubs() {
+  for (const u of CUBS) {
+    u.alive = false; u.seen = false; u.hp = 0; u.st = 0; u.plateOn = false; u.home = false; u.hot = false; u.bleedT = 0; u.flashT = 0; u.body.material = u.mat;
+    hideTell(u);
+    if (u.group.parent) scene.remove(u.group); if (u.ring.parent) scene.remove(u.ring, u.line); if (u.plate.parent) scene.remove(u.plate);
+    if (ORD.attack === u) ORD.attack = null;
+  }
+  G.kWave = 0; G.kWarned = false;
+}
 
 // ----- Apex hunt flow (events, not per frame). Everything a hunt changes is reset in startHunt and clearHunt.
 function setStatue(on) {
@@ -1404,7 +1541,7 @@ function resetUnits(active) {
   for (const u of ENEMIES) {
     u.hx = 0; u.hz = SZ; u.x = u.px = u.hx; u.z = u.pz = u.hz; u.y = topY(0, SZ + 4);
     u.fx = 0; u.fz = 1; u.hp = active ? u.cfg.hp : 0; u.alive = active; u.seen = false; u.st = 0; u.t = 0; u.cur = ''; u.tellT = 0;
-    u.gapT = 0; u.rot = 0; u.flashT = 0; u.frenzyT = 0; u.ultUsed = false; u.ultCd = 0; u.plateOn = false; u.plateT = 0;
+    u.gapT = 0; u.rot = 0; u.flashT = 0; u.frenzyT = 0; u.ultUsed = false; u.ultCd = 0; u.plateOn = false; u.plateT = 0; u.bleedT = 0;
     for (const k of MOVE_KEYS) u.cd[k] = 0;
     u.skills.length = 0; for (const k of u.base) u.skills.push(k);
     u.body.material = u.mat; u.bar.scale.x = 1; u.group.visible = active; u.group.position.set(u.x, u.y, u.z);
@@ -1432,6 +1569,7 @@ function startHunt() {
     else if (w.state === 2) { w.state = 3; for (const s of w.secs) removeSection(s); }
   }
   G.bannerWave = -1; G.fellT = 0; G.miniDirty = true;
+  resetCubs();
   G.phase = 'wake'; G.phaseT = 0; G.huntT = 0; G.plates = 0; G.bossDirty = true; G.bossHp = -1;
   G.hits = 0; G.minTell = 99; G.hitDmg = 0; G.bleedDmg = 0;
   for (const h of HAZARDS) if (h.statue) { h.state = 0; h.t = 0; h.ring.visible = false; }
@@ -1514,6 +1652,17 @@ function drawMini() {
     const u = ENEMIES[i]; if (!u.seen) continue;
     c.beginPath(); c.arc((u.x - MINI.x0) * px, (u.z - MINI.z0) * py, u === DEMON ? 4.5 : 2.5, 0, 6.2832); c.fill();
   }
+  for (let i = 0; i < CUBS.length; i++) {
+    const u = CUBS[i]; if (!u.seen) continue;
+    c.beginPath(); c.arc((u.x - MINI.x0) * px, (u.z - MINI.z0) * py, 2.5, 0, 6.2832); c.fill();
+  }
+  if (G.kWarned) {
+    const w = CONFIG.KENNEL.waves[G.kWave]; c.strokeStyle = '#ff8a2a'; c.lineWidth = 2;
+    for (let i = 0; i < w.length; i++) {
+      const cp = CAMPS[w[i][1]]; if (SEC[cp[2]].state >= 2) continue;
+      c.beginPath(); c.arc((cp[0] - MINI.x0) * px, (cp[1] - MINI.z0) * py, 6, 0, 6.2832); c.stroke();
+    }
+  }
   const x = (P.x - MINI.x0) * px, z = (P.z - MINI.z0) * py;
   if (PATH.i < PATH.n) {
     c.strokeStyle = '#7fd0ff'; c.lineWidth = 1; c.beginPath(); c.moveTo(x, z);
@@ -1536,6 +1685,8 @@ function respawn(kind) {
 
 // New run: resets everything the run changes (time, waves, sections, floors, player, banner, shadows).
 function reset() {
+  P.pt[0] = P.pt[1] = 0; P.pk[0] = P.pk[1] = ''; G.platesTaken = 0; G.hits = 0; G.minTell = 99; G.hitDmg = 0; G.bleedDmg = 0;
+  resetCubs();
   clearHunt();
   G.time = 0; G.bannerWave = -1; G.fellT = 0; G.nextWave = -2;
   for (const w of WAVES) { w.state = 0; w.lastCount = -1; }
@@ -1622,6 +1773,11 @@ function placeView(alpha) {
       indCircle.visible = true; indLine.visible = false;
     }
   }
+  if (G.phase === 'royale') for (let i = 0; i < CUBS.length; i++) {
+    const u = CUBS[i]; if (!u.alive) continue;
+    u.group.position.set(u.px + (u.x - u.px) * alpha, u.y, u.pz + (u.z - u.pz) * alpha);
+    u.body.rotation.y = Math.atan2(-u.fx, -u.fz);
+  }
   if (G.phase !== 'royale') for (let i = 0; i < ENEMIES.length; i++) {
     const u = ENEMIES[i]; if (!u.alive) continue;
     u.group.position.set(u.px + (u.x - u.px) * alpha, u.y, u.pz + (u.z - u.pz) * alpha);
@@ -1696,6 +1852,11 @@ drawMini();
 renderer.shadowMap.needsUpdate = true;
 
 // Test hooks (read-mostly).
+function tellsOf(list) {
+  return list.filter((u) => u.alive && u.st === 1 && u.cur !== 'ult').map((u) => { const m = MOVES[u.cur], mesh = m.shape === 'line' ? u.line : u.ring;
+    return { by: u.kind, move: u.cur, shape: m.shape, x: m.shape === 'line' ? u.x : u.tx, z: m.shape === 'line' ? u.z : u.tz, r: m.radius || 0, fx: u.fx, fz: u.fz, len: u.tl, w: m.width || 0,
+      age: u.tellT, left: u.t, shown: mesh.visible, look: mesh.material === M.tellS ? 'S' : mesh.material === M.tellH ? 'H' : 'D' }; });
+}
 window.__game = {
   step(n) { for (let i = 0; i < n; i++) step(CONFIG.STEP); },
   setMove(x, z) { testMove.on = true; testMove.x = x; testMove.z = z; },
@@ -1737,12 +1898,19 @@ window.__game = {
       statue: !!statue.parent, statueSolid: !statueSolid.off, seal: !!sealMesh.parent,
       p: { x: P.x, z: P.z, hp: P.hp, stun: P.stunT, slow: P.slowT, slowK: P.slowK, bleed: P.bleedN },
       units: ENEMIES.map((u) => ({ kind: u.kind, x: u.x, z: u.z, hp: u.hp, alive: u.alive, seen: u.seen, st: u.st, cur: u.cur, skills: u.skills.slice(), inScene: !!u.group.parent,
-        frenzy: u.frenzyT, plate: !!u.plate.parent, standOk: !u.alive || u.st === 2 || unitOk(u.x, u.z, u.y) })),
-      tells: ENEMIES.filter((u) => u.alive && u.st === 1 && u.cur !== 'ult').map((u) => { const m = MOVES[u.cur];
-        return { by: u.kind, move: u.cur, shape: m.shape, x: m.shape === 'line' ? u.x : u.tx, z: m.shape === 'line' ? u.z : u.tz, r: m.radius || 0, fx: u.fx, fz: u.fz, len: u.tl, w: m.width || 0,
-          age: u.tellT, left: u.t, shown: m.shape === 'line' ? u.line.visible : u.ring.visible,
-          look: (m.shape === 'line' ? u.line : u.ring).material === M.tellS ? 'S' : (m.shape === 'line' ? u.line : u.ring).material === M.tellH ? 'H' : 'D' }; }) };
+        frenzy: u.frenzyT, plate: !!u.plate.parent, standOk: !u.alive || u.st === 2 || unitOk(u, u.x, u.z) })),
+      tells: tellsOf(ENEMIES) };
   },
+  cubs() {
+    return { wave: G.kWave, warned: G.kWarned, taken: G.platesTaken, hits: G.hits, minTell: G.minTell, plates: P.pk.map((k, i) => ({ kind: k, t: P.pt[i] })), ultCd: SK[2].cdT, status: el.status.textContent,
+      voice: el.voice.textContent, rule: el.rule.textContent, banner: el.banner.style.display,
+      list: CUBS.map((u) => ({ kind: u.kind, x: u.x, z: u.z, y: u.y, hp: u.hp, max: u.maxHp, alive: u.alive, seen: u.seen, hot: u.hot, home: u.home, st: u.st, cur: u.cur, camp: u.camp, cx: u.cx, cz: u.cz,
+        inScene: !!u.group.parent, tellIn: !!u.ring.parent, plate: !!u.plate.parent, bleed: u.bleedT, standOk: !u.alive || u.st === 2 || unitOk(u, u.x, u.z) })),
+      tells: tellsOf(CUBS) };
+  },
+  hitCub(i, n) { hitEnemy(CUBS[i], n); }, placeCub(i, x, z) { const u = CUBS[i]; u.x = u.px = x; u.z = u.pz = z; u.y = topY(x, z); }, cubCd(i, k, v) { CUBS[i].cd[k] = v; },
+  attackCub(i) { const u = CUBS[i]; if (u.seen && u.hp > 0) { ORD.attack = u; PATH.n = 0; return true; } return false; },
+  givePlate(kind) { const s = P.pt[0] <= 0 ? 0 : 1; P.pk[s] = kind; P.pt[s] = CONFIG.PLATE.buffS; }, camps: CAMPS,
   huntUi: () => ({ boss: el.boss.style.display, bossText: el.bossskills.textContent, btn: el.btnHunt.style.display, btnText: el.btnHunt.textContent,
     voice: el.voice.textContent, rule: el.rule.textContent, status: el.status.textContent, banner: el.banner.style.display }),
   attackUnit(i) { const u = ENEMIES[i]; if (u.seen && u.hp > 0) { ORD.attack = u; PATH.n = 0; return true; } return false; },

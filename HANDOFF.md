@@ -1,4 +1,4 @@
-# Handoff (2026-11-23, after batch 6). GDD: docs/GDD.md (also Project "empress decrees", claude/GDD.md)
+# Handoff (2026-11-23, after batch 7). GDD: docs/GDD.md (also Project "empress decrees", claude/GDD.md)
 
 ## Session start (every session)
 1. Attach both repos: add_repo heavenfort77-cpu/Empress-decrees- (access push) and heavenfort77-cpu/dawnpunk (read; public, anonymous clone works). Dawnpunk = reference for frame-rate rules and bug pitfalls; read only the part needed.
@@ -6,19 +6,20 @@
 3. Run the checks before and after any change: `node tests/static-check.mjs` then `node tests/run.mjs` (`-v` for details). Report pass/fail and failing lines only.
 
 ## Status
-- Batches 1-6 done. Code is on branch `batches-3-5` (PR #1 open; merge to main when the user agrees).
+- Batches 1-7 done. Code is on branch `batches-3-5` (PR #1 open; merge to main when the user agrees).
 - Batch 6 = apex fight on boxes: H key or the Hunt button starts it (test trigger until the royale exists). Wake 3 s, Tiger Demon + Stalker + Howler, skill transfer by plate, win / loss / retry.
-- Static check PASS. Runtime 50 of 50 PASS (headless Chromium, software GPU: correctness and counts only).
-- Mutation rounds: batch 3 edge clamp caught after a fix; batch 4 5 of 5; batch 5 6 of 6; batch 6 11 of 11.
-- Counts (software GPU, medium tier): spawn 27 calls / 2.8k tris; whole map 76 / 8.4k; hunt with all units and 3 tells 17 / 0.9k. Budget 500 / 0.5M. Shader programs 3 at load and 3 after hunts; geometry count flat (94).
+- Batch 7 = royale minions on boxes (ROYALE_MINIONS on): kennel waves, cubs guarding camps, plate reward. See "Batch 7 as built".
+- Static check PASS. Runtime 56 of 56 PASS (headless Chromium, software GPU: correctness and counts only).
+- Mutation rounds: batch 3 edge clamp caught after a fix; batch 4 5 of 5; batch 5 6 of 6; batch 6 11 of 11; batch 7 12 of 13 (the miss is an equivalent change: a cub spawned on a fallen camp is removed the same tick; one check was strengthened after a first miss).
+- Counts (software GPU, medium tier): spawn 27 calls / 2.8k tris; whole map 76 / 8.4k; hunt with all units and 3 tells 17 / 0.9k; 7 cubs with 3 tells 33 / 2.3k. Budget 500 / 0.5M. Shader programs 3 at load and 3 after hunts; geometry count flat (92).
 - Bot sweep (test 42), reaction / kill order (0 demon, 1 stalker, 2 howler): never-dodge loses all 3 (6-9 s); 0.3 s: demon-first LOSES (13 s), minions-first wins (57-58 s, 20-26 hp left); 0.15 s wins all 3 (50-60 s, 73-100 hp left).
   - GDD sim target "no kill order is dominant" is NOT met: minions-first is better for the 0.3 s bot. Player kit is still the placeholder, so tuning waits for real kits.
 - NOT run: real-GPU fps (needs a GitHub Actions macOS runner; no workflow yet). NOT tried on a real phone (touch checked by simulated pointer events only).
 - Phone review link (claude.ai artifact, same page with three.js from jsDelivr): https://claude.ai/artifact/3nQ67JCTmb1JfPKC3Y416z (version 1795407242-834c = batch 6). Republish it after each batch.
 
 ## Next
-- Waiting for the user to play the apex fight and say whether the loop works.
-- Then: royale minions (switch ROYALE_MINIONS), decrees, bots, hiding; real kits replace the placeholder skills.
+- Waiting for the user to play the apex fight and the cubs and say whether the loop works.
+- Then: decrees, bots (9 suits, leader and bounty, last suit alive starts the hunt), hiding, ultimate charge; real kits replace the placeholder skills.
 - Set up CI (GitHub Actions: Linux checks + macOS real-GPU perf gate); prove the file-return route first.
 
 ## Batch 6 as built (assumptions, all in CONFIG; change by saying so)
@@ -33,10 +34,20 @@
 - Win: sim freezes, closing line, time. Loss: sim freezes. H / Retry button = hunt again; N = new run. The ending (winner becomes the statue) is not built.
 - Also fixed in this batch: every map section and hazard ring is drawn once at load, so no buffer uploads when first seen.
 
+## Batch 7 as built (assumptions, all in CONFIG; change by saying so)
+- Waves at 30, 90, 150, 210 s (GDD said about 0:40; 30 s keeps her kennel line clear of the collapse banners). 5 s warning: her line, a plain rule line with the zones, an orange ring on the minimap.
+- Wave camps: Stalker W1; Stalker W1 + Howler E1; Stalker C2 + Howler E1; Stalker + Howler C2. Pool 4 Stalkers + 3 Howlers.
+- Cubs use the apex minions' kits at 80% health and 60% damage. Aggro 6 m, leash 12 m from the camp; at rest or going home they heal 25/s. A cub still not home after 6 s is put back on its camp. Cubs never cross a drop and only hit a suit on their own layer.
+- Solo kill time, standing still and attacking: 7.3 s (run in this session; GDD target 6-8 s).
+- Last hit: the plate flies to the player (0.7 s). Two buff slots, 45 s each, the older one is replaced. Stalker plate: your hits cause 4/s bleed for 3 s. Howler plate: +10% speed (the shimmer part waits for hiding).
+- "+30% ultimate charge" is a stand-in: 30% of the ultimate's cooldown is removed, until ultimate charge exists.
+- A cub whose section falls is lost with no plate; a fallen camp is not announced and spawns nothing. The wake removes live cubs at once (the run back to the statue is not shown yet). Plate buffs carry into the hunt.
+- Not built (need bots): leader, crown marker, bounty decree, bots contesting camps.
+
 ## Files
 - index.html: whole game (one module script, CONFIG block at top, TEXT keys, map data). lib/: three.js r171 (MIT, lib/three-LICENSE.txt).
-- tests/static-check.mjs: static rules. tests/run.mjs: 50 headless checks (33-45 = apex hunt); starts its own static server.
-- Test hooks: window.__game (step, setMove, teleport, moveTo, attack, cast, aimKey, render, state, startHunt, hunt, huntUi, attackUnit, hitUnit, placeUnit, unitCd, ...). ?lock locks the tier; ?debug shows counts and enables the M overview.
+- tests/static-check.mjs: static rules. tests/run.mjs: 56 headless checks (33-45 = apex hunt, 46-51 = royale minions); starts its own static server.
+- Test hooks: window.__game (step, setMove, teleport, moveTo, attack, cast, aimKey, render, state, startHunt, hunt, huntUi, attackUnit, hitUnit, placeUnit, unitCd, cubs, hitCub, placeCub, cubCd, attackCub, givePlate, ...). ?lock locks the tier; ?debug shows counts and enables the M overview.
 
 ## Decisions (user, 23 Nov)
 - Lore: Kaymuse on a throne in the core hall, the apex as a tiger statue under her; minions are the demon's shed plates (royale: plate buffs the killer; apex phase: plate flies home to the demon). Ending: even the winner becomes the next tiger statue; next run's statue wears the last winner's school colour (WINNER_STATUE, not built yet).

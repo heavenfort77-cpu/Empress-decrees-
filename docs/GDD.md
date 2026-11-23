@@ -1,6 +1,6 @@
 # Apex-hunt jam game: GDD and handoff (working title TBD)
 
-Status: updated 2026-11-23 after batch 6. Batches 1-2 approved. Batches 3-5 (box map, map v2, minimap, fog of war, MOBA controls) and batch 6 (apex fight on boxes) built; static PASS, runtime 50 of 50 PASS; waiting for the user's review. All numbers are proposals, tunable in one CONFIG block.
+Status: updated 2026-11-23 after batch 7. Batches 1-2 approved. Batches 3-5 (box map, map v2, minimap, fog of war, MOBA controls), batch 6 (apex fight on boxes) and batch 7 (royale minions on boxes) built; static PASS, runtime 56 of 56 PASS; waiting for the user's review. All numbers are proposals, tunable in one CONFIG block.
 Repo for the code: https://github.com/heavenfort77-cpu/Empress-decrees- (all-new code, nothing from B.O.I).
 
 ## Jam facts (checked 2026-11-23)
@@ -67,6 +67,7 @@ Purpose: give a suit a way to pull ahead, so the royale is not ten equal suits t
   - Player: "Bots will steal every camp." Answer: sim target, the player claims at least 1 plate in 70% of runs on medium bots.
   - Tech lead: plates, cubs and their effects come from fixed pools; no spawning per kill.
 - **CONFIG:** first spawn time, wave interval, cubs per wave, aggro and leash radius, cub HP and damage scale, ult charge per plate, buff length, max plates, bounty charge, bot contest weights. On/off switch: `ROYALE_MINIONS`.
+- **As built on boxes (batch 7, 23 Nov; numbers in CONFIG):** waves at 30, 90, 150, 210 s with a 5 s warning; cubs at 80% health and 60% damage, aggro 6 m, leash 12 m, heal at rest; plate flies to the last hitter, two 45 s slots; Stalker plate = bleed on your hits, Howler plate = +10% speed; the ultimate-charge reward is a 30% ultimate cooldown cut until charge exists. Leader, bounty and bot contests wait for bots.
 - **Sims:** plate share per school; leader win share (band 25-45%); player plate rate on medium bots; cub deaths caused by collapse.
 
 ### Kaymuse's decrees (proposal)
