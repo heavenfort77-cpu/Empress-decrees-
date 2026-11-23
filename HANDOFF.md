@@ -48,9 +48,16 @@ Sims (12 seeds, one -sims run at c638527): old autopilot decided 152.3-211.4 s (
 kennel autopilot decided 148.2-214.6 s, plate 11 of 12, leader win share 4 of 12, reached camp 18 of 30 free warnings; bagged decrees in force per match 2-3 (3,3,2,3,3,3,3,3,3,3,2,3), told incl. bounty 3-4 per the order list; bounties 0-1 per match (5 in 12, 3 paid); breaks player 0, bots 8.
 R casts per suit per royale: not printed by -sims (the first gate run, before the checks were updated, logged bots 2-6 vs 8-13 with the old cooldown; player 0-2).
 
-## Next batch: 16 法甲 kit + suit stats sample (panel note first, then the owner's go in ONE AskUserQuestion).
-Stats part: proposal in docs/STATS-MATH.md (armor formula from the two videos the owner sent 23 Nov 22:04; K 100, Low/Mid/High armor 20/40/70, Mid as the yardstick so current numbers and checks stay as they are).
-Kit: docs/SUITS.md 法甲 section. Work the batch as tickets (tickets/batch-16) like batch 15.
+## Next batch: 16 = ALL NINE kits + suit stats (owner 23 Nov 23:26 "do all 9": batches 16 and 17 merged; approval by play comes after all nine, not after a 法甲 sample). Panel note below, then the owner's go in ONE AskUserQuestion.
+Panel note 16 (lead, 23 Nov 23:30; proposal):
+- Player suit: a school select before each run (9 buttons, 44 px on phone, last pick remembered in try/catch storage); bots take the other 8 (6-1). The placeholder kit stays only for the map test (?bots=0) and its checks.
+- Stats: docs/STATS-MATH.md as written (armor K 100; Low/Mid/High 20/40/70; HP 100 for all; Mid = yardstick, so every current number and check holds for a Mid suit); speed Low/Mid/High 5.6/6/6.4 m/s (cubs stay faster at 6.6) (6-1).
+- Numbers: one number set per kit taken from the doc's "about" values, every value in CONFIG.KITS with a comment line; no tuning rounds; balance in batch 20 (7-0).
+- Unseen state (needed by 法甲 W and 道甲 passive): a minimal one now (not drawn for others, not targetable, shimmer within 3 m, broken by attacking or being hit); curtains and walls blocking sight stay in batch 18 (5-2).
+- Bots: one generic brain using skill tags (dash-in, poke, zone, self-buff, counter, ult rule); per-kit rules only where the kit needs timing (道 stances, 阴阳 alternation, 杂 stored skill, 纵横 link pair) (6-1).
+- Order (tickets/batch-16): T01 framework (kit table, stats, select screen, unseen state, per-suit ultMode, bot skill tags; placeholder = Mid kit, all checks green) -> 法甲 -> 儒甲 -> 墨甲 -> 名甲 -> 阴阳甲 -> 农甲 -> 道甲 -> 纵横甲 -> 杂甲 (needs the others' skills to copy) -> T11 close: per-school 12-seed sims (win share per school reported), hunt sweep (test 42) per suit (report; no suit may make the apex trivial or impossible), HANDOFF.
+- Gates per kit ticket: one check per skill doing what docs/SUITS.md says (tells >= 0.4 s where it hits others), its signature system interaction checked (panel vote 3), a bot uses the kit in a match, budget/programs/geometry flat (effects pooled, warmed at load), gate 65 still 150-255 s, mutation round on the new checks.
+- Premortem: nine kits change every match number (gate 65 may break: report, no tuning); 纵横 R and passive steer bots (hunter cap must hold); 杂 R copies any skill (needs a common skill interface from T01); 道 counters need every hit to pass one function; 农 sprouts and 墨 walls are pooled objects; 名 shadow decoy fools auto-target; one writer for index.html, so tickets run in order.
 
 ## Queue after batch 14 (owner 18:57 "built"; one batch at a time, panel note first each; kits already designed with the owner in docs/SUITS.md)
 15 ultimate charge (DONE); 16 法甲 kit + suit stats sample (owner plays and approves); 17 the other eight kits (docs/SUITS.md); 18 hiding (curtains, 道甲 stillness, sight blocked by walls); 19 the ending + WINNER_STATUE; 20 final map size + balancing pass (re-measure, retune the CONFIG timing list once). Hunt sweep re-check with kits (0.15 s bot now loses demon-first).
