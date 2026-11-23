@@ -59,13 +59,14 @@ Source: 《周礼·地官·保氏》「乃教之六艺：一曰五礼，二曰�
 - Fairness: each stance shows a water shimmer that every suit can see (0.8 s, above the 0.4 s tell rule), so attackers can hold off. Counters count against suits, cubs, minions and the Tiger Demon (claw = basic attack; pounce, roar and the stolen moves = skills); the statue, lions and collapses are not fighters and cannot be countered.
 - Plays with: the apex hunt (countering the demon builds the ultimate), hiding, duels under the hunter cap.
 
-### 法甲 · 廷尉 (Legalist: law 法, method 术, authority 势, the two handles 二柄) - first sample
-- Passive **Law Binds All**: bonus damage to marked suits, i.e. anyone who broke a decree. This suit believes the law binds even the throne; she does not favour it.
+### 法甲 · 廷尉 (Legalist; frame 法术势, owner 23 Nov 20:22; first kit sample)
+- Passive **法 · 法不阿贵** (「法不阿贵，绳不挠曲」, 韩非子·有度): the law favours no one, the highest least of all. Bonus damage against the current leader and against marked suits (decree breakers); the two do not stack (the higher applies).
 - Attack: bronze sword, melee.
-- Q **Pursuit**: dash, longer against a marked or low-health target.
-- W **Two Handles**: at a target, punishment (slow). On yourself, reward (speed). Same button; aim decides.
-- R **Sentence**: a delayed strike shown on the ground; damage grows with the target's missing health.
-- Plays with: decrees, the mark and the bounty.
+- Q **法 · 刑无等级** (商鞅: punishment knows no rank), dash: pursuit to a target; longer against a marked suit, the leader or a target under half health.
+- W **术 · 潜御** (「术者，藏之于胸中……而潜御群臣者也」, 韩非子·难三): unseen for about 2 s (shimmer within about 3 m, broken by attacking or being hit). His first hit from it exposes the target: it is seen by every suit for a few seconds.
+- R **势 · 抱法处势** (「抱法处势则治」, 韩非子·难势): for about 6 s he holds authority: enemies within about 6 m are slowed and cannot dash (no escape from the law), and his hits grow with the target's missing health. Shown as a ring on the ground for its whole length.
+- Panel (20:22): leader + marked passive, no stacking 6-1 (critic: it piles onto the bounty; answer: the higher applies, cap 1.4x); 术 as a short stealth 5-2 (players: stealth assassins frustrate; answer: 2 s, shimmer, breaks on a hit); 势 as lock-down plus execute 6-1.
+- Plays with: decrees and the mark, the leader and bounty, fog (exposure), hiding.
 
 ### 墨甲 · 墨守 (Mohist: universal care 兼爱, against aggression 非攻, defence craft)
 - Passive **Against Aggression (非攻)**: stronger while holding ground, weaker while chasing far from where it last stood.

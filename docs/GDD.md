@@ -134,7 +134,7 @@ Each suit's title, role and kit come from its school's own doctrine.
 |---|---|---|---|---|
 | 儒家 | 儒甲 | 君子 | Fighter | the six arts: sword or bow by range, chariot, brush seal, bells |
 | 道家 | 道甲 | 真人 | Evasive duelist | counters basic attacks and skills; ultimate grows with counters |
-| 法家 | 法甲 | 廷尉 | Assassin | law binds all: bonus on marked decree-breakers; two handles |
+| 法家 | 法甲 | 廷尉 | Assassin | 法术势: bonus on the leader and decree-breakers, pursuit, stealth, authority lock-down |
 | 墨家 | 墨甲 | 墨守 | Tank (zone), no dash | against aggression: holds ground, walls, crossbow engine |
 | 阴阳家 | 阴阳甲 | 太极 | Mage (artillery) | yin and yang skills unlock the 太极 ultimate |
 | 杂家 | 杂甲 | 门客 | Mage (control) | stores and casts back the last skill that hit it |
@@ -170,7 +170,7 @@ Assumption to confirm: a hard-surface beast like the war suits.
 Telegraphed shells land in waves; a wave ends with a section collapse. Every shell shows a warning circle first; a hit must always be avoidable at human reaction time. CONFIG: warning time, radius, damage, shells per wave, wave interval, sections per wave, collapse warning time.
 
 ## Kit sample: 法甲「廷尉」 (assassin; first sample, panel 4-2-1, owner 19:57)
-Kit in docs/SUITS.md: passive Law Binds All (bonus on marked suits), Q Pursuit (dash, longer at a marked or low target), W Two Handles (slow a target or speed yourself), R Sentence (delayed strike shown on the ground, grows with the target's missing health). Numbers go in CONFIG at build (batch 16).
+Kit in docs/SUITS.md (frame 法术势, owner 20:22): passive 法不阿贵 (bonus on the leader and marked suits), Q 刑无等级 (pursuit dash), W 术 (2 s unseen, first hit exposes the target), R 势 (6 s: nearby enemies slowed and cannot dash; hits grow with missing health). Numbers go in CONFIG at build (batch 16).
 Ultimate charges from kills and shared hits; exact amounts TBD (batch 15). Kits for the other nine come after this one is approved. Dashes all differ; 墨甲 has no dash.
 
 ### Bots (batch 9, owner go 23 Nov; numbers in CONFIG.BOT)
