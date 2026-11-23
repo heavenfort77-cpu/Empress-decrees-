@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
-<title>Empress Decrees - box prototype (batch 7)</title>
+<title>Empress Decrees - box prototype (batch 8)</title>
 <style>
 html,body{margin:0;height:100%;overflow:hidden;background:#1b1620;color:#f3e6c8;touch-action:none;user-select:none;-webkit-user-select:none}
 canvas{display:block}
@@ -185,7 +185,7 @@ const CONFIG = {
     pillar: 0x9a2a22, silk: 0xb0303c, gold: 0xc9a040, bronze: 0x4a3a2a, empress: 0xf0e2c0,
     camp: 0xff8a2a, spawn: 0xe8e8e8, player: 0x3a7bd5, aim: 0xffffff, blob: 0x000000, warn: 0xff2a10,
     stone: 0x9a968c, eyes: 0xff3a1a, ring: 0xff2a10, altarOn: 0x5cff9a, altarOff: 0x2a3a30, broken: 0x2a2624, dummy: 0xc8b070, hit: 0xffffff, ind: 0x7fd0ff, fx: 0xffd060,
-    demon: 0x9a5a22, stalker: 0x7a2a8a, howler: 0x2a7a8a, frenzy: 0xff5a1a, tellD: 0xff2a10, tellS: 0xd050ff, tellH: 0x40e0ff,
+    demon: 0x9a5a22, stalker: 0x7a2a8a, howler: 0x2a7a8a, frenzy: 0xff5a1a, tellD: 0xff2a10, tellS: 0xd050ff, tellH: 0x40e0ff, crab: 0xe07030, wander: 0x9adf9a,
   },
   // Feature switch: the apex hunt on boxes (Tiger Demon, 2 minions, skill transfer). Started by H or the Hunt button until the royale exists.
   APEX_HUNT: true,
@@ -193,10 +193,10 @@ const CONFIG = {
   APEX: { wakeS: 3, entry: [0, -29], gateZ: -26.6, plateS: 0.9, skillGap: 1.2, recoverS: 0.25 },
   // Tiger Demon: health, speed (m/s), hit radius (m), body scale, distance it closes to (m), start offset from the statue x z (m).
   DEMON: { hp: 1000, speed: 4.6, r: 0.9, scale: 1, keep: 1.8, off: [0, 0] },
-  // Stalker minion: same fields.
-  STALKER: { hp: 120, speed: 5.2, r: 0.5, scale: 0.5, keep: 1.1, off: [-4.5, 3] },
+  // Stalker minion: same fields. Cubs and minions are treaded four-legged machines, faster than most suits (owner, 23 Nov); their other numbers sit at the suits' median.
+  STALKER: { hp: 120, speed: 6.6, r: 0.5, scale: 0.5, keep: 1.1, off: [-4.5, 3] },
   // Howler minion: same fields, plus flank = how far behind the player (away from the demon) it tries to stand (m).
-  HOWLER: { hp: 100, speed: 5.4, r: 0.5, scale: 0.5, keep: 0.5, off: [4.5, 3], flank: 1.2 },
+  HOWLER: { hp: 100, speed: 6.6, r: 0.5, scale: 0.5, keep: 0.5, off: [4.5, 3], flank: 1.2 },
   // Demon ultimate "Shed the limit". mode: 'once50' = one use at or below half health, 'cooldown' = repeats every cd seconds. windup = tell (s), dur = frenzy length (s), speed and dmg = multipliers.
   DEMON_ULT: { mode: 'once50', windup: 0.8, dur: 8, speed: 1.4, dmg: 1.3, cd: 40 },
   // Enemy moves. shape: circle (around the user), line (dash strip), spot (circle at a point locked behind the player). windup = tell in seconds (fairness: never under 0.4).
@@ -221,6 +221,25 @@ const CONFIG = {
   CUB: { hpK: 0.8, dmgK: 0.6, aggro: 6, leash: 12, heal: 25, homeMaxS: 6, stalkers: 4, howlers: 3 },
   // Plate reward (two slots): buff seconds, share of the ultimate cooldown removed (stand-in for ultimate charge), bleed dps and seconds on targets (Stalker plate), speed bonus (Howler plate), plate flight seconds.
   PLATE: { buffS: 45, ultCut: 0.3, bleedDps: 4, bleedS: 3, speed: 0.1, flyS: 0.7 },
+  // Feature switch: buff creatures (crab and wanderer), drawn from marble bags.
+  NEUTRALS: true,
+  // Marble bags (draw without putting back; refill and reshuffle when empty). times = seconds until a creature appears (from the run start, then from its death);
+  // spots = x, z before MAP_SCALE, section; crab and wander = which boon; amounts = boon size multiplier.
+  BAGS: {
+    times: [25, 35, 45, 55],
+    spots: [[-36, 16, 'W2'], [36, 16, 'E2'], [-34, -10, 'W1'], [34, -10, 'E1'], [0, -9, 'C1'], [-6, -3, 'C2']],
+    crab: ['ult', 'power', 'heal'],
+    wander: ['regen', 'vision', 'speed'],
+    amounts: [0.5, 1, 1, 1.5],
+  },
+  // Crab: health, body radius, box scale, scuttle distance (m) and rate. It never attacks.
+  CRAB: { hp: 110, r: 0.7, scale: 1, roam: 2, rate: 0.8 },
+  // Wanderer: health, body radius, box scale, circle radius (m) and rate. It never attacks.
+  WANDERER: { hp: 70, r: 0.5, scale: 1, roam: 2.5, rate: 0.6 },
+  // Boons at amount 1 (the bag multiplies v). ult: share of the ultimate cooldown removed. power: damage bonus. heal: health. regen: health per second. vision: metres. speed: speed bonus. s = seconds.
+  BOONS: { ult: { v: 0.2 }, power: { v: 0.1, s: 40 }, heal: { v: 20 }, regen: { v: 2, s: 20 }, vision: { v: 3, s: 40 }, speed: { v: 0.08, s: 30 } },
+  // Highest total multiplier any stack of bonuses may reach (speed, damage).
+  BONUS_CAP: 1.4,
   // Feature switch: next run's statue wears the last winner's school colour (approved, built later).
   WINNER_STATUE: false,
 };
@@ -272,6 +291,18 @@ const TEXT = {
   st_stun: 'Stunned',
   st_slow: 'Slowed',
   st_bleed: 'Bleeding x{n}',
+  voice_crab: 'Something scuttleth in Our courts.',
+  rule_crab: 'A crab is in: {zone}. Kill it for a boon.',
+  voice_wander: 'A wanderer strayeth through Our halls.',
+  rule_wander: 'A wanderer is in: {zone}. Kill it for a boon.',
+  voice_boon: 'A trifle. Keep it.',
+  boon_ult: 'Boon: ultimate cooldown cut by {v} s.',
+  boon_power: 'Boon: +{v}% damage for {s} s.',
+  boon_heal: 'Boon: healed {v} HP.',
+  boon_regen: 'Boon: {v} HP per second for {s} s.',
+  boon_vision: 'Boon: +{v} m vision for {s} s.',
+  boon_speed: 'Boon: +{v}% speed for {s} s.',
+  bn_power: 'Power', bn_regen: 'Regen', bn_vision: 'Vision', bn_speed: 'Speed',
   voice_kennel: 'Our kennels stand open. Take what falleth, if thou canst.',
   rule_kennel: 'Cubs appear in {s} s at: {zones}. Kill one to take its plate.',
   voice_plate_take: 'It is thine. For now.',
@@ -432,6 +463,7 @@ mat('demon', COL.demon, { metalness: 0.2, roughness: 0.7 }); mat('stalker', COL.
 mat('frenzy', COL.frenzy, { emissive: COL.frenzy, emissiveIntensity: 0.9 });
 mat('tellD', COL.tellD, { emissive: COL.tellD, emissiveIntensity: 1.2 }); mat('tellS', COL.tellS, { emissive: COL.tellS, emissiveIntensity: 1.2 });
 mat('tellH', COL.tellH, { emissive: COL.tellH, emissiveIntensity: 1.2 });
+mat('crab', COL.crab, { roughness: 0.6 }); mat('wander', COL.wander, { roughness: 0.6 });
 
 // ===================== Geometry helpers (merge static parts per section and material) =====================
 function box(w, h, d, x, y, z) { const g = new THREE.BoxGeometry(w, h, d); g.translate(x, y, z); return g; }
@@ -625,7 +657,7 @@ const WAVES = CONFIG.WAVES.map((ids, i) => ({
 // air = airborne (dropping a layer or into the void); voidT = time airborne with no floor below.
 const P = { x: 0, z: 0, y: 0, px: 0, pz: 0, py: 0, vy: 0, air: false, airFromY: 0, voidT: 0, dead: false, deadT: 0,
   hp: 100, hpShown: -1, noHealT: 0, kx: 0, kz: 0, faceX: 0, faceZ: -1, atkT: 0, stuckT: 0, zone: null,
-  slowT: 0, slowK: 0, stunT: 0, bleedN: 0, bleedT: 0, statusShown: -1, pk: ['', ''], pt: [0, 0] };
+  slowT: 0, slowK: 0, stunT: 0, bleedN: 0, bleedT: 0, statusShown: -1, pk: ['', ''], pt: [0, 0], bT: [0, 0, 0, 0], bV: [0, 0, 0, 0], statusTick: -1 };
 const playerGroup = new THREE.Group();
 const playerBody = new THREE.Mesh(mergeGeoms([box(0.9, 1.5, 0.9, 0, 0.75, 0), box(0.6, 0.5, 0.6, 0, 1.8, 0)]), M.player);
 playerBody.castShadow = false;
@@ -646,8 +678,8 @@ const beastGeo = mergeGeoms([box(1.8, 1.1, 3.0, 0, 1.25, 0), box(1.2, 1.0, 1.1, 
 const tellLineGeo = new THREE.BoxGeometry(1, 0.05, 1).translate(0, 0, -0.5);
 const plateGeo = new THREE.BoxGeometry(0.7, 0.15, 0.7);
 const tellRingGeo = new THREE.RingGeometry(0.85, 1, 56); tellRingGeo.rotateX(-Math.PI / 2);
-function makeUnit(kind, cfg, m, tellMat, atk, skills, gain) {
-  const group = new THREE.Group(), body = new THREE.Mesh(beastGeo, m);
+function makeUnit(kind, cfg, m, tellMat, atk, skills, gain, geo) {
+  const group = new THREE.Group(), body = new THREE.Mesh(geo || beastGeo, m);
   body.scale.setScalar(cfg.scale);
   const bar = new THREE.Mesh(dummyBarGeo, M.camp); bar.position.set(-0.5, 2.3 * cfg.scale + 0.6, 0);
   group.add(body, bar);
@@ -658,7 +690,8 @@ function makeUnit(kind, cfg, m, tellMat, atk, skills, gain) {
     x: 0, z: 0, y: 0, px: 0, pz: 0, fx: 0, fz: 1, hp: 0, alive: false, seen: false, st: 0, t: 0, cur: '', tellT: 0,
     tx: 0, tz: 0, tl: 0, ax: 0, az: 0, bx: 0, bz: 0, dashS: 0.2, gapT: 0, rot: 0, flashT: 0, frenzyT: 0, ultUsed: false, ultCd: 0,
     side: 1, plateOn: false, plateT: 0, sx: 0, sz: 0, hx: 0, hz: 0,
-    maxHp: cfg.hp, dmgK: 1, hunt: true, cub: false, cx: 0, cz: 0, cy: 0, camp: -1, home: false, hot: false, homeT: 0, bleedT: 0 };
+    maxHp: cfg.hp, dmgK: 1, hunt: true, cub: false, cx: 0, cz: 0, cy: 0, camp: -1, home: false, hot: false, homeT: 0, bleedT: 0,
+    fuseOn: false, sy: 0, neutral: false, idx: 0, nb: '', nv: 1, spot: -1 };
 }
 const DEMON = makeUnit('demon', CONFIG.DEMON, M.demon, M.tellD, 'claw', ['pounce', 'roar'], null);
 const STALKER = makeUnit('stalker', CONFIG.STALKER, M.stalker, M.tellS, 'bite', ['lunge', 'rend'], ['lunge', 'rend']);
@@ -673,8 +706,19 @@ for (let i = 0; i < CONFIG.CUB.stalkers + CONFIG.CUB.howlers; i++) {
   u.hunt = false; u.cub = true; u.maxHp = u.cfg.hp * CONFIG.CUB.hpK; u.dmgK = CONFIG.CUB.dmgK; u.side = i % 2 ? 1 : -1;
   CUBS.push(u);
 }
-// Everything the player can target: training dummies, hunt units and cubs share x, z, r, hp, seen.
-const TARGETS = DUMMY_LIST.concat(ENEMIES, CUBS);
+// Buff creatures: a crab and a wanderer. They never attack; the last hit takes a boon. Time, place, boon and size come from marble bags.
+const crabGeo = mergeGeoms([box(1.8, 0.7, 1.1, 0, 0.55, 0), box(0.5, 0.5, 0.5, -1.0, 0.9, -0.5), box(0.5, 0.5, 0.5, 1.0, 0.9, -0.5)]);
+const wanderGeo = mergeGeoms([box(0.7, 1.9, 0.7, 0, 0.95, 0), box(1.1, 0.25, 1.1, 0, 2.0, 0)]);
+const NEUTRALS = [makeUnit('crab', CONFIG.CRAB, M.crab, M.tellD, '', [], null, crabGeo), makeUnit('wanderer', CONFIG.WANDERER, M.wander, M.tellD, '', [], null, wanderGeo)];
+NEUTRALS.forEach((u, i) => { u.hunt = false; u.neutral = true; u.idx = i; });
+const SPOTS = CONFIG.BAGS.spots.map(([x, z, sec]) => [x * K, z * K, sec]);
+// Seeded random numbers (mulberry32) so a run can be replayed; marble bags draw without putting back.
+const RNG = { s: 1 };
+function makeBag(src) { return { src, a: src.slice(), i: src.length }; }
+const BAGS = { times: makeBag(CONFIG.BAGS.times), spots: makeBag(SPOTS.map((_, i) => i)), crab: makeBag(CONFIG.BAGS.crab), wander: makeBag(CONFIG.BAGS.wander), amounts: makeBag(CONFIG.BAGS.amounts) };
+const BOON_IDX = { power: 0, regen: 1, vision: 2, speed: 3 };
+// Everything the player can target: training dummies, hunt units, cubs and buff creatures share x, z, r, hp, seen.
+const TARGETS = DUMMY_LIST.concat(ENEMIES, CUBS, NEUTRALS);
 // Gate seal shown during the hunt.
 const sealMesh = new THREE.Mesh(new THREE.BoxGeometry((GATE.x1 - GATE.x0), 2.6, 0.3).translate(0, 1.3, CH.z1 - 0.5), M.tellD);
 sealMesh.matrixAutoUpdate = false; sealMesh.updateMatrix();
@@ -857,6 +901,7 @@ function applySkill(slot, x, z, dx, dz) {
 function canAct() { return !P.dead && P.stunT <= 0 && G.phase !== 'won' && G.phase !== 'lost'; }
 function hasPlate(kind) { return (P.pt[0] > 0 && P.pk[0] === kind) || (P.pt[1] > 0 && P.pk[1] === kind); }
 function hitTarget(d, n) {
+  if (P.bT[0] > 0) n *= Math.min(CONFIG.BONUS_CAP, 1 + P.bV[0]);
   if (!d.kind) { hitDummy(d, n); return; }
   hitEnemy(d, n);
   if (d.alive && hasPlate('stalker')) d.bleedT = CONFIG.PLATE.bleedS;
@@ -1049,7 +1094,7 @@ function heapPop(hs) {
 // ===================== Game state =====================
 const G = { time: 0, view: 'follow', paused: false, ctxLost: false, frames: 0, bannerWave: -1, fellT: 0, nextWave: -2, fxT: 0, miniDirty: true, miniT: 0,
   phase: 'royale', phaseT: 0, huntT: 0, plates: 0, bossDirty: true, bossHp: -1, hits: 0, minTell: 99, hitDmg: 0, bleedDmg: 0,
-  kWave: 0, kWarned: false, platesTaken: 0 };
+  kWave: 0, kWarned: false, platesTaken: 0, visR: CONFIG.VISION_R, seed: 1, seedFixed: -1, nT: [0, 0], boons: 0 };
 
 function warnSection(s) { G.miniDirty = true; s.state = 1; for (let i = 0; i < s.floorMeshes.length; i++) s.floorMeshes[i].material = warnMat; }
 function dropSection(s) {
@@ -1135,7 +1180,12 @@ function step(dt) {
     if (P.bleedT <= 0) P.bleedN = 0;
   }
   for (let i = 0; i < 2; i++) if (P.pt[i] > 0) { P.pt[i] -= dt; if (P.pt[i] <= 0) { P.pt[i] = 0; P.pk[i] = ''; } }
+  for (let i = 0; i < 4; i++) if (P.bT[i] > 0) { P.bT[i] -= dt; if (P.bT[i] <= 0) { P.bT[i] = 0; P.bV[i] = 0; } }
+  if (P.bT[1] > 0 && !P.dead && P.hp < CONFIG.MAX_HP) P.hp = Math.min(CONFIG.MAX_HP, P.hp + P.bV[1] * dt);
+  const vr = CONFIG.VISION_R + (P.bT[2] > 0 ? P.bV[2] : 0);
+  if (vr !== G.visR) { G.visR = vr; if (G.view === 'follow') FOW.uFowR.value = vr; }
   if (roy && CONFIG.ROYALE_MINIONS) stepKennel(dt);
+  if (roy && CONFIG.NEUTRALS) stepNeutrals(dt);
   if (G.phase === 'wake' || G.phase === 'hunt') stepHunt(dt);
   if (G.phase === 'won' || G.phase === 'lost') { updateHp(); updateStatus(); return; }
   // Player.
@@ -1164,7 +1214,7 @@ function step(dt) {
   if (P.stunT > 0) { mx = 0; mz = 0; if (ORD.aiming >= 0) cancelAim(); }
   const len = Math.hypot(mx, mz);
   if (len > 1) { mx /= len; mz /= len; }
-  const spd = CONFIG.PLAYER_SPEED * (P.slowT > 0 ? 1 - P.slowK : 1) * (hasPlate('howler') ? 1 + CONFIG.PLATE.speed : 1);
+  const spd = CONFIG.PLAYER_SPEED * (P.slowT > 0 ? 1 - P.slowK : 1) * Math.min(CONFIG.BONUS_CAP, (hasPlate('howler') ? 1 + CONFIG.PLATE.speed : 1) * (1 + (P.bT[3] > 0 ? P.bV[3] : 0)));
   const kd = Math.exp(-CONFIG.KB_DECAY * dt); P.kx *= kd; P.kz *= kd;
   const kbOn = Math.abs(P.kx) + Math.abs(P.kz) > 0.3;
   if (!kbOn) { P.kx = 0; P.kz = 0; }
@@ -1206,7 +1256,7 @@ function stepCombat(dt) {
   }
   if (PEND.on) { PEND.t -= dt; if (PEND.t <= 0) { PEND.on = false; fxTele.visible = false; applySkill(PEND.slot, PEND.x, PEND.z, PEND.dx, PEND.dz); } }
   if (G.fxT > 0) { G.fxT -= dt; if (G.fxT <= 0) { fxLine.visible = false; fxRing.visible = false; } }
-  const VR = CONFIG.VISION_R;
+  const VR = G.visR;
   for (let i = 0; i < DUMMY_LIST.length; i++) {
     const d = DUMMY_LIST[i];
     if (d.hp <= 0) { d.deadT -= dt; if (d.deadT <= 0) { d.hp = CONFIG.DUMMY_HP; d.bar.scale.x = 1; } }
@@ -1236,14 +1286,16 @@ function showNote(voiceKey, ruleKey, vars) {
 function updateStatus() {
   const s0 = Math.ceil(P.pt[0]), s1 = Math.ceil(P.pt[1]);
   const code = (P.stunT > 0 ? 100 : 0) + (P.slowT > 0 ? 10 : 0) + P.bleedN + s0 * 1e3 + s1 * 1e5 + (P.pk[0] === 'howler' ? 1e7 : 0) + (P.pk[1] === 'howler' ? 2e7 : 0);
-  if (code === P.statusShown) return;
-  P.statusShown = code;
+  const tick = P.bT[0] + P.bT[1] + P.bT[2] + P.bT[3] > 0 ? Math.floor(G.time) : -1;
+  if (code === P.statusShown && tick === P.statusTick) return;
+  P.statusShown = code; P.statusTick = tick;
   let s = '';
   if (P.stunT > 0) s += T('st_stun') + '  ';
   if (P.slowT > 0) s += T('st_slow') + '  ';
   if (P.bleedN > 0) s += T('st_bleed', { n: P.bleedN }) + '  ';
   if (s0 > 0) { BUFF_VARS.s = s0; s += T(P.pk[0] === 'stalker' ? 'buff_stalker' : 'buff_howler', BUFF_VARS) + '  '; }
-  if (s1 > 0) { BUFF_VARS.s = s1; s += T(P.pk[1] === 'stalker' ? 'buff_stalker' : 'buff_howler', BUFF_VARS); }
+  if (s1 > 0) { BUFF_VARS.s = s1; s += T(P.pk[1] === 'stalker' ? 'buff_stalker' : 'buff_howler', BUFF_VARS) + '  '; }
+  for (let i = 0; i < 4; i++) if (P.bT[i] > 0) s += BOON_TXT[i] + ' ' + Math.ceil(P.bT[i]) + 's  ';
   setText(el.status, s.trim());
 }
 
@@ -1376,7 +1428,7 @@ function stepUnit(u, dt) {
   if (td > u.cfg.keep) moveUnit(u, tx / td, tz / td, u.cfg.speed * (u.frenzyT > 0 ? CONFIG.DEMON_ULT.speed : 1), dt);
 }
 function stepHunt(dt) {
-  const VR = CONFIG.VISION_R, hunting = G.phase === 'hunt';
+  const VR = G.visR, hunting = G.phase === 'hunt';
   if (G.phase === 'wake') {
     // The wake: the demon stands where the statue was and the two plates walk off it. Nothing can be hit yet.
     G.phaseT += dt;
@@ -1384,6 +1436,13 @@ function stepHunt(dt) {
     for (let i = 0; i < ENEMIES.length; i++) {
       const u = ENEMIES[i]; u.px = u.x; u.pz = u.z;
       u.x = u.hx + u.cfg.off[0] * k; u.z = u.hz + u.cfg.off[1] * k;
+    }
+    // Royale cubs still alive at the wake fly home as plates and fuse into the demon.
+    for (let i = 0; i < CUBS.length; i++) {
+      const u = CUBS[i]; if (!u.fuseOn) continue;
+      const f = Math.min(1, G.phaseT / (CONFIG.APEX.wakeS * 0.9));
+      u.plate.position.set(u.sx + (DEMON.hx - u.sx) * f, u.sy + 1 + (DEMON.y - u.sy) * f + Math.sin(f * Math.PI) * 4, u.sz + (DEMON.hz - u.sz) * f);
+      if (f >= 1) { u.fuseOn = false; scene.remove(u.plate); }
     }
     if (k >= 1) G.phase = 'hunt';
   } else {
@@ -1417,6 +1476,7 @@ function killUnit(u) {
   u.alive = false; u.seen = false; u.st = 0; hideTell(u); scene.remove(u.group);
   if (ORD.attack === u) ORD.attack = null;
   if (u === DEMON) { endHunt(true); return; }
+  if (u.neutral) { G.nT[u.idx] = G.time + draw(BAGS.times); grantBoon(u); return; }
   if (u.cub) scene.remove(u.ring, u.line);
   u.plateOn = true; u.plateT = 0; u.sx = u.x; u.sz = u.z; u.plate.position.set(u.x, u.y + 1, u.z); scene.add(u.plate);
 }
@@ -1497,7 +1557,7 @@ function grantPlayerPlate(u) {
   showNote('voice_plate_take', u.kind === 'stalker' ? 'rule_plate_s' : 'rule_plate_h', TAKE_VARS);
 }
 function stepKennel(dt) {
-  const Kc = CONFIG.KENNEL, VR = CONFIG.VISION_R;
+  const Kc = CONFIG.KENNEL, VR = G.visR;
   if (G.kWave < Kc.waves.length) {
     const at = Kc.firstS + G.kWave * Kc.intervalS;
     if (!G.kWarned && G.time >= at - Kc.warnS) { G.kWarned = true; announceKennel(Kc.waves[G.kWave]); }
@@ -1517,7 +1577,84 @@ function stepKennel(dt) {
     if (u.group.visible !== vis) u.group.visible = vis;
   }
 }
+// ----- Buff creatures and marble bags.
+function rnd() {
+  RNG.s = (RNG.s + 0x6D2B79F5) | 0; let t = RNG.s;
+  t = Math.imul(t ^ (t >>> 15), t | 1); t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+  return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+}
+// Take the next marble; an empty bag is refilled and shuffled first.
+function draw(b) {
+  if (b.i >= b.a.length) {
+    for (let k = 0; k < b.src.length; k++) b.a[k] = b.src[k];
+    for (let k = b.a.length - 1; k > 0; k--) { const j = Math.floor(rnd() * (k + 1)), t = b.a[k]; b.a[k] = b.a[j]; b.a[j] = t; }
+    b.i = 0;
+  }
+  return b.a[b.i++];
+}
+function spawnNeutral(u, i, spot, boon, amt) {
+  const sp = SPOTS[spot];
+  u.spot = spot; u.nb = boon; u.nv = amt; u.cx = sp[0]; u.cz = sp[1]; u.x = u.px = sp[0]; u.z = u.pz = sp[1]; u.y = topY(sp[0], sp[1]); u.t = 0; u.fx = 0; u.fz = 1;
+  u.hp = u.maxHp; u.alive = true; u.seen = false; u.flashT = 0; u.bleedT = 0; u.body.material = u.mat; u.bar.scale.x = 1; u.group.visible = false; u.group.position.set(u.x, u.y, u.z);
+  scene.add(u.group);
+  ZONE_VARS.zone = SEC[sp[2]].name; showNote(i === 0 ? 'voice_crab' : 'voice_wander', i === 0 ? 'rule_crab' : 'rule_wander', ZONE_VARS);
+}
+function loseNeutral(u) {
+  u.alive = false; u.seen = false; u.hp = 0; scene.remove(u.group); G.nT[u.idx] = G.time + draw(BAGS.times);
+  if (ORD.attack === u) ORD.attack = null;
+}
+function grantBoon(u) {
+  if (P.dead) return;
+  const b = u.nb, B = CONFIG.BOONS[b], v = B.v * u.nv; G.boons++;
+  BOON_VARS.s = B.s || 0;
+  if (b === 'ult') { const cut = v * CONFIG.SKILLS[2].cd; SK[2].cdT = Math.max(0, SK[2].cdT - cut); BOON_VARS.v = Math.round(cut); }
+  else if (b === 'heal') { P.hp = Math.min(CONFIG.MAX_HP, P.hp + v); BOON_VARS.v = Math.round(v); }
+  else { const k = BOON_IDX[b]; P.bT[k] = B.s; P.bV[k] = v; BOON_VARS.v = b === 'power' || b === 'speed' ? Math.round(v * 100) : v; }
+  showNote('voice_boon', 'boon_' + b, BOON_VARS);
+}
+function stepNeutrals(dt) {
+  const VR = G.visR;
+  for (let i = 0; i < NEUTRALS.length; i++) {
+    const u = NEUTRALS[i];
+    if (!u.alive) {
+      if (G.time >= G.nT[i]) {
+        // Draw a place whose section still stands (at most one pass through the bag), then the boon and its size.
+        let spot = -1;
+        for (let n = 0; n < SPOTS.length && spot < 0; n++) { const k = draw(BAGS.spots); if (SEC[SPOTS[k][2]].state === 0 && !spotTaken(k)) spot = k; }
+        if (spot < 0) G.nT[i] = G.time + 5; else spawnNeutral(u, i, spot, draw(i === 0 ? BAGS.crab : BAGS.wander), draw(BAGS.amounts));
+      }
+    } else if (!floorAt(u.x, u.z, u.y + 0.1)) loseNeutral(u);
+    else {
+      u.px = u.x; u.pz = u.z;
+      if (u.flashT > 0) { u.flashT -= dt; if (u.flashT <= 0) u.body.material = u.mat; }
+      if (u.bleedT > 0) {
+        u.bleedT -= dt; u.hp -= CONFIG.PLATE.bleedDps * dt; u.bar.scale.x = Math.max(0.001, u.hp / u.maxHp);
+        if (u.hp <= 0) { u.hp = 0; killUnit(u); }
+      }
+      if (u.alive) {
+        // The crab scuttles side to side; the wanderer walks a circle. Neither leaves its floor.
+        u.t += dt; const a = u.t * u.cfg.rate, R2 = u.cfg.roam;
+        const nx = u.cx + Math.sin(a) * R2, nz = i === 0 ? u.cz : u.cz + (Math.cos(a) - 1) * R2;
+        if (unitOk(u, nx, nz)) { u.fx = nx - u.x; u.fz = nz - u.z; u.x = nx; u.z = nz; u.y = topYUnder(nx, nz, u.y); }
+      }
+    }
+    const vis = u.alive && Math.hypot(u.x - P.x, u.z - P.z) <= VR;
+    u.seen = vis;
+    if (u.group.visible !== vis) u.group.visible = vis;
+  }
+}
+function spotTaken(k) { for (let i = 0; i < NEUTRALS.length; i++) if (NEUTRALS[i].alive && NEUTRALS[i].spot === k) return true; return false; }
 // PERFRAME-END
+const ZONE_VARS = { zone: '' }, BOON_VARS = { v: 0, s: 0 }, BOON_TXT = [T('bn_power'), T('bn_regen'), T('bn_vision'), T('bn_speed')];
+// Buff creatures out of the scene and their first appearance drawn from the time bag (new run), or simply cleared (the wake).
+function resetNeutrals(redraw) {
+  for (const u of NEUTRALS) {
+    u.alive = false; u.seen = false; u.hp = 0; u.bleedT = 0; u.flashT = 0; u.body.material = u.mat; u.maxHp = u.cfg.hp;
+    if (u.group.parent) scene.remove(u.group);
+    if (ORD.attack === u) ORD.attack = null;
+    if (redraw) G.nT[u.idx] = draw(BAGS.times);
+  }
+}
 const PLATE_VARS = { a: '', b: '' }, BOSS_VARS = { list: '' }, FRENZY_VARS = { s: CONFIG.DEMON_ULT.dur }, END_VARS = { s: 0, retry: '' };
 const KENNEL_VARS = { s: CONFIG.KENNEL.warnS, zones: '' }, TAKE_VARS = { s: CONFIG.PLATE.buffS, p: Math.round(CONFIG.PLATE.speed * 100) }, BUFF_VARS = { s: 0 };
 // Cubs back into the pool (new run, or the wake: live cubs fuse into the statue).
@@ -1569,7 +1706,9 @@ function startHunt() {
     else if (w.state === 2) { w.state = 3; for (const s of w.secs) removeSection(s); }
   }
   G.bannerWave = -1; G.fellT = 0; G.miniDirty = true;
-  resetCubs();
+  for (const u of CUBS) u.fuseOn = u.alive;
+  resetCubs(); resetNeutrals(false);
+  for (const u of CUBS) if (u.fuseOn) { u.sx = u.x; u.sz = u.z; u.sy = u.y; u.plate.position.set(u.x, u.y + 1, u.z); scene.add(u.plate); }
   G.phase = 'wake'; G.phaseT = 0; G.huntT = 0; G.plates = 0; G.bossDirty = true; G.bossHp = -1;
   G.hits = 0; G.minTell = 99; G.hitDmg = 0; G.bleedDmg = 0;
   for (const h of HAZARDS) if (h.statue) { h.state = 0; h.t = 0; h.ring.visible = false; }
@@ -1600,6 +1739,7 @@ function endHunt(win) {
 }
 // Back to the royale state (new run): statue asleep again, units out of the scene, gate open.
 function clearHunt() {
+  for (const u of CUBS) { u.fuseOn = false; if (u.plate.parent) scene.remove(u.plate); }
   G.phase = 'royale'; G.phaseT = 0; G.huntT = 0; G.plates = 0; G.bossDirty = true; G.bossHp = -1;
   setStatue(true); resetUnits(false);
   if (sealMesh.parent) scene.remove(sealMesh);
@@ -1656,6 +1796,11 @@ function drawMini() {
     const u = CUBS[i]; if (!u.seen) continue;
     c.beginPath(); c.arc((u.x - MINI.x0) * px, (u.z - MINI.z0) * py, 2.5, 0, 6.2832); c.fill();
   }
+  c.fillStyle = '#ffd040';
+  for (let i = 0; i < NEUTRALS.length; i++) {
+    const u = NEUTRALS[i]; if (!u.seen) continue;
+    c.beginPath(); c.arc((u.x - MINI.x0) * px, (u.z - MINI.z0) * py, 2.5, 0, 6.2832); c.fill();
+  }
   if (G.kWarned) {
     const w = CONFIG.KENNEL.waves[G.kWave]; c.strokeStyle = '#ff8a2a'; c.lineWidth = 2;
     for (let i = 0; i < w.length; i++) {
@@ -1669,7 +1814,7 @@ function drawMini() {
     for (let i = PATH.i; i < PATH.n; i++) c.lineTo((PATH.pts[i * 2] - MINI.x0) * px, (PATH.pts[i * 2 + 1] - MINI.z0) * py);
     c.stroke();
   }
-  c.strokeStyle = 'rgba(127,208,255,0.55)'; c.lineWidth = 1; c.beginPath(); c.arc(x, z, CONFIG.VISION_R * px, 0, 6.2832); c.stroke();
+  c.strokeStyle = 'rgba(127,208,255,0.55)'; c.lineWidth = 1; c.beginPath(); c.arc(x, z, G.visR * px, 0, 6.2832); c.stroke();
   c.fillStyle = '#3a9bff'; c.beginPath(); c.arc(x, z, 3.5, 0, 6.2832); c.fill();
   c.strokeStyle = '#ffffff'; c.lineWidth = 1.5; c.beginPath(); c.moveTo(x, z); c.lineTo(x + P.faceX * 7, z + P.faceZ * 7); c.stroke();
 }
@@ -1686,7 +1831,11 @@ function respawn(kind) {
 // New run: resets everything the run changes (time, waves, sections, floors, player, banner, shadows).
 function reset() {
   P.pt[0] = P.pt[1] = 0; P.pk[0] = P.pk[1] = ''; G.platesTaken = 0; G.hits = 0; G.minTell = 99; G.hitDmg = 0; G.bleedDmg = 0;
-  resetCubs();
+  G.seed = G.seedFixed >= 0 ? G.seedFixed : (Date.now() >>> 0); RNG.s = G.seed | 0;
+  for (const k in BAGS) BAGS[k].i = BAGS[k].a.length;
+  for (let i = 0; i < 4; i++) { P.bT[i] = 0; P.bV[i] = 0; }
+  P.statusTick = -1; G.boons = 0; G.visR = CONFIG.VISION_R; if (G.view === 'follow') FOW.uFowR.value = G.visR;
+  resetCubs(); resetNeutrals(true);
   clearHunt();
   G.time = 0; G.bannerWave = -1; G.fellT = 0; G.nextWave = -2;
   for (const w of WAVES) { w.state = 0; w.lastCount = -1; }
@@ -1725,7 +1874,7 @@ function setView(v) {
   scene.fog.far = v === 'follow' ? CONFIG.FOG_FAR : farOv * 2;
   scene.fog.near = v === 'follow' ? CONFIG.FOG_NEAR : farOv;
   camera.updateProjectionMatrix();
-  FOW.uFowR.value = v === 'follow' ? CONFIG.VISION_R : 1e5;
+  FOW.uFowR.value = v === 'follow' ? G.visR : 1e5;
   setText(el.btnMap, T(v === 'follow' ? 'btn_map' : 'btn_follow'));
 }
 function applyTier(name) {
@@ -1775,6 +1924,11 @@ function placeView(alpha) {
   }
   if (G.phase === 'royale') for (let i = 0; i < CUBS.length; i++) {
     const u = CUBS[i]; if (!u.alive) continue;
+    u.group.position.set(u.px + (u.x - u.px) * alpha, u.y, u.pz + (u.z - u.pz) * alpha);
+    u.body.rotation.y = Math.atan2(-u.fx, -u.fz);
+  }
+  if (G.phase === 'royale') for (let i = 0; i < NEUTRALS.length; i++) {
+    const u = NEUTRALS[i]; if (!u.alive) continue;
     u.group.position.set(u.px + (u.x - u.px) * alpha, u.y, u.pz + (u.z - u.pz) * alpha);
     u.body.rotation.y = Math.atan2(-u.fx, -u.fz);
   }
@@ -1832,7 +1986,7 @@ for (const m of INDICATORS) m.visible = true;
 // Hunt pieces sit at the player for this one draw so their buffers upload now, not at the wake.
 const warmSeal = new THREE.Mesh(sealMesh.geometry, M.tellD); warmSeal.position.set(P.x, P.y, P.z - (CH.z1 - 0.5));
 const warmHunt = [warmSeal];
-for (const u of ENEMIES) {
+for (const u of ENEMIES.concat(NEUTRALS)) {
   warmHunt.push(u.group, u.ring, u.line, u.plate); u.group.visible = u.ring.visible = u.line.visible = true;
   for (const o of [u.group, u.ring, u.line, u.plate]) o.position.set(P.x, P.y, P.z);
 }
@@ -1845,7 +1999,7 @@ renderer.render(scene, camera);
 setView('overview'); placeView(1); renderer.render(scene, camera); setView('follow');
 for (const h of HAZARDS) h.ring.visible = false;
 for (const o of warmHunt) scene.remove(o);
-for (const u of ENEMIES) hideTell(u);
+for (const u of ENEMIES.concat(NEUTRALS)) hideTell(u);
 for (const m of INDICATORS) m.visible = false;
 scene.remove(warm); warm.geometry.dispose();
 drawMini();
@@ -1908,6 +2062,15 @@ window.__game = {
         inScene: !!u.group.parent, tellIn: !!u.ring.parent, plate: !!u.plate.parent, bleed: u.bleedT, standOk: !u.alive || u.st === 2 || unitOk(u, u.x, u.z) })),
       tells: tellsOf(CUBS) };
   },
+  neutrals() {
+    return { next: G.nT.slice(), t: G.time, boons: G.boons, seed: G.seed, visR: G.visR, fow: FOW.uFowR.value, bT: P.bT.slice(), bV: P.bV.slice(), ultCd: SK[2].cdT, status: el.status.textContent,
+      voice: el.voice.textContent, rule: el.rule.textContent, fusing: CUBS.filter((u) => u.fuseOn).length, fusePlates: CUBS.filter((u) => !!u.plate.parent).length,
+      list: NEUTRALS.map((u) => ({ kind: u.kind, x: u.x, z: u.z, y: u.y, hp: u.hp, max: u.maxHp, alive: u.alive, seen: u.seen, boon: u.nb, amt: u.nv, spot: u.spot, inScene: !!u.group.parent,
+        sec: u.spot >= 0 ? SEC[SPOTS[u.spot][2]].state : -1, standOk: !u.alive || unitOk(u, u.x, u.z) })) };
+  },
+  hitNeutral(i, n) { hitEnemy(NEUTRALS[i], n); }, forceNeutral(i, spot, boon, amt) { const u = NEUTRALS[i]; if (u.alive) loseNeutral(u); spawnNeutral(u, i, spot, boon, amt); },
+  attackNeutral(i) { const u = NEUTRALS[i]; if (u.seen && u.hp > 0) { ORD.attack = u; PATH.n = 0; return true; } return false; },
+  drawBag(name) { return draw(BAGS[name]); }, setSeed(n) { G.seedFixed = n; }, spots: SPOTS,
   hitCub(i, n) { hitEnemy(CUBS[i], n); }, placeCub(i, x, z) { const u = CUBS[i]; u.x = u.px = x; u.z = u.pz = z; u.y = topY(x, z); }, cubCd(i, k, v) { CUBS[i].cd[k] = v; },
   attackCub(i) { const u = CUBS[i]; if (u.seen && u.hp > 0) { ORD.attack = u; PATH.n = 0; return true; } return false; },
   givePlate(kind) { const s = P.pt[0] <= 0 ? 0 : 1; P.pk[s] = kind; P.pt[s] = CONFIG.PLATE.buffS; }, camps: CAMPS,

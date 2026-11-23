@@ -1,6 +1,6 @@
 # Apex-hunt jam game: GDD and handoff (working title TBD)
 
-Status: updated 2026-11-23 after batch 7. Batches 1-2 approved. Batches 3-5 (box map, map v2, minimap, fog of war, MOBA controls), batch 6 (apex fight on boxes) and batch 7 (royale minions on boxes) built; static PASS, runtime 56 of 56 PASS; waiting for the user's review. All numbers are proposals, tunable in one CONFIG block.
+Status: updated 2026-11-23 after batch 8. Batches 1-2 approved. Batches 3-8 built on boxes (map, controls, apex fight, royale minions, buff creatures from marble bags); static PASS, runtime 60 of 60 PASS; waiting for the user's review. Next: bots. All numbers are proposals, tunable in one CONFIG block.
 Repo for the code: https://github.com/heavenfort77-cpu/Empress-decrees- (all-new code, nothing from B.O.I).
 
 ## Jam facts (checked 2026-11-23)
@@ -69,6 +69,16 @@ Purpose: give a suit a way to pull ahead, so the royale is not ten equal suits t
 - **CONFIG:** first spawn time, wave interval, cubs per wave, aggro and leash radius, cub HP and damage scale, ult charge per plate, buff length, max plates, bounty charge, bot contest weights. On/off switch: `ROYALE_MINIONS`.
 - **As built on boxes (batch 7, 23 Nov; numbers in CONFIG):** waves at 30, 90, 150, 210 s with a 5 s warning; cubs at 80% health and 60% damage, aggro 6 m, leash 12 m, heal at rest; plate flies to the last hitter, two 45 s slots; Stalker plate = bleed on your hits, Howler plate = +10% speed; the ultimate-charge reward is a 30% ultimate cooldown cut until charge exists. Leader, bounty and bot contests wait for bots.
 - **Sims:** plate share per school; leader win share (band 25-45%); player plate rate on medium bots; cub deaths caused by collapse.
+
+### Cubs and minions: body and speed (owner, 23 Nov)
+- Every cub and minion that moves on the map is a four-legged machine on treads. They are faster than most suits; their other numbers sit at the suits' median (read as health and damage; confirm). On boxes: 6.6 m/s against the suit's 6. Look comes at the art stage.
+- Cubs alive at the wake go back to the statue in view of the player: built as plates flying home during the 3 s wake.
+
+### Buff creatures and marble bags (owner, 23 Nov; batch 8 on boxes)
+- Two neutral creatures that never attack and give a boon to the last hitter, in the manner of a MOBA jungle crab and river wanderer. Own names, look and code (working names: crab, wanderer).
+- Marble-bag rule (draw without putting back, refill when empty, seeded) decides four things: when (25/35/45/55 s), where (6 spots; fallen or warned sections skipped), which boon, and how big (0.5x, 1x, 1x, 1.5x).
+- Crab boons: ultimate cooldown cut (stand-in for exp or charge), damage up, heal. Wanderer boons: regen, wider vision, speed. Every stack is capped at 1.4x.
+- Open: boons for bots too (with batch 9); whether the crab should fight back; final names.
 
 ### Kaymuse's decrees (proposal)
 - About one decree a minute (3 to 4 per royale). She is a live opponent: she speaks on screen, and decrees hit the player and the bots alike.

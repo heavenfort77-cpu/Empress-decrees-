@@ -29,6 +29,8 @@ try {
   await page.goto(URL0);
   await page.waitForFunction(() => window.__ready === true, null, { timeout: 60000 });
   check('01 load without errors', errors.length === 0, errors.slice(0, 3).join(' | '));
+  // Fixed seed so the marble bags draw the same way every run.
+  await g(() => { __game.setSeed(12345); __game.reset(); });
 
   const base = await g(() => __game.render(true));
   check('02 budget follow view (calls<500, tris<500k)', base.calls < 500 && base.tris < 500000, `calls ${base.calls}, tris ${base.tris}`);
@@ -606,7 +608,8 @@ try {
   const kr = await g(() => {
     const G = __game, C = G.config, K = window.__k, o = {}, waves = C.KENNEL.waves;
     G.reset(); K.sp(C.KENNEL.firstS + C.KENNEL.intervalS + 0.1); o.before = G.cubs().list.filter((u) => u.alive).length;
-    G.startHunt(); let c = G.cubs(); o.cleared = !c.list.some((u) => u.alive || u.inScene || u.tellIn || u.plate || u.seen); K.sp(5); o.noneInHunt = !G.cubs().list.some((u) => u.alive);
+    G.startHunt(); let c = G.cubs(); o.cleared = !c.list.some((u) => u.alive || u.inScene || u.tellIn || u.seen); o.fusing = G.neutrals().fusing; o.fusePlates = c.list.filter((u) => u.plate).length;
+    K.sp(C.APEX.wakeS + 0.2); o.noneInHunt = !G.cubs().list.some((u) => u.alive || u.plate) && G.neutrals().fusing === 0;
     G.reset(); c = G.cubs(); o.reset = c.wave === 0 && !c.warned && !c.list.some((u) => u.alive);
     try {
       C.KENNEL.waves = [[['stalker', 0], ['stalker', 0], ['stalker', 0], ['stalker', 0], ['howler', 0], ['howler', 0], ['howler', 0]]]; G.reset(); K.sp(C.KENNEL.firstS + 0.1); G.setHp(1e9);
@@ -616,7 +619,7 @@ try {
     } finally { C.KENNEL.waves = waves; G.reset(); }
     return o;
   });
-  check('50 wake clears cubs, new run restarts waves; 7 cubs with tells inside budget, no shader compile, memory flat', kr.before === 3 && kr.cleared && kr.noneInHunt && kr.reset && kr.best.alive === 7 && kr.best.tells >= 3
+  check('50 wake: live cubs fly home as plates and are gone by the hunt, new run restarts waves; 7 cubs with tells inside budget, no shader compile, memory flat', kr.before === 3 && kr.cleared && kr.fusing === 3 && kr.fusePlates === 3 && kr.noneInHunt && kr.reset && kr.best.alive === 7 && kr.best.tells >= 3
     && kr.best.calls < 500 && kr.best.tris < 500000 && kr.best.programs === base.programs && kr.best.geoms === base.geoms, JSON.stringify(kr));
   // 51 Bot farms the west camp for 170 s (0.3 s reaction) with always-true checks every tick: hits only after a shown tell >= 0.4 s, cubs on their own floor, pool never exceeded.
   const farm = await g(() => {
@@ -647,6 +650,68 @@ try {
     return { viol, taken: c.taken, minHp: Math.round(minHp), deaths, hits: c.hits, wave: c.wave };
   });
   check('51 bot farms the west camp 170 s: 0 broken invariants, takes plates, never dies', farm.viol.length === 0 && farm.taken >= 2 && farm.deaths === 0 && farm.wave === 3, JSON.stringify(farm));
+
+  // ===== Batch 8: buff creatures (crab, wanderer) drawn from marble bags; faster cubs and minions =====
+  // 52 Marble bags: every cycle is the whole bag in a new order (nothing repeats before the bag is empty); same seed = same draws; another seed differs.
+  const bag = await g(() => {
+    const G = __game, C = G.config, names = ['times', 'spots', 'crab', 'wander', 'amounts'], o = { cycles: true };
+    const seq = (seed) => { G.setSeed(seed); G.reset(); const out = {}; for (const n of names) { const len = n === 'spots' ? C.BAGS.spots.length : C.BAGS[n].length; out[n] = []; if (n === 'times') for (let i = 0; i < len - 2; i++) G.drawBag(n); for (let i = 0; i < len * 3; i++) out[n].push(G.drawBag(n)); } return out; };
+    const a = seq(777), b = seq(777), c = seq(778);
+    for (const n of names) {
+      const src = n === 'spots' ? C.BAGS.spots.map((_, i) => i) : C.BAGS[n], len = src.length, want = JSON.stringify(src.slice().sort());
+      for (let k = 0; k < 3; k++) if (JSON.stringify(a[n].slice(k * len, (k + 1) * len).sort()) !== want) o.cycles = false;
+    }
+    o.same = JSON.stringify(a) === JSON.stringify(b); o.differs = JSON.stringify(a) !== JSON.stringify(c);
+    o.spotsOk = G.spots.every(([x, z]) => G.canStand(x, z, G.topY(x, z))); o.speeds = [C.STALKER.speed, C.HOWLER.speed, C.PLAYER_SPEED];
+    G.setSeed(12345); G.reset(); return o;
+  });
+  check('52 marble bags: full cycles without repeats, seeded, all spots standable; cubs and minions faster than the suit', bag.cycles && bag.same && bag.differs && bag.spotsOk
+    && bag.speeds[0] > bag.speeds[2] && bag.speeds[1] > bag.speeds[2], JSON.stringify(bag));
+  // 53 Appearance: time, place, boon and size all come from the bags; announced with the zone; the creatures never attack; after a kill the next time is drawn again.
+  const ne = await g(() => {
+    const G = __game, C = G.config, K = window.__k, o = {}; G.reset(); const n0 = G.neutrals(); o.first = n0.next.slice(); o.noneAt0 = !n0.list.some((u) => u.alive);
+    K.sp(Math.min(...n0.next) + 0.1); let n = G.neutrals(); const i = n.next[0] <= n.next[1] ? 0 : 1, u = n.list[i]; o.kind = u.kind; o.alive = u.alive; o.rule = n.rule; o.voice = n.voice;
+    o.atSpot = Math.hypot(u.x - G.spots[u.spot][0], u.z - G.spots[u.spot][1]) < 0.5; o.boon = u.boon; o.amt = u.amt; o.secOk = u.sec === 0; o.unseen = !u.seen;
+    G.teleport(u.x + 2.5, u.z + 2.5); K.sp(4); n = G.neutrals(); o.passive = G.state().hp === 100 && G.cubs().hits === 0 && n.list[i].alive && n.list[i].standOk && n.list[i].seen;
+    o.moved = Math.hypot(n.list[i].x - u.x, n.list[i].z - u.z) > 0.3;
+    o.target = G.attackNeutral(i); K.sp(1.5); o.hurt = G.neutrals().list[i].hp < u.max;
+    G.hitNeutral(i, 1e6); n = G.neutrals(); o.dead = !n.list[i].alive && !n.list[i].inScene; o.boons = n.boons; o.gap = +(n.next[i] - n.t).toFixed(3);
+    o.timesOk = o.first.every((t) => C.BAGS.times.includes(t)) && C.BAGS.times.includes(o.gap); o.boonOk = C.BAGS[i === 0 ? 'crab' : 'wander'].includes(o.boon) && C.BAGS.amounts.includes(o.amt);
+    return o;
+  });
+  check('53 buff creature: bag-drawn time, place, boon and size; announced; passive; next time drawn at the kill', ne.noneAt0 && ne.alive && ne.atSpot && ne.secOk && ne.unseen && ne.voice.length > 0 && /is in: /.test(ne.rule)
+    && ne.passive && ne.moved && ne.target && ne.hurt && ne.dead && ne.boons === 1 && ne.timesOk && ne.boonOk, JSON.stringify(ne));
+  // 54 Boons: each of the 6 does what its line says at the drawn size, stacks stay under the cap, timed boons run out, and the HUD names them.
+  const bo = await g(() => {
+    const G = __game, C = G.config, K = window.__k, B = C.BOONS, o = {}, d = G.dummies()[1];
+    const give = (i, boon, amt) => { G.forceNeutral(i, 4, boon, amt); G.hitNeutral(i, 1e6); };
+    G.reset(); G.teleport(d.x, d.z - 5); G.step(2); G.cast(2, d.x + 40, d.z - 5); const cd0 = G.neutrals().ultCd; give(0, 'ult', 1.5); o.ult = cd0 - G.neutrals().ultCd; o.wantUlt = B.ult.v * 1.5 * C.SKILLS[2].cd; o.ultRule = G.neutrals().rule;
+    G.setHp(40); give(0, 'heal', 0.5); o.heal = G.state().hp - 40; o.wantHeal = B.heal.v * 0.5;
+    give(0, 'power', 1); G.cast(0, d.x, d.z); o.powerHit = 100 - G.dummies()[1].hp; o.wantHit = C.SKILLS[0].dmg * (1 + B.power.v); G.step(1); o.status = G.neutrals().status;
+    G.setHp(40); give(1, 'regen', 1); const h0 = G.state().hp; G.step(60); o.regen = G.state().hp - h0; o.wantRegen = B.regen.v;
+    give(1, 'vision', 1); G.step(1); let n = G.neutrals(); o.visR = n.visR; o.fow = n.fow; o.wantVis = C.VISION_R + B.vision.v;
+    G.teleport(d.x, d.z - C.VISION_R - 2); G.step(2); o.seesFar = G.dummies()[1].seen;
+    give(1, 'speed', 1.5); G.givePlate('howler'); const x0 = G.state().x; G.setMove(1, 0); G.step(30); G.clearMove(); o.fast = G.state().x - x0; o.wantFast = C.PLAYER_SPEED * Math.min(C.BONUS_CAP, (1 + C.PLATE.speed) * (1 + B.speed.v * 1.5)) * 0.5;
+    o.status2 = G.neutrals().status; K.sp(46); n = G.neutrals(); o.ended = n.bT.every((t) => t === 0) && n.visR === C.VISION_R && n.fow === C.VISION_R && n.status === '';
+    o.cap = C.BONUS_CAP; o.maxSpeed = (1 + C.PLATE.speed) * (1 + B.speed.v * Math.max(...C.BAGS.amounts)); o.maxPower = 1 + B.power.v * Math.max(...C.BAGS.amounts);
+    return o;
+  });
+  check('54 boons: ultimate cut, heal, power, regen, vision, speed at the drawn size; under the cap; they end; HUD text', Math.abs(bo.ult - bo.wantUlt) < 0.05 && /cooldown/.test(bo.ultRule) && Math.abs(bo.heal - bo.wantHeal) < 0.01
+    && Math.abs(bo.powerHit - bo.wantHit) < 0.01 && /Power \d+s/.test(bo.status) && Math.abs(bo.regen - bo.wantRegen) < 0.05 && bo.visR === bo.wantVis && bo.fow === bo.wantVis && bo.seesFar
+    && Math.abs(bo.fast - bo.wantFast) < 0.05 && /Speed \d+s/.test(bo.status2) && /Vision \d+s/.test(bo.status2) && bo.ended && bo.maxSpeed <= bo.cap && bo.maxPower <= bo.cap, JSON.stringify(bo));
+  // 55 A creature whose section falls is lost with no boon and comes back later elsewhere; the wake clears both; switch off = none; memory and shaders flat.
+  const nl = await g(() => {
+    const G = __game, C = G.config, K = window.__k, o = {}; G.reset(); K.sp(C.FIRST_WAVE_S + C.WAVE_INTERVAL_S - C.COLLAPSE_WARN_S - 1);
+    G.forceNeutral(0, 0, 'heal', 1); G.forceNeutral(1, 1, 'regen', 1); K.sp(C.COLLAPSE_WARN_S + 1 + C.WAVE_INTERVAL_S + 0.5); let n = G.neutrals();
+    o.lost = n.list.every((u) => !u.alive && !u.inScene); o.boons = n.boons; o.redrawn = n.next.every((t) => t > n.t - 1 && C.BAGS.times.includes(+(t - (C.FIRST_WAVE_S + 2 * C.WAVE_INTERVAL_S)).toFixed(2)));
+    K.sp(60); n = G.neutrals(); o.backOnLiveGround = n.list.filter((u) => u.alive).every((u) => u.sec === 0 && u.standOk);
+    G.forceNeutral(0, 4, 'heal', 1); G.forceNeutral(1, 5, 'regen', 1); G.teleport(G.spots[4][0], G.spots[4][1] + 3); G.step(2); const r = G.render(true); o.geoms = r.geoms; o.programs = r.programs;
+    G.startHunt(); n = G.neutrals(); o.wake = n.list.every((u) => !u.alive && !u.inScene && !u.seen);
+    C.NEUTRALS = false; G.reset(); K.sp(60); o.off = !G.neutrals().list.some((u) => u.alive); C.NEUTRALS = true; G.reset();
+    return o;
+  });
+  check('55 buff creatures: lost with a fallen section (no boon, drawn again), cleared by the wake, switch off, memory and shaders flat', nl.lost && nl.boons === 0 && nl.redrawn && nl.backOnLiveGround
+    && nl.wake && nl.off && nl.geoms === base.geoms && nl.programs === base.programs, JSON.stringify(nl));
 
   // 10 No shader compiles across collapses, hazard tells and empty altars.
   const progAfter = await g(() => __game.render(true));

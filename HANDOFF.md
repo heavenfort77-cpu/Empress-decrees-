@@ -1,4 +1,4 @@
-# Handoff (2026-11-23, after batch 7). GDD: docs/GDD.md (also Project "empress decrees", claude/GDD.md)
+# Handoff (2026-11-23, after batch 8; written for a fresh session). GDD: docs/GDD.md (also Project "empress decrees", claude/GDD.md)
 
 ## Session start (every session)
 1. Attach both repos: add_repo heavenfort77-cpu/Empress-decrees- (access push) and heavenfort77-cpu/dawnpunk (read; public, anonymous clone works). Dawnpunk = reference for frame-rate rules and bug pitfalls; read only the part needed.
@@ -6,21 +6,43 @@
 3. Run the checks before and after any change: `node tests/static-check.mjs` then `node tests/run.mjs` (`-v` for details). Report pass/fail and failing lines only.
 
 ## Status
-- Batches 1-7 done. Code is on branch `batches-3-5` (PR #1 open; merge to main when the user agrees).
-- Batch 6 = apex fight on boxes: H key or the Hunt button starts it (test trigger until the royale exists). Wake 3 s, Tiger Demon + Stalker + Howler, skill transfer by plate, win / loss / retry.
-- Batch 7 = royale minions on boxes (ROYALE_MINIONS on): kennel waves, cubs guarding camps, plate reward. See "Batch 7 as built".
-- Static check PASS. Runtime 56 of 56 PASS (headless Chromium, software GPU: correctness and counts only).
-- Mutation rounds: batch 3 edge clamp caught after a fix; batch 4 5 of 5; batch 5 6 of 6; batch 6 11 of 11; batch 7 12 of 13 (the miss is an equivalent change: a cub spawned on a fallen camp is removed the same tick; one check was strengthened after a first miss).
-- Counts (software GPU, medium tier): spawn 27 calls / 2.8k tris; whole map 76 / 8.4k; hunt with all units and 3 tells 17 / 0.9k; 7 cubs with 3 tells 33 / 2.3k. Budget 500 / 0.5M. Shader programs 3 at load and 3 after hunts; geometry count flat (92).
-- Bot sweep (test 42), reaction / kill order (0 demon, 1 stalker, 2 howler): never-dodge loses all 3 (6-9 s); 0.3 s: demon-first LOSES (13 s), minions-first wins (57-58 s, 20-26 hp left); 0.15 s wins all 3 (50-60 s, 73-100 hp left).
-  - GDD sim target "no kill order is dominant" is NOT met: minions-first is better for the 0.3 s bot. Player kit is still the placeholder, so tuning waits for real kits.
+- Batches 1-8 done. All code is on branch `batches-3-5` (PR #1 open; merge to main when the user agrees). The owner has NOT yet said the loop works; no art before that.
+- Batch 6 = apex fight on boxes (H key or Hunt button). Batch 7 = royale minions (kennel waves, cubs, plates). Batch 8 = faster cubs and minions, buff creatures from marble bags, cubs fuse into the statue at the wake.
+- Static check PASS. Runtime 60 of 60 PASS (headless Chromium, software GPU: correctness and counts only). Tests run with a fixed seed (12345).
+- Mutation rounds: batch 3 edge clamp caught after a fix; batch 4 5 of 5; batch 5 6 of 6; batch 6 11 of 11; batch 7 12 of 13 (the miss is an equivalent change); batch 8 11 of 11.
+- Counts (software GPU, medium tier): spawn 27 calls / 2.8k tris; whole map 76 / 8.4k; hunt with all units and 3 tells 17 / 0.9k; 7 cubs with 3 tells 33 / 2.3k. Budget 500 / 0.5M. Shader programs 3 at load and after play; geometry count flat.
+- Bot sweep in the hunt (test 42) with the faster minions, reaction / kill order (0 demon, 1 stalker, 2 howler): never-dodge loses all 3 (7-8 s); 0.3 s: demon-first loses (17 s), minions-first wins (57 s, 3-13 hp left); 0.15 s wins all 3.
+  - GDD sim target "no kill order is dominant" is NOT met (minions-first is better for the 0.3 s bot). Player kit is still the placeholder; tuning waits for real kits.
+- Cub farm bot (test 51, 0.3 s reaction, 170 s at the west camp): 2 plates, never hit. Cubs may be too soft for a player who dodges.
 - NOT run: real-GPU fps (needs a GitHub Actions macOS runner; no workflow yet). NOT tried on a real phone (touch checked by simulated pointer events only).
-- Phone review link (claude.ai artifact, same page with three.js from jsDelivr): https://claude.ai/artifact/3nQ67JCTmb1JfPKC3Y416z (version 1795408528-fd13 = batch 7). Republish it after each batch.
+- Phone review link (claude.ai artifact, same page with three.js from jsDelivr): https://claude.ai/artifact/3nQ67JCTmb1JfPKC3Y416z (version 1795409517-3475 = batch 8). Republish it after each batch: copy index.html, swap the importmap path for https://cdn.jsdelivr.net/npm/three@0.171.0/build/three.module.min.js, publish to slug 1688f9ba-a0e5-4f7b-ac2e-3a68d6fc67c3.
+- Project docs (claude/HANDOFF.md, claude/GDD.md, claude/code/index.html, claude/code/tests/run.mjs) are copies of the repo files; rewrite them after each batch. A project_read of a code file dumps the whole file into the session: avoid it, write from the local file.
 
-## Next
-- Waiting for the user to play the apex fight and the cubs and say whether the loop works.
-- Then: decrees, bots (9 suits, leader and bounty, last suit alive starts the hunt), hiding, ultimate charge; real kits replace the placeholder skills.
-- Set up CI (GitHub Actions: Linux checks + macOS real-GPU perf gate); prove the file-return route first.
+## Next batch: 9 = bots (owner, 23 Nov: bots are what make the royale end and start the hunt on its own)
+Not started. Plan to check with the owner in one line, then build:
+- Goal: 9 bot suits so the royale plays out and the last suit alive wakes the demon without the H key. Then leader, crown marker and bounty become possible; decrees come after.
+- Biggest change: today every hazard, cub, creature and enemy targets the player object `P` directly. Bots need one "suit" shape (position, layer, health, statuses, plates, boons, orders) shared by the player and bots, and "nearest suit" in place of `P` in: hazards, altars, collapse falls, cubThink, stepUnit (royale only), plates and boons (last hitter), vision.
+- Movement: navSearch uses one shared PATH buffer; bots need a path buffer each and at most one search per tick (time-sliced), or straight steering inside a section plus waypoints between sections.
+- Bot decisions (CONFIG weights): leave a warned section, fight the nearest seen suit, contest a camp or buff creature, stand on an altar when low, never walk into a tell that has been showing longer than its reaction time.
+- End of royale: player dead = loss screen with retry (replaces the map-test respawn); last suit alive = startHunt (keep H as a debug trigger behind ?debug).
+- Checks to add: match length band (GDD 3-4 min), win share per spawn, every bot death has a cause (hit, fall, collapse), idle player loses, no bot stuck longer than N s, invariants every tick, budget with 10 suits + 7 cubs + tells, memory flat over 3 runs.
+- Premortem: path cost with 9 searchers; bots falling at broken rails by knockback only; a cub leashing between two suits; plates and boons going to bots (pool and HUD stay correct); hunt tests must keep passing when the royale has other suits; fixed seed so sims replay.
+- Readiness: about 60 of 100 (no reference bot code read yet; suit refactor not designed in detail). Read Dawnpunk's bot or enemy update only if it has one; write the suit refactor note first.
+
+## Owner decisions, 23 Nov (later session)
+- Cubs and minions that move on the map are four-legged machines on treads, faster than most suits; their other numbers are to sit at the suits' median. Built now: speed 6.6 m/s against the suit's 6. The tread look waits for the art stage. "Median" is read as health and damage at the median of the ten suits once kits exist (assumption; confirm).
+- Buff creatures in the manner of a MOBA jungle crab and river wanderer, with marble-bag draws for time, place, boon and size. Own names and art only (working names: crab, wanderer).
+- Cubs alive at the wake must be seen going back to the statue. Built as plates flying home during the wake (a run across the map does not fit in 3 s; assumption).
+- Order: bots before decrees.
+
+## Batch 8 as built (assumptions, all in CONFIG; change by saying so)
+- Marble bags (CONFIG.BAGS): draw without putting back, refill and reshuffle when empty. Seeded (mulberry32); a new seed each run, `__game.setSeed(n)` fixes it.
+  - times [25, 35, 45, 55] s: until a creature appears, from the run start and then from its death or loss. One crab and one wanderer at most.
+  - spots: 6 places (W2, E2, W1, E1, C1, C2); a spot whose section is warned or gone, or already taken, is skipped.
+  - crab boons: ultimate cooldown cut 20% (stand-in for exp or charge), +10% damage 40 s, heal 20. Wanderer boons: 2 HP/s for 20 s, +3 m vision 40 s, +8% speed 30 s.
+  - amounts [0.5, 1, 1, 1.5] multiply the boon. All stacks capped at 1.4x (BONUS_CAP).
+- The creatures never attack. Crab 110 hp scuttles side to side; wanderer 70 hp walks a small circle. Announced by Kaymuse with the zone; yellow dot on the minimap when seen. Last hit takes the boon at once.
+- Lost with a fallen section (no boon). Cleared at the wake. Boons and plates carry into the hunt. Switch: NEUTRALS.
 
 ## Batch 6 as built (assumptions, all in CONFIG; change by saying so)
 - Arena = core hall; the gate seals for the hunt (APEX.gateZ). No altar inside, so no healing in the hunt.
@@ -41,13 +63,19 @@
 - Solo kill time, standing still and attacking: 7.3 s (run in this session; GDD target 6-8 s).
 - Last hit: the plate flies to the player (0.7 s). Two buff slots, 45 s each, the older one is replaced. Stalker plate: your hits cause 4/s bleed for 3 s. Howler plate: +10% speed (the shimmer part waits for hiding).
 - "+30% ultimate charge" is a stand-in: 30% of the ultimate's cooldown is removed, until ultimate charge exists.
-- A cub whose section falls is lost with no plate; a fallen camp is not announced and spawns nothing. The wake removes live cubs at once (the run back to the statue is not shown yet). Plate buffs carry into the hunt.
+- A cub whose section falls is lost with no plate; a fallen camp is not announced and spawns nothing. At the wake live cubs fly home as plates (batch 8). Plate buffs carry into the hunt.
 - Not built (need bots): leader, crown marker, bounty decree, bots contesting camps.
+
+## Working notes for the next session
+- Backups of index.html and run.mjs before each batch are kept outside the repo only (session disk); git history is the durable record.
+- Mutation rounds: copy index.html aside, apply one deliberate bug, run tests/run.mjs, confirm the named check fails, restore, compare with cmp.
+- A full run takes about 40 s. Hooks step the game synchronously inside page.evaluate, so each check is deterministic.
+- Owner works from a phone: reports short, pass/fail as N of N, failing lines only; do not talk about the deadline.
 
 ## Files
 - index.html: whole game (one module script, CONFIG block at top, TEXT keys, map data). lib/: three.js r171 (MIT, lib/three-LICENSE.txt).
-- tests/static-check.mjs: static rules. tests/run.mjs: 56 headless checks (33-45 = apex hunt, 46-51 = royale minions); starts its own static server.
-- Test hooks: window.__game (step, setMove, teleport, moveTo, attack, cast, aimKey, render, state, startHunt, hunt, huntUi, attackUnit, hitUnit, placeUnit, unitCd, cubs, hitCub, placeCub, cubCd, attackCub, givePlate, ...). ?lock locks the tier; ?debug shows counts and enables the M overview.
+- tests/static-check.mjs: static rules. tests/run.mjs: 60 headless checks (33-45 = apex hunt, 46-51 = royale minions, 52-55 = bags and buff creatures); starts its own static server.
+- Test hooks: window.__game (step, setMove, teleport, moveTo, attack, cast, aimKey, render, state, startHunt, hunt, huntUi, attackUnit, hitUnit, placeUnit, unitCd, cubs, hitCub, placeCub, cubCd, attackCub, givePlate, neutrals, hitNeutral, forceNeutral, drawBag, setSeed, ...). ?lock locks the tier; ?debug shows counts and enables the M overview.
 
 ## Decisions (user, 23 Nov)
 - Lore: Kaymuse on a throne in the core hall, the apex as a tiger statue under her; minions are the demon's shed plates (royale: plate buffs the killer; apex phase: plate flies home to the demon). Ending: even the winner becomes the next tiger statue; next run's statue wears the last winner's school colour (WINNER_STATUE, not built yet).
