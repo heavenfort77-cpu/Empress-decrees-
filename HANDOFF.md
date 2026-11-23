@@ -47,12 +47,12 @@ Measure first (M1, no game change): current hunt length per sweep run (test 42) 
 
 Panel (2 jam judges, 2 players, 2 critics, design/tech leads; majority followed):
 - Q1 how to fill 10 min (vote 6-1 for B): (A) stretch every timer about 2.5x -> long empty stretches on the same map, judges drift off; (B) keep the density per minute and add more of it: more kennel waves, about one decree a minute (bags already do this), creatures keep cycling, collapses spread over the royale. Against B (tech lead): more test time per match; accepted.
-- Q2 shape of the royale (vote 5-2, improved): three acts so long does not mean flat:
-  - Act 1 opening, 0-3 min: peace (bots answer hits only), cubs, crab and wanderer, first decrees; first collapse near 2:30.
-  - Act 2 skirmish, 3-6 min: bots' fight radius ramps to full vision; collapses every ~75 s; bounties start to matter.
-  - Act 3 closing, 6-8 min: last collapses down to core hall + C1; decided about 7:30-8:30.
-  - Improvement (players): the HUD "next to fall" line also shows the act and time left in the royale, so a 10-min run reads as progress.
-- Q3 numbers (CONFIG, all dated): collapse first wave ~150 s, then every ~75 s (5 waves); kennel waves every ~60 s from 30 s (about 7-8 waves; pool of 7 cubs kept, waves of 1-2); bot peace 120 -> ~240 s, ramp 100 -> ~200 s; decree and creature bags unchanged (cadence is already per minute). Worker tunes these against the gate, one CONFIG change list, no new systems.
+- Q2 shape of the royale. Owner 23 Nov 18:48: "remove 0-3min" (read as: no opening peace act; fighting from the first minute; run still about 10 min). Panel on how (vote 6-1 for a, improved):
+  - Problem (batch 9 log): without the peace rule matches ended at 40-110 s.
+  - (a) no peace; bots' fight radius ramps from 3 m to full vision over the whole royale (~6 min) and the chance to start a fight rises with it; the hunter cap stays (1 bot on the player, 2 marked, 3 bounty); cubs and creatures from ~20 s so the first minute has targets. (b) more health / less damage: rejected, kits own those numbers. (c) collapses only: rejected, too passive.
+  - Two acts: skirmish 0-5 min (collapses every ~75 s from ~1:30), closing 5-8 min (down to core hall + C1, decided about 7:30-8:30).
+  - Improvement (players): the HUD "next to fall" line also shows the act and time left in the royale.
+- Q3 numbers (CONFIG, all dated): collapse first wave ~90 s, then every ~75 s (5 waves, more sections per wave if needed); kennel waves every ~60 s from ~20 s (about 8 waves; pool of 7 cubs kept, waves of 1-2); bot peace 120 -> 0 s, ramp 100 -> ~360 s; decree and creature bags unchanged (cadence is already per minute). Worker tunes these against the gate, one CONFIG change list, no new systems.
 - Q4 which stand-in judges the GDD numbers (vote 5-2 for the new kennel autopilot): it plays like a human who reads the banners; the old one is reported beside it, never instead.
 - Q5 hunt (vote 7-0): no hunt tuning (owner: wait for kits); its measured length is reported and the royale is sized around it.
 - Risk raised by both judges, recorded not acted on: a jam judge may not finish a 10-min run; the act line and a clear time-left keep it readable. Owner decides if anything more is wanted.
@@ -64,6 +64,7 @@ Hiding; ultimate charge (bounty reward and ultimates 2x are cooldown stand-ins);
 
 ## Owner decisions (dated)
 - 23 Nov 18:46: each game about 10 min (batch 14 panel plan; waiting for go).
+- 23 Nov 18:48: remove the 0-3 min opening act (no peace; fights from the start).
 - 23 Nov (after a server restart): batch 13 worker resumed by a new worker; a leftover 13b mutation ('warned wave ignored') found applied in index.html and removed before any commit.
 - 23 Nov 16:11: go for batch 13 (decree pacing + plate rate) as decided by the panel; see "Batch 13".
 - 23 Nov 15:13: go for batch 12 (built as below).
