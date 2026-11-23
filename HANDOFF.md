@@ -18,7 +18,7 @@
 - Hunt sweep with the W dash (test 42, the sweep bot dashes out of seen tells): never-dodge loses all; 0.3 s wins howler-first only (batch 11: minions-first only); 0.15 s wins 2 of 3 (lost demon-first; batch 11: all 3).
 - Pathfinding: walk graph built at load (8114 nodes). Worst bot search 0.8 ms (1.8 ms unreachable), player right-click worst 4.0 ms. At most one bot search per step.
 - NOT run: real-GPU fps (needs a GitHub Actions macOS runner; no workflow yet). NOT tried on a real phone.
-- Phone review link: https://claude.ai/artifact/3nQ67JCTmb1JfPKC3Y416z. Republish after each batch: copy index.html, swap the importmap path for https://cdn.jsdelivr.net/npm/three@0.171.0/build/three.module.min.js, publish to slug 1688f9ba-a0e5-4f7b-ac2e-3a68d6fc67c3 (get_artifact first for base_version). Live: version 1795421416-227f = batch 12 (6ab86c8).; batch 12 republish is done by the lead.
+- Phone review link: https://claude.ai/artifact/3nQ67JCTmb1JfPKC3Y416z. Republish after each batch: copy index.html, swap the importmap path for https://cdn.jsdelivr.net/npm/three@0.171.0/build/three.module.min.js, publish to slug 1688f9ba-a0e5-4f7b-ac2e-3a68d6fc67c3 (get_artifact first for base_version). Live: version 1795424808-bd35 = batch 13 (fcc6d0e).; batch 12 republish is done by the lead.
 - Project docs (claude/HANDOFF.md, claude/GDD.md, claude/code/index.html, claude/code/tests/run.mjs, claude/code/tests/static-check.mjs) are copies of repo files. The LEAD session syncs them after each batch with project_write local_path (a background worker cannot). If a write is refused, project_read first (code files print in full: do it once, then write).
 
 ## Batch 13 = decree pacing (13a) + plate rate (13b). Owner go 23 Nov 16:11; panel decided (judges, players, critics, design/tech leads; majority followed)
@@ -92,6 +92,7 @@ Hiding; ultimate charge (bounty reward and ultimates 2x are cooldown stand-ins);
 - Long batches ran as one background worker (fork) per batch set, one writer; the lead stayed free, verified with git ls-remote, a full check run and get_artifact before reporting, then synced project docs. Worker log: /home/claude/batch9.log (session disk only).
 - Backups before each batch: outside the repo (/home/claude/backup, session disk); git history is the durable record.
 - Mutation rounds: copy index.html aside, apply one deliberate bug, run tests/run.mjs, confirm the named check fails, restore, compare with cmp.
+- After any restart or stopped worker: cmp index.html and tests/ with the last good copy before running checks or committing (23 Nov: a restart left a mutation applied).
 - A full run takes about 60-90 s now (whole-match checks). Hooks step the game synchronously inside page.evaluate, so checks are deterministic.
 - Commits: name 'Claude', email noreply@anthropic.com, attribution lines at the end; secret scan before push; push with `-c push.negotiate=true`.
 - Owner works from a phone: short reports, pass/fail as N of N, failing lines only; no deadline talk.
