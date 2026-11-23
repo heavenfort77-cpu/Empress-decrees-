@@ -86,13 +86,15 @@ Source: 《周礼·地官·保氏》「乃教之六艺：一曰五礼，二曰�
 - Panel (20:19): only skills fill the halves (basic attacks would unlock it too fast) 6-1; a backstep inside 阴 instead of a separate dash 5-2; full ground tells on 阳 and 太极 7-0.
 - Plays with: the "Ultimates 2x" decree (cooldown only), bridges silence (cannot fill halves there), long sightlines from the heights.
 
-### 杂甲 · 门客 (Syncretist: borrows from every school; its great book was compiled by a chancellor's retainers in the empress-figure's own court)
-- Passive **Many Masters**: keeps the last enemy skill that hit it as a stored copy.
-- Attack: mixed bolt, mid range.
-- Q **Borrowed Doctrine**: cast the stored copy, weaker.
-- W **Borrowed Road**: dash up to 5 m back along the line of the last enemy skill that hit it (toward where it came from). No other dash works this way.
-- R **Encyclopaedia**: for a few seconds, every hit taken stores its skill and casts it back.
-- Plays with: every other kit.
+### 杂甲 · 门客 (Syncretist; frame 兼儒墨，合名法 from 《汉书·艺文志》, owner 23 Nov 20:32; panel picked it over 十二纪 5-2 because a month cycle repeats 阴阳甲's yin-yang cycle)
+- Passive **兼收并蓄** (take the best of every school): stores the last enemy skill that hit him; its icon shows on the R button.
+- Attack **议** (the counsellor's word): orb, mid range.
+- Q **兼儒墨** (one cast, two schools): a seal shot. 儒 (正名): the target's plates and boons stop working for about 2 s (shorter than 儒甲's). 墨 (非攻): if the target attacked someone in the last 4 s, it is also slowed.
+- W **合名法** (the dash, his own): a blink to a point (名: what you saw is not where he is). 法 (术): the first enemy within about 3 m of where he lands is exposed (seen by every suit) for about 3 s. Differs from 名甲's shadow blink and 法甲's pursuit.
+- R **一字千金** (the book no one could change by a word): casts the stored enemy skill at full strength as his own, and resets his Q and W cooldowns.
+- Panel (20:32): Q's two-school seal 6-1; W blink plus exposure 6-1; R full-strength copy plus reset 5-2 (critic: a copy must be readable; answer: the stored skill's icon sits on the R button and the cast keeps the original's tell and colour).
+- Plays with: every other kit, the leader (strip), the mark and fog (exposure).
+- Lore: his school's great book was compiled in the unifier's own court; he is the insider who knows every school's tricks, and says 「天下非一人之天下也」 to her face.
 
 ### 名甲 · 辩者 (School of Names; frame: the debaters' paradoxes, 辩者二十一事 in 《庄子·天下》; owner 23 Nov 20:25, sword rule removed)
 - Passive **一尺之棰，日取其半，万世不竭** (the rod halved each day never runs out): each hit in a row on the same target adds half of the bonus still left, so the bonus climbs toward +40% (the game cap) and never quite reaches it; switching target starts again.

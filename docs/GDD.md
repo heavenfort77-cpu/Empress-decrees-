@@ -137,7 +137,7 @@ Each suit's title, role and kit come from its school's own doctrine.
 | 法家 | 法甲 | 廷尉 | Assassin | 法术势: bonus on the leader and decree-breakers, pursuit, stealth, authority lock-down |
 | 墨家 | 墨甲 | 墨守 | Tank (zone), no dash | 墨守, 墨经, 非攻: repeating crossbow, wall, lever fling, turns back nine hits |
 | 阴阳家 | 阴阳甲 | 太极 | Mage (artillery) | yin and yang skills unlock the 太极 ultimate |
-| 杂家 | 杂甲 | 门客 | Mage (control) | stores and casts back the last skill that hit it |
+| 杂家 | 杂甲 | 门客 | Mage (control) | 兼儒墨，合名法: two-school seal, blink that exposes, casts back the stored skill |
 | 名家 | 名甲 | 辩者 | Marksman | the debaters' paradoxes: thrown wheel, shadow blink, hanging arrowheads, endless-rod passive |
 | 纵横家 | 纵横甲 | 说客 | Control | 合纵 link (shared damage), 连横 swap and bot persuasion, 不攻自破 turns bots on each other |
 | 农家 | 农甲 | 耕者 | Support (sustain) | plants heal and feed it; harvest ultimate |
