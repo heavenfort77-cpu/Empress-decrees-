@@ -1,0 +1,1327 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>Empress Decrees - box map (batch 3)</title>
+<style>
+html,body{margin:0;height:100%;overflow:hidden;background:#1b1620;color:#f3e6c8;touch-action:none;user-select:none;-webkit-user-select:none}
+canvas{display:block}
+#hud{position:fixed;left:12px;top:10px;font:16px Georgia,serif;text-shadow:0 1px 3px #000;pointer-events:none}
+#next{position:fixed;right:12px;top:10px;font:14px system-ui,sans-serif;text-align:right;text-shadow:0 1px 3px #000;pointer-events:none;max-width:45vw}
+#banner{position:fixed;left:50%;top:13%;transform:translateX(-50%);text-align:center;pointer-events:none;display:none;max-width:92vw;text-shadow:0 2px 4px #000}
+#banner .voice{font:italic 24px Georgia,serif;color:#ffd98a}
+#banner .rule{font:15px system-ui,sans-serif;color:#fff;margin-top:6px}
+#dbg{position:fixed;left:12px;bottom:10px;font:12px monospace;display:none;pointer-events:none;text-shadow:0 1px 2px #000}
+#help{position:fixed;left:50%;bottom:12px;transform:translateX(-50%);font:13px system-ui,sans-serif;opacity:.85;pointer-events:none;text-align:center;text-shadow:0 1px 2px #000}
+#btnMap{position:fixed;right:12px;bottom:12px;min-width:64px;min-height:44px;font:15px system-ui,sans-serif;background:#3a2a3a;color:#fff;border:1px solid #b99;border-radius:8px}
+#stick{position:fixed;width:110px;height:110px;margin:-55px 0 0 -55px;border-radius:50%;border:2px solid #fff8;display:none;pointer-events:none}
+#err{position:fixed;inset:0;background:#2a0b0b;color:#fff;padding:20px;display:none;font:14px monospace;white-space:pre-wrap;z-index:9}
+#hp{position:fixed;left:12px;top:36px;width:180px;height:14px;background:#0008;border:1px solid #fff6;border-radius:3px;pointer-events:none}
+#hpfill{height:100%;width:100%;background:#d23b3b;border-radius:2px}
+#hptext{position:absolute;left:6px;top:-1px;font:12px system-ui,sans-serif;color:#fff;text-shadow:0 1px 2px #000}
+#mini{position:fixed;right:10px;bottom:10px;border:2px solid #b99;border-radius:4px;background:#0c0a10}
+body.touch #mini{right:auto;left:10px;top:10px;bottom:auto}
+body.touch #hud{top:auto;left:auto;right:12px;top:40px}
+body.touch #hp{left:auto;right:12px;top:62px}
+body.touch #next{top:10px;right:12px}
+#bar{position:fixed;left:50%;bottom:10px;transform:translateX(-50%);display:flex;gap:8px}
+.sk{position:relative;width:52px;height:52px;border-radius:8px;background:#2a2030;border:2px solid #c9a040;color:#fff;font:bold 16px system-ui,sans-serif;display:flex;align-items:center;justify-content:center;pointer-events:none}
+.sk .cd{position:absolute;inset:0;background:#000a;border-radius:6px;display:none;align-items:center;justify-content:center;font:bold 18px system-ui}
+.sk .lb{position:absolute;bottom:-15px;font:11px system-ui;color:#ddd;white-space:nowrap}
+body.touch #bar{left:auto;right:18px;bottom:18px;transform:none;width:230px;height:200px;display:block}
+body.touch .sk{position:absolute;width:64px;height:64px;border-radius:50%;pointer-events:auto;touch-action:none}
+body.touch .sk.atk{width:88px;height:88px;right:0;bottom:0;font-size:15px}
+body.touch .sk .lb{display:none}
+#cancel{position:fixed;right:20px;top:90px;width:90px;height:56px;border-radius:10px;background:#5a1a1a;color:#fff;font:15px system-ui;display:none;align-items:center;justify-content:center;border:2px solid #f88}
+</style>
+<script type="importmap">{"imports":{"three":"./lib/three.module.min.js"}}</script>
+</head>
+<body>
+<div id="hud"></div>
+<div id="hp"><div id="hpfill"></div><span id="hptext"></span></div>
+<div id="next"></div>
+<div id="banner"><div class="voice"></div><div class="rule"></div></div>
+<div id="dbg"></div>
+<div id="help"></div>
+<button id="btnMap"></button>
+<canvas id="mini"></canvas>
+<div id="bar"></div>
+<div id="cancel"></div>
+<div id="stick"></div>
+<div id="err"></div>
+<script type="module">
+import * as THREE from 'three';
+
+// ===================== CONFIG (all tunables) =====================
+const CONFIG = {
+  // Fixed logic step in seconds (60 steps per second).
+  STEP: 1 / 60,
+  // Largest frame delta accepted, seconds.
+  MAX_DT: 0.05,
+  // Player walk speed, metres per second.
+  PLAYER_SPEED: 6,
+  // Player body radius used for the edge clamp and walls, metres.
+  PLAYER_RADIUS: 0.45,
+  // Player body height used for walls and overhangs, metres.
+  BODY_HEIGHT: 2.0,
+  // Highest step the player walks up without a ramp, metres.
+  STEP_UP: 0.6,
+  // Map size multiplier for all layout positions (user approved 1.5x on 23 Nov). Props keep their size.
+  MAP_SCALE: 1.5,
+  // Player maximum health.
+  MAX_HP: 100,
+  // Drops at least this high hurt on landing, metres.
+  DROP_MIN: 2.5,
+  // Damage from a drop to the layer below.
+  DROP_DAMAGE: 8,
+  // How fast knockback fades, per second.
+  KB_DECAY: 6,
+  // Tiger statue: trigger range, strike radius, tell, cooldown, damage, knockback speed (m, m, s, s, hp, m/s).
+  STATUE: { range: 6, radius: 6.5, windup: 0.6, cooldown: 3, dmg: 30, kb: 14 },
+  // Stone lions: trigger range, strike radius, tell, cooldown, damage, knockback speed.
+  LION: { range: 3.5, radius: 4, windup: 0.6, cooldown: 4, dmg: 20, kb: 11 },
+  // Healing altars: radius (m), heal per second, heal stored per charge, seconds empty, seconds a hit pauses healing.
+  ALTAR: { radius: 2.2, rate: 8, charge: 40, emptyS: 30, hitPauseS: 2 },
+  // Vision radius around the player (fog of war): terrain beyond is dimmed, units beyond are hidden, metres.
+  VISION_R: 11,
+  // Brightness of terrain outside vision (0 black, 1 no dimming).
+  FOW_DIM: 0.35,
+  // Basic attack placeholder: range (m), seconds between hits, damage, auto-target search range (m).
+  ATTACK: { range: 2.5, interval: 0.8, dmg: 10, acquire: 8 },
+  // Placeholder skills for aiming tests until the kits arrive. type: line, circle or self; delay = telegraph before the hit (s).
+  SKILLS: [
+    { key: 'KeyQ', label: 'Q', name: 'Line', type: 'line', range: 8, width: 1.5, dmg: 25, cd: 6, delay: 0 },
+    { key: 'KeyW', label: 'W', name: 'Burst', type: 'circle', range: 7, radius: 2.5, dmg: 20, cd: 8, delay: 0 },
+    { key: 'KeyR', label: 'R', name: 'Ultimate', type: 'circle', range: 9, radius: 4, dmg: 60, cd: 30, delay: 1 },
+  ],
+  // Training dummies to aim at (map test only): x, z before MAP_SCALE, section.
+  DUMMIES: [[-36, 12, 'W2'], [0, -12, 'C1'], [6, 2, 'C2']],
+  // Dummy health.
+  DUMMY_HP: 100,
+  // Seconds before a broken dummy stands again.
+  DUMMY_RESPAWN_S: 3,
+  // Minimap width on desktop, pixels.
+  MINI_W: 200,
+  // Minimap width on phone, pixels.
+  MINI_W_TOUCH: 140,
+  // Minimap redraws per second.
+  MINI_HZ: 15,
+  // Pathfinding grid cell size, metres.
+  NAV_CELL: 1,
+  // Most cells one path search may open.
+  NAV_MAX: 15000,
+  // Seconds between move orders while the right mouse button is held.
+  REPATH_S: 0.15,
+  // Phone skill drag: pixels of drag for full range.
+  DRAG_FULL_PX: 80,
+  // Phone skill drag: pixels before a touch counts as a drag (shorter = tap = auto-aim).
+  DRAG_MIN_PX: 14,
+  // Index into SPAWNS where the player starts.
+  PLAYER_SPAWN: 2,
+  // Where the player reappears after falling (map batch only), x then z in metres.
+  RESPAWN_XZ: [0, -14],
+  // Seconds of falling before the respawn.
+  RESPAWN_S: 1.2,
+  // Game seconds before the first collapse wave lands.
+  FIRST_WAVE_S: 60,
+  // Game seconds between collapse waves.
+  WAVE_INTERVAL_S: 40,
+  // Seconds a section glows before it falls (fairness tell, must stay >= 0.4).
+  COLLAPSE_WARN_S: 5,
+  // Seconds the fall animation lasts before the section leaves the scene.
+  COLLAPSE_FALL_S: 1.2,
+  // Fall acceleration for sections and the player, metres per second squared.
+  GRAVITY: 20,
+  // Collapse order, one inner list per wave (section ids). Matching voice line: TEXT.voice_wave<N>.
+  WAVES: [['ROOF'], ['WB2', 'EB2'], ['W2', 'E2'], ['W1', 'WB1', 'E1', 'EB1'], ['C2']],
+  // Camera pitch above the ground in follow view, degrees (user chose 40 on 23 Nov; was 55).
+  CAM_PITCH_DEG: 40,
+  // Camera distance from the player in follow view, metres (user chose 14 on 23 Nov; was 24).
+  CAM_DIST: 14,
+  // Camera field of view, degrees.
+  CAM_FOV: 50,
+  // Fog start in follow view, metres.
+  FOG_NEAR: 45,
+  // Fog end in follow view, metres.
+  FOG_FAR: 85,
+  // Camera far plane in follow view, metres.
+  FAR_FOLLOW: 90,
+  // Camera far plane in map overview, metres.
+  FAR_OVERVIEW: 220,
+  // Overview camera position before MAP_SCALE, x y z metres.
+  OVERVIEW_POS: [0, 105, 32],
+  // Below this height a falling player counts as lost, metres.
+  VOID_Y: -12,
+  // Frame time that counts as slow for the tier step-down, milliseconds.
+  STEPDOWN_MS: 20,
+  // Seconds of slow frames before stepping down a tier.
+  STEPDOWN_HOLD_S: 2,
+  // Quality tiers: pixel ratio cap, shadows, shadow map size. There is no high tier.
+  TIER: {
+    medium: { pr: 1.25, shadows: true, shadowMap: 2048 },
+    low: { pr: 1.0, shadows: false, shadowMap: 512 },
+  },
+  // Default quality tier.
+  DEFAULT_TIER: 'medium',
+  // Colours.
+  COL: {
+    sky: 0x2a2233, skyLight: 0xd9c9ff, groundLight: 0x3a2a22, sun: 0xffe2b8, abyss: 0x0f0b12,
+    coreFloor: 0x5a4632, court: 0x8a8378, bridge: 0x6b4a2e, roof: 0x2f5a4e, wall: 0x7a1e1e,
+    pillar: 0x9a2a22, silk: 0xb0303c, gold: 0xc9a040, bronze: 0x4a3a2a, empress: 0xf0e2c0,
+    camp: 0xff8a2a, spawn: 0xe8e8e8, player: 0x3a7bd5, aim: 0xffffff, blob: 0x000000, warn: 0xff2a10,
+    stone: 0x9a968c, eyes: 0xff3a1a, ring: 0xff2a10, altarOn: 0x5cff9a, altarOff: 0x2a3a30, broken: 0x2a2624, dummy: 0xc8b070, hit: 0xffffff, ind: 0x7fd0ff, fx: 0xffd060,
+  },
+  // Feature switches for parts that are not built or approved yet.
+  ROYALE_MINIONS: false,
+  // Feature switch: next run's statue wears the last winner's school colour (approved, built later).
+  WINNER_STATUE: false,
+};
+
+// Every string shown to the player. Missing keys throw (and fail the text check).
+const TEXT = {
+  zone_CORE: 'Core hall', zone_C1: 'Centre courtyard, north', zone_C2: 'Centre courtyard, south',
+  zone_W1: 'West courtyard, north', zone_W2: 'West courtyard, south',
+  zone_E1: 'East courtyard, north', zone_E2: 'East courtyard, south',
+  zone_WB1: 'West bridge, north', zone_WB2: 'West bridge, south',
+  zone_EB1: 'East bridge, north', zone_EB2: 'East bridge, south', zone_ROOF: 'Roof tier',
+  voice_wave0: 'Our roof hath displeased Us.',
+  voice_wave1: 'The southern bridges have displeased Us.',
+  voice_wave2: 'The southern courts are unworthy. Let them fall.',
+  voice_wave3: 'The northern courts and their bridges shall be no more.',
+  voice_wave4: 'The south of the centre court offendeth Us.',
+  rule_collapse: 'Collapses in {s} s: {zones}',
+  next_wave: 'Next to fall: {zones}',
+  next_none: 'Nothing more shall fall.',
+  voice_fell: 'Thou hast fallen.',
+  rule_fell: 'Respawning in the centre courtyard (map test only)',
+  voice_died: 'Thou art broken.',
+  rule_died: 'Respawning in the centre courtyard (map test only)',
+  hp: 'HP {n}',
+  atk: 'ATK',
+  cancel: 'Cancel',
+  help_desktop: 'Right-click move / attack · Q W R aim at cursor (release to cast) · S stop · N new run',
+  help_touch: 'Left thumb move · ATK auto-targets · tap a skill to auto-aim, drag to aim, drag to Cancel to stop',
+  btn_map: 'Map',
+  btn_follow: 'Back',
+  err_title: 'Something broke. Please send this to the developer:',
+};
+
+// ===================== MAP DATA (metres before MAP_SCALE; north is -z) =====================
+// Walkable floors. sec = collapse section (CORE never falls). y = surface height. Ramps rise from ya (at x0 or z0) to yb.
+// solid = a block down to the ground (walls from below); otherwise a slab of thickness th over the void.
+// Upper layer (y 4): west and east terraces (W1, E1) and the roof tier. Edges between layers are open drops.
+const FLOORS = [
+  { sec: 'CORE', x0: -14, x1: 14, z0: -50, z1: -26, y: 0, mat: 'core', th: 1.2, noRail: true },
+  { sec: 'CORE', x0: -4, x1: 4, z0: -26, z1: -20, y: 0, mat: 'core', th: 1.2 },
+  { sec: 'C1', x0: -14, x1: 14, z0: -20, z1: -6, y: 0, mat: 'court', th: 1.2 },
+  { sec: 'C2', x0: -14, x1: 14, z0: -6, z1: 8, y: 0, mat: 'court', th: 1.2 },
+  { sec: 'W1', x0: -46, x1: -26, z0: -20, z1: 0, y: 4, mat: 'terrace', solid: true },
+  { sec: 'W2', x0: -46, x1: -26, z0: 0, z1: 20, y: 0, mat: 'court', th: 1.2 },
+  { sec: 'W2', x0: -46, x1: -40, z0: 0, z1: 8, ramp: 'z', ya: 4, yb: 0, mat: 'terrace', solid: true },
+  { sec: 'E1', x0: 26, x1: 46, z0: -20, z1: 0, y: 4, mat: 'terrace', solid: true },
+  { sec: 'E2', x0: 26, x1: 46, z0: 0, z1: 20, y: 0, mat: 'court', th: 1.2 },
+  { sec: 'E2', x0: 40, x1: 46, z0: 0, z1: 8, ramp: 'z', ya: 4, yb: 0, mat: 'terrace', solid: true },
+  { sec: 'WB1', x0: -26, x1: -14, z0: -14, z1: -10, ramp: 'x', ya: 4, yb: 0, mat: 'bridge', th: 0.6 },
+  { sec: 'WB2', x0: -26, x1: -14, z0: 2, z1: 6, y: 0, mat: 'bridge', th: 0.6 },
+  { sec: 'EB1', x0: 14, x1: 26, z0: -14, z1: -10, ramp: 'x', ya: 0, yb: 4, mat: 'bridge', th: 0.6 },
+  { sec: 'EB2', x0: 14, x1: 26, z0: 2, z1: 6, y: 0, mat: 'bridge', th: 0.6 },
+  { sec: 'ROOF', x0: -14, x1: 14, z0: 16, z1: 28, y: 4, mat: 'roof', th: 1.2 },
+  { sec: 'ROOF', x0: -4, x1: 4, z0: 8, z1: 16, ramp: 'z', ya: 0, yb: 4, mat: 'roof', th: 1.2 },
+  { sec: 'ROOF', x0: -26, x1: -14, z0: 16, z1: 20, ramp: 'x', ya: 0, yb: 4, mat: 'roof', th: 1.2 },
+  { sec: 'ROOF', x0: 14, x1: 26, z0: 16, z1: 20, ramp: 'x', ya: 4, yb: 0, mat: 'roof', th: 1.2 },
+];
+// Broken rails: edge gaps where knockback (statue, lions, later skills) can throw a suit into the void.
+// Walking never falls through them. Each: the gap strip just outside the edge, x0 x1 z0 z1 (before MAP_SCALE).
+const BROKEN = [
+  [-2, 2, 28, 29], [-47, -46, -12, -8], [46, 47, -12, -8], [-22, -18, 1, 2],
+];
+// Stone lions (石狮): strike when a suit comes close. x, z, section.
+const LIONS = [[-6.5, -18.5, 'C1'], [6.5, -18.5, 'C1'], [-12, 0.5, 'C2'], [12, 0.5, 'C2']];
+// Healing altars: x, z, section.
+const ALTARS = [[-30, -4, 'W1'], [30, -4, 'E1'], [0, -2.5, 'C2']];
+// Pillars (solid; climb points for the ape suit later): x, z, section.
+const PILLARS = [
+  [-10, -44, 'CORE'], [10, -44, 'CORE'], [-10, -32, 'CORE'], [10, -32, 'CORE'],
+  [-11, -17, 'C1'], [11, -17, 'C1'], [-11, 5, 'C2'], [11, 5, 'C2'],
+  [-43, -17, 'W1'], [-29, -17, 'W1'], [-43, 17, 'W2'], [-29, 9, 'W2'],
+  [43, -17, 'E1'], [29, -17, 'E1'], [43, 17, 'E2'], [29, 9, 'E2'],
+  [-12, 26, 'ROOF'], [12, 26, 'ROOF'],
+];
+// Silk curtains (hiding later; walk-through): x, z, section.
+const CURTAINS = [
+  [-36, -6, 'W1'], [-36, 8, 'W2'], [36, -6, 'E1'], [36, 8, 'E2'],
+  [-6, -12, 'C1'], [6, -12, 'C1'], [-8, -30, 'CORE'], [8, -30, 'CORE'],
+];
+// Minion camps (shown only; minions come in a later batch): x, z, section.
+const CAMPS = [[-36, -13, 'W1'], [36, -13, 'E1'], [0, 23, 'ROOF'], [0, 1, 'C2']];
+// Suit spawn points (10): x, z, section.
+const SPAWNS = [
+  [-40, -8, 'W1'], [-32, -3, 'W1'], [-40, 12, 'W2'], [-31, 17, 'W2'],
+  [40, -8, 'E1'], [32, -3, 'E1'], [40, 12, 'E2'], [31, 17, 'E2'],
+  [-8, 4, 'C2'], [8, 4, 'C2'],
+];
+
+// ===================== DOM helpers (writes only on change) =====================
+const $ = (id) => document.getElementById(id);
+const el = {
+  hud: $('hud'), next: $('next'), banner: $('banner'), dbg: $('dbg'), help: $('help'),
+  btnMap: $('btnMap'), stick: $('stick'), err: $('err'), hpfill: $('hpfill'), hptext: $('hptext'),
+  mini: $('mini'), bar: $('bar'), cancel: $('cancel'),
+  voice: document.querySelector('#banner .voice'), rule: document.querySelector('#banner .rule'),
+};
+const textCache = new Map();
+const showCache = new Map();
+function setText(node, s) {
+  if (textCache.get(node) !== s) { textCache.set(node, s); node.textContent = s; }
+}
+function setBar(node, frac) {
+  const w = Math.round(Math.max(0, Math.min(1, frac)) * 100) + '%';
+  if (textCache.get(node) !== w) { textCache.set(node, w); node.style.width = w; }
+}
+function setShow(node, on) {
+  if (showCache.get(node) !== on) { showCache.set(node, on); node.style.display = on ? 'block' : 'none'; }
+}
+function T(key, vars) {
+  const s = TEXT[key];
+  if (s === undefined) throw new Error('Missing text key: ' + key);
+  if (!vars) return s;
+  return s.replace(/\{(\w+)\}/g, (m, k) => vars[k]);
+}
+
+// ===================== Renderer, scene, lights =====================
+const params = new URLSearchParams(location.search);
+const DEBUG = params.has('debug');
+const LOCK_TIER = params.has('lock');
+const TOUCH = matchMedia('(pointer: coarse)').matches;
+let tier = CONFIG.TIER[params.get('tier')] ? params.get('tier') : CONFIG.DEFAULT_TIER;
+
+const renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: 'high-performance' });
+renderer.setSize(innerWidth, innerHeight);
+renderer.shadowMap.type = THREE.PCFShadowMap;
+renderer.shadowMap.autoUpdate = false;
+document.body.prepend(renderer.domElement);
+
+const COL = CONFIG.COL;
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(COL.sky);
+scene.fog = new THREE.Fog(COL.sky, CONFIG.FOG_NEAR, CONFIG.FOG_FAR);
+const camera = new THREE.PerspectiveCamera(CONFIG.CAM_FOV, innerWidth / innerHeight, 0.5, CONFIG.FAR_FOLLOW);
+
+const hemi = new THREE.HemisphereLight(COL.skyLight, COL.groundLight, 1.1);
+const sun = new THREE.DirectionalLight(COL.sun, 2.2);
+sun.position.set(-30, 60, 25);
+sun.target.position.set(0, 0, -12);
+sun.castShadow = true;
+const sc = sun.shadow.camera;
+const SHK = CONFIG.MAP_SCALE;
+sc.left = -58 * SHK; sc.right = 58 * SHK; sc.top = 48 * SHK; sc.bottom = -48 * SHK; sc.near = 10; sc.far = 150 * SHK;
+sun.position.multiplyScalar(SHK); sun.target.position.multiplyScalar(SHK);
+scene.add(hemi, sun, sun.target);
+
+// ===================== Materials (shared) =====================
+const M = {};
+function mat(name, color, extra) {
+  M[name] = new THREE.MeshStandardMaterial(Object.assign({ color, roughness: 0.9, metalness: 0 }, extra));
+}
+mat('core', COL.coreFloor); mat('court', COL.court); mat('bridge', COL.bridge); mat('roof', COL.roof);
+mat('wall', COL.wall); mat('pillar', COL.pillar); mat('silk', COL.silk, { roughness: 0.7 });
+mat('gold', COL.gold, { metalness: 0.6, roughness: 0.45 }); mat('bronze', COL.bronze, { metalness: 0.4, roughness: 0.6 });
+mat('empress', COL.empress, { roughness: 0.6 }); mat('camp', COL.camp, { emissive: COL.camp, emissiveIntensity: 0.8 });
+mat('spawn', COL.spawn); mat('abyss', COL.abyss, { roughness: 1 }); mat('player', COL.player, { roughness: 0.6 });
+mat('aim', COL.aim, { emissive: COL.aim, emissiveIntensity: 0.6 }); mat('blob', COL.blob, { roughness: 1 });
+mat('terrace', COL.court); mat('stone', COL.stone); mat('broken', COL.broken, { roughness: 1 });
+mat('eyes', COL.eyes, { emissive: COL.eyes, emissiveIntensity: 0.4 }); mat('ring', COL.ring, { emissive: COL.ring, emissiveIntensity: 1.2 });
+mat('altarOn', COL.altarOn, { emissive: COL.altarOn, emissiveIntensity: 0.9 }); mat('altarOff', COL.altarOff, { roughness: 1 });
+M.rail = M.wall;
+const warnMat = new THREE.MeshStandardMaterial({ color: COL.court, emissive: COL.warn, emissiveIntensity: 0.5, roughness: 0.9 });
+mat('dummy', COL.dummy, { roughness: 0.8 }); mat('hit', COL.hit, { emissive: COL.hit, emissiveIntensity: 1 });
+mat('ind', COL.ind, { emissive: COL.ind, emissiveIntensity: 0.9 }); mat('fx', COL.fx, { emissive: COL.fx, emissiveIntensity: 1.2 });
+// Fog of war: every world material is dimmed beyond the vision radius around the player (one shared shader variant).
+const FOW = { uFowC: { value: new THREE.Vector3() }, uFowR: { value: CONFIG.VISION_R }, uFowDim: { value: CONFIG.FOW_DIM } };
+function addFow(m) {
+  m.onBeforeCompile = (sh) => {
+    sh.uniforms.uFowC = FOW.uFowC; sh.uniforms.uFowR = FOW.uFowR; sh.uniforms.uFowDim = FOW.uFowDim;
+    sh.vertexShader = sh.vertexShader.replace('#include <common>', '#include <common>\nvarying vec3 vFowPos;')
+      .replace('#include <worldpos_vertex>', '#include <worldpos_vertex>\nvFowPos = (modelMatrix * vec4(transformed, 1.0)).xyz;');
+    sh.fragmentShader = sh.fragmentShader.replace('#include <common>', '#include <common>\nvarying vec3 vFowPos;\nuniform vec3 uFowC;\nuniform float uFowR;\nuniform float uFowDim;')
+      .replace('#include <dithering_fragment>', '#include <dithering_fragment>\ngl_FragColor.rgb *= mix(1.0, uFowDim, smoothstep(uFowR, uFowR + 3.0, distance(vFowPos.xz, uFowC.xz)));');
+  };
+  m.customProgramCacheKey = () => 'fow1';
+}
+for (const k in M) if (k !== 'player' && k !== 'aim' && k !== 'blob' && k !== 'ind' && k !== 'fx') addFow(M[k]);
+addFow(warnMat);
+
+// ===================== Geometry helpers (merge static parts per section and material) =====================
+function box(w, h, d, x, y, z) { const g = new THREE.BoxGeometry(w, h, d); g.translate(x, y, z); return g; }
+function cyl(r, h, x, y, z, seg) { const g = new THREE.CylinderGeometry(r, r, h, seg || 14); g.translate(x, y, z); return g; }
+function mergeGeoms(list) {
+  let nv = 0, ni = 0;
+  for (const g of list) { nv += g.attributes.position.count; ni += g.index ? g.index.count : g.attributes.position.count; }
+  const pos = new Float32Array(nv * 3), nor = new Float32Array(nv * 3);
+  const idx = nv > 65535 ? new Uint32Array(ni) : new Uint16Array(ni);
+  let vo = 0, io = 0;
+  for (const g of list) {
+    const c = g.attributes.position.count;
+    pos.set(g.attributes.position.array, vo * 3); nor.set(g.attributes.normal.array, vo * 3);
+    if (g.index) { const a = g.index.array; for (let i = 0; i < a.length; i++) idx[io + i] = a[i] + vo; io += a.length; }
+    else { for (let i = 0; i < c; i++) idx[io + i] = vo + i; io += c; }
+    vo += c; g.dispose();
+  }
+  const out = new THREE.BufferGeometry();
+  out.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+  out.setAttribute('normal', new THREE.BufferAttribute(nor, 3));
+  out.setIndex(new THREE.BufferAttribute(idx, 1));
+  out.computeBoundingSphere();
+  return out;
+}
+
+// ===================== Build sections =====================
+const SECTION_IDS = ['CORE', 'C1', 'C2', 'W1', 'W2', 'E1', 'E2', 'WB1', 'WB2', 'EB1', 'EB2', 'ROOF'];
+const SEC = {};
+const SECLIST = [];
+for (const id of SECTION_IDS) {
+  const s = { id, name: T('zone_' + id), group: new THREE.Group(), parts: {}, floorMeshes: [], floorMats: [], state: 0, fallT: 0 };
+  SEC[id] = s; SECLIST.push(s);
+}
+const SOLIDS = [];
+function part(sec, m, g) { const p = SEC[sec].parts; (p[m] || (p[m] = [])).push(g); }
+function solid(sec, x0, x1, z0, z1) { SOLIDS.push({ s: SEC[sec], x0, x1, z0, z1 }); }
+
+// Apply MAP_SCALE to every layout position once (props keep their size).
+const K = CONFIG.MAP_SCALE;
+for (const f of FLOORS) { f.x0 *= K; f.x1 *= K; f.z0 *= K; f.z1 *= K; f.s = SEC[f.sec]; f.active = true; }
+for (const list of [PILLARS, CURTAINS, CAMPS, SPAWNS, LIONS, ALTARS]) for (const p of list) { p[0] *= K; p[1] *= K; }
+for (const b of BROKEN) for (let i = 0; i < 4; i++) b[i] *= K;
+
+// Floor surface height at x, z.
+function surf(f, x, z) {
+  if (!f.ramp) return f.y;
+  const t = f.ramp === 'z' ? (z - f.z0) / (f.z1 - f.z0) : (x - f.x0) / (f.x1 - f.x0);
+  return f.ya + (f.yb - f.ya) * t;
+}
+function inRect(f, x, z) { return x >= f.x0 && x <= f.x1 && z >= f.z0 && z <= f.z1; }
+function topY(x, z) { let h = -1e9; for (const f of FLOORS) if (f.active && inRect(f, x, z)) h = Math.max(h, surf(f, x, z)); return h; }
+function anyFloor(x, z) { for (const f of FLOORS) if (f.active && inRect(f, x, z)) return true; return false; }
+// m = extra margin around each gap strip, metres.
+function inBroken(x, z, m) { for (let i = 0; i < BROKEN.length; i++) { const b = BROKEN[i]; if (x >= b[0] - m && x <= b[1] + m && z >= b[2] - m && z <= b[3] + m) return true; } return false; }
+
+// Floors: a box whose top follows the surface; solid floors reach down to the ground.
+for (const f of FLOORS) {
+  const w = f.x1 - f.x0, d = f.z1 - f.z0, g = new THREE.BoxGeometry(w, 1, d);
+  const p = g.attributes.position;
+  for (let i = 0; i < p.count; i++) {
+    const x = f.x0 + p.getX(i) + w / 2, z = f.z0 + p.getZ(i) + d / 2, h = surf(f, x, z);
+    p.setXYZ(i, x, p.getY(i) > 0 ? h : (f.solid ? -1.5 : h - f.th), z);
+  }
+  g.computeVertexNormals();
+  part(f.sec, 'floor:' + f.mat, g);
+}
+// Rails on every edge over the void, except broken-rail gaps (rubble stubs there instead).
+const RAIL_SEG = 2;
+for (const f of FLOORS) {
+  if (f.noRail) continue;
+  const edges = [[f.x0, f.z0, f.x1, f.z0, 0, -1], [f.x0, f.z1, f.x1, f.z1, 0, 1], [f.x0, f.z0, f.x0, f.z1, -1, 0], [f.x1, f.z0, f.x1, f.z1, 1, 0]];
+  for (const [ax, az, bx, bz, nx, nz] of edges) {
+    const len = Math.hypot(bx - ax, bz - az), n = Math.max(1, Math.round(len / RAIL_SEG)), seg = len / n;
+    for (let k = 0; k < n; k++) {
+      const t = (k + 0.5) / n, mx = ax + (bx - ax) * t, mz = az + (bz - az) * t;
+      if (anyFloor(mx + nx * 0.3, mz + nz * 0.3)) continue;
+      const h = surf(f, Math.min(Math.max(mx, f.x0), f.x1), Math.min(Math.max(mz, f.z0), f.z1));
+      if (inBroken(mx + nx * 0.5, mz + nz * 0.5, 0)) {
+        part(f.sec, 'broken', box(0.4, 0.35, 0.4, mx - nz * seg * 0.3, h + 0.17, mz + nx * seg * 0.3));
+        continue;
+      }
+      part(f.sec, 'rail', nz !== 0 ? box(seg, 0.9, 0.15, mx, h + 0.45, mz) : box(0.15, 0.9, seg, mx, h + 0.45, mz));
+    }
+  }
+}
+// Roof supports (visual).
+for (const [x, z] of [[-13, 17], [13, 17], [-13, 27], [13, 27]]) part('ROOF', 'pillar', cyl(0.8, 18, x * K, -5, z * K));
+// Core hall: walls (fixed 1 m thick), dais against the north wall, throne, empress, statue at the dais foot.
+const CH = FLOORS[0], NZ = CH.z0, GATE = FLOORS[1];
+const WALLS = [[CH.x0, CH.x1, NZ, NZ + 1], [CH.x0, CH.x0 + 1, NZ, CH.z1], [CH.x1 - 1, CH.x1, NZ, CH.z1],
+  [CH.x0, GATE.x0, CH.z1 - 1, CH.z1], [GATE.x1, CH.x1, CH.z1 - 1, CH.z1]];
+for (const [x0, x1, z0, z1] of WALLS) { part('CORE', 'wall', box(x1 - x0, 7, z1 - z0, (x0 + x1) / 2, 3.5, (z0 + z1) / 2)); solid('CORE', x0, x1, z0, z1); }
+const DZ = NZ + 1;
+part('CORE', 'pillar', box(12, 3, 7, 0, 1.5, DZ + 3.5)); solid('CORE', -6, 6, DZ, DZ + 7);
+part('CORE', 'gold', box(3, 0.8, 2.4, 0, 3.4, DZ + 2.5)); part('CORE', 'gold', box(3, 3.2, 0.5, 0, 4.6, DZ + 1.2));
+part('CORE', 'empress', box(0.9, 1.4, 0.8, 0, 4.5, DZ + 2.6)); part('CORE', 'empress', box(0.5, 0.55, 0.5, 0, 5.5, DZ + 2.6));
+part('CORE', 'gold', box(1.0, 0.5, 0.2, 0, 6.0, DZ + 2.6));
+const SZ = DZ + 9.5;
+const statueParts = [box(2.6, 1.5, 4.0, 0, 1.2, SZ - 0.5), box(1.6, 1.3, 1.4, 0, 1.9, SZ + 1.7),
+  box(0.6, 1.0, 0.8, -0.9, 0.5, SZ + 0.9), box(0.6, 1.0, 0.8, 0.9, 0.5, SZ + 0.9),
+  box(0.8, 1.0, 1.4, -1.0, 0.5, SZ - 2.1), box(0.8, 1.0, 1.4, 1.0, 0.5, SZ - 2.1)];
+const statueEyes = mergeGeoms([box(0.25, 0.18, 0.1, -0.4, 2.15, SZ + 2.42), box(0.25, 0.18, 0.1, 0.4, 2.15, SZ + 2.42)]);
+solid('CORE', -1.6, 1.6, SZ - 2.5, SZ + 2.5);
+for (const [x, z, s] of PILLARS) { const y = topY(x, z); part(s, 'pillar', cyl(0.6, 6, x, y + 3, z)); solid(s, x - 0.6, x + 0.6, z - 0.6, z + 0.6); }
+for (const [x, z, s] of CURTAINS) {
+  const y = topY(x, z);
+  part(s, 'silk', box(4, 4, 0.15, x, y + 2.6, z)); part(s, 'wall', box(4.4, 0.25, 0.25, x, y + 4.7, z));
+  part(s, 'wall', box(0.2, 4.8, 0.2, x - 2.2, y + 2.4, z)); part(s, 'wall', box(0.2, 4.8, 0.2, x + 2.2, y + 2.4, z));
+}
+for (const [x, z, s] of CAMPS) part(s, 'camp', cyl(1.6, 0.08, x, topY(x, z) + 0.04, z, 20));
+for (const [x, z, s] of SPAWNS) part(s, 'spawn', cyl(0.5, 0.06, x, topY(x, z) + 0.03, z, 12));
+for (const [x, z, s] of LIONS) {
+  const y = topY(x, z);
+  part(s, 'stone', box(1.6, 0.6, 2.2, x, y + 0.3, z)); part(s, 'stone', box(1.2, 1.2, 1.6, x, y + 1.2, z));
+  part(s, 'stone', box(1.0, 1.0, 0.8, x, y + 2.1, z + 0.6)); solid(s, x - 0.9, x + 0.9, z - 1.1, z + 1.1);
+}
+for (const [x, z, s] of ALTARS) { const y = topY(x, z); part(s, 'stone', box(1.0, 1.0, 1.0, x, y + 0.5, z)); solid(s, x - 0.5, x + 0.5, z - 0.5, z + 0.5); }
+
+for (const s of SECLIST) {
+  for (const key in s.parts) {
+    const isFloor = key.startsWith('floor:');
+    const m = isFloor ? M[key.slice(6)] : M[key];
+    const mesh = new THREE.Mesh(mergeGeoms(s.parts[key]), m);
+    mesh.receiveShadow = true;
+    mesh.castShadow = key !== 'camp' && key !== 'spawn' && key !== 'broken';
+    mesh.matrixAutoUpdate = false; mesh.updateMatrix();
+    if (isFloor) { s.floorMeshes.push(mesh); s.floorMats.push(m); }
+    s.group.add(mesh);
+  }
+  s.parts = null;
+  s.group.matrixAutoUpdate = false; s.group.updateMatrix();
+  scene.add(s.group);
+}
+const statue = new THREE.Mesh(mergeGeoms(statueParts), M.bronze);
+statue.castShadow = true; statue.receiveShadow = true; statue.matrixAutoUpdate = false; statue.updateMatrix();
+SEC.CORE.group.add(statue);
+const eyes = new THREE.Mesh(statueEyes, M.eyes);
+eyes.matrixAutoUpdate = false; eyes.updateMatrix(); SEC.CORE.group.add(eyes);
+
+// Hazards: the tiger statue and the stone lions. Each shows a red ring for its whole tell.
+function addStatic(group, mesh) { mesh.matrixAutoUpdate = false; mesh.updateMatrix(); group.add(mesh); return mesh; }
+function ringMesh(r, x, y, z) {
+  const g = new THREE.RingGeometry(r - 0.3, r, 48); g.rotateX(-Math.PI / 2); g.translate(x, y + 0.06, z);
+  return new THREE.Mesh(g, M.ring);
+}
+const HAZARDS = [];
+function addHazard(kind, cfg, x, z, sec) {
+  const s = SEC[sec], y = topY(x, z), ring = addStatic(s.group, ringMesh(cfg.radius, x, y, z));
+  HAZARDS.push({ kind, cfg, x, z, y, s, ring, state: 0, t: 0 });
+}
+addHazard('statue', CONFIG.STATUE, 0, SZ, 'CORE');
+for (const [x, z, s] of LIONS) addHazard('lion', CONFIG.LION, x, z, s);
+// Altars: a glowing disc per altar so each can show full or empty.
+const ALTAR_LIST = ALTARS.map(([x, z, sec]) => {
+  const s = SEC[sec], y = topY(x, z);
+  const mesh = addStatic(s.group, new THREE.Mesh(new THREE.CylinderGeometry(CONFIG.ALTAR.radius, CONFIG.ALTAR.radius, 0.06, 28).translate(x, y + 0.03, z), M.altarOn));
+  mesh.receiveShadow = true;
+  return { x, z, y, s, mesh, charge: CONFIG.ALTAR.charge, emptyT: 0 };
+});
+// Training dummies (map test only): a body and a health bar each; hidden outside vision.
+const dummyGeo = mergeGeoms([box(0.9, 1.6, 0.9, 0, 0.8, 0), box(0.5, 0.5, 0.5, 0, 1.9, 0)]);
+const dummyBarGeo = new THREE.BoxGeometry(1, 0.12, 0.12).translate(0.5, 0, 0);
+const DUMMY_LIST = CONFIG.DUMMIES.map(([ux, uz, sec]) => {
+  const x = ux * K, z = uz * K, y = topY(x, z), s = SEC[sec];
+  const body = new THREE.Mesh(dummyGeo, M.dummy); body.position.set(x, y, z); body.castShadow = true;
+  const bar = new THREE.Mesh(dummyBarGeo, M.camp); bar.position.set(x - 0.5, y + 2.5, z);
+  s.group.add(body, bar);
+  return { x, z, y, s, body, bar, hp: CONFIG.DUMMY_HP, deadT: 0, flashT: 0, seen: true };
+});
+// Aim indicators (range ring, line, target circle) and pooled skill effects (one of each, reused).
+function flatRing(inner, outer, m) { const g = new THREE.RingGeometry(inner, outer, 56); g.rotateX(-Math.PI / 2); return new THREE.Mesh(g, m); }
+const indRange = flatRing(0.96, 1, M.ind), indCircle = flatRing(0.9, 1, M.ind);
+const indLine = new THREE.Mesh(new THREE.BoxGeometry(1, 0.04, 1).translate(0, 0, -0.5), M.ind);
+const fxLine = new THREE.Mesh(new THREE.BoxGeometry(1, 0.06, 1).translate(0, 0, -0.5), M.fx);
+const fxRing = flatRing(0.6, 1, M.fx), fxTele = flatRing(0.85, 1, M.ring);
+const INDICATORS = [indRange, indCircle, indLine, fxLine, fxRing, fxTele];
+for (const m of INDICATORS) { m.visible = false; scene.add(m); }
+const abyss = new THREE.Mesh(new THREE.PlaneGeometry(420, 420), M.abyss);
+abyss.rotation.x = -Math.PI / 2; abyss.position.y = -30; abyss.matrixAutoUpdate = false; abyss.updateMatrix();
+scene.add(abyss);
+
+// Waves resolved to section objects once.
+const WAVES = CONFIG.WAVES.map((ids, i) => ({
+  i, secs: ids.map((id) => SEC[id]), state: 0, lastCount: -1,
+  start: CONFIG.FIRST_WAVE_S + i * CONFIG.WAVE_INTERVAL_S,
+  voice: T('voice_wave' + i), names: ids.map((id) => SEC[id].name).join(', '),
+}));
+
+// ===================== Player =====================
+// air = airborne (dropping a layer or into the void); voidT = time airborne with no floor below.
+const P = { x: 0, z: 0, y: 0, px: 0, pz: 0, py: 0, vy: 0, air: false, airFromY: 0, voidT: 0, dead: false, deadT: 0,
+  hp: 100, hpShown: -1, noHealT: 0, kx: 0, kz: 0, faceX: 0, faceZ: -1, atkT: 0, stuckT: 0, zone: null };
+const playerGroup = new THREE.Group();
+const playerBody = new THREE.Mesh(mergeGeoms([box(0.9, 1.5, 0.9, 0, 0.75, 0), box(0.6, 0.5, 0.6, 0, 1.8, 0)]), M.player);
+playerBody.castShadow = false;
+const playerAim = new THREE.Mesh(new THREE.BoxGeometry(0.25, 0.25, 0.9), M.aim);
+playerAim.position.set(0, 1.0, -0.8);
+const playerBlob = new THREE.Mesh(new THREE.CylinderGeometry(0.6, 0.6, 0.02, 16), M.blob);
+playerBlob.position.y = 0.03;
+playerGroup.add(playerBody, playerAim, playerBlob);
+scene.add(playerGroup);
+
+// ===================== Input and orders =====================
+// Desktop follows LoL/Dota (right-click move/attack, Q W R aimed at the cursor). Phone follows MLBB (left stick, skill buttons).
+const stick = { id: -1, ox: 0, oy: 0, x: 0, y: 0 };
+const testMove = { on: false, x: 0, z: 0 };
+const ORD = { attack: null, atkHeld: false, aiming: -1, src: '', dirX: 0, dirZ: -1, dist: 0, aimX: 0, aimZ: 0,
+  nx: 0, ny: 0, cursorOn: false, rightHeld: false, repathT: 0, attackMove: false,
+  drag: { id: -1, slot: -1, ox: 0, oy: 0, moved: false, cancel: false }, cancelRect: null };
+const SK = CONFIG.SKILLS.map(() => ({ cdT: 0, shown: -1, btn: null, cdEl: null }));
+const PEND = { on: false, slot: 0, x: 0, z: 0, dx: 0, dz: 0, t: 0 };
+function clearInput() {
+  stick.id = -1; stick.x = stick.y = 0; setShow(el.stick, false); ORD.rightHeld = false; ORD.atkHeld = false;
+  if (ORD.aiming >= 0) cancelAim();
+}
+const cv = renderer.domElement;
+cv.addEventListener('contextmenu', (e) => e.preventDefault());
+el.mini.addEventListener('contextmenu', (e) => e.preventDefault());
+addEventListener('keydown', (e) => {
+  if (e.repeat || e.ctrlKey || e.metaKey || e.altKey) return;
+  for (let i = 0; i < CONFIG.SKILLS.length; i++) if (e.code === CONFIG.SKILLS[i].key) { startAim(i, 'key'); e.preventDefault(); return; }
+  if (e.code === 'KeyS') stopOrders();
+  if (e.code === 'KeyA') ORD.attackMove = true;
+  if (e.code === 'Escape') { cancelAim(); ORD.attackMove = false; }
+  if (e.code === 'KeyN') reset();
+  if (e.code === 'KeyM' && DEBUG) toggleView();
+});
+addEventListener('keyup', (e) => {
+  if (ORD.aiming >= 0 && ORD.src === 'key' && e.code === CONFIG.SKILLS[ORD.aiming].key) releaseAim();
+});
+addEventListener('blur', clearInput);
+cv.addEventListener('pointerdown', (e) => {
+  if (e.pointerType === 'touch') {
+    if (e.clientX < innerWidth / 2 && stick.id < 0) {
+      stick.id = e.pointerId; stick.ox = e.clientX; stick.oy = e.clientY; stick.x = stick.y = 0;
+      el.stick.style.left = e.clientX + 'px'; el.stick.style.top = e.clientY + 'px'; setShow(el.stick, true);
+    }
+    return;
+  }
+  setCursor(e);
+  if (e.button === 2) { ORD.rightHeld = true; ORD.repathT = 0; rightOrder(); }
+  else if (e.button === 0 && ORD.attackMove) { ORD.attackMove = false; attackMoveOrder(); }
+});
+addEventListener('pointermove', (e) => {
+  if (e.pointerId === stick.id) {
+    let dx = e.clientX - stick.ox, dy = e.clientY - stick.oy; const len = Math.hypot(dx, dy);
+    if (len > 50) { dx *= 50 / len; dy *= 50 / len; }
+    stick.x = dx / 50; stick.y = dy / 50;
+  } else if (e.pointerId === ORD.drag.id) dragAim(e);
+  else if (e.pointerType === 'mouse') setCursor(e);
+});
+function endPtr(e) {
+  if (e.pointerId === stick.id) { stick.id = -1; stick.x = stick.y = 0; setShow(el.stick, false); }
+  if (e.pointerId === ORD.drag.id) endDrag();
+  if (e.pointerType === 'mouse' && e.button === 2) ORD.rightHeld = false;
+}
+addEventListener('pointerup', endPtr); addEventListener('pointercancel', endPtr);
+function setCursor(e) { ORD.cursorOn = true; ORD.nx = (e.clientX / innerWidth) * 2 - 1; ORD.ny = -(e.clientY / innerHeight) * 2 + 1; }
+el.mini.addEventListener('pointerdown', (e) => {
+  if (e.button !== 2 && e.pointerType === 'mouse') return;
+  const r = el.mini.getBoundingClientRect();
+  const x = MINI.x0 + (e.clientX - r.left) / r.width * MINI.w, z = MINI.z0 + (e.clientY - r.top) / r.height * MINI.h;
+  ORD.attack = null; navSearch(P.x, P.z, P.y, x, z, topY(x, z));
+});
+
+// Ability bar: display on desktop, buttons on phone. Built once.
+function buildBar() {
+  const mk = (label, cls) => { const b = document.createElement('div'); b.className = 'sk ' + cls; b.textContent = label;
+    const cd = document.createElement('div'); cd.className = 'cd'; b.appendChild(cd); el.bar.appendChild(b); return { b, cd }; };
+  if (TOUCH) {
+    const a = mk(T('atk'), 'atk');
+    a.b.addEventListener('pointerdown', (e) => { e.preventDefault(); ORD.atkHeld = true; ORD.attack = autoTarget(CONFIG.ATTACK.acquire); });
+    a.b.addEventListener('pointerup', () => { ORD.atkHeld = false; }); a.b.addEventListener('pointercancel', () => { ORD.atkHeld = false; });
+  }
+  const pos = [[104, 4], [92, 92], [8, 108]];
+  CONFIG.SKILLS.forEach((sk, i) => {
+    const x = mk(TOUCH ? sk.label : sk.label, 'skill');
+    if (!TOUCH) { const lb = document.createElement('div'); lb.className = 'lb'; lb.textContent = sk.name; x.b.appendChild(lb); }
+    else {
+      x.b.style.right = pos[i][0] + 'px'; x.b.style.bottom = pos[i][1] + 'px';
+      x.b.addEventListener('pointerdown', (e) => {
+        e.preventDefault(); if (SK[i].cdT > 0) return;
+        const d = ORD.drag; d.id = e.pointerId; d.slot = i; d.ox = e.clientX; d.oy = e.clientY; d.moved = false; d.cancel = false;
+        setShow(el.cancel, true); ORD.cancelRect = el.cancel.getBoundingClientRect();
+      });
+    }
+    SK[i].btn = x.b; SK[i].cdEl = x.cd;
+  });
+}
+function dragAim(e) {
+  const d = ORD.drag, sk = CONFIG.SKILLS[d.slot], dx = e.clientX - d.ox, dy = e.clientY - d.oy, len = Math.hypot(dx, dy);
+  if (!d.moved && len < CONFIG.DRAG_MIN_PX) return;
+  if (!d.moved) { d.moved = true; startAim(d.slot, 'touch'); }
+  if (len > 0) { ORD.dirX = dx / len; ORD.dirZ = dy / len; }
+  ORD.dist = Math.min(1, len / CONFIG.DRAG_FULL_PX) * sk.range;
+  const r = ORD.cancelRect;
+  d.cancel = !!r && e.clientX >= r.left && e.clientX <= r.right && e.clientY >= r.top && e.clientY <= r.bottom;
+}
+function endDrag() {
+  const d = ORD.drag, slot = d.slot; d.id = -1; setShow(el.cancel, false);
+  if (d.cancel) { cancelAim(); return; }
+  if (!d.moved) { autoCast(slot); return; }
+  releaseAim();
+}
+
+const rayO = new THREE.Vector3(), rayD = new THREE.Vector3(), HIT = { x: 0, y: 0, z: 0, ok: false };
+// PERFRAME-BEGIN
+// Orders. Right-click: attack a visible target under the cursor, else walk there.
+function rightOrder() {
+  const hp = cursorGround(); if (!hp.ok) return;
+  const d = dummyNear(hp.x, hp.z, 1.4);
+  if (d) { ORD.attack = d; PATH.n = 0; return; }
+  ORD.attack = null; navSearch(P.x, P.z, P.y, hp.x, hp.z, hp.y);
+}
+function attackMoveOrder() {
+  const hp = cursorGround(); if (!hp.ok) return;
+  const d = dummyNear(hp.x, hp.z, 4);
+  if (d) { ORD.attack = d; PATH.n = 0; } else { ORD.attack = null; navSearch(P.x, P.z, P.y, hp.x, hp.z, hp.y); }
+}
+function stopOrders() { ORD.attack = null; PATH.n = 0; PATH.i = 0; }
+function dummyNear(x, z, r) {
+  let best = null, bd = r;
+  for (let i = 0; i < DUMMY_LIST.length; i++) {
+    const d = DUMMY_LIST[i]; if (!d.seen || d.hp <= 0) continue;
+    const dd = Math.hypot(d.x - x, d.z - z); if (dd < bd) { bd = dd; best = d; }
+  }
+  return best;
+}
+// MLBB-style auto-target: nearest visible target within range of the player.
+function autoTarget(range) { return dummyNear(P.x, P.z, range); }
+function startAim(slot, src) {
+  if (SK[slot].cdT > 0 || P.dead) return;
+  ORD.aiming = slot; ORD.src = src;
+  if (src === 'touch') { ORD.dirX = P.faceX; ORD.dirZ = P.faceZ; ORD.dist = 0; }
+}
+function cancelAim() { ORD.aiming = -1; for (let i = 0; i < 3; i++) INDICATORS[i].visible = false; }
+function releaseAim() {
+  const slot = ORD.aiming; if (slot < 0) return;
+  cancelAim(); castSkill(slot, ORD.aimX, ORD.aimZ);
+}
+function autoCast(slot) {
+  const sk = CONFIG.SKILLS[slot], t = autoTarget(sk.range + 1);
+  if (t) castSkill(slot, t.x, t.z); else castSkill(slot, P.x + P.faceX * sk.range, P.z + P.faceZ * sk.range);
+}
+// Cast at a world point, clamped to range (MLBB clamps; lines always fly full range).
+function castSkill(slot, tx, tz) {
+  const sk = CONFIG.SKILLS[slot], st = SK[slot];
+  if (st.cdT > 0 || P.dead) return false;
+  let dx = tx - P.x, dz = tz - P.z; const len = Math.hypot(dx, dz);
+  if (len > 0.01) { dx /= len; dz /= len; } else { dx = P.faceX; dz = P.faceZ; }
+  const dist = sk.type === 'line' ? sk.range : Math.min(len, sk.range);
+  P.faceX = dx; P.faceZ = dz; st.cdT = sk.cd;
+  const x = P.x + dx * dist, z = P.z + dz * dist;
+  if (sk.delay > 0) {
+    PEND.on = true; PEND.slot = slot; PEND.x = x; PEND.z = z; PEND.dx = dx; PEND.dz = dz; PEND.t = sk.delay;
+    fxTele.position.set(x, topYUnder(x, z, P.y + 1) + 0.07, z); fxTele.scale.setScalar(sk.radius); fxTele.visible = true;
+  } else applySkill(slot, x, z, dx, dz);
+  return true;
+}
+function applySkill(slot, x, z, dx, dz) {
+  const sk = CONFIG.SKILLS[slot];
+  for (let i = 0; i < DUMMY_LIST.length; i++) {
+    const d = DUMMY_LIST[i]; if (!d.seen || d.hp <= 0) continue;
+    let hit = false;
+    if (sk.type === 'line') {
+      const px = d.x - P.x, pz = d.z - P.z, along = px * dx + pz * dz, side = Math.abs(px * dz - pz * dx);
+      hit = along >= 0 && along <= sk.range + 0.45 && side <= sk.width / 2 + 0.45;
+    } else hit = Math.hypot(d.x - x, d.z - z) <= sk.radius + 0.45;
+    if (hit) hitDummy(d, sk.dmg);
+  }
+  const y = topYUnder(x, z, P.y + 1) + 0.08;
+  if (sk.type === 'line') { fxLine.position.set(P.x, P.y + 0.08, P.z); fxLine.rotation.y = Math.atan2(-dx, -dz); fxLine.scale.set(sk.width, 1, sk.range); fxLine.visible = true; }
+  else { fxRing.position.set(x, y, z); fxRing.scale.setScalar(sk.radius); fxRing.visible = true; }
+  G.fxT = 0.25;
+}
+function hitDummy(d, n) {
+  d.hp = Math.max(0, d.hp - n); d.flashT = 0.12; d.body.material = M.hit;
+  d.bar.scale.x = Math.max(0.001, d.hp / CONFIG.DUMMY_HP);
+  if (d.hp <= 0) { d.deadT = CONFIG.DUMMY_RESPAWN_S; if (ORD.attack === d) ORD.attack = null; }
+}
+// Ground point under the cursor: exact ray test against each floor surface (flat or ramp); falls back to the player's height plane.
+function cursorGround() { return screenToGround(ORD.nx, ORD.ny); }
+function screenToGround(nx, ny) {
+  rayO.copy(camera.position); rayD.set(nx, ny, 0.5).unproject(camera).sub(rayO).normalize();
+  let bestT = 1e9; HIT.ok = false;
+  for (let i = 0; i < FLOORS.length; i++) {
+    const f = FLOORS[i]; if (!f.active) continue;
+    let t;
+    if (!f.ramp) { if (Math.abs(rayD.y) < 1e-6) continue; t = (f.y - rayO.y) / rayD.y; }
+    else {
+      const isZ = f.ramp === 'z', a0 = isZ ? f.z0 : f.x0, a1 = isZ ? f.z1 : f.x1, k = (f.yb - f.ya) / (a1 - a0);
+      const oa = isZ ? rayO.z : rayO.x, da = isZ ? rayD.z : rayD.x, den = rayD.y - k * da;
+      if (Math.abs(den) < 1e-6) continue;
+      t = (f.ya + k * (oa - a0) - rayO.y) / den;
+    }
+    if (t <= 0 || t >= bestT) continue;
+    const x = rayO.x + rayD.x * t, z = rayO.z + rayD.z * t;
+    if (!inRect(f, x, z)) continue;
+    bestT = t; HIT.x = x; HIT.z = z; HIT.y = rayO.y + rayD.y * t; HIT.ok = true;
+  }
+  if (!HIT.ok && rayD.y < -1e-4) { const t = (P.y - rayO.y) / rayD.y; HIT.x = rayO.x + rayD.x * t; HIT.z = rayO.z + rayD.z * t; HIT.y = P.y; HIT.ok = true; }
+  return HIT;
+}
+// PERFRAME-END
+
+// ===================== Collision =====================
+const R = CONFIG.PLAYER_RADIUS, STEP_UP = CONFIG.STEP_UP, BODY = CONFIG.BODY_HEIGHT;
+// PERFRAME-BEGIN
+// Highest active floor under x, z whose surface is no more than a step above height y.
+function floorAt(x, z, y) {
+  let best = null, bh = -1e9;
+  for (let i = 0; i < FLOORS.length; i++) {
+    const f = FLOORS[i];
+    if (!f.active || x < f.x0 || x > f.x1 || z < f.z0 || z > f.z1) continue;
+    const h = surf(f, x, z);
+    if (h <= y + STEP_UP && h > bh) { best = f; bh = h; }
+  }
+  return best;
+}
+// True when a floor block above step height fills the body space at x, z (a wall from this height).
+function wallAt(x, z, y) {
+  for (let i = 0; i < FLOORS.length; i++) {
+    const f = FLOORS[i];
+    if (!f.active || x < f.x0 || x > f.x1 || z < f.z0 || z > f.z1) continue;
+    const h = surf(f, x, z);
+    if (h > y + STEP_UP && (f.solid ? -1.5 : h - f.th) < y + BODY) return true;
+  }
+  return false;
+}
+function hitSolid(x, z) {
+  for (let i = 0; i < SOLIDS.length; i++) {
+    const b = SOLIDS[i];
+    if (b.s.state < 2 && x > b.x0 - R && x < b.x1 + R && z > b.z0 - R && z < b.z1 + R) return true;
+  }
+  return false;
+}
+// Walking rule: centre and four body points need a floor at or below step height (lower = an open drop), no walls, no solids.
+function canStand(x, z, y) {
+  if (!floorAt(x, z, y) || wallAt(x, z, y) || hitSolid(x, z)) return false;
+  if (!floorAt(x + R, z, y) || wallAt(x + R, z, y)) return false;
+  if (!floorAt(x - R, z, y) || wallAt(x - R, z, y)) return false;
+  if (!floorAt(x, z + R, y) || wallAt(x, z + R, y)) return false;
+  if (!floorAt(x, z - R, y) || wallAt(x, z - R, y)) return false;
+  return true;
+}
+// Knockback may also carry the player through a broken-rail gap into the void.
+function tryMove(x, z, kb) {
+  if (canStand(x, z, P.y)) return true;
+  return kb && inBroken(x, z, R + 0.05) && !hitSolid(x, z) && !wallAt(x, z, P.y);
+}
+
+// PERFRAME-END
+// ===================== Pathfinding (desktop move orders): A* over (grid cell, floor), arrays allocated once =====================
+// Path points the player walks along: x, z pairs.
+const PATH = { pts: new Float32Array(1024), n: 0, i: 0 };
+const NAV = { st: CONFIG.NAV_CELL, x0: -78, z0: -82, nx: 0, nz: 0, gen: 0, lastY: 0,
+  dx: Int8Array.of(1, -1, 0, 0, 1, 1, -1, -1), dz: Int8Array.of(0, 0, 1, -1, 1, -1, 1, -1) };
+NAV.nx = Math.ceil(156 / NAV.st); NAV.nz = Math.ceil(132 / NAV.st);
+{
+  const N = NAV.nx * NAV.nz * FLOORS.length;
+  NAV.g = new Float32Array(N); NAV.parent = new Int32Array(N); NAV.stamp = new Uint16Array(N); NAV.closed = new Uint16Array(N);
+  NAV.heap = new Int32Array(N); NAV.heapF = new Float32Array(N); NAV.tmp = new Float32Array(2048);
+  FLOORS.forEach((f, i) => { f.idx = i; });
+}
+// PERFRAME-BEGIN
+function navSearch(sx, sz, sy, gx, gz, gy) {
+  const st = NAV.st, nx = NAV.nx, NF = FLOORS.length;
+  const si = Math.floor((sx - NAV.x0) / st), sj = Math.floor((sz - NAV.z0) / st);
+  const gi = Math.floor((gx - NAV.x0) / st), gj = Math.floor((gz - NAV.z0) / st);
+  const f0 = floorAt(sx, sz, sy);
+  PATH.n = 0; PATH.i = 0;
+  if (!f0 || si < 0 || sj < 0 || si >= nx || sj >= NAV.nz) return false;
+  NAV.gen = (NAV.gen + 1) & 0xffff; if (NAV.gen === 0) { NAV.stamp.fill(0); NAV.closed.fill(0); NAV.gen = 1; }
+  const gen = NAV.gen;
+  let hs = 0, best = -1, bestH = 1e9, opened = 0;
+  const start = (sj * nx + si) * NF + f0.idx;
+  NAV.stamp[start] = gen; NAV.g[start] = 0; NAV.parent[start] = -1;
+  hs = heapPush(hs, start, Math.hypot(gi - si, gj - sj));
+  while (hs > 0 && opened < CONFIG.NAV_MAX) {
+    const node = NAV.heap[0]; hs = heapPop(hs);
+    if (NAV.closed[node] === gen) continue;
+    NAV.closed[node] = gen; opened++;
+    const cell = (node / NF) | 0, fi = node - cell * NF, j = (cell / nx) | 0, i = cell - j * nx;
+    const h = Math.hypot(gi - i, gj - j);
+    if (h < bestH) { bestH = h; best = node; }
+    if (i === gi && j === gj) { best = node; break; }
+    const cx = NAV.x0 + (i + 0.5) * st, cz = NAV.z0 + (j + 0.5) * st, cy = surf(FLOORS[fi], cx, cz);
+    for (let d = 0; d < 8; d++) {
+      const di = NAV.dx[d], dj = NAV.dz[d], ni = i + di, nj = j + dj;
+      if (ni < 0 || nj < 0 || ni >= nx || nj >= NAV.nz) continue;
+      const x = cx + di * st, z = cz + dj * st;
+      if (!canStand(x, z, cy)) continue;
+      if (di !== 0 && dj !== 0 && (!canStand(cx + di * st, cz, cy) || !canStand(cx, cz + dj * st, cy))) continue;
+      const nf = floorAt(x, z, cy), nid = (nj * nx + ni) * NF + nf.idx;
+      if (NAV.closed[nid] === gen) continue;
+      const g = NAV.g[node] + (di !== 0 && dj !== 0 ? 1.4142 : 1);
+      if (NAV.stamp[nid] === gen && NAV.g[nid] <= g) continue;
+      NAV.stamp[nid] = gen; NAV.g[nid] = g; NAV.parent[nid] = node;
+      hs = heapPush(hs, nid, g + Math.hypot(gi - ni, gj - nj));
+    }
+  }
+  if (best < 0) return false;
+  // Walk parents back into PATH (reversed), then smooth by skipping points that are in a straight walkable line.
+  let n = 0, node = best;
+  while (node >= 0 && n < 512) {
+    const cell = (node / NF) | 0, j = (cell / nx) | 0, i = cell - j * nx;
+    NAV.tmp[n * 2] = NAV.x0 + (i + 0.5) * st; NAV.tmp[n * 2 + 1] = NAV.z0 + (j + 0.5) * st; n++;
+    node = NAV.parent[node];
+  }
+  if (best === ((gj * nx + gi) * NF + (best % NF))) { NAV.tmp[0] = gx; NAV.tmp[1] = gz; }
+  // Smooth: from the current point, jump to the furthest of the next 30 cells reachable in a straight walk.
+  let out = 0, k = n - 1, ax = sx, az = sz, ay = sy;
+  while (k > 0 && out < 512) {
+    let m = k - 1, ok = false;
+    for (let c = Math.max(0, k - 30); c < k; c++) if (lineWalk(ax, az, ay, NAV.tmp[c * 2], NAV.tmp[c * 2 + 1])) { m = c; ok = true; break; }
+    ax = NAV.tmp[m * 2]; az = NAV.tmp[m * 2 + 1]; ay = ok ? NAV.lastY : topYUnder(ax, az, ay);
+    PATH.pts[out * 2] = ax; PATH.pts[out * 2 + 1] = az; out++;
+    k = m;
+  }
+  PATH.n = out; PATH.i = 0;
+  return out > 0;
+}
+// True if walking straight from a to b at height ay keeps standing and never drops a layer. Leaves the end height in NAV.lastY.
+function lineWalk(ax, az, ay, bx, bz) {
+  const len = Math.hypot(bx - ax, bz - az), n = Math.max(1, Math.ceil(len / 0.4));
+  let y = ay;
+  for (let k = 1; k <= n; k++) {
+    const x = ax + (bx - ax) * k / n, z = az + (bz - az) * k / n;
+    if (!canStand(x, z, y)) return false;
+    const f = floorAt(x, z, y), h = surf(f, x, z);
+    if (y - h > STEP_UP) return false;
+    y = h;
+  }
+  NAV.lastY = y;
+  return true;
+}
+function topYUnder(x, z, y) { const f = floorAt(x, z, y); return f ? surf(f, x, z) : y; }
+function heapPush(hs, node, f) {
+  let i = hs; NAV.heap[i] = node; NAV.heapF[i] = f;
+  while (i > 0) {
+    const p = (i - 1) >> 1; if (NAV.heapF[p] <= NAV.heapF[i]) break;
+    const tn = NAV.heap[p], tf = NAV.heapF[p]; NAV.heap[p] = NAV.heap[i]; NAV.heapF[p] = NAV.heapF[i]; NAV.heap[i] = tn; NAV.heapF[i] = tf; i = p;
+  }
+  return hs + 1;
+}
+function heapPop(hs) {
+  hs--; NAV.heap[0] = NAV.heap[hs]; NAV.heapF[0] = NAV.heapF[hs];
+  let i = 0;
+  for (;;) {
+    const l = i * 2 + 1, r = l + 1; let m = i;
+    if (l < hs && NAV.heapF[l] < NAV.heapF[m]) m = l;
+    if (r < hs && NAV.heapF[r] < NAV.heapF[m]) m = r;
+    if (m === i) break;
+    const tn = NAV.heap[m], tf = NAV.heapF[m]; NAV.heap[m] = NAV.heap[i]; NAV.heapF[m] = NAV.heapF[i]; NAV.heap[i] = tn; NAV.heapF[i] = tf; i = m;
+  }
+  return hs;
+}
+// PERFRAME-END
+
+// ===================== Game state =====================
+const G = { time: 0, view: 'follow', paused: false, ctxLost: false, frames: 0, bannerWave: -1, fellT: 0, nextWave: -2, fxT: 0, miniDirty: true, miniT: 0 };
+
+function warnSection(s) { G.miniDirty = true; s.state = 1; for (let i = 0; i < s.floorMeshes.length; i++) s.floorMeshes[i].material = warnMat; }
+function dropSection(s) {
+  G.miniDirty = true; s.state = 2; s.fallT = 0;
+  for (let i = 0; i < FLOORS.length; i++) if (FLOORS[i].s === s) FLOORS[i].active = false;
+}
+function removeSection(s) { G.miniDirty = true; s.state = 3; scene.remove(s.group); renderer.shadowMap.needsUpdate = true; }
+
+// PERFRAME-BEGIN
+function step(dt) {
+  G.time += dt;
+  // Collapse waves.
+  for (let i = 0; i < WAVES.length; i++) {
+    const w = WAVES[i];
+    if (w.state === 0 && G.time >= w.start - CONFIG.COLLAPSE_WARN_S) {
+      w.state = 1; for (let k = 0; k < w.secs.length; k++) warnSection(w.secs[k]);
+      G.bannerWave = i; w.lastCount = -1; setText(el.voice, w.voice); setShow(el.banner, true);
+    } else if (w.state === 1 && G.time >= w.start) {
+      w.state = 2; for (let k = 0; k < w.secs.length; k++) dropSection(w.secs[k]);
+      if (G.bannerWave === i) { G.bannerWave = -1; setShow(el.banner, false); }
+    } else if (w.state === 2 && G.time >= w.start + CONFIG.COLLAPSE_FALL_S) {
+      w.state = 3; for (let k = 0; k < w.secs.length; k++) removeSection(w.secs[k]);
+    }
+    if (w.state === 1 && G.bannerWave === i) {
+      const c = Math.ceil(w.start - G.time);
+      if (c !== w.lastCount) { w.lastCount = c; setText(el.rule, T('rule_collapse', { s: c, zones: w.names })); }
+    }
+  }
+  // Falling sections.
+  for (let i = 0; i < SECLIST.length; i++) {
+    const s = SECLIST[i];
+    if (s.state === 2) {
+      s.fallT += dt; s.group.position.y = -0.5 * CONFIG.GRAVITY * s.fallT * s.fallT;
+      s.group.updateMatrix(); renderer.shadowMap.needsUpdate = true;
+    }
+  }
+  // Announce the next wave one wave ahead.
+  let nw = -1;
+  for (let i = 0; i < WAVES.length; i++) if (WAVES[i].state === 0) { nw = i; break; }
+  if (nw !== G.nextWave) { G.nextWave = nw; setText(el.next, nw < 0 ? T('next_none') : T('next_wave', { zones: WAVES[nw].names })); }
+  // Fell banner timer.
+  if (G.fellT > 0) { G.fellT -= dt; if (G.fellT <= 0 && G.bannerWave < 0) setShow(el.banner, false); }
+  // Hazards: idle -> tell (red ring, statue eyes glow) -> strike -> cooldown.
+  for (let i = 0; i < HAZARDS.length; i++) {
+    const h = HAZARDS[i], c = h.cfg;
+    if (h.s.state >= 2) { if (h.ring.visible) h.ring.visible = false; continue; }
+    const hx = P.x - h.x, hz = P.z - h.z, d = Math.hypot(hx, hz);
+    const near = !P.dead && Math.abs(P.y - h.y) < 3;
+    if (h.state === 0) {
+      if (near && d < c.range) { h.state = 1; h.t = 0; h.ring.visible = true; if (h.kind === 'statue') M.eyes.emissiveIntensity = 3; }
+    } else if (h.state === 1) {
+      h.t += dt;
+      if (h.t >= c.windup) {
+        h.state = 2; h.t = 0; h.ring.visible = false; if (h.kind === 'statue') M.eyes.emissiveIntensity = 0.4;
+        if (near && d < c.radius) {
+          hurt(c.dmg);
+          if (d > 0.01) { P.kx += hx / d * c.kb; P.kz += hz / d * c.kb; } else P.kz += c.kb;
+        }
+      }
+    } else if (h.state === 2) { h.t += dt; if (h.t >= c.cooldown) h.state = 0; }
+  }
+  // Altars heal a standing player; a hit pauses healing; an emptied altar refills later.
+  const A = CONFIG.ALTAR;
+  for (let i = 0; i < ALTAR_LIST.length; i++) {
+    const a = ALTAR_LIST[i];
+    if (a.s.state >= 2) continue;
+    if (a.charge <= 0) { a.emptyT -= dt; if (a.emptyT <= 0) { a.charge = A.charge; a.mesh.material = M.altarOn; } continue; }
+    if (P.dead || P.air || P.noHealT > 0 || P.hp >= CONFIG.MAX_HP) continue;
+    if (Math.hypot(P.x - a.x, P.z - a.z) > A.radius || Math.abs(P.y - a.y) > 1) continue;
+    const heal = Math.min(A.rate * dt, a.charge, CONFIG.MAX_HP - P.hp);
+    P.hp += heal; a.charge -= heal;
+    if (a.charge <= 1e-6) { a.charge = 0; a.emptyT = A.emptyS; a.mesh.material = M.altarOff; }
+  }
+  if (P.noHealT > 0) P.noHealT -= dt;
+  // Player.
+  P.px = P.x; P.pz = P.z; P.py = P.y;
+  if (P.dead) { P.deadT += dt; if (P.deadT >= CONFIG.RESPAWN_S) respawn(); updateHp(); stepCombat(dt); return; }
+  // Movement source: test input, phone stick, attack chase, then path (desktop move order).
+  let mx = 0, mz = 0;
+  if (P.atkT > 0) P.atkT -= dt;
+  if (ORD.atkHeld && !ORD.attack) ORD.attack = autoTarget(CONFIG.ATTACK.acquire);
+  if (testMove.on) { mx = testMove.x; mz = testMove.z; }
+  else if (Math.abs(stick.x) + Math.abs(stick.y) > 0.15) { mx = stick.x; mz = stick.y; ORD.attack = null; PATH.n = 0; }
+  else if (ORD.attack) {
+    const d = ORD.attack;
+    if (!d.seen || d.hp <= 0) ORD.attack = null;
+    else {
+      const ax = d.x - P.x, az = d.z - P.z, dist = Math.hypot(ax, az) || 1;
+      P.faceX = ax / dist; P.faceZ = az / dist;
+      if (dist > CONFIG.ATTACK.range + 0.45) { mx = ax / dist; mz = az / dist; }
+      else if (P.atkT <= 0) { hitDummy(d, CONFIG.ATTACK.dmg); P.atkT = CONFIG.ATTACK.interval; }
+    }
+  } else if (PATH.i < PATH.n) {
+    const tx = PATH.pts[PATH.i * 2] - P.x, tz = PATH.pts[PATH.i * 2 + 1] - P.z, d = Math.hypot(tx, tz);
+    if (d < 0.5) PATH.i++;
+    else { mx = tx / d; mz = tz / d; }
+  }
+  const len = Math.hypot(mx, mz);
+  if (len > 1) { mx /= len; mz /= len; }
+  const kd = Math.exp(-CONFIG.KB_DECAY * dt); P.kx *= kd; P.kz *= kd;
+  const kbOn = Math.abs(P.kx) + Math.abs(P.kz) > 0.3;
+  if (!kbOn) { P.kx = 0; P.kz = 0; }
+  const dx = (mx * CONFIG.PLAYER_SPEED + P.kx) * dt, dz = (mz * CONFIG.PLAYER_SPEED + P.kz) * dt;
+  const ox = P.x, oz = P.z;
+  if (dx !== 0 && tryMove(P.x + dx, P.z, kbOn)) P.x += dx;
+  if (dz !== 0 && tryMove(P.x, P.z + dz, kbOn)) P.z += dz;
+  if (len > 0.1) { P.faceX = mx / Math.max(len, 1e-6); P.faceZ = mz / Math.max(len, 1e-6); }
+  // A path that stops making progress for half a second is dropped.
+  if (PATH.i < PATH.n && !ORD.attack && Math.hypot(P.x - ox, P.z - oz) < 0.01) { P.stuckT += dt; if (P.stuckT > 0.5) { PATH.n = 0; P.stuckT = 0; } } else P.stuckT = 0;
+  // Vertical: stick to floors within a step; otherwise drop (to a lower layer, or into the void).
+  const f = floorAt(P.x, P.z, P.y), fh = f ? surf(f, P.x, P.z) : -1e9;
+  if (!P.air) {
+    if (f && P.y - fh <= STEP_UP) P.y = fh;
+    else { P.air = true; P.vy = 0; P.airFromY = P.y; P.voidT = 0; }
+  }
+  if (P.air) {
+    P.vy -= CONFIG.GRAVITY * dt; P.y += P.vy * dt;
+    if (f && P.y <= fh) {
+      P.y = fh; P.air = false; P.vy = 0;
+      if (P.airFromY - fh >= CONFIG.DROP_MIN) hurt(CONFIG.DROP_DAMAGE);
+    } else if (!f) {
+      P.voidT += dt;
+      if (P.voidT >= CONFIG.RESPAWN_S || P.y < CONFIG.VOID_Y) respawn('fell');
+    }
+  }
+  if (f && !P.air && P.zone !== f.s) { P.zone = f.s; setText(el.hud, f.s.name); }
+  updateHp();
+  stepCombat(dt);
+}
+// Skills, delayed hits, effects, dummies and their vision.
+function stepCombat(dt) {
+  for (let i = 0; i < SK.length; i++) {
+    const st = SK[i];
+    if (st.cdT > 0) st.cdT = Math.max(0, st.cdT - dt);
+    const c = Math.ceil(st.cdT);
+    if (c !== st.shown) { st.shown = c; if (st.cdEl) { setText(st.cdEl, c > 0 ? String(c) : ''); setShow(st.cdEl, c > 0); } }
+  }
+  if (PEND.on) { PEND.t -= dt; if (PEND.t <= 0) { PEND.on = false; fxTele.visible = false; applySkill(PEND.slot, PEND.x, PEND.z, PEND.dx, PEND.dz); } }
+  if (G.fxT > 0) { G.fxT -= dt; if (G.fxT <= 0) { fxLine.visible = false; fxRing.visible = false; } }
+  const VR = CONFIG.VISION_R;
+  for (let i = 0; i < DUMMY_LIST.length; i++) {
+    const d = DUMMY_LIST[i];
+    if (d.hp <= 0) { d.deadT -= dt; if (d.deadT <= 0) { d.hp = CONFIG.DUMMY_HP; d.bar.scale.x = 1; } }
+    if (d.flashT > 0) { d.flashT -= dt; if (d.flashT <= 0) d.body.material = M.dummy; }
+    const seen = d.s.state < 2 && Math.hypot(d.x - P.x, d.z - P.z) <= VR;
+    d.seen = seen;
+    const vis = seen && d.hp > 0;
+    if (d.body.visible !== vis) { d.body.visible = vis; d.bar.visible = vis; }
+  }
+}
+function updateHp() {
+  const n = Math.ceil(P.hp);
+  if (n !== P.hpShown) { P.hpShown = n; setText(el.hptext, T('hp', { n })); setBar(el.hpfill, n / CONFIG.MAX_HP); }
+}
+function hurt(n) {
+  if (P.dead) return;
+  P.hp -= n; P.noHealT = CONFIG.ALTAR.hitPauseS;
+  if (P.hp <= 0) { P.hp = 0; P.dead = true; P.deadT = 0; P.kx = P.kz = 0; showNote('voice_died', 'rule_died'); }
+}
+function showNote(voiceKey, ruleKey) {
+  if (G.bannerWave >= 0) return;
+  setText(el.voice, T(voiceKey)); setText(el.rule, T(ruleKey)); setShow(el.banner, true); G.fellT = 2;
+}
+// PERFRAME-END
+
+// ===================== Minimap (MOBA corner map; shows only what the player can see) =====================
+const MINI = { x0: -78, z0: -82, w: 156, h: 132, px: 1, py: 1, W: 0, H: 0, base: document.createElement('canvas'), ctx: null, bctx: null };
+function setupMini() {
+  const W = TOUCH ? CONFIG.MINI_W_TOUCH : CONFIG.MINI_W, H = Math.round(W * MINI.h / MINI.w);
+  el.mini.width = W; el.mini.height = H; MINI.base.width = W; MINI.base.height = H; MINI.W = W; MINI.H = H;
+  MINI.px = W / MINI.w; MINI.py = H / MINI.h; MINI.ctx = el.mini.getContext('2d'); MINI.bctx = MINI.base.getContext('2d');
+}
+// Static layer: floors (high ground lighter, warned sections red, fallen ones gone), walls, dais, camps, lions. Redrawn only on change.
+function drawMiniBase() {
+  const c = MINI.bctx, px = MINI.px, py = MINI.py, X = (x) => (x - MINI.x0) * px, Z = (z) => (z - MINI.z0) * py;
+  c.fillStyle = '#0c0a10'; c.fillRect(0, 0, MINI.W, MINI.H);
+  for (const f of FLOORS) {
+    if (f.s.state >= 2) continue;
+    c.fillStyle = f.s.state === 1 ? '#b33a2a' : f.mat === 'core' ? '#5a4632' : f.mat === 'bridge' ? '#7a5636' : f.ramp ? '#86806f' : (f.y >= 4 ? '#aaa390' : '#66615a');
+    c.fillRect(X(f.x0), Z(f.z0), (f.x1 - f.x0) * px, (f.z1 - f.z0) * py);
+  }
+  c.fillStyle = '#8a2420'; for (const [x0, x1, z0, z1] of WALLS) c.fillRect(X(x0), Z(z0), Math.max(1, (x1 - x0) * px), Math.max(1, (z1 - z0) * py));
+  c.fillStyle = '#c9a040'; c.fillRect(X(-6), Z(DZ), 12 * px, 7 * py);
+  c.fillStyle = '#ff8a2a'; for (const [x, z, s] of CAMPS) if (SEC[s].state < 2) c.fillRect(X(x) - 2, Z(z) - 2, 4, 4);
+  c.fillStyle = '#cfcabd'; for (const [x, z, s] of LIONS) if (SEC[s].state < 2) c.fillRect(X(x) - 1.5, Z(z) - 1.5, 3, 3);
+}
+// PERFRAME-BEGIN
+function drawMini() {
+  if (G.miniDirty) { G.miniDirty = false; drawMiniBase(); }
+  const c = MINI.ctx, px = MINI.px, py = MINI.py;
+  c.drawImage(MINI.base, 0, 0);
+  for (let i = 0; i < ALTAR_LIST.length; i++) {
+    const a = ALTAR_LIST[i]; if (a.s.state >= 2) continue;
+    c.fillStyle = a.charge > 0 ? '#5cff9a' : '#2a3a30'; c.beginPath(); c.arc((a.x - MINI.x0) * px, (a.z - MINI.z0) * py, 2.5, 0, 6.2832); c.fill();
+  }
+  c.fillStyle = '#ff2a10';
+  for (let i = 0; i < HAZARDS.length; i++) {
+    const h = HAZARDS[i]; if (h.state !== 1) continue;
+    c.beginPath(); c.arc((h.x - MINI.x0) * px, (h.z - MINI.z0) * py, h.cfg.radius * px, 0, 6.2832); c.fill();
+  }
+  c.fillStyle = '#ff4040';
+  for (let i = 0; i < DUMMY_LIST.length; i++) {
+    const d = DUMMY_LIST[i]; if (!d.seen || d.hp <= 0) continue;
+    c.beginPath(); c.arc((d.x - MINI.x0) * px, (d.z - MINI.z0) * py, 2.5, 0, 6.2832); c.fill();
+  }
+  const x = (P.x - MINI.x0) * px, z = (P.z - MINI.z0) * py;
+  if (PATH.i < PATH.n) {
+    c.strokeStyle = '#7fd0ff'; c.lineWidth = 1; c.beginPath(); c.moveTo(x, z);
+    for (let i = PATH.i; i < PATH.n; i++) c.lineTo((PATH.pts[i * 2] - MINI.x0) * px, (PATH.pts[i * 2 + 1] - MINI.z0) * py);
+    c.stroke();
+  }
+  c.strokeStyle = 'rgba(127,208,255,0.55)'; c.lineWidth = 1; c.beginPath(); c.arc(x, z, CONFIG.VISION_R * px, 0, 6.2832); c.stroke();
+  c.fillStyle = '#3a9bff'; c.beginPath(); c.arc(x, z, 3.5, 0, 6.2832); c.fill();
+  c.strokeStyle = '#ffffff'; c.lineWidth = 1.5; c.beginPath(); c.moveTo(x, z); c.lineTo(x + P.faceX * 7, z + P.faceZ * 7); c.stroke();
+}
+// PERFRAME-END
+
+// Map test only: back to the centre courtyard with full health.
+function respawn(kind) {
+  if (kind === 'fell') showNote('voice_fell', 'rule_fell');
+  P.dead = false; P.deadT = 0; P.air = false; P.vy = 0; P.voidT = 0; P.kx = P.kz = 0; P.hp = CONFIG.MAX_HP; P.noHealT = 0;
+  P.x = P.px = CONFIG.RESPAWN_XZ[0] * K; P.z = P.pz = CONFIG.RESPAWN_XZ[1] * K;
+  P.y = P.py = topY(P.x, P.z);
+}
+
+// New run: resets everything the run changes (time, waves, sections, floors, player, banner, shadows).
+function reset() {
+  G.time = 0; G.bannerWave = -1; G.fellT = 0; G.nextWave = -2;
+  for (const w of WAVES) { w.state = 0; w.lastCount = -1; }
+  for (const s of SECLIST) {
+    s.state = 0; s.fallT = 0; s.group.position.y = 0; s.group.updateMatrix();
+    for (let i = 0; i < s.floorMeshes.length; i++) s.floorMeshes[i].material = s.floorMats[i];
+    if (!s.group.parent) scene.add(s.group);
+  }
+  for (const f of FLOORS) f.active = true;
+  for (const h of HAZARDS) { h.state = 0; h.t = 0; h.ring.visible = false; }
+  M.eyes.emissiveIntensity = 0.4;
+  for (const a of ALTAR_LIST) { a.charge = CONFIG.ALTAR.charge; a.emptyT = 0; a.mesh.material = M.altarOn; }
+  for (const d of DUMMY_LIST) { d.hp = CONFIG.DUMMY_HP; d.deadT = 0; d.flashT = 0; d.body.material = M.dummy; d.bar.scale.x = 1; }
+  for (const st of SK) { st.cdT = 0; st.shown = -1; }
+  ORD.attack = null; ORD.atkHeld = false; ORD.rightHeld = false; ORD.attackMove = false; cancelAim(); PATH.n = 0; PATH.i = 0;
+  PEND.on = false; G.fxT = 0; fxLine.visible = fxRing.visible = fxTele.visible = false; G.miniDirty = true;
+  P.faceX = 0; P.faceZ = -1; P.atkT = 0; P.stuckT = 0;
+  const sp = SPAWNS[CONFIG.PLAYER_SPAWN];
+  P.x = P.px = sp[0]; P.z = P.pz = sp[1]; P.y = P.py = topY(sp[0], sp[1]);
+  P.vy = 0; P.air = false; P.voidT = 0; P.dead = false; P.deadT = 0; P.kx = P.kz = 0;
+  P.hp = CONFIG.MAX_HP; P.hpShown = -1; P.noHealT = 0; P.zone = null;
+  updateHp();
+  setShow(el.banner, false);
+  renderer.shadowMap.needsUpdate = true;
+}
+
+// ===================== View, tier, frame =====================
+const tmpV = new THREE.Vector3();
+const pitch = THREE.MathUtils.degToRad(CONFIG.CAM_PITCH_DEG);
+const camOffY = Math.sin(pitch) * CONFIG.CAM_DIST, camOffZ = Math.cos(pitch) * CONFIG.CAM_DIST;
+function toggleView() { setView(G.view === 'follow' ? 'overview' : 'follow'); }
+function setView(v) {
+  G.view = v;
+  const farOv = CONFIG.FAR_OVERVIEW * K;
+  camera.far = v === 'follow' ? CONFIG.FAR_FOLLOW : farOv;
+  scene.fog.far = v === 'follow' ? CONFIG.FOG_FAR : farOv * 2;
+  scene.fog.near = v === 'follow' ? CONFIG.FOG_NEAR : farOv;
+  camera.updateProjectionMatrix();
+  FOW.uFowR.value = v === 'follow' ? CONFIG.VISION_R : 1e5;
+  setText(el.btnMap, T(v === 'follow' ? 'btn_map' : 'btn_follow'));
+}
+function applyTier(name) {
+  tier = name; const t = CONFIG.TIER[name];
+  renderer.setPixelRatio(Math.min(devicePixelRatio, t.pr));
+  renderer.setSize(innerWidth, innerHeight);
+  if (renderer.shadowMap.enabled !== t.shadows) { renderer.shadowMap.enabled = t.shadows; for (const k in M) M[k].needsUpdate = true; warnMat.needsUpdate = true; }
+  sun.shadow.mapSize.set(t.shadowMap, t.shadowMap);
+  if (sun.shadow.map) { sun.shadow.map.dispose(); sun.shadow.map = null; }
+  renderer.shadowMap.needsUpdate = true;
+}
+addEventListener('resize', () => {
+  renderer.setSize(innerWidth, innerHeight);
+  camera.aspect = innerWidth / innerHeight; camera.updateProjectionMatrix();
+});
+document.addEventListener('visibilitychange', () => { G.paused = document.hidden; if (G.paused) clearInput(); });
+cv.addEventListener('webglcontextlost', (e) => { e.preventDefault(); G.ctxLost = true; });
+cv.addEventListener('webglcontextrestored', () => { G.ctxLost = false; renderer.shadowMap.needsUpdate = true; });
+
+let acc = 0, last = 0, slowT = 0, dbgT = 0, frameMs = 0, errShown = false;
+// PERFRAME-BEGIN
+function placeView(alpha) {
+  const x = P.px + (P.x - P.px) * alpha, z = P.pz + (P.z - P.pz) * alpha, y = P.py + (P.y - P.py) * alpha;
+  playerGroup.position.set(x, y, z);
+  if (G.view === 'follow') { camera.position.set(x, y + camOffY, z + camOffZ); camera.lookAt(x, y, z); }
+  else { camera.position.set(CONFIG.OVERVIEW_POS[0] * K, CONFIG.OVERVIEW_POS[1] * K, CONFIG.OVERVIEW_POS[2] * K); camera.lookAt(0, 0, -12 * K); }
+  camera.updateMatrixWorld();
+  playerGroup.rotation.y = Math.atan2(-P.faceX, -P.faceZ);
+  FOW.uFowC.value.set(x, y, z);
+  // Aim indicators: desktop aims at the cursor; phone aims by the drag direction and length.
+  if (ORD.aiming >= 0) {
+    const sk = CONFIG.SKILLS[ORD.aiming];
+    if (ORD.src === 'key') {
+      const hp = cursorGround();
+      if (hp.ok) { const ax = hp.x - x, az = hp.z - z, l = Math.hypot(ax, az); if (l > 0.05) { ORD.dirX = ax / l; ORD.dirZ = az / l; } ORD.dist = Math.min(l, sk.range); }
+    }
+    const dist = sk.type === 'line' ? sk.range : ORD.dist;
+    ORD.aimX = x + ORD.dirX * dist; ORD.aimZ = z + ORD.dirZ * dist;
+    indRange.position.set(x, y + 0.05, z); indRange.scale.setScalar(sk.range); indRange.visible = true;
+    if (sk.type === 'line') {
+      indLine.position.set(x, y + 0.06, z); indLine.rotation.y = Math.atan2(-ORD.dirX, -ORD.dirZ); indLine.scale.set(sk.width, 1, sk.range);
+      indLine.visible = true; indCircle.visible = false;
+    } else {
+      indCircle.position.set(ORD.aimX, topYUnder(ORD.aimX, ORD.aimZ, y + 1) + 0.07, ORD.aimZ); indCircle.scale.setScalar(sk.radius);
+      indCircle.visible = true; indLine.visible = false;
+    }
+  }
+  warnMat.emissiveIntensity = 0.35 + 0.35 * Math.sin(G.time * 10);
+}
+function frame(now) {
+  requestAnimationFrame(frame);
+  G.frames++;
+  try {
+    const realMs = last ? now - last : 16; last = now;
+    if (G.paused || G.ctxLost) return;
+    const dt = Math.min(realMs / 1000, CONFIG.MAX_DT);
+    acc += dt;
+    while (acc >= CONFIG.STEP) { step(CONFIG.STEP); acc -= CONFIG.STEP; }
+    placeView(acc / CONFIG.STEP);
+    if (ORD.rightHeld) { ORD.repathT -= dt; if (ORD.repathT <= 0) { ORD.repathT = CONFIG.REPATH_S; rightOrder(); } }
+    G.miniT -= dt; if (G.miniT <= 0) { G.miniT = 1 / CONFIG.MINI_HZ; drawMini(); }
+    renderer.render(scene, camera);
+    renderer.shadowMap.needsUpdate = false;
+    frameMs += (realMs - frameMs) * 0.1;
+    if (!LOCK_TIER && tier !== 'low') {
+      slowT = realMs > CONFIG.STEPDOWN_MS ? slowT + realMs / 1000 : Math.max(0, slowT - realMs / 1000);
+      if (slowT > CONFIG.STEPDOWN_HOLD_S) { slowT = 0; applyTier('low'); }
+    }
+    if (DEBUG) {
+      dbgT -= realMs;
+      if (dbgT <= 0) {
+        dbgT = 500; const r = renderer.info.render, m = renderer.info.memory;
+        setText(el.dbg, 'ms ' + frameMs.toFixed(1) + ' | calls ' + r.calls + ' | tris ' + r.triangles + ' | geo ' + m.geometries + ' | prog ' + renderer.info.programs.length + ' | tier ' + tier);
+      }
+    }
+  } catch (err) {
+    if (!errShown) { errShown = true; setText(el.err, T('err_title') + '\n\n' + (err && err.stack || err)); setShow(el.err, true); }
+  }
+}
+// PERFRAME-END
+
+// ===================== Start: warm-up under the first frame =====================
+setText(el.help, T(TOUCH ? 'help_touch' : 'help_desktop'));
+if (TOUCH) document.body.classList.add('touch');
+setShow(el.btnMap, DEBUG);
+setupMini(); buildBar();
+setShow(el.dbg, DEBUG);
+applyTier(tier);
+setView('follow');
+reset();
+const warm = new THREE.Mesh(new THREE.BoxGeometry(0.1, 0.1, 0.1), warnMat);
+warm.receiveShadow = true; warm.castShadow = true; scene.add(warm);
+for (const m of INDICATORS) m.visible = true;
+placeView(1);
+renderer.compile(scene, camera);
+renderer.render(scene, camera);
+for (const m of INDICATORS) m.visible = false;
+scene.remove(warm); warm.geometry.dispose();
+drawMini();
+renderer.shadowMap.needsUpdate = true;
+
+// Test hooks (read-mostly).
+window.__game = {
+  step(n) { for (let i = 0; i < n; i++) step(CONFIG.STEP); },
+  setMove(x, z) { testMove.on = true; testMove.x = x; testMove.z = z; },
+  clearMove() { testMove.on = false; testMove.x = testMove.z = 0; },
+  teleport(x, z) { P.x = P.px = x; P.z = P.pz = z; P.y = P.py = topY(x, z); P.air = false; P.vy = 0; P.kx = P.kz = 0; P.dead = false; },
+  damage(n) { hurt(n); }, knock(kx, kz) { P.kx = kx; P.kz = kz; }, setHp(n) { P.hp = n; },
+  hazards: () => HAZARDS.map((h) => ({ kind: h.kind, x: h.x, z: h.z, y: h.y, state: h.state, ring: h.ring.visible })),
+  altars: () => ALTAR_LIST.map((a) => ({ x: a.x, z: a.z, y: a.y, charge: a.charge, on: a.mesh.material === M.altarOn })),
+  topY, broken: () => BROKEN.map((b) => b.slice()), K,
+  floorIdx: (x, z, y) => FLOORS.indexOf(floorAt(x, z, y)), surfAt: (i, x, z) => surf(FLOORS[i], x, z),
+  moveTo(x, z) { ORD.attack = null; return navSearch(P.x, P.z, P.y, x, z, topY(x, z)); },
+  path: () => ({ n: PATH.n, i: PATH.i, pts: Array.from(PATH.pts.slice(0, PATH.n * 2)) }),
+  attack(i) { ORD.attack = DUMMY_LIST[i]; PATH.n = 0; }, stop: stopOrders,
+  cast(slot, x, z) { return castSkill(slot, x, z); }, autoCast, autoTargetIdx: (r) => DUMMY_LIST.indexOf(autoTarget(r)),
+  dummies: () => DUMMY_LIST.map((d) => ({ x: d.x, z: d.z, hp: d.hp, seen: d.seen, visible: d.body.visible })),
+  skills: () => SK.map((st) => st.cdT), pending: () => PEND.on,
+  ground: (nx, ny) => { const h = screenToGround(nx, ny); return { ok: h.ok, x: h.x, y: h.y, z: h.z }; },
+  project(x, y, z) { tmpV.set(x, y, z).project(camera); return [tmpV.x, tmpV.y]; },
+  aimKey(slot, nx, ny) { ORD.nx = nx; ORD.ny = ny; startAim(slot, 'key'); placeView(1); return { aiming: ORD.aiming, ind: [indRange.visible, indLine.visible, indCircle.visible] }; },
+  releaseKey() { releaseAim(); },
+  fowCenter: () => FOW.uFowC.value.toArray(),
+  miniPixel(x, z) { drawMini(); const d = MINI.ctx.getImageData(Math.round((x - MINI.x0) * MINI.px), Math.round((z - MINI.z0) * MINI.py), 1, 1).data; return [d[0], d[1], d[2]]; },
+  miniSize: () => [el.mini.width, el.mini.height], ui: () => ({ bar: el.bar.children.length, btnMap: el.btnMap.style.display, touch: TOUCH }),
+  state() {
+    return { view: G.view, t: G.time, x: P.x, y: P.y, z: P.z, falling: P.air, dead: P.dead, hp: P.hp, zone: P.zone ? P.zone.id : null,
+      waves: WAVES.map((w) => w.state), sec: Object.fromEntries(SECLIST.map((s) => [s.id, s.state])),
+      inScene: Object.fromEntries(SECLIST.map((s) => [s.id, !!s.group.parent])), frames: G.frames, paused: G.paused, ctxLost: G.ctxLost, tier };
+  },
+  canStand, walkable: (x, z, y) => !!floorAt(x, z, y === undefined ? 99 : y),
+  render(forceShadow) {
+    if (forceShadow) renderer.shadowMap.needsUpdate = true;
+    placeView(1); renderer.render(scene, camera); renderer.shadowMap.needsUpdate = false;
+    return { calls: renderer.info.render.calls, tris: renderer.info.render.triangles, programs: renderer.info.programs.length,
+      geoms: renderer.info.memory.geometries, texs: renderer.info.memory.textures };
+  },
+  setView, reset,
+  floors: () => FLOORS.map((f) => ({ sec: f.sec, x0: f.x0, x1: f.x1, z0: f.z0, z1: f.z1 })),
+  config: CONFIG, text: TEXT, sections: SECTION_IDS, spawns: SPAWNS,
+  canvasSize: () => [cv.width, cv.height],
+  loseContext() { const x = renderer.getContext().getExtension('WEBGL_lose_context'); x.loseContext(); return x; },
+};
+window.__ready = true;
+requestAnimationFrame(frame);
+</script>
+</body>
+</html>
