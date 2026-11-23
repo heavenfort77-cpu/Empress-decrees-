@@ -67,8 +67,9 @@ Purpose: give a suit a way to pull ahead, so the royale is not ten equal suits t
   - Player: "Bots will steal every camp." Answer: sim target, the player claims at least 1 plate in 70% of runs on medium bots.
   - Tech lead: plates, cubs and their effects come from fixed pools; no spawning per kill.
 - **CONFIG:** first spawn time, wave interval, cubs per wave, aggro and leash radius, cub HP and damage scale, ult charge per plate, buff length, max plates, bounty charge, bot contest weights. On/off switch: `ROYALE_MINIONS`.
-- **As built on boxes (batch 7, 23 Nov; numbers in CONFIG):** waves at 30, 90, 150, 210 s with a 5 s warning; cubs at 80% health and 60% damage, aggro 6 m, leash 12 m, heal at rest; plate flies to the last hitter, two 45 s slots; Stalker plate = bleed on your hits, Howler plate = +10% speed; the ultimate-charge reward is a 30% ultimate cooldown cut until charge exists. Leader, bounty and bot contests wait for bots.
-- **Sims:** plate share per school; leader win share (band 25-45%); player plate rate on medium bots; cub deaths caused by collapse.
+- **As built on boxes (batch 7, 23 Nov; numbers in CONFIG):** waves at 30, 90, 150, 210 s with a 5 s warning; cubs at 80% health and 60% damage, aggro 6 m, leash 12 m, heal at rest; plate flies to the last hitter, two 45 s slots; Stalker plate = bleed on your hits, Howler plate = +10% speed; the ultimate-charge reward is a 30% ultimate cooldown cut until charge exists. Leader and bounty built in batch 11 (below).
+- **As built (batch 11, 23 Nov; CONFIG.LEADER, DECREE, BOUNTY):** leader = most plates held now, then kills; a tie keeps the leader; none before 1 plate or 1 kill. HUD line "Leader: <school>" for everyone; gold crown on the leader only when in vision; leader on the minimap in vision, and anywhere during its bounty (owner). Bounty after 25 s of one leader (once per suit), 5 s warning, 40 s; breaking the leader in force resets the breaker's ultimate (stand-in for "big ultimate charge"); ends when the leader is out or loses the lead. Up to 3 bots may target a player leader during its bounty, otherwise 1 (owner; hitting back never capped).
+- **Sims:** plate share per school; leader win share (band 25-45%); player plate rate on medium bots; cub deaths caused by collapse. Batch 11 (6 seeds, autopilot player): longest leader won 1 of 6 (below band); player >= 1 plate in 1 of 6 (target 70%, missed).
 
 ### Cubs and minions: body and speed (owner, 23 Nov)
 - Every cub and minion that moves on the map is a four-legged machine on treads. They are faster than most suits; their other numbers sit at the suits' median (read as health and damage; confirm). On boxes: 6.6 m/s against the suit's 6. Look comes at the art stage.
@@ -84,6 +85,7 @@ Purpose: give a suit a way to pull ahead, so the royale is not ten equal suits t
 - About one decree a minute (3 to 4 per royale). She is a live opponent: she speaks on screen, and decrees hit the player and the bots alike.
 - Each decree is announced with a 5 s warning (voice line, text banner and HUD icon), then lasts 30 to 45 s. One at a time. A decree never causes damage by itself; breaking one costs a small penalty (a brief slow or a mark).
 - Draft decrees (her words / plain rule line): "Our altars are dry." / Altars do not heal. "Let none dash within the west courtyard." / No dashing: west courtyard. "A bounty lieth upon the leader." / Bounty on the leader. "Upon the bridges, your arts are stilled." / Skills silenced on bridges. "None shall set foot upon Our roof." / Roof forbidden (standing there draws shells). "Let your ultimates swell twice as swift." / Ultimates charge 2x.
+- As built (batch 11): one decree slot reused by every decree: queued while another banner shows or a collapse warning starts within 20 s, 5 s warning (voice, banner, rule countdown), then in force. The bounty is the first.
 - Foreshadowing: her lines hint at the twist ("The survivor shall be... received", "The Empress leaveth not her guests alone"). Decrees pause in the apex phase; she only taunts.
 
 ### Palace arena (proposal)
@@ -166,7 +168,7 @@ Ultimate charges from kills and shared hits; exact amounts TBD. Kits for the oth
 
 ### Bots (batch 9, owner go 23 Nov; numbers in CONFIG.BOT)
 - 9 bots, one per other spawn, with the player's placeholder kit until school kits exist; all 'average' (0.3 s reaction) for now. They act only through the player's actions and see only their own 11 m.
-- Target: the nearest suit they can see; once a bot sees the player it switches to the player and keeps it while seen (owner). Bots take plates and boons.
+- Target: the nearest suit they can see; once a bot sees the player it switches to the player and keeps it while seen (owner). Only one bot at a time may target the player for any reason but hitting back (owner, 23 Nov; 3 during a bounty on the player). Bots take plates and boons.
 - Pacing (assumption): until 2:00 a bot only answers a suit that hit it; then fights start, radius growing to full vision by 3:40. Measured royale length 3:01-3:31 over 6 seeds.
 - End: the player broken (or fallen) = loss banner with the place and New run; the last suit standing wakes the demon (no H key except with ?debug or without bots).
 

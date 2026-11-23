@@ -43,6 +43,8 @@ body.touch .sk .lb{display:none}
 body.touch #help{bottom:12px}
 body.touch #btnHunt{left:160px;top:10px;bottom:auto}
 body.touch #status{left:auto;right:12px;top:82px}
+#leader{position:fixed;left:12px;top:34px;font:bold 13px system-ui,sans-serif;color:#ffd75a;text-shadow:0 1px 2px #000;pointer-events:none;display:none}
+body.touch #leader{left:auto;right:12px;top:61px}
 body.touch #banner{top:26%}
 #cancel{position:fixed;right:20px;top:90px;width:90px;height:56px;border-radius:10px;background:#5a1a1a;color:#fff;font:15px system-ui;display:none;align-items:center;justify-content:center;border:2px solid #f88}
 </style>
@@ -62,6 +64,7 @@ body.touch #banner{top:26%}
 <div id="stick"></div>
 <div id="boss"><div id="bossname"></div><div id="bossbar"><div id="bossfill"></div></div><div id="bossskills"></div></div>
 <div id="status"></div>
+<div id="leader"></div>
 <button id="btnHunt"></button>
 <div id="err"></div>
 <script type="module">
@@ -253,7 +256,8 @@ const CONFIG = {
     skillOf: ['average'], thinkS: 0.25, goalHoldS: 12, stuckRepathS: 0.5, stuckGoalS: 1.5,
     // Owner, 23 Nov: a bot that sees the player switches its target to the player and keeps it while the player stays seen.
     preferPlayerOnSight: true,
-    // Owner, 23 Nov 14:04: only one bot at a time may switch to the player on sight (the hunter slot). Others keep the nearest-suit rule and still hit back.
+    // Owner, 23 Nov 14:04 and 14:35: only one bot at a time may target the player by any rule (on sight, nearest suit, a fight going on): the hunter slot.
+    // Hitting back is not capped: a bot the player hit may answer. BOUNTY.maxHunters replaces this while the bounty lies on the player.
     maxHunters: 1,
     // Seconds a hunter may go without seeing the player before its slot frees (assumption 23 Nov). The slot also frees when the hunter or the player is out.
     hunterLoseS: 3,
@@ -263,11 +267,22 @@ const CONFIG = {
     // engage (pacing; assumption 23 Nov): until peaceS a bot only answers a suit that hit it in the last retaliateS seconds; then the radius in which it
     // starts a fight grows from startM to its full vision over rampS seconds. Until then it keeps away from suits inside avoidM.
     // p0 = chance to start a fight with a suit in the radius at the end of peace (1 at the end of the ramp); declineS = seconds before a declined suit is drawn again.
-    engage: { peaceS: 120, rampS: 100, startM: 3, avoidM: 8, retaliateS: 4, p0: 0.15, declineS: 4 },
+    // Batch 11: p0 0.15 -> 0.1 (assumption) to keep the royale in the GDD 165-255 s after the player cap and the bounty (12 seeds 180-224 s; 0.15 gave 149-225 s).
+    engage: { peaceS: 120, rampS: 100, startM: 3, avoidM: 8, retaliateS: 4, p0: 0.1, declineS: 4 },
     // The ultimate is kept to finish a target (its health at or under the ultimate's damage) or used when the bot's own health is under ultBelowHp.
     // castGapS = seconds between two skills of one bot (a player cannot cast all three in two frames either).
     ultBelowHp: 50, castGapS: 0.8,
   },
+  // The leader (batch 11, GDD "The leader"): feature switch. Leader = most plates held, then most kills; a tie keeps the current leader; nobody leads before 1 plate or 1 kill.
+  // crownY = crown height over the suit's feet (m); crownR = crown radius (m).
+  LEADER: { on: true, crownY: 2.95, crownR: 0.3 },
+  // Decrees (reusable, batch 11): warnS = warning seconds (voice, banner, rule line) before a decree starts; clearS = no decree warning starts if a collapse warning starts within this many seconds (queued instead).
+  DECREE: { warnS: 5, clearS: 20 },
+  // Bounty decree: switch; afterS = seconds the same suit must lead first (once per leader); durS = how long it lasts.
+  // maxHunters (owner, 23 Nov): up to this many bots may target the player while the bounty lies on the player (else BOT.maxHunters).
+  // chase = chance a bot that sees the leader during the bounty takes it up (drawn once per bot per bounty; assumption 23 Nov).
+  // leaderLowHp = altar threshold of a bot leader during its bounty (plays safer; BOT.lowHp otherwise; assumption 23 Nov).
+  BOUNTY: { on: true, afterS: 25, durS: 40, maxHunters: 3, chase: 0.6, leaderLowHp: 55 },
 };
 
 // Every string shown to the player. Missing keys throw (and fail the text check).
@@ -337,6 +352,13 @@ const TEXT = {
   voice_kennel: 'Our kennels stand open. Take what falleth, if thou canst.',
   rule_kennel: 'Cubs appear in {s} s at: {zones}. Kill one to take its plate.',
   voice_plate_take: 'It is thine. For now.',
+  suit_0: 'You', suit_1: 'Dao suit', suit_2: 'Fa suit', suit_3: 'Mo suit', suit_4: 'Yinyang suit', suit_5: 'Za suit', suit_6: 'Bai suit', suit_7: 'Ming suit', suit_8: 'Zongheng suit', suit_9: 'Nong suit',
+  hud_leader: 'Leader: {who}',
+  hud_leader_bounty: 'Leader: {who}  (bounty {s} s)',
+  voice_bounty: 'A bounty lieth upon the leader.',
+  rule_bounty: 'Bounty on the leader ({who}) in {s} s: break them for a full ultimate.',
+  voice_bounty_paid: 'The bounty is thine. We keep Our word.',
+  rule_bounty_paid: 'Bounty claimed: your ultimate is ready.',
   rule_plate_s: 'Stalker plate: your hits cause bleeding for {s} s. Ultimate cooldown cut.',
   rule_plate_h: 'Howler plate: +{p}% speed for {s} s. Ultimate cooldown cut.',
   buff_stalker: 'Stalker plate {s}s',
@@ -406,7 +428,7 @@ const el = {
   hud: $('hud'), next: $('next'), banner: $('banner'), dbg: $('dbg'), help: $('help'),
   btnMap: $('btnMap'), stick: $('stick'), err: $('err'), hpfill: $('hpfill'), hptext: $('hptext'),
   mini: $('mini'), bar: $('bar'), cancel: $('cancel'), boss: $('boss'), bossname: $('bossname'), bossfill: $('bossfill'),
-  bossskills: $('bossskills'), status: $('status'), btnHunt: $('btnHunt'),
+  bossskills: $('bossskills'), status: $('status'), btnHunt: $('btnHunt'), leader: $('leader'),
   voice: document.querySelector('#banner .voice'), rule: document.querySelector('#banner .rule'),
 };
 const textCache = new Map();
@@ -689,7 +711,7 @@ const WAVES = CONFIG.WAVES.map((ids, i) => ({
 const P = { x: 0, z: 0, y: 0, px: 0, pz: 0, py: 0, vy: 0, air: false, airFromY: 0, voidT: 0, dead: false, deadT: 0,
   hp: 100, hpShown: -1, noHealT: 0, kx: 0, kz: 0, faceX: 0, faceZ: -1, atkT: 0, stuckT: 0, zone: null,
   slowT: 0, slowK: 0, stunT: 0, bleedN: 0, bleedT: 0, statusShown: -1, pk: ['', ''], pt: [0, 0], bT: [0, 0, 0, 0], bV: [0, 0, 0, 0], statusTick: -1,
-  id: 0, bot: false, kind: 'suit', r: CONFIG.PLAYER_RADIUS, seen: true, cause: '', diedAt: -1, killer: null, moved: 0, floor: null, plates: 0, boons: 0 };
+  id: 0, bot: false, kind: 'suit', r: CONFIG.PLAYER_RADIUS, seen: true, cause: '', diedAt: -1, killer: null, moved: 0, floor: null, plates: 0, boons: 0, kills: 0, bountied: false, bId: -1, bYes: false };
 // Every suit in the match shares the player's shape (batch 9a). SUITS[0] is the player (P); bots follow in batch 9b.
 const SUITS = [P];
 const playerGroup = new THREE.Group();
@@ -762,13 +784,21 @@ for (let k = 0; k < CONFIG.BOTS.count; k++) {
   BOTLIST.push({ x: 0, z: 0, y: 0, px: 0, pz: 0, py: 0, vy: 0, air: false, airFromY: 0, voidT: 0, dead: true, deadT: 0,
     hp: 0, hpShown: -1, noHealT: 0, kx: 0, kz: 0, faceX: 0, faceZ: -1, atkT: 0, stuckT: 0, zone: null,
     slowT: 0, slowK: 0, stunT: 0, bleedN: 0, bleedT: 0, statusShown: -1, pk: ['', ''], pt: [0, 0], bT: [0, 0, 0, 0], bV: [0, 0, 0, 0], statusTick: -1,
-    id: k + 1, bot: true, kind: 'suit', r: CONFIG.PLAYER_RADIUS, seen: false, cause: '', diedAt: -1, killer: null, moved: 0, floor: null, plates: 0, boons: 0,
+    id: k + 1, bot: true, kind: 'suit', r: CONFIG.PLAYER_RADIUS, seen: false, cause: '', diedAt: -1, killer: null, moved: 0, floor: null, plates: 0, boons: 0, kills: 0, bountied: false, bId: -1, bYes: false,
     mat: m, group, body, bar, path: null, cd: [0, 0, 0], navWant: false, gx: 0, gz: 0, gy: 0, goalT: 0, stuckMax: 0, spawn: -1, flashT: 0,
     skill: CONFIG.BOT.skills[CONFIG.BOT.skillOf[k % CONFIG.BOT.skillOf.length]], thinkT: 0, tgt: null, mode: '', modeT: 0, seenP: false,
     pend: false, pendT: 0, pendS: 2, pendX: 0, pendZ: 0, pendDx: 0, pendDz: 0, pendAge: 0, ring: new THREE.Mesh(fxTele.geometry, M.ring), mx: 0, mz: 0, repathed: false, ax: 0, az: 0, anchorT: 0,
     tgtT: 0, direct: false, heal: null, skip: null, castT: 0, lastBy: null, lastByT: -99, declined: null, declinedT: -99, flee: false, pathGen: 0, why: '', hunter: false, huntLostT: 0 });
 }
 for (let k = 0; k < BOTLIST.length; k++) SUITS.push(BOTLIST[k]);
+// Leader crown (batch 11): one small gold box crown built once at load, shared gold material; it rides on the leader's body group, so it is hidden whenever the leader is unseen.
+const crown = new THREE.Mesh(new THREE.CylinderGeometry(CONFIG.LEADER.crownR, CONFIG.LEADER.crownR * 0.85, 0.26, 6), M.gold);
+crown.position.y = CONFIG.LEADER.crownY; crown.castShadow = false;
+const SUIT_KEYS = [];
+for (let i = 0; i <= CONFIG.BOTS.count; i++) SUIT_KEYS.push('suit_' + i);
+// Decrees (reusable): text keys and length per decree; the bounty is the first.
+const DECREES = { bounty: { voice: 'voice_bounty', rule: 'rule_bounty', durS: CONFIG.BOUNTY.durS } };
+const LEADER_VARS = { who: '', s: 0 }, DECREE_VARS = { who: '', s: 0 };
 // Brain fields on the player too, used only by the test autopilot (__game.autoPlayer).
 Object.assign(P, { cd: [0, 0, 0], navWant: false, gx: 0, gz: 0, gy: 0, goalT: 0, skill: CONFIG.BOT.skills.average, thinkT: 0, tgt: null, tgtT: 0, mode: '', direct: false,
   heal: null, skip: null, castT: 0, lastBy: null, lastByT: -99, declined: null, declinedT: -99, flee: false, pathGen: 0, why: '', hunter: false, huntLostT: 0, mx: 0, mz: 0,
@@ -1251,7 +1281,11 @@ const G = { time: 0, view: 'follow', paused: false, ctxLost: false, frames: 0, b
   phase: 'royale', phaseT: 0, huntT: 0, plates: 0, bossDirty: true, bossHp: -1, hits: 0, minTell: 99, hitDmg: 0, bleedDmg: 0,
   kWave: 0, kWarned: false, platesTaken: 0, visR: CONFIG.VISION_R, seed: 1, seedFixed: -1, nT: [0, 0], boons: 0,
   botN: 0, navRR: 0, navRuns: 0, navPeak: 0, alive: 1, warnGen: 0, autoP: false, lostIn: '', watch: false, decidedAt: -1,
-  huntN: 0, huntClaims: 0, huntFrees: 0 };
+  huntN: 0, huntClaims: 0, huntFrees: 0,
+  leader: null, leadT: 0, leaderChanges: 0, leaderCode: -1, leaderWrites: 0, miniLeader: false,
+  bountyN: 0, bountyWarnAt: -1, bountyStartAt: -1, bountyEndAt: -1, bountyEndWhy: '', bountyPaid: 0, bountyPaidTo: -1 };
+// The one decree slot (batch 11): st 0 idle, 1 queued, 2 warning (banner), 3 in force. key = decree name, tgt = its suit (bounty), t = seconds left in the state.
+const DEC = { st: 0, key: '', tgt: null, t: 0, count: -1, banner: false };
 // Bots in this match: CONFIG.BOTS (switch and count), or ?bots=N in the address (0 = map test with the player alone).
 G.botN = !CONFIG.BOTS.on ? 0 : params.has('bots') ? Math.max(0, Math.min(CONFIG.BOTS.count, parseInt(params.get('bots'), 10) || 0)) : CONFIG.BOTS.count;
 
@@ -1349,6 +1383,7 @@ function step(dt) {
     // The last suit standing wakes the demon (batch 9d): the hunt starts by itself.
     if (G.phase === 'royale' && !P.dead && G.alive === 1) { startHunt(); return; }
   }
+  if (roy && G.botN > 0 && CONFIG.LEADER.on) stepLeader(dt);
   if (G.phase === 'wake' || G.phase === 'hunt') stepHunt(dt);
   if (G.phase === 'won' || G.phase === 'lost') { updateHp(); updateStatus(); return; }
   // Player.
@@ -1402,7 +1437,7 @@ function tickSuit(s, dt) {
     hurtSuit(s, b, 'bleed', null);
     if (s.bleedT <= 0) s.bleedN = 0;
   }
-  for (let i = 0; i < 2; i++) if (s.pt[i] > 0) { s.pt[i] -= dt; if (s.pt[i] <= 0) { s.pt[i] = 0; s.pk[i] = ''; } }
+  for (let i = 0; i < 2; i++) if (s.pt[i] > 0) { s.pt[i] -= dt; if (s.pt[i] <= 0) { s.pt[i] = 0; s.pk[i] = ''; checkLeader(); } }
   for (let i = 0; i < 4; i++) if (s.bT[i] > 0) { s.bT[i] -= dt; if (s.bT[i] <= 0) { s.bT[i] = 0; s.bV[i] = 0; } }
   if (s.bT[1] > 0 && !s.dead && s.hp < CONFIG.MAX_HP) s.hp = Math.min(CONFIG.MAX_HP, s.hp + s.bV[1] * dt);
 }
@@ -1479,8 +1514,125 @@ function hurtSuit(s, n, cause, by) {
 // A suit is broken. The player: a note and the map-test respawn in the royale, defeat in the hunt.
 function suitDown(s, cause, by) {
   s.hp = 0; s.dead = true; s.deadT = 0; s.kx = s.kz = 0; s.cause = cause; s.diedAt = G.time; s.killer = by;
+  // Kills count suits only (cubs and creatures are not suits).
+  if (by && by.kind === 'suit' && by !== s && G.phase === 'royale') by.kills++;
+  // The bounty: the suit that breaks the leader while the bounty is in force gets its ultimate back; the leader out ends the bounty (a fall pays nobody).
+  if (DEC.key === 'bounty' && DEC.tgt === s) {
+    if (DEC.st === 3 && by && by.kind === 'suit' && by !== s && !by.dead) payBounty(by);
+    endDecree('out');
+  }
   if (s === P) { if (G.phase !== 'royale') endHunt(false); else if (G.botN > 0) endRoyale(); else showNote('voice_died', 'rule_died'); }
   else botOut(s);
+  checkLeader();
+}
+// ----- The leader and decrees (batch 11; GDD "The leader", "Kaymuse's decrees").
+// Plates a suit holds now (0-2).
+function heldPlates(s) { return (s.pt[0] > 0 ? 1 : 0) + (s.pt[1] > 0 ? 1 : 0); }
+// Re-checked on change events only (plate gained or expired, kill, suit out), in a match: most plates held, then most kills;
+// a tie keeps the current leader; among new suits on a tie the first in suit order (assumption 23 Nov); nobody leads before 1 plate or 1 kill.
+function checkLeader() {
+  if (!CONFIG.LEADER.on || G.phase !== 'royale' || G.botN === 0) return;
+  let best = null, bp = 0, bk = 0;
+  for (let i = 0; i < SUITS.length; i++) {
+    const s = SUITS[i]; if (s.dead) continue;
+    const p = heldPlates(s);
+    if (p > bp || (p === bp && s.kills > bk)) { best = s; bp = p; bk = s.kills; }
+  }
+  const L = G.leader;
+  if (best && L && !L.dead && heldPlates(L) === bp && L.kills === bk) best = L;
+  if (best !== L) setLeader(best);
+}
+function setLeader(s) {
+  G.leader = s; G.leadT = 0; G.leaderChanges++;
+  // A bounty (queued, told or in force) lies on one leader: it ends when that suit stops leading (assumption 23 Nov).
+  if (DEC.key === 'bounty' && DEC.tgt !== s) endDecree(DEC.tgt && DEC.tgt.dead ? 'out' : 'lead');
+  if (s) (s === P ? playerGroup : s.group).add(crown);
+  else if (crown.parent) crown.parent.remove(crown);
+}
+// No leader, no decree (the wake and a new run).
+function clearLeader(why) {
+  endDecree(why);
+  if (crown.parent) crown.parent.remove(crown);
+  G.leader = null; G.leadT = 0;
+  updateLeaderHud();
+}
+function payBounty(by) {
+  if (by.bot) by.cd[2] = 0; else SK[2].cdT = 0;
+  G.bountyPaid++; G.bountyPaidTo = by.id;
+  if (by === P) showNote('voice_bounty_paid', 'rule_bounty_paid');
+}
+// Bots allowed to target the player at once (hitting back aside): BOUNTY.maxHunters while the bounty lies on the player, else BOT.maxHunters.
+function huntCap() { return DEC.st === 3 && DEC.key === 'bounty' && DEC.tgt === P ? CONFIG.BOUNTY.maxHunters : CONFIG.BOT.maxHunters; }
+function claimHunt(b) { b.hunter = true; b.huntLostT = 0; G.huntN++; G.huntClaims++; }
+// Free hunter slots above the cap (the bounty on the player ended); a freed hunter drops the player at once unless it is hitting back.
+function shrinkHunters() {
+  const cap = huntCap();
+  for (let k = BOTLIST.length - 1; k >= 0 && G.huntN > cap; k--) {
+    const b = BOTLIST[k]; if (!b.hunter) continue;
+    b.hunter = false; b.huntLostT = 0; G.huntN--; G.huntFrees++;
+    if (b.tgt === P && b.why !== 'hit') { b.tgt = null; b.why = ''; b.mode = ''; b.thinkT = 0; }
+  }
+}
+// Decree slot: a request waits (queued) until the banner is free and no collapse warning starts within DECREE.clearS
+// (nor a kennel warning within the decree's own warning); then warning (voice, banner, rule countdown), then in force, then the end.
+function requestDecree(key, tgt) { if (DEC.st !== 0) return false; DEC.st = 1; DEC.key = key; DEC.tgt = tgt; DEC.t = 0; return true; }
+function decreeClear() {
+  if (G.bannerWave >= 0 || G.fellT > 0) return false;
+  const D = CONFIG.DECREE, Kc = CONFIG.KENNEL;
+  for (let i = 0; i < WAVES.length; i++) { const w = WAVES[i]; if (w.state === 0 && w.start - CONFIG.COLLAPSE_WARN_S - G.time <= D.clearS) return false; }
+  if (CONFIG.ROYALE_MINIONS && G.kWave < Kc.waves.length && !G.kWarned && Kc.firstS + G.kWave * Kc.intervalS - Kc.warnS - G.time <= D.warnS + 1) return false;
+  return true;
+}
+function stepDecree(dt) {
+  if (DEC.st === 1) {
+    if (!decreeClear()) return;
+    DEC.st = 2; DEC.t = CONFIG.DECREE.warnS; DEC.count = -1; DEC.banner = true;
+    if (DEC.key === 'bounty') { DEC.tgt.bountied = true; G.bountyN++; G.bountyWarnAt = G.time; }
+    setText(el.voice, T(DECREES[DEC.key].voice)); setShow(el.banner, true);
+  }
+  if (DEC.st === 2) {
+    DEC.t -= dt;
+    if (DEC.banner && G.bannerWave >= 0) DEC.banner = false;
+    if (DEC.t <= 0) {
+      DEC.st = 3; DEC.t = DECREES[DEC.key].durS;
+      if (DEC.banner) { DEC.banner = false; if (G.fellT <= 0) setShow(el.banner, false); }
+      if (DEC.key === 'bounty') G.bountyStartAt = G.time;
+      return;
+    }
+    const c = Math.ceil(DEC.t);
+    if (DEC.banner && c !== DEC.count) {
+      DEC.count = c; DECREE_VARS.s = c; DECREE_VARS.who = DEC.tgt ? T(SUIT_KEYS[DEC.tgt.id]) : '';
+      setText(el.rule, T(DECREES[DEC.key].rule, DECREE_VARS));
+    }
+  } else if (DEC.st === 3) { DEC.t -= dt; if (DEC.t <= 0) endDecree('time'); }
+}
+function endDecree(why) {
+  if (DEC.st === 0) return;
+  if (DEC.banner) { DEC.banner = false; if (G.bannerWave < 0 && G.fellT <= 0) setShow(el.banner, false); }
+  const wasBountyP = DEC.st === 3 && DEC.key === 'bounty' && DEC.tgt === P;
+  if (DEC.key === 'bounty' && DEC.st >= 2) { G.bountyEndAt = G.time; G.bountyEndWhy = why; }
+  DEC.st = 0; DEC.key = ''; DEC.tgt = null; DEC.t = 0; DEC.count = -1;
+  if (wasBountyP) shrinkHunters();
+}
+// Leader time and the bounty request, then the decree slot (royale, in a match).
+function stepLeader(dt) {
+  const L = G.leader;
+  if (L) {
+    G.leadT += dt;
+    if (CONFIG.BOUNTY.on && DEC.st === 0 && !L.bountied && G.leadT >= CONFIG.BOUNTY.afterS) requestDecree('bounty', L);
+  }
+  stepDecree(dt);
+  updateLeaderHud();
+}
+// HUD line for everyone: the leader, and the bounty's seconds left while it is in force. Written only on change.
+function updateLeaderHud() {
+  const L = G.phase === 'royale' ? G.leader : null, on = !!L && DEC.st === 3 && DEC.key === 'bounty' && DEC.tgt === L;
+  const code = L ? (L.id + 1) * 1000 + (on ? Math.ceil(DEC.t) + 1 : 0) : 0;
+  if (code === G.leaderCode) return;
+  G.leaderCode = code; G.leaderWrites++;
+  if (!L) { setShow(el.leader, false); return; }
+  LEADER_VARS.who = T(SUIT_KEYS[L.id]); LEADER_VARS.s = on ? Math.ceil(DEC.t) : 0;
+  setText(el.leader, T(on ? 'hud_leader_bounty' : 'hud_leader', LEADER_VARS)); setShow(el.leader, true);
 }
 // A suit fell into the void. The player: back to the centre courtyard in the map test (no bots); in a match it is out like a bot.
 function suitFell(s) { if (s === P && G.botN === 0) respawn('fell'); else suitDown(s, 'fall', null); }
@@ -1492,7 +1644,7 @@ function botOut(b) {
   if (ORD.attack === b) ORD.attack = null;
 }
 function showNote(voiceKey, ruleKey, vars) {
-  if (G.bannerWave >= 0) return;
+  if (G.bannerWave >= 0 || DEC.banner) return;
   setText(el.voice, T(voiceKey)); setText(el.rule, T(ruleKey, vars)); setShow(el.banner, true); G.fellT = 2;
 }
 function updateStatus() {
@@ -1777,10 +1929,15 @@ function grantSuitPlate(u) {
   u.plateOn = false; scene.remove(u.plate);
   const s = u.by;
   if (!s || s.dead) return;
+  addPlate(s, u.kind);
+}
+// A plate into a suit's oldest free slot: buff, ultimate cut, leader re-check, the player's note.
+function addPlate(s, kind) {
   const Pl = CONFIG.PLATE, slot = s.pt[0] <= 0 ? 0 : s.pt[1] <= 0 ? 1 : (s.pt[0] <= s.pt[1] ? 0 : 1);
-  s.pk[slot] = u.kind; s.pt[slot] = Pl.buffS; s.plates++;
+  s.pk[slot] = kind; s.pt[slot] = Pl.buffS; s.plates++;
   cutUlt(s, Pl.ultCut * CONFIG.SKILLS[2].cd);
-  if (s === P) { G.platesTaken++; showNote('voice_plate_take', u.kind === 'stalker' ? 'rule_plate_s' : 'rule_plate_h', TAKE_VARS); }
+  checkLeader();
+  if (s === P) { G.platesTaken++; showNote('voice_plate_take', kind === 'stalker' ? 'rule_plate_s' : 'rule_plate_h', TAKE_VARS); }
 }
 function stepKennel(dt) {
   const Kc = CONFIG.KENNEL, VR = G.visR;
@@ -1891,6 +2048,7 @@ function stepBots(dt) {
   if (runs > G.navPeak) G.navPeak = runs;
   // Hunter slot: frees when the hunter is out, the player is out, or the hunter has not seen the player for BOT.hunterLoseS.
   const HB = CONFIG.BOT;
+  shrinkHunters();
   for (let k = 0; k < BOTLIST.length; k++) {
     const b = BOTLIST[k]; if (!b.hunter) continue;
     if (!b.dead && !P.dead && botSees(b, P, CONFIG.VISION_R + (b.bT[2] > 0 ? b.bV[2] : 0))) b.huntLostT = 0; else b.huntLostT += dt;
@@ -1991,27 +2149,39 @@ function botDecide(b) {
   // Target (owner, 23 Nov): the nearest such suit, but a fighting bot that sees the player switches to the player and keeps it while seen.
   // Before peaceS it only answers a suit that hit it in the last retaliateS seconds.
   const E = B.engage, ramp = Math.min(1, Math.max(0, (G.time - E.peaceS) / E.rampS)), er = Math.min(vr, E.startM + (vr - E.startM) * ramp);
-  // why = how the target was picked: 'keep' (fight goes on), 'hit' (answers its attacker), 'near' (nearest suit), 'hunt' (hunter slot, player on sight).
+  // why = how the target was picked: a fight going on keeps its reason; 'hit' (answers its attacker), 'near' (nearest suit), 'hunt' (player on sight), 'bounty' (the bounty decree).
+  // Hunter slot (owner, 23 Nov 14:35): a bot targets the player for any reason but 'hit' only while it holds a slot (huntCap at a time; freed in stepBots).
+  const cap = huntCap();
   let t = b.mode === 'fight' && b.tgt && b.tgt.kind === 'suit' && botSees(b, b.tgt, vr) ? b.tgt : null, why = t ? b.why : '';
+  if (t === P && b !== P && why !== 'hit' && !b.hunter) { if (G.huntN < cap) claimHunt(b); else { t = null; why = ''; } }
   if (!t && b.lastBy && !b.lastBy.dead && G.time - b.lastByT < E.retaliateS && botSees(b, b.lastBy, vr)) { t = b.lastBy; why = 'hit'; }
+  // Bounty (batch 11): a bot that sees the leader while the bounty is in force takes it up with chance BOUNTY.chase (drawn once per bot per bounty),
+  // before any new fight and through the pacing rules. On a player leader it needs a hunter slot.
+  const L = DEC.st === 3 && DEC.key === 'bounty' ? DEC.tgt : null;
+  if (L && b.bot && L !== b && (!t || why === 'near') && botSees(b, L, vr) && (L !== P || b.hunter || G.huntN < cap)) {
+    if (b.bId !== G.bountyN) { b.bId = G.bountyN; b.bYes = brnd() < CONFIG.BOUNTY.chase; }
+    if (b.bYes) { t = L; why = 'bounty'; if (L === P && !b.hunter) claimHunt(b); }
+  }
   if (!t && G.time >= E.peaceS) {
     let bd = er;
     for (let i = 0; i < SUITS.length; i++) {
       const s = SUITS[i]; if (s === b || !botSees(b, s, vr) || (s === b.declined && G.time - b.declinedT < E.declineS)) continue;
+      if (s === P && b !== P && !b.hunter && G.huntN >= cap) continue;
       const d = Math.hypot(s.x - b.x, s.z - b.z); if (d <= bd) { bd = d; t = s; }
     }
     // A new fight is started with chance p0 at the end of peace, rising to 1 with the ramp; a declined suit is not drawn again for declineS.
     if (t && brnd() > E.p0 + (1 - E.p0) * ramp) { b.declined = t; b.declinedT = G.time; t = null; }
-    else if (t) why = 'near';
+    else if (t) { why = 'near'; if (t === P && b !== P && !b.hunter) claimHunt(b); }
   }
-  // Switch to the player on sight only through the hunter slot (BOT.maxHunters at a time; freed in stepBots).
-  if (t && B.preferPlayerOnSight && b !== P && t !== P && botSees(b, P, vr)) {
-    if (!b.hunter && G.huntN < B.maxHunters) { b.hunter = true; b.huntLostT = 0; G.huntN++; G.huntClaims++; }
+  // Switch to the player on sight only through the hunter slot.
+  if (t && why !== 'bounty' && B.preferPlayerOnSight && b !== P && t !== P && botSees(b, P, vr)) {
+    if (!b.hunter && G.huntN < cap) claimHunt(b);
     if (b.hunter) { t = P; why = 'hunt'; }
   }
   b.why = t ? why : '';
-  // Low health: break off for an altar with charge on a standing section.
-  if (b.hp < B.lowHp || (b.mode === 'heal' && b.hp < B.healTo)) {
+  // Low health: break off for an altar with charge on a standing section. A bot leader under its bounty plays safer (BOUNTY.leaderLowHp).
+  const low = b.bot && L === b ? CONFIG.BOUNTY.leaderLowHp : B.lowHp;
+  if (b.hp < low || (b.mode === 'heal' && b.hp < B.healTo)) {
     const a = botAltar(b);
     if (a) { if (b.mode !== 'heal' || b.heal !== a || b.pathGen !== G.warnGen) { b.mode = 'heal'; b.heal = a; b.tgt = null; botGoal(b, a.x, a.z, a.y); } return; }
   }
@@ -2243,6 +2413,7 @@ function startHunt() {
   }
   G.bannerWave = -1; G.fellT = 0; G.miniDirty = true;
   for (const u of CUBS) u.fuseOn = u.alive;
+  clearLeader('wake');
   resetCubs(); resetNeutrals(false); clearBots();
   for (const u of CUBS) if (u.fuseOn) { u.sx = u.x; u.sz = u.z; u.sy = u.y; u.plate.position.set(u.x, u.y + 1, u.z); scene.add(u.plate); }
   G.phase = 'wake'; G.phaseT = 0; G.huntT = 0; G.plates = 0; G.bossDirty = true; G.bossHp = -1;
@@ -2375,6 +2546,14 @@ function drawMini() {
   c.strokeStyle = 'rgba(127,208,255,0.55)'; c.lineWidth = 1; c.beginPath(); c.arc(x, z, G.visR * px, 0, 6.2832); c.stroke();
   c.fillStyle = '#3a9bff'; c.beginPath(); c.arc(x, z, 3.5, 0, 6.2832); c.fill();
   c.strokeStyle = '#ffffff'; c.lineWidth = 1.5; c.beginPath(); c.moveTo(x, z); c.lineTo(x + P.faceX * 7, z + P.faceZ * 7); c.stroke();
+  // The leader (owner, 23 Nov 14:35): gold ring under the normal vision rule; while the bounty lies on it, shown wherever it is.
+  const L = G.phase === 'royale' ? G.leader : null;
+  G.miniLeader = !!L && (L === P || L.seen || (DEC.st === 3 && DEC.key === 'bounty' && DEC.tgt === L));
+  if (G.miniLeader) {
+    const lx = (L.x - MINI.x0) * px, lz = (L.z - MINI.z0) * py;
+    if (L !== P) { c.fillStyle = '#ffd75a'; c.beginPath(); c.arc(lx, lz, 3, 0, 6.2832); c.fill(); }
+    c.strokeStyle = '#ffd75a'; c.lineWidth = 2; c.beginPath(); c.arc(lx, lz, 6, 0, 6.2832); c.stroke();
+  }
 }
 // PERFRAME-END
 
@@ -2441,6 +2620,10 @@ function reset() {
   P.vy = 0; P.air = false; P.voidT = 0; P.dead = false; P.deadT = 0; P.kx = P.kz = 0;
   P.hp = CONFIG.MAX_HP; P.hpShown = -1; P.noHealT = 0; P.zone = null;
   updateHp();
+  clearLeader('reset');
+  for (const s of SUITS) { s.kills = 0; s.bountied = false; s.bId = -1; s.bYes = false; }
+  G.leaderChanges = 0; G.leaderCode = -1; G.leaderWrites = 0; G.bountyN = 0; G.bountyWarnAt = -1; G.bountyStartAt = -1; G.bountyEndAt = -1; G.bountyEndWhy = ''; G.bountyPaid = 0; G.bountyPaidTo = -1;
+  updateLeaderHud();
   spawnBots();
   setShow(el.banner, false);
   renderer.shadowMap.needsUpdate = true;
@@ -2574,7 +2757,8 @@ warm.receiveShadow = true; warm.castShadow = true; scene.add(warm);
 for (const m of INDICATORS) m.visible = true;
 // Hunt pieces sit at the player for this one draw so their buffers upload now, not at the wake.
 const warmSeal = new THREE.Mesh(sealMesh.geometry, M.tellD); warmSeal.position.set(P.x, P.y, P.z - (CH.z1 - 0.5));
-const warmHunt = [warmSeal];
+// The leader crown is drawn once here too (at the map centre, inside the overview draw), so its buffer uploads at load.
+const warmHunt = [warmSeal, crown];
 for (const u of ENEMIES.concat(NEUTRALS)) {
   warmHunt.push(u.group, u.ring, u.line, u.plate); u.group.visible = u.ring.visible = u.line.visible = true;
   for (const o of [u.group, u.ring, u.line, u.plate]) o.position.set(P.x, P.y, P.z);
@@ -2622,19 +2806,32 @@ window.__game = {
   royale: () => ({ phase: G.phase, lostIn: G.lostIn, alive: G.alive, decidedAt: G.decidedAt, t: G.time, voice: el.voice.textContent, rule: el.rule.textContent, banner: el.banner.style.display, btn: el.btnHunt.style.display, btnText: el.btnHunt.textContent }), setBotCd(i, slot, v) { BOTLIST[i].cd[slot] = v; }, setTime(t) { G.time = t; },
   hitBy(i, j, n) { const a = i < 0 ? P : BOTLIST[i], b = j < 0 ? P : BOTLIST[j]; hurtSuit(b, n, 'hit', a); },
   hitCubBy(i, j, n) { hitEnemy(CUBS[i], n, j < 0 ? P : BOTLIST[j]); }, hitNeutralBy(i, j, n) { hitEnemy(NEUTRALS[i], n, j < 0 ? P : BOTLIST[j]); },
-  player: () => ({ mode: P.mode, tgt: P.tgt ? (P.tgt.kind === 'suit' ? P.tgt.id : -2) : -1, dead: P.dead, cause: P.cause, diedAt: P.diedAt, plates: P.plates, boons: P.boons }),
+  player: () => ({ mode: P.mode, tgt: P.tgt ? (P.tgt.kind === 'suit' ? P.tgt.id : -2) : -1, dead: P.dead, cause: P.cause, diedAt: P.diedAt, plates: P.plates, boons: P.boons, x: P.x, y: P.y, z: P.z, kills: P.kills }),
   bots: () => ({ n: G.botN, alive: G.alive, navRuns: G.navRuns, navPeak: G.navPeak, huntN: G.huntN, huntClaims: G.huntClaims, huntFrees: G.huntFrees, list: BOTLIST.slice(0, G.botN).map((b) => ({ id: b.id, x: b.x, y: b.y, z: b.z, hp: b.hp, dead: b.dead, cause: b.cause, diedAt: b.diedAt,
     killer: b.killer ? b.killer.id : -1, stuck: b.stuckMax, zone: b.zone ? b.zone.id : null, seen: b.seen, vis: b.group.visible, inScene: !!b.group.parent, plates: b.plates, boons: b.boons,
     tgt: b.tgt ? (b.tgt.kind === 'suit' ? b.tgt.id : -2) : -1, mode: b.mode, why: b.why, hunter: b.hunter, spawn: b.spawn, bT: b.bT.slice(), ult: b.cd[2], pk: b.pk.slice(), air: b.air, standOk: b.dead || b.air || !!floorAt(b.x, b.z, b.y + 0.05) })) }),
   botDbg(i) { const b = BOTLIST[i]; return { x: b.x, z: b.z, y: b.y, mx: b.mx, mz: b.mz, gx: b.gx, gz: b.gz, n: b.path.n, i: b.path.i, pts: Array.from(b.path.pts.slice(0, b.path.n * 2)), stuckT: b.stuckT, want: b.navWant }; },
+  // Batch 11: leader, crown, decree slot and bounty counters.
+  leader() {
+    const L = G.leader, cp = crown.parent;
+    return { id: L ? L.id : -1, leadT: G.leadT, changes: G.leaderChanges, writes: G.leaderWrites, hud: el.leader.textContent, hudShown: el.leader.style.display,
+      crownOn: !!cp, crownId: cp === playerGroup ? 0 : cp ? (BOTLIST.find((b) => b.group === cp) || { id: -9 }).id : -1, crownShown: !!cp && cp.visible && !!cp.parent,
+      mini: G.miniLeader, dec: DEC.st, decKey: DEC.key, decT: DEC.t, decTgt: DEC.tgt ? DEC.tgt.id : -1, banner: DEC.banner, n: G.bountyN, warnAt: G.bountyWarnAt, startAt: G.bountyStartAt,
+      endAt: G.bountyEndAt, endWhy: G.bountyEndWhy, paid: G.bountyPaid, paidTo: G.bountyPaidTo, phase: G.phase, t: G.time, bw: G.bannerWave, fellT: G.fellT,
+      voice: el.voice.textContent, rule: el.rule.textContent, bannerShown: el.banner.style.display };
+  },
+  suitsState: () => SUITS.map((s) => (s.dead ? -1 : (s.pt[0] > 0 ? 1 : 0) + (s.pt[1] > 0 ? 1 : 0) + s.kills * 4)),
+  plateTo(i, kind) { addPlate(i < 0 ? P : BOTLIST[i], kind); },
+  decreeKeys: () => Object.values(DECREES).flatMap((d) => [d.voice, d.rule]).concat(SUIT_KEYS).filter((k) => !TEXT[k]),
+  ultOf: (i) => (i < 0 ? SK[2].cdT : BOTLIST[i].cd[2]),
   hunters() {
-    let flagged = 0, huntOnP = 0, onP = 0, seeP = 0, id = -1;
+    let flagged = 0, huntOnP = 0, capOnP = 0, onP = 0, seeP = 0, id = -1;
     for (let k = 0; k < G.botN; k++) {
       const b = BOTLIST[k]; if (b.hunter) { flagged++; id = b.id; } if (b.dead) continue;
-      if (b.tgt === P) { onP++; if (b.why === 'hunt') huntOnP++; }
+      if (b.tgt === P) { onP++; if (b.why === 'hunt') huntOnP++; if (b.mode === 'fight' && b.why !== 'hit') capOnP++; }
       if (botSees(b, P, CONFIG.VISION_R)) seeP++;
     }
-    return { slots: G.huntN, flagged, huntOnP, onP, seeP, id, claims: G.huntClaims, frees: G.huntFrees, max: CONFIG.BOT.maxHunters };
+    return { slots: G.huntN, flagged, huntOnP, capOnP, onP, seeP, id, claims: G.huntClaims, frees: G.huntFrees, max: huntCap(), bountyP: huntCap() > CONFIG.BOT.maxHunters };
   },
   setBotHp(i, n) { BOTLIST[i].hp = n; },
   hitBot(i, n) { hurtSuit(BOTLIST[i], n, 'test', null); }, placeBot(i, x, z) { const b = BOTLIST[i]; b.x = b.px = x; b.z = b.pz = z; b.y = b.py = topY(x, z); b.air = false; b.vy = 0; },

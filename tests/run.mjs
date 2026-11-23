@@ -16,7 +16,7 @@ const server = createServer(async (req, res) => {
 // bots=0: the map-test checks run with the player alone; the bot checks (56+) set the bots themselves.
 const URL0 = `http://127.0.0.1:${server.address().port}/?lock&tier=medium&bots=0`;
 
-const results = [];
+const results = [], SIMS = [];
 function check(name, ok, detail) { results.push({ name, ok: !!ok, detail }); }
 
 const browser = await chromium.launch({ args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--ignore-gpu-blocklist'] });
@@ -854,11 +854,36 @@ try {
     let plates = 0, boons = 0;
     // Hunter slot (batch 10): every tick at most maxHunters bots target the player by the on-sight switch; flags, slots and targets agree.
     const hv = [], hbad = (x) => { if (hv.length < 5) hv.push(x); }; let see3 = 0, maxOnP = 0, maxHunt = 0;
+    // Batch 11: leader rule every tick (from suit state: held plates + 4 * kills, -1 = out; the previous leader keeps a tie); hunter cap every tick
+    // (fighting the player for any reason but hitting back: at most BOT.maxHunters, BOUNTY.maxHunters while the bounty lies on the player);
+    // bounty share = bots fighting the leader among bots that see it (sampled every 5 ticks), bounty in force vs not; GDD sim numbers.
+    const lv = [], lbad = (x) => { if (lv.length < 5) lv.push(x); }; let lchanges = 0, leadersSeen = 0, preLeadBad = 0;
+    const cv = [], cbad = (x) => { if (cv.length < 5) cv.push(x); }; let capOff = 0, capOn = 0, bountyPTicks = 0;
+    const sh = { onSee: 0, onFight: 0, offSee: 0, offFight: 0 }, sims = [];
+    const rule = (st, prev) => { let best = -1, bp = 0, bk = 0; st.forEach((v, i) => { if (v < 0) return; const p = v % 4, k = (v - p) / 4; if (p > bp || (p === bp && k > bk)) { best = i; bp = p; bk = k; } });
+      if (best >= 0 && prev >= 0 && st[prev] >= 0 && st[prev] === st[best]) best = prev; return best; };
     for (const seed of [12345, 2, 3, 4, 5, 6]) {
       G.setSeed(seed); G.setBots(9); G.reset(); G.autoPlayer(true); G.setWatch(true);
-      let prevAlive = 10, t = 0;
+      let prevAlive = 10, t = 0, prevL = -1; const leadS = {};
       for (; t < 300 / C.STEP; t++) {
         G.step(1); const r = G.royale();
+        const l = G.leader(), st = G.suitsState();
+        if (l.phase === 'royale') {
+          const want = rule(st, prevL); if (l.id !== want) lbad(`s${seed} t${t} leader ${l.id} want ${want} prev ${prevL} ${st}`);
+          if (l.id >= 0 && st.every((v) => v <= 0)) preLeadBad++;
+          if (l.id !== prevL) lchanges++; if (l.id >= 0) { leadersSeen++; leadS[l.id] = (leadS[l.id] || 0) + 1; }
+          if ((l.crownOn && l.crownId !== l.id) || (!l.crownOn && l.id >= 0)) lbad(`s${seed} t${t} crown on ${l.crownId} leader ${l.id}`);
+          prevL = l.id;
+        }
+        const hc = G.hunters(); if (hc.bountyP) { bountyPTicks++; if (hc.capOnP > capOn) capOn = hc.capOnP; } else if (hc.capOnP > capOff) capOff = hc.capOnP;
+        if (hc.capOnP > hc.max || hc.max !== (hc.bountyP ? C.BOUNTY.maxHunters : C.BOT.maxHunters)) cbad(`s${seed} t${t} ${JSON.stringify(hc)}`);
+        if (t % 5 === 0 && l.id >= 0) {
+          const pl = G.player(), bl = G.bots().list, L = l.id === 0 ? pl : bl[l.id - 1], on = l.dec === 3 && l.decTgt === l.id;
+          for (const q of bl) {
+            if (q.dead || q.id === l.id || Math.abs(q.y - L.y) >= 2 || Math.hypot(q.x - L.x, q.z - L.z) > C.VISION_R) continue;
+            const f = q.tgt === l.id && q.mode === 'fight' ? 1 : 0; if (on) { sh.onSee++; sh.onFight += f; } else { sh.offSee++; sh.offFight += f; }
+          }
+        }
         if (r.alive > prevAlive) bad(`s${seed} t${t} alive rose`); prevAlive = r.alive;
         const hu = G.hunters();
         if (hu.huntOnP > hu.max || hu.slots > hu.max || hu.flagged !== hu.slots || hu.huntOnP > hu.flagged) hbad(`s${seed} t${t} ${JSON.stringify(hu)}`);
@@ -877,11 +902,13 @@ try {
       const win = all.find((q) => !q.dead), nocause = all.filter((q) => q.dead && !CAUSES.includes(q.cause)).length;
       if (win) wins[win.spawn] = (wins[win.spawn] || 0) + 1;
       plates += b.list.reduce((a, q) => a + q.plates, 0); boons += b.list.reduce((a, q) => a + q.boons, 0);
+      const lw = G.leader(), top = Object.entries(leadS).sort((x, y) => y[1] - x[1])[0], winId = b.list.concat([{ id: 0, dead: p.dead }]).find((q) => !q.dead);
+      sims.push({ seed, topLeader: top ? +top[0] : -1, winId: winId ? winId.id : -1, pPlates: p.plates, bounties: lw.n, paid: lw.paid });
       const place = p.dead ? 1 + b.list.filter((q) => !q.dead || q.diedAt > p.diedAt).length : 1, firstOut = Math.min(...b.list.filter((q) => q.dead).map((q) => q.diedAt), p.dead ? p.diedAt : 1e9);
       out.push({ seed, decided: +r.decidedAt.toFixed(1), winner: win ? win.spawn : -1, player: p.dead ? p.cause + '@' + Math.round(p.diedAt) : 'won', place, playerFirst: p.dead && p.diedAt <= firstOut, nocause });
       G.setWatch(false); G.autoPlayer(false);
     }
-    G.setBots(0); G.reset(); return { out, viol, wins, plates, boons, hunt: { hv, see3, maxOnP, maxHunt } };
+    G.setBots(0); G.reset(); return { out, viol, wins, plates, boons, hunt: { hv, see3, maxOnP, maxHunt }, lead: { lv, lchanges, leadersSeen, preLeadBad }, cap: { cv, capOff, capOn, bountyPTicks }, sh, sims };
   });
   check('65 whole matches x6: decided in 165-255 s, 0 broken invariants, every out has a cause, bots take plates and boons, no spawn wins more than 3 of 6',
     ms.out.every((m) => m.decided >= 165 && m.decided <= 255 && m.nocause === 0) && ms.viol.length === 0 && ms.plates > 0 && ms.boons > 0 && Math.max(...Object.values(ms.wins)) <= 3, JSON.stringify(ms));
@@ -906,6 +933,151 @@ try {
   check('68 hunter slot: one of 3 switches; frees on hunter death and another claims it; held until hunterLoseS out of sight, then freed; claimed again in sight',
     hs2.before.slots === 0 && hs2.one.seeP === 3 && hs2.one.slots === 1 && hs2.one.onP === 1 && hs2.one.huntOnP === 1 && hs2.freed.slots === 0 && hs2.freed.frees === 1
     && hs2.two.slots === 1 && hs2.two.id !== hs2.one.id && hs2.two.claims === 2 && hs2.held.slots === 1 && hs2.lost.slots === 0 && hs2.lost.frees === 2 && hs2.again.slots === 1 && hs2.again.claims === 3, JSON.stringify(hs2));
+  // 69 Leader rule (batch 11) every tick over the 6 matches of 65: the leader equals the rule from suit state (most plates held, then kills; a tie keeps the
+  // current leader); no leader while nobody has a plate or a kill; the crown sits on the leader and nowhere else. Leaders did happen.
+  check('69 leader: matches the rule every tick over 6 matches, no flip on a tie, none before the first plate or kill, crown on the leader only',
+    ms.lead.lv.length === 0 && ms.lead.preLeadBad === 0 && ms.lead.leadersSeen > 0 && ms.lead.lchanges > 6, JSON.stringify(ms.lead));
+  // 72 Hunter cap (owner, 23 Nov 14:35) every tick over the 6 matches: bots fighting the player for any reason but hitting back <= BOT.maxHunters,
+  // <= BOUNTY.maxHunters while the bounty lies on the player; bots fight the leader more while the bounty is in force (share of bots that see it, in matches
+  // and controlled: same scene with BOUNTY.chase 0 as the control).
+  const shOn = ms.sh.onFight / Math.max(1, ms.sh.onSee), shOff = ms.sh.offFight / Math.max(1, ms.sh.offSee);
+  // Controlled share: a bot leader under a bounty in force before the peace ends, 4 bots 6 m around it that nobody hit; share of bot-ticks fighting it,
+  // with BOUNTY.chase as set vs 0 (control). Same seed, same places.
+  const bs = await g(() => {
+    const G = __game, C = G.config, keep = C.BOUNTY.chase, o = {};
+    const one = (ch) => {
+      C.BOUNTY.chase = ch; G.setSeed(21); G.setBots(5); G.reset(); G.setHp(1e9); for (let i = 0; i < 5; i++) G.setBotHp(i, 1e9); G.teleport(0, -40);
+      const hold = () => { G.placeBot(0, 0, -52); for (let i = 1; i < 5; i++) G.placeBot(i, 6 * Math.cos(i * 1.5708), -52 + 6 * Math.sin(i * 1.5708)); };
+      G.setTime(61); G.plateTo(0, 'stalker'); G.plateTo(0, 'howler'); let n = 0, f = 0;
+      for (let k = 0; k < 60 / C.STEP && G.leader().dec !== 3; k++) { hold(); G.step(1); }
+      const on = G.leader().dec === 3 && G.leader().decTgt === 1;
+      for (let k = 0; k < 12 / C.STEP; k++) { hold(); G.step(1); for (const q of G.bots().list.slice(1)) { n++; if (q.tgt === 1 && q.mode === 'fight') f++; } }
+      return { on, t: +G.leader().t.toFixed(1), share: +(f / n).toFixed(3) };
+    };
+    try { o.bounty = one(keep); o.control = one(0); } finally { C.BOUNTY.chase = keep; G.setBots(0); G.reset(); }
+    return o;
+  });
+  check('72 cap and bounty in matches: player cap holds every tick (1, or 3 under a bounty on the player), bots fight a seen leader more under the bounty',
+    ms.cap.cv.length === 0 && ms.cap.capOff <= C0.BOT.maxHunters && ms.cap.capOn <= C0.BOUNTY.maxHunters && ms.sh.onSee > 50 && shOn > shOff
+    && bs.bounty.on && bs.control.on && bs.bounty.t < 120 && bs.bounty.share >= 0.15 && bs.control.share === 0,
+    JSON.stringify(ms.cap) + ` share on ${shOn.toFixed(2)} (${ms.sh.onSee}) off ${shOff.toFixed(2)} (${ms.sh.offSee}) controlled ${JSON.stringify(bs)}`);
+  {
+    const sm = ms.sims, lw = sm.filter((x) => x.topLeader >= 0 && x.topLeader === x.winId).length, pp = sm.filter((x) => x.pPlates > 0).length;
+    SIMS.push(`leader win share (longest leader wins) ${lw} of ${sm.length}; player >=1 plate ${pp} of ${sm.length}; decided ${ms.out.map((m) => m.decided).join(',')}`,
+      `per seed decided/place/player out/winner spawn: ${ms.out.map((m) => `${m.seed} ${m.decided}/${m.place}/${m.player}/${m.winner}`).join('; ')}`,
+      `bounties ${sm.map((x) => x.bounties).join(',')} paid ${sm.map((x) => x.paid).join(',')}; fight share on ${shOn.toFixed(2)} off ${shOff.toFixed(2)}; bounty-on-player ticks ${ms.cap.bountyPTicks}, cap max off ${ms.cap.capOff} on ${ms.cap.capOn}`);
+  }
+  // 70 Crown, HUD and minimap (scripted, 3 bots in the core hall, no fights): no leader at the start; a bot with a plate leads, crown on its head shown
+  // only while the player sees it; a tie with a suit earlier in suit order keeps the leader; a kill breaks the tie; the player with 2 plates leads (crown shown, minimap ring);
+  // the HUD line is written only on change (no writes over 120 steps with nothing changing).
+  const cr = await g(() => {
+    const G = __game, C = G.config, K = window.__k, o = {};
+    G.setSeed(12345); G.setBots(3); G.reset(); G.setHp(1e9); for (let i = 0; i < 3; i++) G.setBotHp(i, 1e9);
+    const hold = () => { G.placeBot(0, 0, -50); G.placeBot(1, 3, -50); G.placeBot(2, -3, -50); };
+    hold(); G.teleport(0, 0); K.sp(0.1); o.start = G.leader();
+    G.plateTo(1, 'stalker'); hold(); K.sp(0.1); o.unseen = G.leader(); G.miniPixel(0, 0); o.unseenMini = G.leader().mini;
+    G.teleport(0, -45); hold(); K.sp(0.1); o.seen = G.leader(); G.miniPixel(0, 0); o.seenMini = G.leader().mini;
+    G.plateTo(0, 'howler'); hold(); K.sp(0.1); o.tie = G.leader();
+    G.hitBy(0, 2, 1e12); hold(); K.sp(0.1); o.kill = G.leader();
+    const w0 = G.leader().writes; for (let n = 0; n < 120; n++) { hold(); G.step(1); } o.quietWrites = G.leader().writes - w0;
+    G.plateTo(-1, 'stalker'); G.plateTo(-1, 'howler'); hold(); K.sp(0.1); o.player = G.leader(); G.miniPixel(0, 0); o.playerMini = G.leader().mini;
+    G.setBots(0); G.reset(); o.after = G.leader(); return o;
+  });
+  check('70 crown and HUD: none at start; plate = leader with crown shown only in vision; tie keeps; kill breaks the tie; player leader; HUD written only on change',
+    cr.start.id === -1 && !cr.start.crownOn && cr.start.hudShown === 'none' && cr.unseen.id === 2 && cr.unseen.crownId === 2 && !cr.unseen.crownShown && !cr.unseenMini
+    && /Leader: Fa suit/.test(cr.unseen.hud) && cr.unseen.hudShown === 'block' && cr.seen.crownShown && cr.seenMini && cr.tie.id === 2 && cr.kill.id === 1 && cr.kill.crownId === 1
+    && cr.quietWrites === 0 && cr.player.id === 0 && cr.player.crownId === 0 && cr.player.crownShown && cr.playerMini && /Leader: You/.test(cr.player.hud)
+    && cr.after.id === -1 && !cr.after.crownOn && cr.after.hudShown === 'none', JSON.stringify(cr));
+  // 71 Bounty decree (scripted, 3 bots kept in the core hall at huge health): told >= DECREE.warnS before it starts (voice, banner, countdown), only after
+  // BOUNTY.afterS of one leader, never over a collapse banner (queued when a collapse warning is near); lasts durS; breaking the leader in the warning pays nothing;
+  // breaking a non-leader pays nothing; breaking the leader in force resets the breaker's ultimate and ends it; a broken leader with no breaker pays nobody;
+  // the wake ends it and none in the hunt; new run x3 resets it; text keys exist.
+  const bt = await g(() => {
+    const G = __game, C = G.config, K = window.__k, o = {}, B = C.BOUNTY, D = C.DECREE;
+    const hold = () => { G.placeBot(0, 0, -50); G.placeBot(1, 3, -50); G.placeBot(2, -3, -50); };
+    const start = (s) => { G.setSeed(s); G.setBots(3); G.reset(); G.setHp(1e9); for (let i = 0; i < 3; i++) G.setBotHp(i, 1e9); G.teleport(0, -45); hold(); };
+    const run = (sec, each) => { for (let n = 0; n < Math.round(sec / C.STEP); n++) { hold(); G.step(1); if (each && each()) return true; } return false; };
+    let overlap = 0; const watch = () => { const l = G.leader(); if (l.banner && l.bw >= 0) overlap++; return false; };
+    // A: leader from t 15; due at 40, within clearS of collapse warning 0 (55 s), so the warning is queued until that banner ends (60 s).
+    start(1); run(15, watch); G.plateTo(0, 'stalker'); const t0 = G.leader().t;
+    run(30, watch); G.plateTo(0, 'howler'); o.queued = G.leader().dec;
+    run(80, () => { watch(); return G.leader().dec === 2; }); const w = G.leader(); o.warn = { at: w.warnAt, voice: w.voice, rule: w.rule, shown: w.bannerShown, sinceLead: +(w.warnAt - t0).toFixed(2) };
+    G.plateTo(0, 'stalker');
+    run(10, () => { watch(); return G.leader().dec === 3; }); const s1 = G.leader(); o.on = { startAt: s1.startAt, lead: +(s1.startAt - s1.warnAt).toFixed(2), hud: s1.hud, bannerOff: !s1.banner };
+    // C: bot 2 breaks a non-leader in force: nothing paid, bounty goes on; then bot 2 breaks the leader: its ultimate is reset, the bounty ends.
+    G.hitBy(1, 2, 1e12); hold(); G.step(1); o.nonLeader = { paid: G.leader().paid, dec: G.leader().dec };
+    G.setBotCd(1, 2, 30); G.hitBy(1, 0, 1e12); hold(); G.step(1); const c = G.leader(); o.paid = { paid: c.paid, to: c.paidTo, ult: G.ultOf(1), dec: c.dec, why: c.endWhy, leader: c.id };
+    o.overlap = overlap;
+    // Natural end: a fresh leader at t 61 (clear window), refreshed plates; the bounty lasts durS.
+    start(2); run(61); G.plateTo(1, 'stalker'); run(30); G.plateTo(1, 'howler');
+    run(40, () => G.leader().dec === 3); const n0 = G.leader(); G.plateTo(1, 'stalker'); run(B.durS + 1, () => G.leader().dec === 0);
+    const n1 = G.leader(); o.natural = { dur: +(n1.endAt - n0.startAt).toFixed(2), why: n1.endWhy, again: false };
+    run(B.afterS + D.warnS + 5); o.natural.again = G.leader().n > 1;
+    // B: break the leader during the warning: nothing paid, the bounty ends ('out').
+    start(3); run(61); G.plateTo(0, 'stalker'); run(60, () => G.leader().dec === 2); G.hitBy(-1, 0, 1e12); hold(); G.step(1);
+    const b = G.leader(); o.inWarn = { paid: b.paid, dec: b.dec, why: b.endWhy, wasWarn: b.warnAt > 0 };
+    // E: leader broken with no breaker (fall-like): pays nobody.
+    start(4); run(61); G.plateTo(2, 'stalker'); run(60, () => G.leader().dec === 3); G.hitBot(2, 1e12); hold(); G.step(1);
+    const e = G.leader(); o.noBreaker = { paid: e.paid, dec: e.dec, why: e.endWhy };
+    // F: the wake ends it; none in the hunt.
+    start(5); run(61); G.plateTo(0, 'stalker'); run(60, () => G.leader().dec === 3); G.startHunt(); const f = G.leader(); o.wake = { dec: f.dec, why: f.endWhy, crown: f.crownOn, hud: f.hudShown };
+    let huntDec = 0; run(30, () => { if (G.leader().dec !== 0) huntDec++; return false; }); o.wake.huntDec = huntDec;
+    // G: new run x3 resets it.
+    o.fresh = [];
+    for (let r = 0; r < 3; r++) { G.setSeed(10 + r); G.setBots(3); G.reset(); const l = G.leader(); o.fresh.push(l.dec === 0 && l.n === 0 && l.paid === 0 && l.id === -1 && !l.crownOn && l.endAt === -1 && G.player().kills === 0); }
+    o.keys = G.decreeKeys();
+    G.setBots(0); G.reset(); return o;
+  });
+  check('71 bounty: queued off collapse banners, told >= 5 s after 25 s of lead, lasts 40 s, pays only for breaking the leader in force, ends on leader out and at the wake, none in the hunt, new run x3 resets, keys',
+    bt.queued === 1 && bt.warn.at >= 60 && bt.warn.sinceLead >= 25 && /bounty lieth/.test(bt.warn.voice) && /Bounty on the leader \(Dao suit\) in \d s/.test(bt.warn.rule) && bt.warn.shown === 'block'
+    && bt.on.lead >= 5 - 1e-6 && /bounty \d+ s/.test(bt.on.hud) && bt.on.bannerOff && bt.nonLeader.paid === 0 && bt.nonLeader.dec === 3
+    && bt.paid.paid === 1 && bt.paid.to === 2 && bt.paid.ult === 0 && bt.paid.dec === 0 && bt.paid.why === 'out' && bt.paid.leader === 2 && bt.overlap === 0
+    && Math.abs(bt.natural.dur - 40) < 0.1 && bt.natural.why === 'time' && !bt.natural.again
+    && bt.inWarn.wasWarn && bt.inWarn.paid === 0 && bt.inWarn.dec === 0 && bt.inWarn.why === 'out' && bt.noBreaker.paid === 0 && bt.noBreaker.dec === 0 && bt.noBreaker.why === 'out'
+    && bt.wake.dec === 0 && bt.wake.why === 'wake' && !bt.wake.crown && bt.wake.hud === 'none' && bt.wake.huntDec === 0 && bt.fresh.every((x) => x) && bt.keys.length === 0, JSON.stringify(bt));
+  // 73 Player cap (scripted): after peace, 3 bots near the player that nobody hit: at most 1 fights the player at any tick, and one does;
+  // in peace the player hits 2 of them: both answer (hitting back is not capped); a bounty on the player lets up to 3 fight it, back to 1 the tick it ends.
+  const pc = await g(() => {
+    const G = __game, C = G.config, K = window.__k, o = { near: 0, nearMax: 0, hitMax: 0, onMax: 0, afterMax: 0, afterBad: 0 };
+    G.setSeed(7); G.setBots(3); G.reset(); G.setHp(1e9); for (let i = 0; i < 3; i++) G.setBotHp(i, 1e9);
+    G.setTime(C.BOT.engage.peaceS + C.BOT.engage.rampS + 1); G.teleport(0, -45);
+    const near = () => { G.placeBot(0, 2, -45); G.placeBot(1, -2, -45); G.placeBot(2, 0, -43); };
+    for (let n = 0; n < 240; n++) { near(); G.step(1); const h = G.hunters(); if (h.capOnP > o.nearMax) o.nearMax = h.capOnP; }
+    G.setBots(3); G.reset(); G.setHp(1e9); for (let i = 0; i < 3; i++) G.setBotHp(i, 1e9); G.teleport(0, -45);
+    for (let n = 0; n < 60; n++) { near(); G.step(1); }
+    G.hitBy(-1, 0, 1); G.hitBy(-1, 1, 1);
+    for (let n = 0; n < 30; n++) { near(); G.step(1); const h = G.hunters(), f = G.bots().list.filter((q) => q.tgt === 0 && q.mode === 'fight').length; if (f > o.hitMax) o.hitMax = f; }
+    G.setBots(5); G.reset(); G.setHp(1e9); for (let i = 0; i < 5; i++) G.setBotHp(i, 1e9); G.teleport(0, -45);
+    const ring = () => { for (let i = 0; i < 5; i++) G.placeBot(i, 3 * Math.cos(i * 1.256), -45 + 3 * Math.sin(i * 1.256)); };
+    G.setTime(61); G.plateTo(-1, 'stalker'); G.plateTo(-1, 'howler');
+    for (let n = 0; n < 60 / C.STEP && G.leader().dec !== 3; n++) { ring(); G.step(1); }
+    o.onP = G.leader().decTgt === 0; G.plateTo(-1, 'stalker'); G.plateTo(-1, 'howler');
+    for (let n = 0, ended = false; n < 120 || !ended; n++) {
+      ring(); G.step(1); const h = G.hunters();
+      if (G.leader().dec === 3) { n = 0; if (h.capOnP > o.onMax) o.onMax = h.capOnP; } else { ended = true; if (h.capOnP > o.afterMax) o.afterMax = h.capOnP; }
+      if (n > 1e5) break;
+    }
+    G.setBots(0); G.reset(); return o;
+  });
+  check('73 player cap: 1 bot by any rule but hitting back, 2 answer the player\'s hits, up to 3 under a bounty on the player and back to 1 after',
+    pc.nearMax === 1 && pc.hitMax >= 2 && pc.onP && pc.onMax >= 2 && pc.onMax <= 3 && pc.afterMax <= 1, JSON.stringify(pc));
+  // 74 Budget with the crown: heaviest royale (10 suits, 7 cubs, tells) plus the crown on a seen bot leader; no shader compile, geometry flat.
+  const bc = await g(() => {
+    const G = __game, C = G.config, K = window.__k, waves = C.KENNEL.waves; let best = null;
+    try {
+      C.KENNEL.waves = [[['stalker', 0], ['stalker', 0], ['stalker', 0], ['stalker', 0], ['howler', 0], ['howler', 0], ['howler', 0]]];
+      G.setSeed(12345); G.setBots(9); G.reset(); K.sp(C.KENNEL.firstS + 0.1); G.setHp(1e9); G.plateTo(4, 'stalker');
+      const cx = G.camps[0][0], cz = G.camps[0][1] + 4; G.teleport(cx, cz);
+      for (let n = 0; n < 600; n++) {
+        for (let i = 0; i < 9; i++) G.placeBot(i, cx - 4 + (i % 3) * 3, cz + 2 + Math.floor(i / 3) * 1.5);
+        G.step(1); const c = G.cubs(), l = G.leader();
+        if (l.crownShown && (!best || c.tells.length > best.tells)) { const r = G.render(true); best = { tells: c.tells.length, crown: l.crownShown, cubs: c.list.filter((u) => u.alive && u.seen).length, calls: r.calls, tris: r.tris, programs: r.programs, geoms: r.geoms }; }
+      }
+    } finally { C.KENNEL.waves = waves; G.setBots(0); G.reset(); }
+    return best;
+  });
+  check('74 budget with the crown: 10 suits + cubs + tells + crown (calls<500, tris<500k), no shader compile, geometry flat',
+    !!bc && bc.crown && bc.tells >= 3 && bc.calls < 500 && bc.tris < 500000 && bc.programs === base.programs && bc.geoms === base.geoms, JSON.stringify(bc));
   // 66 Idle player: standing at the spawn doing nothing loses the royale (frozen loss with a cause) before the last collapse is over.
   const idle = await g(() => {
     const G = __game, C = G.config; G.setSeed(12345); G.setBots(9); G.reset(); let t = 0;
@@ -974,6 +1146,7 @@ try {
 const pass = results.filter((r) => r.ok).length;
 for (const r of results) if (!r.ok) console.log('FAIL', r.name, '::', r.detail);
 console.log(`RUNTIME ${pass} of ${results.length} pass`);
+if (process.argv.includes('-sims')) for (const l of SIMS) console.log('SIM', l);
 if (process.argv.includes('-v')) for (const r of results) console.log(r.ok ? 'ok  ' : 'FAIL', r.name, r.detail ? ':: ' + String(r.detail).slice(0, 200) : '');
 // -vv: full detail of the checks whose number is given after it (e.g. -vv 56,65).
 const vv = process.argv.indexOf('-vv'); if (vv > 0) { const want = (process.argv[vv + 1] || '').split(','); for (const r of results) if (want.some((n) => r.name.startsWith(n + ' '))) console.log(r.name, '::', r.detail); }
