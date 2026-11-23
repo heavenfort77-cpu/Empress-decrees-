@@ -36,7 +36,7 @@ Slots: attack, Q, W, R (ultimate), passive. Most kits have one dash, as in the G
 | 墨甲 | 墨守 Mo Defender | Tank (zone) | High | Low | Mid | none |
 | 阴阳甲 | 太极 Taiji | Mage (artillery) | Low | Mid | Long | Q backstep (built into 阴) |
 | 杂甲 | 门客 Retainer | Mage (control) | Mid | Mid | Mid | W |
-| 名甲 | 辩者 Debater | Marksman (swords) | Low | Mid | Long | Q (blink) |
+| 名甲 | 辩者 Debater | Marksman | Low | Mid | Long | Q (blink) |
 | 纵横甲 | 说客 Persuader | Control | Mid | Mid | Mid | W |
 | 农甲 | 耕者 Tiller | Support (sustain) | High | Low | Melee | W |
 
@@ -95,7 +95,7 @@ Source: 《周礼·地官·保氏》「乃教之六艺：一曰五礼，二曰�
 - Plays with: every other kit.
 
 ### 名甲 · 辩者 (School of Names: "a white horse is not a horse", the paradoxes)
-- Owner decision kept: attacks with the sword.
+- Owner, 23 Nov 20:25: the sword rule is removed; the weapon follows the frame the owner picks. The kit below is the old draft until then.
 - Passive **Hard and White Apart (离坚白)**: hits from range and hits up close are counted apart; alternating them adds damage.
 - Attack: thrown flying sword, long range.
 - Q **White Horse**: blink. A sword stays where you stood and strikes after a moment.
