@@ -789,6 +789,9 @@ try {
   const rt = await g(() => {
     const G = __game, K = window.__k, o = {}, mh = G.config.BOT.maxHunters; G.config.BOT.maxHunters = 2;
     G.setSeed(12345); G.setBots(2); G.reset(); G.teleport(0, -50); G.setHp(1e9);
+    // Game changed on purpose (batch 16): bot 2 now plays 法甲, whose 术 exposes the player it hits (seen from anywhere for 3 s); this check tests the
+    // target rule itself, so both bots play the placeholder kit here.
+    G.placeholderKit(0); G.placeholderKit(1);
     G.placeBot(0, 0, 10); G.placeBot(1, 2.5, 10); G.hitBy(1, 0, 1); K.sp(0.5); o.first = G.bots().list[0].tgt;
     G.teleport(0, 16); K.sp(0.5); o.onSight = G.bots().list[0].tgt;
     let kept = true; for (let n = 0; n < 8; n++) { K.sp(0.25); if (G.bots().list[0].tgt !== 0) kept = false; } o.kept = kept;
@@ -1467,7 +1470,9 @@ try {
   // statue, lions, drops and test damage stay fixed; a Mid suit takes every number unchanged (factor exactly 1); speed tiers move a suit at their m/s.
   const st93 = await g(() => {
     const G = __game, C = G.config, S = C.STATS, H = window.__d, o = {}, f = (a) => (S.K + S.armor[S.yard]) / (S.K + S.armor[a]);
-    H.start(3); const s0 = G.schools().suits; o.mid = s0.every((q) => q.armorK === 1 && q.spd === C.PLAYER_SPEED && q.armor === S.armor.Mid);
+    // Game changed on purpose (batch 16): a built kit plays its own tiers (法甲 from ticket 02), an unbuilt one the placeholder at Mid; every suit is checked against its kit.
+    const kitTiers = (q) => { const k = C.KITS[q.school], t = k && k.built ? k : { armor: S.yard, speed: S.yard }; return q.armor === S.armor[t.armor] && q.spd === S.speed[t.speed] && Math.abs(q.armorK - f(t.armor)) < 1e-12; };
+    H.start(3); const s0 = G.schools().suits; o.mid = s0.every(kitTiers) && s0.some((q) => q.armorK === 1 && q.spd === C.PLAYER_SPEED && q.armor === S.armor.Mid);
     G.setStats(0, 'Low', 'Mid'); G.setStats(1, 'High', 'Mid'); G.setBotHp(0, 100); G.setBotHp(1, 100); G.setBotHp(2, 100);
     G.hitBy(-1, 0, 25); G.hitBy(-1, 1, 25); G.hitBy(-1, 2, 25); const b = G.bots().list;
     o.low = +(100 - b[0].hp).toFixed(4); o.high = +(100 - b[1].hp).toFixed(4); o.midHit = 100 - b[2].hp; o.wantLow = +(25 * f('Low')).toFixed(4); o.wantHigh = +(25 * f('High')).toFixed(4);
@@ -1478,7 +1483,7 @@ try {
     H.start(1); G.setHp(100); G.setStats(-1, 'High', 'Mid'); G.teleport(-33 * G.K, -3 * G.K); G.setMove(0, 1); G.step(90); G.clearMove(); G.step(30); o.drop = 100 - G.state().hp;
     const run = (tier) => { H.start(1); G.setStats(-1, 'Mid', tier); G.teleport(14, -20); G.step(1); const x0 = G.state().x; G.setMove(1, 0); G.step(30); G.clearMove(); return +(G.state().x - x0).toFixed(3); };
     o.vLow = run('Low'); o.vMid = run('Mid'); o.vHigh = run('High'); o.want = [S.speed.Low * 0.5, S.speed.Mid * 0.5, S.speed.High * 0.5];
-    G.reset(); o.back = G.schools().suits.every((q) => q.armorK === 1 && q.spd === C.PLAYER_SPEED);
+    G.reset(); o.back = G.schools().suits.every(kitTiers);
     o.ok = o.mid && Math.abs(o.low - o.wantLow) < 1e-3 && Math.abs(o.high - o.wantHigh) < 1e-3 && o.midHit === 25 && o.wantLow > 25 && o.wantHigh < 25 && o.testFixed === 10
       && Math.abs(o.bleed - o.wantBleed) < 0.05 && o.lion === C.LION.dmg && o.drop === C.DROP_DAMAGE
       && Math.abs(o.vLow - o.want[0]) < 0.01 && Math.abs(o.vMid - o.want[1]) < 0.01 && Math.abs(o.vHigh - o.want[2]) < 0.01 && o.back;
@@ -1535,7 +1540,9 @@ try {
     G.setSeed(12345); G.setBots(8); G.reset(); const sc = G.schools();
     const want = { ru: ['High', 'Mid'], dao: ['Low', 'High'], fa: ['Mid', 'High'], mo: ['High', 'Low'], yinyang: ['Low', 'Mid'], za: ['Mid', 'Mid'], ming: ['Low', 'Mid'], zongheng: ['Mid', 'Mid'], nong: ['High', 'Low'] };
     o.order = C.SCHOOLS.join(','); o.tiers = C.SCHOOLS.every((k) => C.KITS[k].armor === want[k][0] && C.KITS[k].speed === want[k][1]);
-    o.unbuilt = C.SCHOOLS.every((k) => C.KITS[k].built === false); o.placeholder = sc.suits.every((q) => q.kit === 'placeholder' && q.ultMode === 'charge');
+    // Game changed on purpose (batch 16): kits are built ticket by ticket (02 法甲); a built school plays its own kit, every other the placeholder at Mid.
+    o.unbuilt = C.SCHOOLS.filter((k) => C.KITS[k].built).join(',') === 'fa';
+    o.placeholder = sc.suits.every((q) => (C.KITS[q.school].built ? q.kit === q.school && q.ultMode === C.KITS[q.school].ultMode : q.kit === 'placeholder' && q.ultMode === 'charge'));
     o.player = sc.suits[0].school; o.bots = sc.suits.slice(1).map((q) => q.name).join(','); o.tags = C.SKILLS.map((k) => k.tag).join(',');
     o.speedMid = C.STATS.speed.Mid === C.PLAYER_SPEED && C.STATS.yard === 'Mid'; o.keys = C.SCHOOLS.map((k) => 'school_' + k).concat(['hud_school', 'sel_title', 'sel_rule', 'sel_random', 'sel_key']).filter((k) => !T[k]);
     G.setBots(0); G.reset(); return o;
@@ -1543,6 +1550,145 @@ try {
   check('96 kit framework: nine schools in order with their stat tiers, all on the placeholder kit at Mid until built, default pick keeps the bots\' order, skill tags, text keys',
     kf96.order === 'ru,dao,fa,mo,yinyang,za,ming,zongheng,nong' && kf96.tiers && kf96.unbuilt && kf96.placeholder && kf96.player === 'ru'
     && kf96.bots === 'Dao suit,Fa suit,Mo suit,Yinyang suit,Za suit,Ming suit,Zongheng suit,Nong suit' && kf96.tags === 'poke,dashIn,ult' && kf96.speedMid && kf96.keys.length === 0, JSON.stringify(kf96));
+  // ===== Batch 16 ticket 02: 法甲 · 廷尉 kit (docs/SUITS.md; numbers in CONFIG.KITS.fa) =====
+  // Page helper: the player plays 法甲 (school 2) against n placeholder bots at Mid; nothing else happens (decrees pushed away, huge health).
+  await g(() => { const G = __game, C = G.config; window.__fa = {
+    start(n) { G.setSeed(12345); G.setBots(n); G.pickSchool(2); G.setDecNext(1e9); G.setHp(1e9); for (let i = 0; i < n; i++) G.setBotHp(i, 100); },
+    hold(sec, fn) { for (let k = 0; k < Math.round(sec / C.STEP); k++) { if (fn) fn(); G.step(1); } },
+    lost(i, fn) { G.setBotHp(i, 100); fn(); return +(100 - G.bots().list[i].hp).toFixed(4); },
+    end() { G.pickSchool(0); G.setBots(0); G.reset(); } }; });
+  // 97 Passive 法不阿贵: 法甲's hits take +law.bonus against the leader and against a marked suit; the two do not stack; another school's hits do not.
+  const fa97 = await g(() => {
+    const G = __game, F = window.__fa, o = {};
+    F.start(3); o.player = G.kitState(-1).school; o.plain = F.lost(0, () => G.strike(-1, 0, 10));
+    G.plateTo(1, 'stalker'); o.leaderId = G.leader().id; o.leader = F.lost(1, () => G.strike(-1, 1, 10));
+    G.breakBy(2); o.marked = F.lost(2, () => G.strike(-1, 2, 10));
+    G.breakBy(1); o.both = F.lost(1, () => G.strike(-1, 1, 10));
+    o.other = F.lost(1, () => G.strike(0, 1, 10)); o.bonus = G.config.KITS.fa.law.bonus;
+    F.end(); return o;
+  });
+  check('97 法甲 passive: +bonus on the leader and on a marked suit, no stacking, only 法甲 gets it',
+    fa97.player === 'fa' && fa97.plain === 10 && fa97.leaderId === 2 && Math.abs(fa97.leader - 10 * (1 + fa97.bonus)) < 1e-9 && Math.abs(fa97.marked - fa97.leader) < 1e-9
+    && Math.abs(fa97.both - fa97.leader) < 1e-9 && fa97.other === 10, JSON.stringify(fa97));
+  // 98 Q 刑无等级: a pursuit dash to the target nearest the aim point, stopping short of it, at most range m; longRange against the leader, a marked suit or one
+  // under half health; its burst hits on landing. A target 8 m away is reached only in the long cases.
+  const fa98 = await g(() => {
+    const G = __game, C = G.config, F = window.__fa, sk = C.KITS.fa.skills[0], o = {};
+    const run = (prep) => { F.start(1); prep(); G.teleport(14, -20); const park = () => G.placeBot(0, 14, -12); park(); G.step(1); const hp0 = G.bots().list[0].hp;
+      const ok = G.cast(0, 14, -12); F.hold(0.6, park); return { ok, travel: +(G.state().z + 20).toFixed(2), lost: +(hp0 - G.bots().list[0].hp).toFixed(2) }; };
+    o.plain = run(() => {}); o.leader = run(() => G.plateTo(0, 'stalker')); o.half = run(() => G.setBotHp(0, 40)); o.marked = run(() => G.breakBy(0));
+    o.range = sk.range; o.long = sk.longRange; o.dmg = sk.dmg; o.bonus = C.KITS.fa.law.bonus; F.end(); return o;
+  });
+  check('98 法甲 Q: pursuit dash of range m (no hit at 8 m), longRange against the leader, a marked suit or under half health (lands and hits)',
+    fa98.plain.ok && Math.abs(fa98.plain.travel - fa98.range) < 0.05 && fa98.plain.lost === 0
+    && fa98.leader.ok && Math.abs(fa98.leader.travel - 7.2) < 0.05 && Math.abs(fa98.leader.lost - fa98.dmg * (1 + fa98.bonus)) < 0.01
+    && fa98.half.ok && Math.abs(fa98.half.travel - 7.2) < 0.05 && Math.abs(fa98.half.lost - fa98.dmg) < 0.01
+    && fa98.marked.ok && Math.abs(fa98.marked.travel - 7.2) < 0.05 && Math.abs(fa98.marked.lost - fa98.dmg * (1 + fa98.bonus)) < 0.01, JSON.stringify(fa98));
+  // 99 W 术·潜御: unseen for dur s (a bot 6 m away loses him; one within the shimmer radius keeps him); his first hit, even from a cast made while unseen,
+  // exposes the suit it hits: every suit sees it from anywhere for exposeS s, it is not marked and the hunter cap does not change. A hit after dur + armS s
+  // or after being hit exposes nothing.
+  const fa99 = await g(() => {
+    const G = __game, C = G.config, F = window.__fa, sk = C.KITS.fa.skills[1], o = {};
+    const park = () => { G.placeBot(0, 14, -14); G.placeBot(1, 14, -18); G.placeBot(2, -14, 5); };
+    F.start(3); G.teleport(14, -20); park(); G.step(1); o.before = G.sees(0, -1);
+    o.cast = G.cast(1, 14, -20); G.step(1); o.unseen = +G.unseenOf(-1).t.toFixed(2); o.far = G.sees(0, -1); o.near = G.sees(1, -1);
+    G.strike(-1, 2, 10); const k = G.kitState(2); o.expT = +k.expT.toFixed(2); o.seenFar = G.sees(0, 2); o.mark = G.suits()[3].markT; o.cap = G.hunters().max; o.endUnseen = G.unseenOf(-1).t;
+    F.hold(sk.exposeS + 0.1, park); o.after = G.sees(0, 2);
+    F.start(3); G.teleport(14, -20); park(); G.cast(1, 14, -20); F.hold(sk.dur + sk.armS + 0.1, park); G.strike(-1, 2, 10); o.late = G.kitState(2).expT;
+    F.start(3); G.teleport(14, -20); park(); G.cast(1, 14, -20); G.step(1); G.hitBy(0, -1, 1); G.strike(-1, 2, 10); o.hitFirst = G.kitState(2).expT;
+    F.start(3); G.teleport(14, -20); park(); G.cast(1, 14, -20); G.step(1); G.cast(0, 14, -14); F.hold(0.6, park); o.combo = +G.kitState(0).expT.toFixed(2);
+    o.dur = sk.dur; o.exposeS = sk.exposeS; F.end(); return o;
+  });
+  check('99 法甲 W: unseen dur s (shimmer within 3 m), first hit (also after a cast from it) exposes the target to every suit for exposeS s, no mark, cap unchanged; late or after being hit no exposure',
+    fa99.before && fa99.cast && Math.abs(fa99.unseen - fa99.dur) < 0.05 && !fa99.far && fa99.near && Math.abs(fa99.expT - fa99.exposeS) < 0.01 && fa99.seenFar && fa99.mark === 0
+    && fa99.cap === 1 && fa99.endUnseen === 0 && !fa99.after && fa99.late === 0 && fa99.hitFirst === 0 && fa99.combo > fa99.exposeS - 0.7, JSON.stringify(fa99));
+  // 100 R 势: a ring of radius m follows him for dur s (drawn and in the scene graph the whole time, gone after); suits inside are slowed and cannot start a dash
+  // (the player too: the Q of a 法甲 bot's ring blocks the player's W, status 'Held'); his hits grow by exec x missing health, all bonuses capped at BONUS_CAP;
+  // in the hunt the demon inside it moves slower and starts no Pounce until the ring ends.
+  const fa100 = await g(() => {
+    const G = __game, C = G.config, F = window.__fa, sk = C.KITS.fa.skills[2], o = {};
+    const park = () => { G.placeBot(0, 14, -17); G.placeBot(1, 14, -11); };
+    F.start(2); G.teleport(14, -20); park(); G.step(1); G.setCharge(-1, 100); o.cast = G.cast(2, 14, -20); o.ch = G.kitState(-1).ch;
+    F.hold(0.5, park); const a = G.kitState(-1), s = G.suits(); o.ring = { in: a.ringIn, vis: a.ringVis, r: a.ringR, auraN: a.auraN };
+    o.inside = { held: G.kitState(0).heldT > 0, slowK: s[1].slowK }; o.outside = { held: G.kitState(1).heldT > 0, slowT: s[2].slowT };
+    G.setBotHp(0, 50); G.strike(-1, 0, 10); o.half = +(50 - G.bots().list[0].hp).toFixed(4);
+    G.setBotHp(0, 20); G.strike(-1, 0, 10); o.low = +(20 - G.bots().list[0].hp).toFixed(4);
+    G.plateTo(0, 'stalker'); G.setBotHp(0, 50); G.strike(-1, 0, 10); o.capped = +(50 - G.bots().list[0].hp).toFixed(4);
+    F.hold(5.3, park); o.at59 = G.kitState(-1).ringIn; F.hold(0.5, park); o.end = { in: G.kitState(-1).ringIn, auraN: G.kitState(-1).auraN, held: G.kitState(0).heldT };
+    G.pickSchool(0); G.setBots(2); G.setDecNext(1e9); G.setHp(1e9); G.teleport(14, -20); const near = () => { G.placeBot(1, 14, -17); G.placeBot(0, -14, 5); };
+    near(); G.castSelfOf(1, 2); F.hold(0.3, near); o.botRing = G.kitState(1).ringIn; o.playerHeld = G.kitState(-1).heldT > 0; o.playerDash = G.cast(1, 14, -10); G.step(1); o.status = G.cubs().status;
+    const far = () => { G.placeBot(1, -14, 5); G.placeBot(0, -10, 5); }; F.hold(0.4, far); o.freeDash = G.cast(1, 14, -10);
+    G.pickSchool(2); G.setBots(0); window.__h.start(); G.setHp(1e9); window.__h.mute(1); window.__h.mute(2); window.__h.mute(0); G.teleport(0, -50);
+    const hold5 = () => G.placeUnit(0, 0, -55); hold5(); G.step(1); o.huntCast = G.cast(2, 0, -50); G.unitCd(0, 'pounce', 0); let pounce = 0;
+    for (let k = 0; k < Math.round((sk.dur - 0.3) / C.STEP); k++) { hold5(); G.step(1); if (G.hunt().tells.some((t) => t.move === 'pounce')) pounce++; }
+    o.pounceInRing = pounce; G.step(Math.round(0.5 / C.STEP)); let after = 0; for (let k = 0; k < 180; k++) { hold5(); G.step(1); if (G.hunt().tells.some((t) => t.move === 'pounce')) after++; }
+    o.pounceAfter = after; o.slow = sk.slow; o.exec = sk.exec; o.cap = C.BONUS_CAP; o.bonus = C.KITS.fa.law.bonus;
+    G.pickSchool(0); G.setBots(0); G.reset(); return o;
+  });
+  check('100 法甲 R: ring dur s drawn and in the scene, slows and holds suits inside (no dash, player status Held), not outside; hits grow with missing health under the cap; demon held in the hunt',
+    fa100.cast && fa100.ch === 0 && fa100.ring.in && fa100.ring.vis && fa100.ring.r === 6 && fa100.ring.auraN === 1 && fa100.inside.held && fa100.inside.slowK === fa100.slow
+    && !fa100.outside.held && fa100.outside.slowT <= 0 && Math.abs(fa100.half - 10 * (1 + fa100.exec * 0.5)) < 1e-9 && Math.abs(fa100.low - 10 * (1 + fa100.exec * 0.8)) < 1e-9
+    && Math.abs(fa100.capped - 10 * fa100.cap) < 1e-9 && fa100.at59 && !fa100.end.in && fa100.end.auraN === 0 && fa100.end.held === 0
+    && fa100.botRing && fa100.playerHeld && fa100.playerDash === false && /Held/.test(fa100.status) && fa100.freeDash === true
+    && fa100.huntCast && fa100.pounceInRing === 0 && fa100.pounceAfter > 0, JSON.stringify(fa100));
+  // 101 Signature (fog, decrees and the mark): a suit far outside the player's vision is hidden; exposed by 法甲's W hit it is drawn and on the minimap until
+  // exposeS ends; a decree breaker (marked) takes the passive bonus and is a long pursuit target.
+  const fa101 = await g(() => {
+    const G = __game, C = G.config, F = window.__fa, o = {};
+    const park = () => { G.placeBot(0, 14, -14); G.placeBot(1, -14, 5); };
+    F.start(2); G.teleport(14, -20); park(); G.step(2); const b = G.bots().list[1]; o.before = { seen: b.seen, vis: b.vis, mini: G.miniPixel(b.x, b.z) };
+    G.cast(1, 14, -20); G.step(1); G.strike(-1, 1, 10); F.hold(0.2, park); const e = G.bots().list[1]; o.exposed = { seen: e.seen, vis: e.vis, mini: G.miniPixel(e.x, e.z) };
+    F.hold(C.KITS.fa.skills[1].exposeS, park); const f = G.bots().list[1]; o.after = { seen: f.seen, vis: f.vis };
+    G.breakBy(0); o.markedLost = F.lost(0, () => G.strike(-1, 0, 10)); o.bonus = C.KITS.fa.law.bonus;
+    F.end(); return o;
+  });
+  const orange = (p) => p[0] > 200 && p[1] > 90 && p[1] < 160 && p[2] < 110;
+  check('101 法甲 signature: exposure shows a far suit through the fog (body and minimap) for exposeS s; a decree breaker takes the passive bonus',
+    !fa101.before.seen && !fa101.before.vis && !orange(fa101.before.mini) && fa101.exposed.seen && fa101.exposed.vis && orange(fa101.exposed.mini) && !fa101.after.seen && !fa101.after.vis
+    && Math.abs(fa101.markedLost - 10 * (1 + fa101.bonus)) < 1e-9, JSON.stringify(fa101));
+  // 102 法甲 in whole matches: 3 seeds with the 法甲 bot (default pick) and 1 with the player on 法甲 (autopilot), watched to the end: 法甲 on a floor every tick,
+  // the hunter cap holds every tick, never stuck over 3 s; over the 3 bot matches it casts Q, W and R at least once each.
+  const fa102 = await g(() => {
+    const G = __game, C = G.config, o = { viol: [], casts: { q: 0, w: 0, r: 0 }, player: { q: 0, w: 0, r: 0 } }, bad = (x) => { if (o.viol.length < 5) o.viol.push(x); };
+    const one = (seed, playerFa) => {
+      G.setSeed(seed); G.setBots(C.BOTS.count); G.pickSchool(playerFa ? 2 : 0); G.autoPlayer(true); G.setWatch(true);
+      const fi = playerFa ? -1 : G.schools().suits.findIndex((q) => q.school === 'fa') - 1, cnt = playerFa ? o.player : o.casts; let last = [0, 0], ult = 0;
+      for (let t = 0; t < 300 / C.STEP; t++) {
+        G.step(1); const r = G.royale(); if (r.decidedAt >= 0) break;
+        const k = G.kitState(fi), cd = k.bcd;
+        if (cd[0] > last[0] + 1e-9) cnt.q++; if (cd[1] > last[1] + 1e-9) cnt.w++; if (k.ultN > ult) cnt.r += k.ultN - ult; last = [cd[0], cd[1]]; ult = k.ultN;
+        const h = G.hunters(); if (h.capOnP > h.max) bad(`s${seed} t${t} cap ${h.capOnP}>${h.max}`);
+        if (t % 10 === 0 && fi >= 0) { const q = G.bots().list[fi]; if (!q.standOk) bad(`s${seed} t${t} fa off floor`); }
+        if (t % 10 === 0 && fi < 0 && !G.player().dead && !G.state().falling && !G.walkable(G.player().x, G.player().z, G.player().y + 0.05)) bad(`s${seed} t${t} player off floor`);
+      }
+      if (fi >= 0) { const q = G.bots().list[fi]; if (q.stuck > 3) bad(`s${seed} fa stuck ${q.stuck}`); }
+      G.setWatch(false); G.autoPlayer(false);
+    };
+    for (const seed of [12345, 2, 3]) one(seed, false);
+    one(4, true);
+    G.pickSchool(0); G.setBots(0); G.reset(); return o;
+  });
+  check('102 法甲 in whole matches: on a floor and never stuck > 3 s, hunter cap every tick, the 法甲 bot casts Q, W and R (player 法甲 autopilot reported)',
+    fa102.viol.length === 0 && fa102.casts.q > 0 && fa102.casts.w > 0 && fa102.casts.r > 0, JSON.stringify(fa102));
+  // 103 Budget with 法甲's effects: the heaviest royale (every suit, 7 cubs, tells) with the player's 势 ring drawn and an exposed far suit drawn;
+  // calls < 500, tris < 500k, no shader compile, geometry flat.
+  const fa103 = await g(() => {
+    const G = __game, C = G.config, K = window.__k, waves = C.KENNEL.waves; let best = null;
+    try {
+      C.KENNEL.waves = [[['stalker', 0], ['stalker', 0], ['stalker', 0], ['stalker', 0], ['howler', 0], ['howler', 0], ['howler', 0]]];
+      G.setSeed(12345); G.setBots(C.BOTS.count); G.pickSchool(2); G.setDecNext(1e9); K.sp(C.KENNEL.firstS + 0.1); G.setHp(1e9);
+      const cx = G.camps[0][0], cz = G.camps[0][1] + 4; G.teleport(cx, cz);
+      const park = () => { for (let i = 0; i < C.BOTS.count - 1; i++) G.placeBot(i, cx - 4 + (i % 3) * 3, cz + 2 + Math.floor(i / 3) * 1.5); G.placeBot(C.BOTS.count - 1, -14, 5); };
+      park(); G.step(1); G.setCharge(-1, 100); G.cast(2, cx, cz); G.cast(1, cx, cz); G.strike(-1, C.BOTS.count - 1, 1);
+      for (let n = 0; n < 300; n++) {
+        park(); G.step(1); const c = G.cubs(), k = G.kitState(-1), far = G.bots().list[C.BOTS.count - 1];
+        if (k.ringIn && far.vis && (!best || c.tells.length > best.tells)) { const r = G.render(true); best = { tells: c.tells.length, ring: k.ringIn, exposed: far.vis, calls: r.calls, tris: r.tris, programs: r.programs, geoms: r.geoms }; }
+      }
+    } finally { C.KENNEL.waves = waves; G.pickSchool(0); G.setBots(0); G.reset(); }
+    return best;
+  });
+  check('103 budget with 法甲 effects: every suit + cubs + tells + 势 ring + exposed suit (calls<500, tris<500k), no shader compile, geometry flat',
+    !!fa103 && fa103.ring && fa103.exposed && fa103.tells >= 1 && fa103.calls < 500 && fa103.tris < 500000 && fa103.programs === base.programs && fa103.geoms === base.geoms, JSON.stringify(fa103));
   // 66 Idle player: standing at the spawn doing nothing loses the royale (frozen loss with a cause) before the last collapse is over.
   const idle = await g(() => {
     const G = __game, C = G.config; G.setSeed(12345); G.setBots(G.config.BOTS.count); G.reset(); let t = 0;
