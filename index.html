@@ -375,8 +375,29 @@ const CONFIG = {
         { key: 'KeyR', label: 'R', nameKey: 'sk_mo_r', type: 'self', self: 'jiu', range: 0, radius: 0, dur: 8, hits: 9, push: 12, unitM: 1.5, demonM: 0.75, cd: 30, delay: 0, tag: 'guard', botR: 6 },
       ],
     },
-    // 阴阳甲 Taiji: artillery mage.
-    yinyang: { built: false, armor: 'Low', speed: 'Mid', ultMode: 'lock' },
+    // 阴阳甲 Taiji: artillery mage (batch 16 ticket 06; docs/SUITS.md; owner 23 Nov 23:3x: one number set from the doc's "about" values, balance when all nine are ready).
+    // ultMode 'lock' (owner 23 Nov 20:19): no charge meter; R needs both halves full (a landed 阴 skill fills the dark half, a landed 阳 skill the light half;
+    // a full half gains nothing; nothing fills while silenced on a bridge); R empties both and starts its cooldown (cd), which alone runs 2x under "Ultimates 2x".
+    yinyang: {
+      built: true, armor: 'Low', speed: 'Mid', ultMode: 'lock',
+      // Passive 阴阳 (the lock): shown as a taiji symbol on the status line and the R button.
+      passive: 'yinyang',
+      // Attack 两仪: an orb flies at speed m/s out to range m and hits the first target it reaches (within radius m plus the target's body) for dmg;
+      // it alternates dark and light each shot (look only: it fills no half); a wall stops it. keep = a bot steps back from a target nearer than this.
+      attack: { orb: true, range: 9, speed: 14, radius: 0.5, dmg: 7, interval: 1.0, acquire: 10, keep: 5 },
+      skills: [
+        // Q 阴·月 (yin: moon): a slow orb at speed m/s out to range m (radius m); on landing dmg, slows a suit by slow for slowS s and heals him drain;
+        // casting steps him back back m by the walking rule (his only movement). Landing fills the dark half.
+        { key: 'KeyQ', label: 'Q', nameKey: 'sk_yy_q', type: 'orb', orb: true, half: 'yin', range: 10, speed: 9, radius: 0.7, dmg: 14, slow: 0.3, slowS: 1.5, drain: 5, back: 1.2, cd: 6, delay: 0 },
+        // W 阳·日 (yang: sun): a sunburst of radius m at a point up to range m away, shown on the ground for delay s, then dmg to every target in it.
+        // Landing on a target fills the light half.
+        { key: 'KeyW', label: 'W', nameKey: 'sk_yy_w', type: 'circle', half: 'yang', range: 9, radius: 2.5, delay: 0.8, dmg: 24, cd: 7 },
+        // R 太极: a disk of radius m at a point up to range m away, shown in full for tellS s; then for phaseS s its dark half pulls suits inside toward
+        // its centre at pull m/s and slows them by slow, while its light half burns every target inside for burn every pulseS s; then it turns half a circle
+        // for another phaseS s, so everyone inside takes both halves. cd = the cooldown after use (royale and hunt).
+        { key: 'KeyR', label: 'R', nameKey: 'sk_yy_r', type: 'circle', taiji: true, range: 10, radius: 5, tellS: 1, phaseS: 1.5, pull: 4, slow: 0.4, burn: 4, pulseS: 0.25, dmg: 0, cd: 30, delay: 0 },
+      ],
+    },
     // 杂甲 Retainer: control mage.
     za: { built: false, armor: 'Mid', speed: 'Mid', ultMode: 'charge' },
     // 名甲 Debater: marksman (batch 16 ticket 05; docs/SUITS.md; owner 23 Nov 23:3x: one number set from the doc's "about" values, balance when all nine are ready).
@@ -589,6 +610,9 @@ const TEXT = {
   sk_ru_q: 'Chariot', sk_ru_w: 'Seal', sk_ru_r: 'Bells',
   sk_mo_q: 'Wall', sk_mo_w: 'Lever', sk_mo_r: 'Nine defences',
   sk_ming_q: 'Shadow blink', sk_ming_w: 'Arrowheads', sk_ming_r: 'Pointing',
+  sk_yy_q: 'Yin moon', sk_yy_w: 'Yang sun', sk_yy_r: 'Taiji',
+  yy_0: '○', yy_1: '◐', yy_2: '◑', yy_3: '☯',
+  st_yy: 'Taiji {s}',
   st_jiu: 'Nine defences {n}',
   st_sealed: 'Sealed: plates and boons off',
   rule_plate_s: 'Stalker plate: your hits cause bleeding for {s} s. +{c} ultimate charge.',
@@ -1059,6 +1083,8 @@ const DECREES = { bounty: { voice: 'voice_bounty', rule: 'rule_bounty', idx: 0 }
   heights: { voice: 'voice_dec_heights', rule: 'rule_dec_heights', hud: 'hud_dec_heights', bag: true, idx: 4 },
   ult2x: { voice: 'voice_dec_ult2x', rule: 'rule_dec_ult2x', hud: 'hud_dec_ult2x', bag: true, idx: 5 } };
 const JIU_VARS = { n: 0 };
+// The taiji symbols of 阴阳甲's lock by halves filled (0 none, 1 dark, 2 light, 3 both).
+const YY_KEYS = ['yy_0', 'yy_1', 'yy_2', 'yy_3'], YY_VARS = { s: '' };
 const SCHOOL_VARS = { who: '' }, CHARGE_VARS = { n: 0 }, LEADER_VARS = { who: '', s: 0 }, DECREE_VARS = { who: '', s: 0, zone: '' }, MARK_VARS = { s: CONFIG.DECREES.markS };
 // Decree bags (batch 12): seeded by their own generator (DRNG).
 const DRNG = { s: 1 };
@@ -1074,6 +1100,8 @@ addFow(zoneMat);
 const markGeo = new THREE.BoxGeometry(DD.markW, DD.markH, DD.markW);
 // 墨甲's wall (batch 16 ticket 04): one unit box scaled per wall, the core-hall wall material (already compiled); warmed at load.
 const wallGeo = new THREE.BoxGeometry(1, 1, 1);
+// 阴阳甲's 太极 (batch 16 ticket 06): one unit half disk on the ground (the half toward local -z), drawn twice per disk (dark and light); warmed at load.
+const halfDiskGeo = new THREE.CircleGeometry(1, 40, 0, Math.PI); halfDiskGeo.rotateX(-Math.PI / 2);
 // Most targets one hit can reach (dummies, hunt units, cubs, buff creatures, bots and the player): the size of 名甲's per-pass hit list (ticket 05).
 const TARGET_MAX = DUMMY_LIST.length + ENEMIES.length + CUBS.length + NEUTRALS.length + BOTLIST.length + 1;
 for (let k = 0; k < SUITS.length; k++) {
@@ -1109,6 +1137,14 @@ for (let k = 0; k < SUITS.length; k++) {
   const decoy = { kind: 'shadow', owner: s, x: 0, z: 0, y: 0, r: CONFIG.PLAYER_RADIUS, hp: 0, seen: false, mesh: decoyMesh };
   const hang = [M.fx, M.tellD].map((m) => ({ t: -1, sk: null, ox: 0, oz: 0, oy: 0, dx: 0, dz: 0, ord: false, mesh: new THREE.Mesh(tellLineGeo, m) }));
   Object.assign(s, { chainT: null, chainB: 0, chainAt: -99, wheel, shadowT: 0, decoy, hang });
+  // 阴阳甲 state (ticket 06): yinF / yangF = the dark and light halves of his lock are full; orbs = his attack orb [0] and his 阴 orb [1]
+  // (built once each: the wall's unit box, dark or light, in the scene only while flying); taiji = his 太极 disk (two half disks built once;
+  // t = seconds since cast, -1 = none; flip = the halves have turned; pulse = index of its last burn pulse).
+  const orbs = [0, 1].map(() => ({ on: false, x: 0, z: 0, y: 0, dx: 0, dz: 0, gone: 0, sk: null, ord: false, mesh: new THREE.Mesh(wallGeo, M.blob) }));
+  const taiji = { t: -1, sk: null, x: 0, z: 0, y: 0, nx: 0, nz: 1, flip: false, pulse: 0, ord: false, dark: new THREE.Mesh(halfDiskGeo, M.blob), light: new THREE.Mesh(halfDiskGeo, M.fx) };
+  for (const o of orbs) o.mesh.castShadow = false;
+  taiji.dark.castShadow = false; taiji.light.castShadow = false;
+  Object.assign(s, { yinF: false, yangF: false, orbs, taiji });
   applyKit(s, CONFIG.SCHOOLS[0]);
 }
 // Brain fields on the player too, used only by the test autopilot (__game.autoPlayer).
@@ -1284,8 +1320,10 @@ function castSkill(slot, tx, tz) {
   breakUnseen(P);
   P.faceX = dx; P.faceZ = dz;
   // The ultimate on the meter (royale) empties it and has no cooldown; every other cast starts its cooldown.
-  if (slot === 2 && onMeter(P)) { P.ch = 0; P.ultN++; } else st.cdT = sk.cd;
+  if (slot === 2) spendUlt(P, sk); else st.cdT = sk.cd;
   if (sk.self) castSelf(P, sk, true);
+  else if (sk.orb) fireOrb(P, 1, sk, dx, dz, true);
+  else if (sk.taiji) startTaiji(P, sk, x, z, dx, dz, true);
   else if (sk.wall) raiseWall(P, sk);
   else if (sk.hang) startHang(P, slot, dx, dz, true);
   else if (sk.dash) startDash(P, slot, dx, dz, true, suitDashLen(P, sk, tx, tz));
@@ -1340,8 +1378,19 @@ function hitTarget(by, d, n) {
 }
 // Ultimate charge (batch 15): a suit's R runs on the meter in the royale (charge mode); the hunt keeps the R cooldown.
 function onMeter(s) { return G.phase === 'royale' && s.ultMode === 'charge'; }
-// The player's skill in this slot can be cast now: its cooldown is over and, for R on the meter, the meter is full.
-function playerReady(slot) { return SK[slot].cdT <= 0 && (slot !== 2 || !onMeter(P) || P.ch >= CONFIG.ULT.full); }
+// A suit's ultimate is unlocked (cooldown aside): on the meter it is full; 阴阳甲's lock (ultMode 'lock', batch 16) has both halves full.
+function ultUnlocked(s) { return s.ultMode === 'lock' ? s.yinF && s.yangF : !onMeter(s) || s.ch >= CONFIG.ULT.full; }
+// The player's skill in this slot can be cast now: its cooldown is over and, for R, it is unlocked.
+function playerReady(slot) { return SK[slot].cdT <= 0 && (slot !== 2 || ultUnlocked(P)); }
+// A suit casts its ultimate: the meter empties (no cooldown in the royale), else the cooldown starts; 阴阳甲's lock empties both halves.
+function spendUlt(s, sk) {
+  if (onMeter(s)) s.ch = 0; else if (s === P) SK[2].cdT = sk.cd; else s.cd[2] = sk.cd;
+  if (s.ultMode === 'lock') { s.yinF = false; s.yangF = false; }
+  // ultN counts the ultimates cast in the royale (sims).
+  if (G.phase === 'royale') s.ultN++;
+}
+// The ultimate's cooldown runs ultK times as fast under "Ultimates 2x" for 阴阳甲's lock only (the meter's gains are doubled instead).
+function ultCdK(s) { return s.ultMode === 'lock' && decOn('ult2x') ? CONFIG.DECREES.ultK : 1; }
 // Add charge to a suit (only on the meter and alive); the ult2x decree multiplies every gain.
 function gainCharge(s, v) {
   if (!onMeter(s) || s.dead || v <= 0) return;
@@ -1649,7 +1698,7 @@ const G = { time: 0, view: 'follow', paused: false, ctxLost: false, frames: 0, b
   huntN: 0, huntClaims: 0, huntFrees: 0,
   leader: null, leadT: 0, leaderChanges: 0, leaderCode: -1, leaderWrites: 0, miniLeader: false,
   bountyN: 0, bountyWarnAt: -1, bountyStartAt: -1, bountyEndAt: -1, bountyEndWhy: '', bountyPaid: 0, bountyPaidTo: -1,
-  auraN: 0, bellN: 0, wallN: 0, wheelN: 0, shadowN: 0, hangN: 0, decNext: 0, decN: 0, decCount: { dry: 0, nodash: 0, silence: 0, heights: 0, ult2x: 0 }, decLog: [], brkP: 0, brkB: 0, decCode: -1, decWrites: 0, hiAvoid: false, zoneSec: null, skips: 0, chWrites: 0 , school: 0, selecting: false, selectOn: false, selBtns: [], saveFail: false};
+  auraN: 0, bellN: 0, wallN: 0, wheelN: 0, shadowN: 0, hangN: 0, orbN: 0, taijiN: 0, decNext: 0, decN: 0, decCount: { dry: 0, nodash: 0, silence: 0, heights: 0, ult2x: 0 }, decLog: [], brkP: 0, brkB: 0, decCode: -1, decWrites: 0, hiAvoid: false, zoneSec: null, skips: 0, chWrites: 0 , school: 0, selecting: false, selectOn: false, selBtns: [], saveFail: false};
 // The one decree slot (batch 11): st 0 idle, 1 queued, 2 warning (banner), 3 in force. key = decree name, tgt = its suit (bounty), t = seconds left in the state.
 // Decree slot. st: 0 free, 1 queued, 2 warning, 3 in force. len = seconds in force; zone = the no-dash decree's section; warnAt = when its warning began.
 const DEC = { st: 0, key: '', tgt: null, t: 0, count: -1, banner: false, len: 0, zone: null, warnAt: -1 };
@@ -1756,6 +1805,8 @@ function step(dt) {
   stepWheels(dt);
   stepShadows(dt);
   stepHangs(dt);
+  stepOrbs(dt);
+  stepTaiji(dt);
   const vr = CONFIG.VISION_R + (boonOn(P, 2) ? P.bV[2] : 0);
   if (vr !== G.visR) { G.visR = vr; if (G.view === 'follow') FOW.uFowR.value = vr; }
   if (roy && CONFIG.ROYALE_MINIONS) stepKennel(dt);
@@ -1887,13 +1938,15 @@ function stepBody(s, mx, mz, dt) {
 function stepCombat(dt) {
   for (let i = 0; i < SK.length; i++) {
     const st = SK[i];
-    if (st.cdT > 0) st.cdT = Math.max(0, st.cdT - dt);
+    if (st.cdT > 0) st.cdT = Math.max(0, st.cdT - (i === 2 ? dt * ultCdK(P) : dt));
     // R on the meter (batch 15) shows its whole charge on the dark cover until full (code -2 - charge, so -1 never matches) and the gold ring; otherwise the cooldown seconds.
-    const meter = i === 2 && onMeter(P), c = meter ? (P.ch >= CONFIG.ULT.full ? 0 : -2 - Math.floor(P.ch)) : Math.ceil(st.cdT);
+    // 阴阳甲's lock (batch 16): off cooldown, the R button shows the taiji symbol of the halves filled (code -1000 - halves) until both are full.
+    const meter = i === 2 && onMeter(P), lock = i === 2 && P.ultMode === 'lock', yy = (P.yinF ? 1 : 0) + (P.yangF ? 2 : 0);
+    const c = meter ? (P.ch >= CONFIG.ULT.full ? 0 : -2 - Math.floor(P.ch)) : lock && st.cdT <= 0 ? (yy === 3 ? 0 : -1000 - yy) : Math.ceil(st.cdT);
     if (c !== st.shown) {
       st.shown = c;
-      if (st.cdEl) { CHARGE_VARS.n = -2 - c; setText(st.cdEl, c < 0 ? T('ult_charge', CHARGE_VARS) : c > 0 ? String(c) : ''); setShow(st.cdEl, c !== 0); }
-      if (st.ring) { setShow(st.ring, meter); if (meter) setRing(st.ring, c < 0 ? -2 - c : 100); }
+      if (st.cdEl) { CHARGE_VARS.n = -2 - c; setText(st.cdEl, c <= -1000 ? T(YY_KEYS[yy]) : c < 0 ? T('ult_charge', CHARGE_VARS) : c > 0 ? String(c) : ''); setShow(st.cdEl, c !== 0); }
+      if (st.ring) { setShow(st.ring, meter || lock); if (meter) setRing(st.ring, c < 0 ? -2 - c : 100); else if (lock) setRing(st.ring, c === 0 ? 100 : c <= -1000 ? (yy ? 50 : 0) : 0); }
       if (i === 2) G.chWrites++;
     }
   }
@@ -2110,7 +2163,7 @@ function breakDecree(s) {
   if (s === P) showNote('voice_marked', 'rule_marked', MARK_VARS);
 }
 // Marks off every suit (the wake and a new run).
-function clearMarks() { for (let i = 0; i < SUITS.length; i++) { const s = SUITS[i]; s.markT = 0; s.brkT = 0; s.marker.visible = false; s.dashLeft = 0; s.wsT = -99; breakUnseen(s); s.expT = 0; s.expArmT = 0; s.heldT = 0; s.sealT = 0; endAura(s); endBells(s); lowerWall(s); s.jiuT = 0; s.jiuN = 0; s.jiuSk = null; s.stillT = 0; s.atkAt = -99; endMing(s); } }
+function clearMarks() { for (let i = 0; i < SUITS.length; i++) { const s = SUITS[i]; s.markT = 0; s.brkT = 0; s.marker.visible = false; s.dashLeft = 0; s.wsT = -99; breakUnseen(s); s.expT = 0; s.expArmT = 0; s.heldT = 0; s.sealT = 0; endAura(s); endBells(s); lowerWall(s); s.jiuT = 0; s.jiuN = 0; s.jiuSk = null; s.stillT = 0; s.atkAt = -99; endMing(s); endYinyang(s); } }
 // ----- Unseen state (batch 16, minimal; curtains and walls blocking sight come with hiding in batch 18).
 function goUnseen(s, sec) { s.unseenT = sec; setShimmer(s, true); }
 function breakUnseen(s) { if (s.unseenT <= 0) return; s.unseenT = 0; setShimmer(s, false); }
@@ -2188,6 +2241,8 @@ function basicAttack(s, d) {
   const at = s.kit.attack;
   // 名甲's wheel (ticket 05): thrown, it hits on its way out and back (a player order follows the player's targeting rule).
   if (at.wheel) { throwWheel(s, d, s === P && !G.autoP); return; }
+  // 阴阳甲's 两仪 (ticket 06): an orb flies at the target and lands on the first target it reaches.
+  if (at.orb) { s.atkN++; const ox = d.x - s.x, oz = d.z - s.z, ol = Math.hypot(ox, oz) || 1; fireOrb(s, 0, at, ox / ol, oz / ol, s === P && !G.autoP); return; }
   // Bolts and arrows (attacks reaching past melee, MELEE_M) stop at a standing wall (墨甲's 距云梯); a cut does not.
   if (!at.closeR) { if (at.range <= CONFIG.MELEE_M || !wallCuts(s.x, s.z, d.x, d.z)) hitTarget(s, d, at.dmg); return; }
   s.atkN++;
@@ -2324,7 +2379,7 @@ function chainHit(by, d) {
 // How near a bot wants its target to cast its ready aura ultimate (radius x botIn), or a huge distance when it has none ready (then it fights from its reach).
 function botAuraIn(b) {
   const sk = b.kit.skills[2];
-  if (sk.tag !== 'aura' || b.cd[2] > 0 || b.pend || (onMeter(b) && b.ch < CONFIG.ULT.full) || silenced(b)) return 1e9;
+  if (sk.tag !== 'aura' || b.cd[2] > 0 || b.pend || !ultUnlocked(b) || silenced(b)) return 1e9;
   return sk.radius * sk.botIn;
 }
 // What a bot acts on: its target, or the target's shadow while 名甲's shadow stands (the brain and the player's auto-target take it for him).
@@ -2435,6 +2490,110 @@ function strikeHang(s, h) {
 }
 // Everything of 名甲's that is out (a new run, the wake, out of the match).
 function endMing(s) { dropWheel(s); endShadow(s); endHang(s, 0); endHang(s, 1); s.chainT = null; s.chainB = 0; s.chainAt = -99; }
+// ----- 阴阳甲 (batch 16 ticket 06): the lock, the two orbs and 太极.
+// A half of the lock ('yin' dark, 'yang' light) is full.
+function halfFull(s, half) { return half === 'yin' ? s.yinF : s.yangF; }
+// A landed 阴 or 阳 skill fills its half (a full half gains nothing); nothing fills while he is silenced on a bridge.
+function fillHalf(s, half) {
+  if (s.ultMode !== 'lock' || silenced(s)) return;
+  if (half === 'yin') s.yinF = true; else s.yangF = true;
+}
+// Fire suit s's orb k (0 = the attack 两仪, at = the attack; 1 = 阴, at = the skill) along dx, dz; ord = a player order (the player's targeting rule).
+// The attack orb alternates dark and light each shot (look only). 阴 steps him back by the walking rule as it leaves.
+function fireOrb(s, k, at, dx, dz, ord) {
+  const o = s.orbs[k];
+  o.on = true; o.x = s.x; o.z = s.z; o.y = s.y; o.dx = dx; o.dz = dz; o.gone = 0; o.sk = at; o.ord = ord;
+  o.mesh.material = k === 0 && s.atkN % 2 === 0 ? M.fx : M.blob;
+  o.mesh.scale.setScalar(at.radius); o.mesh.position.set(o.x, o.y + 1, o.z);
+  if (!o.mesh.parent) { scene.add(o.mesh); G.orbN++; }
+  if (k === 1 && at.back) stepBack(s, -dx, -dz, at.back);
+}
+// Walk suit s up to m metres along dx, dz in short steps by the walking rule (a rail, wall or the void stops it).
+function stepBack(s, dx, dz, m) {
+  for (let w = 0; w < m - 1e-6; w += 0.25) {
+    const d = Math.min(0.25, m - w), nx = s.x + dx * d, nz = s.z + dz * d;
+    if (!tryMove(s, nx, nz, false)) return;
+    s.x = nx; s.z = nz;
+  }
+}
+function dropOrb(s, k) { const o = s.orbs[k]; if (!o.on) return; o.on = false; o.sk = null; if (o.mesh.parent) { scene.remove(o.mesh); G.orbN--; } }
+// Orbs (fixed step): fly straight at their speed to their range (a standing wall stops them); the first target within radius lands it
+// (the attack: its damage; 阴: the skill's hit, which fills the dark half). Drawn where the player can see them.
+function stepOrbs(dt) {
+  if (G.orbN <= 0) return;
+  for (let i = 0; i < SUITS.length; i++) {
+    const s = SUITS[i];
+    for (let k = 0; k < 2; k++) {
+      const o = s.orbs[k]; if (!o.on) continue;
+      if (s.dead) { dropOrb(s, k); continue; }
+      const at = o.sk, stp = at.speed * dt, nx = o.x + o.dx * stp, nz = o.z + o.dz * stp;
+      if (wallCuts(o.x, o.z, nx, nz)) { dropOrb(s, k); continue; }
+      o.x = nx; o.z = nz; o.gone += stp;
+      if (orbLands(s, k, o, at) || o.gone >= at.range) { dropOrb(s, k); continue; }
+      o.mesh.position.set(o.x, o.y + 1, o.z);
+      o.mesh.visible = s === P || Math.hypot(o.x - P.x, o.z - P.z) <= G.visR;
+    }
+  }
+}
+// The first target the orb reaches takes it: true when it landed.
+function orbLands(s, k, o, at) {
+  for (let i = -1; i < TARGETS.length; i++) {
+    const d = i < 0 ? P : TARGETS[i];
+    if (!skillTargetOk(s, d, o.ord) || Math.abs(d.y - o.y) > 2 || Math.hypot(d.x - o.x, d.z - o.z) > at.radius + d.r) continue;
+    if (k === 0) hitTarget(s, d, at.dmg); else skillHit(s, at, d, o.dx, o.dz);
+    return true;
+  }
+  return false;
+}
+// 太极 at x, z from suit s cast along dx, dz: the dark half lies on the left of the cast line. Shown in full for tellS s, then active.
+function startTaiji(s, sk, x, z, dx, dz, ord) {
+  const t = s.taiji;
+  t.t = 0; t.sk = sk; t.x = x; t.z = z; t.y = topYUnder(x, z, s.y + 1); t.nx = -dz; t.nz = dx; t.flip = false; t.pulse = -1; t.ord = ord;
+  t.dark.material = M.blob; t.light.material = M.fx;
+  const a = Math.atan2(-t.nx, -t.nz);
+  t.dark.position.set(x, t.y + 0.06, z); t.dark.scale.setScalar(sk.radius); t.light.position.set(x, t.y + 0.06, z); t.light.scale.setScalar(sk.radius);
+  t.dark.rotation.y = a; t.light.rotation.y = a + Math.PI;
+  if (!t.dark.parent) { scene.add(t.dark, t.light); G.taijiN++; }
+}
+function endTaiji(s) { const t = s.taiji; if (t.t < 0) return; t.t = -1; t.sk = null; if (t.dark.parent) { scene.remove(t.dark, t.light); G.taijiN--; } }
+// The point x, z lies in the disk's dark half now (the halves swap when the disk has turned).
+function inDark(t, x, z) { return ((x - t.x) * t.nx + (z - t.z) * t.nz >= 0) !== t.flip; }
+// 太极 disks (fixed step): shown for tellS s; then phaseS s of pull and slow in the dark half and burn pulses in the light half; then it turns
+// half a circle (the two halves swap) for another phaseS s; then it is gone. Drawn where the player's vision reaches the disk.
+function stepTaiji(dt) {
+  if (G.taijiN <= 0) return;
+  for (let i = 0; i < SUITS.length; i++) {
+    const s = SUITS[i], t = s.taiji; if (t.t < 0) continue;
+    if (s.dead) { endTaiji(s); continue; }
+    t.t += dt;
+    const vis = s === P || Math.hypot(t.x - P.x, t.z - P.z) <= G.visR + t.sk.radius;
+    t.dark.visible = vis; t.light.visible = vis;
+    // a = seconds active (a hair added so the summed fixed steps land on the boundaries); pulse = index of the last burn pulse, one per pulseS
+    // (phaseS / pulseS pulses in each half).
+    const sk = t.sk, a = t.t - sk.tellS + 1e-6;
+    if (a < 0) continue;
+    if (a >= 2 * sk.phaseS) { endTaiji(s); continue; }
+    if (a >= sk.phaseS && !t.flip) { t.flip = true; t.dark.material = M.fx; t.light.material = M.blob; }
+    const k = Math.floor(a / sk.pulseS), burn = k !== t.pulse;
+    if (burn) t.pulse = k;
+    taijiActs(s, t, sk, burn);
+  }
+}
+// One step of an active 太极: suits in the dark half are pulled toward its centre and slowed; on a pulse every target in the light half burns.
+function taijiActs(s, t, sk, burn) {
+  for (let i = -1; i < TARGETS.length; i++) {
+    const d = i < 0 ? P : TARGETS[i];
+    if (!skillTargetOk(s, d, t.ord) || Math.abs(d.y - t.y) > 2) continue;
+    const ex = t.x - d.x, ez = t.z - d.z, l = Math.hypot(ex, ez);
+    if (l > sk.radius + d.r) continue;
+    if (!inDark(t, d.x, d.z)) { if (burn) hitTarget(s, d, sk.burn); continue; }
+    if (d.kind !== 'suit' || d.dead) continue;
+    d.slowK = Math.max(d.slowT > 0 ? d.slowK : 0, sk.slow); d.slowT = Math.max(d.slowT, 0.2);
+    if (l > 0.3) { d.kx = ex / l * sk.pull; d.kz = ez / l * sk.pull; }
+  }
+}
+// Everything of 阴阳甲's that is out, and his lock (a new run, the wake, out of the match).
+function endYinyang(s) { dropOrb(s, 0); dropOrb(s, 1); endTaiji(s); s.yinF = false; s.yangF = false; }
 // Start a dash (W): toward dx, dz for the skill's range by the walking rule; ord = a player order (its hits follow the player's own rules), else the bot brain.
 // Dashing while standing in the no-dash zone breaks that decree.
 // len = metres to dash (a pursuit dash stops at its target, batch 16), else the skill's range.
@@ -2499,7 +2658,7 @@ function updateLeaderHud() {
 function suitFell(s) { if (s === P && G.botN === 0) respawn('fell'); else suitDown(s, 'fall', null); }
 // A bot leaves the match: body out of the scene, no longer a target.
 function botOut(b) {
-  b.dead = true; b.hp = 0; b.seen = false; b.navWant = false; b.path.n = 0; b.pend = false; endAura(b); endBells(b); endMing(b);
+  b.dead = true; b.hp = 0; b.seen = false; b.navWant = false; b.path.n = 0; b.pend = false; endAura(b); endBells(b); endMing(b); endYinyang(b);
   if (b.group.parent) scene.remove(b.group);
   if (b.ring.parent) scene.remove(b.ring);
   if (ORD.attack === b) ORD.attack = null;
@@ -2513,9 +2672,9 @@ function updateStatus() {
   const sil = silenced(P), mk = P.markT > 0;
   // Skill buttons show the silence (class written only on change).
   if (sil !== P.silShown) { P.silShown = sil; el.bar.classList.toggle('silenced', sil); }
-  const hd = held(P), ex = P.expT > 0, un = P.unseenT > 0, se = P.sealT > 0, jn = P.jiuT > 0 ? P.jiuN : 0;
+  const hd = held(P), ex = P.expT > 0, un = P.unseenT > 0, se = P.sealT > 0, jn = P.jiuT > 0 ? P.jiuN : 0, yy = P.ultMode === 'lock' ? 1 + (P.yinF ? 1 : 0) + (P.yangF ? 2 : 0) : 0;
   const code = (P.stunT > 0 ? 100 : 0) + (P.slowT > 0 ? 10 : 0) + P.bleedN + s0 * 1e3 + s1 * 1e5 + (P.pk[0] === 'howler' ? 1e7 : 0) + (P.pk[1] === 'howler' ? 2e7 : 0) + (sil ? 4e7 : 0) + (mk ? 8e7 : 0)
-    + (hd ? 16e7 : 0) + (ex ? 32e7 : 0) + (un ? 64e7 : 0) + (se ? 128e7 : 0) + jn * 256e7;
+    + (hd ? 16e7 : 0) + (ex ? 32e7 : 0) + (un ? 64e7 : 0) + (se ? 128e7 : 0) + jn * 256e7 + yy * 256e8;
   const tick = P.bT[0] + P.bT[1] + P.bT[2] + P.bT[3] > 0 ? Math.floor(G.time) : -1;
   if (code === P.statusShown && tick === P.statusTick) return;
   P.statusShown = code; P.statusTick = tick;
@@ -2524,6 +2683,8 @@ function updateStatus() {
   if (mk) s += T('st_marked') + '  ';
   if (un) s += T('st_unseen') + '  ';
   if (jn > 0) { JIU_VARS.n = jn; s += T('st_jiu', JIU_VARS) + '  '; }
+  // 阴阳甲's lock: the taiji symbol of the halves filled.
+  if (yy > 0) { YY_VARS.s = T(YY_KEYS[yy - 1]); s += T('st_yy', YY_VARS) + '  '; }
   if (ex) s += T('st_exposed') + '  ';
   if (hd) s += T('st_held') + '  ';
   if (se) s += T('st_sealed') + '  ';
@@ -2964,7 +3125,7 @@ function botNav(b) {
 }
 // Timers a bot brain needs each step (bots and the test autopilot).
 function tickBrain(b, dt) {
-  for (let i = 0; i < 3; i++) if (b.cd[i] > 0) b.cd[i] = Math.max(0, b.cd[i] - dt);
+  for (let i = 0; i < 3; i++) if (b.cd[i] > 0) b.cd[i] = Math.max(0, b.cd[i] - (i === 2 ? dt * ultCdK(b) : dt));
   if (b.atkT > 0) b.atkT -= dt;
   if (b.castT > 0) b.castT -= dt;
   b.goalT += dt;
@@ -3157,7 +3318,9 @@ function botUseSkills(b, q, d) {
   for (let slot = 0; slot < 3; slot++) {
     const sk = S[slot];
     // Batch 15: R on the meter also needs a full meter.
-    if (b.cd[slot] > 0 || (slot === 2 && (b.pend || (onMeter(b) && b.ch < CONFIG.ULT.full)))) continue;
+    if (b.cd[slot] > 0 || (slot === 2 && (b.pend || !ultUnlocked(b)))) continue;
+    // 阴阳甲 (lock): a skill whose half is already full waits while the other half is still empty (the bot alternates 阴 and 阳 to unlock 太极).
+    if (sk.half && b.ultMode === 'lock' && halfFull(b, sk.half) && !halfFull(b, sk.half === 'yin' ? 'yang' : 'yin')) continue;
     // Batch 16: the brain reads the skill's tag. 'ult' is kept to finish a target or used under BOT.ultBelowHp.
     if (sk.tag === 'ult' && q.hp > sk.dmg && b.hp >= B.ultBelowHp) continue;
     // 'dashIn' closes in: only from BOT.dashMinM to BOT.dashMaxM away (a pursuit dash: to its own range) and on about the target's layer;
@@ -3173,9 +3336,11 @@ function botUseSkills(b, q, d) {
     if (sk.tag === 'blinkAway') { dx = -dx; dz = -dz; }
     const dist = sk.type === 'line' ? sk.range : Math.min(len, sk.range), x = b.x + dx * dist, z = b.z + dz * dist;
     if (sk.wall && !wallFits(b, sk, q.x + dx * sk.botBehind, q.z + dz * sk.botBehind, dx, dz)) continue;
-    if (slot === 2 && onMeter(b)) { b.ch = 0; b.ultN++; } else b.cd[slot] = sk.cd;
+    if (slot === 2) spendUlt(b, sk); else b.cd[slot] = sk.cd;
     b.faceX = dx; b.faceZ = dz; b.castT = CONFIG.BOT.castGapS; breakUnseen(b);
     if (sk.self) castSelf(b, sk, false);
+    else if (sk.orb) fireOrb(b, 1, sk, dx, dz, false);
+    else if (sk.taiji) startTaiji(b, sk, x, z, dx, dz, false);
     else if (sk.wall) raiseWall(b, sk);
     else if (sk.hang) startHang(b, slot, dx, dz, false);
     else if (sk.dash) startDash(b, slot, dx, dz, false, suitDashLen(b, sk, tx, tz));
@@ -3215,10 +3380,15 @@ function skillTargetOk(s, d, ord) {
 // A skill lands on d: its damage, then its kit effects on a suit: 正名's seal (儒甲 W) and the chariot's sideways drive (儒甲 Q, away from the path).
 function skillHit(s, sk, d, dx, dz) {
   hitTarget(s, d, sk.dmg);
+  // 阴阳甲 (ticket 06): a landed 阴 or 阳 fills its half; 阴 heals him drain.
+  if (sk.half) fillHalf(s, sk.half);
+  if (sk.drain && !s.dead) s.hp = Math.min(CONFIG.MAX_HP, s.hp + sk.drain);
   // 墨甲's lever (W): flung away from him: a suit by knockback (a broken-rail gap can take it into the void), a cub or minion unitM m, the demon demonM m.
   if (sk.fling && d.kind) flingFrom(s, sk, d);
   if (d.kind !== 'suit' || d.dead) return;
   if (sk.seal) d.sealT = Math.max(d.sealT, sk.seal);
+  // 阴's slow on a suit.
+  if (sk.slow) { d.slowK = Math.max(d.slowT > 0 ? d.slowK : 0, sk.slow); d.slowT = Math.max(d.slowT, sk.slowS); }
   if (sk.side) { const sg = (d.x - s.x) * dz - (d.z - s.z) * dx >= 0 ? 1 : -1; d.kx += dz * sg * sk.side; d.kz -= dx * sg * sk.side; }
 }
 // A target on 墨甲's lever is flung away from suit s (buff creatures keep their walk).
@@ -3265,6 +3435,11 @@ function botDanger(b, x, z, margin) {
       const qx = x - h.ox, qz = z - h.oz, along = qx * h.dx + qz * h.dz, side = qx * h.dz - qz * h.dx;
       if (along >= -margin && along <= h.sk.range + margin && Math.abs(side) <= h.sk.width / 2 + margin) { const sg = side >= 0 ? 1 : -1; DNG.ex = h.dz * sg; DNG.ez = -h.dx * sg; return true; }
     }
+  }
+  // 阴阳甲's 太极, seen for the reaction time: step out away from its centre.
+  if (G.taijiN > 0) for (let i = 0; i < SUITS.length; i++) {
+    const o = SUITS[i], t = o.taiji; if (o === b || t.t < react || Math.abs(t.y - b.y) > 2) continue;
+    if (Math.hypot(x - t.x, z - t.z) < t.sk.radius + margin) { DNG.ex = b.x - t.x; DNG.ez = b.z - t.z; if (DNG.ex === 0 && DNG.ez === 0) DNG.ez = 1; return true; }
   }
   if (PEND.on && skillOf(P, PEND.slot).delay - PEND.t >= react && Math.hypot(x - PEND.x, z - PEND.z) < skillOf(P, PEND.slot).radius + margin) {
     DNG.ex = b.x - PEND.x; DNG.ez = b.z - PEND.z; if (DNG.ex === 0 && DNG.ez === 0) DNG.ez = 1; return true;
@@ -3410,6 +3585,8 @@ function startHunt() {
   P.hp = CONFIG.MAX_HP; P.hpShown = -1; P.noHealT = 0; P.zone = null;
   // The wake fills the meter (batch 15); the hunt keeps the R cooldown.
   P.ch = CONFIG.ULT.full;
+  // 阴阳甲's lock is filled by the wake too (batch 16): his first 太极 is ready, then each one needs both halves again.
+  P.yinF = true; P.yangF = true;
   clearPlayerStatus(); updateHp();
   setText(el.next, T('next_hunt')); G.nextWave = -2;
   setText(el.bossname, T('boss_name'));
@@ -3810,6 +3987,9 @@ const warmHunt = [warmSeal, crown];
 P.wall.mesh.scale.set(1, 1, 1); P.wall.mesh.position.set(P.x, P.y, P.z); P.wall.mesh.updateMatrix(); warmHunt.push(P.wall.mesh);
 // 名甲's wheel, shadow and two hanging lines (batch 16 ticket 05; existing shapes and materials) are drawn once here too, at the player.
 for (const o of [P.wheel.mesh, P.decoy.mesh, P.hang[0].mesh, P.hang[1].mesh]) { o.position.set(P.x, P.y, P.z); warmHunt.push(o); }
+// 阴阳甲's two orbs (the wall's box in dark and light) and the two half disks of 太极 (ticket 06) are drawn once here too, at the player.
+P.orbs[1].mesh.material = M.fx;
+for (const o of [P.orbs[0].mesh, P.orbs[1].mesh, P.taiji.dark, P.taiji.light]) { o.position.set(P.x, P.y, P.z); warmHunt.push(o); }
 for (const u of ENEMIES.concat(NEUTRALS)) {
   warmHunt.push(u.group, u.ring, u.line, u.plate); u.group.visible = u.ring.visible = u.line.visible = true;
   for (const o of [u.group, u.ring, u.line, u.plate]) o.position.set(P.x, P.y, P.z);
@@ -3883,7 +4063,20 @@ window.__game = {
   botCast(i, slot, x, z) {
     const b = BOTLIST[i], sk = skillOf(b, slot); let dx = x - b.x, dz = z - b.z; const l = Math.hypot(dx, dz) || 1; dx /= l; dz /= l; b.faceX = dx; b.faceZ = dz; b.cd[slot] = sk.cd;
     if (sk.hang) startHang(b, slot, dx, dz, false); else if (sk.dash) startDash(b, slot, dx, dz, false, suitDashLen(b, sk, x, z)); else if (sk.wall && wallFits(b, sk, x, z, dx, dz)) raiseWall(b, sk);
+    else if (sk.orb) fireOrb(b, 1, sk, dx, dz, false);
+    else if (sk.taiji) { const m = Math.min(l, sk.range); if (slot === 2) spendUlt(b, sk); startTaiji(b, sk, b.x + dx * m, b.z + dz * m, dx, dz, false); }
+    else if (sk.delay > 0) { const m = Math.min(l, sk.range); b.pend = true; b.pendT = sk.delay; b.pendS = slot; b.pendX = b.x + dx * m; b.pendZ = b.z + dz * m; b.pendDx = dx; b.pendDz = dz; b.pendAge = 0;
+      b.ring.position.set(b.pendX, topYUnder(b.pendX, b.pendZ, b.y + 1) + 0.07, b.pendZ); b.ring.scale.setScalar(sk.radius); scene.add(b.ring); }
   },
+  // 阴阳甲 (ticket 06): his lock, orbs and 太极 (checks only).
+  yyState(i) {
+    const q = i < 0 ? P : BOTLIST[i], t = q.taiji, sk = skillOf(q, 2);
+    return { yin: q.yinF, yang: q.yangF, ultMode: q.ultMode, unlocked: ultUnlocked(q), cdR: i < 0 ? SK[2].cdT : q.cd[2], ultN: q.ultN, orbs: q.orbs.map((o) => ({ on: o.on, inScene: !!o.mesh.parent, vis: o.mesh.visible, x: o.x, z: o.z, gone: o.gone, dark: o.mesh.material === M.blob })),
+      taiji: { t: t.t, inScene: !!t.dark.parent, vis: t.dark.visible && t.light.visible, flip: t.flip, x: t.x, z: t.z, nx: t.nx, nz: t.nz, r: t.dark.scale.x },
+      orbN: G.orbN, taijiN: G.taijiN, rText: SK[2].cdEl.textContent, rCover: SK[2].cdEl.style.display, ring: SK[2].ring.style.background, status: el.status.textContent, writes: G.chWrites, radius: sk.radius };
+  },
+  // Fill a half of a suit's lock (checks only).
+  yyFill(i, yin, yang) { const q = i < 0 ? P : BOTLIST[i]; q.yinF = !!yin; q.yangF = !!yang; },
   autoPick(r) { const t = autoTarget(r); return !t ? -1 : t.kind === 'shadow' ? 'shadow' + t.owner.id : t.kind === 'suit' ? t.id : -2; },
   actOf(i) { const t = actTarget(BOTLIST[i].tgt); return !t ? -1 : t.kind === 'shadow' ? 'shadow' + t.owner.id : t === P ? 0 : t.kind === 'suit' ? t.id : -2; },
   moState(i) { const q = i < 0 ? P : BOTLIST[i], w = q.wall; return { up: !w.off, x0: w.x0, x1: w.x1, z0: w.z0, z1: w.z1, sec: w.s.id, wallT: q.wallT, meshIn: !!w.mesh.parent,

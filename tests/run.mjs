@@ -1548,7 +1548,8 @@ try {
     // Batch 16 ticket 03 (game changed on purpose): 儒甲 built too; the checks' placeholder player (pkit, default pick 儒甲) plays the placeholder, every bot its school's kit when built.
     // Batch 16 ticket 04 (game changed on purpose): 墨甲 built too.
     // Batch 16 ticket 05 (game changed on purpose): 名甲 built too.
-    o.unbuilt = C.SCHOOLS.filter((k) => C.KITS[k].built).join(',') === 'ru,fa,mo,ming';
+    // Batch 16 ticket 06 (game changed on purpose): 阴阳甲 built too (ultMode 'lock').
+    o.unbuilt = C.SCHOOLS.filter((k) => C.KITS[k].built).join(',') === 'ru,fa,mo,yinyang,ming';
     o.placeholder = sc.suits.every((q) => (C.KITS[q.school].built && q.id !== 0 ? q.kit === q.school && q.ultMode === C.KITS[q.school].ultMode : q.kit === 'placeholder' && q.ultMode === 'charge'));
     o.player = sc.suits[0].school; o.bots = sc.suits.slice(1).map((q) => q.name).join(','); o.tags = C.SKILLS.map((k) => k.tag).join(',');
     o.speedMid = C.STATS.speed.Mid === C.PLAYER_SPEED && C.STATS.yard === 'Mid'; o.keys = C.SCHOOLS.map((k) => 'school_' + k).concat(['hud_school', 'sel_title', 'sel_rule', 'sel_random', 'sel_key']).filter((k) => !T[k]);
@@ -2143,7 +2144,10 @@ try {
   const mi127 = await g(() => {
     const G = __game, C = G.config, K = C.KITS.ming, o = { viol: [], casts: { q: 0, w: 0, r: 0 }, player: { q: 0, w: 0, r: 0 }, decided: [], shadowMax: 0, hangMax: 0 }, bad = (x) => { if (o.viol.length < 5) o.viol.push(x); };
     const one = (seed, playerMi) => {
-      G.setSeed(seed); G.setBots(C.BOTS.count); G.setPkitP(!playerMi); G.pickSchool(playerMi ? 6 : 1); G.autoPlayer(true); G.setWatch(true);
+      G.setSeed(seed); G.setBots(C.BOTS.count); G.setPkitP(!playerMi); G.pickSchool(playerMi ? 6 : 1);
+      // Batch 16 ticket 06 (game changed on purpose): 阴阳甲 is built now; its bot keeps the placeholder kit here so these matches stay the ones this check was written for.
+      G.placeholderKit(G.schools().suits.findIndex((q) => q.school === 'yinyang') - 1);
+      G.autoPlayer(true); G.setWatch(true);
       const mi = playerMi ? -1 : G.schools().suits.findIndex((q) => q.school === 'ming') - 1, cnt = playerMi ? o.player : o.casts; let last = [0, 0], ult = 0, sh = 0, hg = 0;
       if (!playerMi && G.schools().suits[mi + 1].kit !== 'ming') bad('ming bot not on its kit');
       for (let t = 0; t < 300 / C.STEP; t++) {
@@ -2185,6 +2189,198 @@ try {
   });
   check('128 budget with 名甲 effects: every suit + cubs + tells + wheel + shadow + both hanging lines (calls<500, tris<500k), no shader compile, geometry flat',
     !!mi128 && mi128.calls < 500 && mi128.tris < 500000 && mi128.programs === base.programs && mi128.geoms === base.geoms, JSON.stringify(mi128));
+  // ===== Batch 16 ticket 06: 阴阳甲 · 太极 kit (docs/SUITS.md; numbers in CONFIG.KITS.yinyang; ultMode 'lock') =====
+  await g(() => { const G = __game, C = G.config; window.__yy = {
+    start(n) { G.setSeed(12345); G.setPkitP(false); G.setBots(n); G.pickSchool(4); for (let i = 0; i < n; i++) G.placeholderKit(i); G.setDecNext(1e9); for (let i = 0; i < n; i++) { G.setBotHp(i, 100); for (let k = 0; k < 3; k++) G.setBotCd(i, k, 99); } },
+    hold(sec, fn) { for (let k = 0; k < Math.round(sec / C.STEP); k++) { if (fn) fn(); G.step(1); } },
+    until(cond, max, fn) { let n = 0; while (n < max && !cond()) { if (fn) fn(); G.step(1); n++; } return n; },
+    end() { G.setPkitP(true); G.pickSchool(0); G.setBots(0); G.reset(); } }; });
+  // 129 Passive 阴阳 (the lock): no meter; R is locked until both halves are full: a landed 阴 (Q) fills the dark half, a landed 阳 (W) the light half,
+  // a full half gains nothing more; both full unlock R; casting R empties both and starts its cooldown. The status line and the R button show the taiji
+  // symbol of the halves (written only on change: no write over a quiet span). Low armor.
+  const yy129 = await g(() => {
+    const G = __game, C = G.config, Y = window.__yy, K = C.KITS.yinyang, T = G.text, o = {};
+    Y.start(2); G.setHp(1e9); G.teleport(14, -20); const park = () => { G.placeBot(0, 14, -28); G.placeBot(1, 20, -20); }; park(); G.step(2);
+    const s0 = G.yyState(-1); o.armor = G.schools().suits[0].armor; o.mode = s0.ultMode; o.start = [s0.yin, s0.yang, s0.unlocked]; o.text0 = [s0.status, s0.rText, s0.rCover];
+    o.rLocked = G.cast(2, 14, -27);
+    G.cast(0, 14, -28); Y.until(() => G.yyState(-1).yin, 120, park); G.step(2); const s1 = G.yyState(-1); o.afterQ = [s1.yin, s1.yang, s1.unlocked]; o.text1 = [s1.status, s1.rText];
+    o.rOne = G.cast(2, 14, -27); const w0 = G.yyState(-1).writes; Y.hold(1, park); o.quiet = G.yyState(-1).writes - w0;
+    Y.hold(K.skills[0].cd + 0.1, park); G.cast(0, 14, -28); Y.hold(1.2, park); const s2 = G.yyState(-1); o.again = [s2.yin, s2.yang];
+    G.cast(1, 20, -20); Y.until(() => G.yyState(-1).yang, 120, park); G.step(2); const s3 = G.yyState(-1); o.afterW = [s3.yin, s3.yang, s3.unlocked]; o.text3 = [s3.status, s3.rCover];
+    o.rCast = G.cast(2, 14, -27); const s4 = G.yyState(-1); o.afterR = [s4.yin, s4.yang, s4.unlocked, s4.cdR, s4.ultN]; o.ch = G.chargeOf(-1);
+    o.want = { t0: [T.st_yy.replace('{s}', T.yy_0), T.yy_0], t1: [T.st_yy.replace('{s}', T.yy_1), T.yy_1], t3: T.st_yy.replace('{s}', T.yy_3) };
+    Y.end(); return o;
+  });
+  check('129 阴阳甲 lock: R locked until both halves; 阴 fills dark, 阳 light, a full half gains nothing; R empties both and starts its cooldown (no meter); taiji symbol on status and R button, written only on change; Low armor',
+    yy129.armor === C0.STATS.armor.Low && yy129.mode === 'lock' && yy129.start.join() === 'false,false,false' && yy129.text0[0] === yy129.want.t0[0] && yy129.text0[1] === yy129.want.t0[1] && yy129.text0[2] === 'block'
+    && yy129.rLocked === false && yy129.afterQ.join() === 'true,false,false' && yy129.text1[0] === yy129.want.t1[0] && yy129.text1[1] === yy129.want.t1[1] && yy129.rOne === false && yy129.quiet === 0
+    && yy129.again.join() === 'true,false' && yy129.afterW.join() === 'true,true,true' && yy129.text3[0] === yy129.want.t3 && yy129.text3[1] === 'none'
+    && yy129.rCast && yy129.afterR.join() === `false,false,false,${C0.KITS.yinyang.skills[2].cd},1` && yy129.ch === 0, JSON.stringify(yy129));
+  // 130 Attack 两仪: an attack order on a dummy within range fires an orb without walking in; it is drawn while it flies, lands on the dummy for dmg; shots
+  // alternate dark and light; the attack fills no half; a standing wall (the 墨甲 bot's) stops the orb before the dummy.
+  const yy130 = await g(() => {
+    const G = __game, C = G.config, Y = window.__yy, A = C.KITS.yinyang.attack, o = {};
+    Y.start(0); G.reset(); const d = G.dummies()[1]; G.teleport(d.x, d.z - 7); G.step(2); const p0 = G.state(); const hp0 = G.dummies()[1].hp;
+    G.attack(1); let flying = false, looks = [], prevOn = false;
+    // Watched for two shots (the third is due at 2 intervals).
+    for (let k = 0; k < Math.round(A.interval * 1.9 / C.STEP); k++) { G.step(1); const ob = G.yyState(-1).orbs[0]; if (ob.on && ob.inScene && ob.vis) flying = true; if (ob.on && !prevOn) looks.push(ob.dark); prevOn = ob.on; }
+    const p1 = G.state(); o.moved = +Math.hypot(p1.x - p0.x, p1.z - p0.z).toFixed(3); o.flying = flying; o.looks = looks; o.dealt = hp0 - G.dummies()[1].hp; o.halves = [G.yyState(-1).yin, G.yyState(-1).yang];
+    G.stop(); G.step(Math.round(1 / C.STEP)); o.clear = !G.yyState(-1).orbs[0].inScene && G.yyState(-1).orbN === 0;
+    // A wall (the 墨甲 bot, bot 3 when the player picks 阴阳甲) between him and the dummy: the orb stops; the dummy is untouched.
+    G.setSeed(12345); G.setBots(4); G.pickSchool(4); for (let i = 0; i < 3; i++) G.placeholderKit(i); G.setDecNext(1e9); for (let i = 0; i < 4; i++) for (let k = 0; k < 3; k++) G.setBotCd(i, k, 99);
+    G.teleport(d.x, d.z - 6); G.placeBot(3, d.x + 3, d.z - 3); G.step(2); G.botCast(3, 0, d.x, d.z - 3); o.wall = G.moState(3).up; const hw = G.dummies()[1].hp;
+    G.attack(1); G.step(Math.round(A.interval * 0.9 / C.STEP)); o.wallHp = hw - G.dummies()[1].hp; o.wallOrb = G.yyState(-1).orbs[0].on;
+    G.stop(); Y.end(); return o;
+  });
+  check('130 阴阳甲 attack: the orb is fired without walking in, drawn while it flies, lands for dmg; shots alternate dark and light; no half filled; a wall stops it',
+    yy130.moved < 0.01 && yy130.flying && yy130.dealt === 2 * C0.KITS.yinyang.attack.dmg && yy130.looks.length === 2 && yy130.looks[0] !== yy130.looks[1] && yy130.halves.join() === 'false,false' && yy130.clear
+    && yy130.wall && yy130.wallHp === 0 && !yy130.wallOrb, JSON.stringify(yy130));
+  // 131 Q 阴·月: an orb into empty space fills nothing; at a suit: he steps back back m (the walking rule) as it leaves, the slow orb flies at speed m/s
+  // (lands about distance / speed s later), then dmg, the suit slowed by slow for slowS s, he heals drain, and the dark half fills; cooldown started.
+  const yy131 = await g(() => {
+    const G = __game, C = G.config, Y = window.__yy, Q = C.KITS.yinyang.skills[0], o = {};
+    Y.start(1); G.teleport(14, -20); const park = () => G.placeBot(0, 14, -28); park(); G.step(2);
+    G.cast(0, 24, -20); Y.hold(Q.range / Q.speed + 0.3, park); o.empty = [G.yyState(-1).yin, G.yyState(-1).yang]; Y.hold(Q.cd, park);
+    G.setHp(80); const p0 = G.state(); o.cast = G.cast(0, 14, -28); const p1 = G.state(); o.back = +Math.hypot(p1.x - p0.x, p1.z - p0.z).toFixed(3); o.cd = G.skills()[0] > 0;
+    // The orb leaves from where he stood before the step back.
+    const dist = Math.hypot(14 - p0.x, -28 - p0.z) - 0.45 - Q.radius; let n = 0; for (; n < 200 && G.bots().list[0].hp === 100; n++) { park(); G.step(1); }
+    o.landS = +(n * C.STEP).toFixed(3); o.wantS = +(dist / Q.speed).toFixed(3); o.dmg = 100 - G.bots().list[0].hp; o.slow = [G.kitState(0).slowT > 1.4, +G.kitState(0).slowT.toFixed(2)]; o.hp = G.state().hp; o.dark = G.yyState(-1).yin;
+    Y.end(); return o;
+  });
+  check('131 阴阳甲 Q: an orb that hits nothing fills nothing; he steps back back m as it leaves; it lands about distance / speed s later: dmg, slow on the suit, drain to him, dark half filled; cooldown',
+    yy131.empty.join() === 'false,false' && yy131.cast && Math.abs(yy131.back - C0.KITS.yinyang.skills[0].back) < 1e-6 && yy131.cd && Math.abs(yy131.landS - yy131.wantS) < 0.1
+    && yy131.dmg === C0.KITS.yinyang.skills[0].dmg && yy131.slow[0] && yy131.hp === 80 + C0.KITS.yinyang.skills[0].drain && yy131.dark, JSON.stringify(yy131));
+  // 132 W 阳·日: a sunburst at an empty point fills nothing; at a suit it is shown on the ground for delay s (>= 0.4) with no damage before, then dmg to a suit
+  // inside its radius, none to one outside, and the light half fills; cooldown started.
+  const yy132 = await g(() => {
+    const G = __game, C = G.config, Y = window.__yy, W = C.KITS.yinyang.skills[1], o = {};
+    Y.start(2); G.setHp(1e9); G.teleport(14, -20); const park = () => { G.placeBot(0, 14, -27); G.placeBot(1, 14 + W.radius + 1.5, -27); }; park(); G.step(2);
+    G.cast(1, 20, -14); Y.hold(W.delay + 0.2, park); o.empty = [G.yyState(-1).yin, G.yyState(-1).yang]; Y.hold(W.cd, park);
+    o.cast = G.cast(1, 14, -27); o.cd = G.skills()[1] > 0; let told = 0, early = false;
+    for (let k = 0; k < 200 && G.pending(); k++) { park(); G.step(1); if (G.pending()) { told++; if (G.bots().list[0].hp < 100) early = true; } }
+    o.toldS = +((told + 1) * C.STEP).toFixed(3); o.early = early; o.hit = 100 - G.bots().list[0].hp; o.off = 100 - G.bots().list[1].hp; G.step(2); o.light = G.yyState(-1).yang;
+    Y.end(); return o;
+  });
+  check('132 阴阳甲 W: a sunburst on nothing fills nothing; at a suit it is shown delay s (>= 0.4) with no damage before, then dmg inside its radius, none outside; light half filled; cooldown',
+    yy132.empty.join() === 'false,false' && yy132.cast && yy132.cd && yy132.toldS >= 0.4 && Math.abs(yy132.toldS - C0.KITS.yinyang.skills[1].delay) < 0.05 && !yy132.early
+    && yy132.hit === C0.KITS.yinyang.skills[1].dmg && yy132.off === 0 && yy132.light, JSON.stringify(yy132));
+  // 133 R 太极: locked without both halves; unlocked, the disk (both half disks, radius m) is shown in full for tellS s (>= 0.4) with no burn or pull before;
+  // then for phaseS s a suit in the dark half is pulled toward the centre and slowed (no burn) while one in the light half burns burn every pulseS s; then the
+  // halves swap for another phaseS s; then the disk is gone; the lock is empty and the cooldown started.
+  const yy133 = await g(() => {
+    const G = __game, C = G.config, Y = window.__yy, R = C.KITS.yinyang.skills[2], o = { tellHit: false, steps: [0, 0, 0], pullD: [0, 0, 0], pullL: [0, 0, 0], slowD: [0, 0, 0] };
+    // Away from the stone lions (C1 lions at x +-9.75, z -27.75): the disk at (5, -16), its dark half east of the cast line.
+    Y.start(2); G.setHp(1e9); G.teleport(5, -9); const park = () => { G.placeBot(0, 8, -16); G.placeBot(1, 2, -16); }; park(); G.step(2);
+    o.locked = G.cast(2, 5, -16); G.yyFill(-1, true, true); o.cast = G.cast(2, 5, -16); const s0 = G.yyState(-1); o.lock = [s0.yin, s0.yang, s0.cdR];
+    // Segments by the disk's state after each step: 0 shown (tell), 1 first phase, 2 turned, 3 gone. Health at each segment's first step is taken just before it.
+    const hp = () => [G.bots().list[0].hp, G.bots().list[1].hp], start = [], endHp = []; let seg = 0; start[0] = hp();
+    for (let k = 0; k < 600; k++) {
+      const before = hp(); park(); G.step(1); const y = G.yyState(-1).taiji;
+      const now = !y.inScene ? 3 : y.t < R.tellS - 1e-9 ? 0 : !y.flip ? 1 : 2;
+      if (k === 0) o.disk = { in: y.inScene, vis: y.vis, r: y.r };
+      if (now !== seg) { endHp[seg] = before; seg = now; start[seg] = before; }
+      if (seg === 3) break;
+      const a = G.kitState(0), b = G.kitState(1); o.steps[seg]++;
+      // Pulled this step: the pull was set at R.pull m/s this step (a pull from an earlier step has decayed below 0.85 of it).
+      if (a.kx < -0.85 * R.pull) o.pullD[seg]++; if (b.kx > 0.85 * R.pull) o.pullL[seg]++; if (a.slowT > 0) o.slowD[seg]++;
+      if (seg === 0 && (a.kx !== 0 || b.kx !== 0 || a.slowT > 0 || hp()[0] < 100 || hp()[1] < 100)) o.tellHit = true;
+    }
+    o.toldS = +((o.steps[0] + 1) * C.STEP).toFixed(3); o.seg = seg;
+    // A segment that never happened (e.g. the disk never turned) records null, so the check fails instead of the runner crashing (mutation 'R never turns').
+    o.dmg = [1, 2].map((k) => (start[k] && endHp[k] ? [+(start[k][0] - endHp[k][0]).toFixed(2), +(start[k][1] - endHp[k][1]).toFixed(2)] : null));
+    const s2 = G.yyState(-1); o.gone = !s2.taiji.inScene && s2.taijiN === 0;
+    o.phaseSteps = Math.round(R.phaseS / C.STEP); o.burnWant = +(R.burn * Math.round(R.phaseS / R.pulseS)).toFixed(2);
+    Y.end(); return o;
+  });
+  check('133 阴阳甲 R: locked without both halves; the disk is shown in full tellS s (>= 0.4) with no burn or pull; then dark half pulls and slows, light half burns; the halves swap; gone after; lock emptied, cooldown',
+    yy133.locked === false && yy133.cast && yy133.lock.join() === `false,false,${C0.KITS.yinyang.skills[2].cd}` && yy133.disk.in && yy133.disk.vis && yy133.disk.r === C0.KITS.yinyang.skills[2].radius
+    && yy133.toldS >= 0.4 && Math.abs(yy133.toldS - C0.KITS.yinyang.skills[2].tellS) < 0.05 && !yy133.tellHit && yy133.seg === 3 && !!yy133.dmg[0] && !!yy133.dmg[1]
+    && yy133.dmg[0][0] === 0 && Math.abs(yy133.dmg[0][1] - yy133.burnWant) < 1e-6 && yy133.pullD[1] >= yy133.phaseSteps - 2 && yy133.pullL[1] === 0 && yy133.slowD[1] >= yy133.phaseSteps - 2
+    && Math.abs(yy133.dmg[1][0] - yy133.burnWant) < 1e-6 && yy133.dmg[1][1] === 0 && yy133.pullD[2] === 0 && yy133.pullL[2] >= yy133.phaseSteps - 2
+    && Math.abs(yy133.steps[1] - yy133.phaseSteps) <= 1 && Math.abs(yy133.steps[2] - yy133.phaseSteps) <= 1 && yy133.gone, JSON.stringify(yy133));
+  // 134 Lock rules: under "Ultimates 2x" only the cooldown after use runs 2x (1x in the warning, 2x in force) and R stays locked until both halves fill
+  // again; the meter's gains do not apply to him. Silenced on a bridge, a 阴 that lands fills nothing (cast off the bridge, landed after he stepped on it);
+  // the same cast without the step fills the dark half.
+  const yy134 = await g(() => {
+    const G = __game, C = G.config, Y = window.__yy, R = C.KITS.yinyang.skills[2], Q = C.KITS.yinyang.skills[0], o = {};
+    Y.start(1); G.setHp(1e9); G.teleport(14, -20); G.placeBot(0, 14, -28); G.step(2);
+    G.yyFill(-1, true, true); G.cast(2, 14, -27); const c0 = G.yyState(-1).cdR; G.forceDecree('ult2x', null, 20);
+    Y.hold(5, () => G.placeBot(0, 14, -28)); const c1 = G.yyState(-1).cdR; Y.hold(2, () => G.placeBot(0, 14, -28)); const c2 = G.yyState(-1).cdR;
+    o.warnRate = +((c0 - c1) / 5).toFixed(2); o.onRate = +((c1 - c2) / 2).toFixed(2);
+    Y.until(() => G.yyState(-1).cdR <= 0, 2000, () => G.placeBot(0, 14, -28)); o.cd0Locked = G.cast(2, 14, -27); o.ch = G.chargeOf(-1);
+    Y.end();
+    const one = (step) => {
+      // The player beside the west bridge in the centre court (away from its stone lion at -18, 0.75), the bot 6 m east.
+      Y.start(1); G.setHp(1e9); G.forceDecree('silence', null, 30); G.teleport(-19, 6); const park = () => G.placeBot(0, -13, 6); park(); Y.hold(5.1, park);
+      // The step onto the bridge keeps the bot in his vision (a player's skill hits only what he sees).
+      o.silOk = G.decree().key === 'silence' && G.decree().st === 3; const cast = G.cast(0, -13, 6); if (step) G.teleport(-22, 6);
+      Y.hold(Q.range / Q.speed + 0.3, park); const r = { cast, hit: 100 - G.bots().list[0].hp, zone: G.state().zone, yin: G.yyState(-1).yin }; Y.end(); return r;
+    };
+    o.bridge = one(true); o.ground = one(false); return o;
+  });
+  check('134 阴阳甲 lock rules: "Ultimates 2x" runs only the cooldown after use 2x (1x in the warning) and R stays locked at cooldown 0; no meter; a 阴 landing while he stands silenced on a bridge fills nothing, off the bridge it fills',
+    Math.abs(yy134.warnRate - 1) < 0.02 && Math.abs(yy134.onRate - C0.DECREES.ultK) < 0.02 && yy134.cd0Locked === false && yy134.ch === 0 && yy134.silOk
+    && yy134.bridge.cast && yy134.bridge.zone === 'WB2' && yy134.bridge.hit === C0.KITS.yinyang.skills[0].dmg && yy134.bridge.yin === false && yy134.ground.cast && yy134.ground.zone === 'C2' && yy134.ground.hit === C0.KITS.yinyang.skills[0].dmg && yy134.ground.yin === true, JSON.stringify(yy134));
+  // 135 阴阳甲 in the hunt: the wake fills the lock, so 太极 is ready at the start; cast, it empties the lock and starts the 30 s cooldown; a 阴 landing on a
+  // minion fills the dark half again (hunt units count).
+  const yy135 = await g(() => {
+    const G = __game, C = G.config, H = window.__h, o = {};
+    G.setPkitP(false); G.pickSchool(4); G.setBots(0); H.start(); for (let i = 0; i < 3; i++) H.mute(i); G.setHp(1e9);
+    const s0 = G.yyState(-1); o.start = [s0.yin, s0.yang, s0.unlocked, G.hunt().phase];
+    G.teleport(0, -50); G.placeUnit(1, 0, -56); G.placeUnit(0, -15, -70); G.placeUnit(2, 15, -70); G.step(2);
+    o.cast = G.cast(2, 0, -58); const s1 = G.yyState(-1); o.after = [s1.yin, s1.yang, +s1.cdR.toFixed(2)];
+    G.cast(0, 0, -56); for (let k = 0; k < 120 && !G.yyState(-1).yin; k++) { G.placeUnit(1, 0, -56); G.step(1); } o.dark = G.yyState(-1).yin; o.minion = G.hunt().units[1].hp < C.STALKER.hp;
+    G.setPkitP(true); G.pickSchool(0); G.reset(); return o;
+  });
+  check('135 阴阳甲 in the hunt: the wake fills the lock (R ready at the start); R empties it and starts its cooldown; 阴 on a minion fills the dark half',
+    yy135.start.join() === 'true,true,true,hunt' && yy135.cast && yy135.after[0] === false && yy135.after[1] === false && yy135.after[2] === C0.KITS.yinyang.skills[2].cd && yy135.dark && yy135.minion, JSON.stringify(yy135));
+  // 136 阴阳甲 in whole matches: 3 seeds with the 阴阳甲 bot (the player picks 道甲) and 1 with the player on 阴阳甲 (autopilot), watched to the end:
+  // 阴阳甲 on a floor every tick, the hunter cap holds, nobody stuck over 3 s, no orb or disk outlives its time; the bot casts Q and W and unlocks and casts R over the 3.
+  const yy136 = await g(() => {
+    const G = __game, C = G.config, K = C.KITS.yinyang, R = K.skills[2], o = { viol: [], casts: { q: 0, w: 0, r: 0 }, player: { q: 0, w: 0, r: 0 }, decided: [], orbMax: 0, diskMax: 0 }, bad = (x) => { if (o.viol.length < 5) o.viol.push(x); };
+    const orbLife = Math.max(K.attack.range / K.attack.speed, K.skills[0].range / K.skills[0].speed);
+    const one = (seed, playerYy) => {
+      G.setSeed(seed); G.setBots(C.BOTS.count); G.setPkitP(!playerYy); G.pickSchool(playerYy ? 4 : 1); G.autoPlayer(true); G.setWatch(true);
+      const yi = playerYy ? -1 : G.schools().suits.findIndex((q) => q.school === 'yinyang') - 1, cnt = playerYy ? o.player : o.casts; let last = [0, 0], ult = 0, ob = [0, 0], dk = 0;
+      if (!playerYy && G.schools().suits[yi + 1].kit !== 'yinyang') bad('yinyang bot not on its kit');
+      for (let t = 0; t < 300 / C.STEP; t++) {
+        G.step(1); const r = G.royale(); if (r.decidedAt >= 0) { o.decided.push(+r.decidedAt.toFixed(1)); break; }
+        const k = G.kitState(yi), cd = k.bcd, y = G.yyState(yi);
+        if (cd[0] > last[0] + 1e-9) cnt.q++; if (cd[1] > last[1] + 1e-9) cnt.w++; if (y.ultN > ult) cnt.r += y.ultN - ult; last = [cd[0], cd[1]]; ult = y.ultN;
+        for (let j = 0; j < 2; j++) { ob[j] = y.orbs[j].inScene ? ob[j] + C.STEP : 0; if (ob[j] > o.orbMax) o.orbMax = +ob[j].toFixed(3); }
+        dk = y.taiji.inScene ? dk + C.STEP : 0; if (dk > o.diskMax) o.diskMax = +dk.toFixed(3);
+        const h = G.hunters(); if (h.capOnP > h.max) bad(`s${seed} t${t} cap ${h.capOnP}>${h.max}`);
+        if (t % 10 === 0 && yi >= 0) { const q = G.bots().list[yi]; if (!q.standOk) bad(`s${seed} t${t} yinyang off floor`); if (!Number.isFinite(q.x + q.z + q.hp)) bad(`s${seed} t${t} NaN`); }
+        if (t % 10 === 0 && yi < 0 && !G.player().dead && !G.state().falling && !G.walkable(G.player().x, G.player().z, G.player().y + 0.05)) bad(`s${seed} t${t} player off floor`);
+      }
+      for (const q of G.bots().list) if (q.stuck > 3) bad(`s${seed} bot${q.id} stuck ${q.stuck}`);
+      G.setWatch(false); G.autoPlayer(false);
+    };
+    for (const seed of [12345, 2, 3]) one(seed, false);
+    one(4, true);
+    G.setPkitP(true); G.pickSchool(0); G.setBots(0); G.reset(); const y = G.yyState(-1); o.clean = y.orbN === 0 && y.taijiN === 0 && !y.yin && !y.yang; o.orbLife = +orbLife.toFixed(3); o.diskLife = R.tellS + 2 * R.phaseS; return o;
+  });
+  check('136 阴阳甲 in whole matches: on a floor, nobody stuck > 3 s, orbs and disks end on time, hunter cap every tick, the 阴阳甲 bot casts Q and W and unlocks and casts R (player 阴阳甲 autopilot reported)',
+    yy136.viol.length === 0 && yy136.orbMax <= yy136.orbLife + 0.05 && yy136.diskMax <= yy136.diskLife + 0.02 && yy136.clean && yy136.casts.q > 0 && yy136.casts.w > 0 && yy136.casts.r > 0, JSON.stringify(yy136));
+  // 137 Budget with 阴阳甲's effects: the heaviest royale (every suit, 7 cubs, tells) with both of the player's orbs flying and 太极 shown;
+  // calls < 500, tris < 500k, no shader compile, geometry flat.
+  const yy137 = await g(() => {
+    const G = __game, C = G.config, K = window.__k, waves = C.KENNEL.waves; let best = null;
+    try {
+      C.KENNEL.waves = [[['stalker', 0], ['stalker', 0], ['stalker', 0], ['stalker', 0], ['howler', 0], ['howler', 0], ['howler', 0]]];
+      G.setSeed(12345); G.setBots(C.BOTS.count); G.setPkitP(false); G.pickSchool(4); G.setDecNext(1e9); K.sp(C.KENNEL.firstS + 0.1); G.setHp(1e9);
+      const cx = G.camps[0][0], cz = G.camps[0][1] + 4; G.teleport(cx, cz);
+      const park = () => { for (let i = 0; i < C.BOTS.count; i++) G.placeBot(i, cx - 4 + (i % 3) * 3, cz + 2 + Math.floor(i / 3) * 1.5); };
+      park(); G.step(1); G.yyFill(-1, true, true); G.cast(2, cx, cz + 6); G.cast(0, cx - 9, cz); G.basicAttackBy(-1, 0);
+      for (let n = 0; n < 30; n++) {
+        park(); G.step(1); const c = G.cubs(), y = G.yyState(-1);
+        if (y.orbs[0].inScene && y.orbs[1].inScene && y.taiji.inScene && (!best || c.tells.length > best.tells)) { const r = G.render(true); best = { tells: c.tells.length, calls: r.calls, tris: r.tris, programs: r.programs, geoms: r.geoms }; }
+      }
+    } finally { C.KENNEL.waves = waves; G.setPkitP(true); G.pickSchool(0); G.setBots(0); G.reset(); }
+    return best;
+  });
+  check('137 budget with 阴阳甲 effects: every suit + cubs + tells + both orbs + 太极 (calls<500, tris<500k), no shader compile, geometry flat',
+    !!yy137 && yy137.calls < 500 && yy137.tris < 500000 && yy137.programs === base.programs && yy137.geoms === base.geoms, JSON.stringify(yy137));
   // 66 Idle player: standing at the spawn doing nothing loses the royale (frozen loss with a cause) before the last collapse is over.
   const idle = await g(() => {
     const G = __game, C = G.config; G.setSeed(12345); G.setBots(G.config.BOTS.count); G.reset(); let t = 0;
