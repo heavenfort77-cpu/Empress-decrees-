@@ -68,14 +68,14 @@ Source: 《周礼·地官·保氏》「乃教之六艺：一曰五礼，二曰�
 - Panel (20:22): leader + marked passive, no stacking 6-1 (critic: it piles onto the bounty; answer: the higher applies, cap 1.4x); 术 as a short stealth 5-2 (players: stealth assassins frustrate; answer: 2 s, shimmer, breaks on a hit); 势 as lock-down plus execute 6-1.
 - Plays with: decrees and the mark, the leader and bounty, fog (exposure), hiding.
 
-### 墨甲 · 墨守 (Mohist: universal care 兼爱, against aggression 非攻, defence craft)
-- Passive **Against Aggression (非攻)**: stronger while holding ground, weaker while chasing far from where it last stood.
-- Attack: crossbow bolt, mid range.
-- Q **Rampart**: raise a short wall for a few seconds (blocks movement and bolts).
-- W **Crossbow Engine**: place a turret for a few seconds (from a pool built once).
-- R **Hold the City (守城)**: a circle where you take less damage and incoming projectiles stop at its edge.
-- No dash.
-- Plays with: collapses and chokepoints such as bridges and gates.
+### 墨甲 · 墨守 (Mohist; frames 墨守, 墨经, 非攻; owner 23 Nov 20:28). No dash (GDD rule).
+- Passive **非攻** (against aggression): he does not start wars, he ends them. Bonus damage against any suit that attacked someone in the last 4 s; and he takes less damage while he has not moved for 1 s (holding the wall).
+- Attack **连弩** (the repeating crossbow of the Mohist siege chapters): bolts, mid range.
+- Q **墨守 · 距云梯** (turning back the siege ladders): raise a short wall at a point for a few seconds; it blocks movement and projectiles.
+- W **墨经 · 衡** (the lever and balance of the Mohist canon): a lever plate at a point, shown for about 0.6 s, then it flings every suit on it a few metres away from him. Near a broken rail it can throw a suit into the void (knockback is the only way through those gaps).
+- R **墨守 · 九距之** (「公输盘九设攻城之机变，子墨子九距之」): for about 8 s the next nine hits on him are turned back: no damage, and the attacker is pushed away. The HUD counts them down 9 to 0.
+- Panel (20:28): the aggressor passive 6-1; the lever with a 0.6 s tell 6-1 (critic: a fling into the void can feel cheap; answer: shown first, only at broken-rail gaps); the nine defences 5-2 (players: close to 道甲's counters; answer: 道甲 times single counters to grow an ultimate, 墨甲 simply absorbs nine, no timing).
+- Plays with: bridges and the gate (walls), broken rails (the lever), collapses, the hunter cap (aggressors come to him).
 
 ### 阴阳甲 · 太极 (Yin-yang; frame 阴阳 only, owner 23 Nov 20:19: the ultimate is locked; he must cycle through yin and yang to unlock 太极)
 - Passive **阴阳 (the lock)**: a taiji symbol on his HUD and R button. Landing a 阴 skill fills the dark half; landing a 阳 skill fills the light half. A half that is already full gains nothing, so he must alternate. Both halves full = 太极 unlocked. After 太极 both halves empty again. For this suit the lock replaces ultimate charge; under the "Ultimates 2x" decree only the cooldown after use runs 2x, the lock still needs both halves.
