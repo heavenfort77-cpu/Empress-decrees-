@@ -1,9 +1,9 @@
-# Handoff (2026-11-23, after batch 13; written for a fresh session). GDD: docs/GDD.md (also Project "empress decrees", claude/GDD.md)
+# Handoff (2026-11-23 20:45, after batch 13 + the design day: lore v2, nine suits and kits; written for a fresh session). GDD: docs/GDD.md (also Project "empress decrees", claude/GDD.md)
 
 ## Session start (every session)
 1. Attach both repos: add_repo heavenfort77-cpu/Empress-decrees- (access push) and heavenfort77-cpu/dawnpunk (read; public, anonymous clone works). Dawnpunk = reference for frame-rate rules and bug pitfalls; read only the part needed.
 2. Clone with `--no-single-branch`; check out `batches-3-5` (PR #1 still open, not merged; use main only if it is merged: `gh api repos/heavenfort77-cpu/empress-decrees-/pulls/1 --jq .merged`, GraphQL is blocked).
-3. Read this file, then only the GDD section being changed. Do not read the whole codebase.
+3. Read this file, then only the GDD section being changed (docs/SUITS.md for kits). Do not read the whole codebase. NEXT JOB: "Next batch: 14 (RESTART)" below.
 4. Run the checks before and after any change: `node tests/static-check.mjs && node tests/run.mjs` (`-v` for details, `-vv 56,65` for named checks). Report pass/fail as N of N and failing lines only. `-sims` prints the GDD sim numbers. Expected now: static PASS, runtime 91 of 91 (after 13b).
 5. Ask the owner the open questions under "Next batch" in ONE AskUserQuestion before building. Open design questions go to the panel (owner, 23 Nov 15:11).
 
@@ -21,50 +21,22 @@
 - Phone review link: https://claude.ai/artifact/3nQ67JCTmb1JfPKC3Y416z. Republish after each batch: copy index.html, swap the importmap path for https://cdn.jsdelivr.net/npm/three@0.171.0/build/three.module.min.js, publish to slug 1688f9ba-a0e5-4f7b-ac2e-3a68d6fc67c3 (get_artifact first for base_version). Live: version 1795424808-bd35 = batch 13 (fcc6d0e).; batch 12 republish is done by the lead.
 - Project docs (claude/HANDOFF.md, claude/GDD.md, claude/SUITS.md, claude/code/index.html, claude/code/tests/run.mjs, claude/code/tests/static-check.mjs) are copies of repo files. The LEAD session syncs them after each batch with project_write local_path (a background worker cannot). If a write is refused, project_read first (code files print in full: do it once, then write).
 
-## Batch 13 = decree pacing (13a) + plate rate (13b). Owner go 23 Nov 16:11; panel decided (judges, players, critics, design/tech leads; majority followed)
-Two scopes, two commits, each with its own checks, measure run and mutation round. 13a first.
+## Batch 13 (done): decree pacing 13a (62f8f0d) + plate-rate test proxy 13b (fcc6d0e). Details in git history and the Status numbers above.
 
-### 13a Decree pacing (GDD: about one a minute, 3-4 per royale; batch 12 gave 1-3)
-Cause (batch 12 log): decree warnings must start 20 s clear of a collapse warning; collapse warnings come every 40 s, so only a 20 s window in each 40 s is open, and a 30-45 s decree plus gap usually misses the next window (about one decree per 80 s).
-- P1 (vote 6-1): the clearance only keeps banners apart. A decree warning waits while a collapse or kennel banner shows or one starts within the next 5 s (was 20 s). A decree already in force runs on through a collapse. Against (critic): more rules at once for a new player; answered by one banner at a time and the HUD line.
-- P2 (vote 5-2): gap bag [5, 10, 10, 15] s (was [10, 15, 20, 25]). Length bag stays 30-45 s (GDD). Expected cycle about 52 s: warnings near 40, 92, 145, 197 s.
-- P3 (vote 7-0): the bounty counts as one of the 3-4 (it is in the GDD decree list).
-- P4 fairness (vote 6-1): no heights break while the suit stands on a warned section or within 3 s of leaving one (leaving a collapse must never cost a penalty; batch 12 seed 3 had 7 forced breaks). Same rule for the player and bots.
-- Gate: every one of the 12 seeded matches has 3 or 4 decrees (bounty included) announced before it is decided; banners never overlap; 0 heights breaks during or within 3 s of leaving a warned section. Report per seed.
+## Next batch: 14 (RESTART, owner 23 Nov 20:42) = 10-minute game + the 9-suit match
+The first batch 14 worker was stopped by the owner before any commit; its edits were discarded (patch kept only on the old session disk). Start clean from the branch head.
+Scope A, 9-suit match (owner 20:03): CONFIG.BOTS.count 9 -> 8 (player + 8 bots = the nine schools); keep the 10 spawn discs (one stays empty) unless the panel prefers 9; update every check that expects 9 bots or 10 suits (at least 56 n/distinct spawns, 57 bots in view, 64 "Place 10 of 10", 65/67 per-spawn win counts and matches); if a start line with "ten schools" exists in TEXT, it becomes "Hear ye Our decree: nine schools, one answer. Begin." Changed checks get a comment saying the game changed on purpose.
+Scope B, 10-minute game (owner 18:46, 18:48, 18:51, 18:53; panel plan below): a run that reaches the hunt lasts about 10 min (royale + wake + hunt). M1 first: measure the hunt length (test 42 sweep runs) and the royale length; set the royale band from it. No opening peace; bots' fight radius ramps from 3 m to full vision over about 6 min with the start chance rising with it; hunter cap unchanged (1, 2 marked, 3 bounty); cubs and creatures from about 20 s; two acts (skirmish 0-5 min, collapses from about 1:30 every about 75 s; closing 5-8 min, decided about 7:30-8:30); HUD "next to fall" line also shows the act and time left (TEXT keys, written only on change).
+Owner rules for B: ONE number set only, no tuning rounds (balancing comes later, 18:51); the royale band and act boundaries live in CONFIG and the checks read them from CONFIG (18:53: map size, kits and suit stats will change the result).
+Gates for B: royale decided inside the M1 band (12 seeds, kennel autopilot; old autopilot reported beside it); decrees about one a minute incl. bounty, 0 banner overlaps; idle player still loses before the last collapse; budget, programs, geometry flat; full suite wall time reported (if over about 15 min, propose a split, do not cut coverage). Plate rate and leader win share: measured and REPORTED ONLY, not gated, not tuned.
+Two commits (A, then B), each with its checks, a measure run and a mutation round. After any interruption: cmp index.html and tests/ with the last good copy before running checks.
+Panel record for B (23 Nov 18:46-18:48): same density, more of it (6-1, not stretched timers); no peace + slow ramp (6-1; more health/less damage rejected, kits own those numbers); kennel autopilot judges the GDD numbers, old reported beside (5-2); no hunt tuning (7-0). Risk noted by the judges: a jam judge may not finish a 10-min run; the act and time-left line keeps it readable.
 
-### 13b Plate rate (GDD: the player takes at least 1 plate in 70% of runs on average bots; batch 12 autopilot 2 of 12)
-DONE (as built): M1 cause: the old autopilot never heads for announced camps (acts only on cubs inside its 11 m sight; nearest announced camp median 49.2 m, 0 of 26 within sight) and is out before wave 2 in 10 of 12. P5 built (test proxy, G.autoK via __game.autoPlayer(on, kennel); bots unchanged): 9 of 12 vs old 3 of 12, so P6 (cub at every camp) NOT built. Open for the owner: leader win share with the proxy 2 of 12 (below the 25-45% band) and proxy matches under 165 s in 2 of 12.
-Cause was not yet proven when planned. Order (lead rule: name the cause before the fix):
-- M1 measure first (no game change): per wave and seed, who took each plate, the autopilot's distance to the announced camps, whether it was alive, fighting or fleeing at the wave.
-- P5 (vote 5-2): the autopilot stands in for a human who reads the kennel banner: when not fighting, fleeing or healing, it walks to the nearest announced standing camp. Test-tool change in its own commit; report the plate rate with the old and the new autopilot side by side (never only the better number). Against (critic): tuning the proxy can hide a game problem; answered by reporting both.
-- P6 fallback, only if the new proxy is still under 70% (vote 4-2-1): each kennel wave puts one cub at every standing camp (up to 4 a wave, pool of 7 is enough; budget check 57 already draws 7). Lost: plate to the suit with most damage (2), first wave at 20 s (1).
-- Report leader win share too (batch 12: 25%, band edge); more plates may move it.
-- Gate: report the numbers; the 70% target is a GDD target for a human player, so a miss after P6 goes to the owner, not into further tuning.
-
-## Batch 14 = 10-minute game (owner 23 Nov 18:46: "i want each game to be 10 min"). PANEL PLAN; build waits for the owner's go
-Reading (one line, change by saying so): a run that reaches the apex hunt lasts about 10 min end to end (royale + wake + hunt); a player broken earlier has a shorter run.
-Measure first (M1, no game change): current hunt length per sweep run (test 42) and royale length, so the royale target = 10 min - wake - measured hunt.
-
-Panel (2 jam judges, 2 players, 2 critics, design/tech leads; majority followed):
-- Q1 how to fill 10 min (vote 6-1 for B): (A) stretch every timer about 2.5x -> long empty stretches on the same map, judges drift off; (B) keep the density per minute and add more of it: more kennel waves, about one decree a minute (bags already do this), creatures keep cycling, collapses spread over the royale. Against B (tech lead): more test time per match; accepted.
-- Q2 shape of the royale. Owner 23 Nov 18:48: "remove 0-3min" (read as: no opening peace act; fighting from the first minute; run still about 10 min). Panel on how (vote 6-1 for a, improved):
-  - Problem (batch 9 log): without the peace rule matches ended at 40-110 s.
-  - (a) no peace; bots' fight radius ramps from 3 m to full vision over the whole royale (~6 min) and the chance to start a fight rises with it; the hunter cap stays (1 bot on the player, 2 marked, 3 bounty); cubs and creatures from ~20 s so the first minute has targets. (b) more health / less damage: rejected, kits own those numbers. (c) collapses only: rejected, too passive.
-  - Two acts: skirmish 0-5 min (collapses every ~75 s from ~1:30), closing 5-8 min (down to core hall + C1, decided about 7:30-8:30).
-  - Improvement (players): the HUD "next to fall" line also shows the act and time left in the royale.
-- Q3 numbers (CONFIG, all dated): collapse first wave ~90 s, then every ~75 s (5 waves, more sections per wave if needed); kennel waves every ~60 s from ~20 s (about 8 waves; pool of 7 cubs kept, waves of 1-2); bot peace 120 -> 0 s, ramp 100 -> ~360 s; decree and creature bags unchanged (cadence is already per minute). Worker tunes these against the gate, one CONFIG change list, no new systems.
-- Q4 which stand-in judges the GDD numbers (vote 5-2 for the new kennel autopilot): it plays like a human who reads the banners; the old one is reported beside it, never instead.
-- Q5 hunt (vote 7-0): no hunt tuning (owner: wait for kits); its measured length is reported and the royale is sized around it.
-- Risk raised by both judges, recorded not acted on: a jam judge may not finish a 10-min run; the act line and a clear time-left keep it readable. Owner decides if anything more is wanted.
-
-Gate (12 seeds, new autopilot, old reported beside it): royale decided in 420-510 s (to be set from M1 so royale + hunt = 9-11 min); decrees 6-9 per royale (bounty included), no banner overlaps; player plate rate >= 70%; leader win share 25-45%; idle player still loses before the last collapse; budget, programs and geometry flat; full test suite time reported. Misses reported, not tuned past the CONFIG list.
-
-Batch 14 status (23 Nov ~19:5x): the worker was STOPPED by the owner before any commit. Remote stays at the batch 13 code. Its unfinished edits sit uncommitted in index.html and tests/run.mjs (unchecked; may hold a deliberate mutation). Owner to choose: discard them, or restart batch 14. Do not commit them as they are. Owner notes for when it resumes: balancing later (18:51); map size, kits and suit stats change the result, so the royale band and act times live in CONFIG and checks read them (18:53).
-
-## Queue after batch 14 (owner 18:57 "built"; one batch at a time, panel note first each)
+## Queue after batch 14 (owner 18:57 "built"; one batch at a time, panel note first each; kits already designed with the owner in docs/SUITS.md)
 15 ultimate charge (replaces the plate, crab, bounty and ultimates-2x stand-ins); 16 法甲 kit + suit stats sample (owner plays and approves); 17 the other eight kits (docs/SUITS.md); 18 hiding (curtains, 道甲 stillness, sight blocked by walls); 19 the ending + WINNER_STATUE; 20 final map size + balancing pass (re-measure, retune the CONFIG timing list once). Hunt sweep re-check with kits (0.15 s bot now loses demon-first).
 
 ## Owner decisions (dated)
+- 23 Nov 20:42: hand off; restart batch 14 with the 9-suit change folded in (the stopped worker's edits discarded).
 - 23 Nov 20:07-20:40: all nine kits designed with the owner, one per school (docs/SUITS.md): 儒 六艺 (range-switching attack), 道 道德经 counters, 阴阳 yin-yang lock on 太极, 法 法术势, 名 debaters' paradoxes (sword rule removed), 墨 墨守/墨经/非攻, 纵横 合纵/连横/不攻自破, 杂 兼儒墨，合名法, 农 播百谷/并耕/百草生机 (sprout cap 9, CONFIG). Hunt rules confirmed 20:40 for 纵横 (不攻自破 turns apex units on each other; minions hesitate) and 杂 (正名 seals the demon's stolen skills). 道甲 and 阴阳甲 keep their own ultimate rules when ultimate charge lands (batch 15).
 - 23 Nov 20:03: nine schools in the match (九流, "since that is accurate"): 稗甲 dropped and not summoned; player + 8 bots; her line "nine schools, one answer". Docs updated; code change (BOTS.count 9 -> 8 and the checks that expect 9 bots / 10 suits) goes in the next code batch.
 - 23 Nov 19:57: the ten suits are one per school of the Hundred Schools (docs/SUITS.md, approved; 法甲 first sample; 农甲 sprouts for itself only; 杂甲 own dash). Lore v2 worked out (Kaymuse = unnamed first-emperor archetype, law and the two handles, the burning of the books, the tiger tally). GDD cleaned of every earlier-game element (titles, ape climber and stages, old kit sample, old-version sections, tile units).
