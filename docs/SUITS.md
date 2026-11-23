@@ -31,7 +31,7 @@ Slots: attack, Q, W, R (ultimate), passive. Most kits have one dash, as in the G
 | Suit | Title | Role | HP | Speed | Range | Dash |
 |---|---|---|---|---|---|---|
 | 儒甲 | 君子 Junzi | Fighter | High | Mid | Melee + Mid (auto) | Q |
-| 道甲 | 真人 Zhenren | Evasive duelist | Low | High | Melee | Q |
+| 道甲 | 真人 Zhenren | Evasive duelist (counters) | Low | High | Melee | W (only on a successful counter) |
 | 法甲 | 廷尉 Law Officer | Assassin | Mid | High | Melee | Q |
 | 墨甲 | 墨守 Mo Defender | Tank (zone) | High | Low | Mid | none |
 | 阴阳甲 | 五行 Five Phases | Mage (artillery) | Low | Mid | Long | W (short) |
@@ -50,13 +50,14 @@ Source: 《周礼·地官·保氏》「乃教之六艺：一曰五礼，二曰�
 - Panel (23 Nov 20:08): 射 as the attack 5-2 (then the owner's close/mid switch answered the players' melee wish); 数 as the 6th hit 6-1; 书·正名 strips plates and boons 7-0; 乐 bells with a full tell 7-0.
 - Plays with: plates and the leader (正名), the bounty, duels under the hunter cap.
 
-### 道甲 · 真人 (Daoist: non-action 无为, water, "the soft overcomes the hard" 柔弱胜刚强)
-- Passive **Non-action (无为)**: standing still and not attacking for 2 s hides you (a shimmer within about 3 m). This is the suit's own hiding; silk curtains hide every suit.
-- Attack: staff, melee.
-- Q **Flowing Water**: dash that passes through suits.
-- W **Yield**: a brief parry; the next hit taken is turned back as knockback on the hitter.
-- R **Return to the Root (归根)**: untargetable for a moment, then heals.
-- Plays with: hiding, and the heights decree ("Our heights" also counters a hidden Daoist).
+### 道甲 · 真人 (Daoist; kit from 《道德经》, owner 23 Nov 20:15: both skills are counters, the ultimate multiplies his base stats by the counters made since the last ultimate, reset after use)
+- Passive **无为** (「道常无为而无不为」, ch. 37): standing still and not attacking for 2 s hides him (shimmer within about 3 m). Silk curtains hide every suit.
+- Attack **水**: open-hand strike, melee.
+- Q **柔 · 柔弱胜刚强** (ch. 36), counter to basic attacks: a short stance (about 0.8 s). The first basic attack that would hit him in it does no damage and the attacker is pushed back and takes it instead. Success: +1 counter, half the cooldown back.
+- W **不争 · 夫唯不争，故天下莫能与之争** (ch. 22), counter to skills: a short stance (about 0.8 s). The first enemy skill that would hit him misses him: he flows like water to a spot beside the caster (his only dash, and only on success), and the skill's slow or stun does not land. Success: +1 counter, half the cooldown back.
+- R **反 · 反者道之动，弱者道之用** (ch. 40): for about 8 s his base damage, speed and damage resistance are multiplied by 1 + (counters x step). Counters reset to 0 after use. Panel (20:15): step about 8% per counter, at most 5 counted, so the top is 1.4x, the game-wide bonus cap; the count shows on the R button. With 0 counters the ultimate gives nothing, so the player learns to counter first.
+- Fairness: each stance shows a water shimmer that every suit can see (0.8 s, above the 0.4 s tell rule), so attackers can hold off. Counters count against suits, cubs, minions and the Tiger Demon (claw = basic attack; pounce, roar and the stolen moves = skills); the statue, lions and collapses are not fighters and cannot be countered.
+- Plays with: the apex hunt (countering the demon builds the ultimate), hiding, duels under the hunter cap.
 
 ### 法甲 · 廷尉 (Legalist: law 法, method 术, authority 势, the two handles 二柄) - first sample
 - Passive **Law Binds All**: bonus damage to marked suits, i.e. anyone who broke a decree. This suit believes the law binds even the throne; she does not favour it.
