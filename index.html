@@ -306,8 +306,28 @@ const CONFIG = {
   // until then it plays the placeholder kit (ATTACK, SKILLS) at Mid stats. armor and speed = tiers from the docs/SUITS.md table (HP column = toughness).
   // ultMode = how its R unlocks: 'charge' (the ULT meter); 'lock' (Yinyang) and 'counters' (Dao) are built with their kits.
   KITS: {
-    // 儒甲 Junzi: fighter.
-    ru: { built: false, armor: 'High', speed: 'Mid', ultMode: 'charge' },
+    // 儒甲 Junzi: fighter (batch 16 ticket 03; docs/SUITS.md; owner 23 Nov 23:3x: one number set from the doc's "about" values, balance when all nine are ready).
+    ru: {
+      built: true, armor: 'High', speed: 'Mid', ultMode: 'charge',
+      // Passive 礼·君子之争: 'junzi' = bonus damage against the suit that last hit him (within lastS s), and he takes duelK of the damage while at most
+      // one enemy (suit, cub or hunt unit) is within duelM metres (a fair duel).
+      passive: 'junzi',
+      // Passive numbers: bonus share, seconds a last hitter counts, duel radius m, damage taken in a duel (share).
+      junzi: { bonus: 0.15, lastS: 4, duelM: 6, duelK: 0.85 },
+      // Attack 射+数 (owner 20:12: range-switching, no button): within closeR m a sword cut of closeDmg, else an arrow of farDmg out to range m;
+      // every every-th hit is strong: a volley of volley arrows at mid, or a heavy cut of heavyDmg that pushes back at heavyKb m/s close.
+      attack: { range: 6, closeR: 2.5, closeDmg: 10, farDmg: 8, every: 6, volley: 3, heavyDmg: 20, heavyKb: 10, interval: 0.8, acquire: 8 },
+      skills: [
+        // Q 御·五驭 (chariot charge, the dash): range m by the walking rule; every suit along the path (width m) is hit and driven sideways at side m/s.
+        { key: 'KeyQ', label: 'Q', nameKey: 'sk_ru_q', type: 'line', range: 5, width: 1.8, dmg: 22, side: 12, cd: 7, delay: 0, dash: true, dashS: 0.25, tag: 'dashIn' },
+        // W 书·六书·正名 (brush-seal shot): a line of range x width m; a suit it hits has its plates and boons stop working for seal s.
+        { key: 'KeyW', label: 'W', nameKey: 'sk_ru_w', type: 'line', range: 8, width: 1.2, dmg: 15, seal: 4, cd: 9, delay: 0 },
+        // R 乐·六乐·编钟 (bronze bells): rings land rings[i] s after the cast in a circle of radius m around him, each shown on the ground until it lands;
+        // each ring deals dmg and slows by slow for slowS s, the last also stuns for stun s; each suit hit heals him heal. cd = the hunt cooldown.
+        // Bots cast it with the target inside radius x botIn.
+        { key: 'KeyR', label: 'R', nameKey: 'sk_ru_r', type: 'self', self: 'bells', range: 0, radius: 4.5, rings: [0.6, 1.3, 2.0], dmg: 18, slow: 0.3, slowS: 1.5, stun: 0.6, heal: 5, cd: 30, delay: 0, tag: 'aura', botIn: 0.8 },
+      ],
+    },
     // 道甲 Zhenren: evasive duelist.
     dao: { built: false, armor: 'Low', speed: 'High', ultMode: 'counters' },
     // 法甲 Law Officer: assassin (batch 16 ticket 02; docs/SUITS.md; owner 23 Nov 23:3x: one number set from the doc's "about" values, balance when all nine are ready).
@@ -521,6 +541,8 @@ const TEXT = {
   st_exposed: 'Exposed',
   st_unseen: 'Unseen',
   sk_fa_q: 'Pursuit', sk_fa_w: 'Unseen', sk_fa_r: 'Authority',
+  sk_ru_q: 'Chariot', sk_ru_w: 'Seal', sk_ru_r: 'Bells',
+  st_sealed: 'Sealed: plates and boons off',
   rule_plate_s: 'Stalker plate: your hits cause bleeding for {s} s. +{c} ultimate charge.',
   rule_plate_h: 'Howler plate: +{p}% speed for {s} s. +{c} ultimate charge.',
   ult_charge: '{n}',
@@ -972,7 +994,8 @@ const PLACEHOLDER_KIT = { id: 'placeholder', armor: CONFIG.STATS.yard, speed: CO
 // The kit a school plays: its own when built, else the placeholder.
 function kitFor(school) { const k = CONFIG.KITS[school]; return k && k.built ? k : PLACEHOLDER_KIT; }
 // A suit's school, kit and stats (set at a new run).
-function applyKit(s, school) { const k = kitFor(school); s.school = school; s.kit = k; s.ultMode = k.ultMode; setStats(s, k.armor, k.speed); }
+// kit = a kit to play instead of the school's own (the checks' placeholder player, G.pkitP).
+function applyKit(s, school, kit) { const k = kit || kitFor(school); s.school = school; s.kit = k; s.ultMode = k.ultMode; s.atkN = 0; setStats(s, k.armor, k.speed); }
 // Stats from tiers: armorK = multiplier on damage from suits and creatures (exactly 1 at the yardstick tier), spd = walk speed.
 function setStats(s, armorTier, speedTier) { const S = CONFIG.STATS; s.armor = S.armor[armorTier]; s.armorK = (S.K + S.armor[S.yard]) / (S.K + s.armor); s.spd = S.speed[speedTier]; }
 // The skill a suit has in a slot (common skill interface: player, bots and later kits all cast through this).
@@ -1011,6 +1034,10 @@ for (let k = 0; k < SUITS.length; k++) {
   // heldT = seconds held by an enemy's 势 ring (cannot dash); shiT / shiSk = seconds and skill of his own 势 ring; shiRing = that ring (built once, in the scene only while on).
   const shiRing = new THREE.Mesh(tellRingGeo, M.tellS); shiRing.castShadow = false;
   Object.assign(s, { expT: 0, expArmT: 0, expS: 0, heldT: 0, shiT: 0, shiSk: null, shiRing });
+  // 儒甲 state (ticket 03): sealT = seconds his plates and boons stay off (正名); atkN = basic attacks this run (数: every 6th is strong);
+  // bellT = seconds since his 编钟 began (-1 = none), bellN = rings landed, bellSk / bellOrd = its skill and who cast it; bellRing = its ground tell (built once).
+  const bellRing = new THREE.Mesh(tellRingGeo, M.tellH); bellRing.castShadow = false;
+  Object.assign(s, { sealT: 0, atkN: 0, bellT: -1, bellN: 0, bellSk: null, bellOrd: false, bellRing });
   applyKit(s, CONFIG.SCHOOLS[0]);
 }
 // Brain fields on the player too, used only by the test autopilot (__game.autoPlayer).
@@ -1185,7 +1212,7 @@ function castSkill(slot, tx, tz) {
   // The ultimate on the meter (royale) empties it and has no cooldown; every other cast starts its cooldown.
   if (slot === 2 && onMeter(P)) { P.ch = 0; P.ultN++; } else st.cdT = sk.cd;
   const x = P.x + dx * dist, z = P.z + dz * dist;
-  if (sk.self) castSelf(P, sk);
+  if (sk.self) castSelf(P, sk, true);
   else if (sk.dash) startDash(P, slot, dx, dz, true, suitDashLen(P, sk, tx, tz));
   else if (sk.delay > 0) {
     PEND.on = true; PEND.slot = slot; PEND.x = x; PEND.z = z; PEND.dx = dx; PEND.dz = dz; PEND.t = sk.delay;
@@ -1199,20 +1226,24 @@ function inSkillShape(sk, d, ox, oz, x, z, dx, dz) {
   const px = d.x - ox, pz = d.z - oz, along = px * dx + pz * dz, side = Math.abs(px * dz - pz * dx);
   return along >= 0 && along <= sk.range + d.r && side <= sk.width / 2 + d.r;
 }
-function applySkill(slot, x, z, dx, dz) {
-  const sk = skillOf(P, slot);
+// ox, oz = where a line starts (a dash along a path: where the dash began), else the player.
+function applySkill(slot, x, z, dx, dz, ox, oz) {
+  const sk = skillOf(P, slot), sx = ox === undefined ? P.x : ox, sz = oz === undefined ? P.z : oz;
   for (let i = 0; i < TARGETS.length; i++) {
-    const d = TARGETS[i]; if (!d.seen || d.hp <= 0) continue;
-    if (inSkillShape(sk, d, P.x, P.z, x, z, dx, dz)) hitTarget(P, d, sk.dmg);
+    const d = TARGETS[i]; if (!skillTargetOk(P, d, true)) continue;
+    if (inSkillShape(sk, d, sx, sz, x, z, dx, dz)) skillHit(P, sk, d, dx, dz);
   }
   const y = topYUnder(x, z, P.y + 1) + 0.08;
-  if (sk.type === 'line') { fxLine.position.set(P.x, P.y + 0.08, P.z); fxLine.rotation.y = Math.atan2(-dx, -dz); fxLine.scale.set(sk.width, 1, sk.range); fxLine.visible = true; }
+  if (sk.type === 'line') { fxLine.position.set(sx, P.y + 0.08, sz); fxLine.rotation.y = Math.atan2(-dx, -dz); fxLine.scale.set(sk.width, 1, sk.range); fxLine.visible = true; }
   else { fxRing.position.set(x, y, z); fxRing.scale.setScalar(sk.radius); fxRing.visible = true; }
   G.fxT = 0.25;
 }
 // The player may act: alive, not stunned, and no end screen is up.
 function canAct() { return !P.dead && P.stunT <= 0 && G.phase !== 'won' && G.phase !== 'lost'; }
-function hasPlate(s, kind) { return (s.pt[0] > 0 && s.pk[0] === kind) || (s.pt[1] > 0 && s.pk[1] === kind); }
+// Plates and boons work only while the suit is not sealed (儒甲's 正名, batch 16). The leader still counts held plates.
+function hasPlate(s, kind) { return s.sealT <= 0 && ((s.pt[0] > 0 && s.pk[0] === kind) || (s.pt[1] > 0 && s.pk[1] === kind)); }
+// A boon (0 power, 1 regen, 2 vision, 3 speed) is working on suit s.
+function boonOn(s, i) { return s.bT[i] > 0 && s.sealT <= 0; }
 // A suit (by) hits a target: dummy, hunt unit, cub, buff creature or another suit. Power boon and Stalker plate come from the hitter.
 function hitTarget(by, d, n) {
   // Attacking ends the unseen state (batch 16). 法甲's first hit from 术 (W) exposes a suit it hits.
@@ -1220,7 +1251,7 @@ function hitTarget(by, d, n) {
   if (by.expArmT > 0) { if (d.kind === 'suit') expose(d, by.expS); by.expArmT = 0; }
   // Power boon and kit bonuses (法甲 passive and 势) multiply together under the game-wide cap.
   const kb = kitBonus(by, d);
-  if (by.bT[0] > 0 || kb !== 1) n *= Math.min(CONFIG.BONUS_CAP, (by.bT[0] > 0 ? 1 + by.bV[0] : 1) * kb);
+  if (boonOn(by, 0) || kb !== 1) n *= Math.min(CONFIG.BONUS_CAP, (boonOn(by, 0) ? 1 + by.bV[0] : 1) * kb);
   if (!d.kind) { hitDummy(d, n); return; }
   if (d.kind === 'suit') { hurtSuit(d, n, 'hit', by); return; }
   hitEnemy(d, n, by);
@@ -1528,7 +1559,7 @@ const G = { time: 0, view: 'follow', paused: false, ctxLost: false, frames: 0, b
   huntN: 0, huntClaims: 0, huntFrees: 0,
   leader: null, leadT: 0, leaderChanges: 0, leaderCode: -1, leaderWrites: 0, miniLeader: false,
   bountyN: 0, bountyWarnAt: -1, bountyStartAt: -1, bountyEndAt: -1, bountyEndWhy: '', bountyPaid: 0, bountyPaidTo: -1,
-  auraN: 0, decNext: 0, decN: 0, decCount: { dry: 0, nodash: 0, silence: 0, heights: 0, ult2x: 0 }, decLog: [], brkP: 0, brkB: 0, decCode: -1, decWrites: 0, hiAvoid: false, zoneSec: null, skips: 0, chWrites: 0 , school: 0, selecting: false, selectOn: false, selBtns: [], saveFail: false};
+  auraN: 0, bellN: 0, decNext: 0, decN: 0, decCount: { dry: 0, nodash: 0, silence: 0, heights: 0, ult2x: 0 }, decLog: [], brkP: 0, brkB: 0, decCode: -1, decWrites: 0, hiAvoid: false, zoneSec: null, skips: 0, chWrites: 0 , school: 0, selecting: false, selectOn: false, selBtns: [], saveFail: false};
 // The one decree slot (batch 11): st 0 idle, 1 queued, 2 warning (banner), 3 in force. key = decree name, tgt = its suit (bounty), t = seconds left in the state.
 // Decree slot. st: 0 free, 1 queued, 2 warning, 3 in force. len = seconds in force; zone = the no-dash decree's section; warnAt = when its warning began.
 const DEC = { st: 0, key: '', tgt: null, t: 0, count: -1, banner: false, len: 0, zone: null, warnAt: -1 };
@@ -1536,6 +1567,10 @@ const DEC = { st: 0, key: '', tgt: null, t: 0, count: -1, banner: false, len: 0,
 // School select (batch 16): never with ?bots=N (map test and checks); the last pick is read from storage only when the select is on.
 G.selectOn = CONFIG.SELECT.on && !params.has('bots');
 G.school = G.selectOn ? loadSchool() : 0;
+// Checks only (batch 16 ticket 03): with ?pkit=placeholder the default pick (school index 0, 儒甲) plays the placeholder kit at Mid stats, so the map and
+// match checks keep testing the kit they were written for; a check that picks another school plays that school's kit, and the 儒甲 checks switch it off
+// (__game.setPkitP). Players never use it.
+G.pkitP = params.get('pkit') === 'placeholder';
 G.botN = !CONFIG.BOTS.on ? 0 : params.has('bots') ? Math.max(0, Math.min(CONFIG.BOTS.count, parseInt(params.get('bots'), 10) || 0)) : CONFIG.BOTS.count;
 
 function warnSection(s) { G.miniDirty = true; G.warnGen++; s.state = 1; for (let i = 0; i < s.floorMeshes.length; i++) s.floorMeshes[i].material = warnMat; }
@@ -1626,7 +1661,8 @@ function step(dt) {
   // Timers on every suit still in the match: heal pause, slow, stun, bleed, plates, boons.
   for (let k = 0; k < SUITS.length; k++) if (!SUITS[k].bot || !SUITS[k].dead) tickSuit(SUITS[k], dt);
   stepAuras(dt);
-  const vr = CONFIG.VISION_R + (P.bT[2] > 0 ? P.bV[2] : 0);
+  stepBells(dt);
+  const vr = CONFIG.VISION_R + (boonOn(P, 2) ? P.bV[2] : 0);
   if (vr !== G.visR) { G.visR = vr; if (G.view === 'follow') FOW.uFowR.value = vr; }
   if (roy && CONFIG.ROYALE_MINIONS) stepKennel(dt);
   if (roy && CONFIG.NEUTRALS) stepNeutrals(dt);
@@ -1662,7 +1698,7 @@ function step(dt) {
       const ax = d.x - P.x, az = d.z - P.z, dist = Math.hypot(ax, az) || 1;
       P.faceX = ax / dist; P.faceZ = az / dist;
       if (dist > P.kit.attack.range + d.r) { mx = ax / dist; mz = az / dist; }
-      else if (P.atkT <= 0 && P.stunT <= 0) { hitTarget(P, d, P.kit.attack.dmg); P.atkT = P.kit.attack.interval; }
+      else if (P.atkT <= 0 && P.stunT <= 0) { basicAttack(P, d); P.atkT = P.kit.attack.interval; }
     }
   } else if (PATH.i < PATH.n) {
     const tx = PATH.pts[PATH.i * 2] - P.x, tz = PATH.pts[PATH.i * 2 + 1] - P.z, d = Math.hypot(tx, tz);
@@ -1690,6 +1726,7 @@ function tickSuit(s, dt) {
   if (s.expT > 0) s.expT = Math.max(0, s.expT - dt);
   if (s.expArmT > 0) s.expArmT = Math.max(0, s.expArmT - dt);
   if (s.heldT > 0) s.heldT = Math.max(0, s.heldT - dt);
+  if (s.sealT > 0) s.sealT = Math.max(0, s.sealT - dt);
   if (s.bleedT > 0) {
     s.bleedT -= dt; const b = CONFIG.BLEED.dps * s.bleedN * dt;
     const lost = hurtSuit(s, b, 'bleed', null);
@@ -1698,12 +1735,12 @@ function tickSuit(s, dt) {
   }
   for (let i = 0; i < 2; i++) if (s.pt[i] > 0) { s.pt[i] -= dt; if (s.pt[i] <= 0) { s.pt[i] = 0; s.pk[i] = ''; checkLeader(); } }
   for (let i = 0; i < 4; i++) if (s.bT[i] > 0) { s.bT[i] -= dt; if (s.bT[i] <= 0) { s.bT[i] = 0; s.bV[i] = 0; } }
-  if (s.bT[1] > 0 && !s.dead && s.hp < CONFIG.MAX_HP) s.hp = Math.min(CONFIG.MAX_HP, s.hp + s.bV[1] * dt);
+  if (boonOn(s, 1) && !s.dead && s.hp < CONFIG.MAX_HP) s.hp = Math.min(CONFIG.MAX_HP, s.hp + s.bV[1] * dt);
   gainCharge(s, CONFIG.ULT.passive * dt);
 }
 // Walk speed of a suit with its slow, Howler plate and speed boon (bonuses capped).
 function suitSpeed(s) {
-  return s.spd * (s.slowT > 0 ? 1 - s.slowK : 1) * Math.min(CONFIG.BONUS_CAP, (hasPlate(s, 'howler') ? 1 + CONFIG.PLATE.speed : 1) * (1 + (s.bT[3] > 0 ? s.bV[3] : 0)));
+  return s.spd * (s.slowT > 0 ? 1 - s.slowK : 1) * Math.min(CONFIG.BONUS_CAP, (hasPlate(s, 'howler') ? 1 + CONFIG.PLATE.speed : 1) * (1 + (boonOn(s, 3) ? s.bV[3] : 0)));
 }
 // Body of a suit for one step: knockback, walking with axis sliding, facing, then floors (step up, drop a layer, or fall into the void).
 // mx, mz = wanted direction (length up to 1). Sets s.moved (metres this step) and s.floor (floor under the feet or null).
@@ -1785,7 +1822,7 @@ function updateHp() {
 // Being hit ends the unseen state. Returns the health lost.
 function hurtSuit(s, n, cause, by) {
   if (s.dead) return 0;
-  if (cause === 'hit' || cause === 'bleed') n *= s.armorK;
+  if (cause === 'hit' || cause === 'bleed') n *= s.armorK * duelK(s);
   if (n > 0) { breakUnseen(s); s.expArmT = 0; }
   const lost = Math.min(n, s.hp);
   s.hp -= n; s.noHealT = CONFIG.ALTAR.hitPauseS;
@@ -1973,7 +2010,7 @@ function breakDecree(s) {
   if (s === P) showNote('voice_marked', 'rule_marked', MARK_VARS);
 }
 // Marks off every suit (the wake and a new run).
-function clearMarks() { for (let i = 0; i < SUITS.length; i++) { const s = SUITS[i]; s.markT = 0; s.brkT = 0; s.marker.visible = false; s.dashLeft = 0; s.wsT = -99; breakUnseen(s); s.expT = 0; s.expArmT = 0; s.heldT = 0; endAura(s); } }
+function clearMarks() { for (let i = 0; i < SUITS.length; i++) { const s = SUITS[i]; s.markT = 0; s.brkT = 0; s.marker.visible = false; s.dashLeft = 0; s.wsT = -99; breakUnseen(s); s.expT = 0; s.expArmT = 0; s.heldT = 0; s.sealT = 0; endAura(s); endBells(s); } }
 // ----- Unseen state (batch 16, minimal; curtains and walls blocking sight come with hiding in batch 18).
 function goUnseen(s, sec) { s.unseenT = sec; setShimmer(s, true); }
 function breakUnseen(s) { if (s.unseenT <= 0) return; s.unseenT = 0; setShimmer(s, false); }
@@ -2005,22 +2042,80 @@ function suitDashLen(s, sk, tx, tz) {
   const max = t && lawTarget(t) ? sk.longRange : sk.range, d = Math.hypot(tx - s.x, tz - s.z);
   return Math.max(1, Math.min(max, t ? d - 0.8 : d));
 }
-// Damage multiplier from the hitter's kit against target d (before the BONUS_CAP): 法甲's passive (leader or marked) and his 势 (missing health).
+// Damage multiplier from the hitter's kit against target d (before the BONUS_CAP): 法甲's passive (leader or marked) and his 势 (missing health), 儒甲's passive (last hitter).
 function kitBonus(by, d) {
   let k = 1;
   if (by.kit && by.kit.passive === 'law' && d.kind === 'suit' && (d === G.leader || d.markT > 0)) k += by.kit.law.bonus;
+  // 儒甲's 君子之争: bonus against the suit that last hit him.
+  if (by.kit && by.kit.passive === 'junzi' && d === by.lastBy && G.time - by.lastByT < by.kit.junzi.lastS) k += by.kit.junzi.bonus;
   if (by.shiT > 0) {
     const max = d.kind === 'suit' ? CONFIG.MAX_HP : d.maxHp || CONFIG.DUMMY_HP;
     k *= 1 + by.shiSk.exec * Math.max(0, max - d.hp) / max;
   }
   return k;
 }
-// A self skill (type 'self'): 'unseen' (法甲 W) or 'aura' (法甲 R 势).
-function castSelf(s, sk) {
+// A self skill (type 'self'): 'unseen' (法甲 W), 'aura' (法甲 R 势) or 'bells' (儒甲 R 编钟). ord = cast by a player order (its hits follow the player's rule).
+function castSelf(s, sk, ord) {
+  if (sk.self === 'bells') { if (s.bellT < 0) G.bellN++; s.bellT = 0; s.bellN = 0; s.bellSk = sk; s.bellOrd = !!ord; placeBell(s); if (!s.bellRing.parent) scene.add(s.bellRing); return; }
   if (sk.self === 'unseen') { goUnseen(s, sk.dur); s.expArmT = sk.dur + sk.armS; s.expS = sk.exposeS; return; }
   if (sk.self === 'aura') { s.shiT = sk.dur; s.shiSk = sk; s.shiRing.scale.setScalar(sk.radius); s.shiRing.position.set(s.x, s.y + 0.07, s.z); if (!s.shiRing.parent) { scene.add(s.shiRing); G.auraN++; } }
 }
 function endAura(s) { if (s.shiT <= 0 && !s.shiRing.parent) return; s.shiT = 0; s.shiSk = null; if (s.shiRing.parent) { scene.remove(s.shiRing); G.auraN--; } }
+// 儒甲's 君子之争 (passive): share of a blow he takes while at most one enemy is near (a fair duel); 1 for every other suit.
+function duelK(s) {
+  if (!s.kit || s.kit.passive !== 'junzi') return 1;
+  const J = s.kit.junzi;
+  return foesNear(s, J.duelM) <= 1 ? J.duelK : 1;
+}
+// Enemies within r metres of suit s on about its layer: other live suits, live cubs and live hunt units.
+function foesNear(s, r) {
+  let n = 0;
+  for (let i = 0; i < SUITS.length; i++) { const o = SUITS[i]; if (o !== s && !o.dead && Math.abs(o.y - s.y) < 2 && Math.hypot(o.x - s.x, o.z - s.z) <= r) n++; }
+  for (let i = 0; i < CUBS.length; i++) { const u = CUBS[i]; if (u.alive && Math.abs(u.y - s.y) < 2 && Math.hypot(u.x - s.x, u.z - s.z) <= r) n++; }
+  for (let i = 0; i < ENEMIES.length; i++) { const u = ENEMIES[i]; if (u.alive && Math.hypot(u.x - s.x, u.z - s.z) <= r) n++; }
+  return n;
+}
+// A basic attack of suit s on d (player and bots: one home). A range-switching attack (儒甲 射+数) cuts within closeR and shoots beyond it;
+// every every-th hit is strong: a volley of arrows, or a heavy cut that pushes a suit back.
+function basicAttack(s, d) {
+  const at = s.kit.attack;
+  if (!at.closeR) { hitTarget(s, d, at.dmg); return; }
+  s.atkN++;
+  const strong = s.atkN % at.every === 0;
+  if (Math.hypot(d.x - s.x, d.z - s.z) > at.closeR + d.r) { for (let i = 0; i < (strong ? at.volley : 1); i++) hitTarget(s, d, at.farDmg); return; }
+  hitTarget(s, d, strong ? at.heavyDmg : at.closeDmg);
+  if (!strong || d.kind !== 'suit' || d.dead) return;
+  const dx = d.x - s.x, dz = d.z - s.z, l = Math.hypot(dx, dz) || 1;
+  d.kx += dx / l * at.heavyKb; d.kz += dz / l * at.heavyKb;
+}
+// 儒甲's bells: the ground ring sits around him at the next ring's size.
+function placeBell(s) { s.bellRing.scale.setScalar(s.bellSk.radius); s.bellRing.position.set(s.x, s.y + 0.07, s.z); }
+function endBells(s) { if (s.bellT < 0) return; s.bellT = -1; s.bellN = 0; s.bellSk = null; if (s.bellRing.parent) scene.remove(s.bellRing); G.bellN--; }
+// 编钟 (fixed step): each ring is shown around him until it lands; then every target inside takes its damage and slow (the last ring also stuns),
+// and every suit hit heals him. The ring is drawn where the player can see the caster.
+function stepBells(dt) {
+  if (G.bellN <= 0) return;
+  for (let i = 0; i < SUITS.length; i++) {
+    const s = SUITS[i]; if (s.bellT < 0) continue;
+    if (s.dead) { endBells(s); continue; }
+    s.bellT += dt; placeBell(s); s.bellRing.visible = s === P || s.seen;
+    const sk = s.bellSk;
+    if (s.bellT < sk.rings[s.bellN]) continue;
+    s.bellN++; ringBell(s, sk, s.bellN === sk.rings.length);
+    if (s.bellN >= sk.rings.length) endBells(s);
+  }
+}
+// One ring of 编钟 lands around suit s.
+function ringBell(s, sk, last) {
+  for (let i = -1; i < TARGETS.length; i++) {
+    const d = i < 0 ? P : TARGETS[i];
+    if (!skillTargetOk(s, d, s.bellOrd) || Math.hypot(d.x - s.x, d.z - s.z) > sk.radius + d.r) continue;
+    hitTarget(s, d, sk.dmg);
+    if (d.kind !== 'suit') continue;
+    if (!d.dead) { d.slowK = Math.max(d.slowT > 0 ? d.slowK : 0, sk.slow); d.slowT = Math.max(d.slowT, sk.slowS); if (last) d.stunT = Math.max(d.stunT, sk.stun); }
+    if (!s.dead) s.hp = Math.min(CONFIG.MAX_HP, s.hp + sk.heal);
+  }
+}
 // 势 rings (fixed step): each follows its suit (shown where the player can see the caster); every other suit inside is slowed and held (no dash).
 function stepAuras(dt) {
   if (G.auraN <= 0) return;
@@ -2051,14 +2146,14 @@ function unitHeld(u) {
 // len = metres to dash (a pursuit dash stops at its target, batch 16), else the skill's range.
 function startDash(s, slot, dx, dz, ord, len) {
   const sk = skillOf(s, slot);
-  s.dashLeft = len || sk.range; s.dashX = dx; s.dashZ = dz; s.dashStep = sk.range / sk.dashS * CONFIG.STEP; s.dashSlot = slot; s.dashOrd = ord;
+  s.dashLeft = len || sk.range; s.dashOx = s.x; s.dashOz = s.z; s.dashX = dx; s.dashZ = dz; s.dashStep = sk.range / sk.dashS * CONFIG.STEP; s.dashSlot = slot; s.dashOrd = ord;
   if (decOn('nodash') && s.floor && s.floor.s === DEC.zone) breakDecree(s);
 }
-// Dash over (full length or blocked): the burst lands around the suit.
+// Dash over (full length or blocked): the burst lands around the suit (a line dash hits along its path from where it began).
 function dashLand(s) {
   s.dashLeft = 0;
-  if (s.dashOrd) applySkill(s.dashSlot, s.x, s.z, s.dashX, s.dashZ);
-  else botSkillHit(s, s.dashSlot, s.x, s.z, s.dashX, s.dashZ);
+  if (s.dashOrd) applySkill(s.dashSlot, s.x, s.z, s.dashX, s.dashZ, s.dashOx, s.dashOz);
+  else botSkillHit(s, s.dashSlot, s.x, s.z, s.dashX, s.dashZ, s.dashOx, s.dashOz);
 }
 // Leader time and the bounty request, then the decree slot (royale, in a match).
 function stepLeader(dt) {
@@ -2106,7 +2201,7 @@ function updateLeaderHud() {
 function suitFell(s) { if (s === P && G.botN === 0) respawn('fell'); else suitDown(s, 'fall', null); }
 // A bot leaves the match: body out of the scene, no longer a target.
 function botOut(b) {
-  b.dead = true; b.hp = 0; b.seen = false; b.navWant = false; b.path.n = 0; b.pend = false; endAura(b);
+  b.dead = true; b.hp = 0; b.seen = false; b.navWant = false; b.path.n = 0; b.pend = false; endAura(b); endBells(b);
   if (b.group.parent) scene.remove(b.group);
   if (b.ring.parent) scene.remove(b.ring);
   if (ORD.attack === b) ORD.attack = null;
@@ -2120,9 +2215,9 @@ function updateStatus() {
   const sil = silenced(P), mk = P.markT > 0;
   // Skill buttons show the silence (class written only on change).
   if (sil !== P.silShown) { P.silShown = sil; el.bar.classList.toggle('silenced', sil); }
-  const hd = held(P), ex = P.expT > 0, un = P.unseenT > 0;
+  const hd = held(P), ex = P.expT > 0, un = P.unseenT > 0, se = P.sealT > 0;
   const code = (P.stunT > 0 ? 100 : 0) + (P.slowT > 0 ? 10 : 0) + P.bleedN + s0 * 1e3 + s1 * 1e5 + (P.pk[0] === 'howler' ? 1e7 : 0) + (P.pk[1] === 'howler' ? 2e7 : 0) + (sil ? 4e7 : 0) + (mk ? 8e7 : 0)
-    + (hd ? 16e7 : 0) + (ex ? 32e7 : 0) + (un ? 64e7 : 0);
+    + (hd ? 16e7 : 0) + (ex ? 32e7 : 0) + (un ? 64e7 : 0) + (se ? 128e7 : 0);
   const tick = P.bT[0] + P.bT[1] + P.bT[2] + P.bT[3] > 0 ? Math.floor(G.time) : -1;
   if (code === P.statusShown && tick === P.statusTick) return;
   P.statusShown = code; P.statusTick = tick;
@@ -2132,6 +2227,7 @@ function updateStatus() {
   if (un) s += T('st_unseen') + '  ';
   if (ex) s += T('st_exposed') + '  ';
   if (hd) s += T('st_held') + '  ';
+  if (se) s += T('st_sealed') + '  ';
   if (P.stunT > 0) s += T('st_stun') + '  ';
   if (P.slowT > 0) s += T('st_slow') + '  ';
   if (P.bleedN > 0) s += T('st_bleed', { n: P.bleedN }) + '  ';
@@ -2537,7 +2633,7 @@ function stepBots(dt) {
   shrinkHunters();
   for (let k = 0; k < BOTLIST.length; k++) {
     const b = BOTLIST[k]; if (!b.hunter) continue;
-    if (!b.dead && !P.dead && botSees(b, P, CONFIG.VISION_R + (b.bT[2] > 0 ? b.bV[2] : 0))) b.huntLostT = 0; else b.huntLostT += dt;
+    if (!b.dead && !P.dead && botSees(b, P, CONFIG.VISION_R + (boonOn(b, 2) ? b.bV[2] : 0))) b.huntLostT = 0; else b.huntLostT += dt;
     if (b.dead || P.dead || b.huntLostT >= HB.hunterLoseS) {
       b.hunter = false; b.huntLostT = 0; G.huntN--; G.huntFrees++;
       // A freed hunter drops the player at once and decides again next step (no chase left over from the slot).
@@ -2614,7 +2710,7 @@ function botThink(b, dt) {
     if (d > 0.01) { b.faceX = dx / d; b.faceZ = dz / d; }
     if (b.tgtT >= sk.react && b.stunT <= 0 && b.castT <= 0) botUseSkills(b, q, d);
     if (d <= reach) {
-      if (b.atkT <= 0 && b.stunT <= 0 && b.tgtT >= sk.react) { hitTarget(b, q, at.dmg); b.atkT = at.interval; }
+      if (b.atkT <= 0 && b.stunT <= 0 && b.tgtT >= sk.react) { basicAttack(b, q); b.atkT = at.interval; }
     } else if (b.direct) { b.mx = dx / d; b.mz = dz / d; }
     else botFollow(b);
   } else if (b.mode === 'heal' && b.heal) {
@@ -2624,7 +2720,7 @@ function botThink(b, dt) {
   if (!warned && (b.mx !== 0 || b.mz !== 0) && botDanger(b, b.x + b.mx * 0.8, b.z + b.mz * 0.8, 0.3)) { b.mx = 0; b.mz = 0; }
 }
 function botDecide(b) {
-  const B = CONFIG.BOT, vr = CONFIG.VISION_R + (b.bT[2] > 0 ? b.bV[2] : 0);
+  const B = CONFIG.BOT, vr = CONFIG.VISION_R + (boonOn(b, 2) ? b.bV[2] : 0);
   // Airborne (a drop in progress): keep the current decision until landing (batch 13 fix: a bot fleeing Our heights stepped off the ramp edge,
   // decided again in the air, no longer counted as on the heights, and walked back onto the ramp, over and over).
   if (b.air) return;
@@ -2766,7 +2862,7 @@ function botUseSkills(b, q, d) {
     const dist = sk.type === 'line' ? sk.range : Math.min(len, sk.range), x = b.x + dx * dist, z = b.z + dz * dist;
     if (slot === 2 && onMeter(b)) { b.ch = 0; b.ultN++; } else b.cd[slot] = sk.cd;
     b.faceX = dx; b.faceZ = dz; b.castT = CONFIG.BOT.castGapS; breakUnseen(b);
-    if (sk.self) castSelf(b, sk);
+    if (sk.self) castSelf(b, sk, false);
     else if (sk.dash) startDash(b, slot, dx, dz, false, suitDashLen(b, sk, tx, tz));
     else if (sk.delay > 0) {
       b.pend = true; b.pendT = sk.delay; b.pendS = slot; b.pendX = x; b.pendZ = z; b.pendDx = dx; b.pendDz = dz; b.pendAge = 0;
@@ -2776,13 +2872,27 @@ function botUseSkills(b, q, d) {
   }
 }
 // A bot's skill lands: every other suit (the player too), cub and buff creature inside the shape on about its layer is hit.
-function botSkillHit(b, slot, x, z, dx, dz) {
-  const sk = skillOf(b, slot);
+// ox, oz = where a line starts (a dash along a path: where the dash began), else the bot.
+function botSkillHit(b, slot, x, z, dx, dz, ox, oz) {
+  const sk = skillOf(b, slot), sx = ox === undefined ? b.x : ox, sz = oz === undefined ? b.z : oz;
   for (let i = -1; i < TARGETS.length; i++) {
     const d = i < 0 ? P : TARGETS[i];
-    if (d === b || !d.kind || (d.kind === 'suit' ? d.dead : !d.alive) || d.hunt || Math.abs(d.y - b.y) > 2) continue;
-    if (inSkillShape(sk, d, b.x, b.z, x, z, dx, dz)) hitTarget(b, d, sk.dmg);
+    if (!skillTargetOk(b, d, false)) continue;
+    if (inSkillShape(sk, d, sx, sz, x, z, dx, dz)) skillHit(b, sk, d, dx, dz);
   }
+}
+// Can suit s's skill hit d? ord = a player order: any seen, live target (dummies, hunt units, cubs, creatures, bots); else the brain's rule:
+// another live suit, cub or creature on about its layer (never hunt units: bots are not in the hunt).
+function skillTargetOk(s, d, ord) {
+  if (ord) return d !== s && d.seen && d.hp > 0;
+  return d !== s && !!d.kind && (d.kind === 'suit' ? !d.dead : d.alive) && !d.hunt && Math.abs(d.y - s.y) <= 2;
+}
+// A skill lands on d: its damage, then its kit effects on a suit: 正名's seal (儒甲 W) and the chariot's sideways drive (儒甲 Q, away from the path).
+function skillHit(s, sk, d, dx, dz) {
+  hitTarget(s, d, sk.dmg);
+  if (d.kind !== 'suit' || d.dead) return;
+  if (sk.seal) d.sealT = Math.max(d.sealT, sk.seal);
+  if (sk.side) { const sg = (d.x - s.x) * dz - (d.z - s.z) * dx >= 0 ? 1 : -1; d.kx += dz * sg * sk.side; d.kz -= dx * sg * sk.side; }
 }
 // Delayed bot skills (the ultimate): the ring stays for the whole delay, then the hit lands.
 function stepBotPend(b, dt) {
@@ -2829,7 +2939,7 @@ function nearHazard(x, z, y) {
 }
 // Of 8 random safe spots, the one whose nearest seen suit is farthest (and farther than suit s is now).
 function botAwayGoal(b, s) {
-  const vr = CONFIG.VISION_R + (b.bT[2] > 0 ? b.bV[2] : 0);
+  const vr = CONFIG.VISION_R + (boonOn(b, 2) ? b.bV[2] : 0);
   let best = -1, bd = Math.hypot(b.x - s.x, b.z - s.z);
   for (let t = 0; t < 8; t++) {
     const v = Math.floor(brnd() * NAV.V), f = FLOORS[NAV.nf[v]];
@@ -2990,7 +3100,7 @@ function newRun() { if (G.selectOn) openSelect(); else reset(); }
 // The player takes school G.school; the bots take the other eight in CONFIG.SCHOOLS order (kit, stats, colour, name). HUD and bar names written on change.
 function assignSchools() {
   const L = CONFIG.SCHOOLS;
-  applyKit(P, L[G.school]); P.nameKey = 'suit_0';
+  applyKit(P, L[G.school], G.pkitP && G.school === 0 ? PLACEHOLDER_KIT : null); P.nameKey = 'suit_0';
   let k = 0;
   for (let i = 0; i < L.length && k < BOTLIST.length; i++) {
     if (i === G.school) continue;
@@ -3200,6 +3310,8 @@ function reset() {
   ORD.attack = null; ORD.atkHeld = false; ORD.rightHeld = false; ORD.attackMove = false; cancelAim(); PATH.n = 0; PATH.i = 0;
   PEND.on = false; G.fxT = 0; fxLine.visible = fxRing.visible = fxTele.visible = false; G.miniDirty = true;
   P.faceX = 0; P.faceZ = -1; P.atkT = 0; P.stuckT = 0;
+  // Batch 16 ticket 03 fix: the player's last attacker belongs to its run (it kept counting into a new run for 儒甲's passive: lastByT from the old clock).
+  P.lastBy = null; P.lastByT = -99;
   const sp = SPAWNS[CONFIG.PLAYER_SPAWN];
   P.x = P.px = sp[0]; P.z = P.pz = sp[1]; P.y = P.py = topY(sp[0], sp[1]);
   P.vy = 0; P.air = false; P.voidT = 0; P.dead = false; P.deadT = 0; P.kx = P.kz = 0;
@@ -3404,14 +3516,18 @@ window.__game = {
     suits: SUITS.map((q) => ({ id: q.id, school: q.school, kit: q.kit.id || q.school, armor: q.armor, armorK: q.armorK, spd: q.spd, ultMode: q.ultMode, name: T(q.nameKey), color: q.mat ? q.mat.color.getHex() : -1 })) }),
   setStats(i, a, sp) { setStats(i < 0 ? P : BOTLIST[i], a, sp); },
   strike(i, j, n) { hitTarget(i < 0 ? P : BOTLIST[i], j < 0 ? P : BOTLIST[j], n); },
-  castSelfOf(i, slot) { const q = i < 0 ? P : BOTLIST[i]; castSelf(q, skillOf(q, slot)); },
+  castSelfOf(i, slot) { const q = i < 0 ? P : BOTLIST[i]; castSelf(q, skillOf(q, slot), i < 0); },
   placeholderKit(i) { const q = i < 0 ? P : BOTLIST[i]; q.kit = PLACEHOLDER_KIT; q.ultMode = 'charge'; setStats(q, CONFIG.STATS.yard, CONFIG.STATS.yard); },
   bleed(i, n) { const q = i < 0 ? P : BOTLIST[i]; q.bleedN = n; q.bleedT = CONFIG.BLEED.dur; },
   unseen(i, sec) { const q = i < 0 ? P : BOTLIST[i]; if (sec > 0) goUnseen(q, sec); else breakUnseen(q); return __game.unseenOf(i); },
   unseenOf(i) { const q = i < 0 ? P : BOTLIST[i]; return { t: q.unseenT, shimmer: (q === P ? playerBody : q.body).material === M.ind }; },
   // Batch 16 ticket 02 (read-only): kit state of a suit (exposure, 术 arming, held, 势 ring, charge, cooldowns, speed).
   kitState(i) { const q = i < 0 ? P : BOTLIST[i]; return { school: q.school, expT: q.expT, expArmT: q.expArmT, heldT: q.heldT, shiT: q.shiT, ringIn: !!q.shiRing.parent, ringVis: q.shiRing.visible,
-    ringR: q.shiRing.scale.x, ch: q.ch, cd: q === P ? SK.map((st) => st.cdT) : q.cd.slice(), bcd: q.cd.slice(), spd: suitSpeed(q), seen: q === P ? true : q.seen, auraN: G.auraN, ultN: q.ultN, dash: q.dashLeft }; },
+    ringR: q.shiRing.scale.x, ch: q.ch, cd: q === P ? SK.map((st) => st.cdT) : q.cd.slice(), bcd: q.cd.slice(), spd: suitSpeed(q), seen: q === P ? true : q.seen, auraN: G.auraN, ultN: q.ultN, dash: q.dashLeft,
+    sealT: q.sealT, stunT: q.stunT, slowT: q.slowT, kx: q.kx, kz: q.kz, atkN: q.atkN, bellT: q.bellT, bellN: q.bellN, bellIn: !!q.bellRing.parent, bellVis: q.bellRing.visible, bellR: q.bellRing.scale.x, bellN0: G.bellN, armorK: q.armorK, kit: q.kit.id || q.school }; },
+  // Batch 16 ticket 03: the checks' placeholder player on or off (applies at the next reset), and the player's school without the select (next reset).
+  setPkitP(on) { G.pkitP = !!on; }, setSchool(i) { G.school = i; }, seal(i, sec) { (i < 0 ? P : BOTLIST[i]).sealT = sec; },
+  duelOf: (i) => duelK(i < 0 ? P : BOTLIST[i]), basicAttackBy(i, j) { basicAttack(i < 0 ? P : BOTLIST[i], j < 0 ? P : BOTLIST[j]); },
   autoPlayer(on, kennel) { G.autoP = !!on; G.autoK = !!on && !!kennel; P.campK = -1; P.mode = ''; P.tgt = null; P.pathGen = 0; P.heal = null; P.skip = null; P.direct = false; P.tgtT = 0; P.castT = 0; P.lastByT = -99; P.declined = null; P.declinedT = -99; P.gx = P.x; P.gz = P.z; P.gy = P.y; P.navWant = false; P.flee = false; P.pend = false; if (P.ring.parent) scene.remove(P.ring); P.cd[0] = P.cd[1] = P.cd[2] = 0; P.thinkT = 0; P.lastBy = null; P.goalT = 1e9; PATH.n = 0; PATH.i = 0; },
   setBotHp(i, n) { BOTLIST[i].hp = n; }, setWatch(on) { G.watch = !!on; },
   royale: () => ({ phase: G.phase, lostIn: G.lostIn, alive: G.alive, decidedAt: G.decidedAt, t: G.time, voice: el.voice.textContent, rule: el.rule.textContent, banner: el.banner.style.display, btn: el.btnHunt.style.display, btnText: el.btnHunt.textContent }), setBotCd(i, slot, v) { BOTLIST[i].cd[slot] = v; }, setTime(t) { G.time = t; },

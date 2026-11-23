@@ -14,7 +14,9 @@ const server = createServer(async (req, res) => {
   catch { res.writeHead(404); res.end(); }
 }).listen(0);
 // bots=0: the map-test checks run with the player alone; the bot checks (56+) set the bots themselves.
-const URL0 = `http://127.0.0.1:${server.address().port}/?lock&tier=medium&bots=0`;
+// Batch 16 ticket 03 (game changed on purpose): the default pick (儒甲) now has its own kit, so pkit=placeholder keeps the player on the placeholder kit
+// the map and match checks were written for; the 儒甲 checks switch it off with __game.setPkitP(false).
+const URL0 = `http://127.0.0.1:${server.address().port}/?lock&tier=medium&bots=0&pkit=placeholder`;
 
 const results = [], SIMS = [];
 function check(name, ok, detail) { results.push({ name, ok: !!ok, detail }); }
@@ -1471,7 +1473,8 @@ try {
   const st93 = await g(() => {
     const G = __game, C = G.config, S = C.STATS, H = window.__d, o = {}, f = (a) => (S.K + S.armor[S.yard]) / (S.K + S.armor[a]);
     // Game changed on purpose (batch 16): a built kit plays its own tiers (法甲 from ticket 02), an unbuilt one the placeholder at Mid; every suit is checked against its kit.
-    const kitTiers = (q) => { const k = C.KITS[q.school], t = k && k.built ? k : { armor: S.yard, speed: S.yard }; return q.armor === S.armor[t.armor] && q.spd === S.speed[t.speed] && Math.abs(q.armorK - f(t.armor)) < 1e-12; };
+    // Batch 16 ticket 03 (game changed on purpose): the checks' placeholder player (pkit, default pick 儒甲) plays the placeholder at Mid, so it is checked against the kit it plays.
+    const kitTiers = (q) => { const k = C.KITS[q.school], t = k && k.built && q.kit !== 'placeholder' ? k : { armor: S.yard, speed: S.yard }; return (q.kit === 'placeholder' || (k && k.built)) && q.armor === S.armor[t.armor] && q.spd === S.speed[t.speed] && Math.abs(q.armorK - f(t.armor)) < 1e-12; };
     H.start(3); const s0 = G.schools().suits; o.mid = s0.every(kitTiers) && s0.some((q) => q.armorK === 1 && q.spd === C.PLAYER_SPEED && q.armor === S.armor.Mid);
     G.setStats(0, 'Low', 'Mid'); G.setStats(1, 'High', 'Mid'); G.setBotHp(0, 100); G.setBotHp(1, 100); G.setBotHp(2, 100);
     G.hitBy(-1, 0, 25); G.hitBy(-1, 1, 25); G.hitBy(-1, 2, 25); const b = G.bots().list;
@@ -1541,8 +1544,9 @@ try {
     const want = { ru: ['High', 'Mid'], dao: ['Low', 'High'], fa: ['Mid', 'High'], mo: ['High', 'Low'], yinyang: ['Low', 'Mid'], za: ['Mid', 'Mid'], ming: ['Low', 'Mid'], zongheng: ['Mid', 'Mid'], nong: ['High', 'Low'] };
     o.order = C.SCHOOLS.join(','); o.tiers = C.SCHOOLS.every((k) => C.KITS[k].armor === want[k][0] && C.KITS[k].speed === want[k][1]);
     // Game changed on purpose (batch 16): kits are built ticket by ticket (02 法甲); a built school plays its own kit, every other the placeholder at Mid.
-    o.unbuilt = C.SCHOOLS.filter((k) => C.KITS[k].built).join(',') === 'fa';
-    o.placeholder = sc.suits.every((q) => (C.KITS[q.school].built ? q.kit === q.school && q.ultMode === C.KITS[q.school].ultMode : q.kit === 'placeholder' && q.ultMode === 'charge'));
+    // Batch 16 ticket 03 (game changed on purpose): 儒甲 built too; the checks' placeholder player (pkit, default pick 儒甲) plays the placeholder, every bot its school's kit when built.
+    o.unbuilt = C.SCHOOLS.filter((k) => C.KITS[k].built).join(',') === 'ru,fa';
+    o.placeholder = sc.suits.every((q) => (C.KITS[q.school].built && q.id !== 0 ? q.kit === q.school && q.ultMode === C.KITS[q.school].ultMode : q.kit === 'placeholder' && q.ultMode === 'charge'));
     o.player = sc.suits[0].school; o.bots = sc.suits.slice(1).map((q) => q.name).join(','); o.tags = C.SKILLS.map((k) => k.tag).join(',');
     o.speedMid = C.STATS.speed.Mid === C.PLAYER_SPEED && C.STATS.yard === 'Mid'; o.keys = C.SCHOOLS.map((k) => 'school_' + k).concat(['hud_school', 'sel_title', 'sel_rule', 'sel_random', 'sel_key']).filter((k) => !T[k]);
     G.setBots(0); G.reset(); return o;
@@ -1553,7 +1557,8 @@ try {
   // ===== Batch 16 ticket 02: 法甲 · 廷尉 kit (docs/SUITS.md; numbers in CONFIG.KITS.fa) =====
   // Page helper: the player plays 法甲 (school 2) against n placeholder bots at Mid; nothing else happens (decrees pushed away, huge health).
   await g(() => { const G = __game, C = G.config; window.__fa = {
-    start(n) { G.setSeed(12345); G.setBots(n); G.pickSchool(2); G.setDecNext(1e9); G.setHp(1e9); for (let i = 0; i < n; i++) G.setBotHp(i, 100); },
+    // Batch 16 ticket 03 (game changed on purpose): 儒甲 is built, so bot 0 would play its kit; the 法甲 checks keep every bot on the placeholder at Mid.
+    start(n) { G.setSeed(12345); G.setBots(n); G.pickSchool(2); for (let i = 0; i < n; i++) G.placeholderKit(i); G.setDecNext(1e9); G.setHp(1e9); for (let i = 0; i < n; i++) G.setBotHp(i, 100); },
     hold(sec, fn) { for (let k = 0; k < Math.round(sec / C.STEP); k++) { if (fn) fn(); G.step(1); } },
     lost(i, fn) { G.setBotHp(i, 100); fn(); return +(100 - G.bots().list[i].hp).toFixed(4); },
     end() { G.pickSchool(0); G.setBots(0); G.reset(); } }; });
@@ -1689,6 +1694,166 @@ try {
   });
   check('103 budget with 法甲 effects: every suit + cubs + tells + 势 ring + exposed suit (calls<500, tris<500k), no shader compile, geometry flat',
     !!fa103 && fa103.ring && fa103.exposed && fa103.tells >= 1 && fa103.calls < 500 && fa103.tris < 500000 && fa103.programs === base.programs && fa103.geoms === base.geoms, JSON.stringify(fa103));
+  // ===== Batch 16 ticket 03: 儒甲 · 君子 kit (docs/SUITS.md; numbers in CONFIG.KITS.ru) =====
+  // Page helper: the player plays 儒甲 (school 0, the checks' placeholder switch off) against n placeholder bots at Mid; decrees pushed away.
+  await g(() => { const G = __game, C = G.config; window.__ru = {
+    start(n) { G.setSeed(12345); G.setPkitP(false); G.setBots(n); G.pickSchool(0); for (let i = 0; i < n; i++) G.placeholderKit(i); G.setDecNext(1e9); for (let i = 0; i < n; i++) G.setBotHp(i, 100); },
+    hold(sec, fn) { for (let k = 0; k < Math.round(sec / C.STEP); k++) { if (fn) fn(); G.step(1); } },
+    end() { G.setPkitP(true); G.pickSchool(0); G.setBots(0); G.reset(); } }; });
+  // 104 Passive 礼·君子之争: his hits take +bonus against the suit that last hit him (within lastS s, not after, not on another suit);
+  // he takes duelK of a blow while at most one enemy is within duelM m, full damage with two; High armor on top (taken = raw x (K + Mid) / (K + High) x duelK).
+  const ru104 = await g(() => {
+    const G = __game, C = G.config, R = window.__ru, J = C.KITS.ru.junzi, S = C.STATS, o = {};
+    R.start(2); G.setHp(100); G.teleport(14, -20); const park = () => { G.placeBot(0, 16, -20); G.placeBot(1, 14, -22); }; park(); G.step(1);
+    o.kit = G.kitState(-1).kit; o.armorK = G.kitState(-1).armorK;
+    G.hitBy(0, -1, 1); park(); G.step(1);
+    const at = (j) => { G.setBotHp(j, 100); G.basicAttackBy(-1, j); return +(100 - G.bots().list[j].hp).toFixed(4); };
+    o.last = at(0); o.other = at(1);
+    const away = () => { G.placeBot(0, 40, -20); G.placeBot(1, 40, -26); };
+    R.hold(J.lastS + 0.5, away); park(); o.late = at(0);
+    G.step(1); o.duel2 = G.duelOf(-1); G.placeBot(1, 40, -20); G.step(1); o.duel1 = G.duelOf(-1);
+    G.setHp(100); G.hitBy(0, -1, 20); o.takenDuel = +(100 - G.state().hp).toFixed(4);
+    G.placeBot(1, 14, -22); G.step(1); G.setHp(100); G.hitBy(0, -1, 20); o.takenTwo = +(100 - G.state().hp).toFixed(4);
+    o.wantDuel = +(20 * (S.K + S.armor.Mid) / (S.K + S.armor.High) * J.duelK).toFixed(4); o.wantTwo = +(20 * (S.K + S.armor.Mid) / (S.K + S.armor.High)).toFixed(4);
+    o.wantLast = C.KITS.ru.attack.closeDmg * (1 + J.bonus);
+    R.end(); return o;
+  });
+  check('104 儒甲 passive: +bonus on the suit that last hit him only within lastS s; takes duelK of a blow with one enemy near, full with two; High armor',
+    ru104.kit === 'ru' && Math.abs(ru104.last - ru104.wantLast) < 1e-6 && ru104.other === 10 && ru104.late === 10 && ru104.duel1 === 0.85 && ru104.duel2 === 1
+    && Math.abs(ru104.takenDuel - ru104.wantDuel) < 1e-3 && Math.abs(ru104.takenTwo - ru104.wantTwo) < 1e-3, JSON.stringify(ru104));
+  // 105 Attack 射+数 (range-switching, owner 20:12): within closeR a sword cut, beyond it an arrow out to range m, no button; an attack order on a dummy at mid
+  // range shoots without walking in; every every-th hit is strong: a volley of arrows at mid, a heavy cut that pushes the suit back close.
+  const ru105 = await g(() => {
+    const G = __game, C = G.config, R = window.__ru, A = C.KITS.ru.attack, o = {};
+    R.start(1); G.setHp(1e9); G.teleport(14, -20);
+    const seq = (dist) => { G.placeBot(0, 14 + dist, -20); G.step(1); G.setBotHp(0, 1000); const each = []; for (let i = 0; i < A.every; i++) { const h = G.bots().list[0].hp; G.basicAttackBy(-1, 0); each.push(+(h - G.bots().list[0].hp).toFixed(4)); } return each; };
+    o.atk0 = G.kitState(-1).atkN; o.close = seq(2); o.pushed = +G.kitState(0).kx.toFixed(2);
+    R.end(); R.start(1); G.setHp(1e9); G.teleport(14, -20); o.mid = seq(5); o.atkN = G.kitState(-1).atkN;
+    R.end();
+    G.setPkitP(false); G.pickSchool(0); G.setBots(0); G.reset(); const d = G.dummies()[1]; G.teleport(d.x, d.z - 5); G.step(2); const p0 = G.state();
+    G.attack(1); G.step(Math.round(0.5 / C.STEP)); const p1 = G.state(); o.order = { hp: G.dummies()[1].hp, moved: +Math.hypot(p1.x - p0.x, p1.z - p0.z).toFixed(3) };
+    G.stop(); G.setPkitP(true); G.reset(); return o;
+  });
+  const want105c = Array(C0.KITS.ru.attack.every).fill(C0.KITS.ru.attack.closeDmg); want105c[want105c.length - 1] = C0.KITS.ru.attack.heavyDmg;
+  const want105m = Array(C0.KITS.ru.attack.every).fill(C0.KITS.ru.attack.farDmg); want105m[want105m.length - 1] = C0.KITS.ru.attack.farDmg * C0.KITS.ru.attack.volley;
+  check('105 儒甲 attack: sword within closeR, arrow beyond to range (an order shoots without walking in), every 6th hit a volley at mid or a heavy cut that pushes close',
+    ru105.atk0 === 0 && JSON.stringify(ru105.close) === JSON.stringify(want105c) && ru105.pushed === C0.KITS.ru.attack.heavyKb && JSON.stringify(ru105.mid) === JSON.stringify(want105m) && ru105.atkN === C0.KITS.ru.attack.every
+    && ru105.order.hp === 100 - C0.KITS.ru.attack.farDmg && ru105.order.moved < 0.01, JSON.stringify(ru105));
+  // 106 Q 御 (chariot charge): a dash of range m by the walking rule; every suit along its path (width m) is hit and driven sideways away from the path;
+  // a suit off the path or beyond its end is not hit; the cooldown starts.
+  const ru106 = await g(() => {
+    const G = __game, C = G.config, R = window.__ru, Q = C.KITS.ru.skills[0], o = {};
+    R.start(3); G.setHp(1e9); G.teleport(14, -20); const park = () => { G.placeBot(0, 16.5, -20.3); G.placeBot(1, 16.5, -23); G.placeBot(2, 21.5, -20); }; park(); G.step(1);
+    o.cast = G.cast(0, 24, -20); const z0 = G.bots().list[0].z; R.hold(Q.dashS + 0.1); const b = G.bots().list; o.hit = 100 - b[0].hp; o.off = 100 - b[1].hp; o.beyond = 100 - b[2].hp;
+    o.travel = +(G.state().x - 14).toFixed(2); R.hold(0.3); o.side = +(G.bots().list[0].z - z0).toFixed(2); o.cd = +G.kitState(-1).cd[0].toFixed(2);
+    R.end(); return o;
+  });
+  check('106 儒甲 Q: chariot dash of range m, hits every suit along its path and drives it sideways off the path; off-path and beyond-end suits untouched; cooldown',
+    ru106.cast && ru106.hit === C0.KITS.ru.skills[0].dmg && ru106.off === 0 && ru106.beyond === 0 && Math.abs(ru106.travel - C0.KITS.ru.skills[0].range) < 0.35 && ru106.side < -0.5
+    && ru106.cd > C0.KITS.ru.skills[0].cd - 1, JSON.stringify(ru106));
+  // 107 W 书·正名 (seal shot): a suit it hits takes its damage and its plates and boons stop working for seal s (a Howler plate's speed and a speed boon are off),
+  // then work again; the sealed player's status line says so, written only on change.
+  const ru107 = await g(() => {
+    const G = __game, C = G.config, R = window.__ru, W = C.KITS.ru.skills[1], o = {};
+    R.start(2); G.setHp(1e9); G.teleport(14, -20); const park = () => { G.placeBot(0, 19, -20); G.placeBot(1, 14, -26); }; park(); G.plateTo(0, 'howler'); G.forceNeutral(1, 4, 'speed', 1); G.hitNeutralBy(1, 0, 1e4); G.step(1);
+    o.boon = G.bots().list[0].bT[3] > 0; o.spdPlate = G.kitState(0).spd; o.cast = G.cast(1, 19, -20); o.dmg = 100 - G.bots().list[0].hp; o.sealT = G.kitState(0).sealT; o.spdSealed = G.kitState(0).spd;
+    R.hold(W.seal + 0.1, park); o.sealEnd = G.kitState(0).sealT; o.spdAfter = G.kitState(0).spd; o.base = C.STATS.speed.Mid;
+    G.seal(-1, 2); G.step(1); o.status = G.huntUi().status; R.hold(2.2); o.statusEnd = G.huntUi().status;
+    R.end(); return o;
+  });
+  check('107 儒甲 W: seal shot hits and turns the target\'s plates and boons off for seal s (Howler speed gone, back after); the player\'s status says Sealed, then not',
+    ru107.cast && ru107.boon && ru107.spdPlate > ru107.base * (1 + C0.PLATE.speed) + 0.01 && ru107.dmg === C0.KITS.ru.skills[1].dmg && Math.abs(ru107.sealT - C0.KITS.ru.skills[1].seal) < 0.05 && ru107.spdPlate > ru107.base && ru107.spdSealed === ru107.base
+    && ru107.sealEnd === 0 && ru107.spdAfter === ru107.spdPlate && /Sealed/.test(ru107.status) && !/Sealed/.test(ru107.statusEnd), JSON.stringify(ru107));
+  // 108 R 乐 (编钟): three rings around him over about 2 s, each shown on the ground (radius m, drawn and in the scene) for >= 0.4 s before it lands; each ring hits
+  // a suit inside for dmg and slows it, the last also stuns; a suit outside is untouched; every suit hit heals him heal (control: heal 0); the meter empties;
+  // the ring leaves the scene after the last ring.
+  const ru108 = await g(() => {
+    const G = __game, C = G.config, R = window.__ru, B = C.KITS.ru.skills[2], o = { gaps: [] };
+    const run = (heal) => {
+      const keep = B.heal; B.heal = heal; const r = { lost: [], at: [] };
+      try {
+        // Bot 0 stands 4 m away (inside the ring, outside its own attack reach) with its skills held, so no blow of its own feeds 儒甲's passive here.
+        R.start(2); G.setHp(50); G.teleport(14, -20); const park = () => { G.placeBot(0, 18, -20); G.placeBot(1, 14, -26); for (let k = 0; k < 3; k++) G.setBotCd(0, k, 99); }; park(); G.step(1); G.setCharge(-1, 100);
+        r.cast = G.cast(2, 14, -20); const k = G.kitState(-1); r.ring = { in: k.bellIn, r: k.bellR, n: k.bellN0 }; r.ch = k.ch;
+        let prevN = 0, t = 0;
+        r.slow = []; r.stun = []; r.vis = [];
+        while (t < 3 / C.STEP) {
+          park(); G.step(1); t++; const s = G.kitState(-1);
+          if (s.bellIn) r.vis.push(s.bellVis);
+          const n = s.bellT < 0 ? B.rings.length : s.bellN;
+          if (n > prevN) { prevN = n; const q = G.kitState(0); r.lost.push(100 - G.bots().list[0].hp); r.at.push(+(t * C.STEP).toFixed(3)); r.slow.push(+q.slowT.toFixed(2)); r.stun.push(+q.stunT.toFixed(2)); }
+          if (prevN >= B.rings.length) break;
+        }
+        const e = G.kitState(-1); r.end = { in: e.bellIn, n: e.bellN0 }; r.other = 100 - G.bots().list[1].hp; r.hp = G.state().hp;
+      } finally { B.heal = keep; }
+      R.end(); return r;
+    };
+    o.on = run(B.heal); o.off = run(0); o.minGap = Math.min(B.rings[0], ...B.rings.slice(1).map((v, i) => v - B.rings[i]));
+    return o;
+  });
+  check('108 儒甲 R: three rings, each told >= 0.4 s on the ground (radius m) before it lands, dmg + slow each, stun on the last, outside untouched, heals per suit hit, meter emptied, ring removed',
+    ru108.minGap >= 0.4 && ru108.on.cast && ru108.on.ring.in && ru108.on.ring.r === C0.KITS.ru.skills[2].radius && ru108.on.ch === 0
+    && JSON.stringify(ru108.on.lost) === JSON.stringify([1, 2, 3].map((n) => n * C0.KITS.ru.skills[2].dmg))
+    && ru108.on.at.every((t, i) => Math.abs(t - C0.KITS.ru.skills[2].rings[i]) < 0.05) && ru108.on.other === 0 && !ru108.on.end.in && ru108.on.end.n === 0
+    && ru108.on.slow.every((v) => v > 0) && ru108.on.stun[0] === 0 && ru108.on.stun[1] === 0 && ru108.on.stun[2] > 0 && ru108.on.vis.length > 0 && ru108.on.vis.every((v) => v)
+    && Math.abs((ru108.on.hp - ru108.off.hp) - 3 * C0.KITS.ru.skills[2].heal) < 1e-6, JSON.stringify(ru108));
+  // 109 Signature (plates, the leader, the bounty): 正名 on the leader turns its plates off (a Howler plate's speed) for seal s, but the leader keeps the lead
+  // (it still holds the plates, also when another suit's plate re-checks the lead); the seal ends on time and the plates work again.
+  const ru109 = await g(() => {
+    const G = __game, C = G.config, R = window.__ru, W = C.KITS.ru.skills[1], o = {};
+    R.start(2); G.setHp(1e9); G.teleport(14, -20); const park = () => { G.placeBot(0, 19, -20); G.placeBot(1, 14, -27); }; park(); G.step(1);
+    G.plateTo(0, 'howler'); G.plateTo(0, 'howler'); G.step(1); o.leader0 = G.leader().id; o.spd0 = G.kitState(0).spd;
+    // A plate for another suit while the leader is sealed re-checks the lead: the sealed leader still holds 2 plates and keeps it.
+    o.cast = G.cast(1, 19, -20); G.step(1); G.plateTo(1, 'stalker'); G.step(1); o.leader1 = G.leader().id; o.spd1 = G.kitState(0).spd; o.sealT = +G.kitState(0).sealT.toFixed(2);
+    R.hold(W.seal + 0.1, park); o.leader2 = G.leader().id; o.spd2 = G.kitState(0).spd;
+    R.end(); return o;
+  });
+  check('109 儒甲 signature: 正名 on the leader turns its plates off for seal s while it keeps the lead; plates work again after',
+    ru109.cast && ru109.leader0 === 1 && ru109.leader1 === 1 && ru109.leader2 === 1 && ru109.spd0 > C0.STATS.speed.Mid && ru109.spd1 === C0.STATS.speed.Mid && ru109.spd2 === ru109.spd0
+    && ru109.sealT > C0.KITS.ru.skills[1].seal - 0.1, JSON.stringify(ru109));
+  // 110 儒甲 in whole matches: 3 seeds with the 儒甲 bot (the player picks 道甲, still on the placeholder) and 1 with the player on 儒甲 (autopilot), watched to the end:
+  // 儒甲 on a floor every tick, the hunter cap holds every tick, never stuck over 3 s; over the 3 bot matches it casts Q, W and R at least once each.
+  const ru110 = await g(() => {
+    const G = __game, C = G.config, o = { viol: [], casts: { q: 0, w: 0, r: 0 }, player: { q: 0, w: 0, r: 0 }, decided: [] }, bad = (x) => { if (o.viol.length < 5) o.viol.push(x); };
+    const one = (seed, playerRu) => {
+      G.setSeed(seed); G.setBots(C.BOTS.count); G.setPkitP(!playerRu); G.pickSchool(playerRu ? 0 : 1); G.autoPlayer(true); G.setWatch(true);
+      const ri = playerRu ? -1 : G.schools().suits.findIndex((q) => q.school === 'ru') - 1, cnt = playerRu ? o.player : o.casts; let last = [0, 0], ult = 0;
+      if (!playerRu && G.schools().suits[ri + 1].kit !== 'ru') bad('ru bot not on its kit');
+      for (let t = 0; t < 300 / C.STEP; t++) {
+        G.step(1); const r = G.royale(); if (r.decidedAt >= 0) { o.decided.push(+r.decidedAt.toFixed(1)); break; }
+        const k = G.kitState(ri), cd = k.bcd;
+        if (cd[0] > last[0] + 1e-9) cnt.q++; if (cd[1] > last[1] + 1e-9) cnt.w++; if (k.ultN > ult) cnt.r += k.ultN - ult; last = [cd[0], cd[1]]; ult = k.ultN;
+        const h = G.hunters(); if (h.capOnP > h.max) bad(`s${seed} t${t} cap ${h.capOnP}>${h.max}`);
+        if (t % 10 === 0 && ri >= 0) { const q = G.bots().list[ri]; if (!q.standOk) bad(`s${seed} t${t} ru off floor`); if (!Number.isFinite(q.x + q.z + q.hp)) bad(`s${seed} t${t} NaN`); }
+        if (t % 10 === 0 && ri < 0 && !G.player().dead && !G.state().falling && !G.walkable(G.player().x, G.player().z, G.player().y + 0.05)) bad(`s${seed} t${t} player off floor`);
+      }
+      if (ri >= 0) { const q = G.bots().list[ri]; if (q.stuck > 3) bad(`s${seed} ru stuck ${q.stuck}`); }
+      G.setWatch(false); G.autoPlayer(false);
+    };
+    for (const seed of [12345, 2, 3]) one(seed, false);
+    one(4, true);
+    G.setPkitP(true); G.pickSchool(0); G.setBots(0); G.reset(); return o;
+  });
+  check('110 儒甲 in whole matches: on a floor and never stuck > 3 s, hunter cap every tick, the 儒甲 bot casts Q, W and R (player 儒甲 autopilot reported)',
+    ru110.viol.length === 0 && ru110.casts.q > 0 && ru110.casts.w > 0 && ru110.casts.r > 0, JSON.stringify(ru110));
+  // 111 Budget with 儒甲's effects: the heaviest royale (every suit, 7 cubs, tells) with the player's 编钟 ring drawn; calls < 500, tris < 500k, no shader compile, geometry flat.
+  const ru111 = await g(() => {
+    const G = __game, C = G.config, K = window.__k, waves = C.KENNEL.waves; let best = null;
+    try {
+      C.KENNEL.waves = [[['stalker', 0], ['stalker', 0], ['stalker', 0], ['stalker', 0], ['howler', 0], ['howler', 0], ['howler', 0]]];
+      G.setSeed(12345); G.setBots(C.BOTS.count); G.setPkitP(false); G.pickSchool(0); G.setDecNext(1e9); K.sp(C.KENNEL.firstS + 0.1); G.setHp(1e9);
+      const cx = G.camps[0][0], cz = G.camps[0][1] + 4; G.teleport(cx, cz);
+      const park = () => { for (let i = 0; i < C.BOTS.count; i++) G.placeBot(i, cx - 4 + (i % 3) * 3, cz + 2 + Math.floor(i / 3) * 1.5); };
+      park(); G.step(1); G.setCharge(-1, 100); G.cast(2, cx, cz);
+      for (let n = 0; n < 110; n++) {
+        park(); G.step(1); const c = G.cubs(), k = G.kitState(-1);
+        if (k.bellIn && (!best || c.tells.length > best.tells)) { const r = G.render(true); best = { tells: c.tells.length, ring: k.bellIn, calls: r.calls, tris: r.tris, programs: r.programs, geoms: r.geoms }; }
+      }
+    } finally { C.KENNEL.waves = waves; G.setPkitP(true); G.pickSchool(0); G.setBots(0); G.reset(); }
+    return best;
+  });
+  check('111 budget with 儒甲 effects: every suit + cubs + tells + 编钟 ring (calls<500, tris<500k), no shader compile, geometry flat',
+    !!ru111 && ru111.ring && ru111.calls < 500 && ru111.tris < 500000 && ru111.programs === base.programs && ru111.geoms === base.geoms, JSON.stringify(ru111));
   // 66 Idle player: standing at the spawn doing nothing loses the royale (frozen loss with a cause) before the last collapse is over.
   const idle = await g(() => {
     const G = __game, C = G.config; G.setSeed(12345); G.setBots(G.config.BOTS.count); G.reset(); let t = 0;
