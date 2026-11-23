@@ -41,10 +41,29 @@ Cause was not yet proven when planned. Order (lead rule: name the cause before t
 - Report leader win share too (batch 12: 25%, band edge); more plates may move it.
 - Gate: report the numbers; the 70% target is a GDD target for a human player, so a miss after P6 goes to the owner, not into further tuning.
 
+## Batch 14 = 10-minute game (owner 23 Nov 18:46: "i want each game to be 10 min"). PANEL PLAN; build waits for the owner's go
+Reading (one line, change by saying so): a run that reaches the apex hunt lasts about 10 min end to end (royale + wake + hunt); a player broken earlier has a shorter run.
+Measure first (M1, no game change): current hunt length per sweep run (test 42) and royale length, so the royale target = 10 min - wake - measured hunt.
+
+Panel (2 jam judges, 2 players, 2 critics, design/tech leads; majority followed):
+- Q1 how to fill 10 min (vote 6-1 for B): (A) stretch every timer about 2.5x -> long empty stretches on the same map, judges drift off; (B) keep the density per minute and add more of it: more kennel waves, about one decree a minute (bags already do this), creatures keep cycling, collapses spread over the royale. Against B (tech lead): more test time per match; accepted.
+- Q2 shape of the royale (vote 5-2, improved): three acts so long does not mean flat:
+  - Act 1 opening, 0-3 min: peace (bots answer hits only), cubs, crab and wanderer, first decrees; first collapse near 2:30.
+  - Act 2 skirmish, 3-6 min: bots' fight radius ramps to full vision; collapses every ~75 s; bounties start to matter.
+  - Act 3 closing, 6-8 min: last collapses down to core hall + C1; decided about 7:30-8:30.
+  - Improvement (players): the HUD "next to fall" line also shows the act and time left in the royale, so a 10-min run reads as progress.
+- Q3 numbers (CONFIG, all dated): collapse first wave ~150 s, then every ~75 s (5 waves); kennel waves every ~60 s from 30 s (about 7-8 waves; pool of 7 cubs kept, waves of 1-2); bot peace 120 -> ~240 s, ramp 100 -> ~200 s; decree and creature bags unchanged (cadence is already per minute). Worker tunes these against the gate, one CONFIG change list, no new systems.
+- Q4 which stand-in judges the GDD numbers (vote 5-2 for the new kennel autopilot): it plays like a human who reads the banners; the old one is reported beside it, never instead.
+- Q5 hunt (vote 7-0): no hunt tuning (owner: wait for kits); its measured length is reported and the royale is sized around it.
+- Risk raised by both judges, recorded not acted on: a jam judge may not finish a 10-min run; the act line and a clear time-left keep it readable. Owner decides if anything more is wanted.
+
+Gate (12 seeds, new autopilot, old reported beside it): royale decided in 420-510 s (to be set from M1 so royale + hunt = 9-11 min); decrees 6-9 per royale (bounty included), no banner overlaps; player plate rate >= 70%; leader win share 25-45%; idle player still loses before the last collapse; budget, programs and geometry flat; full test suite time reported. Misses reported, not tuned past the CONFIG list.
+
 ## Later
 Hiding; ultimate charge (bounty reward and ultimates 2x are cooldown stand-ins); school kits (W dash is a placeholder); the ending; hunt sweep re-check with kits (0.15 s bot now loses demon-first).
 
 ## Owner decisions (dated)
+- 23 Nov 18:46: each game about 10 min (batch 14 panel plan; waiting for go).
 - 23 Nov (after a server restart): batch 13 worker resumed by a new worker; a leftover 13b mutation ('warned wave ignored') found applied in index.html and removed before any commit.
 - 23 Nov 16:11: go for batch 13 (decree pacing + plate rate) as decided by the panel; see "Batch 13".
 - 23 Nov 15:13: go for batch 12 (built as below).
