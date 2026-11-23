@@ -199,9 +199,12 @@ try {
     G.reset(); G.teleport(8 * K, 40.5); G.knock(0, 14); let fell2 = false;
     for (let n = 0; n < 90; n++) { G.step(1); if (G.state().falling) fell2 = true; }
     const b = G.state();
-    return { gapFell: fell, gapRespawn: a.zone, railFell: fell2, railZone: b.zone };
+    // Sideways knockback (x axis) through the west terrace gap (added in batch 9a).
+    G.reset(); G.teleport(-46 * K + 0.6, -10 * K); G.step(1); const c0 = G.state(); G.knock(-14, 0); let fell3 = false;
+    for (let n = 0; n < 60; n++) { G.step(1); if (G.state().falling) fell3 = true; }
+    return { gapFell: fell, gapRespawn: a.zone, railFell: fell2, railZone: b.zone, xStart: c0.zone, xFell: fell3 };
   }, K);
-  check('20 knockback: broken gap drops into void, rail holds', kb.gapFell && kb.gapRespawn === 'C1' && !kb.railFell && kb.railZone === 'ROOF', JSON.stringify(kb));
+  check('20 knockback: broken gaps (z and x) drop into void, rail holds', kb.gapFell && kb.gapRespawn === 'C1' && !kb.railFell && kb.railZone === 'ROOF' && kb.xStart === 'W1' && kb.xFell, JSON.stringify(kb));
   // 21 Altar: heals, a hit pauses healing, empties, refills after the empty time.
   const altar = await g(() => {
     const G = __game, C = G.config, A = C.ALTAR, a = G.altars()[2], sp = (s) => G.step(Math.round(s / C.STEP));

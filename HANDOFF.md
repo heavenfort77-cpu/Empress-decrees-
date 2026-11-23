@@ -1,4 +1,4 @@
-# Handoff (2026-11-23, after batch 8; written for a fresh session). GDD: docs/GDD.md (also Project "empress decrees", claude/GDD.md)
+# Handoff (2026-11-23, batch 9 in progress; written for a fresh session). GDD: docs/GDD.md (also Project "empress decrees", claude/GDD.md)
 
 ## Session start (every session)
 1. Attach both repos: add_repo heavenfort77-cpu/Empress-decrees- (access push) and heavenfort77-cpu/dawnpunk (read; public, anonymous clone works). Dawnpunk = reference for frame-rate rules and bug pitfalls; read only the part needed.
@@ -19,7 +19,8 @@
 - Project docs (claude/HANDOFF.md, claude/GDD.md, claude/code/index.html, claude/code/tests/run.mjs) are copies of the repo files; rewrite them after each batch. A project_read of a code file dumps the whole file into the session: avoid it, write from the local file.
 
 ## Next batch: 9 = bots (owner, 23 Nov: bots are what make the royale end and start the hunt on its own)
-Design note written 23 Nov (session 3). No game code changed yet. Waiting for the owner's go and the 4 answers below.
+Owner said go for 9a to 9d on 23 Nov (see Owner decisions). Progress:
+- 9a DONE: suit refactor. P stays the name of SUITS[0] (no 390-line rename); generic: hurtSuit(s, n, cause, by), suitDown, suitFell, tickSuit, suitSpeed, stepBody (knockback, walk, floors, void), tryMove(s, ...), hitTarget(by, d, n), hasPlate(s, k), cutUlt(s, sec). Hazards and altars loop over SUITS; enemy moves hit every suit in the shape; cubs pick the nearest suit on their layer (u.tgt) and keep it to the leash; plates and boons go to the last hitter (u.by, bleed kills to u.bleedBy). Static check PASS; runtime 60 of 60; counts unchanged (27/2.8k, 76/8.4k, hunt 17/0.9k). Mutation 9 of 9 (the x-axis knockback mutation was missed at first: test 20 now also knocks sideways through the west terrace gap). Static check now also fails on Math.random (mutation caught).
 - Goal: 9 bot suits so the royale plays out and the last suit alive wakes the demon without the H key. Then leader, crown marker and bounty become possible; decrees come after.
 - Readiness now about 75 of 100: audit done (below); Dawnpunk read (src/bots.js: its bots are test players, not opponents; patterns taken: bots use only the player's actions, skill profiles {react, hit} in CONFIG, waypoint walk between floors). Unknown: navSearch worst-case time (measured first in 9b).
 - Audit (P.* references per function, index.html @ 89629c9): step 125, reset 28, updateStatus 23, startHunt 23, respawn 17, resolveMove 17, placeView 11, hurt 9, castSkill 9, grantPlayerPlate 7, stepUnit 6, applySkill 6, grantBoon 5, stepKennel 4, drawMini 4, cubThink 3; the ~39 in the test-hook object stay player-only. navSearch writes one shared PATH (1024 floats); grid A* 1 m cells, cap NAV_MAX 15000 nodes per search.
@@ -30,11 +31,11 @@ Design note written 23 Nov (session 3). No game code changed yet. Waiting for th
 - 9c Bot brain. Uses only player actions (move, attack, Q W R). Knows only what its own 11 m vision shows (no map hacks). Priority list with CONFIG weights: leave a warned section > dodge a tell older than its reaction time > altar when hp low > fight nearest seen suit > contest camp or buff creature > walk toward centre. Skill profiles {react, hitChance, aggro} in CONFIG.
 - 9d Royale end. Player dead = loss screen with Retry (replaces map-test respawn). Last suit alive = startHunt; H only with ?debug. Checks: match length 3-4 min band, every bot death has a cause (hit, fall, collapse), idle player loses, win share per spawn, invariants every tick (hp in range, alive count only falls, no suit inside a solid), hunt tests still pass.
 
-### Defaults assumed until the owner answers
-1. Bots use the same placeholder kit as the player until school kits exist.
-2. All bots "average" (0.3 s reaction), set per bot in CONFIG.
-3. Bots also take plates and boons (GDD open item).
-4. Bots target the nearest seen suit; no preference for the player.
+### Bot rules (owner answers 23 Nov, plus one assumption)
+1. Owner: bots use the player's placeholder kit until school kits exist.
+2. Assumption: all bots "average" (0.3 s reaction), set per bot in CONFIG.
+3. Owner: bots also take plates and boons.
+4. Owner: bots attack the nearest suit they can see, but once a bot sees the player it switches to the player and keeps that target while the player stays seen (BOT.preferPlayerOnSight).
 
 ### Premortem
 - 9 searchers spike a tick: one search per tick cap + measured cost.
@@ -45,6 +46,7 @@ Design note written 23 Nov (session 3). No game code changed yet. Waiting for th
 - Fixed seed covers bot decisions too (one shared seeded RNG, no Math.random in bot code: static check).
 
 ## Owner decisions, 23 Nov (later session)
+- Batch 9 (session 3): go 9a to 9d back to back; bots use the placeholder kit; bots take plates and boons; bots go for the nearest seen suit but switch to the player on sight.
 - Cubs and minions that move on the map are four-legged machines on treads, faster than most suits; their other numbers are to sit at the suits' median. Built now: speed 6.6 m/s against the suit's 6. The tread look waits for the art stage. "Median" is read as health and damage at the median of the ten suits once kits exist (assumption; confirm).
 - Buff creatures in the manner of a MOBA jungle crab and river wanderer, with marble-bag draws for time, place, boon and size. Own names and art only (working names: crab, wanderer).
 - Cubs alive at the wake must be seen going back to the statue. Built as plates flying home during the wake (a run across the map does not fit in 3 s; assumption).

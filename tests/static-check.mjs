@@ -29,6 +29,9 @@ lines.forEach((ln, i) => {
 if (blocks < 2) fails.push(`perframe: expected at least 2 PERFRAME blocks, found ${blocks}`);
 if (inBlock) fails.push('perframe: unclosed PERFRAME block');
 
+// Replays (batch 9): every random choice comes from the seeded generators, never Math.random.
+lines.forEach((ln, i) => { if (/Math\.random\s*\(/.test(ln.replace(/\/\/.*$/, ''))) fails.push(`unseeded random: line ${i + 1}`); });
+
 // Text keys: every literal T('key') must exist in TEXT; dynamic keys checked by the runtime test.
 const textBlock = src.slice(src.indexOf('const TEXT = {'), src.indexOf('};', src.indexOf('const TEXT = {')));
 const keys = new Set([...textBlock.matchAll(/(\w+):\s*'/g)].map((m) => m[1]));

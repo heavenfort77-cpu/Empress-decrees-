@@ -657,7 +657,10 @@ const WAVES = CONFIG.WAVES.map((ids, i) => ({
 // air = airborne (dropping a layer or into the void); voidT = time airborne with no floor below.
 const P = { x: 0, z: 0, y: 0, px: 0, pz: 0, py: 0, vy: 0, air: false, airFromY: 0, voidT: 0, dead: false, deadT: 0,
   hp: 100, hpShown: -1, noHealT: 0, kx: 0, kz: 0, faceX: 0, faceZ: -1, atkT: 0, stuckT: 0, zone: null,
-  slowT: 0, slowK: 0, stunT: 0, bleedN: 0, bleedT: 0, statusShown: -1, pk: ['', ''], pt: [0, 0], bT: [0, 0, 0, 0], bV: [0, 0, 0, 0], statusTick: -1 };
+  slowT: 0, slowK: 0, stunT: 0, bleedN: 0, bleedT: 0, statusShown: -1, pk: ['', ''], pt: [0, 0], bT: [0, 0, 0, 0], bV: [0, 0, 0, 0], statusTick: -1,
+  id: 0, bot: false, kind: 'suit', r: CONFIG.PLAYER_RADIUS, seen: true, cause: '', diedAt: -1, killer: null, moved: 0, floor: null, plates: 0, boons: 0 };
+// Every suit in the match shares the player's shape (batch 9a). SUITS[0] is the player (P); bots follow in batch 9b.
+const SUITS = [P];
 const playerGroup = new THREE.Group();
 const playerBody = new THREE.Mesh(mergeGeoms([box(0.9, 1.5, 0.9, 0, 0.75, 0), box(0.6, 0.5, 0.6, 0, 1.8, 0)]), M.player);
 playerBody.castShadow = false;
@@ -691,7 +694,7 @@ function makeUnit(kind, cfg, m, tellMat, atk, skills, gain, geo) {
     tx: 0, tz: 0, tl: 0, ax: 0, az: 0, bx: 0, bz: 0, dashS: 0.2, gapT: 0, rot: 0, flashT: 0, frenzyT: 0, ultUsed: false, ultCd: 0,
     side: 1, plateOn: false, plateT: 0, sx: 0, sz: 0, hx: 0, hz: 0,
     maxHp: cfg.hp, dmgK: 1, hunt: true, cub: false, cx: 0, cz: 0, cy: 0, camp: -1, home: false, hot: false, homeT: 0, bleedT: 0,
-    fuseOn: false, sy: 0, neutral: false, idx: 0, nb: '', nv: 1, spot: -1 };
+    fuseOn: false, sy: 0, neutral: false, idx: 0, nb: '', nv: 1, spot: -1, tgt: P, by: null, bleedBy: null };
 }
 const DEMON = makeUnit('demon', CONFIG.DEMON, M.demon, M.tellD, 'claw', ['pounce', 'roar'], null);
 const STALKER = makeUnit('stalker', CONFIG.STALKER, M.stalker, M.tellS, 'bite', ['lunge', 'rend'], ['lunge', 'rend']);
@@ -890,7 +893,7 @@ function applySkill(slot, x, z, dx, dz) {
       const px = d.x - P.x, pz = d.z - P.z, along = px * dx + pz * dz, side = Math.abs(px * dz - pz * dx);
       hit = along >= 0 && along <= sk.range + d.r && side <= sk.width / 2 + d.r;
     } else hit = Math.hypot(d.x - x, d.z - z) <= sk.radius + d.r;
-    if (hit) hitTarget(d, sk.dmg);
+    if (hit) hitTarget(P, d, sk.dmg);
   }
   const y = topYUnder(x, z, P.y + 1) + 0.08;
   if (sk.type === 'line') { fxLine.position.set(P.x, P.y + 0.08, P.z); fxLine.rotation.y = Math.atan2(-dx, -dz); fxLine.scale.set(sk.width, 1, sk.range); fxLine.visible = true; }
@@ -899,13 +902,17 @@ function applySkill(slot, x, z, dx, dz) {
 }
 // The player may act: alive, not stunned, and no end screen is up.
 function canAct() { return !P.dead && P.stunT <= 0 && G.phase !== 'won' && G.phase !== 'lost'; }
-function hasPlate(kind) { return (P.pt[0] > 0 && P.pk[0] === kind) || (P.pt[1] > 0 && P.pk[1] === kind); }
-function hitTarget(d, n) {
-  if (P.bT[0] > 0) n *= Math.min(CONFIG.BONUS_CAP, 1 + P.bV[0]);
+function hasPlate(s, kind) { return (s.pt[0] > 0 && s.pk[0] === kind) || (s.pt[1] > 0 && s.pk[1] === kind); }
+// A suit (by) hits a target: dummy, hunt unit, cub, buff creature or another suit. Power boon and Stalker plate come from the hitter.
+function hitTarget(by, d, n) {
+  if (by.bT[0] > 0) n *= Math.min(CONFIG.BONUS_CAP, 1 + by.bV[0]);
   if (!d.kind) { hitDummy(d, n); return; }
-  hitEnemy(d, n);
-  if (d.alive && hasPlate('stalker')) d.bleedT = CONFIG.PLATE.bleedS;
+  if (d.kind === 'suit') { hurtSuit(d, n, 'hit', by); return; }
+  hitEnemy(d, n, by);
+  if (d.alive && hasPlate(by, 'stalker')) { d.bleedT = CONFIG.PLATE.bleedS; d.bleedBy = by; }
 }
+// Ultimate cooldown cut for a suit (plates and the crab's boon): the player's lives in the ability bar, a bot's in its own list.
+function cutUlt(s, sec) { if (s.bot) s.cd[2] = Math.max(0, s.cd[2] - sec); else SK[2].cdT = Math.max(0, SK[2].cdT - sec); }
 function hitDummy(d, n) {
   d.hp = Math.max(0, d.hp - n); d.flashT = 0.12; d.body.material = M.hit;
   d.bar.scale.x = Math.max(0.001, d.hp / CONFIG.DUMMY_HP);
@@ -977,10 +984,10 @@ function canStand(x, z, y) {
   return true;
 }
 // Knockback may also carry the player through a broken-rail gap into the void.
-function tryMove(x, z, kb) {
+function tryMove(s, x, z, kb) {
   if (G.phase !== 'royale' && z > GATE_Z) return false;
-  if (canStand(x, z, P.y)) return true;
-  return kb && inBroken(x, z, R + 0.05) && !hitSolid(x, z) && !wallAt(x, z, P.y);
+  if (canStand(x, z, s.y)) return true;
+  return kb && inBroken(x, z, R + 0.05) && !hitSolid(x, z) && !wallAt(x, z, s.y);
 }
 
 // PERFRAME-END
@@ -1140,48 +1147,47 @@ function step(dt) {
   if (roy && nw !== G.nextWave) { G.nextWave = nw; setText(el.next, nw < 0 ? T('next_none') : T('next_wave', { zones: WAVES[nw].names })); }
   // Fell banner timer.
   if (G.fellT > 0) { G.fellT -= dt; if (G.fellT <= 0 && G.bannerWave < 0) setShow(el.banner, false); }
-  // Hazards: idle -> tell (red ring, statue eyes glow) -> strike -> cooldown.
+  // Hazards: idle -> tell (red ring, statue eyes glow) -> strike -> cooldown. Any suit close by starts the tell; the strike hits every suit inside.
   for (let i = 0; i < HAZARDS.length; i++) {
     const h = HAZARDS[i], c = h.cfg;
     if (h.s.state >= 2 || (h.statue && !roy)) { if (h.ring.visible) h.ring.visible = false; continue; }
-    const hx = P.x - h.x, hz = P.z - h.z, d = Math.hypot(hx, hz);
-    const near = !P.dead && Math.abs(P.y - h.y) < 3;
     if (h.state === 0) {
-      if (near && d < c.range) { h.state = 1; h.t = 0; h.ring.visible = true; if (h.kind === 'statue') M.eyes.emissiveIntensity = 3; }
+      for (let k = 0; k < SUITS.length; k++) {
+        const s = SUITS[k];
+        if (!s.dead && Math.abs(s.y - h.y) < 3 && Math.hypot(s.x - h.x, s.z - h.z) < c.range) { h.state = 1; h.t = 0; h.ring.visible = true; if (h.kind === 'statue') M.eyes.emissiveIntensity = 3; break; }
+      }
     } else if (h.state === 1) {
       h.t += dt;
       if (h.t >= c.windup) {
         h.state = 2; h.t = 0; h.ring.visible = false; if (h.kind === 'statue') M.eyes.emissiveIntensity = 0.4;
-        if (near && d < c.radius) {
-          hurt(c.dmg);
-          if (d > 0.01) { P.kx += hx / d * c.kb; P.kz += hz / d * c.kb; } else P.kz += c.kb;
+        for (let k = 0; k < SUITS.length; k++) {
+          const s = SUITS[k];
+          if (s.dead || Math.abs(s.y - h.y) >= 3) continue;
+          const hx = s.x - h.x, hz = s.z - h.z, d = Math.hypot(hx, hz);
+          if (d >= c.radius) continue;
+          hurtSuit(s, c.dmg, 'hazard', null);
+          if (d > 0.01) { s.kx += hx / d * c.kb; s.kz += hz / d * c.kb; } else s.kz += c.kb;
         }
       }
     } else if (h.state === 2) { h.t += dt; if (h.t >= c.cooldown) h.state = 0; }
   }
-  // Altars heal a standing player; a hit pauses healing; an emptied altar refills later.
+  // Altars heal a standing suit; a hit pauses healing; an emptied altar refills later.
   const A = CONFIG.ALTAR;
   for (let i = 0; i < ALTAR_LIST.length; i++) {
     const a = ALTAR_LIST[i];
     if (a.s.state >= 2) continue;
     if (a.charge <= 0) { a.emptyT -= dt; if (a.emptyT <= 0) { a.charge = A.charge; a.mesh.material = M.altarOn; } continue; }
-    if (P.dead || P.air || P.noHealT > 0 || P.hp >= CONFIG.MAX_HP) continue;
-    if (Math.hypot(P.x - a.x, P.z - a.z) > A.radius || Math.abs(P.y - a.y) > 1) continue;
-    const heal = Math.min(A.rate * dt, a.charge, CONFIG.MAX_HP - P.hp);
-    P.hp += heal; a.charge -= heal;
-    if (a.charge <= 1e-6) { a.charge = 0; a.emptyT = A.emptyS; a.mesh.material = M.altarOff; }
+    for (let k = 0; k < SUITS.length && a.charge > 0; k++) {
+      const s = SUITS[k];
+      if (s.dead || s.air || s.noHealT > 0 || s.hp >= CONFIG.MAX_HP) continue;
+      if (Math.hypot(s.x - a.x, s.z - a.z) > A.radius || Math.abs(s.y - a.y) > 1) continue;
+      const heal = Math.min(A.rate * dt, a.charge, CONFIG.MAX_HP - s.hp);
+      s.hp += heal; a.charge -= heal;
+      if (a.charge <= 1e-6) { a.charge = 0; a.emptyT = A.emptyS; a.mesh.material = M.altarOff; }
+    }
   }
-  if (P.noHealT > 0) P.noHealT -= dt;
-  // Status effects from the hunt: slow, stun, bleed.
-  if (P.slowT > 0) { P.slowT -= dt; if (P.slowT <= 0) P.slowK = 0; }
-  if (P.stunT > 0) P.stunT -= dt;
-  if (P.bleedT > 0) {
-    P.bleedT -= dt; const b = CONFIG.BLEED.dps * P.bleedN * dt; G.bleedDmg += Math.min(b, P.hp); hurt(b);
-    if (P.bleedT <= 0) P.bleedN = 0;
-  }
-  for (let i = 0; i < 2; i++) if (P.pt[i] > 0) { P.pt[i] -= dt; if (P.pt[i] <= 0) { P.pt[i] = 0; P.pk[i] = ''; } }
-  for (let i = 0; i < 4; i++) if (P.bT[i] > 0) { P.bT[i] -= dt; if (P.bT[i] <= 0) { P.bT[i] = 0; P.bV[i] = 0; } }
-  if (P.bT[1] > 0 && !P.dead && P.hp < CONFIG.MAX_HP) P.hp = Math.min(CONFIG.MAX_HP, P.hp + P.bV[1] * dt);
+  // Timers on every suit still in the match: heal pause, slow, stun, bleed, plates, boons.
+  for (let k = 0; k < SUITS.length; k++) if (!SUITS[k].bot || !SUITS[k].dead) tickSuit(SUITS[k], dt);
   const vr = CONFIG.VISION_R + (P.bT[2] > 0 ? P.bV[2] : 0);
   if (vr !== G.visR) { G.visR = vr; if (G.view === 'follow') FOW.uFowR.value = vr; }
   if (roy && CONFIG.ROYALE_MINIONS) stepKennel(dt);
@@ -1204,47 +1210,73 @@ function step(dt) {
       const ax = d.x - P.x, az = d.z - P.z, dist = Math.hypot(ax, az) || 1;
       P.faceX = ax / dist; P.faceZ = az / dist;
       if (dist > CONFIG.ATTACK.range + d.r) { mx = ax / dist; mz = az / dist; }
-      else if (P.atkT <= 0 && P.stunT <= 0) { hitTarget(d, CONFIG.ATTACK.dmg); P.atkT = CONFIG.ATTACK.interval; }
+      else if (P.atkT <= 0 && P.stunT <= 0) { hitTarget(P, d, CONFIG.ATTACK.dmg); P.atkT = CONFIG.ATTACK.interval; }
     }
   } else if (PATH.i < PATH.n) {
     const tx = PATH.pts[PATH.i * 2] - P.x, tz = PATH.pts[PATH.i * 2 + 1] - P.z, d = Math.hypot(tx, tz);
     if (d < 0.5) PATH.i++;
     else { mx = tx / d; mz = tz / d; }
   }
-  if (P.stunT > 0) { mx = 0; mz = 0; if (ORD.aiming >= 0) cancelAim(); }
-  const len = Math.hypot(mx, mz);
-  if (len > 1) { mx /= len; mz /= len; }
-  const spd = CONFIG.PLAYER_SPEED * (P.slowT > 0 ? 1 - P.slowK : 1) * Math.min(CONFIG.BONUS_CAP, (hasPlate('howler') ? 1 + CONFIG.PLATE.speed : 1) * (1 + (P.bT[3] > 0 ? P.bV[3] : 0)));
-  const kd = Math.exp(-CONFIG.KB_DECAY * dt); P.kx *= kd; P.kz *= kd;
-  const kbOn = Math.abs(P.kx) + Math.abs(P.kz) > 0.3;
-  if (!kbOn) { P.kx = 0; P.kz = 0; }
-  const dx = (mx * spd + P.kx) * dt, dz = (mz * spd + P.kz) * dt;
-  const ox = P.x, oz = P.z;
-  if (dx !== 0 && tryMove(P.x + dx, P.z, kbOn)) P.x += dx;
-  if (dz !== 0 && tryMove(P.x, P.z + dz, kbOn)) P.z += dz;
-  if (len > 0.1) { P.faceX = mx / Math.max(len, 1e-6); P.faceZ = mz / Math.max(len, 1e-6); }
+  if (P.stunT > 0 && ORD.aiming >= 0) cancelAim();
+  stepBody(P, mx, mz, dt);
   // A path that stops making progress for half a second is dropped.
-  if (PATH.i < PATH.n && !ORD.attack && Math.hypot(P.x - ox, P.z - oz) < 0.01) { P.stuckT += dt; if (P.stuckT > 0.5) { PATH.n = 0; P.stuckT = 0; } } else P.stuckT = 0;
-  // Vertical: stick to floors within a step; otherwise drop (to a lower layer, or into the void).
-  const f = floorAt(P.x, P.z, P.y), fh = f ? surf(f, P.x, P.z) : -1e9;
-  if (!P.air) {
-    if (f && P.y - fh <= STEP_UP) P.y = fh;
-    else { P.air = true; P.vy = 0; P.airFromY = P.y; P.voidT = 0; }
-  }
-  if (P.air) {
-    P.vy -= CONFIG.GRAVITY * dt; P.y += P.vy * dt;
-    if (f && P.y <= fh) {
-      P.y = fh; P.air = false; P.vy = 0;
-      if (P.airFromY - fh >= CONFIG.DROP_MIN) hurt(CONFIG.DROP_DAMAGE);
-    } else if (!f) {
-      P.voidT += dt;
-      if (P.voidT >= CONFIG.RESPAWN_S || P.y < CONFIG.VOID_Y) respawn('fell');
-    }
-  }
-  if (f && !P.air && P.zone !== f.s) { P.zone = f.s; setText(el.hud, f.s.name); }
+  if (PATH.i < PATH.n && !ORD.attack && P.moved < 0.01) { P.stuckT += dt; if (P.stuckT > 0.5) { PATH.n = 0; P.stuckT = 0; } } else P.stuckT = 0;
+  if (P.floor && !P.air && P.zone !== P.floor.s) { P.zone = P.floor.s; setText(el.hud, P.zone.name); }
   updateHp();
   updateStatus();
   stepCombat(dt);
+}
+// Timers of one suit (fixed step).
+function tickSuit(s, dt) {
+  if (s.noHealT > 0) s.noHealT -= dt;
+  if (s.slowT > 0) { s.slowT -= dt; if (s.slowT <= 0) s.slowK = 0; }
+  if (s.stunT > 0) s.stunT -= dt;
+  if (s.bleedT > 0) {
+    s.bleedT -= dt; const b = CONFIG.BLEED.dps * s.bleedN * dt;
+    if (s === P) G.bleedDmg += Math.min(b, s.hp);
+    hurtSuit(s, b, 'bleed', null);
+    if (s.bleedT <= 0) s.bleedN = 0;
+  }
+  for (let i = 0; i < 2; i++) if (s.pt[i] > 0) { s.pt[i] -= dt; if (s.pt[i] <= 0) { s.pt[i] = 0; s.pk[i] = ''; } }
+  for (let i = 0; i < 4; i++) if (s.bT[i] > 0) { s.bT[i] -= dt; if (s.bT[i] <= 0) { s.bT[i] = 0; s.bV[i] = 0; } }
+  if (s.bT[1] > 0 && !s.dead && s.hp < CONFIG.MAX_HP) s.hp = Math.min(CONFIG.MAX_HP, s.hp + s.bV[1] * dt);
+}
+// Walk speed of a suit with its slow, Howler plate and speed boon (bonuses capped).
+function suitSpeed(s) {
+  return CONFIG.PLAYER_SPEED * (s.slowT > 0 ? 1 - s.slowK : 1) * Math.min(CONFIG.BONUS_CAP, (hasPlate(s, 'howler') ? 1 + CONFIG.PLATE.speed : 1) * (1 + (s.bT[3] > 0 ? s.bV[3] : 0)));
+}
+// Body of a suit for one step: knockback, walking with axis sliding, facing, then floors (step up, drop a layer, or fall into the void).
+// mx, mz = wanted direction (length up to 1). Sets s.moved (metres this step) and s.floor (floor under the feet or null).
+function stepBody(s, mx, mz, dt) {
+  if (s.stunT > 0) { mx = 0; mz = 0; }
+  const len = Math.hypot(mx, mz);
+  if (len > 1) { mx /= len; mz /= len; }
+  const spd = suitSpeed(s);
+  const kd = Math.exp(-CONFIG.KB_DECAY * dt); s.kx *= kd; s.kz *= kd;
+  const kbOn = Math.abs(s.kx) + Math.abs(s.kz) > 0.3;
+  if (!kbOn) { s.kx = 0; s.kz = 0; }
+  const dx = (mx * spd + s.kx) * dt, dz = (mz * spd + s.kz) * dt;
+  const ox = s.x, oz = s.z;
+  if (dx !== 0 && tryMove(s, s.x + dx, s.z, kbOn)) s.x += dx;
+  if (dz !== 0 && tryMove(s, s.x, s.z + dz, kbOn)) s.z += dz;
+  if (len > 0.1) { s.faceX = mx / Math.max(len, 1e-6); s.faceZ = mz / Math.max(len, 1e-6); }
+  s.moved = Math.hypot(s.x - ox, s.z - oz);
+  const f = floorAt(s.x, s.z, s.y), fh = f ? surf(f, s.x, s.z) : -1e9;
+  s.floor = f;
+  if (!s.air) {
+    if (f && s.y - fh <= STEP_UP) s.y = fh;
+    else { s.air = true; s.vy = 0; s.airFromY = s.y; s.voidT = 0; }
+  }
+  if (s.air) {
+    s.vy -= CONFIG.GRAVITY * dt; s.y += s.vy * dt;
+    if (f && s.y <= fh) {
+      s.y = fh; s.air = false; s.vy = 0;
+      if (s.airFromY - fh >= CONFIG.DROP_MIN) hurtSuit(s, CONFIG.DROP_DAMAGE, 'drop', null);
+    } else if (!f) {
+      s.voidT += dt;
+      if (s.voidT >= CONFIG.RESPAWN_S || s.y < CONFIG.VOID_Y) suitFell(s);
+    }
+  }
 }
 // Skills, delayed hits, effects, dummies and their vision.
 function stepCombat(dt) {
@@ -1271,14 +1303,19 @@ function updateHp() {
   const n = Math.ceil(P.hp);
   if (n !== P.hpShown) { P.hpShown = n; setText(el.hptext, T('hp', { n })); setBar(el.hpfill, n / CONFIG.MAX_HP); }
 }
-function hurt(n) {
-  if (P.dead) return;
-  P.hp -= n; P.noHealT = CONFIG.ALTAR.hitPauseS;
-  if (P.hp <= 0) {
-    P.hp = 0; P.dead = true; P.deadT = 0; P.kx = P.kz = 0;
-    if (G.phase === 'royale') showNote('voice_died', 'rule_died'); else endHunt(false);
-  }
+// Damage to a suit. cause: hit, hazard, bleed, drop or test; by = the suit that dealt it (null for the map and enemies).
+function hurtSuit(s, n, cause, by) {
+  if (s.dead) return;
+  s.hp -= n; s.noHealT = CONFIG.ALTAR.hitPauseS;
+  if (s.hp <= 0) suitDown(s, cause, by);
 }
+// A suit is broken. The player: a note and the map-test respawn in the royale, defeat in the hunt.
+function suitDown(s, cause, by) {
+  s.hp = 0; s.dead = true; s.deadT = 0; s.kx = s.kz = 0; s.cause = cause; s.diedAt = G.time; s.killer = by;
+  if (s === P) { if (G.phase === 'royale') showNote('voice_died', 'rule_died'); else endHunt(false); }
+}
+// A suit fell into the void. The player: back to the centre courtyard (map test).
+function suitFell(s) { if (s === P) respawn('fell'); }
 function showNote(voiceKey, ruleKey, vars) {
   if (G.bannerWave >= 0) return;
   setText(el.voice, T(voiceKey)); setText(el.rule, T(ruleKey, vars)); setShow(el.banner, true); G.fellT = 2;
@@ -1346,8 +1383,9 @@ function beginMove(u, k, dx, dz) {
   } else {
     u.tx = u.x; u.tz = u.z;
     if (m.shape === 'spot') {
-      u.tx = P.x + dx * m.back; u.tz = P.z + dz * m.back;
-      if (!unitOk(u, u.tx, u.tz)) { u.tx = P.x; u.tz = P.z; }
+      const q = u.tgt;
+      u.tx = q.x + dx * m.back; u.tz = q.z + dz * m.back;
+      if (!unitOk(u, u.tx, u.tz)) { u.tx = q.x; u.tz = q.z; }
       if (!unitOk(u, u.tx, u.tz)) { u.cd[k] = 1; return false; }
     }
     u.ring.material = tm; u.ring.position.set(u.tx, y, u.tz); u.ring.scale.setScalar(m.radius); u.ring.visible = true;
@@ -1355,7 +1393,7 @@ function beginMove(u, k, dx, dz) {
   u.fx = dx; u.fz = dz; u.st = 1; u.cur = k; u.t = m.windup; u.tellT = 0; u.cd[k] = m.cd;
   return true;
 }
-// Windup over: the hit lands only if the player is still inside the shape that was shown.
+// Windup over: the hit lands on every suit still inside the shape that was shown.
 function resolveMove(u) {
   const k = u.cur;
   hideTell(u);
@@ -1364,20 +1402,21 @@ function resolveMove(u) {
     return;
   }
   const m = MOVES[k];
-  let hit = false;
-  if (!P.dead && Math.abs(P.y - u.y) < 1.5) {
+  for (let i = 0; i < SUITS.length; i++) {
+    const s = SUITS[i];
+    if (s.dead || Math.abs(s.y - u.y) >= 1.5) continue;
+    let hit = false;
     if (m.shape === 'line') {
-      const qx = P.x - u.x, qz = P.z - u.z, along = qx * u.fx + qz * u.fz, side = Math.abs(qx * u.fz - qz * u.fx);
+      const qx = s.x - u.x, qz = s.z - u.z, along = qx * u.fx + qz * u.fz, side = Math.abs(qx * u.fz - qz * u.fx);
       hit = along >= 0 && along <= u.tl && side <= m.width / 2;
-    } else hit = Math.hypot(P.x - u.tx, P.z - u.tz) <= m.radius;
-  }
-  if (hit) {
+    } else hit = Math.hypot(s.x - u.tx, s.z - u.tz) <= m.radius;
+    if (!hit) continue;
     const dmg = m.dmg * u.dmgK * (u.frenzyT > 0 ? CONFIG.DEMON_ULT.dmg : 1);
-    G.hits++; if (u.tellT < G.minTell) G.minTell = u.tellT;
-    if (m.slow) { P.slowK = Math.max(P.slowT > 0 ? P.slowK : 0, m.slow); P.slowT = Math.max(P.slowT, m.slowS); }
-    if (m.stun) P.stunT = Math.max(P.stunT, m.stun);
-    if (m.bleed) { P.bleedN = Math.min(CONFIG.BLEED.max, P.bleedN + m.bleed); P.bleedT = CONFIG.BLEED.dur; }
-    if (dmg > 0) { G.hitDmg += Math.min(dmg, P.hp); hurt(dmg); }
+    if (s === P) { G.hits++; if (u.tellT < G.minTell) G.minTell = u.tellT; if (dmg > 0) G.hitDmg += Math.min(dmg, P.hp); }
+    if (m.slow) { s.slowK = Math.max(s.slowT > 0 ? s.slowK : 0, m.slow); s.slowT = Math.max(s.slowT, m.slowS); }
+    if (m.stun) s.stunT = Math.max(s.stunT, m.stun);
+    if (m.bleed) { s.bleedN = Math.min(CONFIG.BLEED.max, s.bleedN + m.bleed); s.bleedT = CONFIG.BLEED.dur; }
+    if (dmg > 0) hurtSuit(s, dmg, 'hit', null);
   }
   if (m.shape === 'circle') { u.st = 3; u.t = CONFIG.APEX.recoverS; return; }
   u.ax = u.x; u.az = u.z; u.dashS = m.dashS; u.st = 2; u.t = 0;
@@ -1388,7 +1427,7 @@ function stepUnit(u, dt) {
   // Bleed from the player's Stalker plate.
   if (u.bleedT > 0) {
     u.bleedT -= dt; u.hp -= CONFIG.PLATE.bleedDps * dt; u.bar.scale.x = Math.max(0.001, u.hp / u.maxHp);
-    if (u.hp <= 0) { u.hp = 0; killUnit(u); return; }
+    if (u.hp <= 0) { u.hp = 0; u.by = u.bleedBy; killUnit(u); return; }
   }
   const c = u.cd;
   for (let i = 0; i < MOVE_KEYS.length; i++) { const k = MOVE_KEYS[i]; if (c[k] > 0) c[k] -= dt; }
@@ -1404,8 +1443,9 @@ function stepUnit(u, dt) {
     return;
   }
   if (u.st === 3) { u.t -= dt; if (u.t <= 0) u.st = 0; return; }
-  const px = P.x - u.x, pz = P.z - u.z, dist = Math.hypot(px, pz) || 1e-6, dx = px / dist, dz = pz / dist;
-  if (u.cub && !cubThink(u, dt, dist)) return;
+  // Cubs pick their own suit (nearest on their layer); hunt units go for the player (u.tgt = P).
+  if (u.cub && !cubThink(u, dt)) return;
+  const q = u.tgt, px = q.x - u.x, pz = q.z - u.z, dist = Math.hypot(px, pz) || 1e-6, dx = px / dist, dz = pz / dist;
   // Demon ultimate: one use at half health, or on cooldown (CONFIG.DEMON_ULT.mode).
   if (u === DEMON) {
     const U = CONFIG.DEMON_ULT, ready = U.mode === 'once50' ? (!u.ultUsed && u.hp <= u.cfg.hp * 0.5) : u.ultCd <= 0;
@@ -1417,10 +1457,10 @@ function stepUnit(u, dt) {
   }
   const k = pickMove(u, dist);
   if (k !== '' && beginMove(u, k, dx, dz)) return;
-  // Chase. The howler aims for a point behind the player, away from the demon.
-  let gx = P.x, gz = P.z;
+  // Chase. The howler aims for a point behind its suit, away from the demon.
+  let gx = q.x, gz = q.z;
   if (u === HOWLER && DEMON.alive) {
-    const ex = P.x - DEMON.x, ez = P.z - DEMON.z, el2 = Math.hypot(ex, ez) || 1;
+    const ex = q.x - DEMON.x, ez = q.z - DEMON.z, el2 = Math.hypot(ex, ez) || 1;
     gx += ex / el2 * u.cfg.flank; gz += ez / el2 * u.cfg.flank;
   }
   const tx = gx - u.x, tz = gz - u.z, td = Math.hypot(tx, tz);
@@ -1466,8 +1506,10 @@ function stepHunt(dt) {
   }
   updateBoss();
 }
-function hitEnemy(u, n) {
+// by = the suit that hit; the last hitter of a cub or buff creature takes its plate or boon.
+function hitEnemy(u, n, by) {
   if (!u.alive || G.phase !== (u.hunt ? 'hunt' : 'royale')) return;
+  u.by = by;
   u.hp = Math.max(0, u.hp - n); u.flashT = 0.12; u.body.material = M.hit;
   u.bar.scale.x = Math.max(0.001, u.hp / u.maxHp);
   if (u.hp <= 0) killUnit(u);
@@ -1477,7 +1519,7 @@ function killUnit(u) {
   if (ORD.attack === u) ORD.attack = null;
   if (u === DEMON) { endHunt(true); return; }
   if (u.neutral) { G.nT[u.idx] = G.time + draw(BAGS.times); grantBoon(u); return; }
-  if (u.cub) scene.remove(u.ring, u.line);
+  if (u.cub) { scene.remove(u.ring, u.line); if (!u.by) return; }
   u.plateOn = true; u.plateT = 0; u.sx = u.x; u.sz = u.z; u.plate.position.set(u.x, u.y + 1, u.z); scene.add(u.plate);
 }
 function grantPlate(u) {
@@ -1498,8 +1540,8 @@ function updateBoss() {
   }
 }
 // ----- Royale minions: kennel waves, cubs guarding camps, plate reward for the last hit.
-// A cub rests at its camp and heals, fights a suit that comes inside the aggro radius, and goes home past the leash. Returns true while it fights.
-function cubThink(u, dt, dist) {
+// A cub rests at its camp and heals, fights the nearest suit that comes inside the aggro radius, keeps that suit until the leash, and goes home past it. Returns true while it fights.
+function cubThink(u, dt) {
   const C = CONFIG.CUB, hx = u.cx - u.x, hz = u.cz - u.z, hd = Math.hypot(hx, hz);
   if (u.home) {
     u.homeT += dt; healCub(u, dt);
@@ -1508,13 +1550,20 @@ function cubThink(u, dt, dist) {
     else { u.fx = hx / hd; u.fz = hz / hd; moveUnit(u, hx / hd, hz / hd, u.cfg.speed, dt); }
     return false;
   }
-  const can = !P.dead && !P.air && Math.abs(P.y - u.y) < 1.5;
   if (!u.hot) {
-    if (can && dist <= C.aggro) u.hot = true; else { healCub(u, dt); return false; }
+    let best = null, bd = C.aggro;
+    for (let i = 0; i < SUITS.length; i++) {
+      const s = SUITS[i]; if (!cubCanHit(u, s)) continue;
+      const d = Math.hypot(s.x - u.x, s.z - u.z); if (d <= bd) { bd = d; best = s; }
+    }
+    if (best) { u.hot = true; u.tgt = best; } else { healCub(u, dt); return false; }
   }
-  if (hd > C.leash || !can || dist > C.leash) { u.home = true; u.homeT = 0; return false; }
+  const q = u.tgt;
+  if (hd > C.leash || !cubCanHit(u, q) || Math.hypot(q.x - u.x, q.z - u.z) > C.leash) { u.home = true; u.homeT = 0; return false; }
   return true;
 }
+// A cub only fights a live suit standing on its own layer.
+function cubCanHit(u, s) { return !s.dead && !s.air && Math.abs(s.y - u.y) < 1.5; }
 function healCub(u, dt) {
   if (u.hp >= u.maxHp) return;
   u.hp = Math.min(u.maxHp, u.hp + CONFIG.CUB.heal * dt); u.bar.scale.x = u.hp / u.maxHp;
@@ -1548,13 +1597,15 @@ function dropCub(u) {
   u.alive = false; u.seen = false; u.hp = 0; u.st = 0; hideTell(u); scene.remove(u.group, u.ring, u.line);
   if (ORD.attack === u) ORD.attack = null;
 }
-function grantPlayerPlate(u) {
+// The plate reaches the suit that broke the cub (lost if that suit is broken by then). Only the player sees the note.
+function grantSuitPlate(u) {
   u.plateOn = false; scene.remove(u.plate);
-  if (P.dead) return;
-  const Pl = CONFIG.PLATE, slot = P.pt[0] <= 0 ? 0 : P.pt[1] <= 0 ? 1 : (P.pt[0] <= P.pt[1] ? 0 : 1);
-  P.pk[slot] = u.kind; P.pt[slot] = Pl.buffS; G.platesTaken++;
-  SK[2].cdT = Math.max(0, SK[2].cdT - Pl.ultCut * CONFIG.SKILLS[2].cd);
-  showNote('voice_plate_take', u.kind === 'stalker' ? 'rule_plate_s' : 'rule_plate_h', TAKE_VARS);
+  const s = u.by;
+  if (!s || s.dead) return;
+  const Pl = CONFIG.PLATE, slot = s.pt[0] <= 0 ? 0 : s.pt[1] <= 0 ? 1 : (s.pt[0] <= s.pt[1] ? 0 : 1);
+  s.pk[slot] = u.kind; s.pt[slot] = Pl.buffS; s.plates++;
+  cutUlt(s, Pl.ultCut * CONFIG.SKILLS[2].cd);
+  if (s === P) { G.platesTaken++; showNote('voice_plate_take', u.kind === 'stalker' ? 'rule_plate_s' : 'rule_plate_h', TAKE_VARS); }
 }
 function stepKennel(dt) {
   const Kc = CONFIG.KENNEL, VR = G.visR;
@@ -1568,9 +1619,9 @@ function stepKennel(dt) {
     if (u.alive) { if (!floorAt(u.x, u.z, u.y + 0.1)) dropCub(u); else stepUnit(u, dt); }
     // The broken cub's plate flies to the suit that broke it.
     if (u.plateOn) {
-      u.plateT += dt; const k = Math.min(1, u.plateT / CONFIG.PLATE.flyS);
-      u.plate.position.set(u.sx + (P.x - u.sx) * k, u.y + 1 + Math.sin(k * Math.PI) * 1.5, u.sz + (P.z - u.sz) * k);
-      if (k >= 1) grantPlayerPlate(u);
+      const q = u.by; u.plateT += dt; const k = Math.min(1, u.plateT / CONFIG.PLATE.flyS);
+      u.plate.position.set(u.sx + (q.x - u.sx) * k, u.y + 1 + Math.sin(k * Math.PI) * 1.5, u.sz + (q.z - u.sz) * k);
+      if (k >= 1) grantSuitPlate(u);
     }
     const vis = u.alive && Math.hypot(u.x - P.x, u.z - P.z) <= VR;
     u.seen = vis;
@@ -1603,14 +1654,17 @@ function loseNeutral(u) {
   u.alive = false; u.seen = false; u.hp = 0; scene.remove(u.group); G.nT[u.idx] = G.time + draw(BAGS.times);
   if (ORD.attack === u) ORD.attack = null;
 }
+// The last hitter of a buff creature takes its boon at once. Only the player sees the note.
 function grantBoon(u) {
-  if (P.dead) return;
-  const b = u.nb, B = CONFIG.BOONS[b], v = B.v * u.nv; G.boons++;
+  const s = u.by;
+  if (!s || s.dead) return;
+  const b = u.nb, B = CONFIG.BOONS[b], v = B.v * u.nv; s.boons++;
+  if (s === P) G.boons++;
   BOON_VARS.s = B.s || 0;
-  if (b === 'ult') { const cut = v * CONFIG.SKILLS[2].cd; SK[2].cdT = Math.max(0, SK[2].cdT - cut); BOON_VARS.v = Math.round(cut); }
-  else if (b === 'heal') { P.hp = Math.min(CONFIG.MAX_HP, P.hp + v); BOON_VARS.v = Math.round(v); }
-  else { const k = BOON_IDX[b]; P.bT[k] = B.s; P.bV[k] = v; BOON_VARS.v = b === 'power' || b === 'speed' ? Math.round(v * 100) : v; }
-  showNote('voice_boon', 'boon_' + b, BOON_VARS);
+  if (b === 'ult') { const cut = v * CONFIG.SKILLS[2].cd; cutUlt(s, cut); BOON_VARS.v = Math.round(cut); }
+  else if (b === 'heal') { s.hp = Math.min(CONFIG.MAX_HP, s.hp + v); BOON_VARS.v = Math.round(v); }
+  else { const k = BOON_IDX[b]; s.bT[k] = B.s; s.bV[k] = v; BOON_VARS.v = b === 'power' || b === 'speed' ? Math.round(v * 100) : v; }
+  if (s === P) showNote('voice_boon', 'boon_' + b, BOON_VARS);
 }
 function stepNeutrals(dt) {
   const VR = G.visR;
@@ -1629,7 +1683,7 @@ function stepNeutrals(dt) {
       if (u.flashT > 0) { u.flashT -= dt; if (u.flashT <= 0) u.body.material = u.mat; }
       if (u.bleedT > 0) {
         u.bleedT -= dt; u.hp -= CONFIG.PLATE.bleedDps * dt; u.bar.scale.x = Math.max(0.001, u.hp / u.maxHp);
-        if (u.hp <= 0) { u.hp = 0; killUnit(u); }
+        if (u.hp <= 0) { u.hp = 0; u.by = u.bleedBy; killUnit(u); }
       }
       if (u.alive) {
         // The crab scuttles side to side; the wanderer walks a circle. Neither leaves its floor.
@@ -1649,7 +1703,7 @@ const ZONE_VARS = { zone: '' }, BOON_VARS = { v: 0, s: 0 }, BOON_TXT = [T('bn_po
 // Buff creatures out of the scene and their first appearance drawn from the time bag (new run), or simply cleared (the wake).
 function resetNeutrals(redraw) {
   for (const u of NEUTRALS) {
-    u.alive = false; u.seen = false; u.hp = 0; u.bleedT = 0; u.flashT = 0; u.body.material = u.mat; u.maxHp = u.cfg.hp;
+    u.alive = false; u.seen = false; u.hp = 0; u.bleedT = 0; u.flashT = 0; u.body.material = u.mat; u.maxHp = u.cfg.hp; u.by = null; u.bleedBy = null;
     if (u.group.parent) scene.remove(u.group);
     if (ORD.attack === u) ORD.attack = null;
     if (redraw) G.nT[u.idx] = draw(BAGS.times);
@@ -1661,6 +1715,7 @@ const KENNEL_VARS = { s: CONFIG.KENNEL.warnS, zones: '' }, TAKE_VARS = { s: CONF
 function resetCubs() {
   for (const u of CUBS) {
     u.alive = false; u.seen = false; u.hp = 0; u.st = 0; u.plateOn = false; u.home = false; u.hot = false; u.bleedT = 0; u.flashT = 0; u.body.material = u.mat;
+    u.tgt = P; u.by = null; u.bleedBy = null;
     hideTell(u);
     if (u.group.parent) scene.remove(u.group); if (u.ring.parent) scene.remove(u.ring, u.line); if (u.plate.parent) scene.remove(u.plate);
     if (ORD.attack === u) ORD.attack = null;
@@ -1830,7 +1885,7 @@ function respawn(kind) {
 
 // New run: resets everything the run changes (time, waves, sections, floors, player, banner, shadows).
 function reset() {
-  P.pt[0] = P.pt[1] = 0; P.pk[0] = P.pk[1] = ''; G.platesTaken = 0; G.hits = 0; G.minTell = 99; G.hitDmg = 0; G.bleedDmg = 0;
+  P.pt[0] = P.pt[1] = 0; P.pk[0] = P.pk[1] = ''; P.plates = 0; P.boons = 0; P.cause = ''; P.diedAt = -1; P.killer = null; G.platesTaken = 0; G.hits = 0; G.minTell = 99; G.hitDmg = 0; G.bleedDmg = 0;
   G.seed = G.seedFixed >= 0 ? G.seedFixed : (Date.now() >>> 0); RNG.s = G.seed | 0;
   for (const k in BAGS) BAGS[k].i = BAGS[k].a.length;
   for (let i = 0; i < 4; i++) { P.bT[i] = 0; P.bV[i] = 0; }
@@ -2016,7 +2071,7 @@ window.__game = {
   setMove(x, z) { testMove.on = true; testMove.x = x; testMove.z = z; },
   clearMove() { testMove.on = false; testMove.x = testMove.z = 0; },
   teleport(x, z) { P.x = P.px = x; P.z = P.pz = z; P.y = P.py = topY(x, z); P.air = false; P.vy = 0; P.kx = P.kz = 0; P.dead = false; },
-  damage(n) { hurt(n); }, knock(kx, kz) { P.kx = kx; P.kz = kz; }, setHp(n) { P.hp = n; },
+  damage(n) { hurtSuit(P, n, 'test', null); }, knock(kx, kz) { P.kx = kx; P.kz = kz; }, setHp(n) { P.hp = n; },
   hazards: () => HAZARDS.map((h) => ({ kind: h.kind, x: h.x, z: h.z, y: h.y, state: h.state, ring: h.ring.visible })),
   altars: () => ALTAR_LIST.map((a) => ({ x: a.x, z: a.z, y: a.y, charge: a.charge, on: a.mesh.material === M.altarOn })),
   topY, broken: () => BROKEN.map((b) => b.slice()), K,
@@ -2068,16 +2123,16 @@ window.__game = {
       list: NEUTRALS.map((u) => ({ kind: u.kind, x: u.x, z: u.z, y: u.y, hp: u.hp, max: u.maxHp, alive: u.alive, seen: u.seen, boon: u.nb, amt: u.nv, spot: u.spot, inScene: !!u.group.parent,
         sec: u.spot >= 0 ? SEC[SPOTS[u.spot][2]].state : -1, standOk: !u.alive || unitOk(u, u.x, u.z) })) };
   },
-  hitNeutral(i, n) { hitEnemy(NEUTRALS[i], n); }, forceNeutral(i, spot, boon, amt) { const u = NEUTRALS[i]; if (u.alive) loseNeutral(u); spawnNeutral(u, i, spot, boon, amt); },
+  hitNeutral(i, n) { hitEnemy(NEUTRALS[i], n, P); }, forceNeutral(i, spot, boon, amt) { const u = NEUTRALS[i]; if (u.alive) loseNeutral(u); spawnNeutral(u, i, spot, boon, amt); },
   attackNeutral(i) { const u = NEUTRALS[i]; if (u.seen && u.hp > 0) { ORD.attack = u; PATH.n = 0; return true; } return false; },
   drawBag(name) { return draw(BAGS[name]); }, setSeed(n) { G.seedFixed = n; }, spots: SPOTS,
-  hitCub(i, n) { hitEnemy(CUBS[i], n); }, placeCub(i, x, z) { const u = CUBS[i]; u.x = u.px = x; u.z = u.pz = z; u.y = topY(x, z); }, cubCd(i, k, v) { CUBS[i].cd[k] = v; },
+  hitCub(i, n) { hitEnemy(CUBS[i], n, P); }, placeCub(i, x, z) { const u = CUBS[i]; u.x = u.px = x; u.z = u.pz = z; u.y = topY(x, z); }, cubCd(i, k, v) { CUBS[i].cd[k] = v; },
   attackCub(i) { const u = CUBS[i]; if (u.seen && u.hp > 0) { ORD.attack = u; PATH.n = 0; return true; } return false; },
   givePlate(kind) { const s = P.pt[0] <= 0 ? 0 : 1; P.pk[s] = kind; P.pt[s] = CONFIG.PLATE.buffS; }, camps: CAMPS,
   huntUi: () => ({ boss: el.boss.style.display, bossText: el.bossskills.textContent, btn: el.btnHunt.style.display, btnText: el.btnHunt.textContent,
     voice: el.voice.textContent, rule: el.rule.textContent, status: el.status.textContent, banner: el.banner.style.display }),
   attackUnit(i) { const u = ENEMIES[i]; if (u.seen && u.hp > 0) { ORD.attack = u; PATH.n = 0; return true; } return false; },
-  hitUnit(i, n) { hitEnemy(ENEMIES[i], n); }, placeUnit(i, x, z) { const u = ENEMIES[i]; u.x = u.px = x; u.z = u.pz = z; },
+  hitUnit(i, n) { hitEnemy(ENEMIES[i], n, P); }, placeUnit(i, x, z) { const u = ENEMIES[i]; u.x = u.px = x; u.z = u.pz = z; },
   unitCd(i, k, v) { ENEMIES[i].cd[k] = v; }, moves: MOVE_KEYS,
   floors: () => FLOORS.map((f) => ({ sec: f.sec, x0: f.x0, x1: f.x1, z0: f.z0, z1: f.z1 })),
   config: CONFIG, text: TEXT, sections: SECTION_IDS, spawns: SPAWNS,
