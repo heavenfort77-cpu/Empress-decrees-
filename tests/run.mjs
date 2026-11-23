@@ -1399,6 +1399,69 @@ try {
   // 88 Charge wording (batch 15): every player-facing line about the ultimate's gains says charge, never cooldown.
   const cw = await g(() => ['boon_ult', 'rule_plate_s', 'rule_plate_h', 'rule_dec_ult2x', 'hud_dec_ult2x'].map((k) => [k, __game.text[k] || '']));
   check('88 charge wording: boon, plate and 2x decree lines say charge, not cooldown', cw.every(([, t]) => /charge/i.test(t) && !/cooldown/i.test(t)), JSON.stringify(cw));
+  // 89 Meter gate (batch 15 ticket 03): in the royale R casts only with a full meter, for the player and a bot; the cast empties the meter and starts no cooldown.
+  // Bot: bot 0 answers bot 1 (hit back) at 40 health (under BOT.ultBelowHp, so it wants R); its charge is held at half for 4 s of fighting (Q or W cast), then filled.
+  // Read in the step the bot casts: at most one basic attack may land in that same step after the cast (CONFIG.ATTACK.dmg x ULT.dealt).
+  const mg = await g(() => {
+    const G = __game, C = G.config, U = C.ULT, H = window.__d, o = {};
+    H.start(2); G.teleport(14, -20); G.step(1);
+    G.setCharge(-1, U.full - 0.1); o.pUnder = G.cast(2, 14, -14); o.pUnderCh = G.chargeOf(-1); o.pUnderN = G.charge().ultN;
+    G.setCharge(-1, U.full); o.pFull = G.cast(2, 14, -14); o.pAfterCh = G.chargeOf(-1); o.pCd = G.skills()[2]; o.pN = G.charge().ultN; o.pAgain = G.cast(2, 14, -14);
+    const near = () => { G.placeBot(0, 0, -50); G.placeBot(1, 3, -50); G.setBotHp(0, 40); };
+    near(); G.hitBy(1, 0, 1); let fought = false;
+    H.hold(4, () => { near(); G.setCharge(0, U.full / 2); const b = G.bots().list[0]; if (b.cd[0] > 0 || b.cd[1] > 0) fought = true; });
+    let b = G.bots().list[0], ch = G.charge().bots[0]; o.bFought = fought; o.bUnderN = ch.ultN; o.bUnderCd = b.cd[2]; o.bTgt = b.tgt;
+    G.setCharge(0, U.full); let castCh = -1;
+    for (let n = 0; n < 180 && castCh < 0; n++) { near(); G.step(1); ch = G.charge().bots[0]; if (ch.ultN > 0) castCh = ch.ch; }
+    b = G.bots().list[0]; o.bN = ch.ultN; o.bCastCh = castCh; o.bCd = b.cd[2];
+    o.ok = o.pUnder === false && o.pUnderCh === U.full - 0.1 && o.pUnderN === 0 && o.pFull === true && o.pAfterCh === 0 && o.pCd === 0 && o.pN === 1 && o.pAgain === false
+      && o.bFought && o.bTgt === 2 && o.bUnderN === 0 && o.bUnderCd === 0 && o.bN === 1 && o.bCastCh >= 0 && o.bCastCh <= C.ATTACK.dmg * U.dealt + 1e-9 && o.bCd === 0;
+    G.setBots(0); G.reset(); return o;
+  });
+  check('89 meter gate: no R under a full meter (player and bot); the cast empties it and starts no cooldown in the royale', mg.ok, JSON.stringify(mg));
+  // 90 Wake and hunt (batch 15): the wake fills the player's meter; in the hunt R runs on its cooldown (SKILLS[2].cd) and the meter neither gates it nor gains.
+  const wh = await g(() => {
+    const G = __game, C = G.config, U = C.ULT, H = window.__h, o = {};
+    G.reset(); G.setCharge(-1, 10); G.startHunt(); o.wake = G.charge(); H.start(); for (let i = 0; i < 3; i++) H.mute(i); G.setHp(1e9);
+    G.setCharge(-1, 10); o.hunt = G.charge(); o.cast1 = G.cast(2, 0, -60); o.cd1 = G.skills()[2]; o.ch1 = G.chargeOf(-1); o.cast2 = G.cast(2, 0, -60);
+    G.step(Math.round((C.SKILLS[2].cd - 0.5) / C.STEP)); o.early = G.cast(2, 0, -60); G.step(Math.round(0.6 / C.STEP)); o.text = G.charge().text;
+    o.ready = G.cast(2, 0, -60); o.ch2 = G.chargeOf(-1);
+    o.ok = o.wake.p === U.full && !o.wake.meter && !o.hunt.meter && o.hunt.ready && o.cast1 === true && Math.abs(o.cd1 - C.SKILLS[2].cd) < 1e-9 && o.ch1 === 10 && o.cast2 === false
+      && o.early === false && o.ready === true && o.ch2 === 10 && o.hunt.ringShown === 'none';
+    G.reset(); return o;
+  });
+  check('90 wake and hunt: the wake fills the meter; in the hunt R keeps its 30 s cooldown, the meter does not gate or gain, ring hidden', wh.ok, JSON.stringify(wh));
+  // 91 New run x3 in one page (batch 15): every suit's meter and ultimate count go back to CONFIG.ULT.start, after a royale with charge and after a hunt.
+  const nr = await g(() => {
+    const G = __game, C = G.config, U = C.ULT, out = [];
+    G.setBots(C.BOTS.count);
+    for (let r = 0; r < 3; r++) {
+      G.setSeed(60 + r); G.reset(); G.step(Math.round(20 / C.STEP));
+      for (let i = -1; i < C.BOTS.count; i++) G.setCharge(i, 77);
+      if (r === 2) G.startHunt();
+      G.reset(); G.step(1); const c = G.charge();
+      out.push({ p: c.p, n: c.ultN, bots: c.bots.map((b) => b.ch), bn: c.bots.map((b) => b.ultN), text: c.text, ok: c.ultN === 0 && c.bots.length === C.BOTS.count
+        && c.p < U.start + 1 && c.bots.every((b) => b.ch < U.start + 1 && b.ultN === 0) && c.text === String(Math.floor(c.p)) });
+    }
+    G.setBots(0); G.reset(); return out;
+  });
+  check('91 new run x3: every suit\'s meter and ultimate count reset (after a charged royale and after a hunt)', nr.every((x) => x.ok), JSON.stringify(nr));
+  // 92 HUD charge (batch 15): the R text and ring are written only when the shown whole number changes (none while the meter stays full; one per whole number of passive gain),
+  // the text and ring match the meter; budget, shader programs and geometry stay flat with the ring shown.
+  const hw = await g(() => {
+    const G = __game, C = G.config, U = C.ULT, H = window.__d, o = {};
+    H.start(1); G.setCharge(-1, U.full); G.step(1); const w0 = G.charge().writes;
+    H.hold(2, () => { H.park(); G.setCharge(-1, U.full); }); o.fullWrites = G.charge().writes - w0; o.fullText = G.charge().text; o.fullCover = G.charge().cover;
+    G.setCharge(-1, 10.2); let last = -1, changes = 0; const w1 = G.charge().writes;
+    for (let n = 0; n < Math.round(4 / C.STEP); n++) { H.park(); G.step(1); const f = Math.floor(G.chargeOf(-1)); if (f !== last) { changes++; last = f; } }
+    const c = G.charge(); o.writes = c.writes - w1; o.changes = changes; o.text = c.text; o.ring = c.ring; o.ringShown = c.ringShown; o.p = c.p;
+    const r = G.render(true); o.calls = r.calls; o.programs = r.programs; o.geoms = r.geoms;
+    o.ok = o.fullWrites === 0 && o.fullText === '' && o.fullCover === 'none' && o.writes === o.changes && o.changes >= 2 && o.text === String(Math.floor(o.p))
+      && o.ring.includes(Math.floor(o.p) + '%') && o.ringShown === 'block';
+    G.setBots(0); G.reset(); return o;
+  });
+  check('92 HUD charge: written only on change (0 writes while full, one per whole number gained), text and ring match the meter; budget, programs and geometry flat',
+    hw.ok && hw.calls < 500 && hw.programs === base.programs && hw.geoms === base.geoms, JSON.stringify(hw));
   // 66 Idle player: standing at the spawn doing nothing loses the royale (frozen loss with a cause) before the last collapse is over.
   const idle = await g(() => {
     const G = __game, C = G.config; G.setSeed(12345); G.setBots(G.config.BOTS.count); G.reset(); let t = 0;
