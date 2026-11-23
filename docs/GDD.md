@@ -1,6 +1,6 @@
 # Apex-hunt jam game: GDD and handoff (working title TBD)
 
-Status: updated 2026-11-23 evening. Lore v2 and the suits (one per school, docs/SUITS.md) approved by the owner 19:57; nine schools in the match (owner 20:03, 稗甲 not summoned). Batches 1-13 built on boxes (map, controls, apex fight, royale minions, buff creatures, 9 bots, leader and bounty, five bagged decrees, W dash); static PASS, runtime 91 of 91 (batch 13). Batch 14 (10-minute game) stopped by the owner, not built. The owner has not yet said the loop works. All numbers are proposals, tunable in one CONFIG block.
+Status: updated 2026-11-23 evening. Lore v2 and the suits (one per school, docs/SUITS.md) approved by the owner 19:57; nine schools in the match (owner 20:03, 稗甲 not summoned). Batches 1-13 and 14A built on boxes (map, controls, apex fight, royale minions, buff creatures, 8 bots, leader and bounty, five bagged decrees, W dash); static PASS, runtime 91 of 91 (batch 14A). The 10-minute game (14B) was dropped by the owner (23 Nov 21:28: a 4-5 min run is OK). The owner has not yet said the loop works. All numbers are proposals, tunable in one CONFIG block.
 Repo for the code: https://github.com/heavenfort77-cpu/Empress-decrees- (all-new code).
 
 ## Jam facts (checked 2026-11-23)
@@ -141,7 +141,7 @@ Each suit's title, role and kit come from its school's own doctrine.
 | 名家 | 名甲 | 辩者 | Marksman | the debaters' paradoxes: thrown wheel, shadow blink, hanging arrowheads, endless-rod passive |
 | 纵横家 | 纵横甲 | 说客 | Control | 合纵 link (shared damage), 连横 swap and bot persuasion, 不攻自破 turns bots on each other |
 | 农家 | 农甲 | 耕者 | Support (sustain) | 播百谷, 并耕, 百草生机: sprouts heal and feed it, plough furrow, harvest ultimate |
-Match size: 9 suits, one per school (owner 20:03). The player plus 8 bots (built now: 9 bots; changes in the next code batch). Royale length: owner wants each game about 10 min (batch 14, not built yet); built now: about 3-4 min.
+Match size: 9 suits, one per school (owner 20:03). The player plus 8 bots (built, batch 14A); 10 spawn discs, the 10th empty on purpose (it foreshadows the apex, owner 20:56). Run length: about 4-5 min (owner 23 Nov 21:28): royale about 3-4 min (165-255 s), wake 3 s, hunt about 1 min.
 
 ## Apex phase (proposal)
 - Trigger: the player is the last suit alive. Bombardment and decrees stop. The statue wakes under the throne (about 3 s, see The wake), the 2 minions peel off it, and the hunt starts from the dais. The player is moved to the core hall entrance under a short card if they are elsewhere (open: walk there instead?).

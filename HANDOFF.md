@@ -1,14 +1,14 @@
-# Handoff (2026-11-23, after batch 14A; 14B stopped at its band gate, owner decision needed). GDD: docs/GDD.md (also Project "empress decrees", claude/GDD.md)
+# Handoff (2026-11-23 21:30, after batch 14A; 14B dropped by the owner: a 4-5 min run is OK). GDD: docs/GDD.md (also Project "empress decrees", claude/GDD.md)
 
 ## Session start (every session)
 1. Attach both repos: add_repo heavenfort77-cpu/Empress-decrees- (access push) and heavenfort77-cpu/dawnpunk (read; public, anonymous clone works). Dawnpunk = reference for frame-rate rules and bug pitfalls; read only the part needed.
 2. Clone with `--no-single-branch`; check out `batches-3-5` (PR #1 still open, not merged; use main only if it is merged: `gh api repos/heavenfort77-cpu/empress-decrees-/pulls/1 --jq .merged`, GraphQL is blocked).
-3. Read this file, then only the GDD section being changed (docs/SUITS.md for kits). Do not read the whole codebase. NEXT JOB: "Next batch: 14 (RESTART)" below.
+3. Read this file, then only the GDD section being changed (docs/SUITS.md for kits). Do not read the whole codebase. NEXT JOB: "Next batch: 15" below.
 4. Run the checks before and after any change: `node tests/static-check.mjs && node tests/run.mjs` (`-v` for details, `-vv 56,65` for named checks). Report pass/fail as N of N and failing lines only. `-sims` prints the GDD sim numbers. Expected now: static PASS, runtime 91 of 91 (after 14A + check 81 fix).
 5. Ask the owner the open questions under "Next batch" in ONE AskUserQuestion before building. Open design questions go to the panel (owner, 23 Nov 15:11).
 
 ## Status
-- Batches 1-13 and 14A done on branch `batches-3-5` (PR #1 open). 14B (10-minute game) built but NOT committed: its band gate failed (below). The owner has NOT yet said the loop works; no art before that.
+- Batches 1-13 and 14A done on branch `batches-3-5` (PR #1 open). 14B (10-minute game) dropped by the owner 23 Nov 21:28 ("4 5 min ok"); its patch is not applied. The owner has NOT yet said the loop works; no art before that.
 - Built so far on boxes: map v2 (2 layers, collapses, hazards, altars), LoL/MLBB controls, fog of war, minimap, apex hunt (demon + 2 minions, skill transfer), royale cubs and plates, buff creatures from marble bags, 9 bots with a brain, royale end, player-target cap (hunter slot), leader + crown + HUD line, decree slot, bounty decree, five bagged decrees, W dash, slow + mark penalty.
 - Static PASS. Runtime 91 of 91 after 13b (13a: 83 decree pacing, 84 bounty paced like a decree; 13b: 85 kennel autopilot over 12 matches, 86 kennel autopilot fixed scene; headless Chromium, software GPU: correctness and counts only). Fixed seed 12345. Checks 1-55 run with ?bots=0 (map test); 56+ set bots themselves. Whole-match checks (65, 67, 69, 72, 78) run 12 seeds since batch 12 (was 6).
 - Mutation rounds: batches 4-8 all caught (batch 7 12 of 13, the miss an equivalent change); batch 9 32 of 32; batch 10 6 of 6; batch 11 10 of 10; batch 13a 8 of 8 fail the suite (6 fail the named check 83/56; 'gap old' fails 65, 'bounty ignores gap' fails 84; log /home/claude/batch13.log); batch 13b proxy 4 of 4 (85/86; 'no cub fight' missed 85 alone, closed by the fixed scene 86); batch 12 14 of 14 (first round 12 of 13: check 80 marked before the wake too early; fixed; plus check 82 catches the replay fix reverted). Script: /home/claude/probe12/mut.py (session disk).
@@ -18,7 +18,7 @@
 - Hunt sweep with the W dash (test 42, the sweep bot dashes out of seen tells): never-dodge loses all; 0.3 s wins howler-first only (batch 11: minions-first only); 0.15 s wins 2 of 3 (lost demon-first; batch 11: all 3).
 - Pathfinding: walk graph built at load (8114 nodes). Worst bot search 0.8 ms (1.8 ms unreachable), player right-click worst 4.0 ms. At most one bot search per step.
 - NOT run: real-GPU fps (needs a GitHub Actions macOS runner; no workflow yet). NOT tried on a real phone.
-- Phone review link: https://claude.ai/artifact/3nQ67JCTmb1JfPKC3Y416z. Republish after each batch: copy index.html, swap the importmap path for https://cdn.jsdelivr.net/npm/three@0.171.0/build/three.module.min.js, publish to slug 1688f9ba-a0e5-4f7b-ac2e-3a68d6fc67c3 (get_artifact first for base_version). Live: version 1795424808-bd35 = batch 13 (fcc6d0e).; batch 12 republish is done by the lead.
+- Phone review link: https://claude.ai/artifact/3nQ67JCTmb1JfPKC3Y416z. Republish after each batch: copy index.html, swap the importmap path for https://cdn.jsdelivr.net/npm/three@0.171.0/build/three.module.min.js, publish to slug 1688f9ba-a0e5-4f7b-ac2e-3a68d6fc67c3 (get_artifact first for base_version). Live: version 1795424808-bd35 = batch 13 (fcc6d0e). 14A republish (23 Nov 21:2x) was refused by the session's permission check ("sensitive information"; secret scan of the copy found nothing): retry next session or the owner approves it.
 - Project docs (claude/HANDOFF.md, claude/GDD.md, claude/SUITS.md, claude/code/index.html, claude/code/tests/run.mjs, claude/code/tests/static-check.mjs) are copies of repo files. The LEAD session syncs them after each batch with project_write local_path (a background worker cannot). If a write is refused, project_read first (code files print in full: do it once, then write).
 
 ## Batch 13 (done): decree pacing 13a (62f8f0d) + plate-rate test proxy 13b (fcc6d0e). Details in git history and the Status numbers above.
@@ -28,7 +28,7 @@ Checks 56, 57, 64, 65, 67, 74, 81 and every bot setup read the count from CONFIG
 ('count back to 9' aborts the runner: no TEXT key suit_9; 'marker never added to the scene' passed 81 -> closed by the check 81 fix commit: 81 now also requires each marker in the scene graph, hook suits().markerIn; 2 of 2 caught).
 12-seed sims (A, old timings): decided 176.9-220.2 s; kennel autopilot decided 175-226.6 s, plate 12 of 12, leader win share 0 of 12; decrees per match 2-3 (2 in 4 matches); old autopilot plate 3 of 12, leader win share 6 of 12.
 
-## Batch 14B (STOPPED at the band gate, not committed; owner decision needed)
+## Batch 14B (DROPPED, owner 23 Nov 21:28: a 4-5 min run is OK; record kept for batch 20)
 Built as planned (one number set): FIRST_WAVE_S 90, WAVE_INTERVAL_S 75 (last wave 390 s); KENNEL.firstS 20, six waves 20-320 s; BAGS.firstAddS -5 (creatures from 20 s); BOT.engage peaceS 0, rampS 360;
 CONFIG.ROYALE band [475, 589] and acts [300, 480]; HUD next-to-fall line with act and m:ss left (rebuilt only on change); checks 53, 65, 66, 83, 85 updated, 87 (band, kennel autopilot) and 88 (act line) added.
 Patch: /home/claude/batch14b_wip.patch and /home/claude/probe14/b_wip/ (session disk only; made on 14A; its check 81 / markerIn / onStage parts are already committed, skip those hunks when re-applying).
@@ -37,21 +37,15 @@ Result (12 seeds): kennel autopilot decided 86-260 s (12345 260, 2 191.1, 3 209.
 Also failing under these numbers: 71 (scripted bounty scene) - not investigated. Suite wall 54 s (short matches).
 Cause (diagnostic, seeds 12345/6/4): with no opening peace, 'near' and 'hit' fights start at 4-11 s; a 3 m radius with p0 0.1 redrawn every declineS 4 s still starts fights within seconds of spawn,
 and hit-back chains spread them; deaths begin at 5-14 s and 5-6 of 8 bots are out by about 60 s. The ramp length does not reach the cause. Batch 9 saw the same: without the peace, matches ended at 40-110 s.
-Needs an owner/panel choice (a second number set or a rule change), per the owner's one-number-set rule: not tuned.
+Owner chose to keep the current pacing (run about 4-5 min: royale 177-220 s + wake 3 s + hunt 62-68 s). Code stays at 14A; royale band stays 165-255 s (check 65).
 
-## Next batch: 14B (blocked on the owner/panel choice above). Plan as written (owner 23 Nov 20:42) = 10-minute game + the 9-suit match
-The first batch 14 worker was stopped by the owner before any commit; its edits were discarded (patch kept only on the old session disk). Start clean from the branch head.
-Scope A, 9-suit match (owner 20:03): CONFIG.BOTS.count 9 -> 8 (player + 8 bots = the nine schools); keep the 10 spawn discs (one stays empty) unless the panel prefers 9; update every check that expects 9 bots or 10 suits (at least 56 n/distinct spawns, 57 bots in view, 64 "Place 10 of 10", 65/67 per-spawn win counts and matches); if a start line with "ten schools" exists in TEXT, it becomes "Hear ye Our decree: nine schools, one answer. Begin." Changed checks get a comment saying the game changed on purpose.
-Scope B, 10-minute game (owner 18:46, 18:48, 18:51, 18:53; panel plan below): a run that reaches the hunt lasts about 10 min (royale + wake + hunt). M1 first: measure the hunt length (test 42 sweep runs) and the royale length; set the royale band from it. No opening peace; bots' fight radius ramps from 3 m to full vision over about 6 min with the start chance rising with it; hunter cap unchanged (1, 2 marked, 3 bounty); cubs and creatures from about 20 s; two acts (skirmish 0-5 min, collapses from about 1:30 every about 75 s; closing 5-8 min, decided about 7:30-8:30); HUD "next to fall" line also shows the act and time left (TEXT keys, written only on change).
-Owner rules for B: ONE number set only, no tuning rounds (balancing comes later, 18:51); the royale band and act boundaries live in CONFIG and the checks read them from CONFIG (18:53: map size, kits and suit stats will change the result).
-Gates for B: royale decided inside the M1 band (12 seeds, kennel autopilot; old autopilot reported beside it); decrees about one a minute incl. bounty, 0 banner overlaps; idle player still loses before the last collapse; budget, programs, geometry flat; full suite wall time reported (if over about 15 min, propose a split, do not cut coverage). Plate rate and leader win share: measured and REPORTED ONLY, not gated, not tuned.
-Two commits (A, then B), each with its checks, a measure run and a mutation round. After any interruption: cmp index.html and tests/ with the last good copy before running checks.
-Panel record for B (23 Nov 18:46-18:48): same density, more of it (6-1, not stretched timers); no peace + slow ramp (6-1; more health/less damage rejected, kits own those numbers); kennel autopilot judges the GDD numbers, old reported beside (5-2); no hunt tuning (7-0). Risk noted by the judges: a jam judge may not finish a 10-min run; the act and time-left line keeps it readable.
+## Next batch: 15 ultimate charge (queue below). Panel note first, then ask the owner for go in ONE AskUserQuestion.
 
 ## Queue after batch 14 (owner 18:57 "built"; one batch at a time, panel note first each; kits already designed with the owner in docs/SUITS.md)
 15 ultimate charge (replaces the plate, crab, bounty and ultimates-2x stand-ins); 16 法甲 kit + suit stats sample (owner plays and approves); 17 the other eight kits (docs/SUITS.md); 18 hiding (curtains, 道甲 stillness, sight blocked by walls); 19 the ending + WINNER_STATUE; 20 final map size + balancing pass (re-measure, retune the CONFIG timing list once). Hunt sweep re-check with kits (0.15 s bot now loses demon-first).
 
 ## Owner decisions (dated)
+- 23 Nov 21:28: "4 5 min ok": batch 14B (10-minute game) dropped; a run of about 4-5 min (royale + wake + hunt) is fine; current pacing kept. Replaces 18:46 "each game about 10 min".
 - 23 Nov 20:56: the 10th spawn disc stays empty ON PURPOSE (it foreshadows the apex); no visual or text for it until art (comment above CONFIG.BOTS.count).
 - 23 Nov 20:42: hand off; restart batch 14 with the 9-suit change folded in (the stopped worker's edits discarded).
 - 23 Nov 20:07-20:40: all nine kits designed with the owner, one per school (docs/SUITS.md): 儒 六艺 (range-switching attack), 道 道德经 counters, 阴阳 yin-yang lock on 太极, 法 法术势, 名 debaters' paradoxes (sword rule removed), 墨 墨守/墨经/非攻, 纵横 合纵/连横/不攻自破, 杂 兼儒墨，合名法, 农 播百谷/并耕/百草生机 (sprout cap 9, CONFIG). Hunt rules confirmed 20:40 for 纵横 (不攻自破 turns apex units on each other; minions hesitate) and 杂 (正名 seals the demon's stolen skills). 道甲 and 阴阳甲 keep their own ultimate rules when ultimate charge lands (batch 15).
@@ -133,7 +127,7 @@ Panel record for B (23 Nov 18:46-18:48): same density, more of it (6-1, not stre
 - Controls: desktop LoL/Dota (right-click move/attack, Q W R hold-aim release-cast, A attack-move, S stop); phone MLBB (stick, ATK auto-target, tap skill = auto-aim, drag = aim, Cancel zone).
 
 ## Open
-- Owner: pick batch 14; leader win share with the kennel proxy is 2 of 12 (band 25-45%) and 2 proxy matches end under 165 s: tune or wait for kits (Status).
+- Leader win share with the kennel proxy 0 of 12 after 14A (band 25-45%); decrees per match 2-3 in 4 of 12 seeds after 14A (GDD 3-4): report only, retune in batch 20.
 - Kaymuse's look; game title; apex ultimate rule (built: single use at half health; confirm); ultimate charge amounts; minion names; Tiger Demon hard-surface confirm.
 - Apex balance: wait for real kits, then re-check test 42.
 - Vision is a plain radius: walls/curtains do not block sight yet (comes with hiding).
