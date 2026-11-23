@@ -114,14 +114,14 @@ Source: 《周礼·地官·保氏》「乃教之六艺：一曰五礼，二曰�
 - Panel (20:30): bot-only persuasion, never the player 6-1; the swap dash 7-0; 不攻自破 steering bots only, damage raised for everyone inside 5-2 (critic: hard to read; answer: the circle shows for its whole length and a HUD line names it).
 - Plays with: bots, the hunter cap, the leader and bounty (link the leader to its hunter), tells and collapses (the swap).
 
-### 农甲 · 耕者 (Agriculturalists: ruler and people till the fields together 并耕)
-- GDD decision kept: plants heal or feed it, harvest ultimate.
-- Passive **Till Together**: heals more the lower its health.
-- Attack: hoe, melee.
-- Q **Sow**: seeds that grow over a few seconds into sprouts that only 农甲 can eat: walking over one heals and feeds it (a short damage boost).
-- W **Plough Charge**: dash that leaves a furrow that slows.
-- R **Harvest**: eat every grown sprout you planted for healing and a burst.
-- Plays with: altars and the "Altars are dry" decree (its sprouts still work when altars are dry).
+### 农甲 · 耕者 (Agriculturalists; frames 播百谷, 并耕, 百草生机; owner 23 Nov 20:35). GDD rule kept: plants heal or feed it, harvest ultimate.
+- Passive **并耕而食** (「贤者与民并耕而食」): walking over one of his grown sprouts eats it: it heals him and feeds him (a short damage boost). Only 农甲 can eat its sprouts; an enemy walking over one tramples it (counterplay).
+- Attack **耒** (the plough-hoe): melee.
+- Q **播百谷** (sow the hundred grains): scatter three seeds at a point; they grow into sprouts in about 4 s and last about 20 s (a fixed pool of 9).
+- W **并耕** (the dash): a plough charge of about 5 m that leaves a furrow for about 4 s; enemies on it are slowed, and seeds on it grow in half the time.
+- R **百草生机** (the life of the hundred herbs), the harvest: every seed he has planted ripens at once, and every ripe sprout within about 8 m is pulled to him and eaten; each one heals him and sends a pulse of damage around him. More sprouts, bigger harvest.
+- Panel (20:35): enemies trample sprouts 6-1 (it gives a fight to a field); furrow speeds the seeds 7-0; the harvest pulls sprouts in 6-1.
+- Plays with: altars and "Our altars are dry" (his field still heals him), collapses (a field on a falling section is lost), long fights.
 
 ## Build notes
 - Code: none yet. Batch 16 builds 法甲 as the sample; batch 17 the other eight, with the panel per kit.

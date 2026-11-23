@@ -140,7 +140,7 @@ Each suit's title, role and kit come from its school's own doctrine.
 | 杂家 | 杂甲 | 门客 | Mage (control) | 兼儒墨，合名法: two-school seal, blink that exposes, casts back the stored skill |
 | 名家 | 名甲 | 辩者 | Marksman | the debaters' paradoxes: thrown wheel, shadow blink, hanging arrowheads, endless-rod passive |
 | 纵横家 | 纵横甲 | 说客 | Control | 合纵 link (shared damage), 连横 swap and bot persuasion, 不攻自破 turns bots on each other |
-| 农家 | 农甲 | 耕者 | Support (sustain) | plants heal and feed it; harvest ultimate |
+| 农家 | 农甲 | 耕者 | Support (sustain) | 播百谷, 并耕, 百草生机: sprouts heal and feed it, plough furrow, harvest ultimate |
 Match size: 9 suits, one per school (owner 20:03). The player plus 8 bots (built now: 9 bots; changes in the next code batch). Royale length: owner wants each game about 10 min (batch 14, not built yet); built now: about 3-4 min.
 
 ## Apex phase (proposal)
