@@ -28,7 +28,7 @@ import palace_tex as P
 LAC, LAC_D, LAC_L = '#1c1714', '#0f0c0a', '#3a2e26'
 BLUE, BLUE_D, BLUE_L = '#3a6e88', '#24485a', '#5d8ea6'
 YEL, YEL_D, YEL_L = '#c6a44c', '#9a7c34', '#dcc078'
-HEMP, HEMP_D, HEMP_L = '#8f8068', '#6e6250', '#ab9c80'
+HEMP, HEMP_D, HEMP_L = '#887962', '#6a5e4c', '#a39478'  # round 2: one step darker (run 45442633307: hemp mean lum 131 > 130)
 PATCH, PATCH_D, PATCH_L = '#c4c2bc', '#a3a19b', '#dad8d2'
 STITCH = '#3a342c'
 LEATH, WOOD, ROPE = '#5a4632', '#7a6448', '#a08a5a'
@@ -85,8 +85,8 @@ def fodder_trim():
         x = r.uniform(0, 1024)
         t.stroke(t.wobble(x, 456, x + r.uniform(-14, 14), 504, 3, 2), 'dry-brush', r.uniform(6, 14), r.choice([YEL_D, YEL_L]), r.uniform(0.4, 0.6))
     # hemp: weave (short horizontal and vertical ticks, 4-12 cm patches)
-    for _ in range(700):
-        x, y = r.uniform(0, 1024), r.uniform(516, 700); L = r.uniform(10, 30)
+    for _ in range(380):  # round 2: fewer, longer ticks (run 45442633307: brush run 3.7 cm < 4)
+        x, y = r.uniform(0, 1024), r.uniform(516, 700); L = r.uniform(16, 40)
         if r.random() < 0.5: t.stroke([(x, y), (x + L, y)], 'chalk', r.uniform(3, 6), r.choice([HEMP_D, HEMP_L]), r.uniform(0.35, 0.55))
         else: t.stroke([(x, y), (x, y + L)], 'chalk', r.uniform(3, 6), r.choice([HEMP_D, HEMP_L]), r.uniform(0.35, 0.55))
     # patches: stitched squares every 128 px, cross stitches on the seams

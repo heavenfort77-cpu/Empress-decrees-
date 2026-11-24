@@ -67,10 +67,11 @@ def body(d, hunch=0.1, chest=0.24, belly=0.22, robe=False, patch=True, hood=Fals
         prism('veil', [(-0.1, -0.05), (0.1, -0.05), (0.08, 0.04), (-0.08, 0.04)], (0, hf + 0.1, hz - 0.04), (0, hf + 0.14, hz - 0.05), CL, 'head', 'dark')
     elif knot:
         spheroid('knot', (0, hf - 0.02, hz + 0.13), (0.05, 0.05, 0.05), CL, 'head', 'dark', segs=(8, 5))
-    loft('band', [(hz + 0.02, hf + 0.03, 0.105 + (0.03 if hood else 0), 0.115 + (0.03 if hood else 0), 0), (hz + 0.07, hf + 0.03, 0.1 + (0.03 if hood else 0), 0.11 + (0.03 if hood else 0), 0)],
+    hb = 0.03 if hood else 0.012  # round 2: a broad band (8 cm, 9 px at the fight framing) standing proud of the head
+    loft('band', [(hz + 0.0, hf + 0.03, 0.105 + hb, 0.115 + hb, 0), (hz + 0.08, hf + 0.03, 0.098 + hb, 0.108 + hb, 0)],
          CL, 'head', 'yellow', n_exp=2.0, M=12, cap=False)
     for s in (-1, 1):  # two tails, 0.3 m, out and down behind the head: the 黄巾 mark from behind and above
-        prism(f'btail_{s}', [(-0.04, -0.008), (0.04, -0.008), (0.04, 0.008), (-0.04, 0.008)], (s * 0.03, hf - 0.09, hz + 0.04), (s * 0.08, hf - 0.3, hz - 0.22),
+        prism(f'btail_{s}', [(-0.05, -0.01), (0.05, -0.01), (0.05, 0.01), (-0.05, 0.01)], (s * 0.035, hf - 0.1, hz + 0.04), (s * 0.1, hf - 0.34, hz - 0.26),
               CL, 'tail', 'yellow', scale_b=0.7)
     if mantle:  # a ragged hemp mantle over the shoulders (cloth): its torn points break the outline, the opposite of the guard's smooth bell
         loft('mantle', [(sz + 0.06, hf, 0.12, 0.1, 0), (sz - 0.02, hf, chest + 0.06, chest * 0.78, 0), (sz - 0.3, hf - 0.03, chest + 0.1, chest * 0.84, 0)],
@@ -96,7 +97,7 @@ ARM = {'R': (0.3, 0.3, 0.95), 'L': (-0.3, 0.26, 1.0)}  # hands (set per type bef
 def rebel_bones(hunch=0.1, chest=0.24, pelvis=0.9, wtip=None, extra=(), tl=0.5, kf=0.02):
     pz = pelvis; sz = pz + tl; hf = hunch; hz = sz + 0.2
     b = [('root', (0, 0, 0), (0, 0, 0.1), None), ('pelvis', (0, 0, pz - 0.1), (0, 0, pz + 0.05), 'root'), ('spine', (0, 0, pz + 0.05), (0, hf, sz), 'pelvis'),
-         ('head', (0, hf, sz + 0.04), (0, hf + 0.03, hz + 0.15), 'spine'), ('tail', (0, hf - 0.09, hz + 0.04), (0, hf - 0.3, hz - 0.22), 'head')]
+         ('head', (0, hf, sz + 0.04), (0, hf + 0.03, hz + 0.15), 'spine'), ('tail', (0, hf - 0.1, hz + 0.04), (0, hf - 0.34, hz - 0.26), 'head')]
     for side, s in (('R', 1), ('L', -1)):
         b += [(f'thigh_{side}', (s * 0.11, 0, pz - 0.05), (s * 0.12, kf, pz * 0.5), 'pelvis'), (f'shin_{side}', (s * 0.12, kf, pz * 0.5), (s * 0.12, 0.0, 0.1), f'thigh_{side}'),
               (f'foot_{side}', (s * 0.12, 0.0, 0.1), (s * 0.12, 0.16, 0.03), f'shin_{side}'),

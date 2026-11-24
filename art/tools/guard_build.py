@@ -180,8 +180,8 @@ def nu_build(d):
 
 def nu_clips(arm):
     R = lambda b, w, a, p=None: rot_for(arm, b, w, a, p); w = WINDUP['nu']
-    up = R('weapon', 'up', 30); s = w + STRIKE
-    keys = {'torso': [(0, (0, 0, 0)), (w, R('torso', 'back', 12)), (s, R('torso', 'back', 15)), (s + RECOVER, (0, 0, 0))],
+    up = R('weapon', 'up', 45); s = w + STRIKE
+    keys = {'torso': [(0, (0, 0, 0)), (w, R('torso', 'back', 18)), (s, R('torso', 'back', 20)), (s + RECOVER, (0, 0, 0))],
             'uarm_R': [(0, (0, 0, 0)), (w, R('uarm_R', 'up', 30)), (s, R('uarm_R', 'up', 24)), (s + RECOVER, (0, 0, 0))],
             'uarm_L': [(0, (0, 0, 0)), (w, R('uarm_L', 'up', 30)), (s, R('uarm_L', 'up', 24)), (s + RECOVER, (0, 0, 0))],
             'weapon': [(0, (0, 0, 0)), (w, up), (s, R('weapon', 'up', 40)), (s + RECOVER, (0, 0, 0))]}
@@ -205,9 +205,9 @@ def dun_build(d):
 
 def dun_clips(arm):
     R = lambda b, w, a, p=None: rot_for(arm, b, w, a, p); w = WINDUP['dun']; s = w + STRIKE
-    keys = {'torso': [(0, (0, 0, 0)), (w, R('torso', 'back', 14)), (s, R('torso', 'fwd', 14)), (s + RECOVER, (0, 0, 0))],
-            'uarm_L': [(0, (0, 0, 0)), (w, R('uarm_L', 'back', 25)), (s, R('uarm_L', 'fwd', 25)), (s + RECOVER, (0, 0, 0))],
-            'weapon': [(0, (0, 0, 0)), (w, R('weapon', 'back', 25)), (s, R('weapon', 'fwd', 12)), (s + RECOVER, (0, 0, 0))]}
+    keys = {'torso': [(0, (0, 0, 0)), (w, R('torso', 'back', 18, (-0.3, 0, 1.2))), (s, R('torso', 'fwd', 16)), (s + RECOVER, (0, 0, 0))],
+            'uarm_L': [(0, (0, 0, 0)), (w, R('uarm_L', 'back', 35)), (s, R('uarm_L', 'fwd', 30)), (s + RECOVER, (0, 0, 0))],
+            'weapon': [(0, (0, 0, 0)), (w, R('weapon', 'back', 40)), (s, R('weapon', 'fwd', 15)), (s + RECOVER, (0, 0, 0))]}
     loc = {'hull': [(0, (0, 0, 0)), (w, (0, -0.15, 0)), (s, (0, 0.35, 0)), (s + RECOVER, (0, 0, 0))]}
     return acts(arm, keys, w, loc), None, w, 'weapon'
 
@@ -252,10 +252,10 @@ def che_clips(arm):
     move = {'hull': [(0, (0, 0, 0)), (0.25, R('hull', 'up', 1.5)), (0.5, (0, 0, 0)), (0.75, R('hull', 'down', 1.5)), (1.0, (0, 0, 0))],
             'canopy': [(0, R('canopy', 'back', 3)), (0.5, R('canopy', 'back', 5)), (1.0, R('canopy', 'back', 3))]}
     mloc = {'hull': [(0, (0, 0, 0)), (0.25, (0, 0, 0.012)), (0.5, (0, 0, 0)), (0.75, (0, 0, 0.012)), (1.0, (0, 0, 0))]}
-    att = {'hull': [(0, (0, 0, 0)), (w, R('hull', 'up', 10)), (s, R('hull', 'down', 3)), (s + RECOVER, (0, 0, 0))],
+    att = {'hull': [(0, (0, 0, 0)), (w, R('hull', 'up', 16)), (s, R('hull', 'down', 4)), (s + RECOVER, (0, 0, 0))],
            'driver': [(0, (0, 0, 0)), (w, R('driver', 'back', 12)), (s, R('driver', 'fwd', 15)), (s + RECOVER, (0, 0, 0))],
            'canopy': [(0, (0, 0, 0)), (w, R('canopy', 'fwd', 6)), (s, R('canopy', 'back', 10)), (s + RECOVER, (0, 0, 0))],
-           'ram': [(0, (0, 0, 0)), (w, R('ram', 'up', 12)), (s, R('ram', 'down', 4)), (s + RECOVER, (0, 0, 0))]}
+           'ram': [(0, (0, 0, 0)), (w, R('ram', 'up', 22)), (s, R('ram', 'down', 6)), (s + RECOVER, (0, 0, 0))]}
     aloc = {'hull': [(0, (0, 0, 0)), (w, (0, -0.35, 0)), (s, (0, 0.8, 0)), (s + RECOVER, (0, 0, 0))]}
     return {'idle': clip(arm, 'idle', idle), 'move': clip(arm, 'move', move, loc=mloc), 'attack': clip(arm, 'attack', att, loc=aloc)}, None, w, 'ram'
 
