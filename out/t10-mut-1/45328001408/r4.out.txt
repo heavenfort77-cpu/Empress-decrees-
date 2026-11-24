@@ -1,0 +1,3 @@
+FAIL 42 bot sweep 9 runs: 0 broken invariants, every run ends, never-dodge always loses, 0.3 s and 0.15 s reaction each win at least once :: 99/012:lost 7s hp0 demon905 | 99/120:lost 8s hp0 demon915 | 99/210:lost 8s hp0 demon915 | 0.3/012:lost 16s hp0 demon745 | 0.3/120:lost 19s hp0 demon845 | 0.3/210:lost 50s hp0 demon245 | 0.15/012:lost 24s hp0 demon570 | 0.15/120:won 68s hp65 demon0 | 0.15/210:won 64s hp100 demon0
+FAIL 167 杂甲 R 一字千金: nothing stored = no cast, no cost; a stored 儒甲 seal is cast at full strength (its dmg and seal), the meter empties, Q and W cooldowns reset :: {"none":[false,100,0],"cdBefore":[true,true],"cast":true,"after":{"copy":"ru:1","copyN":1,"ch":3.7583333333333333,"cd":[0,7.666666666666668],"lost":15,"seal":3.983}}
+RUNTIME 179 of 181 pass
