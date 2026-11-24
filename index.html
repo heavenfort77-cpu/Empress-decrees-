@@ -426,8 +426,31 @@ const CONFIG = {
     },
     // 纵横甲 Persuader: control.
     zongheng: { built: false, armor: 'Mid', speed: 'Mid', ultMode: 'charge' },
-    // 农甲 Tiller: support.
-    nong: { built: false, armor: 'High', speed: 'Low', ultMode: 'charge' },
+    // 农甲 Tiller: support, sustain (batch 16 ticket 07; docs/SUITS.md; owner 23 Nov 23:3x: one number set from the doc's "about" values, balance when all nine are ready).
+    nong: {
+      built: true, armor: 'High', speed: 'Low', ultMode: 'charge',
+      // Passive 并耕而食: 'tiller' = walking within eatR m of one of his own grown sprouts eats it: he heals heal and his hits deal feed more for feedS s;
+      // any other suit within trampleR m of one of his sprouts (seed or grown) tramples it. Only 农甲 eats.
+      passive: 'tiller',
+      // Passive numbers: eating radius m, heal per sprout, damage bonus share while fed, seconds fed, trampling radius m.
+      // seekM = how far a 农甲 bot going to heal looks for a grown sprout of his (before an altar).
+      tiller: { eatR: 1, heal: 8, feed: 0.15, feedS: 4, trampleR: 0.8, seekM: 15 },
+      // Attack 耒 (the plough-hoe): melee (range m, seconds between hits, damage, auto-target search range m).
+      attack: { range: 2.5, interval: 0.8, dmg: 10, acquire: 8 },
+      skills: [
+        // Q 播百谷 (sow the hundred grains): seeds seeds at a point up to range m away, spread spread m around it; each grows into a sprout in growS s
+        // and the sprout stands lastS s. A fixed pool of pool per 农甲: a new seed takes a free place, else the oldest. A seed needs a standing floor.
+        // Bots sow botAhead m in front of them when a target is within botR m.
+        { key: 'KeyQ', label: 'Q', nameKey: 'sk_nong_q', type: 'circle', sow: true, range: 6, radius: 1.2, seeds: 3, spread: 1, growS: 4, lastS: 20, pool: 9, dmg: 0, cd: 6, delay: 0, tag: 'sow', botR: 8, botAhead: 1.5 },
+        // W 并耕 (the plough charge, the dash): range m by the walking rule (dashS s), leaving a furrow width m wide along its path for furrowS s:
+        // other suits on it are slowed by slow; his seeds on it grow growK times as fast. No hit (the doc gives the charge no damage).
+        { key: 'KeyW', label: 'W', nameKey: 'sk_nong_w', type: 'dash', range: 5, radius: 0, dmg: 0, cd: 8, delay: 0, dash: true, dashS: 0.25, furrow: true, width: 1.6, furrowS: 4, slow: 0.3, growK: 2, tag: 'dashIn' },
+        // R 百草生机 (the harvest): every seed he planted ripens at once, and every grown sprout of his within radius m is pulled in and eaten: each heals him
+        // heal and sends a pulse of dmg to every target within pulseR m of him. The ring shows ringS s. cd = the hunt cooldown (the royale runs on the meter).
+        // Bots cast it with at least botMin of their sprouts or seeds within radius and a target within pulseR, or when low.
+        { key: 'KeyR', label: 'R', nameKey: 'sk_nong_r', type: 'self', self: 'harvest', range: 0, radius: 8, heal: 6, dmg: 12, pulseR: 3, ringS: 0.4, cd: 30, delay: 0, tag: 'harvest', botMin: 3 },
+      ],
+    },
   },
   // School select before each run (batch 16, owner 23 Nov 23:3x: nine buttons plus a random pick, last pick remembered). on = feature switch;
   // the select never opens with ?bots=N in the address (map test and checks). saveKey = browser storage key of the last pick.
@@ -611,6 +634,7 @@ const TEXT = {
   sk_mo_q: 'Wall', sk_mo_w: 'Lever', sk_mo_r: 'Nine defences',
   sk_ming_q: 'Shadow blink', sk_ming_w: 'Arrowheads', sk_ming_r: 'Pointing',
   sk_yy_q: 'Yin moon', sk_yy_w: 'Yang sun', sk_yy_r: 'Taiji',
+  sk_nong_q: 'Sow', sk_nong_w: 'Plough', sk_nong_r: 'Harvest',
   yy_0: '○', yy_1: '◐', yy_2: '◑', yy_3: '☯',
   st_yy: 'Taiji {s}',
   st_jiu: 'Nine defences {n}',
@@ -1102,6 +1126,8 @@ const markGeo = new THREE.BoxGeometry(DD.markW, DD.markH, DD.markW);
 const wallGeo = new THREE.BoxGeometry(1, 1, 1);
 // 阴阳甲's 太极 (batch 16 ticket 06): one unit half disk on the ground (the half toward local -z), drawn twice per disk (dark and light); warmed at load.
 const halfDiskGeo = new THREE.CircleGeometry(1, 40, 0, Math.PI); halfDiskGeo.rotateX(-Math.PI / 2);
+// Places in 农甲's sprout pool (ticket 07): one pool per suit, built once at load (the pool size is the skill's, read here once).
+const NONG_POOL = CONFIG.KITS.nong.skills[0].pool;
 // Most targets one hit can reach (dummies, hunt units, cubs, buff creatures, bots and the player): the size of 名甲's per-pass hit list (ticket 05).
 const TARGET_MAX = DUMMY_LIST.length + ENEMIES.length + CUBS.length + NEUTRALS.length + BOTLIST.length + 1;
 for (let k = 0; k < SUITS.length; k++) {
@@ -1145,6 +1171,16 @@ for (let k = 0; k < SUITS.length; k++) {
   for (const o of orbs) o.mesh.castShadow = false;
   taiji.dark.castShadow = false; taiji.light.castShadow = false;
   Object.assign(s, { yinF: false, yangF: false, orbs, taiji });
+  // 农甲 state (ticket 07): sprouts = his fixed pool (built once: the wall's unit box, dark as a seed and green when grown, in the scene only while
+  // planted; st 0 free, 1 seed, 2 grown; t = seconds in that state); furrow = his plough furrow (the line tell shape; t = seconds left, -1 = none);
+  // feedT = seconds fed (passive); harvN = sprouts his last harvest ate; harvRing / harvT = the harvest ring and its seconds left;
+  // eatN / trampN = his sprouts eaten by walking and trampled by others this run (checks and sims).
+  const sprouts = [];
+  for (let k = 0; k < NONG_POOL; k++) { const m = new THREE.Mesh(wallGeo, M.broken); m.castShadow = false; m.matrixAutoUpdate = false; sprouts.push({ sprout: true, st: 0, t: 0, at: 0, sk: null, x: 0, z: 0, y: 0, sec: null, mesh: m }); }
+  const furrowMesh = new THREE.Mesh(tellLineGeo, M.bronze); furrowMesh.castShadow = false;
+  const furrow = { t: -1, sk: null, ox: 0, oz: 0, y: 0, dx: 0, dz: 1, len: 0, mesh: furrowMesh };
+  const harvRing = new THREE.Mesh(tellRingGeo, M.fx); harvRing.castShadow = false;
+  Object.assign(s, { sprouts, furrow, feedT: 0, harvN: 0, harvRing, harvT: 0, eatN: 0, trampN: 0 });
   applyKit(s, CONFIG.SCHOOLS[0]);
 }
 // Brain fields on the player too, used only by the test autopilot (__game.autoPlayer).
@@ -1325,6 +1361,7 @@ function castSkill(slot, tx, tz) {
   else if (sk.orb) fireOrb(P, 1, sk, dx, dz, true);
   else if (sk.taiji) startTaiji(P, sk, x, z, dx, dz, true);
   else if (sk.wall) raiseWall(P, sk);
+  else if (sk.sow) sowSeeds(P, sk, x, z);
   else if (sk.hang) startHang(P, slot, dx, dz, true);
   else if (sk.dash) startDash(P, slot, dx, dz, true, suitDashLen(P, sk, tx, tz));
   else if (sk.delay > 0) {
@@ -1698,7 +1735,7 @@ const G = { time: 0, view: 'follow', paused: false, ctxLost: false, frames: 0, b
   huntN: 0, huntClaims: 0, huntFrees: 0,
   leader: null, leadT: 0, leaderChanges: 0, leaderCode: -1, leaderWrites: 0, miniLeader: false,
   bountyN: 0, bountyWarnAt: -1, bountyStartAt: -1, bountyEndAt: -1, bountyEndWhy: '', bountyPaid: 0, bountyPaidTo: -1,
-  auraN: 0, bellN: 0, wallN: 0, wheelN: 0, shadowN: 0, hangN: 0, orbN: 0, taijiN: 0, decNext: 0, decN: 0, decCount: { dry: 0, nodash: 0, silence: 0, heights: 0, ult2x: 0 }, decLog: [], brkP: 0, brkB: 0, decCode: -1, decWrites: 0, hiAvoid: false, zoneSec: null, skips: 0, chWrites: 0 , school: 0, selecting: false, selectOn: false, selBtns: [], saveFail: false};
+  auraN: 0, bellN: 0, wallN: 0, wheelN: 0, shadowN: 0, hangN: 0, orbN: 0, taijiN: 0, sproutN: 0, furrowN: 0, harvRingN: 0, decNext: 0, decN: 0, decCount: { dry: 0, nodash: 0, silence: 0, heights: 0, ult2x: 0 }, decLog: [], brkP: 0, brkB: 0, decCode: -1, decWrites: 0, hiAvoid: false, zoneSec: null, skips: 0, chWrites: 0 , school: 0, selecting: false, selectOn: false, selBtns: [], saveFail: false};
 // The one decree slot (batch 11): st 0 idle, 1 queued, 2 warning (banner), 3 in force. key = decree name, tgt = its suit (bounty), t = seconds left in the state.
 // Decree slot. st: 0 free, 1 queued, 2 warning, 3 in force. len = seconds in force; zone = the no-dash decree's section; warnAt = when its warning began.
 const DEC = { st: 0, key: '', tgt: null, t: 0, count: -1, banner: false, len: 0, zone: null, warnAt: -1 };
@@ -1807,6 +1844,7 @@ function step(dt) {
   stepHangs(dt);
   stepOrbs(dt);
   stepTaiji(dt);
+  stepNong(dt);
   const vr = CONFIG.VISION_R + (boonOn(P, 2) ? P.bV[2] : 0);
   if (vr !== G.visR) { G.visR = vr; if (G.view === 'follow') FOW.uFowR.value = vr; }
   if (roy && CONFIG.ROYALE_MINIONS) stepKennel(dt);
@@ -1872,6 +1910,7 @@ function tickSuit(s, dt) {
   if (s.expArmT > 0) s.expArmT = Math.max(0, s.expArmT - dt);
   if (s.heldT > 0) s.heldT = Math.max(0, s.heldT - dt);
   if (s.sealT > 0) s.sealT = Math.max(0, s.sealT - dt);
+  if (s.feedT > 0) s.feedT = Math.max(0, s.feedT - dt);
   if (s.jiuT > 0) { s.jiuT -= dt; if (s.jiuT <= 0) { s.jiuT = 0; s.jiuN = 0; s.jiuSk = null; } }
   if (s.bleedT > 0) {
     s.bleedT -= dt; const b = CONFIG.BLEED.dps * s.bleedN * dt;
@@ -2163,7 +2202,7 @@ function breakDecree(s) {
   if (s === P) showNote('voice_marked', 'rule_marked', MARK_VARS);
 }
 // Marks off every suit (the wake and a new run).
-function clearMarks() { for (let i = 0; i < SUITS.length; i++) { const s = SUITS[i]; s.markT = 0; s.brkT = 0; s.marker.visible = false; s.dashLeft = 0; s.wsT = -99; breakUnseen(s); s.expT = 0; s.expArmT = 0; s.heldT = 0; s.sealT = 0; endAura(s); endBells(s); lowerWall(s); s.jiuT = 0; s.jiuN = 0; s.jiuSk = null; s.stillT = 0; s.atkAt = -99; endMing(s); endYinyang(s); } }
+function clearMarks() { for (let i = 0; i < SUITS.length; i++) { const s = SUITS[i]; s.markT = 0; s.brkT = 0; s.marker.visible = false; s.dashLeft = 0; s.wsT = -99; breakUnseen(s); s.expT = 0; s.expArmT = 0; s.heldT = 0; s.sealT = 0; endAura(s); endBells(s); lowerWall(s); s.jiuT = 0; s.jiuN = 0; s.jiuSk = null; s.stillT = 0; s.atkAt = -99; endMing(s); endYinyang(s); endNong(s); } }
 // ----- Unseen state (batch 16, minimal; curtains and walls blocking sight come with hiding in batch 18).
 function goUnseen(s, sec) { s.unseenT = sec; setShimmer(s, true); }
 function breakUnseen(s) { if (s.unseenT <= 0) return; s.unseenT = 0; setShimmer(s, false); }
@@ -2205,16 +2244,19 @@ function kitBonus(by, d) {
   if (by.kit && by.kit.passive === 'feigong' && d.atkAt !== undefined && G.time - d.atkAt < by.kit.feigong.aggroS) k += by.kit.feigong.bonus;
   // 名甲's 一尺之棰: the bonus of his hits in a row on the same target (chainHit sets it after each hit).
   if (by.kit && by.kit.passive === 'halving' && d === by.chainT && G.time - by.chainAt <= by.kit.halving.gapS) k += by.chainB;
+  // 农甲's 并耕而食: fed (a sprout eaten in the last feedS seconds).
+  if (by.feedT > 0 && by.kit && by.kit.passive === 'tiller') k += by.kit.tiller.feed;
   if (by.shiT > 0) {
     const max = d.kind === 'suit' ? CONFIG.MAX_HP : d.maxHp || CONFIG.DUMMY_HP;
     k *= 1 + by.shiSk.exec * Math.max(0, max - d.hp) / max;
   }
   return k;
 }
-// A self skill (type 'self'): 'unseen' (法甲 W), 'aura' (法甲 R 势), 'bells' (儒甲 R 编钟) or 'jiu' (墨甲 R 九距之). ord = cast by a player order (its hits follow the player's rule).
+// A self skill (type 'self'): 'unseen' (法甲 W), 'aura' (法甲 R 势), 'bells' (儒甲 R 编钟), 'jiu' (墨甲 R 九距之) or 'harvest' (农甲 R 百草生机). ord = cast by a player order (its hits follow the player's rule).
 function castSelf(s, sk, ord) {
   if (sk.self === 'bells') { if (s.bellT < 0) G.bellN++; s.bellT = 0; s.bellN = 0; s.bellSk = sk; s.bellOrd = !!ord; placeBell(s); if (!s.bellRing.parent) scene.add(s.bellRing); return; }
   if (sk.self === 'unseen') { goUnseen(s, sk.dur); s.expArmT = sk.dur + sk.armS; s.expS = sk.exposeS; return; }
+  if (sk.self === 'harvest') { harvest(s, sk, ord); return; }
   if (sk.self === 'jiu') { s.jiuT = sk.dur; s.jiuN = sk.hits; s.jiuSk = sk; return; }
   if (sk.self === 'aura') { s.shiT = sk.dur; s.shiSk = sk; s.shiRing.scale.setScalar(sk.radius); s.shiRing.position.set(s.x, s.y + 0.07, s.z); if (!s.shiRing.parent) { scene.add(s.shiRing); G.auraN++; } }
 }
@@ -2594,6 +2636,140 @@ function taijiActs(s, t, sk, burn) {
 }
 // Everything of 阴阳甲's that is out, and his lock (a new run, the wake, out of the match).
 function endYinyang(s) { dropOrb(s, 0); dropOrb(s, 1); endTaiji(s); s.yinF = false; s.yangF = false; }
+// ----- 农甲 (batch 16 ticket 07): sprouts, the furrow and the harvest.
+// Sow skill sk's seeds around x, z (on a circle of spread m); each takes a free place in his pool, else the oldest planted; a seed needs a standing floor
+// on about his layer (none there: that seed is lost).
+function sowSeeds(s, sk, x, z) {
+  for (let k = 0; k < sk.seeds; k++) {
+    const a = k * 6.2832 / sk.seeds, px = x + Math.cos(a) * sk.spread, pz = z + Math.sin(a) * sk.spread, f = floorAt(px, pz, s.y + 1);
+    if (!f || f.s.state !== 0 || Math.abs(surf(f, px, pz) - s.y) > 1.5) continue;
+    const sp = freeSprout(s);
+    if (sp.st === 0) G.sproutN++;
+    sp.st = 1; sp.t = 0; sp.at = G.time; sp.sk = sk; sp.x = px; sp.z = pz; sp.y = surf(f, px, pz); sp.sec = f.s;
+    sproutLook(sp);
+    if (!sp.mesh.parent) scene.add(sp.mesh);
+  }
+}
+// A free place in suit s's pool, else the oldest planted sprout (the pool never grows).
+function freeSprout(s) {
+  let old = s.sprouts[0];
+  for (let k = 0; k < s.sprouts.length; k++) { const sp = s.sprouts[k]; if (sp.st === 0) return sp; if (sp.at < old.at) old = sp; }
+  return old;
+}
+// A seed is a low dark box, a grown sprout a taller green one (set when it changes only).
+function sproutLook(sp) {
+  const grown = sp.st === 2;
+  sp.mesh.material = grown ? M.wander : M.broken;
+  sp.mesh.scale.set(grown ? 0.4 : 0.35, grown ? 0.7 : 0.15, grown ? 0.4 : 0.35);
+  sp.mesh.position.set(sp.x, sp.y + (grown ? 0.35 : 0.075), sp.z); sp.mesh.updateMatrix();
+}
+function dropSprout(sp) { if (sp.st === 0) return; sp.st = 0; sp.sec = null; sp.sk = null; if (sp.mesh.parent) scene.remove(sp.mesh); G.sproutN--; }
+// The plough (W) lays a furrow along the dash path, from where it began to where he stopped.
+function layFurrow(s, sk) {
+  const f = s.furrow, dx = s.x - s.dashOx, dz = s.z - s.dashOz, len = Math.hypot(dx, dz);
+  if (len < 0.3) return;
+  f.t = sk.furrowS; f.sk = sk; f.ox = s.dashOx; f.oz = s.dashOz; f.y = s.y; f.dx = dx / len; f.dz = dz / len; f.len = len;
+  f.mesh.position.set(f.ox, f.y + 0.05, f.oz); f.mesh.rotation.y = Math.atan2(-f.dx, -f.dz); f.mesh.scale.set(sk.width, 1, len);
+  if (!f.mesh.parent) { scene.add(f.mesh); G.furrowN++; }
+}
+function endFurrow(s) { const f = s.furrow; if (f.t < 0) return; f.t = -1; f.sk = null; if (f.mesh.parent) { scene.remove(f.mesh); G.furrowN--; } }
+// The point x, z (height y) lies on suit s's furrow.
+function onFurrow(s, x, z, y) {
+  const f = s.furrow; if (f.t < 0 || Math.abs(y - f.y) > 1.5) return false;
+  const px = x - f.ox, pz = z - f.oz, along = px * f.dx + pz * f.dz;
+  return along >= 0 && along <= f.len && Math.abs(px * f.dz - pz * f.dx) <= f.sk.width / 2;
+}
+// 百草生机 (R): every seed of his ripens; every grown sprout within radius is pulled in and eaten: each heals him heal and pulses dmg around him.
+// ord = a player order (its pulses follow the player's targeting rule). Eating feeds him (passive bonus).
+function harvest(s, sk, ord) {
+  let n = 0;
+  for (let k = 0; k < s.sprouts.length; k++) {
+    const sp = s.sprouts[k]; if (sp.st === 0) continue;
+    if (sp.st === 1) { sp.st = 2; sp.t = 0; sproutLook(sp); }
+    if (Math.abs(sp.y - s.y) > 2 || Math.hypot(sp.x - s.x, sp.z - s.z) > sk.radius) continue;
+    dropSprout(sp); n++;
+    if (!s.dead) s.hp = Math.min(CONFIG.MAX_HP, s.hp + sk.heal);
+    harvestPulse(s, sk, ord);
+  }
+  s.harvN = n;
+  if (n > 0) s.feedT = CONFIG.KITS.nong.tiller.feedS;
+  s.harvT = sk.ringS; s.harvRing.scale.setScalar(sk.radius); s.harvRing.position.set(s.x, s.y + 0.07, s.z);
+  if (!s.harvRing.parent) { scene.add(s.harvRing); G.harvRingN++; }
+}
+// One harvest pulse: every target within pulseR of him takes dmg.
+function harvestPulse(s, sk, ord) {
+  for (let i = -1; i < TARGETS.length; i++) {
+    const d = i < 0 ? P : TARGETS[i];
+    if (skillTargetOk(s, d, ord) && Math.abs(d.y - s.y) <= 2 && Math.hypot(d.x - s.x, d.z - s.z) <= sk.pulseR + d.r) hitTarget(s, d, sk.dmg);
+  }
+}
+function endHarvRing(s) { s.harvT = 0; if (s.harvRing.parent) { scene.remove(s.harvRing); G.harvRingN--; } }
+// Everything of 农甲's that is out (a new run, the wake, out of the match).
+function endNong(s) { for (let k = 0; k < s.sprouts.length; k++) dropSprout(s.sprouts[k]); endFurrow(s); endHarvRing(s); s.feedT = 0; s.harvN = 0; s.eatN = 0; s.trampN = 0; }
+// Sprouts, furrows and harvest rings (fixed step). A suit out of the match loses them.
+function stepNong(dt) {
+  if (G.sproutN <= 0 && G.furrowN <= 0 && G.harvRingN <= 0) return;
+  for (let i = 0; i < SUITS.length; i++) {
+    const s = SUITS[i];
+    if (s.dead) { if (s.furrow.t >= 0 || s.harvT > 0 || G.sproutN > 0) endNong(s); continue; }
+    if (s.harvT > 0) { s.harvT -= dt; s.harvRing.position.set(s.x, s.y + 0.07, s.z); s.harvRing.visible = s === P || s.seen; if (s.harvT <= 0) endHarvRing(s); }
+    stepFurrow(s, dt);
+    if (G.sproutN > 0) stepSprouts(s, dt);
+  }
+}
+// A furrow stands furrowS s; every other suit on it is slowed. Drawn where the player can see it.
+function stepFurrow(s, dt) {
+  const f = s.furrow; if (f.t < 0) return;
+  f.t -= dt; if (f.t <= 0) { f.t = 0; endFurrow(s); return; }
+  f.mesh.visible = s === P || Math.hypot(f.ox - P.x, f.oz - P.z) <= G.visR + f.len;
+  for (let k = 0; k < SUITS.length; k++) {
+    const o = SUITS[k]; if (o === s || o.dead || o.air || !onFurrow(s, o.x, o.z, o.y)) continue;
+    o.slowK = Math.max(o.slowT > 0 ? o.slowK : 0, f.sk.slow); o.slowT = Math.max(o.slowT, 0.2);
+  }
+}
+// Seeds grow (growK times as fast on his own furrow), grown sprouts stand lastS s; a falling section takes them; he eats grown ones he walks over;
+// another suit tramples any. Drawn where the player can see them.
+function stepSprouts(s, dt) {
+  for (let k = 0; k < s.sprouts.length; k++) {
+    const sp = s.sprouts[k]; if (sp.st === 0) continue;
+    if (sp.sec.state >= 2) { dropSprout(sp); continue; }
+    if (sp.st === 1) { sp.t += dt * (onFurrow(s, sp.x, sp.z, sp.y) ? s.furrow.sk.growK : 1); if (sp.t >= sp.sk.growS) { sp.st = 2; sp.t = 0; sproutLook(sp); } }
+    else { sp.t += dt; if (sp.t >= sp.sk.lastS) { dropSprout(sp); continue; } }
+    if (sproutEaten(s, sp) || sproutTrampled(s, sp)) continue;
+    sp.mesh.visible = s === P || Math.hypot(sp.x - P.x, sp.z - P.z) <= G.visR;
+  }
+}
+// 并耕而食: 农甲 standing (not airborne) within eatR of his grown sprout eats it: heal, and fed for feedS s.
+function sproutEaten(s, sp) {
+  const T = CONFIG.KITS.nong.tiller;
+  if (sp.st !== 2 || s.kit.passive !== 'tiller' || s.air || Math.abs(sp.y - s.y) > 1.5 || Math.hypot(sp.x - s.x, sp.z - s.z) > T.eatR) return false;
+  dropSprout(sp); s.eatN++;
+  s.hp = Math.min(CONFIG.MAX_HP, s.hp + T.heal); s.feedT = T.feedS;
+  return true;
+}
+// Another suit (not airborne) within trampleR of a sprout or seed of his tramples it.
+function sproutTrampled(s, sp) {
+  const r = CONFIG.KITS.nong.tiller.trampleR;
+  for (let k = 0; k < SUITS.length; k++) {
+    const o = SUITS[k];
+    if (o === s || o.dead || o.air || Math.abs(sp.y - o.y) > 1.5 || Math.hypot(sp.x - o.x, sp.z - o.z) > r) continue;
+    dropSprout(sp); s.trampN++;
+    return true;
+  }
+  return false;
+}
+// His sprouts and seeds within r m of him (a bot's harvest rule).
+function sproutsNear(s, r) { let n = 0; for (let k = 0; k < s.sprouts.length; k++) { const sp = s.sprouts[k]; if (sp.st > 0 && Math.hypot(sp.x - s.x, sp.z - s.z) <= r) n++; } return n; }
+// A 农甲 bot going to heal: his nearest grown sprout within seekM on about his layer, on a standing section (else null).
+function botSprout(b) {
+  if (b.kit.passive !== 'tiller') return null;
+  let best = null, bd = CONFIG.KITS.nong.tiller.seekM;
+  for (let k = 0; k < b.sprouts.length; k++) {
+    const sp = b.sprouts[k]; if (sp.st !== 2 || sp.sec.state !== 0 || Math.abs(sp.y - b.y) > 1.5) continue;
+    const d = Math.hypot(sp.x - b.x, sp.z - b.z); if (d < bd) { bd = d; best = sp; }
+  }
+  return best;
+}
 // Start a dash (W): toward dx, dz for the skill's range by the walking rule; ord = a player order (its hits follow the player's own rules), else the bot brain.
 // Dashing while standing in the no-dash zone breaks that decree.
 // len = metres to dash (a pursuit dash stops at its target, batch 16), else the skill's range.
@@ -2609,6 +2785,8 @@ function dashLand(s) {
   s.dashLeft = 0;
   // A blink (名甲's Q) lands with no hit.
   if (skillOf(s, s.dashSlot).blink) return;
+  // 农甲's plough (W) lays its furrow; it has no hit.
+  if (skillOf(s, s.dashSlot).furrow) { layFurrow(s, skillOf(s, s.dashSlot)); if (!skillOf(s, s.dashSlot).dmg) return; }
   if (s.dashOrd) applySkill(s.dashSlot, s.x, s.z, s.dashX, s.dashZ, s.dashOx, s.dashOz);
   else botSkillHit(s, s.dashSlot, s.x, s.z, s.dashX, s.dashZ, s.dashOx, s.dashOz);
 }
@@ -3183,7 +3361,8 @@ function botThink(b, dt) {
     else botFollow(b);
   } else if (b.mode === 'heal' && b.heal) {
     botFleeWall(b);
-    if (Math.hypot(b.heal.x - b.x, b.heal.z - b.z) > CONFIG.ALTAR.radius * 0.6) botFollow(b);
+    // A sprout is eaten only by walking onto it; an altar heals across its radius.
+    if (Math.hypot(b.heal.x - b.x, b.heal.z - b.z) > (b.heal.sprout ? 0.2 : CONFIG.ALTAR.radius * 0.6)) botFollow(b);
   } else botFollow(b);
   // Never step into a tell it has seen long enough (unless leaving a warned section).
   if (!warned && (b.mx !== 0 || b.mz !== 0) && botDanger(b, b.x + b.mx * 0.8, b.z + b.mz * 0.8, 0.3)) { b.mx = 0; b.mz = 0; }
@@ -3236,7 +3415,8 @@ function botDecide(b) {
   // Low health: break off for an altar with charge on a standing section. A bot leader under its bounty plays safer (BOUNTY.leaderLowHp).
   const low = b.bot && L === b ? CONFIG.BOUNTY.leaderLowHp : B.lowHp;
   if (b.hp < low || (b.mode === 'heal' && b.hp < B.healTo)) {
-    const a = botAltar(b);
+    // 农甲 eats a grown sprout of his before going to an altar (batch 16 ticket 07).
+    const a = botSprout(b) || botAltar(b);
     if (a) { if (b.mode !== 'heal' || b.heal !== a || b.pathGen !== G.warnGen) { b.mode = 'heal'; b.heal = a; b.tgt = null; botGoal(b, a.x, a.z, a.y); } return; }
   }
   b.heal = null;
@@ -3326,11 +3506,13 @@ function botUseSkills(b, q, d) {
     // 'dashIn' closes in: only from BOT.dashMinM to BOT.dashMaxM away (a pursuit dash: to its own range) and on about the target's layer;
     // 'stealth' (法甲 W) from botMin to botMax before engaging; 'aura' (法甲 R) with the target inside radius x botIn; other skills within their range.
     // 'wall' (墨甲 Q) behind a target botMin to botMax away; 'guard' (墨甲 R) with a target within botR.
+    // 'sow' (农甲 Q) with a target within botR; 'harvest' (农甲 R) with at least botMin of his sprouts within radius and a target within pulseR, or when low.
     const dMax = sk.pursuit ? (lawTarget(q) ? sk.longRange : sk.range) : B.dashMaxM;
     // 'blinkAway' (名甲 Q) blinks away from a target nearer than botNear.
     if (sk.tag === 'dashIn' ? (noDash || d < B.dashMinM || d > dMax || Math.abs(q.y - b.y) > 0.7) : sk.tag === 'blinkAway' ? (noDash || d > sk.botNear)
       : sk.tag === 'stealth' || sk.tag === 'wall' ? (d < sk.botMin || d > sk.botMax) : sk.tag === 'aura' ? d > sk.radius * sk.botIn
-      : sk.tag === 'guard' ? d > sk.botR : d > sk.range) continue;
+      : sk.tag === 'guard' || sk.tag === 'sow' ? d > sk.botR
+      : sk.tag === 'harvest' ? sproutsNear(b, sk.radius) < sk.botMin || (d > sk.pulseR + q.r && b.hp >= B.lowHp) : d > sk.range) continue;
     const a = brnd() * 6.2832, r = brnd() * err, tx = q.x + Math.cos(a) * r, tz = q.z + Math.sin(a) * r;
     let dx = tx - b.x, dz = tz - b.z; const len = Math.hypot(dx, dz) || 1e-6; dx /= len; dz /= len;
     if (sk.tag === 'blinkAway') { dx = -dx; dz = -dz; }
@@ -3342,6 +3524,7 @@ function botUseSkills(b, q, d) {
     else if (sk.orb) fireOrb(b, 1, sk, dx, dz, false);
     else if (sk.taiji) startTaiji(b, sk, x, z, dx, dz, false);
     else if (sk.wall) raiseWall(b, sk);
+    else if (sk.sow) sowSeeds(b, sk, b.x + dx * sk.botAhead, b.z + dz * sk.botAhead);
     else if (sk.hang) startHang(b, slot, dx, dz, false);
     else if (sk.dash) startDash(b, slot, dx, dz, false, suitDashLen(b, sk, tx, tz));
     else if (sk.delay > 0) {
@@ -3990,6 +4173,10 @@ for (const o of [P.wheel.mesh, P.decoy.mesh, P.hang[0].mesh, P.hang[1].mesh]) { 
 // 阴阳甲's two orbs (the wall's box in dark and light) and the two half disks of 太极 (ticket 06) are drawn once here too, at the player.
 P.orbs[1].mesh.material = M.fx;
 for (const o of [P.orbs[0].mesh, P.orbs[1].mesh, P.taiji.dark, P.taiji.light]) { o.position.set(P.x, P.y, P.z); warmHunt.push(o); }
+// 农甲's seed and sprout (the wall's box, dark and green), furrow and harvest ring (ticket 07; existing shapes and materials) are drawn once here too, at the player.
+P.sprouts[1].mesh.material = M.wander;
+for (const o of [P.sprouts[0].mesh, P.sprouts[1].mesh]) { o.position.set(P.x, P.y, P.z); o.updateMatrix(); warmHunt.push(o); }
+for (const o of [P.furrow.mesh, P.harvRing]) { o.position.set(P.x, P.y, P.z); warmHunt.push(o); }
 for (const u of ENEMIES.concat(NEUTRALS)) {
   warmHunt.push(u.group, u.ring, u.line, u.plate); u.group.visible = u.ring.visible = u.line.visible = true;
   for (const o of [u.group, u.ring, u.line, u.plate]) o.position.set(P.x, P.y, P.z);
@@ -4012,7 +4199,7 @@ drawMini();
 renderer.shadowMap.needsUpdate = true;
 if (G.selectOn) openSelect();
 
-// Test hooks (read-mostly). Batch 16 ticket 05: mingState, autoPick (what the auto-target picks), actOf (what a bot acts on), botCast (a bot casts a slot now). Batch 16 ticket 04: moState, wallCut. Batch 16 ticket 02: kitState, strike (a hit through hitTarget), castSelfOf, placeholderKit (a suit back on the placeholder kit at Mid, checks only). Batch 16: openSelect, pickSchool, selectKey, setSelectOn, newRun, schools, setStats, bleed, unseen (set), unseenOf (read).
+// Test hooks (read-mostly). Batch 16 ticket 07: nongState, nongSow (a sowing without a cast). Batch 16 ticket 05: mingState, autoPick (what the auto-target picks), actOf (what a bot acts on), botCast (a bot casts a slot now). Batch 16 ticket 04: moState, wallCut. Batch 16 ticket 02: kitState, strike (a hit through hitTarget), castSelfOf, placeholderKit (a suit back on the placeholder kit at Mid, checks only). Batch 16: openSelect, pickSchool, selectKey, setSelectOn, newRun, schools, setStats, bleed, unseen (set), unseenOf (read).
 function tellsOf(list) {
   return list.filter((u) => u.alive && u.st === 1 && u.cur !== 'ult').map((u) => { const m = MOVES[u.cur], mesh = m.shape === 'line' ? u.line : u.ring;
     return { by: u.kind, move: u.cur, shape: m.shape, x: m.shape === 'line' ? u.x : u.tx, z: m.shape === 'line' ? u.z : u.tz, r: m.radius || 0, fx: u.fx, fz: u.fz, len: u.tl, w: m.width || 0,
@@ -4064,6 +4251,8 @@ window.__game = {
     const b = BOTLIST[i], sk = skillOf(b, slot); let dx = x - b.x, dz = z - b.z; const l = Math.hypot(dx, dz) || 1; dx /= l; dz /= l; b.faceX = dx; b.faceZ = dz; b.cd[slot] = sk.cd;
     if (sk.hang) startHang(b, slot, dx, dz, false); else if (sk.dash) startDash(b, slot, dx, dz, false, suitDashLen(b, sk, x, z)); else if (sk.wall && wallFits(b, sk, x, z, dx, dz)) raiseWall(b, sk);
     else if (sk.orb) fireOrb(b, 1, sk, dx, dz, false);
+    else if (sk.sow) sowSeeds(b, sk, b.x + dx * Math.min(l, sk.range), b.z + dz * Math.min(l, sk.range));
+    else if (sk.self) { if (slot === 2) spendUlt(b, sk); castSelf(b, sk, false); }
     else if (sk.taiji) { const m = Math.min(l, sk.range); if (slot === 2) spendUlt(b, sk); startTaiji(b, sk, b.x + dx * m, b.z + dz * m, dx, dz, false); }
     else if (sk.delay > 0) { const m = Math.min(l, sk.range); b.pend = true; b.pendT = sk.delay; b.pendS = slot; b.pendX = b.x + dx * m; b.pendZ = b.z + dz * m; b.pendDx = dx; b.pendDz = dz; b.pendAge = 0;
       b.ring.position.set(b.pendX, topYUnder(b.pendX, b.pendZ, b.y + 1) + 0.07, b.pendZ); b.ring.scale.setScalar(sk.radius); scene.add(b.ring); }
@@ -4077,6 +4266,15 @@ window.__game = {
   },
   // Fill a half of a suit's lock (checks only).
   yyFill(i, yin, yang) { const q = i < 0 ? P : BOTLIST[i]; q.yinF = !!yin; q.yangF = !!yang; },
+  // 农甲 (ticket 07): his sprouts, furrow, feeding and harvest (read-only), and a sowing without a cast (checks only).
+  nongState(i) {
+    const q = i < 0 ? P : BOTLIST[i], f = q.furrow;
+    return { sprouts: q.sprouts.map((sp) => ({ st: sp.st, t: sp.t, x: sp.x, z: sp.z, sec: sp.sec ? sp.sec.id : null, inScene: !!sp.mesh.parent, vis: sp.mesh.visible, green: sp.mesh.material === M.wander })),
+      planted: q.sprouts.filter((sp) => sp.st > 0).length, grown: q.sprouts.filter((sp) => sp.st === 2).length, sproutN: G.sproutN,
+      furrow: { t: f.t, inScene: !!f.mesh.parent, vis: f.mesh.visible, len: f.len, ox: f.ox, oz: f.oz, dx: f.dx, dz: f.dz, w: f.mesh.scale.x },
+      furrowN: G.furrowN, feedT: q.feedT, harvN: q.harvN, harvT: q.harvT, ringIn: !!q.harvRing.parent, ringR: q.harvRing.scale.x, harvRingN: G.harvRingN, eatN: q.eatN, trampN: q.trampN, hp: q.hp };
+  },
+  nongSow(i, x, z) { const q = i < 0 ? P : BOTLIST[i]; sowSeeds(q, CONFIG.KITS.nong.skills[0], x, z); },
   autoPick(r) { const t = autoTarget(r); return !t ? -1 : t.kind === 'shadow' ? 'shadow' + t.owner.id : t.kind === 'suit' ? t.id : -2; },
   actOf(i) { const t = actTarget(BOTLIST[i].tgt); return !t ? -1 : t.kind === 'shadow' ? 'shadow' + t.owner.id : t === P ? 0 : t.kind === 'suit' ? t.id : -2; },
   moState(i) { const q = i < 0 ? P : BOTLIST[i], w = q.wall; return { up: !w.off, x0: w.x0, x1: w.x1, z0: w.z0, z1: w.z1, sec: w.s.id, wallT: q.wallT, meshIn: !!w.mesh.parent,
