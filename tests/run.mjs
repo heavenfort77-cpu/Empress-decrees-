@@ -805,7 +805,8 @@ try {
   // 60 Bots take plates and boons (owner, 23 Nov): a cub broken by a bot sends its plate to that bot (buff slot, ultimate charge since batch 15); a buff creature's boon goes to its last hitter; the player gets neither.
   const bp = await g(() => {
     const G = __game, C = G.config, K = window.__k, o = {};
-    G.setSeed(12345); G.setBots(1); G.reset(); G.teleport(0, -50); K.sp(C.KENNEL.firstS + 0.1);
+    // Batch 16 ticket 08 (game changed on purpose): bot 0 now plays 道甲 (R on counters, no meter); the plate's charge is checked on the placeholder.
+    G.setSeed(12345); G.setBots(1); G.reset(); G.placeholderKit(0); G.teleport(0, -50); K.sp(C.KENNEL.firstS + 0.1);
     const ci = G.cubs().list.findIndex((u) => u.alive); G.placeBot(0, G.camps[0][0] + 9, G.camps[0][1]);
     // Game changed on purpose (batch 15): the bot's plate gives ULT.plate charge instead of a cooldown cut; passive charge over the flight is taken out.
     G.setCharge(0, 0); const chBefore = G.chargeOf(0), flyN = Math.round((C.PLATE.flyS + 0.1) / C.STEP); G.hitCubBy(ci, 0, 1e4); K.sp(C.PLATE.flyS + 0.1);
@@ -1171,8 +1172,9 @@ try {
     !!bc && bc.crown && bc.tells >= 3 && bc.calls < 500 && bc.tris < 500000 && bc.programs === base.programs && bc.geoms === base.geoms, JSON.stringify(bc));
   // ===== Batch 12: five bagged decrees, W dash, silence, heights, mark (panel 23 Nov 15:11) =====
   // Scripted decree scenes: one bot kept in the core hall so the match code runs; bagged requests pushed far away (forced decrees only).
+  // Batch 16 ticket 08 (game changed on purpose): bot 0 now plays 道甲, whose R runs on counters, not the meter; these decree and charge checks keep bot 0 on the placeholder.
   await g(() => { const G = __game, C = G.config; window.__d = {
-    start(n) { G.setSeed(12345); G.setBots(n || 1); G.reset(); G.setDecNext(1e9); G.setHp(1e9); for (let i = 0; i < (n || 1); i++) G.setBotHp(i, 1e9); G.placeBot(0, 0, -50); },
+    start(n) { G.setSeed(12345); G.setBots(n || 1); G.reset(); G.placeholderKit(0); G.setDecNext(1e9); G.setHp(1e9); for (let i = 0; i < (n || 1); i++) G.setBotHp(i, 1e9); G.placeBot(0, 0, -50); },
     hold(sec, fn) { for (let k = 0; k < Math.round(sec / C.STEP); k++) { if (fn) fn(); G.step(1); } },
     park() { G.placeBot(0, 0, -50); } }; });
   // 75 Decree bags: every cycle is the whole bag in a new order; same seed = same draws, another seed differs; once the bridges and every high floor have
@@ -1550,7 +1552,8 @@ try {
     // Batch 16 ticket 05 (game changed on purpose): 名甲 built too.
     // Batch 16 ticket 06 (game changed on purpose): 阴阳甲 built too (ultMode 'lock').
     // Batch 16 ticket 07 (game changed on purpose): 农甲 built too.
-    o.unbuilt = C.SCHOOLS.filter((k) => C.KITS[k].built).join(',') === 'ru,fa,mo,yinyang,ming,nong';
+    // Batch 16 ticket 08 (game changed on purpose): 道甲 built too (ultMode 'counters').
+    o.unbuilt = C.SCHOOLS.filter((k) => C.KITS[k].built).join(',') === 'ru,dao,fa,mo,yinyang,ming,nong';
     o.placeholder = sc.suits.every((q) => (C.KITS[q.school].built && q.id !== 0 ? q.kit === q.school && q.ultMode === C.KITS[q.school].ultMode : q.kit === 'placeholder' && q.ultMode === 'charge'));
     o.player = sc.suits[0].school; o.bots = sc.suits.slice(1).map((q) => q.name).join(','); o.tags = C.SKILLS.map((k) => k.tag).join(',');
     o.speedMid = C.STATS.speed.Mid === C.PLAYER_SPEED && C.STATS.yard === 'Mid'; o.keys = C.SCHOOLS.map((k) => 'school_' + k).concat(['hud_school', 'sel_title', 'sel_rule', 'sel_random', 'sel_key']).filter((k) => !T[k]);
@@ -1821,7 +1824,8 @@ try {
   const ru110 = await g(() => {
     const G = __game, C = G.config, o = { viol: [], casts: { q: 0, w: 0, r: 0 }, player: { q: 0, w: 0, r: 0 }, decided: [] }, bad = (x) => { if (o.viol.length < 5) o.viol.push(x); };
     const one = (seed, playerRu) => {
-      G.setSeed(seed); G.setBots(C.BOTS.count); G.setPkitP(!playerRu); G.pickSchool(playerRu ? 0 : 1); G.autoPlayer(true); G.setWatch(true);
+      // Batch 16 ticket 08 (game changed on purpose): 道甲 is built, so the player picking it is put back on the placeholder (the bot under test is the point).
+      G.setSeed(seed); G.setBots(C.BOTS.count); G.setPkitP(!playerRu); G.pickSchool(playerRu ? 0 : 1); if (!playerRu) G.placeholderKit(-1); G.autoPlayer(true); G.setWatch(true);
       const ri = playerRu ? -1 : G.schools().suits.findIndex((q) => q.school === 'ru') - 1, cnt = playerRu ? o.player : o.casts; let last = [0, 0], ult = 0;
       if (!playerRu && G.schools().suits[ri + 1].kit !== 'ru') bad('ru bot not on its kit');
       for (let t = 0; t < 300 / C.STEP; t++) {
@@ -1995,7 +1999,8 @@ try {
   const mo119 = await g(() => {
     const G = __game, C = G.config, Q = C.KITS.mo.skills[0], o = { viol: [], casts: { q: 0, qFlee: 0, w: 0, r: 0 }, player: { q: 0, qFlee: 0, w: 0, r: 0 }, decided: [], wallMax: 0 }, bad = (x) => { if (o.viol.length < 5) o.viol.push(x); };
     const one = (seed, playerMo) => {
-      G.setSeed(seed); G.setBots(C.BOTS.count); G.setPkitP(!playerMo); G.pickSchool(playerMo ? 3 : 1); G.autoPlayer(true); G.setWatch(true);
+      // Batch 16 ticket 08 (game changed on purpose): 道甲 is built, so the player picking it is put back on the placeholder (the bot under test is the point).
+      G.setSeed(seed); G.setBots(C.BOTS.count); G.setPkitP(!playerMo); G.pickSchool(playerMo ? 3 : 1); if (!playerMo) G.placeholderKit(-1); G.autoPlayer(true); G.setWatch(true);
       const mi = playerMo ? -1 : G.schools().suits.findIndex((q) => q.school === 'mo') - 1, cnt = playerMo ? o.player : o.casts; let last = [0, 0], ult = 0, upT = 0;
       if (!playerMo && G.schools().suits[mi + 1].kit !== 'mo') bad('mo bot not on its kit');
       for (let t = 0; t < 300 / C.STEP; t++) {
@@ -2145,7 +2150,8 @@ try {
   const mi127 = await g(() => {
     const G = __game, C = G.config, K = C.KITS.ming, o = { viol: [], casts: { q: 0, w: 0, r: 0 }, player: { q: 0, w: 0, r: 0 }, decided: [], shadowMax: 0, hangMax: 0 }, bad = (x) => { if (o.viol.length < 5) o.viol.push(x); };
     const one = (seed, playerMi) => {
-      G.setSeed(seed); G.setBots(C.BOTS.count); G.setPkitP(!playerMi); G.pickSchool(playerMi ? 6 : 1);
+      // Batch 16 ticket 08 (game changed on purpose): 道甲 is built, so the player picking it is put back on the placeholder (the bot under test is the point).
+      G.setSeed(seed); G.setBots(C.BOTS.count); G.setPkitP(!playerMi); G.pickSchool(playerMi ? 6 : 1); if (!playerMi) G.placeholderKit(-1);
       // Batch 16 ticket 06 (game changed on purpose): 阴阳甲 is built now; its bot keeps the placeholder kit here so these matches stay the ones this check was written for.
       G.placeholderKit(G.schools().suits.findIndex((q) => q.school === 'yinyang') - 1);
       // Batch 16 ticket 07 (game changed on purpose): 农甲 too.
@@ -2343,7 +2349,8 @@ try {
     const G = __game, C = G.config, K = C.KITS.yinyang, R = K.skills[2], o = { viol: [], casts: { q: 0, w: 0, r: 0 }, player: { q: 0, w: 0, r: 0 }, decided: [], orbMax: 0, diskMax: 0 }, bad = (x) => { if (o.viol.length < 5) o.viol.push(x); };
     const orbLife = Math.max(K.attack.range / K.attack.speed, K.skills[0].range / K.skills[0].speed);
     const one = (seed, playerYy) => {
-      G.setSeed(seed); G.setBots(C.BOTS.count); G.setPkitP(!playerYy); G.pickSchool(playerYy ? 4 : 1); G.autoPlayer(true); G.setWatch(true);
+      // Batch 16 ticket 08 (game changed on purpose): 道甲 is built, so the player picking it is put back on the placeholder (the bot under test is the point).
+      G.setSeed(seed); G.setBots(C.BOTS.count); G.setPkitP(!playerYy); G.pickSchool(playerYy ? 4 : 1); if (!playerYy) G.placeholderKit(-1); G.autoPlayer(true); G.setWatch(true);
       const yi = playerYy ? -1 : G.schools().suits.findIndex((q) => q.school === 'yinyang') - 1, cnt = playerYy ? o.player : o.casts; let last = [0, 0], ult = 0, ob = [0, 0], dk = 0;
       if (!playerYy && G.schools().suits[yi + 1].kit !== 'yinyang') bad('yinyang bot not on its kit');
       for (let t = 0; t < 300 / C.STEP; t++) {
@@ -2509,7 +2516,8 @@ try {
   const ng144 = await g(() => {
     const G = __game, C = G.config, K = C.KITS.nong, o = { viol: [], casts: { q: 0, w: 0, r: 0 }, player: { q: 0, w: 0, r: 0 }, eat: 0, tramp: 0, decided: [], poolMax: 0, furrowMax: 0, ringMax: 0 }, bad = (x) => { if (o.viol.length < 5) o.viol.push(x); };
     const one = (seed, playerNg) => {
-      G.setSeed(seed); G.setBots(C.BOTS.count); G.setPkitP(!playerNg); G.pickSchool(playerNg ? 8 : 1); G.autoPlayer(true); G.setWatch(true);
+      // Batch 16 ticket 08 (game changed on purpose): 道甲 is built, so the player picking it is put back on the placeholder (the bot under test is the point).
+      G.setSeed(seed); G.setBots(C.BOTS.count); G.setPkitP(!playerNg); G.pickSchool(playerNg ? 8 : 1); if (!playerNg) G.placeholderKit(-1); G.autoPlayer(true); G.setWatch(true);
       const ni = playerNg ? -1 : G.schools().suits.findIndex((q) => q.school === 'nong') - 1, cnt = playerNg ? o.player : o.casts; let last = [0, 0], ult = 0, fw = 0, rg = 0, eat = 0, tr = 0;
       if (!playerNg && G.schools().suits[ni + 1].kit !== 'nong') bad('nong bot not on its kit');
       for (let t = 0; t < 300 / C.STEP; t++) {
@@ -2561,6 +2569,186 @@ try {
   });
   check('145 budget with 农甲 effects: every suit + cubs + tells + seeds, sprouts, furrow and harvest ring (calls<500, tris<500k), no shader compile, geometry flat',
     !!ng145 && ng145.calls < 500 && ng145.tris < 500000 && ng145.programs === base.programs && ng145.geoms === base.geoms, JSON.stringify(ng145));
+  // ===== Batch 16 ticket 08: 道甲 · 真人 kit (docs/SUITS.md; numbers in CONFIG.KITS.dao) =====
+  // Page helper: the player plays 道甲 (school 1) against n placeholder bots at Mid; decrees pushed away, bots' skills on long cooldowns.
+  await g(() => { const G = __game, C = G.config; window.__dao = {
+    start(n) { G.setSeed(12345); G.setPkitP(false); G.setBots(n); G.pickSchool(1); for (let i = 0; i < n; i++) G.placeholderKit(i); G.setDecNext(1e9); for (let i = 0; i < n; i++) { G.setBotHp(i, 100); for (let k = 0; k < 3; k++) G.setBotCd(i, k, 99); } },
+    hold(sec, fn) { for (let k = 0; k < Math.round(sec / C.STEP); k++) { if (fn) fn(); G.step(1); } },
+    until(cond, max, fn) { let n = 0; while (n < max && !cond()) { if (fn) fn(); G.step(1); n++; } return n; },
+    end() { G.setPkitP(true); G.pickSchool(0); G.setBots(0); G.reset(); } }; });
+  // 146 Passive 无为 and attack: Low armor, High speed; the open hand hits a dummy in melee for dmg; standing still stillS s without attacking or casting makes him
+  // unseen (a bot 6 m away, inside vision and beyond the shimmer, does not see him); just before stillS he is still seen; an attack restarts the wait; a step ends it.
+  const d146 = await g(() => {
+    const G = __game, C = G.config, D = window.__dao, K = C.KITS.dao, W = K.wuwei, o = {};
+    D.start(1); G.setHp(1e9); G.teleport(14, -20); const park = () => G.placeBot(0, 14, -26); park(); G.step(2);
+    const k0 = G.daoState(-1); o.armorK = k0.armorK; o.spd = k0.spd;
+    D.hold(W.stillS - 0.2, park); o.early = [G.daoState(-1).wuwei, G.sees(0, -1)];
+    D.hold(0.3, park); const k1 = G.daoState(-1); o.on = [k1.wuwei, k1.unseenT > 0, G.sees(0, -1)];
+    G.setMove(1, 0); G.step(2); G.clearMove(); const k2 = G.daoState(-1); o.moved = [k2.wuwei, k2.unseenT, G.sees(0, -1)];
+    // An attack at 1.5 s restarts the wait: unseen only stillS s after it.
+    D.hold(1.5, park); G.basicAttackBy(-1, 0); D.hold(W.stillS - 0.2, park); o.afterAtk = G.daoState(-1).wuwei; D.hold(0.3, park); o.afterAtk2 = G.daoState(-1).wuwei;
+    // Melee on a dummy.
+    G.reset(); const d = G.dummies()[1]; G.teleport(d.x, d.z - 2); G.step(2); G.attack(1); D.hold(K.attack.interval * 0.5); o.dummy = 100 - G.dummies()[1].hp; G.stop();
+    D.end(); return o;
+  });
+  check('146 道甲 passive and attack: Low armor, High speed; open-hand melee dmg; still stillS s without acting = unseen (a bot in vision beyond the shimmer does not see him), not before; an attack restarts the wait; a step ends it',
+    Math.abs(d146.armorK - (C0.STATS.K + C0.STATS.armor.Mid) / (C0.STATS.K + C0.STATS.armor.Low)) < 1e-9 && d146.spd === C0.STATS.speed.High
+    && d146.early.join() === 'false,true' && d146.on.join() === 'true,true,false' && d146.moved[0] === false && d146.moved[1] === 0 && d146.moved[2] === true
+    && d146.afterAtk === false && d146.afterAtk2 === true && d146.dummy === C0.KITS.dao.attack.dmg, JSON.stringify(d146));
+  // 147 Q 柔: the stance shows its shimmer (radius m) for stance s and starts the cooldown; the first basic attack in it does him no damage: the attacker takes the
+  // blow (at its own armor) and is pushed away, +1 counter, half of Q's cooldown back, the stance ends; the next basic attack lands; a skill in 柔 is not countered.
+  const d147 = await g(() => {
+    const G = __game, C = G.config, D = window.__dao, Q = C.KITS.dao.skills[0], o = {};
+    D.start(1); G.setHp(1e9); G.teleport(14, -20); const near = () => G.placeBot(0, 15.5, -20); near(); G.step(2);
+    G.cast(0, 15.5, -20); const s0 = G.daoState(-1); o.stance = [s0.rouT, s0.ringIn, s0.ringR, s0.stanceN, s0.cd[0]];
+    const hp0 = G.state().hp; G.basicAttackBy(0, -1); const s1 = G.daoState(-1), k1 = G.kitState(0);
+    o.first = { lost: hp0 - G.state().hp, botLost: 100 - G.bots().list[0].hp, push: +Math.hypot(k1.kx, k1.kz).toFixed(2), daoN: s1.daoN, rouT: s1.rouT, ring: s1.ringIn, cd: +s1.cd[0].toFixed(3) };
+    const hp1 = G.state().hp; G.basicAttackBy(0, -1); o.second = hp1 - G.state().hp;
+    G.castSelfOf(-1, 0); const hp2 = G.state().hp; G.strike(0, -1, 20); const s2 = G.daoState(-1); o.skill = [hp2 - G.state().hp, s2.daoN, s2.rouT > 0];
+    // The stance lasts stance s, then the shimmer goes.
+    G.placeBot(0, 14, -40); G.castSelfOf(-1, 0); D.hold(Q.stance - 0.05); const s3 = G.daoState(-1); D.hold(0.1); const s4 = G.daoState(-1); o.last = [s3.rouT > 0, s3.ringIn, s4.rouT, s4.ringIn];
+    D.end(); return o;
+  });
+  const Lo = (C0.STATS.K + C0.STATS.armor.Mid) / (C0.STATS.K + C0.STATS.armor.Low);
+  check('147 道甲 Q 柔: stance and shimmer for stance s, cooldown; the first basic attack does him nothing, the attacker takes it and is pushed away, +1 counter, half the cooldown back; the next lands; a skill is not countered',
+    d147.stance[0] === C0.KITS.dao.skills[0].stance && d147.stance[1] && d147.stance[2] === C0.KITS.dao.skills[0].radius && d147.stance[3] === 1 && d147.stance[4] === C0.KITS.dao.skills[0].cd
+    && d147.first.lost === 0 && d147.first.botLost === C0.ATTACK.dmg && d147.first.push > C0.KITS.dao.skills[0].push * 0.9 && d147.first.daoN === 1 && d147.first.rouT === 0 && !d147.first.ring
+    && Math.abs(d147.first.cd - C0.KITS.dao.skills[0].cd / 2) < 1e-6 && Math.abs(d147.second - C0.ATTACK.dmg * Lo) < 1e-6
+    && Math.abs(d147.skill[0] - 20 * Lo) < 1e-6 && d147.skill[1] === 1 && d147.skill[2] && d147.last.join() === 'true,true,0,false', JSON.stringify(d147));
+  // 148 W 不争: the stance; the first skill that would hit him misses (no damage), he flows toward the caster and stops beside m short of it (flowS s), +1 counter,
+  // half of W's cooldown back; a caster far away: he flows flowMax m; a basic attack in 不争 lands; raising W with nothing coming moves nobody.
+  const d148 = await g(() => {
+    const G = __game, C = G.config, D = window.__dao, W = C.KITS.dao.skills[1], o = {};
+    D.start(1); G.setHp(1e9); G.teleport(14, -20); const at = () => G.placeBot(0, 20, -20); at(); G.step(2);
+    G.cast(1, 20, -20); const s0 = G.daoState(-1); o.stance = [s0.zhengT, s0.ringIn, s0.cd[1]];
+    const hp0 = G.state().hp; G.strike(0, -1, 20); const s1 = G.daoState(-1); o.hit = { lost: hp0 - G.state().hp, daoN: s1.daoN, zhengT: s1.zhengT, dash: +s1.dash.toFixed(3), cd: +s1.cd[1].toFixed(3) };
+    D.hold(W.flowS + 0.1, at); o.endX = +G.daoState(-1).x.toFixed(2);
+    // Far caster (17 m along the court): he flows flowMax m.
+    G.teleport(0, -12); G.placeBot(0, 0, -29); G.step(1); G.castSelfOf(-1, 1); G.strike(0, -1, 20); D.hold(W.flowS + 0.1, () => G.placeBot(0, 0, -29)); o.farZ = +G.daoState(-1).z.toFixed(2);
+    // A basic attack in 不争 lands; with nothing coming, the stance moves nobody.
+    G.placeBot(0, 1, -12); G.castSelfOf(-1, 1); const hp1 = G.state().hp; G.basicAttackBy(0, -1); o.basic = [hp1 - G.state().hp, G.daoState(-1).zhengT > 0];
+    G.placeBot(0, 0, -40); const x0 = G.daoState(-1).x, z0 = G.daoState(-1).z; D.hold(W.stance + 0.2); const s2 = G.daoState(-1); o.quiet = [+Math.hypot(s2.x - x0, s2.z - z0).toFixed(3), s2.daoN];
+    D.end(); return o;
+  });
+  check('148 道甲 W 不争: the first skill misses (no damage), he flows to beside m short of the caster, +1 counter, half the cooldown back; flowMax m at most; a basic attack in it lands; no move without a counter',
+    d148.stance[0] === C0.KITS.dao.skills[1].stance && d148.stance[1] && d148.stance[2] === C0.KITS.dao.skills[1].cd && d148.hit.lost === 0 && d148.hit.daoN === 1 && d148.hit.zhengT === 0
+    && Math.abs(d148.hit.dash - (6 - C0.KITS.dao.skills[1].beside)) < 0.01 && Math.abs(d148.hit.cd - C0.KITS.dao.skills[1].cd / 2) < 1e-6 && Math.abs(d148.endX - (20 - C0.KITS.dao.skills[1].beside)) < 0.05
+    && Math.abs(d148.farZ - (-12 - C0.KITS.dao.skills[1].flowMax)) < 0.05 && Math.abs(d148.basic[0] - C0.ATTACK.dmg * Lo) < 1e-6 && d148.basic[1] && d148.quiet[0] < 1e-6 && d148.quiet[1] === 2, JSON.stringify(d148));
+  // 149 R 反: with N counters his base damage, walk speed and armor are multiplied by 1 + step x min(N, maxN) for dur s and the counters go to 0; 0 counters give
+  // nothing; counters never count past maxN; R starts its cooldown, which runs 1x in the "Ultimates 2x" warning and 2x in force; the R button shows the counters.
+  const d149 = await g(() => {
+    const G = __game, C = G.config, D = window.__dao, R = C.KITS.dao.skills[2], o = {};
+    D.start(1); G.setHp(1e9); G.teleport(14, -20); const park = () => G.placeBot(0, 15.5, -20); park(); G.step(2);
+    G.daoN(-1, 3); G.step(1); o.btn = G.daoState(-1).rBtn; G.cast(2, 15.5, -20); const s1 = G.daoState(-1);
+    o.three = { k: s1.fanK, daoN: s1.daoN, fanT: s1.fanT, armorK: s1.armorK, spd: s1.spd, cd: s1.cd[2] };
+    G.setBotHp(0, 100); G.basicAttackBy(-1, 0); o.three.hit = +(100 - G.bots().list[0].hp).toFixed(4);
+    D.hold(R.dur - 0.1, park); o.three.on = G.daoState(-1).fanT > 0; D.hold(0.2, park); const s2 = G.daoState(-1); o.three.after = [s2.fanT, s2.fanK, s2.spd, s2.armorK];
+    // Cap: 7 counters count as maxN; 0 counters give nothing (the effect still runs, at 1x).
+    G.daoN(-1, 7); G.castSelfOf(-1, 2); o.cap = G.daoState(-1).fanK; G.daoN(-1, 0); G.castSelfOf(-1, 2); const s3 = G.daoState(-1); o.zero = [s3.fanK, s3.spd];
+    G.setBotHp(0, 100); G.basicAttackBy(-1, 0); o.zeroHit = 100 - G.bots().list[0].hp;
+    // A counter at maxN keeps maxN.
+    G.daoN(-1, R.maxN); G.castSelfOf(-1, 0); G.basicAttackBy(0, -1); o.keep = G.daoState(-1).daoN;
+    // "Ultimates 2x": the cooldown after use runs 1x in the warning, 2x in force.
+    const c0 = G.daoState(-1).cd[2]; G.forceDecree('ult2x', null, 20); D.hold(5, park); const c1 = G.daoState(-1).cd[2]; D.hold(2, park); const c2 = G.daoState(-1).cd[2];
+    o.warnRate = +((c0 - c1) / 5).toFixed(2); o.onRate = +((c1 - c2) / 2).toFixed(2);
+    D.end(); return o;
+  });
+  const fan3 = 1 + 3 * C0.KITS.dao.skills[2].step, Sx = C0.STATS;
+  const ok149 = (d) => d.btn === '3' && Math.abs(d.three.k - fan3) < 1e-9 && d.three.daoN === 0 && d.three.fanT === C0.KITS.dao.skills[2].dur && d.three.cd === C0.KITS.dao.skills[2].cd
+      && Math.abs(d.three.armorK - (Sx.K + Sx.armor.Mid) / (Sx.K + Sx.armor.Low * fan3)) < 1e-9 && Math.abs(d.three.spd - Sx.speed.High * fan3) < 1e-9 && Math.abs(d.three.hit - C0.KITS.dao.attack.dmg * fan3) < 1e-9
+      && d.three.on && d.three.after.join() === `0,1,${Sx.speed.High},${(Sx.K + Sx.armor.Mid) / (Sx.K + Sx.armor.Low)}`
+      && Math.abs(d.cap - (1 + C0.KITS.dao.skills[2].maxN * C0.KITS.dao.skills[2].step)) < 1e-9 && Math.abs(d.cap - C0.BONUS_CAP) < 1e-9 && d.zero.join() === `1,${Sx.speed.High}` && d.zeroHit === C0.KITS.dao.attack.dmg
+      && d.keep === C0.KITS.dao.skills[2].maxN && Math.abs(d.warnRate - 1) < 0.02 && Math.abs(d.onRate - C0.DECREES.ultK) < 0.02;
+  check('149 道甲 R 反: damage, speed and armor x (1 + step x counters) for dur s, counters to 0; capped at maxN (1.4x); 0 counters = nothing; R button shows the counters; cooldown 1x in the 2x warning, 2x in force',
+    ok149(d149), JSON.stringify(d149));
+  // 150 道甲 in the hunt (and hazards): 柔 counters the demon's claw (no damage to him; the demon takes its claw and is shoved demonM m), 不争 counters its Pounce
+  // (no damage; he flows toward it) and its Roar (the slow does not land; without a stance it does); the counters build R, ready at the start; in the royale
+  // a stone lion's strike is not a fighter's blow: it lands through both stances and makes no counter.
+  const d150 = await g(() => {
+    const G = __game, C = G.config, H = window.__h, K = C.KITS.dao, o = {};
+    const until = (cond, max) => { let n = 0; while (n < max && !cond()) { G.step(1); n++; } return n; };
+    G.setPkitP(false); G.setSchool(1); H.start(); H.mute(1); H.mute(2); H.mute(0, 'claw'); G.setHp(100); G.teleport(0, -55); G.placeUnit(0, 0, -57);
+    until(() => G.hunt().tells.length > 0, 600); G.cast(0, 0, -57); const d0 = G.hunt().units[0].hp, z0 = G.hunt().units[0].z;
+    until(() => G.hunt().tells.length === 0, 200); const u1 = G.hunt().units[0];
+    o.claw = { hp: G.state().hp, demonLost: d0 - u1.hp, shove: +(z0 - u1.z).toFixed(3), daoN: G.daoState(-1).daoN };
+    H.mute(0, 'pounce'); G.teleport(0, -50); G.placeUnit(0, 0, -56); G.step(1);
+    until(() => G.hunt().tells.length > 0, 600); G.castSelfOf(-1, 1); const z1 = G.daoState(-1).z;
+    until(() => G.hunt().tells.length === 0, 200); const s2 = G.daoState(-1); o.pounce = { hp: G.state().hp, daoN: s2.daoN, dash: s2.dash > 0 }; G.step(20); o.pounce.flowed = +(z1 - G.daoState(-1).z).toFixed(2);
+    H.mute(0, 'roar'); G.teleport(0, -50); G.placeUnit(0, 0, -53); G.step(1);
+    until(() => G.hunt().tells.length > 0, 900); G.castSelfOf(-1, 1); until(() => G.hunt().tells.length === 0, 200); const s3 = G.daoState(-1); o.roar = { slow: s3.slowT, daoN: s3.daoN };
+    G.unitCd(0, 'roar', 0); G.teleport(0, -50); G.placeUnit(0, 0, -53); until(() => G.hunt().tells.length > 0, 900); until(() => G.hunt().tells.length === 0, 200); o.roarPlain = G.daoState(-1).slowT > 0;
+    o.rReady = G.skills()[2] === 0; G.cast(2, 0, -50); o.rK = G.daoState(-1).fanK;
+    // Royale: a stone lion strikes through both stances.
+    G.reset(); const l = G.hazards()[1]; G.teleport(l.x + 2.5, l.z); G.setHp(100); G.step(1); G.castSelfOf(-1, 0); G.castSelfOf(-1, 1);
+    G.step(Math.round((C.LION.windup + 0.05) / C.STEP)); o.lion = { hp: G.state().hp, daoN: G.daoState(-1).daoN };
+    G.setPkitP(true); G.setSchool(0); G.reset(); return o;
+  });
+  check('150 道甲 in the hunt: 柔 counters the claw (demon takes it, shoved), 不争 counters Pounce (he flows) and Roar (no slow; slowed without it); counters build R (ready at the start); a stone lion strikes through both stances, no counter',
+    d150.claw.hp === 100 && d150.claw.demonLost === C0.MOVES.claw.dmg && d150.claw.shove > C0.KITS.dao.skills[0].demonM * 0.9 && d150.claw.daoN === 1
+    && d150.pounce.hp === 100 && d150.pounce.daoN === 2 && d150.pounce.dash && d150.pounce.flowed > 1 && d150.roar.slow === 0 && d150.roar.daoN === 3 && d150.roarPlain
+    && d150.rReady && Math.abs(d150.rK - (1 + 3 * C0.KITS.dao.skills[2].step)) < 1e-9 && d150.lion.hp === 100 - C0.LION.dmg && d150.lion.daoN === 0, JSON.stringify(d150));
+  // 151 The shimmer is the tell (plays with duels): a bot fighting him in reach holds its basic attack while his 柔 has been up for its reaction time, so nothing is
+  // countered and he loses nothing until the stance ends; then the bot swings again. The shimmer is drawn while the player sees the suit.
+  const d151 = await g(() => {
+    const G = __game, C = G.config, D = window.__dao, Q = C.KITS.dao.skills[0], react = C.BOT.skills.average.react, o = {};
+    D.start(1); G.setHp(1e9); G.teleport(14, -20); const near = () => G.placeBot(0, 15.5, -20); near(); G.step(2); G.hitBy(-1, 0, 1);
+    // Wait for a swing, then raise 柔 0.45 s later: the bot's next swing is due when the stance has been up 0.35 s (past its reaction time).
+    const c0 = G.daoState(0).castAt; D.until(() => G.daoState(0).castAt !== c0, 300, near); const t0 = G.daoState(0).castAt; D.hold(0.45, near);
+    G.castSelfOf(-1, 0); const hp0 = G.state().hp; o.ring = [G.daoState(-1).ringIn, G.daoState(-1).ringVis];
+    D.hold(Q.stance - 0.02, near); const s1 = G.daoState(-1); o.held = { swing: G.daoState(0).castAt !== t0, lost: hp0 - G.state().hp, daoN: s1.daoN, react };
+    D.hold(0.3, near); o.after = { swing: G.daoState(0).castAt !== t0, lost: +(hp0 - G.state().hp).toFixed(4) };
+    D.end(); return o;
+  });
+  check('151 道甲 the shimmer is the tell: a bot in reach holds its basic attack while 柔 has been up for its reaction time (no counter, no damage), and swings again after the stance; the shimmer is drawn',
+    d151.ring.join() === 'true,true' && !d151.held.swing && d151.held.lost === 0 && d151.held.daoN === 0 && d151.after.swing && d151.after.lost > 0, JSON.stringify(d151));
+  // 152 道甲 in whole matches: 3 seeds with the 道甲 bot (the player on the placeholder) and 1 with the player on 道甲 (autopilot), watched to the end: on a floor every
+  // tick, the hunter cap holds, nobody stuck over 3 s, the stance shimmer is never drawn a step after both stances are down (ringMax = steps), 反 never above the cap; the bot raises 柔 and makes counters over the 3
+  // (不争 and R reported).
+  const d152 = await g(() => {
+    const G = __game, C = G.config, K = C.KITS.dao, o = { viol: [], casts: { q: 0, w: 0, r: 0 }, player: { q: 0, w: 0, r: 0 }, counters: 0, playerCounters: 0, decided: [], ringMax: 0, fanMax: 1 }, bad = (x) => { if (o.viol.length < 5) o.viol.push(x); };
+    const one = (seed, playerDao) => {
+      G.setSeed(seed); G.setBots(C.BOTS.count); G.setPkitP(!playerDao); G.pickSchool(playerDao ? 1 : 0); G.autoPlayer(true); G.setWatch(true);
+      const di = playerDao ? -1 : G.schools().suits.findIndex((q) => q.school === 'dao') - 1, cnt = playerDao ? o.player : o.casts; let last = [0, 0], ult = 0, rg = 0;
+      if (!playerDao && G.schools().suits[di + 1].kit !== 'dao') bad('dao bot not on its kit');
+      for (let t = 0; t < 300 / C.STEP; t++) {
+        G.step(1); const r = G.royale(); if (r.decidedAt >= 0) { o.decided.push(+r.decidedAt.toFixed(1)); break; }
+        const k = G.kitState(di), cd = k.bcd, d = G.daoState(di);
+        if (cd[0] > last[0] + 1e-9) cnt.q++; if (cd[1] > last[1] + 1e-9) cnt.w++; if (k.ultN > ult) cnt.r += k.ultN - ult; last = [cd[0], cd[1]]; ult = k.ultN;
+        rg = d.ringIn && d.rouT <= 0 && d.zhengT <= 0 ? rg + 1 : 0; if (rg > o.ringMax) o.ringMax = rg; if (d.fanK > o.fanMax) o.fanMax = d.fanK;
+        if (d.fanK > C.BONUS_CAP + 1e-9) bad(`s${seed} t${t} fan ${d.fanK}`);
+        const h = G.hunters(); if (h.capOnP > h.max) bad(`s${seed} t${t} cap ${h.capOnP}>${h.max}`);
+        if (t % 10 === 0 && di >= 0) { const q = G.bots().list[di]; if (!q.standOk) bad(`s${seed} t${t} dao off floor`); if (!Number.isFinite(q.x + q.z + q.hp)) bad(`s${seed} t${t} NaN`); }
+        if (t % 10 === 0 && di < 0 && !G.player().dead && !G.state().falling && !G.walkable(G.player().x, G.player().z, G.player().y + 0.05)) bad(`s${seed} t${t} player off floor`);
+      }
+      for (const q of G.bots().list) if (q.stuck > 3) bad(`s${seed} bot${q.id} stuck ${q.stuck}`);
+      if (playerDao) o.playerCounters += G.daoState(-1).counterN; else o.counters += G.daoState(di).counterN;
+      G.setWatch(false); G.autoPlayer(false);
+    };
+    for (const seed of [12345, 2, 3]) one(seed, false);
+    one(4, true);
+    G.setPkitP(true); G.pickSchool(0); G.setBots(0); G.reset(); o.clean = G.daoState(-1).stanceN === 0; return o;
+  });
+  check('152 道甲 in whole matches: on a floor, nobody stuck > 3 s, no shimmer outlives its stance, 反 within the cap, hunter cap every tick; the 道甲 bot raises 柔 and makes counters (不争, R and the player autopilot reported)',
+    d152.viol.length === 0 && d152.ringMax === 0 && d152.clean && d152.casts.q > 0 && d152.counters > 0, JSON.stringify(d152));
+  // 153 Budget with 道甲's effects: the heaviest royale (every suit, 7 cubs, tells) with his stance shimmer up and 反 in force (and the bots' shimmer pool);
+  // calls < 500, tris < 500k, no shader compile, geometry flat.
+  const d153 = await g(() => {
+    const G = __game, C = G.config, K = window.__k, waves = C.KENNEL.waves; let best = null;
+    try {
+      C.KENNEL.waves = [[['stalker', 0], ['stalker', 0], ['stalker', 0], ['stalker', 0], ['howler', 0], ['howler', 0], ['howler', 0]]];
+      G.setSeed(12345); G.setBots(C.BOTS.count); G.setPkitP(false); G.pickSchool(1); G.setDecNext(1e9); K.sp(C.KENNEL.firstS + 0.1); G.setHp(1e9);
+      const cx = G.camps[0][0], cz = G.camps[0][1] + 4; G.teleport(cx, cz);
+      const park = () => { for (let i = 0; i < C.BOTS.count; i++) G.placeBot(i, cx - 4 + (i % 3) * 3, cz + 2 + Math.floor(i / 3) * 1.5); };
+      G.daoN(-1, 5); G.castSelfOf(-1, 2);
+      for (let n = 0; n < 300; n++) {
+        park(); if (n % 40 === 0) { G.castSelfOf(-1, 0); G.castSelfOf(-1, 1); } G.step(1); const c = G.cubs(), d = G.daoState(-1);
+        if (d.ringIn && d.fanT > 0 && (!best || c.tells.length >= best.tells)) { const r = G.render(true); best = { tells: c.tells.length, ring: d.ringIn, fanK: d.fanK, stanceN: d.stanceN, calls: r.calls, tris: r.tris, programs: r.programs, geoms: r.geoms }; }
+      }
+    } finally { C.KENNEL.waves = waves; G.setPkitP(true); G.pickSchool(0); G.setBots(0); G.reset(); }
+    return best;
+  });
+  check('153 budget with 道甲 effects: every suit + cubs + tells + stance shimmer + 反 (calls<500, tris<500k), no shader compile, geometry flat',
+    !!d153 && d153.calls < 500 && d153.tris < 500000 && d153.programs === base.programs && d153.geoms === base.geoms, JSON.stringify(d153));
   // 66 Idle player: standing at the spawn doing nothing loses the royale (frozen loss with a cause) before the last collapse is over.
   const idle = await g(() => {
     const G = __game, C = G.config; G.setSeed(12345); G.setBots(G.config.BOTS.count); G.reset(); let t = 0;

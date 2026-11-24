@@ -330,8 +330,32 @@ const CONFIG = {
         { key: 'KeyR', label: 'R', nameKey: 'sk_ru_r', type: 'self', self: 'bells', range: 0, radius: 4.5, rings: [0.6, 1.3, 2.0], dmg: 18, slow: 0.3, slowS: 1.5, stun: 0.6, heal: 5, cd: 30, delay: 0, tag: 'aura', botIn: 0.8 },
       ],
     },
-    // 道甲 Zhenren: evasive duelist.
-    dao: { built: false, armor: 'Low', speed: 'High', ultMode: 'counters' },
+    // 道甲 Zhenren: evasive duelist (batch 16 ticket 08; docs/SUITS.md, owner 23 Nov 20:15; one number set from the doc's "about" values, balance when all nine are ready).
+    // ultMode 'counters': no charge meter; R casts whenever its cooldown is over (the cooldown after use runs 2x under "Ultimates 2x"); its effect grows with
+    // the counters made since his last R (Q and W successes, at most R.maxN counted), which reset to 0 when R is cast; 0 counters = R gives nothing.
+    dao: {
+      built: true, armor: 'Low', speed: 'High', ultMode: 'counters',
+      // Passive 无为: 'wuwei' = after stillS s standing still without attacking or casting he is unseen (shimmer within UNSEEN.shimmerM) until he moves,
+      // attacks, casts or is hit.
+      passive: 'wuwei',
+      // Passive numbers: seconds still (and without attacking or casting) before he is unseen.
+      wuwei: { stillS: 2 },
+      // Attack 水 (open-hand strike): melee (range m, seconds between hits, damage, auto-target search range m).
+      attack: { range: 2.5, interval: 0.8, dmg: 10, acquire: 8 },
+      skills: [
+        // Q 柔·柔弱胜刚强 (counter to basic attacks): a stance of stance s (a water shimmer of radius m every suit can see). The first basic attack that would hit him
+        // in it does no damage: the attacker takes the blow instead and is pushed away (a suit at push m/s, a cub or minion unitM m, the demon demonM m).
+        // Success: +1 counter and half of cd back. Bots raise it when a basic attack is about to land on them.
+        { key: 'KeyQ', label: 'Q', nameKey: 'sk_dao_q', type: 'self', self: 'rou', range: 0, radius: 1.1, stance: 0.8, push: 12, unitM: 1.5, demonM: 0.75, cd: 6, delay: 0, tag: 'stanceBasic' },
+        // W 不争·夫唯不争 (counter to skills): a stance of stance s (the same shimmer). The first enemy skill that would hit him misses (no damage, no slow, stun or
+        // bleed): he flows by the walking rule toward the caster in flowS s, stopping beside m short of it (at most flowMax m; his only dash, only on success).
+        // Success: +1 counter and half of cd back. Bots raise it when a skill tell they have seen covers them.
+        { key: 'KeyW', label: 'W', nameKey: 'sk_dao_w', type: 'self', self: 'zheng', range: 0, radius: 1.1, stance: 0.8, beside: 1.2, flowMax: 8, flowS: 0.25, flow: true, cd: 8, delay: 0, tag: 'stanceSkill' },
+        // R 反·反者道之动: for dur s his base damage, walk speed and armor are multiplied by 1 + step x counters (at most maxN counted: 1.4x, the game-wide cap);
+        // the counters go back to 0. cd = the cooldown after use (royale and hunt). Bots cast it in a fight with at least botMin counters.
+        { key: 'KeyR', label: 'R', nameKey: 'sk_dao_r', type: 'self', self: 'fan', range: 0, radius: 0, dur: 8, step: 0.08, maxN: 5, cd: 30, delay: 0, tag: 'fan', botMin: 3 },
+      ],
+    },
     // 法甲 Law Officer: assassin (batch 16 ticket 02; docs/SUITS.md; owner 23 Nov 23:3x: one number set from the doc's "about" values, balance when all nine are ready).
     fa: {
       built: true, armor: 'Mid', speed: 'High', ultMode: 'charge',
@@ -421,7 +445,8 @@ const CONFIG = {
         { key: 'KeyW', label: 'W', nameKey: 'sk_ming_w', type: 'line', range: 8, width: 1.2, hang: 1, touchSlow: 0.3, touchS: 1, dmg: 20, cd: 8, delay: 0 },
         // R 指不至，至不绝 (pointing never arrives): a very long line of range x width m, shown hang s, then a piercing strike runs its whole length
         // and every target it passes takes dmg (a standing wall still stops it, like every line skill). cd = the hunt cooldown (the royale runs on the meter).
-        { key: 'KeyR', label: 'R', nameKey: 'sk_ming_r', type: 'line', range: 30, width: 1.4, hang: 1, dmg: 45, cd: 30, delay: 0 },
+        // tag 'pierce' (ticket 08): a bot also casts it from range at the suit it keeps away from (botReadyUlt), not only in a fight.
+        { key: 'KeyR', label: 'R', nameKey: 'sk_ming_r', type: 'line', range: 30, width: 1.4, hang: 1, dmg: 45, cd: 30, delay: 0, tag: 'pierce' },
       ],
     },
     // 纵横甲 Persuader: control.
@@ -440,7 +465,8 @@ const CONFIG = {
       skills: [
         // Q 播百谷 (sow the hundred grains): seeds seeds at a point up to range m away, spread spread m around it; each grows into a sprout in growS s
         // and the sprout stands lastS s. A fixed pool of pool per 农甲: a new seed takes a free place, else the oldest. A seed needs a standing floor.
-        // Bots sow botAhead m in front of them when a target is within botR m.
+        // Bots sow botAhead m in front of them when a target is within botR m, and out of a fight at their feet while fewer than seeds of their
+        // planted sprouts stand within tiller.seekM (a field ahead of time, ticket 08 fix: botFieldAhead).
         { key: 'KeyQ', label: 'Q', nameKey: 'sk_nong_q', type: 'circle', sow: true, range: 6, radius: 1.2, seeds: 3, spread: 1, growS: 4, lastS: 20, pool: 9, dmg: 0, cd: 6, delay: 0, tag: 'sow', botR: 8, botAhead: 1.5 },
         // W 并耕 (the plough charge, the dash): range m by the walking rule (dashS s), leaving a furrow width m wide along its path for furrowS s:
         // other suits on it are slowed by slow; his seeds on it grow growK times as fast. No hit (the doc gives the charge no damage).
@@ -638,6 +664,8 @@ const TEXT = {
   yy_0: '○', yy_1: '◐', yy_2: '◑', yy_3: '☯',
   st_yy: 'Taiji {s}',
   st_jiu: 'Nine defences {n}',
+  sk_dao_q: 'Yield', sk_dao_w: 'Flow', sk_dao_r: 'Return',
+  st_dao: 'Counters {n}', st_fan: 'Return x{k}', st_rou: 'Yielding', st_zheng: 'Flowing', dao_n: '{n}',
   st_sealed: 'Sealed: plates and boons off',
   rule_plate_s: 'Stalker plate: your hits cause bleeding for {s} s. +{c} ultimate charge.',
   rule_plate_h: 'Howler plate: +{p}% speed for {s} s. +{c} ultimate charge.',
@@ -1078,7 +1106,7 @@ for (let k = 0; k < CONFIG.BOTS.count; k++) {
     mat: m, group, body, bar, path: null, cd: [0, 0, 0], navWant: false, gx: 0, gz: 0, gy: 0, goalT: 0, stuckMax: 0, spawn: -1, flashT: 0,
     skill: CONFIG.BOT.skills[CONFIG.BOT.skillOf[k % CONFIG.BOT.skillOf.length]], thinkT: 0, tgt: null, mode: '', modeT: 0, seenP: false,
     pend: false, pendT: 0, pendS: 2, pendX: 0, pendZ: 0, pendDx: 0, pendDz: 0, pendAge: 0, ring: new THREE.Mesh(fxTele.geometry, M.ring), mx: 0, mz: 0, repathed: false, ax: 0, az: 0, anchorT: 0,
-    tgtT: 0, direct: false, heal: null, skip: null, castT: 0, lastBy: null, lastByT: -99, declined: null, declinedT: -99, flee: false, pathGen: 0, why: '', hunter: false, huntLostT: 0 });
+    tgtT: 0, direct: false, heal: null, skip: null, castT: 0, lastBy: null, lastByT: -99, declined: null, declinedT: -99, flee: false, fleeGo: false, pathGen: 0, why: '', hunter: false, huntLostT: 0 });
 }
 for (let k = 0; k < BOTLIST.length; k++) SUITS.push(BOTLIST[k]);
 // Leader crown (batch 11): one small gold box crown built once at load, shared gold material; it rides on the leader's body group, so it is hidden whenever the leader is unseen.
@@ -1093,7 +1121,7 @@ const PLACEHOLDER_KIT = { id: 'placeholder', armor: CONFIG.STATS.yard, speed: CO
 function kitFor(school) { const k = CONFIG.KITS[school]; return k && k.built ? k : PLACEHOLDER_KIT; }
 // A suit's school, kit and stats (set at a new run).
 // kit = a kit to play instead of the school's own (the checks' placeholder player, G.pkitP).
-function applyKit(s, school, kit) { const k = kit || kitFor(school); s.school = school; s.kit = k; s.ultMode = k.ultMode; s.atkN = 0; setStats(s, k.armor, k.speed); }
+function applyKit(s, school, kit) { const k = kit || kitFor(school); s.school = school; s.kit = k; s.ultMode = k.ultMode; s.atkN = 0; s.daoN = 0; s.counterN = 0; setStats(s, k.armor, k.speed); }
 // Stats from tiers: armorK = multiplier on damage from suits and creatures (exactly 1 at the yardstick tier), spd = walk speed.
 function setStats(s, armorTier, speedTier) { const S = CONFIG.STATS; s.armor = S.armor[armorTier]; s.armorK = (S.K + S.armor[S.yard]) / (S.K + s.armor); s.spd = S.speed[speedTier]; }
 // The skill a suit has in a slot (common skill interface: player, bots and later kits all cast through this).
@@ -1108,7 +1136,7 @@ const DECREES = { bounty: { voice: 'voice_bounty', rule: 'rule_bounty', idx: 0 }
   ult2x: { voice: 'voice_dec_ult2x', rule: 'rule_dec_ult2x', hud: 'hud_dec_ult2x', bag: true, idx: 5 } };
 const JIU_VARS = { n: 0 };
 // The taiji symbols of 阴阳甲's lock by halves filled (0 none, 1 dark, 2 light, 3 both).
-const YY_KEYS = ['yy_0', 'yy_1', 'yy_2', 'yy_3'], YY_VARS = { s: '' };
+const YY_KEYS = ['yy_0', 'yy_1', 'yy_2', 'yy_3'], YY_VARS = { s: '' }, DAO_VARS = { n: 0, k: '' };
 const SCHOOL_VARS = { who: '' }, CHARGE_VARS = { n: 0 }, LEADER_VARS = { who: '', s: 0 }, DECREE_VARS = { who: '', s: 0, zone: '' }, MARK_VARS = { s: CONFIG.DECREES.markS };
 // Decree bags (batch 12): seeded by their own generator (DRNG).
 const DRNG = { s: 1 };
@@ -1181,11 +1209,16 @@ for (let k = 0; k < SUITS.length; k++) {
   const furrow = { t: -1, sk: null, ox: 0, oz: 0, y: 0, dx: 0, dz: 1, len: 0, mesh: furrowMesh };
   const harvRing = new THREE.Mesh(tellRingGeo, M.fx); harvRing.castShadow = false;
   Object.assign(s, { sprouts, furrow, feedT: 0, harvN: 0, harvRing, harvT: 0, eatN: 0, trampN: 0 });
+  // 道甲 state (ticket 08): rouT / zhengT = seconds left of his Q (basic) and W (skill) stances, rouS / zhengS = their full length (bots' hold-off);
+  // daoN = counters since his last R; fanT / fanK = seconds and multiplier of his R; stanceRing = the water shimmer (built once, in the scene only while a stance is up);
+  // wuwei = unseen by his passive; castAt = game time he last attacked or cast (passive); counterN = counters made this run (checks and sims).
+  const stanceRing = new THREE.Mesh(tellRingGeo, M.tellH); stanceRing.castShadow = false;
+  Object.assign(s, { rouT: 0, zhengT: 0, rouS: 0, zhengS: 0, daoN: 0, fanT: 0, fanK: 1, stanceRing, wuwei: false, castAt: -99, counterN: 0 });
   applyKit(s, CONFIG.SCHOOLS[0]);
 }
 // Brain fields on the player too, used only by the test autopilot (__game.autoPlayer).
 Object.assign(P, { campK: -1, cd: [0, 0, 0], navWant: false, gx: 0, gz: 0, gy: 0, goalT: 0, skill: CONFIG.BOT.skills.average, thinkT: 0, tgt: null, tgtT: 0, mode: '', direct: false,
-  heal: null, skip: null, castT: 0, lastBy: null, lastByT: -99, declined: null, declinedT: -99, flee: false, pathGen: 0, why: '', hunter: false, huntLostT: 0, mx: 0, mz: 0,
+  heal: null, skip: null, castT: 0, lastBy: null, lastByT: -99, declined: null, declinedT: -99, flee: false, fleeGo: false, pathGen: 0, why: '', hunter: false, huntLostT: 0, mx: 0, mz: 0,
   pend: false, pendT: 0, pendS: 2, pendX: 0, pendZ: 0, pendDx: 0, pendDz: 0, pendAge: 0, ring: new THREE.Mesh(fxTele.geometry, M.ring) });
 // Everything the player can target: training dummies, hunt units, cubs, buff creatures and bot suits share x, z, r, hp, seen.
 const TARGETS = DUMMY_LIST.concat(ENEMIES, CUBS, NEUTRALS, BOTLIST);
@@ -1353,7 +1386,7 @@ function castSkill(slot, tx, tz) {
   const dist = sk.type === 'line' ? sk.range : Math.min(len, sk.range), x = P.x + dx * dist, z = P.z + dz * dist;
   // 墨甲's wall (batch 16): not raised over a body, a gap or the void; no cast, no cooldown.
   if (sk.wall && !wallFits(P, sk, x, z, dx, dz)) return false;
-  breakUnseen(P);
+  breakUnseen(P); P.castAt = G.time;
   P.faceX = dx; P.faceZ = dz;
   // The ultimate on the meter (royale) empties it and has no cooldown; every other cast starts its cooldown.
   if (slot === 2) spendUlt(P, sk); else st.cdT = sk.cd;
@@ -1396,22 +1429,27 @@ function hasPlate(s, kind) { return s.sealT <= 0 && ((s.pt[0] > 0 && s.pk[0] ===
 // A boon (0 power, 1 regen, 2 vision, 3 speed) is working on suit s.
 function boonOn(s, i) { return s.bT[i] > 0 && s.sealT <= 0; }
 // A suit (by) hits a target: dummy, hunt unit, cub, buff creature or another suit. Power boon and Stalker plate come from the hitter.
-function hitTarget(by, d, n) {
+// basic = a basic attack (道甲's Q counters those; every other blow counts as a skill for his W). Returns false when the blow did not land
+// (a shadow, or countered by 道甲), so callers skip the blow's other effects.
+function hitTarget(by, d, n, basic) {
   // 名甲's shadow (ticket 05) is not a body: a blow on it does nothing.
-  if (d.kind === 'shadow') return;
+  if (d.kind === 'shadow') return false;
   // Attacking ends the unseen state (batch 16). 法甲's first hit from 术 (W) exposes a suit it hits.
   breakUnseen(by);
   // 非攻 (墨甲): the hitter attacked someone now.
   if (d.kind) by.atkAt = G.time;
-  if (by.expArmT > 0) { if (d.kind === 'suit') expose(d, by.expS); by.expArmT = 0; }
-  // Power boon and kit bonuses (法甲 passive and 势) multiply together under the game-wide cap.
+  // Power boon and kit bonuses (法甲 passive and 势, 道甲's 反) multiply together under the game-wide cap.
   const kb = kitBonus(by, d);
   if (boonOn(by, 0) || kb !== 1) n *= Math.min(CONFIG.BONUS_CAP, (boonOn(by, 0) ? 1 + by.bV[0] : 1) * kb);
+  // 道甲's stances (ticket 08): one counter function for every blow from a suit; a countered blow lands nothing.
+  if (d.kind === 'suit' && counterHit(d, !!basic, by, null, n)) return false;
+  if (by.expArmT > 0) { if (d.kind === 'suit') expose(d, by.expS); by.expArmT = 0; }
   if (by.kit && by.kit.passive === 'halving') chainHit(by, d);
-  if (!d.kind) { hitDummy(d, n); return; }
-  if (d.kind === 'suit') { hurtSuit(d, n, 'hit', by); return; }
+  if (!d.kind) { hitDummy(d, n); return true; }
+  if (d.kind === 'suit') { hurtSuit(d, n, 'hit', by); return true; }
   hitEnemy(d, n, by);
   if (d.alive && hasPlate(by, 'stalker')) { d.bleedT = CONFIG.PLATE.bleedS; d.bleedBy = by; }
+  return true;
 }
 // Ultimate charge (batch 15): a suit's R runs on the meter in the royale (charge mode); the hunt keeps the R cooldown.
 function onMeter(s) { return G.phase === 'royale' && s.ultMode === 'charge'; }
@@ -1426,8 +1464,8 @@ function spendUlt(s, sk) {
   // ultN counts the ultimates cast in the royale (sims).
   if (G.phase === 'royale') s.ultN++;
 }
-// The ultimate's cooldown runs ultK times as fast under "Ultimates 2x" for 阴阳甲's lock only (the meter's gains are doubled instead).
-function ultCdK(s) { return s.ultMode === 'lock' && decOn('ult2x') ? CONFIG.DECREES.ultK : 1; }
+// The ultimate's cooldown runs ultK times as fast under "Ultimates 2x" for 阴阳甲's lock and 道甲's counters only (the meter's gains are doubled instead).
+function ultCdK(s) { return (s.ultMode === 'lock' || s.ultMode === 'counters') && decOn('ult2x') ? CONFIG.DECREES.ultK : 1; }
 // Add charge to a suit (only on the meter and alive); the ult2x decree multiplies every gain.
 function gainCharge(s, v) {
   if (!onMeter(s) || s.dead || v <= 0) return;
@@ -1576,7 +1614,9 @@ function navNode(x, z, y, off) {
     if (a < 0 || b < 0 || a >= nx || b >= NAV.nz) continue;
     for (let fi = 0; fi < NF; fi++) {
       const v = NAV.node[(b * nx + a) * NF + fi];
-      if (v >= 0 && (NAV.mask[v] & off) === 0 && Math.abs(NAV.ny[v] - y) <= STEP_UP + 0.05) return v;
+      // A node under a standing wall is never a start either (batch 16 ticket 08 fix: a bot beside 墨甲's wall started its paths on the node under it, could not
+      // reach that node, and stood still until the wall fell).
+      if (v >= 0 && (NAV.mask[v] & off) === 0 && Math.abs(NAV.ny[v] - y) <= STEP_UP + 0.05 && !(G.wallN > 0 && navInWall(v))) return v;
     }
   }
   return -1;
@@ -1735,7 +1775,7 @@ const G = { time: 0, view: 'follow', paused: false, ctxLost: false, frames: 0, b
   huntN: 0, huntClaims: 0, huntFrees: 0,
   leader: null, leadT: 0, leaderChanges: 0, leaderCode: -1, leaderWrites: 0, miniLeader: false,
   bountyN: 0, bountyWarnAt: -1, bountyStartAt: -1, bountyEndAt: -1, bountyEndWhy: '', bountyPaid: 0, bountyPaidTo: -1,
-  auraN: 0, bellN: 0, wallN: 0, wheelN: 0, shadowN: 0, hangN: 0, orbN: 0, taijiN: 0, sproutN: 0, furrowN: 0, harvRingN: 0, decNext: 0, decN: 0, decCount: { dry: 0, nodash: 0, silence: 0, heights: 0, ult2x: 0 }, decLog: [], brkP: 0, brkB: 0, decCode: -1, decWrites: 0, hiAvoid: false, zoneSec: null, skips: 0, chWrites: 0 , school: 0, selecting: false, selectOn: false, selBtns: [], saveFail: false};
+  auraN: 0, bellN: 0, wallN: 0, wheelN: 0, shadowN: 0, hangN: 0, orbN: 0, taijiN: 0, sproutN: 0, furrowN: 0, harvRingN: 0, stanceN: 0, counterN: 0, decNext: 0, decN: 0, decCount: { dry: 0, nodash: 0, silence: 0, heights: 0, ult2x: 0 }, decLog: [], brkP: 0, brkB: 0, decCode: -1, decWrites: 0, hiAvoid: false, zoneSec: null, skips: 0, chWrites: 0 , school: 0, selecting: false, selectOn: false, selBtns: [], saveFail: false};
 // The one decree slot (batch 11): st 0 idle, 1 queued, 2 warning (banner), 3 in force. key = decree name, tgt = its suit (bounty), t = seconds left in the state.
 // Decree slot. st: 0 free, 1 queued, 2 warning, 3 in force. len = seconds in force; zone = the no-dash decree's section; warnAt = when its warning began.
 const DEC = { st: 0, key: '', tgt: null, t: 0, count: -1, banner: false, len: 0, zone: null, warnAt: -1 };
@@ -1845,6 +1885,7 @@ function step(dt) {
   stepOrbs(dt);
   stepTaiji(dt);
   stepNong(dt);
+  stepDao(dt);
   const vr = CONFIG.VISION_R + (boonOn(P, 2) ? P.bV[2] : 0);
   if (vr !== G.visR) { G.visR = vr; if (G.view === 'follow') FOW.uFowR.value = vr; }
   if (roy && CONFIG.ROYALE_MINIONS) stepKennel(dt);
@@ -1912,6 +1953,10 @@ function tickSuit(s, dt) {
   if (s.sealT > 0) s.sealT = Math.max(0, s.sealT - dt);
   if (s.feedT > 0) s.feedT = Math.max(0, s.feedT - dt);
   if (s.jiuT > 0) { s.jiuT -= dt; if (s.jiuT <= 0) { s.jiuT = 0; s.jiuN = 0; s.jiuSk = null; } }
+  // 道甲's stances and 反 (ticket 08).
+  if (s.rouT > 0) s.rouT = Math.max(0, s.rouT - dt);
+  if (s.zhengT > 0) s.zhengT = Math.max(0, s.zhengT - dt);
+  if (s.fanT > 0) { s.fanT -= dt; if (s.fanT <= 0) { s.fanT = 0; s.fanK = 1; } }
   if (s.bleedT > 0) {
     s.bleedT -= dt; const b = CONFIG.BLEED.dps * s.bleedN * dt;
     const lost = hurtSuit(s, b, 'bleed', null);
@@ -1925,7 +1970,7 @@ function tickSuit(s, dt) {
 }
 // Walk speed of a suit with its slow, Howler plate and speed boon (bonuses capped).
 function suitSpeed(s) {
-  return s.spd * (s.slowT > 0 ? 1 - s.slowK : 1) * Math.min(CONFIG.BONUS_CAP, (hasPlate(s, 'howler') ? 1 + CONFIG.PLATE.speed : 1) * (1 + (boonOn(s, 3) ? s.bV[3] : 0)));
+  return s.spd * (s.slowT > 0 ? 1 - s.slowK : 1) * Math.min(CONFIG.BONUS_CAP, (hasPlate(s, 'howler') ? 1 + CONFIG.PLATE.speed : 1) * (1 + (boonOn(s, 3) ? s.bV[3] : 0)) * fanOf(s));
 }
 // Body of a suit for one step: knockback, walking with axis sliding, facing, then floors (step up, drop a layer, or fall into the void).
 // mx, mz = wanted direction (length up to 1). Sets s.moved (metres this step) and s.floor (floor under the feet or null).
@@ -1980,11 +2025,12 @@ function stepCombat(dt) {
     if (st.cdT > 0) st.cdT = Math.max(0, st.cdT - (i === 2 ? dt * ultCdK(P) : dt));
     // R on the meter (batch 15) shows its whole charge on the dark cover until full (code -2 - charge, so -1 never matches) and the gold ring; otherwise the cooldown seconds.
     // 阴阳甲's lock (batch 16): off cooldown, the R button shows the taiji symbol of the halves filled (code -1000 - halves) until both are full.
-    const meter = i === 2 && onMeter(P), lock = i === 2 && P.ultMode === 'lock', yy = (P.yinF ? 1 : 0) + (P.yangF ? 2 : 0);
-    const c = meter ? (P.ch >= CONFIG.ULT.full ? 0 : -2 - Math.floor(P.ch)) : lock && st.cdT <= 0 ? (yy === 3 ? 0 : -1000 - yy) : Math.ceil(st.cdT);
+    // 道甲's counters (ticket 08): off cooldown, the R button shows the counters made since his last R (code -5000 - counters).
+    const meter = i === 2 && onMeter(P), lock = i === 2 && P.ultMode === 'lock', yy = (P.yinF ? 1 : 0) + (P.yangF ? 2 : 0), dao = i === 2 && P.ultMode === 'counters';
+    const c = meter ? (P.ch >= CONFIG.ULT.full ? 0 : -2 - Math.floor(P.ch)) : lock && st.cdT <= 0 ? (yy === 3 ? 0 : -1000 - yy) : dao && st.cdT <= 0 ? -5000 - P.daoN : Math.ceil(st.cdT);
     if (c !== st.shown) {
       st.shown = c;
-      if (st.cdEl) { CHARGE_VARS.n = -2 - c; setText(st.cdEl, c <= -1000 ? T(YY_KEYS[yy]) : c < 0 ? T('ult_charge', CHARGE_VARS) : c > 0 ? String(c) : ''); setShow(st.cdEl, c !== 0); }
+      if (st.cdEl) { CHARGE_VARS.n = c <= -5000 ? -5000 - c : -2 - c; setText(st.cdEl, c <= -5000 ? T('dao_n', CHARGE_VARS) : c <= -1000 ? T(YY_KEYS[yy]) : c < 0 ? T('ult_charge', CHARGE_VARS) : c > 0 ? String(c) : ''); setShow(st.cdEl, c !== 0); }
       if (st.ring) { setShow(st.ring, meter || lock); if (meter) setRing(st.ring, c < 0 ? -2 - c : 100); else if (lock) setRing(st.ring, c === 0 ? 100 : c <= -1000 ? (yy ? 50 : 0) : 0); }
       if (i === 2) G.chWrites++;
     }
@@ -2014,7 +2060,7 @@ function hurtSuit(s, n, cause, by, src) {
   if (s.dead) return 0;
   // 墨甲's 九距之 (R): a blow from a suit, cub or hunt unit does no damage and is turned back while defences are left.
   if (cause === 'hit' && s.jiuT > 0 && n > 0) { turnBack(s, by, src); return 0; }
-  if (cause === 'hit' || cause === 'bleed') n *= s.armorK * takenK(s);
+  if (cause === 'hit' || cause === 'bleed') n *= armorKOf(s) * takenK(s);
   if (n > 0) { breakUnseen(s); s.expArmT = 0; }
   const lost = Math.min(n, s.hp);
   s.hp -= n; s.noHealT = CONFIG.ALTAR.hitPauseS;
@@ -2202,7 +2248,7 @@ function breakDecree(s) {
   if (s === P) showNote('voice_marked', 'rule_marked', MARK_VARS);
 }
 // Marks off every suit (the wake and a new run).
-function clearMarks() { for (let i = 0; i < SUITS.length; i++) { const s = SUITS[i]; s.markT = 0; s.brkT = 0; s.marker.visible = false; s.dashLeft = 0; s.wsT = -99; breakUnseen(s); s.expT = 0; s.expArmT = 0; s.heldT = 0; s.sealT = 0; endAura(s); endBells(s); lowerWall(s); s.jiuT = 0; s.jiuN = 0; s.jiuSk = null; s.stillT = 0; s.atkAt = -99; endMing(s); endYinyang(s); endNong(s); } }
+function clearMarks() { for (let i = 0; i < SUITS.length; i++) { const s = SUITS[i]; s.markT = 0; s.brkT = 0; s.marker.visible = false; s.dashLeft = 0; s.wsT = -99; breakUnseen(s); s.expT = 0; s.expArmT = 0; s.heldT = 0; s.sealT = 0; endAura(s); endBells(s); lowerWall(s); s.jiuT = 0; s.jiuN = 0; s.jiuSk = null; s.stillT = 0; s.atkAt = -99; s.castAt = -99; endMing(s); endYinyang(s); endNong(s); endDao(s); } }
 // ----- Unseen state (batch 16, minimal; curtains and walls blocking sight come with hiding in batch 18).
 function goUnseen(s, sec) { s.unseenT = sec; setShimmer(s, true); }
 function breakUnseen(s) { if (s.unseenT <= 0) return; s.unseenT = 0; setShimmer(s, false); }
@@ -2250,7 +2296,8 @@ function kitBonus(by, d) {
     const max = d.kind === 'suit' ? CONFIG.MAX_HP : d.maxHp || CONFIG.DUMMY_HP;
     k *= 1 + by.shiSk.exec * Math.max(0, max - d.hp) / max;
   }
-  return k;
+  // 道甲's 反 (R): his base damage times 1 + step x counters.
+  return k * fanOf(by);
 }
 // A self skill (type 'self'): 'unseen' (法甲 W), 'aura' (法甲 R 势), 'bells' (儒甲 R 编钟), 'jiu' (墨甲 R 九距之) or 'harvest' (农甲 R 百草生机). ord = cast by a player order (its hits follow the player's rule).
 function castSelf(s, sk, ord) {
@@ -2259,8 +2306,76 @@ function castSelf(s, sk, ord) {
   if (sk.self === 'harvest') { harvest(s, sk, ord); return; }
   if (sk.self === 'jiu') { s.jiuT = sk.dur; s.jiuN = sk.hits; s.jiuSk = sk; return; }
   if (sk.self === 'aura') { s.shiT = sk.dur; s.shiSk = sk; s.shiRing.scale.setScalar(sk.radius); s.shiRing.position.set(s.x, s.y + 0.07, s.z); if (!s.shiRing.parent) { scene.add(s.shiRing); G.auraN++; } }
+  // 道甲 (ticket 08): his two stances and 反.
+  if (sk.self === 'rou') { s.rouT = sk.stance; s.rouS = sk.stance; showStance(s, sk); return; }
+  if (sk.self === 'zheng') { s.zhengT = sk.stance; s.zhengS = sk.stance; showStance(s, sk); return; }
+  if (sk.self === 'fan') { s.fanT = sk.dur; s.fanK = 1 + Math.min(s.daoN, sk.maxN) * sk.step; s.daoN = 0; }
 }
 function endAura(s) { if (s.shiT <= 0 && !s.shiRing.parent) return; s.shiT = 0; s.shiSk = null; if (s.shiRing.parent) { scene.remove(s.shiRing); G.auraN--; } }
+// ----- 道甲 (batch 16 ticket 08): the stances, the one counter function, the flow, 反 and 无为.
+// A stance's water shimmer: a ring around him, in the scene while a stance is up (drawn where the player sees him).
+function showStance(s, sk) { s.stanceRing.scale.setScalar(sk.radius); s.stanceRing.position.set(s.x, s.y + 0.07, s.z); if (!s.stanceRing.parent) { scene.add(s.stanceRing); G.stanceN++; } }
+function hideStance(s) { if (s.stanceRing.parent) { scene.remove(s.stanceRing); G.stanceN--; } }
+// The one counter function: every blow on a suit from a suit, cub or hunt unit passes here (basic attacks and skills; hazards, collapses and bleed do not).
+// by = the hitting suit, src = the hitting cub or hunt unit; n = the blow's damage. True = countered (the blow lands nothing on s).
+// Q (柔) takes the first basic attack: the attacker takes the blow instead and is pushed away. W (不争) takes the first skill: it misses and he flows to the caster.
+function counterHit(s, basic, by, src, n) {
+  if (s.dead || (basic ? s.rouT <= 0 : s.zhengT <= 0)) return false;
+  const a = by || src; if (!a) return false;
+  const slot = basic ? 0 : 1, sk = skillOf(s, slot);
+  if (basic) { s.rouT = 0; turnBlow(s, sk, by, src, n); } else { s.zhengT = 0; daoFlow(s, sk, a.x, a.z); }
+  if (s.rouT <= 0 && s.zhengT <= 0) hideStance(s);
+  // Success: +1 counter (at most maxN counted for R) and half of the skill's cooldown back.
+  s.daoN = Math.min(skillOf(s, 2).maxN, s.daoN + 1); s.counterN++; G.counterN++;
+  // The player's cooldowns live in the bar; bots (and the checks' autopilot driving the player) keep theirs in cd.
+  if (s === P && !G.autoP) SK[slot].cdT = Math.max(0, SK[slot].cdT - sk.cd / 2); else s.cd[slot] = Math.max(0, s.cd[slot] - sk.cd / 2);
+  return true;
+}
+// 柔: the attacker takes the blow (its own armor applies) and is pushed away: a suit by knockback, a cub or minion unitM m, the demon demonM m.
+function turnBlow(s, sk, by, src, n) {
+  if (by && by.kind === 'suit') {
+    if (by.dead) return;
+    const dx = by.x - s.x, dz = by.z - s.z, l = Math.hypot(dx, dz) || 1; by.kx += dx / l * sk.push; by.kz += dz / l * sk.push;
+    hurtSuit(by, n, 'hit', s);
+    return;
+  }
+  if (!src || !src.alive) return;
+  hitEnemy(src, n, s);
+  if (src.alive) shoveUnit(src, s.x, s.z, src === DEMON ? sk.demonM : sk.unitM);
+}
+// 不争: he flows toward the caster at x, z by the walking rule, stopping beside m short of it (at most flowMax m); held by a 势 ring he stays put.
+function daoFlow(s, sk, x, z) {
+  if (held(s) || s.dead) return;
+  const dx = x - s.x, dz = z - s.z, l = Math.hypot(dx, dz), len = Math.min(sk.flowMax, l - sk.beside);
+  if (len < 0.2) return;
+  s.dashLeft = len; s.dashOx = s.x; s.dashOz = s.z; s.dashX = dx / l; s.dashZ = dz / l; s.dashStep = len / sk.flowS * CONFIG.STEP; s.dashSlot = 1; s.dashOrd = s === P;
+  if (decOn('nodash') && s.floor && s.floor.s === DEC.zone) breakDecree(s);
+}
+// Multiplier of 反 (R) on his base damage, walk speed and armor while it lasts (1 otherwise).
+function fanOf(s) { return s.fanT > 0 ? s.fanK : 1; }
+// Damage multiplier from a suit's armor (stats tiers; 道甲's 反 multiplies his armor).
+function armorKOf(s) { if (s.fanT <= 0) return s.armorK; const S = CONFIG.STATS; return (S.K + S.armor[S.yard]) / (S.K + s.armor * s.fanK); }
+// Stances, 反 and 无为 (fixed step, after the timers): shimmer rings follow their suit; the passive hides a still 道甲 and a move ends it.
+function stepDao(dt) {
+  for (let i = 0; i < SUITS.length; i++) {
+    const s = SUITS[i];
+    if (s.stanceRing.parent) {
+      if (s.dead || (s.rouT <= 0 && s.zhengT <= 0)) hideStance(s);
+      else { s.stanceRing.position.set(s.x, s.y + 0.07, s.z); s.stanceRing.visible = s === P || s.seen; }
+    }
+    if (!s.kit || s.kit.passive !== 'wuwei' || s.dead) continue;
+    if (s.wuwei) { if (s.unseenT <= 0 || s.stillT <= 0) { s.wuwei = false; breakUnseen(s); } continue; }
+    const W = s.kit.wuwei;
+    if (s.unseenT <= 0 && s.stillT >= W.stillS && G.time - s.atkAt >= W.stillS && G.time - s.castAt >= W.stillS) { s.wuwei = true; goUnseen(s, 1e6); }
+  }
+}
+// Everything of 道甲's that is up (a new run, the wake, out of the match); the counters stay until his next R or a new run.
+function endDao(s) { s.rouT = 0; s.zhengT = 0; s.fanT = 0; s.fanK = 1; hideStance(s); if (s.wuwei) { s.wuwei = false; breakUnseen(s); } }
+// A suit in the matching stance that bot b has seen for its reaction time: the bot holds off (the shimmer is the tell).
+function stanceHeld(q, basic, b) {
+  if (!q || q.kind !== 'suit') return false;
+  return basic ? q.rouT > 0 && q.rouS - q.rouT >= b.skill.react : q.zhengT > 0 && q.zhengS - q.zhengT >= b.skill.react;
+}
 // Share of a blow a suit takes from its own passive: 儒甲's 君子之争 while at most one enemy is near (a fair duel), 墨甲's 非攻 guard after standing
 // still for stillS seconds; 1 for every other suit.
 function takenK(s) {
@@ -2281,17 +2396,19 @@ function foesNear(s, r) {
 // every every-th hit is strong: a volley of arrows, or a heavy cut that pushes a suit back.
 function basicAttack(s, d) {
   const at = s.kit.attack;
+  // 道甲's 无为 (ticket 08): an attack swing counts as acting.
+  s.castAt = G.time;
   // 名甲's wheel (ticket 05): thrown, it hits on its way out and back (a player order follows the player's targeting rule).
   if (at.wheel) { throwWheel(s, d, s === P && !G.autoP); return; }
   // 阴阳甲's 两仪 (ticket 06): an orb flies at the target and lands on the first target it reaches.
   if (at.orb) { s.atkN++; const ox = d.x - s.x, oz = d.z - s.z, ol = Math.hypot(ox, oz) || 1; fireOrb(s, 0, at, ox / ol, oz / ol, s === P && !G.autoP); return; }
   // Bolts and arrows (attacks reaching past melee, MELEE_M) stop at a standing wall (墨甲's 距云梯); a cut does not.
-  if (!at.closeR) { if (at.range <= CONFIG.MELEE_M || !wallCuts(s.x, s.z, d.x, d.z)) hitTarget(s, d, at.dmg); return; }
+  if (!at.closeR) { if (at.range <= CONFIG.MELEE_M || !wallCuts(s.x, s.z, d.x, d.z)) hitTarget(s, d, at.dmg, true); return; }
   s.atkN++;
   const strong = s.atkN % at.every === 0;
-  if (Math.hypot(d.x - s.x, d.z - s.z) > at.closeR + d.r) { if (wallCuts(s.x, s.z, d.x, d.z)) return; for (let i = 0; i < (strong ? at.volley : 1); i++) hitTarget(s, d, at.farDmg); return; }
-  hitTarget(s, d, strong ? at.heavyDmg : at.closeDmg);
-  if (!strong || d.kind !== 'suit' || d.dead) return;
+  if (Math.hypot(d.x - s.x, d.z - s.z) > at.closeR + d.r) { if (wallCuts(s.x, s.z, d.x, d.z)) return; for (let i = 0; i < (strong ? at.volley : 1); i++) hitTarget(s, d, at.farDmg, true); return; }
+  const landed = hitTarget(s, d, strong ? at.heavyDmg : at.closeDmg, true);
+  if (!landed || !strong || d.kind !== 'suit' || d.dead) return;
   const dx = d.x - s.x, dz = d.z - s.z, l = Math.hypot(dx, dz) || 1;
   d.kx += dx / l * at.heavyKb; d.kz += dz / l * at.heavyKb;
 }
@@ -2317,8 +2434,7 @@ function ringBell(s, sk, last) {
   for (let i = -1; i < TARGETS.length; i++) {
     const d = i < 0 ? P : TARGETS[i];
     if (!skillTargetOk(s, d, s.bellOrd) || Math.hypot(d.x - s.x, d.z - s.z) > sk.radius + d.r) continue;
-    hitTarget(s, d, sk.dmg);
-    if (d.kind !== 'suit') continue;
+    if (!hitTarget(s, d, sk.dmg) || d.kind !== 'suit') continue;
     if (!d.dead) { d.slowK = Math.max(d.slowT > 0 ? d.slowK : 0, sk.slow); d.slowT = Math.max(d.slowT, sk.slowS); if (last) d.stunT = Math.max(d.stunT, sk.stun); }
     if (!s.dead) s.hp = Math.min(CONFIG.MAX_HP, s.hp + sk.heal);
   }
@@ -2464,7 +2580,7 @@ function wheelHits(s, w, at) {
   for (let i = -1; i < TARGETS.length; i++) {
     const d = i < 0 ? P : TARGETS[i];
     if (!skillTargetOk(s, d, w.ord) || Math.abs(d.y - w.y) > 2 || Math.hypot(d.x - w.x, d.z - w.z) > at.radius + d.r || wheelHad(w, d)) continue;
-    w.hit[w.hitN++] = d; hitTarget(s, d, at.dmg);
+    w.hit[w.hitN++] = d; hitTarget(s, d, at.dmg, true);
   }
 }
 function wheelHad(w, d) { for (let k = 0; k < w.hitN; k++) if (w.hit[k] === d) return true; return false; }
@@ -2582,7 +2698,7 @@ function orbLands(s, k, o, at) {
   for (let i = -1; i < TARGETS.length; i++) {
     const d = i < 0 ? P : TARGETS[i];
     if (!skillTargetOk(s, d, o.ord) || Math.abs(d.y - o.y) > 2 || Math.hypot(d.x - o.x, d.z - o.z) > at.radius + d.r) continue;
-    if (k === 0) hitTarget(s, d, at.dmg); else skillHit(s, at, d, o.dx, o.dz);
+    if (k === 0) hitTarget(s, d, at.dmg, true); else skillHit(s, at, d, o.dx, o.dz);
     return true;
   }
   return false;
@@ -2783,8 +2899,8 @@ function startDash(s, slot, dx, dz, ord, len) {
 // Dash over (full length or blocked): the burst lands around the suit (a line dash hits along its path from where it began).
 function dashLand(s) {
   s.dashLeft = 0;
-  // A blink (名甲's Q) lands with no hit.
-  if (skillOf(s, s.dashSlot).blink) return;
+  // A blink (名甲's Q) and 道甲's flow (W) land with no hit.
+  if (skillOf(s, s.dashSlot).blink || skillOf(s, s.dashSlot).flow) return;
   // 农甲's plough (W) lays its furrow; it has no hit.
   if (skillOf(s, s.dashSlot).furrow) { layFurrow(s, skillOf(s, s.dashSlot)); if (!skillOf(s, s.dashSlot).dmg) return; }
   if (s.dashOrd) applySkill(s.dashSlot, s.x, s.z, s.dashX, s.dashZ, s.dashOx, s.dashOz);
@@ -2851,8 +2967,10 @@ function updateStatus() {
   // Skill buttons show the silence (class written only on change).
   if (sil !== P.silShown) { P.silShown = sil; el.bar.classList.toggle('silenced', sil); }
   const hd = held(P), ex = P.expT > 0, un = P.unseenT > 0, se = P.sealT > 0, jn = P.jiuT > 0 ? P.jiuN : 0, yy = P.ultMode === 'lock' ? 1 + (P.yinF ? 1 : 0) + (P.yangF ? 2 : 0) : 0;
+  // 道甲 (ticket 08): counters (1 + count), a stance up (1 柔, 2 不争, 3 both) and 反 in force.
+  const dn = P.ultMode === 'counters' ? 1 + P.daoN : 0, stn = (P.rouT > 0 ? 1 : 0) + (P.zhengT > 0 ? 2 : 0), fan = P.fanT > 0;
   const code = (P.stunT > 0 ? 100 : 0) + (P.slowT > 0 ? 10 : 0) + P.bleedN + s0 * 1e3 + s1 * 1e5 + (P.pk[0] === 'howler' ? 1e7 : 0) + (P.pk[1] === 'howler' ? 2e7 : 0) + (sil ? 4e7 : 0) + (mk ? 8e7 : 0)
-    + (hd ? 16e7 : 0) + (ex ? 32e7 : 0) + (un ? 64e7 : 0) + (se ? 128e7 : 0) + jn * 256e7 + yy * 256e8;
+    + (hd ? 16e7 : 0) + (ex ? 32e7 : 0) + (un ? 64e7 : 0) + (se ? 128e7 : 0) + jn * 256e7 + yy * 256e8 + dn * 1e12 + stn * 1e13 + (fan ? 4e13 : 0);
   const tick = P.bT[0] + P.bT[1] + P.bT[2] + P.bT[3] > 0 ? Math.floor(G.time) : -1;
   if (code === P.statusShown && tick === P.statusTick) return;
   P.statusShown = code; P.statusTick = tick;
@@ -2863,6 +2981,11 @@ function updateStatus() {
   if (jn > 0) { JIU_VARS.n = jn; s += T('st_jiu', JIU_VARS) + '  '; }
   // 阴阳甲's lock: the taiji symbol of the halves filled.
   if (yy > 0) { YY_VARS.s = T(YY_KEYS[yy - 1]); s += T('st_yy', YY_VARS) + '  '; }
+  // 道甲: counters, stances, 反.
+  if (dn > 0) { DAO_VARS.n = dn - 1; s += T('st_dao', DAO_VARS) + '  '; }
+  if (stn & 1) s += T('st_rou') + '  ';
+  if (stn & 2) s += T('st_zheng') + '  ';
+  if (fan) { DAO_VARS.k = P.fanK.toFixed(2); s += T('st_fan', DAO_VARS) + '  '; }
   if (ex) s += T('st_exposed') + '  ';
   if (hd) s += T('st_held') + '  ';
   if (se) s += T('st_sealed') + '  ';
@@ -2956,6 +3079,8 @@ function resolveMove(u) {
     } else hit = Math.hypot(s.x - u.tx, s.z - u.tz) <= m.radius;
     if (!hit) continue;
     const dmg = m.dmg * u.dmgK * (u.frenzyT > 0 ? CONFIG.DEMON_ULT.dmg : 1);
+    // 道甲's stances (ticket 08): the unit's basic attack (claw, bite) or its skill passes the one counter function; a countered move lands nothing on him.
+    if (counterHit(s, k === u.atk, null, u, dmg)) continue;
     if (s === P) { G.hits++; if (u.tellT < G.minTell) G.minTell = u.tellT; }
     if (m.slow) { s.slowK = Math.max(s.slowT > 0 ? s.slowK : 0, m.slow); s.slowT = Math.max(s.slowT, m.slowS); }
     if (m.stun) s.stunT = Math.max(s.stunT, m.stun);
@@ -3338,8 +3463,10 @@ function botThink(b, dt) {
   // Standing on a warned section beats everything: decide now (flee), and do not stop to dodge.
   const warned = (b.zone && b.zone.state === 1) || (G.hiAvoid && onHeights(b));
   if (warned && b.mode !== 'flee') b.thinkT = 0;
+  // 道甲 (ticket 08): raise a stance against a blow about to land; while 不争 is up against a skill tell, stand in it (the counter is the dodge).
+  if (!warned && b.kit.passive === 'wuwei') botStance(b);
   // Dodge every step: out of any shown tell it has seen long enough (radius + margin), straight away from its centre or line.
-  if (!warned && botDanger(b, b.x, b.z, B.dodgeMargin)) {
+  if (!warned && !(b.zhengT > 0 && skillThreat(b)) && botDanger(b, b.x, b.z, B.dodgeMargin)) {
     b.mode = 'dodge'; const l = Math.hypot(DNG.ex, DNG.ez) || 1; b.mx = DNG.ex / l; b.mz = DNG.ez / l; b.path.n = 0; b.navWant = false; b.goalT = 1e9;
     return;
   }
@@ -3356,14 +3483,16 @@ function botThink(b, dt) {
       if (at.keep && d < at.keep && lineWalk(b.x, b.z, b.y, b.x - dx / d, b.z - dz / d)) { b.mx = -dx / d; b.mz = -dz / d; }
       // A ready aura ultimate (法甲's 势, 儒甲's 编钟) is cast close: the bot walks in while it keeps attacking.
       else if (d > botAuraIn(b)) { b.mx = dx / d; b.mz = dz / d; }
-      if (b.atkT <= 0 && b.stunT <= 0 && b.tgtT >= sk.react) { basicAttack(b, q); b.atkT = at.interval; }
+      // A target in 道甲's 柔 stance that the bot has seen for its reaction time: it holds its attack (the shimmer is the tell).
+      if (b.atkT <= 0 && b.stunT <= 0 && b.tgtT >= sk.react && !stanceHeld(q, true, b)) { basicAttack(b, q); b.atkT = at.interval; }
     } else if (b.direct) { b.mx = dx / d; b.mz = dz / d; }
     else botFollow(b);
   } else if (b.mode === 'heal' && b.heal) {
+    botReadyUlt(b);
     botFleeWall(b);
     // A sprout is eaten only by walking onto it; an altar heals across its radius.
     if (Math.hypot(b.heal.x - b.x, b.heal.z - b.z) > (b.heal.sprout ? 0.2 : CONFIG.ALTAR.radius * 0.6)) botFollow(b);
-  } else botFollow(b);
+  } else { if (b.mode === 'avoid') botReadyUlt(b); if (b.mode === 'avoid' || b.mode === 'roam') botFieldAhead(b); botFollow(b); }
   // Never step into a tell it has seen long enough (unless leaving a warned section).
   if (!warned && (b.mx !== 0 || b.mz !== 0) && botDanger(b, b.x + b.mx * 0.8, b.z + b.mz * 0.8, 0.3)) { b.mx = 0; b.mz = 0; }
 }
@@ -3372,9 +3501,11 @@ function botDecide(b) {
   // Airborne (a drop in progress): keep the current decision until landing (batch 13 fix: a bot fleeing Our heights stepped off the ramp edge,
   // decided again in the air, no longer counted as on the heights, and walked back onto the ramp, over and over).
   if (b.air) return;
-  // Leave a warned section for the nearest safe standing spot.
-  if ((b.zone && b.zone.state === 1) || (G.hiAvoid && onHeights(b))) {
-    if (b.mode !== 'flee' || (!b.navWant && b.path.i >= b.path.n)) { b.mode = 'flee'; b.tgt = null; botSafeGoal(b); }
+  // Leave a warned section for the nearest safe standing spot, and walk all the way to it before deciding again (batch 16 ticket 08 fix: a bot one step
+  // off the heights decided again at the edge; its new path started on the heights section, which a search never avoids, and led back onto it, over and over).
+  const warnedHere = (b.zone && b.zone.state === 1) || (G.hiAvoid && onHeights(b));
+  if (warnedHere || (b.mode === 'flee' && b.fleeGo && (b.navWant || b.path.i < b.path.n))) {
+    if (warnedHere && (b.mode !== 'flee' || (!b.navWant && b.path.i >= b.path.n))) { b.mode = 'flee'; b.tgt = null; botSafeGoal(b); }
     return;
   }
   // Pacing (assumption 23 Nov, for the 3-4 min royale): a bot starts a fight only with a suit inside its engage radius, which grows from
@@ -3490,13 +3621,18 @@ function botTarget(b, t, mode) {
 // A marked suit (batch 12) is seen by every bot from anywhere.
 function botSees(b, s, vr) { return !s.dead && !hiddenFrom(s, b.x, b.z) && (seenAnywhere(s) || (Math.abs(s.y - b.y) < 2 && Math.hypot(s.x - b.x, s.z - b.z) <= vr)); }
 // Skills when ready and in range: Q line, W burst, R delayed burst with a ring shown for its whole delay. Aim error from the skill profile.
-function botUseSkills(b, q, d) {
+// ultOnly = only the ultimate is considered (botReadyUlt, outside a fight).
+function botUseSkills(b, q, d, ultOnly) {
   const S = b.kit.skills, B = CONFIG.BOT, err = (1 - b.skill.hit) * B.aimErrM;
   // Decrees: silenced on a bridge; no dash inside the no-dash zone. No cast while dashing.
   if (b.dashLeft > 0 || silenced(b)) return;
   const noDash = (decOn('nodash') && !!b.floor && b.floor.s === DEC.zone) || held(b);
-  for (let slot = 0; slot < 3; slot++) {
+  // A target in 道甲's 不争 stance that the bot has seen for its reaction time: no skill at it now.
+  if (stanceHeld(q, false, b)) return;
+  for (let slot = ultOnly ? 2 : 0; slot < 3; slot++) {
     const sk = S[slot];
+    // 道甲's stances are raised by botStance (against a blow about to land), not at a target.
+    if (sk.tag === 'stanceBasic' || sk.tag === 'stanceSkill') continue;
     // Batch 15: R on the meter also needs a full meter.
     if (b.cd[slot] > 0 || (slot === 2 && (b.pend || !ultUnlocked(b)))) continue;
     // 阴阳甲 (lock): a skill whose half is already full waits while the other half is still empty (the bot alternates 阴 and 阳 to unlock 太极).
@@ -3512,6 +3648,8 @@ function botUseSkills(b, q, d) {
     if (sk.tag === 'dashIn' ? (noDash || d < B.dashMinM || d > dMax || Math.abs(q.y - b.y) > 0.7) : sk.tag === 'blinkAway' ? (noDash || d > sk.botNear)
       : sk.tag === 'stealth' || sk.tag === 'wall' ? (d < sk.botMin || d > sk.botMax) : sk.tag === 'aura' ? d > sk.radius * sk.botIn
       : sk.tag === 'guard' || sk.tag === 'sow' ? d > sk.botR
+      // 'fan' (道甲 R) in a fight with at least botMin counters and the target within its attack reach + 2 m.
+      : sk.tag === 'fan' ? b.daoN < sk.botMin || d > b.kit.attack.range + 2
       : sk.tag === 'harvest' ? sproutsNear(b, sk.radius) < sk.botMin || (d > sk.pulseR + q.r && b.hp >= B.lowHp) : d > sk.range) continue;
     const a = brnd() * 6.2832, r = brnd() * err, tx = q.x + Math.cos(a) * r, tz = q.z + Math.sin(a) * r;
     let dx = tx - b.x, dz = tz - b.z; const len = Math.hypot(dx, dz) || 1e-6; dx /= len; dz /= len;
@@ -3519,7 +3657,7 @@ function botUseSkills(b, q, d) {
     const dist = sk.type === 'line' ? sk.range : Math.min(len, sk.range), x = b.x + dx * dist, z = b.z + dz * dist;
     if (sk.wall && !wallFits(b, sk, q.x + dx * sk.botBehind, q.z + dz * sk.botBehind, dx, dz)) continue;
     if (slot === 2) spendUlt(b, sk); else b.cd[slot] = sk.cd;
-    b.faceX = dx; b.faceZ = dz; b.castT = CONFIG.BOT.castGapS; breakUnseen(b);
+    b.faceX = dx; b.faceZ = dz; b.castT = CONFIG.BOT.castGapS; breakUnseen(b); b.castAt = G.time;
     if (sk.self) castSelf(b, sk, false);
     else if (sk.orb) fireOrb(b, 1, sk, dx, dz, false);
     else if (sk.taiji) startTaiji(b, sk, x, z, dx, dz, false);
@@ -3533,6 +3671,73 @@ function botUseSkills(b, q, d) {
     } else botSkillHit(b, slot, x, z, dx, dz);
     return;
   }
+}
+// A ready ultimate used outside a fight where its kit says so (batch 16 ticket 08 fix: botUseSkills runs only in a fight, so a bot keeping away from
+// suits or going to heal held a full meter and never cast): 名甲's long line ('pierce') at the suit it keeps away from (the player only while it holds
+// a hunter slot), 农甲's harvest ('harvest') while going to heal with enough sprouts near (its rule "or when low").
+function botReadyUlt(b) {
+  if (b.castT > 0 || b.stunT > 0 || b.tgtT < b.skill.react) return;
+  const sk = b.kit.skills[2];
+  if (sk.tag === 'harvest' && b.mode === 'heal') { botUseSkills(b, b, 0, true); return; }
+  const q = b.tgt;
+  if (sk.tag === 'pierce' && b.mode === 'avoid' && q && q.kind === 'suit' && !q.dead && (q !== P || b.hunter)) botUseSkills(b, q, Math.hypot(q.x - b.x, q.z - b.z), true);
+}
+// 农甲's bot out of a fight (batch 16 ticket 08 fix: it sowed only with a target in reach, fights start after the peace and it fell in its first fight
+// with every seed still growing, so it never had a grown sprout to eat): Q at its feet while fewer than seeds of its planted sprouts stand within seekM.
+function botFieldAhead(b) {
+  const sk = b.kit.skills[0];
+  if (sk.tag !== 'sow' || b.cd[0] > 0 || b.castT > 0 || b.stunT > 0 || b.dashLeft > 0 || silenced(b)) return;
+  if (sproutsNear(b, CONFIG.KITS.nong.tiller.seekM) >= sk.seeds) return;
+  b.cd[0] = sk.cd; b.castT = CONFIG.BOT.castGapS; breakUnseen(b); b.castAt = G.time;
+  sowSeeds(b, sk, b.x, b.z);
+}
+// 道甲's bot (ticket 08): 不争 (W) when a skill tell it has seen covers it, else 柔 (Q) when a basic attack is about to land on it.
+function botStance(b) {
+  if (b.stunT > 0 || b.dashLeft > 0 || b.castT > 0 || silenced(b)) return;
+  const S = b.kit.skills;
+  let slot = -1;
+  if (b.cd[1] <= 0 && b.zhengT <= 0 && skillThreat(b)) slot = 1;
+  else if (b.cd[0] <= 0 && b.rouT <= 0 && basicThreat(b)) slot = 0;
+  if (slot < 0) return;
+  b.cd[slot] = S[slot].cd; b.castT = CONFIG.BOT.castGapS; breakUnseen(b); b.castAt = G.time;
+  castSelf(b, S[slot], false);
+}
+// A skill tell that bot b has seen for its reaction time covers it: a cub's or minion's skill move (not its bite), another bot's delayed ring, the player's delayed ring.
+function skillThreat(b) {
+  const react = b.skill.react;
+  for (let i = 0; i < CUBS.length; i++) {
+    const u = CUBS[i];
+    if (!u.alive || u.st !== 1 || u.cur === u.atk || u.tellT < react || Math.abs(u.y - b.y) >= 1.5) continue;
+    if (unitCovers(u, b)) return true;
+  }
+  for (let i = 0; i < BOTLIST.length; i++) {
+    const o = BOTLIST[i];
+    if (o === b || !o.pend || o.pendAge < react) continue;
+    if (Math.hypot(b.x - o.pendX, b.z - o.pendZ) < skillOf(o, o.pendS).radius + b.r) return true;
+  }
+  return PEND.on && skillOf(P, PEND.slot).delay - PEND.t >= react && Math.hypot(b.x - PEND.x, b.z - PEND.z) < skillOf(P, PEND.slot).radius + b.r;
+}
+// A basic attack is about to land on bot b: a cub's bite tell seen for its reaction time covers it, or an enemy suit fighting it is within its
+// attack reach and its next swing is due within the bot's reaction time.
+function basicThreat(b) {
+  const react = b.skill.react;
+  for (let i = 0; i < CUBS.length; i++) {
+    const u = CUBS[i];
+    if (u.alive && u.st === 1 && u.cur === u.atk && u.tellT >= react && Math.abs(u.y - b.y) < 1.5 && unitCovers(u, b)) return true;
+  }
+  for (let i = 0; i < SUITS.length; i++) {
+    const o = SUITS[i];
+    if (o === b || o.dead || !o.kit || o.atkT > react) continue;
+    const on = o === P ? ORD.attack === b || (G.autoP && P.tgt === b && P.mode === 'fight') : o.tgt === b && o.mode === 'fight';
+    if (on && Math.abs(o.y - b.y) < 2 && Math.hypot(o.x - b.x, o.z - b.z) <= o.kit.attack.range + b.r + 0.5) return true;
+  }
+  return false;
+}
+// A cub's or hunt unit's shown move covers suit s (its line or its circle, as resolveMove will test it).
+function unitCovers(u, s) {
+  const m = MOVES[u.cur];
+  if (m.shape === 'line') { const qx = s.x - u.x, qz = s.z - u.z, along = qx * u.fx + qz * u.fz; return along >= 0 && along <= u.tl && Math.abs(qx * u.fz - qz * u.fx) <= m.width / 2; }
+  return Math.hypot(s.x - u.tx, s.z - u.tz) <= m.radius;
 }
 // A bot of 墨甲 going to heal raises its wall botFlee m toward the suit that last hit it (within its wall range + its own botFlee), between them.
 function botFleeWall(b) {
@@ -3562,7 +3767,8 @@ function skillTargetOk(s, d, ord) {
 }
 // A skill lands on d: its damage, then its kit effects on a suit: 正名's seal (儒甲 W) and the chariot's sideways drive (儒甲 Q, away from the path).
 function skillHit(s, sk, d, dx, dz) {
-  hitTarget(s, d, sk.dmg);
+  // A countered blow (道甲's W) lands none of the skill's effects (a blow on 名甲's shadow keeps its old path: nothing lands on it but the caster's own effects).
+  if (!hitTarget(s, d, sk.dmg) && d.kind !== 'shadow') return;
   // 阴阳甲 (ticket 06): a landed 阴 or 阳 fills its half; 阴 heals him drain.
   if (sk.half) fillHalf(s, sk.half);
   if (sk.drain && !s.dead) s.hp = Math.min(CONFIG.MAX_HP, s.hp + sk.drain);
@@ -3630,7 +3836,7 @@ function botDanger(b, x, z, margin) {
   return false;
 }
 // Ask the path queue for the shortest walk off a warned section (navFlee).
-function botSafeGoal(b) { b.flee = true; b.navWant = true; b.goalT = 0; b.path.n = 0; b.path.i = 0; }
+function botSafeGoal(b) { b.flee = true; b.fleeGo = true; b.navWant = true; b.goalT = 0; b.path.n = 0; b.path.i = 0; }
 // Within a hazard's trigger range plus one metre.
 function nearHazard(x, z, y) {
   for (let i = 0; i < HAZARDS.length; i++) { const h = HAZARDS[i]; if (h.s.state < 2 && Math.abs(h.y - y) < 3 && Math.hypot(x - h.x, z - h.z) < h.cfg.range + 1) return true; }
@@ -3674,7 +3880,7 @@ function botFollow(b) {
   }
 }
 // Set a goal and ask for a path to it.
-function botGoal(b, x, z, y) { b.gx = x; b.gz = z; b.gy = y; b.goalT = 0; b.navWant = true; b.flee = false; b.path.n = 0; b.path.i = 0; b.pathGen = G.warnGen; }
+function botGoal(b, x, z, y) { b.gx = x; b.gz = z; b.gy = y; b.goalT = 0; b.navWant = true; b.flee = false; b.fleeGo = false; b.path.n = 0; b.path.i = 0; b.pathGen = G.warnGen; }
 // A random standing spot on a section that is neither warned nor gone (12 tries, else stay).
 function botRoamGoal(b) {
   for (let t = 0; t < 12; t++) {
@@ -3978,7 +4184,7 @@ function spawnBots() {
     for (let i = 0; i < 4; i++) { b.bT[i] = 0; b.bV[i] = 0; }
     b.cause = ''; b.diedAt = -1; b.killer = null; b.plates = 0; b.boons = 0; b.cd[0] = b.cd[1] = b.cd[2] = 0; b.ch = CONFIG.ULT.start; b.ultN = 0;
     b.navWant = false; b.path.n = 0; b.path.i = 0; b.gx = b.x; b.gz = b.z; b.gy = b.y; b.goalT = 1e9; b.flashT = 0; b.body.material = b.mat;
-    b.thinkT = brnd() * CONFIG.BOT.thinkS; b.tgt = null; b.tgtT = 0; b.mode = ''; b.modeT = 0; b.seenP = false; b.pend = false; b.pendT = 0; b.mx = b.mz = 0; b.direct = false; b.heal = null; b.skip = null; b.castT = 0; b.lastBy = null; b.lastByT = -99; b.declined = null; b.declinedT = -99; b.flee = false; b.pathGen = 0; b.why = ''; b.hunter = false; b.huntLostT = 0;
+    b.thinkT = brnd() * CONFIG.BOT.thinkS; b.tgt = null; b.tgtT = 0; b.mode = ''; b.modeT = 0; b.seenP = false; b.pend = false; b.pendT = 0; b.mx = b.mz = 0; b.direct = false; b.heal = null; b.skip = null; b.castT = 0; b.lastBy = null; b.lastByT = -99; b.declined = null; b.declinedT = -99; b.flee = false; b.fleeGo = false; b.pathGen = 0; b.why = ''; b.hunter = false; b.huntLostT = 0;
     b.bar.scale.x = 1; b.seen = false; b.group.visible = false; b.group.position.set(b.x, b.y, b.z);
     scene.add(b.group);
   }
@@ -4199,7 +4405,7 @@ drawMini();
 renderer.shadowMap.needsUpdate = true;
 if (G.selectOn) openSelect();
 
-// Test hooks (read-mostly). Batch 16 ticket 07: nongState, nongSow (a sowing without a cast). Batch 16 ticket 05: mingState, autoPick (what the auto-target picks), actOf (what a bot acts on), botCast (a bot casts a slot now). Batch 16 ticket 04: moState, wallCut. Batch 16 ticket 02: kitState, strike (a hit through hitTarget), castSelfOf, placeholderKit (a suit back on the placeholder kit at Mid, checks only). Batch 16: openSelect, pickSchool, selectKey, setSelectOn, newRun, schools, setStats, bleed, unseen (set), unseenOf (read).
+// Test hooks (read-mostly). Batch 16 ticket 08: daoState (read), strikeBasic (a basic blow through hitTarget), daoN (set counters, checks only). Batch 16 ticket 07: nongState, nongSow (a sowing without a cast). Batch 16 ticket 05: mingState, autoPick (what the auto-target picks), actOf (what a bot acts on), botCast (a bot casts a slot now). Batch 16 ticket 04: moState, wallCut. Batch 16 ticket 02: kitState, strike (a hit through hitTarget), castSelfOf, placeholderKit (a suit back on the placeholder kit at Mid, checks only). Batch 16: openSelect, pickSchool, selectKey, setSelectOn, newRun, schools, setStats, bleed, unseen (set), unseenOf (read).
 function tellsOf(list) {
   return list.filter((u) => u.alive && u.st === 1 && u.cur !== 'ult').map((u) => { const m = MOVES[u.cur], mesh = m.shape === 'line' ? u.line : u.ring;
     return { by: u.kind, move: u.cur, shape: m.shape, x: m.shape === 'line' ? u.x : u.tx, z: m.shape === 'line' ? u.z : u.tz, r: m.radius || 0, fx: u.fx, fz: u.fz, len: u.tl, w: m.width || 0,
@@ -4227,7 +4433,7 @@ window.__game = {
     buttons: G.selBtns.map((b) => { const r = b.getBoundingClientRect(); return { text: b.textContent, w: r.width, h: r.height, last: b.classList.contains('is-last') }; }),
     suits: SUITS.map((q) => ({ id: q.id, school: q.school, kit: q.kit.id || q.school, armor: q.armor, armorK: q.armorK, spd: q.spd, ultMode: q.ultMode, name: T(q.nameKey), color: q.mat ? q.mat.color.getHex() : -1 })) }),
   setStats(i, a, sp) { setStats(i < 0 ? P : BOTLIST[i], a, sp); },
-  strike(i, j, n) { hitTarget(i < 0 ? P : BOTLIST[i], j < 0 ? P : BOTLIST[j], n); },
+  strike(i, j, n) { return hitTarget(i < 0 ? P : BOTLIST[i], j < 0 ? P : BOTLIST[j], n); },
   castSelfOf(i, slot) { const q = i < 0 ? P : BOTLIST[i]; castSelf(q, skillOf(q, slot), i < 0); },
   placeholderKit(i) { const q = i < 0 ? P : BOTLIST[i]; q.kit = PLACEHOLDER_KIT; q.ultMode = 'charge'; setStats(q, CONFIG.STATS.yard, CONFIG.STATS.yard); },
   bleed(i, n) { const q = i < 0 ? P : BOTLIST[i]; q.bleedN = n; q.bleedT = CONFIG.BLEED.dur; },
@@ -4275,13 +4481,21 @@ window.__game = {
       furrowN: G.furrowN, feedT: q.feedT, harvN: q.harvN, harvT: q.harvT, ringIn: !!q.harvRing.parent, ringR: q.harvRing.scale.x, harvRingN: G.harvRingN, eatN: q.eatN, trampN: q.trampN, hp: q.hp };
   },
   nongSow(i, x, z) { const q = i < 0 ? P : BOTLIST[i]; sowSeeds(q, CONFIG.KITS.nong.skills[0], x, z); },
+  daoState(i) {
+    const q = i < 0 ? P : BOTLIST[i];
+    return { rouT: q.rouT, zhengT: q.zhengT, daoN: q.daoN, counterN: q.counterN, counterAll: G.counterN, fanT: q.fanT, fanK: q.fanK, armorK: armorKOf(q), spd: suitSpeed(q), wuwei: q.wuwei, unseenT: q.unseenT,
+      stillT: q.stillT, castAt: q.castAt, atkAt: q.atkAt, ringIn: !!q.stanceRing.parent, ringVis: q.stanceRing.visible, ringR: q.stanceRing.scale.x, stanceN: G.stanceN, dash: q.dashLeft, x: q.x, z: q.z, hp: q.hp, kx: q.kx, kz: q.kz,
+      slowT: q.slowT, stunT: q.stunT, bleedN: q.bleedN, cd: q === P && !G.autoP ? SK.map((st) => st.cdT) : q.cd.slice(), rBtn: SK[2].cdEl ? SK[2].cdEl.textContent : '', status: el.status.textContent, chWrites: G.chWrites };
+  },
+  strikeBasic(i, j, n) { return hitTarget(i < 0 ? P : BOTLIST[i], j < 0 ? P : BOTLIST[j], n, true); },
+  daoN(i, n) { (i < 0 ? P : BOTLIST[i]).daoN = n; },
   autoPick(r) { const t = autoTarget(r); return !t ? -1 : t.kind === 'shadow' ? 'shadow' + t.owner.id : t.kind === 'suit' ? t.id : -2; },
   actOf(i) { const t = actTarget(BOTLIST[i].tgt); return !t ? -1 : t.kind === 'shadow' ? 'shadow' + t.owner.id : t === P ? 0 : t.kind === 'suit' ? t.id : -2; },
   moState(i) { const q = i < 0 ? P : BOTLIST[i], w = q.wall; return { up: !w.off, x0: w.x0, x1: w.x1, z0: w.z0, z1: w.z1, sec: w.s.id, wallT: q.wallT, meshIn: !!w.mesh.parent,
     jiuT: q.jiuT, jiuN: q.jiuN, stillT: q.stillT, atkAt: q.atkAt, wallN: G.wallN, takenK: takenK(q), status: el.status.textContent }; },
   wallCut: (ax, az, bx, bz) => wallCuts(ax, az, bx, bz),
   duelOf: (i) => takenK(i < 0 ? P : BOTLIST[i]), basicAttackBy(i, j) { basicAttack(i < 0 ? P : BOTLIST[i], j < 0 ? P : BOTLIST[j]); },
-  autoPlayer(on, kennel) { G.autoP = !!on; G.autoK = !!on && !!kennel; P.campK = -1; P.mode = ''; P.tgt = null; P.pathGen = 0; P.heal = null; P.skip = null; P.direct = false; P.tgtT = 0; P.castT = 0; P.lastByT = -99; P.declined = null; P.declinedT = -99; P.gx = P.x; P.gz = P.z; P.gy = P.y; P.navWant = false; P.flee = false; P.pend = false; if (P.ring.parent) scene.remove(P.ring); P.cd[0] = P.cd[1] = P.cd[2] = 0; P.thinkT = 0; P.lastBy = null; P.goalT = 1e9; PATH.n = 0; PATH.i = 0; },
+  autoPlayer(on, kennel) { G.autoP = !!on; G.autoK = !!on && !!kennel; P.campK = -1; P.mode = ''; P.tgt = null; P.pathGen = 0; P.heal = null; P.skip = null; P.direct = false; P.tgtT = 0; P.castT = 0; P.lastByT = -99; P.declined = null; P.declinedT = -99; P.gx = P.x; P.gz = P.z; P.gy = P.y; P.navWant = false; P.flee = false; P.fleeGo = false; P.pend = false; if (P.ring.parent) scene.remove(P.ring); P.cd[0] = P.cd[1] = P.cd[2] = 0; P.thinkT = 0; P.lastBy = null; P.goalT = 1e9; PATH.n = 0; PATH.i = 0; },
   setBotHp(i, n) { BOTLIST[i].hp = n; }, setWatch(on) { G.watch = !!on; },
   royale: () => ({ phase: G.phase, lostIn: G.lostIn, alive: G.alive, decidedAt: G.decidedAt, t: G.time, voice: el.voice.textContent, rule: el.rule.textContent, banner: el.banner.style.display, btn: el.btnHunt.style.display, btnText: el.btnHunt.textContent }), setBotCd(i, slot, v) { BOTLIST[i].cd[slot] = v; }, setTime(t) { G.time = t; },
   hitBy(i, j, n) { const a = i < 0 ? P : BOTLIST[i], b = j < 0 ? P : BOTLIST[j]; hurtSuit(b, n, 'hit', a); },
