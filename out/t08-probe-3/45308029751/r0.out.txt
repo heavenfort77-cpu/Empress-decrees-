@@ -1,0 +1,3 @@
+{"school":"nong","seed":12345,"fullAt":-1,"diedAt":149.4,"cast":0,"samples":0,"modes":{},"why":{},"dHist":{},"near":{},"ult0":0}
+{"school":"nong","seed":2,"fullAt":-1,"diedAt":151.8,"cast":0,"samples":0,"modes":{},"why":{},"dHist":{},"near":{},"ult0":0}
+{"school":"nong","seed":3,"fullAt":-1,"diedAt":127,"cast":0,"samples":0,"modes":{},"why":{},"dHist":{},"near":{},"ult0":0}
