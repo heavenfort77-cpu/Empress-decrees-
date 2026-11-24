@@ -1,0 +1,5 @@
+jobs 4; caught by named check 4 of 4
+{"i": 0, "fails": ["42", "1220"], "tot": ["RUNTIME 272 of 274 pass"], "s": 359, "name": "FONT_WARM off", "want": "1220", "applied": true, "caught_named": true}
+{"i": 1, "fails": ["42", "1220"], "tot": ["RUNTIME 272 of 274 pass"], "s": 277, "name": "one style not warmed", "want": "1220", "applied": true, "caught_named": true}
+{"i": 2, "fails": ["42", "1220"], "tot": ["RUNTIME 272 of 274 pass"], "s": 239, "name": "fullwidth punctuation not warmed", "want": "1220", "applied": true, "caught_named": true}
+{"i": 3, "fails": ["42", "1220"], "tot": ["RUNTIME 272 of 274 pass"], "s": 475, "name": "warm-up text on screen", "want": "1220", "applied": true, "caught_named": true}
