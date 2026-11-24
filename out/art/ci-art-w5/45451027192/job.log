@@ -1,0 +1,317 @@
+== klad fodder_trim
+fodder_trim 3499 ops
+fodder_trim passes base > tone > marks > detail
+== tex_check
+PASS hall_floor density: 256 x 256 px/m
+PASS hall_floor brush scale: 10.0 cm
+PASS hall_floor contrast: lum sd 9.1
+PASS hall_floor saturation: 0.52 (cap 0.55)
+PASS hall_wall density: 256 x 256 px/m
+PASS hall_wall brush scale: 14.1 cm
+PASS hall_wall contrast: lum sd 10.6
+PASS hall_wall saturation: 0.20 (cap 0.55)
+PASS pillar density: 272 x 256 px/m
+PASS pillar brush scale: 11.0 cm
+PASS pillar contrast: lum sd 8.6
+PASS pillar saturation: 0.39 (cap 0.6)
+PASS door density: 256 x 293 px/m
+PASS door brush scale: 4.6 cm
+PASS door contrast: lum sd 8.5
+PASS door saturation: 0.39 (cap 0.6)
+PASS lion_stone density: 256 x 256 px/m
+PASS lion_stone brush scale: 4.5 cm
+PASS lion_stone contrast: lum sd 9.6
+PASS lion_stone saturation: 0.09 (cap 0.55)
+PASS bronze_trim density: 256 x 256 px/m
+PASS bronze_trim brush scale: 10.1 cm
+PASS bronze_trim contrast: lum sd 9.6
+PASS bronze_trim saturation: 0.54 (cap 0.6)
+PASS bronze_trim value: mean lum 104
+PASS fodder_trim density: 256 x 256 px/m
+PASS fodder_trim brush scale: 4.9 cm
+PASS fodder_trim contrast: lum sd 9.4
+PASS fodder_trim saturation: 0.27 (cap 0.55)
+PASS fodder_trim lacquer value: mean lum 31 (22-45)
+PASS fodder_trim lacquer saturation: 0.30 (cap 0.6)
+PASS fodder_trim blue cloth value: mean lum 100 (70-110)
+PASS fodder_trim blue cloth saturation: 0.48 (cap 0.6)
+PASS fodder_trim headband value: mean lum 153 (140-180)
+PASS fodder_trim headband saturation: 0.56 (cap 0.62)
+PASS fodder_trim hemp value: mean lum 127 (90-130)
+PASS fodder_trim hemp saturation: 0.27 (cap 0.55)
+PASS fodder_trim patch value: mean lum 179 (160-210)
+PASS fodder_trim patch saturation: 0.07 (cap 0.12)
+39 of 39 pass
+== guard build
+PASS zu lod0 tris 3544 (budget 4000)
+PASS zu lod1 tris 1218 (budget 1500)
+PASS zu lod2 tris 320 (budget 500; weapons drop at LOD2)
+PASS zu every lod0 vertex weighted, sum 1 (0 bad)
+PASS zu clips ['attack', 'idle', 'move']
+PASS zu attack windup 0.50 s (tell >= 0.4)
+PASS zu weapon tip peaks at 0.50 s = windup 0.50 s
+PASS zu weapon tip moves 2.66 m by the windup (min 0.3)
+PASS zu body half-width 0.44 m (0.7-1.4 x radius 0.45)
+PASS zu body height 1.78 m (band 1.45-1.90)
+PASS zu body 6.4 heads tall (head 0.28 m incl. cap; min 6.0; round 3 about 4.9)
+wrote /tmp/gb/zu.glb 464556 bytes
+PASS nu lod0 tris 3904 (budget 4000)
+PASS nu lod1 tris 1354 (budget 1500)
+PASS nu lod2 tris 360 (budget 500; weapons drop at LOD2)
+PASS nu every lod0 vertex weighted, sum 1 (0 bad)
+PASS nu clips ['attack', 'idle', 'move']
+PASS nu attack windup 0.80 s (tell >= 0.4)
+PASS nu weapon tip peaks at 0.83 s = windup 0.80 s
+PASS nu weapon tip moves 0.91 m by the windup (min 0.3)
+PASS nu body half-width 0.44 m (0.7-1.4 x radius 0.45)
+PASS nu body height 1.71 m (band 1.45-1.90)
+PASS nu body 6.2 heads tall (head 0.28 m incl. cap; min 6.0; round 3 about 4.9)
+wrote /tmp/gb/nu.glb 512116 bytes
+PASS dun lod0 tris 3828 (budget 4000)
+PASS dun lod1 tris 1254 (budget 1500)
+PASS dun lod2 tris 328 (budget 500; weapons drop at LOD2)
+PASS dun every lod0 vertex weighted, sum 1 (0 bad)
+PASS dun clips ['attack', 'idle', 'move']
+PASS dun attack windup 0.50 s (tell >= 0.4)
+PASS dun weapon tip peaks at 0.50 s = windup 0.50 s
+PASS dun weapon tip moves 0.81 m by the windup (min 0.3)
+PASS dun body half-width 0.58 m (0.7-1.4 x radius 0.6)
+PASS dun body height 1.78 m (band 1.45-1.90)
+PASS dun body 6.4 heads tall (head 0.28 m incl. cap; min 6.0; round 3 about 4.9)
+wrote /tmp/gb/dun.glb 497836 bytes
+PASS che lod0 tris 3872 (budget 4000)
+PASS che lod1 tris 1472 (budget 1500)
+PASS che lod2 tris 381 (budget 500; weapons drop at LOD2)
+PASS che every lod0 vertex weighted, sum 1 (0 bad)
+PASS che clips ['attack', 'idle', 'move']
+PASS che attack windup 0.90 s (tell >= 0.4)
+PASS che weapon tip peaks at 0.90 s = windup 0.90 s
+PASS che weapon tip moves 1.05 m by the windup (min 0.3)
+PASS che body half-width 1.00 m (0.7-1.4 x radius 0.9)
+PASS che chariot body length 1.92 m (>= 1.9), top 2.08 m (<= 2.2)
+wrote /tmp/gb/che.glb 536620 bytes
+PASS wz lod0 tris 3760 (budget 4000)
+PASS wz lod1 tris 1258 (budget 1500)
+PASS wz lod2 tris 330 (budget 500; weapons drop at LOD2)
+PASS wz every lod0 vertex weighted, sum 1 (0 bad)
+PASS wz clips ['attack', 'idle', 'move']
+PASS wz attack windup 0.50 s (tell >= 0.4)
+PASS wz weapon tip peaks at 0.48 s = windup 0.50 s
+PASS wz weapon tip moves 1.37 m by the windup (min 0.3)
+PASS wz body half-width 0.49 m (0.7-1.4 x radius 0.5)
+PASS wz body height 1.95 m (band 1.45-2.09)
+PASS wz body 6.5 heads tall (head 0.30 m incl. cap; min 6.0; round 3 about 4.9)
+wrote /tmp/gb/wz.glb 498308 bytes
+PASS wz leader banner top 3.35 m >= 1.15 x tallest squad member 2.70 m
+SUMMARY zu 11 of 11 tris [3544, 1218, 320] top 2.70
+SUMMARY nu 11 of 11 tris [3904, 1354, 360] top 1.71
+SUMMARY dun 11 of 11 tris [3828, 1254, 328] top 1.78
+SUMMARY che 10 of 10 tris [3872, 1472, 381] top 2.08
+SUMMARY wz 12 of 12 tris [3760, 1258, 330] top 3.35
+== rebel build
+PASS ls lod0 tris 1634 + weapon 276 (budget 4000)
+PASS ls lod1 tris 700 + weapon 160 (budget 1500)
+PASS ls lod2 tris 210 (budget 500; weapons drop at LOD2)
+PASS ls every lod0 vertex weighted, sum 1 (0 bad)
+PASS ls clips ['attack', 'idle', 'move']
+PASS ls attack windup 0.80 s (tell >= 0.4)
+PASS ls weapon tip peaks at 0.80 s = windup 0.80 s
+PASS ls weapon tip moves 0.82 m by the windup (min 0.3)
+PASS ls body half-width 0.43 m (0.7-1.4 x radius 0.45)
+PASS ls body height 1.78 m (band 1.40-1.85)
+wrote /tmp/rb/ls.glb 487856 bytes
+PASS fs lod0 tris 1304 (budget 4000)
+PASS fs lod1 tris 552 (budget 1500)
+PASS fs lod2 tris 162 (budget 500; weapons drop at LOD2)
+PASS fs every lod0 vertex weighted, sum 1 (0 bad)
+PASS fs clips ['attack', 'idle', 'move']
+PASS fs attack windup 0.80 s (tell >= 0.4)
+PASS fs weapon tip peaks at 0.80 s = windup 0.80 s
+PASS fs weapon tip moves 0.88 m by the windup (min 0.3)
+PASS fs body half-width 0.38 m (0.7-1.4 x radius 0.45)
+PASS fs body height 1.84 m (band 1.50-1.90)
+wrote /tmp/rb/fs.glb 220976 bytes
+PASS ss lod0 tris 1308 (budget 4000)
+PASS ss lod1 tris 536 (budget 1500)
+PASS ss lod2 tris 160 (budget 500; weapons drop at LOD2)
+PASS ss every lod0 vertex weighted, sum 1 (0 bad)
+PASS ss clips ['attack', 'idle', 'move']
+PASS ss attack windup 0.60 s (tell >= 0.4)
+PASS ss weapon tip peaks at 0.60 s = windup 0.60 s
+PASS ss weapon tip moves 0.42 m by the windup (min 0.3)
+PASS ss body half-width 0.41 m (0.7-1.4 x radius 0.45)
+PASS ss body height 1.34 m (band 0.90-1.35)
+PASS ss glint hidden in idle/move, shown from 0.2 s to the windup (1.12, 1.20)
+wrote /tmp/rb/ss.glb 229744 bytes
+PASS qs lod0 tris 1472 (budget 4000)
+PASS qs lod1 tris 748 (budget 1500)
+PASS qs lod2 tris 224 (budget 500; weapons drop at LOD2)
+PASS qs every lod0 vertex weighted, sum 1 (0 bad)
+PASS qs clips ['attack', 'idle', 'move']
+PASS qs attack windup 0.60 s (tell >= 0.4)
+PASS qs weapon tip peaks at 0.60 s = windup 0.60 s
+PASS qs weapon tip moves 1.57 m by the windup (min 0.3)
+PASS qs body half-width 0.49 m (0.7-1.4 x radius 0.55)
+PASS qs body height 1.99 m (band 1.79-2.35)
+wrote /tmp/rb/qs.glb 253096 bytes
+PASS qs leader pennant top 2.96 m >= 1.15 x tallest squad member 2.00 m
+SUMMARY ls 10 of 10 tris [1634, 700, 210] weapons [276, 160] top 1.78 cloth solved 91%
+SUMMARY fs 10 of 10 tris [1304, 552, 162] weapons [0, 0] top 2.00 cloth solved 100%
+SUMMARY ss 11 of 11 tris [1308, 536, 160] weapons [0, 0] top 1.34 cloth solved 100%
+SUMMARY qs 11 of 11 tris [1472, 748, 224] weapons [0, 0] top 2.96 cloth solved 100%
+== glb check
+PASS che glb che_lod0 skinned
+PASS che glb lod1 and lod2 present
+PASS che glb clip idle: 15 channels, 2.02 s
+PASS che glb clip move: 15 channels, 1.02 s
+PASS che glb clip attack: 15 channels, 1.67 s
+INFO che meshes che_lod1 1472 tris gdBronze+gdLacquer, che_lod2 357 tris gdBronze+gdLacquer, che_lod0 3872 tris gdBronze+gdLacquer
+PASS dun glb dun_lod0 skinned
+PASS dun glb lod1 and lod2 present
+PASS dun glb clip idle: 27 channels, 2.02 s
+PASS dun glb clip move: 27 channels, 1.02 s
+PASS dun glb clip attack: 27 channels, 1.10 s
+INFO dun meshes dun_lod1 1254 tris gdBronze+gdLacquer, dun_lod2 321 tris gdBronze+gdLacquer, dun_lod0 3828 tris gdBronze+gdLacquer
+PASS nu glb nu_lod0 skinned
+PASS nu glb lod1 and lod2 present
+PASS nu glb clip idle: 27 channels, 2.02 s
+PASS nu glb clip move: 27 channels, 1.02 s
+PASS nu glb clip attack: 27 channels, 1.40 s
+INFO nu meshes nu_lod1 1354 tris gdBronze+gdLacquer, nu_lod2 348 tris gdBronze+gdLacquer, nu_lod0 3904 tris gdBronze+gdLacquer
+PASS wz glb wz_lod0 skinned
+PASS wz glb lod1 and lod2 present
+PASS wz glb clip idle: 30 channels, 2.02 s
+PASS wz glb clip move: 30 channels, 1.02 s
+PASS wz glb clip attack: 30 channels, 1.10 s
+INFO wz meshes wz_lod1 1258 tris gdBronze+gdLacquer, wz_lod2 316 tris gdBronze+gdLacquer, wz_lod0 3760 tris gdBronze+gdLacquer
+PASS zu glb zu_lod0 skinned
+PASS zu glb lod1 and lod2 present
+PASS zu glb clip idle: 27 channels, 2.02 s
+PASS zu glb clip move: 27 channels, 1.02 s
+PASS zu glb clip attack: 27 channels, 1.10 s
+INFO zu meshes zu_lod1 1218 tris gdBronze+gdLacquer, zu_lod2 311 tris gdBronze+gdLacquer, zu_lod0 3544 tris gdBronze+gdLacquer
+PASS fs glb fs_lod0 skinned
+PASS fs glb lod1 and lod2 present
+PASS fs glb clip idle: 48 channels, 2.02 s
+PASS fs glb clip move: 48 channels, 1.02 s
+PASS fs glb clip attack: 48 channels, 1.48 s
+INFO fs meshes fs_lod1 552 tris rbCloth, fs_lod2 155 tris rbCloth, fs_lod0 1304 tris rbCloth
+PASS ls glb ls_lod0 skinned
+PASS ls glb lod1 and lod2 present
+PASS ls glb clip idle: 48 channels, 2.02 s
+PASS ls glb clip move: 48 channels, 1.02 s
+PASS ls glb clip attack: 48 channels, 1.48 s
+INFO ls meshes ls_lod1 700 tris rbCloth+rbPatch, ls_lod2 202 tris rbCloth+rbPatch, ls_lod0 1634 tris rbCloth+rbPatch, ls_w_dao 276 tris rbCloth, ls_w_fa 84 tris rbCloth, ls_w_ming 224 tris rbCloth, ls_w_mo 108 tris rbCloth, ls_w_nong 60 tris rbCloth, ls_w_ru 188 tris rbCloth, ls_w_yinyang 176 tris rbCloth, ls_w_za 96 tris rbCloth, ls_w_zongheng 208 tris rbCloth, ls_w_dao_lod1 108 tris rbCloth, ls_w_fa_lod1 36 tris rbCloth, ls_w_ming_lod1 160 tris rbCloth, ls_w_mo_lod1 76 tris rbCloth, ls_w_nong_lod1 28 tris rbCloth, ls_w_ru_lod1 92 tris rbCloth, ls_w_yinyang_lod1 40 tris rbCloth, ls_w_za_lod1 80 tris rbCloth, ls_w_zongheng_lod1 124 tris rbCloth
+INFO ls extras [{'schools': '["ru", "dao", "fa", "mo", "yinyang", "za", "ming", "zongheng", "nong"]', 'schoolColours': '["#b05a2a", "#d5a03a", "#6a6a6a", "#8a2a3a", "#3a3a3a",
+PASS qs glb qs_lod0 skinned
+PASS qs glb lod1 and lod2 present
+PASS qs glb clip idle: 51 channels, 2.02 s
+PASS qs glb clip move: 51 channels, 1.02 s
+PASS qs glb clip attack: 51 channels, 1.28 s
+INFO qs meshes qs_lod1 748 tris rbCloth, qs_lod2 215 tris rbCloth, qs_lod0 1472 tris rbCloth
+PASS ss glb ss_lod0 skinned
+PASS ss glb lod1 and lod2 present
+PASS ss glb clip idle: 54 channels, 2.02 s
+PASS ss glb clip move: 54 channels, 1.02 s
+PASS ss glb clip attack: 54 channels, 1.23 s
+INFO ss meshes ss_lod1 536 tris rbCloth, ss_lod2 155 tris rbCloth, ss_lod0 1308 tris rbCloth+rbGlint
+45 of 45 pass
+== preview sheets and silhouette gates
+PASS lineup silhouettes (wide view): 10 of 10 pairs under IoU 0.75 (closest zu/nu 0.65)
+INFO zu wide-view size 51 x 95 px
+INFO nu wide-view size 61 x 79 px
+INFO dun wide-view size 61 x 79 px
+INFO che wide-view size 106 x 115 px
+INFO wz wide-view size 56 x 143 px
+PASS lineup silhouettes (wide view): 6 of 6 pairs under IoU 0.75 (closest ls_ru/fs 0.61)
+INFO ls_ru wide-view size 41 x 65 px
+INFO fs wide-view size 34 x 74 px
+INFO ss wide-view size 40 x 46 px
+INFO qs wide-view size 53 x 114 px
+PASS lineup silhouettes (wide view): 36 of 36 pairs under IoU 0.75 (closest zu/nu 0.65)
+INFO zu wide-view size 51 x 95 px
+INFO nu wide-view size 61 x 79 px
+INFO dun wide-view size 61 x 79 px
+INFO che wide-view size 106 x 115 px
+INFO wz wide-view size 56 x 143 px
+INFO ls_ru wide-view size 41 x 65 px
+INFO fs wide-view size 34 x 74 px
+INFO ss wide-view size 40 x 46 px
+INFO qs wide-view size 53 x 114 px
+PASS lineup silhouettes (fight view): 36 of 36 pairs under IoU 0.75 (closest ls_za_wonly/ls_nong_wonly 0.50)
+INFO ls_ru_wonly wide-view size 59 x 72 px
+INFO ls_dao_wonly wide-view size 58 x 66 px
+INFO ls_fa_wonly wide-view size 24 x 70 px
+INFO ls_mo_wonly wide-view size 62 x 34 px
+INFO ls_yinyang_wonly wide-view size 37 x 145 px
+INFO ls_za_wonly wide-view size 32 x 95 px
+INFO ls_ming_wonly wide-view size 51 x 52 px
+INFO ls_zongheng_wonly wide-view size 18 x 130 px
+INFO ls_nong_wonly wide-view size 39 x 94 px
+== viewer shots
+lineup_guard ok {"calls":12,"triangles":18922}
+lineup_rebels ok {"calls":9,"triangles":5920}
+lineup_all_wide ok {"calls":19,"triangles":24828}
+lineup_all_sil ok {"calls":17,"triangles":24814}
+lineup_guard_wide ok {"calls":12,"triangles":18922}
+lineup_guard_sil ok {"calls":10,"triangles":18908}
+schools ok {"calls":28,"triangles":16128}
+schools_sil ok {"calls":27,"triangles":16126}
+zu_turn_0 ok {"calls":3,"triangles":3546}
+zu_turn_35 ok {"calls":3,"triangles":3546}
+zu_turn_90 ok {"calls":3,"triangles":3546}
+zu_turn_180 ok {"calls":3,"triangles":3546}
+zu_tell ok {"calls":7,"triangles":10634}
+zu_lods ok {"calls":7,"triangles":5075}
+nu_turn_0 ok {"calls":3,"triangles":3906}
+nu_turn_35 ok {"calls":3,"triangles":3906}
+nu_turn_90 ok {"calls":3,"triangles":3906}
+nu_turn_180 ok {"calls":3,"triangles":3906}
+nu_tell ok {"calls":7,"triangles":11714}
+nu_lods ok {"calls":7,"triangles":5608}
+dun_turn_0 ok {"calls":3,"triangles":3830}
+dun_turn_35 ok {"calls":3,"triangles":3830}
+dun_turn_90 ok {"calls":3,"triangles":3830}
+dun_turn_180 ok {"calls":3,"triangles":3830}
+dun_tell ok {"calls":7,"triangles":11486}
+dun_lods ok {"calls":7,"triangles":5405}
+che_turn_0 ok {"calls":3,"triangles":3874}
+che_turn_35 ok {"calls":3,"triangles":3874}
+che_turn_90 ok {"calls":3,"triangles":3874}
+che_turn_180 ok {"calls":3,"triangles":3874}
+che_tell ok {"calls":7,"triangles":11618}
+che_lods ok {"calls":7,"triangles":5703}
+wz_turn_0 ok {"calls":3,"triangles":3762}
+wz_turn_35 ok {"calls":3,"triangles":3762}
+wz_turn_90 ok {"calls":3,"triangles":3762}
+wz_turn_180 ok {"calls":3,"triangles":3762}
+wz_tell ok {"calls":7,"triangles":11282}
+wz_lods ok {"calls":7,"triangles":5336}
+ls_turn_0 ok {"calls":4,"triangles":1824}
+ls_turn_35 ok {"calls":4,"triangles":1824}
+ls_turn_90 ok {"calls":4,"triangles":1824}
+ls_turn_180 ok {"calls":4,"triangles":1824}
+ls_tell ok {"calls":10,"triangles":5468}
+ls_lods ok {"calls":9,"triangles":2818}
+fs_turn_0 ok {"calls":2,"triangles":1306}
+fs_turn_35 ok {"calls":2,"triangles":1306}
+fs_turn_90 ok {"calls":2,"triangles":1306}
+fs_turn_180 ok {"calls":2,"triangles":1306}
+fs_tell ok {"calls":4,"triangles":3914}
+fs_lods ok {"calls":4,"triangles":2013}
+ss_turn_0 ok {"calls":3,"triangles":1310}
+ss_turn_35 ok {"calls":3,"triangles":1310}
+ss_turn_90 ok {"calls":3,"triangles":1310}
+ss_turn_180 ok {"calls":3,"triangles":1310}
+ss_tell ok {"calls":7,"triangles":3926}
+ss_lods ok {"calls":5,"triangles":2001}
+qs_turn_0 ok {"calls":2,"triangles":1474}
+qs_turn_35 ok {"calls":2,"triangles":1474}
+qs_turn_90 ok {"calls":2,"triangles":1474}
+qs_turn_180 ok {"calls":2,"triangles":1474}
+qs_tell ok {"calls":4,"triangles":4418}
+qs_lods ok {"calls":4,"triangles":2437}
+?? ci_art_out/
+?? kladbin/
+?? node_modules/
+RESULT done

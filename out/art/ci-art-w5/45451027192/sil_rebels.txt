@@ -1,0 +1,5 @@
+PASS lineup silhouettes (wide view): 6 of 6 pairs under IoU 0.75 (closest ls_ru/fs 0.61)
+INFO ls_ru wide-view size 41 x 65 px
+INFO fs wide-view size 34 x 74 px
+INFO ss wide-view size 40 x 46 px
+INFO qs wide-view size 53 x 114 px
