@@ -1,0 +1,13 @@
+PASS 500  {"open":{"door":true,"st":"live","room":"court","inScene":true,"locked":""},"lock":{"locked":"court","doors":true,"n":3,"lockN":1},"atDoor":{"open":false,"cur":"court","card":true},"route":false,"hunterOut":{"room":"corridor","st":"sim"},"after":{"r0":"out","locked":"","door0":false,"route":true},"rumble":true}
+PASS 501  {"same":true,"differs":true,"outA":6,"outC":6,"killsA":6,"farms":0,"a":"kill|fa|za|court|18.30;kill|dao|mo|corridor|18.82;kill|zongheng|yinyang|garden|19.73;kill|ming|zongheng|garden|32.77;kill|nong|dao|corridor|52.03;kill|fa|ming|bridge|69.17"}
+PASS 502  {"outN":6,"shownOut":6,"drop":0,"qn":0,"traces":6,"hunt":true,"named":true,"sample":["Fa suit broke Za suit in the Courtyard.","Dao suit broke Mo suit in the Corridor.","Zongheng suit broke Yinyang suit in the Garden.","Ming suit broke Zongheng suit in the Garden."],"keys":true}
+PASS 503  {"live":{"st":"live","hp":37,"ch":55.01,"room":"court","walk":true},"parked":{"st":"sim","hp":37,"inScene":false,"room":"court"},"walkIn":{"st":"live","room":"hall","hp":50,"atDoor":1.2,"s":0}}
+PASS 504  {"route":false,"sealed":{"open":false,"locked":true,"cur":"bridge","card":true,"standing":8},"pushed":{"cur":"bridge","phase":"palace"},"opened":{"open":true,"locked":false,"door":true},"line":true,"apex":{"phase":"wake","on":false,"voice":true}}
+PASS 505  {"final":{"final":true,"hunter":0,"line":true},"duel":{"st":"live","room":"hall","locked":"hall","doors":true,"s":7.4},"after":{"open":true,"locked":"","core":false,"standing":0,"alive":1}}
+PASS 506  {"off":0,"live":"live,live","outN":1,"s":5.9}
+PASS 507  {"live":7,"locked":"court","calls":27,"tris":622,"programs":[4,4],"geoms":[131,131]}
+PASS 508  {"midOut":5,"same":true,"locked":"","traces":0,"hunter":-1,"qn":0,"outN":0,"final":false,"open":false,"core":true,"standing":8}
+FAIL 509  {"viol":[],"runs":[{"seed":12345,"s":166,"phase":"palend","falls":4,"out":8,"fellLog":0,"bad":0,"drop":0},{"seed":2,"s":260,"phase":"palace","falls":4,"out":8,"fellLog":0,"bad":0,"drop":0},{"seed":3,"s":84,"phase":"palend","falls":1,"out":7,"fellLog":0,"bad":0,"drop":0}]}
+PASS 510  {"start":{"guards":0,"hallLeft":0},"spawn":{"court":6,"left":0},"lock":"court","open":{"locked":"","court":0},"fight":{"kills":1,"s":35.5},"farm":{"before":1,"after":0,"log":1}}
+errors 0 
+PROBE 10 of 11 pass, 5 s
