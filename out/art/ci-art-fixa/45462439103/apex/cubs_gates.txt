@@ -1,0 +1,18 @@
+PASS stalker LOD0 tris 3598 (budget 4000)
+PASS stalker LOD1 tris 1112 (budget 1500)
+PASS stalker LOD2 tris 448 (budget 500)
+PASS stalker every vertex on one bone (3 skinned LODs, 21 bones)
+PASS stalker attack tell 0.5 s (min 0.4): head tip moved 0.24 m (min 0.15), jaw 34 deg (min 25)
+PASS stalker move: 8 wheel bones roll 360 deg per 1.0 s (quarter clip turn 90 deg)
+PASS stalker size 1.18 w x 1.93 l x 0.98 h m (width <= hit circle 1.0 + 0.25; under the 2.05 m suit), lowest +0.000 m
+PASS stalker shares the tiger casting language: materials ['apexBronze', 'apexCrack', 'apexInlay', 'treadBelt'] (bronze trim, crack inlay, gold inlay), mark and flanges
+PASS stalker tread belts scroll: material treadBelt, U along the loop at 0.554 m per repeat (U rate spread 0.0%), loop U span 2.00 (whole), all belts one rate; game: map.offset.x += metres forward / 0.554
+PASS stalker smooth-shaded share 86% of surface area (round forms, min 50%)
+wrote assets/models/apex/stalker.glb 579712 bytes
+PASS stalker GLB clips ['attack', 'idle', 'move']
+Traceback (most recent call last):
+  File "/home/runner/work/Empress-decrees-/Empress-decrees-/art/tools/apex_cubs.py", line 277, in <module>
+  File "/home/runner/work/Empress-decrees-/Empress-decrees-/art/tools/apex_cubs.py", line 214, in make
+  File "/home/runner/work/Empress-decrees-/Empress-decrees-/art/tools/apex_cubs.py", line 170, in build_howler
+  File "/home/runner/work/Empress-decrees-/Empress-decrees-/art/tools/apex_cubs.py", line 140, in cup
+ReferenceError: BMesh data of type BMVert has been removed

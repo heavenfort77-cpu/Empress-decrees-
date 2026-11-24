@@ -1,0 +1,10 @@
+PASS whole silhouette most alike pair 01-04 IoU 0.890 (max 0.92); mean 0.823
+PASS top region (head, beam, motif) most alike pair 05-11 IoU 0.785 (max 0.8); mean 0.673
+MEASURE giant 02: most alike whole 0.875 (with 11), top region 0.773 (with 11; gate max 0.8)
+MEASURE giant 05: most alike whole 0.863 (with 11), top region 0.785 (with 11; gate max 0.8)
+MEASURE giant 07: most alike whole 0.850 (with 04), top region 0.766 (with 05; gate max 0.8)
+MEASURE giant 08: most alike whole 0.879 (with 00), top region 0.755 (with 00; gate max 0.8)
+PASS wide LOD2 top region most alike pair 05-07 IoU 0.839 (max 0.85)
+PASS LOD2 keeps the LOD0 silhouette at the wide framing: lowest IoU 0.875 (giant 10; min 0.8)
+draw info (three.js, one giant + floor + boxes): {'g00_play_awake': {'tris': 6602, 'calls': 12}, 'g01_play_awake': {'tris': 7170, 'calls': 12}, 'g02_play_awake': {'tris': 6882, 'calls': 12}, 'g03_play_awake': {'tris': 7260, 'calls': 12}, 'g04_play_awake': {'tris': 6354, 'calls': 12}, 'g05_play_awake': {'tris': 7210, 'calls': 12}, 'g06_play_awake': {'tris': 6708, 'calls': 12}, 'g07_play_awake': {'tris': 7494, 'calls': 12}, 'g08_play_awake': {'tris': 7766, 'calls': 12}, 'g09_play_awake': {'tris': 7350, 'calls': 12}, 'g10_play_awake': {'tris': 5784, 'calls': 12}, 'g11_play_awake': {'tris': 6416, 'calls': 12}}
+4 of 4 pass
