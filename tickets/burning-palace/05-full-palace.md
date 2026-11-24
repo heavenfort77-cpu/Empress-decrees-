@@ -1,11 +1,11 @@
 # 05. The full palace (阿房宫 model) and escalation
-Blocked by: 04
+Blocked by: 04, 08, 09
 
 ## Outcome
 About 25-30 rooms on a platform over the black lake: the nine halls on the rim, courtyards, corridors, gardens (curtains), bridges, the core hall; room types shape fights; squads grow toward the core; door previews and the room minimap complete.
 
 ## Acceptance criteria
-- [ ] Layout data for all rooms (types: courtyard, corridor, garden, bridge, hall, core) with doors; reachability check (every room reachable, the core reachable from every rim hall until it burns).
+- [ ] Layout data for all rooms (types: courtyard, corridor, garden, bridge, hall, core) with doors; reachability check (every room reachable, the core reachable from every rim hall until it burns). The shortest route from any rim hall to the core passes at least 5 rooms (owner 24 Nov 14:16).
 - [ ] Escalation tables (squads per room by depth and time) in CONFIG; her reinforcement decree.
 - [ ] Room minimap (fallen rooms shown; off-screen fights only by announcement).
 - [ ] Pacing measured (dull-time probe from the audit): no stretch over about 5 s with nothing to fight, dodge or choose, over 12 seeds; run length 4-5 min.

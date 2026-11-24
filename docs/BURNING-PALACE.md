@@ -24,6 +24,7 @@ The current open-map royale stays as a second mode, "Royal Rumble" (owner 13:28:
 4. Out of sight, rivals move room to room, farm fodder and meet each other; their fights are resolved by a simulation seeded per run (deterministic: checks and replays still work), using the measured win shares of the kits, health, plates and meter. She announces each result; the loser drops its plates in that room.
 5. Behind a door you may find: an empty room with a reward; fodder; one rival in whatever state it is in; two rivals mid-fight (three-way, locked); the leader with a bounty; the hunter that tracks you between rooms.
 6. The burning: about every 40 s she names a wing, 5 s warning, its rooms fall. FAIRNESS RULE: a locked room is never warned; a wave that needs it waits until its fight is over (no unavoidable death behind locked doors).
+- Owner 24 Nov 14:16: walking to the core in the ticket-01 prototype took under 5 min and was too easy. The core stays sealed until you are the last suit; the route from any rim hall passes at least 5 rooms.
 7. Two suits left: she seals all other doors so the two meet in one hall. The winner opens the core hall: the 兵家 apex.
 - Target length 4-5 min (owner 23 Nov 21:28); about 6-10 rooms, 3-5 rivals met in person; no more than about 5 s without something to fight, dodge or choose.
 
@@ -38,6 +39,28 @@ Kaymuse's own imperial household guard, not 兵家: the 兵家 is the tiger unde
 - Escalation: rim rooms 1 small squad; near the core 2-3 squads with crossbows and a chariot; her decree can call reinforcements.
 - Performance: pooled, drawn as instances (about one draw call per unit type), cap about 12 per room, spawned when the door opens; simple brain (follow formation, one attack).
 - Rivals farm them too (off-screen in the simulation, on-screen with the bot brain).
+
+## Third side: the 反贼 (owner 24 Nov 13:47; ideology picked by the lead: 黄巾, with assassins inside it)
+Rebels of the 太平道 in yellow headbands, wearing bootleg 甲: cheap copies of the nine suits. Slogan reworked for the suits: 岁在甲子 (the year of the 甲). They are out to assassinate Kaymuse, and anyone wearing a real suit is in their way, so they come for the player too.
+- Bootleg 甲: each rebel copies one move of one school (a random school per squad), weaker and flawed: longer tell, the suit sparks and stalls after a few uses. Visual: yellow headband, patched armour in the school's colour, so you can read which move is coming.
+- 黄巾力士: the mob; packs of 4-8; die in 1-2 hits; the bootleg move.
+- 符水道人: talisman-water healer from behind; kill it first.
+- 死士 assassins: hide in curtains and dark corners (gardens, corridors), lunge at whoever leads the run (most plates or kills, so usually the player). Tell: yellow glint and a whispered chant, at least 0.4 s.
+- 渠帅: squad leader; killing it breaks the squad and drops a bootleg charge (one free use of that school's move).
+- Three-way fights: rebels and the 皇家 guard attack each other on sight, so a room can hold a fight you walk into or wait out.
+- Placement: some doors show "something stirs" for rebels; more of them near rooms that burn; her announcements name rebel ambushes off-screen.
+- Same rules as the guard: shared spawn API with a faction field, fixed pools, instances, numbers in CONFIG, a CONFIG switch (off in Royal Rumble).
+
+## Palace pieces (owner picks 24 Nov 14:27; 石狮 from 14:24)
+Hazards and tools from traditional palaces (Qin first). Every hit shows a tell >= 0.4 s; they hit every side (player, rivals, 皇家 guard, 反贼), so luring enemies into them is a play. Numbers in CONFIG; one on/off switch each.
+- 石狮 stone lions: a pair beside big hall and gate doors; 0.6 s red ring, strike within 3.5 m (reuses the Royal Rumble lion code).
+- 水银 mercury channels (Qin tomb): silver channels across bridges and halls; standing in them hurts over time; crossed between pulses (shimmer before each pulse).
+- 十二金人 twelve bronze giants (Qin): stand along the approach to the core; she wakes one each time a wing burns; a woken giant slowly hunts the nearest suit (slow, big tells, heavy hits); cap on awake giants in CONFIG.
+- 门海 bronze water vats: break one to flood a spot: douses the burning there for a few seconds and knocks back anyone in it.
+- 铜鹤 / 香炉 bronze cranes and incense burners: smoke clouds that block sight; anyone can hide in them, the 死士 assassins too. Few, small smoke cards (transparency budget).
+- 鼎 cauldrons: replace the healing altars in the palace, nine, one in each school's hall (lore: the 九鼎 Qin lost). Royal Rumble keeps its altars.
+- 铜壶滴漏 water clock: one per wing, its water level counts down to her next burning in that wing (the timer shown in the scene, as well as the HUD).
+- 华表 pillar beasts: the beast on top watches its room; passing it marks you for a few seconds (seen by all, the existing mark).
 
 ## Camera
 - Wide when no enemy is within reach, tighter when one is; eased over about 0.4 s; never jumps. Corridors closer, courtyards wider.
