@@ -1,0 +1,110 @@
+{
+ "gates": [
+  {
+   "ok": true,
+   "line": "stalker LOD0 tris 3598 (budget 4000)"
+  },
+  {
+   "ok": true,
+   "line": "stalker LOD1 tris 1112 (budget 1500)"
+  },
+  {
+   "ok": true,
+   "line": "stalker LOD2 tris 448 (budget 500)"
+  },
+  {
+   "ok": true,
+   "line": "stalker every vertex on one bone (3 skinned LODs, 21 bones)"
+  },
+  {
+   "ok": true,
+   "line": "stalker attack tell 0.5 s (min 0.4): head tip moved 0.24 m (min 0.15), jaw 34 deg (min 25)"
+  },
+  {
+   "ok": true,
+   "line": "stalker move: 8 wheel bones roll 360 deg per 1.0 s (quarter clip turn 90 deg)"
+  },
+  {
+   "ok": true,
+   "line": "stalker size 1.18 w x 1.93 l x 0.98 h m (width <= hit circle 1.0 + 0.25; under the 2.05 m suit), lowest +0.000 m"
+  },
+  {
+   "ok": true,
+   "line": "stalker shares the tiger casting language: materials ['apexBronze', 'apexCrack', 'apexInlay', 'treadBelt'] (bronze trim, crack inlay, gold inlay), mark and flanges"
+  },
+  {
+   "ok": true,
+   "line": "stalker tread belts scroll: material treadBelt, U along the loop at 0.554 m per repeat (U rate spread 0.0%), loop U span 2.00 (whole), all belts one rate; game: map.offset.x += metres forward / 0.554"
+  },
+  {
+   "ok": true,
+   "line": "stalker smooth-shaded share 86% of surface area (round forms, min 50%)"
+  },
+  {
+   "ok": true,
+   "line": "stalker GLB clips ['attack', 'idle', 'move']"
+  },
+  {
+   "ok": false,
+   "line": "howler LOD0 tris 4516 (budget 4000)"
+  },
+  {
+   "ok": true,
+   "line": "howler LOD1 tris 1490 (budget 1500)"
+  },
+  {
+   "ok": true,
+   "line": "howler LOD2 tris 428 (budget 500)"
+  },
+  {
+   "ok": true,
+   "line": "howler every vertex on one bone (3 skinned LODs, 21 bones)"
+  },
+  {
+   "ok": true,
+   "line": "howler attack tell 0.5 s (min 0.4): head tip moved 0.44 m (min 0.15), jaw 42 deg (min 25)"
+  },
+  {
+   "ok": true,
+   "line": "howler move: 4 wheel bones roll 360 deg per 1.0 s (quarter clip turn 90 deg)"
+  },
+  {
+   "ok": true,
+   "line": "howler size 0.98 w x 1.68 l x 1.80 h m (width <= hit circle 1.0 + 0.25; under the 2.05 m suit), lowest -0.002 m"
+  },
+  {
+   "ok": true,
+   "line": "howler shares the tiger casting language: materials ['apexBronze', 'apexCrack', 'apexDark', 'apexInlay', 'apexOrgan', 'treadBelt'] (bronze trim, crack inlay, gold inlay), mark and flanges"
+  },
+  {
+   "ok": true,
+   "line": "howler tread belts scroll: material treadBelt, U along the loop at 0.477 m per repeat (U rate spread 0.0%), loop U span 2.00 (whole), all belts one rate; game: map.offset.x += metres forward / 0.477"
+  },
+  {
+   "ok": true,
+   "line": "howler smooth-shaded share 93% of surface area (round forms, min 50%)"
+  },
+  {
+   "ok": true,
+   "line": "howler GLB clips ['attack', 'idle', 'move']"
+  },
+  {
+   "ok": true,
+   "line": "distinct silhouettes: height Howler/Stalker 1.84 (min 1.4); Stalker L/H 1.97 (min 1.5); Howler L/H 0.93 (max 1.0)"
+  }
+ ],
+ "stalker": {
+  "w": 1.1799999475479126,
+  "l": 1.929509162902832,
+  "h": 0.9784367680549622,
+  "zmin": 7.450580596923828e-09,
+  "tread_mpr": 0.5542
+ },
+ "howler": {
+  "w": 0.9800000190734863,
+  "l": 1.6824835538864136,
+  "h": 1.8017263412475586,
+  "zmin": -0.0016152707394212484,
+  "tread_mpr": 0.477
+ }
+}

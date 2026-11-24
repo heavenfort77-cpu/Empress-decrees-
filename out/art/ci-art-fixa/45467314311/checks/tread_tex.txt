@@ -1,0 +1,11 @@
+PASS size 128x64 (want 128x64; 0.5 m per repeat at 256 px/m)
+PASS seamless in U: wrap step 52.3 (largest inner step 52.3)
+PASS links per repeat 4 (want 4; dark gap columns)
+PASS gap darker than plate by 111 luminance (min 60)
+PASS plate colour [168, 139, 78] within 18 of the brass flange [169, 140, 78] (1.6)
+tread_belt: 5 of 5 pass
+PASS mutation seam (columns 0-4 not shifted) caught: seamless in U: wrap step 53.3 (largest inner step 52.3)
+PASS mutation gaps lifted caught: links per repeat 0 (want 4; dark gap columns)
+PASS mutation blue plate caught: plate colour [168, 139, 200] within 18 of the brass flange [169, 140, 78] (122.0)
+PASS mutation five links caught: size 160x64 (want 128x64; 0.5 m per repeat at 256 px/m)
+tread_belt mutations: 4 of 4 caught

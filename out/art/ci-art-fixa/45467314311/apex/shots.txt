@@ -1,0 +1,52 @@
+tiger_front ok
+tiger_34 ok
+tiger_side ok
+tiger_back ok
+stalker_front ok
+stalker_34 ok
+stalker_side ok
+stalker_back ok
+howler_front ok
+howler_34 ok
+howler_side ok
+howler_back ok
+tiger_dormant_34 ok
+tiger_awake_34 ok
+tiger_wake_0 ok
+tiger_wake_1.4 ok
+tiger_wake_2.1 ok
+tiger_wake_2.6 ok
+tiger_wake_3 ok
+tiger_pounce_rest ok
+tiger_pounce_windup ok
+tiger_pounce_leap ok
+tiger_roar_windup ok
+stalker_attack_rest ok
+stalker_attack_windup ok
+stalker_move ok
+howler_attack_rest ok
+howler_attack_windup ok
+howler_move ok
+tiger_lods ok
+tiger_sil ok
+stalker_lods ok
+stalker_sil ok
+howler_lods ok
+howler_sil ok
+play ok
+play_brass ok
+statue ok
+tiger_34_brass ok
+tiger_34_brass2 ok
+tiger_dormant_sil ok
+schools_awake ok
+schools_dormant ok
+shots 43 of 43 ok
+sheet tiger_sheet.png (2544, 1452)
+sheet cubs_sheet.png (2180, 1452)
+sheet play_sheet.png (1924, 1084)
+MEASURE tiger_awake_34: mean lum inside silhouette 54 (0-255), 11.0% of frame
+MEASURE tiger_34_brass: mean lum inside silhouette 65 (0-255), 11.0% of frame
+MEASURE tiger_34_brass2: mean lum inside silhouette 79 (0-255), 11.0% of frame
+MEASURE tiger_dormant_34: mean lum inside silhouette 39 (0-255), 9.1% of frame
+sheet schools_sheet.png (1284, 480)
