@@ -30,6 +30,11 @@ const SHOTS = {
     ['head_asleep', 'view=turn&yaw=0&pitch=20', 640, 640], ['head_awake', 'view=turn&yaw=0&pitch=20&t=0.5&eye=awake', 640, 640], ...PASSES, ['lods', 'view=lods', 1280, 640]],
   clock: [['play_full', 'view=play&level=1', 1920, 1080], ['play_half', 'view=play&level=0.5', 1920, 1080], ['play_empty', 'view=play&level=0.02', 1920, 1080], ['wide', 'view=wide&level=0.7', 1920, 1080],
     ...TURN('&level=0.7'), ['top', 'view=turn&yaw=20&pitch=55&level=0.5', 640, 640], ...PASSES, ['lods', 'view=lods&level=0.7', 1280, 640]],
+  lamp: [['play_lit', 'view=play&state=lit', 1920, 1080], ['play_out', 'view=play&state=out', 1920, 1080], ['wide', 'view=wide', 1920, 1080], ...TURN(''), ...PASSES, ['lods', 'view=lods', 1280, 640]],
+  bells: [['play', 'view=play', 1920, 1080], ['wide', 'view=wide', 1920, 1080], ...TURN(''), ...PASSES, ['lods', 'view=lods', 1600, 640]],
+  tally: [['play', 'view=play', 1920, 1080], ['wide', 'view=wide', 1920, 1080], ...TURN(''), ['top', 'view=turn&yaw=20&pitch=55', 640, 640], ...PASSES, ['lods', 'view=lods', 1280, 640]],
+  merc: [['play_idle', 'view=play&state=idle', 1920, 1080], ['play_warn', 'view=play&state=warn', 1920, 1080], ['play_hot', 'view=play&state=hot', 1920, 1080], ['wide', 'view=wide', 1920, 1080],
+    ['turn_34', 'view=turn&yaw=35&pitch=35', 640, 640], ['close_warn', 'view=turn&yaw=35&pitch=35&state=warn', 640, 640], ['pass_tex', 'view=turn&yaw=35&pitch=35&mode=tex', 640, 640]],
   censer: [['play', 'view=play', 1920, 1080], ['wide', 'view=wide', 1920, 1080], ...TURN(''), ...PASSES, ['lods', 'view=lods', 1280, 640]],
 }[MODEL];
 // ONLY (5th argument): a comma list of shot names to take (e.g. play for the one default-sheet shot)

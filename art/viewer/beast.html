@@ -60,11 +60,14 @@ const MATS = {
     palCinnabar: () => new THREE.MeshStandardMaterial({ color: 0xa8321e, roughness: 0.7 }),
     palLacquer: () => new THREE.MeshStandardMaterial({ map: tex('../../assets/tex/pillar.png'), roughness: 0.55 }),
     palLacquerPlain: () => new THREE.MeshStandardMaterial({ color: 0x1c1512, roughness: 0.6 }),
-    palGold: () => new THREE.MeshStandardMaterial({ color: 0xe2b84a, metalness: 0.7, roughness: 0.35 }),
+    palGold: () => new THREE.MeshStandardMaterial({ color: 0xe2b84a, metalness: 0.25, roughness: 0.5 }),  // laid matte (W1a: gold as metal measured dE 7.3 from brass)
     palEye: () => (STATE === 'awake' || Q.get('eye') === 'awake') ? new THREE.MeshStandardMaterial({ color: 0xf0c860, emissive: 0xc08020, emissiveIntensity: 1.0, metalness: 0.6, roughness: 0.3 })
       : new THREE.MeshStandardMaterial({ color: 0x241a10, metalness: 0.3, roughness: 0.6 }),  // awake: gold inlay, warm low glow; asleep: dark
+    // mercury-silvered lamp reflector: the mercury matcap (A14, W2's assets/tex/mercury_matcap.png)
+    palMercRef: () => new THREE.MeshMatcapMaterial({ matcap: tex('../../assets/tex/mercury_matcap.png'), side: THREE.DoubleSide }),
     palMerc: () => { const t = tex('../../assets/tex/mercury_matcap.png'); const m = new THREE.MeshMatcapMaterial({ matcap: t });
-      if (STATE === 'warn') m.color = new THREE.Color(1.15, 1.18, 1.22); if (STATE === 'hot') m.color = new THREE.Color(1.5, 1.5, 1.55); return m; } },
+      // idle held down (0.72) so the shimmer tell (warn: full matcap) and the burn (hot: over-bright white) step up from it
+      m.color = STATE === 'warn' ? new THREE.Color(1.0, 1.02, 1.06) : STATE === 'hot' ? new THREE.Color(1.6, 1.6, 1.65) : new THREE.Color(0.72, 0.74, 0.78); return m; } },
   shade: { palBronze: () => new THREE.MeshStandardMaterial({ color: 0x9a7a48, metalness: METAL, roughness: ROUGH }), palInlay: () => new THREE.MeshStandardMaterial({ color: 0xc8ccd0, metalness: 0.6, roughness: 0.35 }), palStone: () => new THREE.MeshStandardMaterial({ color: 0x9a968c, roughness: 0.9 }) },
   flat: { palBronze: () => new THREE.MeshBasicMaterial({ color: 0x9a7a48 }), palInlay: () => new THREE.MeshBasicMaterial({ color: 0xc8ccd0 }), palStone: () => new THREE.MeshBasicMaterial({ color: 0x9a968c }) },
   sil: { palBronze: () => new THREE.MeshBasicMaterial({ color: 0x000000 }), palInlay: () => new THREE.MeshBasicMaterial({ color: 0x000000 }), palStone: () => new THREE.MeshBasicMaterial({ color: 0x000000 }) },
@@ -90,6 +93,10 @@ const SPEC = {
   clock: { clip: '*', box: (x) => { const g = boxes(x, [[1.4, 0.3, 1.4, 0.15, 0], [0.2, 2.4, 0.2, 1.2, -0.6], [1.4, 0.2, 0.2, 2.4, -0.6]], (w, h, d) => new THREE.BoxGeometry(w, h, d));
       const w = new THREE.Mesh(new THREE.BoxGeometry(0.9, 2, 0.9), new THREE.MeshStandardMaterial({ color: 0x2a6a9a, roughness: 0.3 })); w.position.set(x, 1.3, 0); g.add(w); return g; },
     states: null, lookY: 1.3, turnY: 1.5, turnD: 4.6, boxX: -3.2 },
+  lamp: { clip: null, box: () => new THREE.Group(), states: { lit: ['lamp_flames'], out: [] }, def: 'lit', lookY: 1.2, turnY: 1.4, turnD: 3.6, boxX: -3.0 },
+  bells: { clip: null, box: () => new THREE.Group(), states: null, lookY: 1.3, turnY: 1.4, turnD: 6.5, boxX: 0, lodGap: 5, lodD: 15 },
+  tally: { clip: null, box: () => new THREE.Group(), states: null, lookY: 0.7, turnY: 0.8, turnD: 3.2, boxX: 0 },
+  merc: { clip: null, box: (x) => boxes(x, [[2, 0.06, 6, 0.03, 0]], (w, h, d) => new THREE.BoxGeometry(w, h, d)), states: { idle: [], warn: [], hot: [] }, def: 'idle', lookY: 0.2, turnY: 0.3, turnD: 6.5, boxX: -3.4 },
   censer: { clip: null, box: (x) => boxes(x, [[1.2, 1.0, 1.2, 0.5, 0], [0.8, 0.5, 0.8, 1.25, 0]], (w, h, d) => new THREE.BoxGeometry(w, h, d)),
     states: null, lookY: 0.9, turnY: 0.9, turnD: 4.0, boxX: -3.0 },
 }[MODEL];
@@ -109,7 +116,7 @@ new GLTFLoader().load(`../../assets/models/${MODEL}.glb`, (g) => {
   const lodOf = (o) => (/_lod([12])$/.exec(o.name) || [0, 0])[1] | 0;
   for (const o of root.children) {
     const i = lodOf(o);
-    if (VIEW === 'lods') o.position.x = (i - 1) * 3;  // a skinned LOD0 is placed by its bones: its rig moves, not the mesh (round 1 viewer bug)
+    if (VIEW === 'lods') o.position.x = (i - 1) * (SPEC.lodGap || 3);  // a skinned LOD0 is placed by its bones: its rig moves, not the mesh (round 1 viewer bug)
     else if (i > 0) o.visible = false;
   }
   scene.add(root);
@@ -118,7 +125,7 @@ new GLTFLoader().load(`../../assets/models/${MODEL}.glb`, (g) => {
   if (TT !== null && SPEC.clip) { const mix = new THREE.AnimationMixer(root); for (const clip of g.animations.filter((a) => SPEC.clip === '*' || a.name === SPEC.clip)) mix.clipAction(clip).play(); mix.setTime(+TT); }
   if (VIEW === 'play' || VIEW === 'wide') { scene.add(player); if (MODE === 'tex' || MODE === 'shade') scene.add(SPEC.box(SPEC.boxX)); }
   const pitch = 40 * Math.PI / 180, look = new THREE.Vector3(VIEW === 'play' || VIEW === 'wide' ? -0.4 : 0, SPEC.lookY, 0.6);
-  let dist = VIEW === 'play' ? 10.5 : VIEW === 'wide' ? 22 : VIEW === 'lods' ? 9 : SPEC.turnD, yaw = (+(Q.get('yaw') || (VIEW === 'turn' ? 30 : 0))) * Math.PI / 180;
+  let dist = VIEW === 'play' ? 10.5 : VIEW === 'wide' ? 22 : VIEW === 'lods' ? (SPEC.lodD || 9) : SPEC.turnD, yaw = (+(Q.get('yaw') || (VIEW === 'turn' ? 30 : 0))) * Math.PI / 180;
   if (VIEW === 'turn') look.set(0, SPEC.turnY, 0.1);
   const p2 = VIEW === 'turn' ? (+(Q.get('pitch') || 15)) * Math.PI / 180 : pitch;
   cam.position.set(look.x + Math.sin(yaw) * Math.cos(p2) * dist, look.y + Math.sin(p2) * dist, look.z + Math.cos(yaw) * Math.cos(p2) * dist); cam.lookAt(look);

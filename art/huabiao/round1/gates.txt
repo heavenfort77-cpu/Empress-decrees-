@@ -1,6 +1,6 @@
 PASS huabiao lod0 + head tris 1284 (budget 1500)
-PASS huabiao lod1 + head tris 496 (budget 500)
-PASS huabiao lod2 tris 168 (budget 200)
+PASS huabiao lod1 + head tris 428 (budget 500)
+PASS huabiao lod2 tris 144 (budget 200)
 PASS footprint below 2.2 m 1.36 x 1.36 m (solid 1.4 x 1.4); cloud board overhang above it 0.45 m (max 0.5)
 PASS height 6.20 m (range (5.6, 6.6); box about 6 m)
 PASS eye inlay material palEye on the LOD0 and LOD1 heads; each eye 13 cm across (min 12), pair spans 29 cm

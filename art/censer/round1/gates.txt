@@ -1,6 +1,6 @@
 PASS censer_lod0 tris 1234 (budget 1500)
-PASS censer_lod1 tris 472 (budget 500)
-PASS censer_lod2 tris 164 (budget 200)
+PASS censer_lod1 tris 462 (budget 500)
+PASS censer_lod2 tris 160 (budget 200)
 PASS footprint 1.16 x 1.16 m (solid 1.2 x 1.2)
 PASS height 1.76 m (range (1.3, 1.9); box censer 1.5 m)
 PASS smoke: 4 cards (max 4), palSmoke, from the lid top

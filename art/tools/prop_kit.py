@@ -33,7 +33,7 @@ def segs(n, lo=6): return max(lo, round(n * Q['seg']))
 
 def lathe(name, prof, mat, row, n=24, dr=0.0, cx=0.0, cf=0.0):
     """a turned (round) part: profile [(radius, z)] around the vertical axis at (cx, cf); radius 0 closes on the axis."""
-    M = segs(n, 8); bm = bmesh.new(); rings = []
+    M = segs(n, 6); bm = bmesh.new(); rings = []
     for rr, z in prof:
         if rr <= 1e-6: rings.append([bm.verts.new(P(cx, cf, z))] * M)
         else: rings.append([bm.verts.new(P(cx + math.cos(i * math.tau / M) * (rr + dr), cf + math.sin(i * math.tau / M) * (rr + dr), z)) for i in range(M)])
@@ -105,7 +105,7 @@ def sweep(name, pts, radii, mat, row='plain', n=8, flat=None, cap=True, rnd=True
 
 def loft(name, secs, mat, row='plain', n_exp=2.6, M=24, cap=True):
     """a rounded-square mass lofted through sections (z, cf, hw, hd, cx): superellipse rings, smooth sides (beast_blender.py)."""
-    M = segs(M, 8); bm = bmesh.new(); rings = []
+    M = segs(M, 6); bm = bmesh.new(); rings = []
     for z, cf, hw, hd, cx in secs:
         ring = []
         for i in range(M):

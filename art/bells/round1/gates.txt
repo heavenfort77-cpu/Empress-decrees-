@@ -1,0 +1,8 @@
+PASS LOD0 drawn tris 1840 = frame 608 + 11 bells x 112 (budget 2000)
+PASS LOD1 drawn tris 548 = frame 196 + 11 bells x 32 (budget 600)
+PASS bells_lod2 tris 180 (budget 250)
+PASS bells instanced: 11 nodes per LOD share one mesh each (bellmesh_lod0, bellmesh_lod1)
+PASS lowest bell mouth 0.50 m above the floor (min 0.2: bells hang free)
+PASS footprint 4.34 x 1.00 m (max 4.4 x 1.2), height 2.85 m
+PASS black lacquer posts and beams, cinnabar bands, bronze feet, caps and bells
+7 of 7 pass
