@@ -11,7 +11,10 @@ const SOFT = process.argv.includes('--soft');
 const SETTLE = Number(process.env.SETTLE_S || 6), TIMED = Number(process.env.TIMED_S || 20);
 const ROOT = new URL('..', import.meta.url).pathname;
 const TYPES = { '.html': 'text/html', '.js': 'text/javascript', '.mjs': 'text/javascript' };
+// Controls for the ladder: an empty page, and the same with a fixed full-screen dark div (no WebGL, no game).
+const EMPTY = (div) => `<!doctype html><html><body style="margin:0;background:#120d16">${div ? '<div style="position:fixed;inset:0;background:#120d16;z-index:8"></div>' : ''}<script>window.__game={render:()=>({calls:0,tris:0,programs:0,geoms:0,texs:0})};window.__ready=true;</script></body></html>`;
 const server = createServer(async (req, res) => {
+  if (req.url.startsWith('/__empty')) { res.writeHead(200, { 'content-type': 'text/html' }); res.end(EMPTY(req.url.includes('div'))); return; }
   const p = normalize(join(ROOT, decodeURIComponent(req.url.split('?')[0]) === '/' ? 'index.html' : decodeURIComponent(req.url.split('?')[0])));
   try { const b = await readFile(p); res.writeHead(200, { 'content-type': TYPES[extname(p)] || 'application/octet-stream' }); res.end(b); } catch { res.writeHead(404); res.end(); }
 }).listen(0);
@@ -54,6 +57,10 @@ const SCENES = {
   } },
   // (d) the school select open (no bots in the address, so it opens at load), nothing chosen.
   select: { q: 'lock&tier=medium', setup: () => {} },
+  // Ladder controls for the select screen: empty page, empty page plus a full-screen div, the select with the game canvas hidden.
+  empty: { path: '__empty', q: '', setup: () => {} },
+  emptydiv: { path: '__empty_div', q: '', setup: () => {} },
+  select_nocanvas: { q: 'lock&tier=medium', setup: () => { document.querySelector('canvas').style.display = 'none'; } },
   // (b) again on the low tier.
   heavy_low: null,
 };
@@ -64,11 +71,13 @@ async function renderer(page) {
 }
 
 const rows = []; let gpu = '';
-for (const name of ['reference', 'heavy', 'hunt', 'select', 'heavy_low']) {
+let FILE = ''; try { FILE = (await readFile(new URL('scenes.txt', import.meta.url), 'utf8')).trim(); } catch { /* default list */ }
+const LIST = (process.env.SCENES || FILE || 'reference,heavy,hunt,select,heavy_low').split(',');
+for (const name of LIST) {
   const sc = SCENES[name];
   const page = await browser.newPage({ viewport: { width: 1920, height: 1080 }, deviceScaleFactor: 1 });
   const errs = []; page.on('pageerror', (e) => errs.push(String(e).slice(0, 160)));
-  await page.goto(BASE + '?' + sc.q);
+  await page.goto(BASE + (sc.path || '') + '?' + sc.q);
   await page.waitForFunction(() => window.__ready === true, null, { timeout: 90000 });
   if (!gpu) gpu = await renderer(page);
   const t0 = Date.now();
@@ -82,9 +91,10 @@ for (const name of ['reference', 'heavy', 'hunt', 'select', 'heavy_low']) {
     const wait = (s) => new Promise((res) => setTimeout(res, s * 1000));
     await wait(SETTLE);
     const m0 = mem(), g0 = __game.render(false);
+    const lt = []; let ob = null; try { ob = new PerformanceObserver((l) => { for (const e of l.getEntries()) lt.push(e.duration); }); ob.observe({ type: 'longtask' }); } catch (e) { /* no longtask API */ }
     const d = []; let last = 0, run = true;
     await new Promise((res) => { const f = (t) => { if (last) d.push(t - last); last = t; if (run) requestAnimationFrame(f); else res(); }; requestAnimationFrame(f); setTimeout(() => { run = false; }, TIMED * 1000); });
-    clearInterval(id);
+    clearInterval(id); if (ob) ob.disconnect();
     const m1 = mem(), info = __game.render(false);
     d.sort((a, b) => a - b);
     const sum = d.reduce((a, b) => a + b, 0), n = d.length;
@@ -93,7 +103,7 @@ for (const name of ['reference', 'heavy', 'hunt', 'select', 'heavy_low']) {
     try { const h = __game.hunt(); if (h.phase === 'hunt') extra.hunt = h.phase + ' alive ' + h.units.filter((u) => u.alive).length + ' hits ' + h.hits; } catch (e) { /* no hunt */ }
     return { frames: n, fps: +(n / (sum / 1000)).toFixed(1), p50: +d[Math.floor(n * 0.5)].toFixed(1), p95: +d[Math.floor(n * 0.95)].toFixed(1), worst: +d[n - 1].toFixed(1),
       over20: +(100 * d.filter((x) => x > 20).length / n).toFixed(1), over33: d.filter((x) => x > 33.4).length,
-      calls: info.calls, tris: info.tris, programs: info.programs, geoms: info.geoms, texs: info.texs, heap0: m0.heap, heap1: m1.heap, geo0: g0.geoms, tex0: g0.texs, drvErr: window.__drvErr || '', ...extra };
+      calls: info.calls, tris: info.tris, programs: info.programs, geoms: info.geoms, texs: info.texs, heap0: m0.heap, heap1: m1.heap, longN: lt.length, longMax: Math.round(Math.max(0, ...lt)), longSum: Math.round(lt.reduce((a, b) => a + b, 0)), geo0: g0.geoms, tex0: g0.texs, drvErr: window.__drvErr || '', ...extra };
   }, { drv, SETTLE, TIMED });
   rows.push({ scene: name, setupMs, errs: errs.length, err0: errs[0] || '', ...r });
   console.log('ROW ' + JSON.stringify(rows[rows.length - 1]));
@@ -102,5 +112,5 @@ for (const name of ['reference', 'heavy', 'hunt', 'select', 'heavy_low']) {
 console.log('RENDERER ' + gpu + (/swiftshader|llvmpipe|software/i.test(gpu) ? '  (NOT a real GPU)' : ''));
 console.log('scene       fps    p50   p95   worst  >20ms%  >33ms  calls  tris    prog geo  heap MB  geo/tex start-end  live');
 for (const r of rows) console.log([r.scene.padEnd(10), String(r.fps).padStart(6), String(r.p50).padStart(5), String(r.p95).padStart(5), String(r.worst).padStart(6), String(r.over20).padStart(6), String(r.over33).padStart(6),
-  String(r.calls).padStart(6), String(r.tris).padStart(7), String(r.programs).padStart(4), String(r.geoms).padStart(4), (r.heap0 + '-' + r.heap1).padStart(9), (r.geo0 + '-' + r.geoms + '/' + r.tex0 + '-' + r.texs).padStart(13), ' ' + (r.bots !== undefined ? 'bots ' + r.bots + ' cubs ' + r.cubs : '') + (r.hunt || '') + (r.errs ? ' ERR ' + r.err0 : '') + (r.drvErr ? ' DRV ' + r.drvErr.slice(0, 80) : '')].join(' '));
+  String(r.calls).padStart(6), String(r.tris).padStart(7), String(r.programs).padStart(4), String(r.geoms).padStart(4), (r.heap0 + '-' + r.heap1).padStart(9), (r.geo0 + '-' + r.geoms + '/' + r.tex0 + '-' + r.texs).padStart(13), ' ' + (r.bots !== undefined ? 'bots ' + r.bots + ' cubs ' + r.cubs : '') + (r.hunt || '') + ' long ' + r.longN + '/' + r.longMax + 'ms/' + r.longSum + 'ms' + (r.errs ? ' ERR ' + r.err0 : '') + (r.drvErr ? ' DRV ' + r.drvErr.slice(0, 80) : '')].join(' '));
 await browser.close(); server.close();
