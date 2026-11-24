@@ -273,6 +273,8 @@ export async function palace3Checks(g, check, base) {
       for (; t < 260 / C.STEP && G.palace().phase === 'palace'; t++) {
         G.step(1); const b = G.burnState();
         if (G.palace().cur !== 'fore') G.teleport(R.fore.cx, R.fore.cz);
+        // Kept alive: a guard kill's heal caps health at full, and the forecourt's woken giants and mercury hit hard (second run: 'hazard' at 90 s).
+        if (t % 6 === 0) G.setHp(1e9);
         if (b.bad !== 0) { bad(`t${t} burn bad ${b.badWhy} ${b.badRoom}`); break; }
         if (t % 6) continue;
         const s = G.palSim(), fallen = new Set(b.rooms.filter((r) => r.fallen).map((r) => r.id)), warned = new Set(b.rooms.filter((r) => r.warned).map((r) => r.id));
