@@ -1,0 +1,19 @@
+{
+  "_about": "Concept references for the bronze guardian beast (asset list C1). Prompt built with the cocolito method from art/Qin-Bronze-Castings-Study.md, art/Qin-Palace-Painted-Study.md, docs/research/Qin-palace-medieval-tech-fusion.md and the owner's notes (21:03 segmented bronze with silver inlay; 22:30 round where round, sharp where sharp; 22:43 figure still bad, fierce guardian). Reference only: never shipped, never traced; the model is built in Blender from what is measured on the chosen image. Model: SD 1.5 (stable-diffusion-v1-5, CreativeML OpenRAIL-M, commercial use allowed).",
+  "checkpoint": "v1-5-pruned-emaonly.safetensors",
+  "checkpoint_url": "https://huggingface.co/stable-diffusion-v1-5/stable-diffusion-v1-5/resolve/main/v1-5-pruned-emaonly.safetensors",
+  "width": 512,
+  "height": 768,
+  "steps": 28,
+  "cfg": 7.0,
+  "sampler": "dpmpp_2m",
+  "scheduler": "karras",
+  "positive": "concept art of a guardian beast statue from ancient Qin dynasty China, cast bronze lion-like beast seated upright on a stepped stone plinth, fierce snarling face, heavy angular brow ridge, bared fangs, open jaw, large round bulging eyes inlaid with silver, mane of tight spiral curls, powerful rounded chest and haunches, thick forelegs, sharp claws, curled tail ending in a flame-shaped tuft, segmented casting with mould seams and flanged joints, thin silver inlay panel lines, stamped cloud scroll ornament bands, polished brass-gold bronze, warring states bronze craftsmanship, stylized hand-painted game asset, full body, {view}, plain grey background, soft studio light",
+  "negative": "green patina, verdigris, rust, glazed tiles, forbidden city, ming dynasty, qing dynasty, japanese komainu, shisa, cute, cartoon, chibi, plush, teddy bear, dog, puppy, robot, mech, sci-fi, neon, glow, text, calligraphy, letters, watermark, signature, blurry, cropped, out of frame, multiple heads, extra legs, deformed, people, person",
+  "jobs": [
+    {"view": "three-quarter view", "seeds": [1101, 1102, 1103]},
+    {"view": "three-quarter view", "seeds": [1104, 1105, 1106]},
+    {"view": "three-quarter view", "seeds": [1107, 1108, 1109]},
+    {"view": "side view, profile", "seeds": [1110, 1111, 1112]}
+  ]
+}
