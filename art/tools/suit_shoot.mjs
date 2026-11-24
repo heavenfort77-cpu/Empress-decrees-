@@ -24,10 +24,11 @@ for (const id of IDS) {
     [`${id}_side`, `id=${id}&view=turn&yaw=90`, 640, 640], [`${id}_back`, `id=${id}&view=turn&yaw=180`, 640, 640],
     [`${id}_play`, `id=${id}&view=play&yaw=20`, 1920, 1080], [`${id}_windup`, `id=${id}&view=turn&yaw=35&t=${w}`, 640, 640],
     [`${id}_strike`, `id=${id}&view=turn&yaw=35&t=${(w + 0.12).toFixed(2)}`, 640, 640], [`${id}_lods`, `id=${id}&view=lods&yaw=35`, 1280, 640]);
+  for (const m of ['sil', 'flat', 'shade']) SHOTS.push([`${id}_pass_${m}`, `id=${id}&view=turn&yaw=35&mode=${m}`, 640, 640]);
 }
 const all = IDS.join(',');
 SHOTS.push(['lineup_play', `ids=${all}&view=play`, 1920, 1080], ['lineup_wide', `ids=${all}&view=wide`, 1920, 1080],
-  ['lineup_sil_front', `ids=${all}&view=play&mode=sil`, 1920, 1080], ['lineup_sil_34', `ids=${all}&view=play&yaw=35&mode=sil`, 1920, 1080]);
+  ['lineup_sil_front', `ids=${all}&view=play&mode=sil`, 1920, 1080], ['lineup_play_rim', `ids=${all}&view=play&rim=1`, 1920, 1080], ['lineup_sil_34', `ids=${all}&view=play&yaw=35&mode=sil`, 1920, 1080]);
 for (const [name, q, w, h] of SHOTS) {
   const page = await browser.newPage({ viewport: { width: w, height: h } });
   const errs = []; page.on('pageerror', (e) => errs.push(String(e))); page.on('console', (m) => { if (m.type() === 'error') errs.push(m.text()); });

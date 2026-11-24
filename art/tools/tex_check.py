@@ -55,7 +55,7 @@ for n, (du, dv, (y0, y1), scap) in T.items():
 # Suit trim sheets (art/Qin-Lamellar-Suits-Study.md, W3 25 Nov; proposals until the owner approves): run when they are in TEXDIR.
 # name: (native px, metres across); fields: (rows y0..y1 at native px, brush run cm range, lum sd range, saturation cap, mean lum range)
 SUIT = {
-    'suit_lamellar': (1024, 4.0, {'plate_black': ((4, 148), (4, 25), (2, 15), 0.6, (20, 60)), 'plate_brown': ((156, 300), (4, 25), (4, 20), 0.6, (45, 100)),
+    'suit_lamellar': (1024, 4.0, {'plate_black': ((4, 148), (4, 25), (2, 15), 0.6, (20, 60)), 'plate_brown': ((156, 300), (4, 25), (4, 20), 0.6, (35, 100)),
                                   'plate_cinnabar': ((308, 404), (4, 25), (4, 22), 0.8, (60, 120)), 'plate_white': ((412, 508), (4, 25), (4, 20), 0.2, (170, 230))}),
     'suit_bronze': (512, 2.0, {'plain': ((4, 188), (4, 15), (6, 30), 0.6, (85, 135))}),
     'suit_cloth': (512, 2.0, {'cloth': ((0, 512), (2, 30), (3, 25), 0.12, (180, 240))}),

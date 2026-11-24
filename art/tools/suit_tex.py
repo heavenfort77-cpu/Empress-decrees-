@@ -24,7 +24,7 @@ OUT = sys.argv[1]
 
 # CONFIG -----------------------------------------------------------------------------------------------------------------
 # Lacquer ramps (deep, shadow, base, light, polish highlight) per lacquer colour.
-LAC = {'black': ('#120f0f', '#1d1918', '#2a2524', '#3e3533', '#5e504a'), 'brown': ('#2e1b12', '#462a1c', '#5c3a26', '#744c32', '#94683f'),
+LAC = {'black': ('#120f0f', '#1d1918', '#2a2524', '#3e3533', '#5e504a'), 'brown': ('#22140d', '#331f15', '#45291b', '#5e3a26', '#80583a'),
        'cinnabar': ('#5a1d13', '#7e2a1c', '#a33a28', '#bd4e34', '#d6765a'), 'white': ('#8c8577', '#b3ab9b', '#d2cab9', '#e2dccd', '#f1ece0')}
 # School binding colours (research palette; cord rows in this order).
 CORDS = [('fa', '#b0402c'), ('ru', '#c9a54a'), ('dao', '#e4ded0'), ('mo', '#b8862e'), ('yy', '#1e1b1a'), ('za', '#2e5a9c'),
@@ -72,6 +72,7 @@ class Tex:
             x0 = s.r.uniform(0, s.S); s.stroke(s.wob(x0, y, x0 + s.S * 1.08, y, 8, jitter), brush, size, color, op, taper=[0, 0]); y += size * 0.55
 
     def write(s):
+        s.ops.sort(key=lambda o: o[0])   # stable: paint order kept inside a stage; rows never overlap, so stages can be grouped
         with open(f'{OUT}/{s.name}.jsonl', 'w') as f:
             for st, op in s.ops: f.write(json.dumps(op) + '\n')
         cuts, names = [], ['base', 'tone', 'marks', 'detail']
@@ -92,14 +93,15 @@ def cloud(t, cx, cy, sz, color, w=5):
                  'ink', w * 0.8, color, 0.95, taper=[1, 6])
 
 
-def plate_field(t, y0, y1, ramp):
-    """lacquer plate ground: layered brush coats (horizontal), soft sheen from the upper left, a few polish wipes and wear at the edges."""
+def plate_field(t, y0, y1, ramp, k=1.0):
+    """lacquer plate ground: smooth coats with soft mottled depth (short sponge blots, no long streaks: round 1 read as wood grain),
+    sheen patches from the upper left, polish wipes and a few nicks. k scales the tone opacity (pale lacquer shows marks more)."""
     deep, sh, base, li, hi = ramp; r = t.r
-    t.stage = 0; t.band(y0, y1, base, size=min(36, (y1 - y0) * 0.5))
+    t.stage = 0; t.band(y0, y1, base, brush='marker', size=8)
     t.stage = 1
-    for _ in range(int((y1 - y0) * 0.9)):
-        x, y = r.uniform(0, t.S), r.uniform(y0 + 6, y1 - 6); L = r.uniform(30, 90)
-        t.stroke(t.wob(x, y, x + L, y + r.uniform(-3, 3), 3, 1.5), 'flat-bristle', r.uniform(10, 22), r.choice([sh, li, base, sh]), r.uniform(0.25, 0.45))
+    for _ in range(int((y1 - y0) * 2.2)):
+        x, y = r.uniform(0, t.S), r.uniform(y0 + 8, y1 - 8); L = r.uniform(6, 22); a = r.uniform(0, math.pi)
+        t.stroke(t.wob(x, y, x + math.cos(a) * L, y + math.sin(a) * L, 2, 1.5), 'sponge', r.uniform(10, 24), r.choice([sh, li, sh, deep]), r.uniform(0.3, 0.55) * k)
     t.stage = 2
     for _ in range(int((y1 - y0) * 0.25)):   # polish wipes: short light arcs (lacquer sheen)
         x, y = r.uniform(0, t.S), r.uniform(y0 + 6, y1 - 10); L = r.uniform(14, 40)
@@ -144,7 +146,7 @@ def cord_row(t, y0, col):
 
 def lamellar():
     t = Tex('suit_lamellar', 1024, '#1d1918', 901)
-    for (y0, y1), k in (((0, 152), 'black'), ((152, 304), 'brown'), ((304, 408), 'cinnabar'), ((408, 512), 'white')): plate_field(t, y0, y1, LAC[k])
+    for (y0, y1), k in (((0, 152), 'black'), ((152, 304), 'brown'), ((304, 408), 'cinnabar'), ((408, 512), 'white')): plate_field(t, y0, y1, LAC[k], 0.55 if k == 'white' else 1.0)
     for y0, k in ((512, 'black'), (544, 'brown'), (576, 'cinnabar'), (608, 'white')): lam_row(t, y0, LAC[k])
     # rim: black lacquer with a cinnabar edge line and small cloud scrolls (Qin lacquerware)
     t.stage = 0; t.band(640, 672, LAC['black'][2], brush='marker', size=8)
@@ -174,7 +176,7 @@ def bronze():
     t.stage = 1
     for _ in range(120):   # sand-cast mottling on the plain plate
         x, y = r.uniform(0, 512), r.uniform(8, 184); L = r.uniform(10, 30)
-        t.stroke(t.wob(x, y, x + L, y + r.uniform(-6, 6), 3, 2), 'sponge', r.uniform(12, 26), r.choice([li, sh, '#7a5c34', '#9a7a48']), r.uniform(0.3, 0.5))
+        t.stroke(t.wob(x, y, x + L, y + r.uniform(-6, 6), 3, 2), 'sponge', r.uniform(12, 26), r.choice([li, sh, '#6e522e', '#a2824e']), r.uniform(0.4, 0.6))
     for _ in range(50):
         x, y = r.uniform(0, 512), r.uniform(420, 508); L = r.uniform(10, 30)
         t.stroke(t.wob(x, y, x + L, y, 3, 2), 'sponge', r.uniform(10, 20), r.choice([li, sh]), r.uniform(0.25, 0.4))

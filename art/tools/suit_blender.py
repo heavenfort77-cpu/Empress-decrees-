@@ -62,39 +62,39 @@ LOD_TARGET = {1: 2600, 2: 900}
 # H height scale, W shoulder width scale, G girth scale, L limb thickness scale. lac = plate lacquer (sheet rows), cord = binding row,
 # cloth = cloth tint (sRGB hex), trim = inlay row on the bronze sheet. Parts name a component and its parameters.
 SUITS = {
-    'fa': dict(title='法甲 廷尉', H=1.0, W=0.92, G=0.9, L=0.9, lac='black', cord='fa', cloth='#2b2422', trim='silver',
+    'fa': dict(eyes=(0.55, 0.465, 0.017, 0.009, True), title='法甲 廷尉', H=1.0, W=0.92, G=0.9, L=0.9, lac='black', cord='fa', cloth='#2b2422', trim='silver',
                helm=('horn', {}), shoulders=('cap', {}), torso=('lam', {'rows': 3}), lower=('tassets', {'rows': 4, 'split': True, 'apron': True}),
                legs='greaves', arms='bracers', weapon=('jian', {'len': 0.95}), back=None,
                attack=dict(windup=0.45, strike=0.12, back=0.45, kind='thrust')),
-    'ru': dict(title='儒甲 君子', H=1.02, W=1.1, G=1.05, L=1.05, lac='brown', cord='ru', cloth='#ddd5c3', trim='gold',
+    'ru': dict(eyes=(0.5, 0.5, 0.018, 0.008, False), title='儒甲 君子', H=1.02, W=1.1, G=1.05, L=1.05, lac='brown', cord='ru', cloth='#ddd5c3', trim='gold',
                helm=('board', {}), shoulders=('layered', {'rows': 3}), torso=('lam', {'rows': 3}), lower=('skirt', {'rows': 5}),
                legs='greaves', arms='bracers', weapon=('jian', {'len': 0.8}), back=('bowhand', {}),
                attack=dict(windup=0.5, strike=0.14, back=0.45, kind='overhead')),
-    'dao': dict(title='道甲 真人', H=0.98, W=0.9, G=0.88, L=0.88, lac='white', cord='dao', cloth='#d9d3c4', trim='silver',
+    'dao': dict(eyes=(0.47, 0.52, 0.02, 0.006, False), title='道甲 真人', H=0.98, W=0.9, G=0.88, L=0.88, lac='white', cord='dao', cloth='#d9d3c4', trim='silver',
                 helm=('topknot', {}), shoulders=('none', {}), torso=('lam', {'rows': 2}), lower=('robe', {'hem': 0.06, 'flare': 0.34}),
                 legs='robe', arms='sleeves', weapon=None, back=None,
                 attack=dict(windup=0.42, strike=0.1, back=0.45, kind='palm')),
-    'mo': dict(title='墨甲 墨守', H=0.9, W=1.3, G=1.3, L=1.3, lac='brown', cord='mo', cloth='#6b5634', trim='gold',
+    'mo': dict(eyes=(0.5, 0.5, 0.014, 0.011, True), title='墨甲 墨守', H=0.9, W=1.3, G=1.3, L=1.3, lac='brown', cord='mo', cloth='#6b5634', trim='gold',
                helm=('dome', {}), shoulders=('dome', {'size': 1.0}), torso=('lam', {'rows': 3}), lower=('skirt', {'rows': 2}),
                legs='greaves', arms='bracers', weapon=('crossbow', {}), back=None,
                attack=dict(windup=0.5, strike=0.1, back=0.4, kind='aim')),
-    'yy': dict(title='阴阳甲 太极', H=1.0, W=1.0, G=0.95, L=0.92, lac='black', cord='yy', cloth='#26232a', trim='silver',
+    'yy': dict(eyes=(0.52, 0.48, 0.022, 0.012, False), title='阴阳甲 太极', H=1.0, W=1.0, G=0.95, L=0.92, lac='black', cord='yy', cloth='#26232a', trim='silver',
                helm=('crescent', {}), shoulders=('yinyang', {}), torso=('lam', {'rows': 2}), lower=('robe', {'hem': 0.08, 'flare': 0.08}),
                legs='robe', arms='sleeves', weapon=('orbs', {}), back=None,
                attack=dict(windup=0.6, strike=0.12, back=0.45, kind='raise')),
-    'za': dict(title='杂甲 门客', H=1.0, W=1.0, G=1.0, L=1.0, lac='brown', cord='za', cloth='#2e5a9c', trim='gold',
+    'za': dict(eyes=(0.48, 0.5, 0.018, 0.007, True), title='杂甲 门客', H=1.0, W=1.0, G=1.0, L=1.0, lac='brown', cord='za', cloth='#2e5a9c', trim='gold',
                helm=('flapcap', {}), shoulders=('mixed', {}), torso=('lam', {'rows': 2}), lower=('robe', {'hem': 0.42, 'flare': 0.2}),
                legs='greaves', arms='bracers', weapon=('orb', {}), back=('slips', {}),
                attack=dict(windup=0.45, strike=0.12, back=0.45, kind='cast')),
-    'ming': dict(title='名甲 辩者', H=1.0, W=0.95, G=0.88, L=0.88, lac='brown', cord='ming', cloth='#4a4440', trim='silver',
+    'ming': dict(eyes=(0.54, 0.5, 0.024, 0.005, False), title='名甲 辩者', H=1.0, W=0.95, G=0.88, L=0.88, lac='brown', cord='ming', cloth='#4a4440', trim='silver',
                  helm=('plume', {}), shoulders=('disc', {}), torso=('lam', {'rows': 3}), lower=('tassets', {'rows': 2, 'split': False}),
                  legs='greaves', arms='bracers', weapon=('wheel', {}), back=None,
                  attack=dict(windup=0.5, strike=0.1, back=0.45, kind='throw')),
-    'zh': dict(title='纵横甲 说客', H=1.0, W=1.0, G=0.98, L=0.95, lac='black', cord='zh', cloth='#5b3f8c', trim='gold',
+    'zh': dict(eyes=(0.46, 0.53, 0.018, 0.007, False), title='纵横甲 说客', H=1.0, W=1.0, G=0.98, L=0.95, lac='black', cord='zh', cloth='#5b3f8c', trim='gold',
                helm=('twinplume', {}), shoulders=('cape', {}), torso=('lam', {'rows': 3}), lower=('robe', {'hem': 0.4, 'flare': 0.18}),
                legs='greaves', arms='bracers', weapon=('staff', {}), back=None,
                attack=dict(windup=0.45, strike=0.12, back=0.45, kind='point')),
-    'nong': dict(title='农甲 耕者', H=0.96, W=1.15, G=1.15, L=1.15, lac='brown', cord='nong', cloth='#6e6a4a', trim='gold',
+    'nong': dict(eyes=(0.5, 0.5, 0.012, 0.012, False), title='农甲 耕者', H=0.96, W=1.15, G=1.15, L=1.15, lac='brown', cord='nong', cloth='#6e6a4a', trim='gold',
                  helm=('cone', {}), shoulders=('dome', {'size': 0.75}), torso=('lam', {'rows': 3}), lower=('skirt', {'rows': 2}),
                  legs='greaves', arms='bracers', weapon=('hoe', {}), back=('basket', {}),
                  attack=dict(windup=0.5, strike=0.14, back=0.45, kind='chop')),
@@ -425,9 +425,17 @@ def c_helm(b, S, kind, p):
         loft('helm', shell, 'sLam', f'plate_{lac}', 'head', N=segs(SEG_BODY), caps=(True, False))
     loft('mask', [((0, 0.11, hz(0.02)), 0.05, 0.035, 2.2), ((0, 0.125, hz(0.3)), 0.095, 0.045, 2.4), ((0, 0.125, hz(0.62)), 0.1, 0.045, 2.4),
                   ((0, 0.11, hz(0.75)), 0.09, 0.035, 2.2)], 'sBronze', 'mask', 'head', N=segs(SEG_LIMB))
-    for m in (1, -1):    # stern eye slits: thin, slanting down toward the nose (round 2: round 1 lenses read as a cute face)
-        loft(f'eye{m}', [((m * 0.088, 0.158, hz(0.55)), 0.002, 0.004, 2), ((m * 0.055, 0.17, hz(0.51)), 0.017, 0.009, 2),
-                         ((m * 0.024, 0.172, hz(0.465)), 0.002, 0.004, 2)], 'sLam', 'plate_black', 'head', N=6, ref=Vector((0, -1, 0)))
+    # eyes per school (owner rule: distinct characters, not recolours): (outer height, inner height, half length, half height) as head fractions/metres,
+    # plus an optional bronze brow bar. 法 stern, 儒 level, 道 closed crescents, 墨 heavy brow, 阴阳 wide, 杂 hooded, 名 long and narrow,
+    # 纵横 smiling crescents, 农 round.
+    ex = S.get('eyes', (0.55, 0.465, 0.017, 0.009, False))
+    for m in (1, -1):
+        zo, zi, hl, hh, brow = ex
+        loft(f'eye{m}', [((m * 0.088, 0.158, hz(zo)), 0.002, 0.004, 2), ((m * 0.055, 0.17, hz((zo + zi) / 2)), hl, hh, 2),
+                         ((m * 0.024, 0.172, hz(zi)), 0.002, 0.004, 2)], 'sLam', 'plate_black', 'head', N=6, ref=Vector((0, -1, 0)))
+        if brow:
+            loft(f'brow{m}', [((m * 0.095, 0.16, hz(zo + 0.08)), 0.006, 0.008, 2), ((m * 0.05, 0.175, hz((zo + zi) / 2 + 0.1)), 0.012, 0.016, 2),
+                              ((m * 0.01, 0.178, hz(zi + 0.1)), 0.006, 0.008, 2)], 'sBronze', trim, 'head', N=6, ref=Vector((0, -1, 0)))
     brim = lambda r0, r1, z, t=0.02, row=None, nm='brim': loft(nm, [((0, 0, z + t), r0, r0 * 1.05, 2), ((0, 0, z), r1, r1 * 1.05, 2), ((0, 0, z - t * 0.5), r1 * 0.98, r1 * 1.03, 2)],
                                                      'sLam', row or f'plate_{lac}', 'head', N=segs(SEG_BODY + 4), caps=(False, True))
     if kind == 'horn':      # 獬豸 law beast: one tall horn rising from the brow and hooking forward (round 2: 0.38 m above the crown)
@@ -792,8 +800,8 @@ def make_lod(src, arm, lvl):
     return ob
 
 # preview colours per sheet row (sRGB; match the klad sheets' base tones, for the local preview raster only)
-PREVIEW = {'plate_black': (38, 34, 34), 'plate_brown': (92, 58, 38), 'plate_cinnabar': (160, 58, 40), 'plate_white': (214, 206, 190),
-           'lam_black': (44, 40, 40), 'lam_brown': (100, 64, 42), 'lam_cinnabar': (168, 62, 44), 'lam_white': (206, 198, 182),
+PREVIEW = {'plate_black': (38, 34, 34), 'plate_brown': (69, 41, 27), 'plate_cinnabar': (160, 58, 40), 'plate_white': (214, 206, 190),
+           'lam_black': (44, 40, 40), 'lam_brown': (74, 45, 30), 'lam_cinnabar': (168, 62, 44), 'lam_white': (206, 198, 182),
            'rim': (120, 96, 60), 'gold': (201, 165, 74), 'silver': (191, 195, 198), 'plain': (150, 118, 66), 'blade': (190, 160, 100),
            'rivet': (130, 100, 60), 'dark': (70, 54, 36), 'mask': (160, 126, 72),
            'cord_fa': (176, 64, 44), 'cord_ru': (201, 165, 74), 'cord_dao': (228, 222, 208), 'cord_mo': (184, 134, 46), 'cord_yy': (30, 27, 26),
