@@ -1,0 +1,90 @@
+# Runs on GitHub's Linux runners when the branch ci-run is pushed (never on main or batches-3-5).
+# ci/job.json says what to run: mode "mut" = one job per mutation, each runs the full suite (tests/run.mjs);
+# mode "suite" = one full suite run with -sims. Results are committed to the branch ci-out under out/<label>/<run id>/.
+name: ci-run
+on:
+  push:
+    branches: [ci-run]
+permissions:
+  contents: write
+jobs:
+  plan:
+    runs-on: ubuntu-latest
+    outputs:
+      idx: ${{ steps.p.outputs.idx }}
+      label: ${{ steps.p.outputs.label }}
+    steps:
+      - uses: actions/checkout@v5
+      - id: p
+        run: |
+          python3 -c "import json;j=json.load(open('ci/job.json'));n=len(j.get('muts',[])) if j['mode']=='mut' else 1;print('idx='+json.dumps(list(range(n))));print('label='+j['label'])" >> "$GITHUB_OUTPUT"
+  run:
+    needs: plan
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    strategy:
+      fail-fast: false
+      max-parallel: 20
+      matrix:
+        i: ${{ fromJson(needs.plan.outputs.idx) }}
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+      - name: Install Playwright Chromium
+        run: npm i --no-save --no-audit --no-fund playwright@1.63.0 && npx playwright install --with-deps chromium
+      - name: Run
+        run: |
+          mkdir -p results
+          MODE=$(python3 -c "import json;print(json.load(open('ci/job.json'))['mode'])")
+          T0=$(date +%s)
+          if [ "$MODE" = mut ]; then
+            python3 ci/apply_mut.py ${{ matrix.i }} > apply.txt 2>&1 || true
+            node tests/run.mjs > out.txt 2>&1 || true
+          else
+            node tests/run.mjs -sims > out.txt 2>&1 || true
+          fi
+          python3 - "$MODE" ${{ matrix.i }} $T0 <<'PY'
+          import json, re, sys, time
+          mode, i, t0 = sys.argv[1], int(sys.argv[2]), int(sys.argv[3])
+          out = open('out.txt').read()
+          fails = re.findall(r'^FAIL (\S+)', out, re.M); tot = re.findall(r'RUNTIME .*', out)
+          r = {'i': i, 'fails': fails, 'tot': tot, 's': round(time.time() - t0)}
+          if mode == 'mut':
+              m = json.load(open('ci/job.json', encoding='utf-8'))['muts'][i]
+              ap = open('apply.txt').read().strip()
+              r.update({'name': m['name'], 'want': m['want'], 'applied': ap.startswith('applied'), 'caught_named': m['want'] in fails})
+          else:
+              r['sims'] = re.findall(r'^SIM .*', out, re.M); r['faillines'] = re.findall(r'^FAIL .*', out, re.M)
+          json.dump(r, open(f'results/r{i}.json', 'w'), ensure_ascii=False)
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: r${{ matrix.i }}
+          path: |
+            results/
+            out.txt
+          retention-days: 1
+  summary:
+    needs: [plan, run]
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/download-artifact@v4
+        with:
+          path: art
+      - name: Summarise and commit to ci-out
+        run: |
+          mkdir -p results && cp -r art/*/results/* results/ 2>/dev/null || true
+          python3 ci/summarise.py
+          D=out/${{ needs.plan.outputs.label }}/${{ github.run_id }}
+          mkdir -p /tmp/res/$D && cp summary.json summary.txt /tmp/res/$D/
+          for d in art/*/; do n=$(basename $d); [ -f $d/out.txt ] && cp $d/out.txt /tmp/res/$D/$n.out.txt; done
+          git config user.name Claude && git config user.email noreply@anthropic.com
+          git fetch origin ci-out
+          git checkout -B ci-out origin/ci-out
+          mkdir -p $D && cp -r /tmp/res/$D/* $D/
+          git add out && git commit -qm "ci-run ${{ github.run_id }} ${{ needs.plan.outputs.label }}"
+          for k in 1 2 3; do git push origin ci-out && break; git pull --rebase origin ci-out; done
