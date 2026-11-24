@@ -1549,7 +1549,8 @@ try {
     // Batch 16 ticket 04 (game changed on purpose): 墨甲 built too.
     // Batch 16 ticket 05 (game changed on purpose): 名甲 built too.
     // Batch 16 ticket 06 (game changed on purpose): 阴阳甲 built too (ultMode 'lock').
-    o.unbuilt = C.SCHOOLS.filter((k) => C.KITS[k].built).join(',') === 'ru,fa,mo,yinyang,ming';
+    // Batch 16 ticket 07 (game changed on purpose): 农甲 built too.
+    o.unbuilt = C.SCHOOLS.filter((k) => C.KITS[k].built).join(',') === 'ru,fa,mo,yinyang,ming,nong';
     o.placeholder = sc.suits.every((q) => (C.KITS[q.school].built && q.id !== 0 ? q.kit === q.school && q.ultMode === C.KITS[q.school].ultMode : q.kit === 'placeholder' && q.ultMode === 'charge'));
     o.player = sc.suits[0].school; o.bots = sc.suits.slice(1).map((q) => q.name).join(','); o.tags = C.SKILLS.map((k) => k.tag).join(',');
     o.speedMid = C.STATS.speed.Mid === C.PLAYER_SPEED && C.STATS.yard === 'Mid'; o.keys = C.SCHOOLS.map((k) => 'school_' + k).concat(['hud_school', 'sel_title', 'sel_rule', 'sel_random', 'sel_key']).filter((k) => !T[k]);
@@ -2147,6 +2148,8 @@ try {
       G.setSeed(seed); G.setBots(C.BOTS.count); G.setPkitP(!playerMi); G.pickSchool(playerMi ? 6 : 1);
       // Batch 16 ticket 06 (game changed on purpose): 阴阳甲 is built now; its bot keeps the placeholder kit here so these matches stay the ones this check was written for.
       G.placeholderKit(G.schools().suits.findIndex((q) => q.school === 'yinyang') - 1);
+      // Batch 16 ticket 07 (game changed on purpose): 农甲 too.
+      G.placeholderKit(G.schools().suits.findIndex((q) => q.school === 'nong') - 1);
       G.autoPlayer(true); G.setWatch(true);
       const mi = playerMi ? -1 : G.schools().suits.findIndex((q) => q.school === 'ming') - 1, cnt = playerMi ? o.player : o.casts; let last = [0, 0], ult = 0, sh = 0, hg = 0;
       if (!playerMi && G.schools().suits[mi + 1].kit !== 'ming') bad('ming bot not on its kit');
@@ -2381,6 +2384,183 @@ try {
   });
   check('137 budget with 阴阳甲 effects: every suit + cubs + tells + both orbs + 太极 (calls<500, tris<500k), no shader compile, geometry flat',
     !!yy137 && yy137.calls < 500 && yy137.tris < 500000 && yy137.programs === base.programs && yy137.geoms === base.geoms, JSON.stringify(yy137));
+  // ===== Batch 16 ticket 07: 农甲 · 耕者 kit (docs/SUITS.md; numbers in CONFIG.KITS.nong) =====
+  // Page helper: the player plays 农甲 (school 8) against n placeholder bots at Mid; nothing else happens (decrees pushed away, bots' skills on long cooldowns).
+  await g(() => { const G = __game, C = G.config; window.__ng = {
+    start(n) { G.setSeed(12345); G.setPkitP(false); G.setBots(n); G.pickSchool(8); for (let i = 0; i < n; i++) G.placeholderKit(i); G.setDecNext(1e9); for (let i = 0; i < n; i++) { G.setBotHp(i, 100); for (let k = 0; k < 3; k++) G.setBotCd(i, k, 99); } },
+    hold(sec, fn) { for (let k = 0; k < Math.round(sec / C.STEP); k++) { if (fn) fn(); G.step(1); } },
+    until(cond, max, fn) { let n = 0; while (n < max && !cond()) { if (fn) fn(); G.step(1); n++; } return n; },
+    end() { G.setPkitP(true); G.pickSchool(0); G.setBots(0); G.reset(); } }; });
+  // 138 Passive 并耕而食 and attack: High armor, Low speed; the plough-hoe hits a dummy in melee for dmg; a grown sprout of his that he walks over is eaten:
+  // heal heal and fed feedS s (his hits deal feed more, then back to normal); a seed is not eaten; a bot that walks onto a sprout tramples it and gains nothing.
+  const ng138 = await g(() => {
+    const G = __game, C = G.config, N = window.__ng, K = C.KITS.nong, T = K.tiller, o = {};
+    N.start(1); G.setHp(1e9); G.teleport(14, -20); const park = () => G.placeBot(0, 14, -28); park(); G.step(2);
+    const k0 = G.kitState(-1); o.armorK = k0.armorK; o.spd = k0.spd;
+    G.nongSow(-1, 17, -20); o.seeds = G.nongState(-1).planted; G.teleport(17 + K.skills[0].spread, -20); G.step(2); o.seedEaten = G.nongState(-1).eatN; o.seedStill = G.nongState(-1).planted;
+    G.teleport(14, -20); N.hold(K.skills[0].growS + 0.1, park); const s1 = G.nongState(-1); o.grown = s1.grown; o.green = s1.sprouts.filter((q) => q.st === 2).every((q) => q.green && q.inScene && q.vis);
+    G.setHp(50); const sp = s1.sprouts.find((q) => q.st === 2); G.teleport(sp.x, sp.z); G.step(1); const s2 = G.nongState(-1); o.hp = s2.hp; o.eat = s2.eatN; o.feedT = +s2.feedT.toFixed(2);
+    G.setHp(1e9); G.basicAttackBy(-1, 0); o.fedHit = +(100 - G.bots().list[0].hp).toFixed(2); N.hold(T.feedS + 0.1, park); o.fedEnd = G.nongState(-1).feedT; G.setBotHp(0, 100); G.basicAttackBy(-1, 0); o.plainHit = +(100 - G.bots().list[0].hp).toFixed(2);
+    // A bot tramples one: it is gone, the bot gains nothing.
+    G.setBotHp(0, 50); const sp2 = G.nongState(-1).sprouts.find((q) => q.st === 2); const left = G.nongState(-1).planted; G.placeBot(0, sp2.x, sp2.z); G.step(1); const s3 = G.nongState(-1);
+    o.trampled = [left - s3.planted, s3.trampN, G.bots().list[0].hp];
+    // Melee on a dummy.
+    G.reset(); const d = G.dummies()[1]; G.teleport(d.x, d.z - 2); G.step(2); G.attack(1); N.hold(K.attack.interval * 0.5); o.dummy = 100 - G.dummies()[1].hp; G.stop();
+    N.end(); return o;
+  });
+  check('138 农甲 passive and attack: High armor, Low speed; plough-hoe melee dmg; a grown sprout he walks over heals him and feeds him (bonus, then gone); a seed is not eaten; a bot tramples one and gains nothing',
+    Math.abs(ng138.armorK - (C0.STATS.K + C0.STATS.armor.Mid) / (C0.STATS.K + C0.STATS.armor.High)) < 1e-9 && ng138.spd === C0.STATS.speed.Low && ng138.seeds === C0.KITS.nong.skills[0].seeds
+    && ng138.seedEaten === 0 && ng138.seedStill === ng138.seeds && ng138.grown === ng138.seeds && ng138.green && ng138.hp === 50 + C0.KITS.nong.tiller.heal && ng138.eat === 1
+    && Math.abs(ng138.feedT - C0.KITS.nong.tiller.feedS) < 0.05 && Math.abs(ng138.fedHit - C0.KITS.nong.attack.dmg * (1 + C0.KITS.nong.tiller.feed)) < 1e-9 && ng138.fedEnd === 0
+    && ng138.plainHit === C0.KITS.nong.attack.dmg && ng138.trampled.join() === '1,1,50' && ng138.dummy === C0.KITS.nong.attack.dmg, JSON.stringify(ng138));
+  // 139 Q 播百谷: a cast at a point drops seeds seeds (dark, low) around it within spread m and starts the cooldown; each grows into a green sprout after
+  // growS s and is gone lastS s later; the pool never holds more than pool (a new sowing replaces the oldest); a seed over the void is lost.
+  const ng139 = await g(() => {
+    const G = __game, C = G.config, N = window.__ng, Q = C.KITS.nong.skills[0], o = { maxPlanted: 0 };
+    N.start(1); G.setHp(1e9); G.teleport(14, -20); const park = () => G.placeBot(0, 14, -28); park(); G.step(2);
+    o.cast = G.cast(0, 18, -20); const s0 = G.nongState(-1); o.cd = G.skills()[0] > 0; o.planted = s0.planted;
+    o.ring = s0.sprouts.filter((q) => q.st === 1).every((q) => Math.abs(Math.hypot(q.x - 18, q.z + 20) - Q.spread) < 1e-6 && !q.green && q.inScene);
+    const steps = N.until(() => G.nongState(-1).grown > 0, 600, park); o.growS = +((steps + 1) * C.STEP).toFixed(3);
+    const lastSteps = N.until(() => G.nongState(-1).planted === 0, 3000, park); o.lastS = +((lastSteps + 1) * C.STEP).toFixed(3); o.sproutN = G.nongState(-1).sproutN;
+    // Four sowings in a row (no cast: the pool rule): never more than pool.
+    const firstAt = [];
+    for (let k = 0; k < 4; k++) { G.nongSow(-1, 10 + k * 2, -16); G.step(1); const s = G.nongState(-1); if (s.planted > o.maxPlanted) o.maxPlanted = s.planted; if (k === 0) firstAt.push(...s.sprouts.filter((q) => q.st > 0).map((q) => q.x)); }
+    const s4 = G.nongState(-1); o.after4 = s4.planted; o.oldestGone = !s4.sprouts.some((q) => q.st > 0 && Math.abs(q.x - 10) < Q.spread + 1e-6 && Math.abs(q.z + 16) < Q.spread + 1e-6); o.sproutN4 = s4.sproutN;
+    // Over the void (west of the centre court, between the bridges): every seed is lost.
+    G.reset(); G.teleport(-20, -2); G.step(1); const before = G.nongState(-1).planted; G.nongSow(-1, -30, -2); o.void = G.nongState(-1).planted - before;
+    N.end(); return o;
+  });
+  check('139 农甲 Q: seeds dark at a point (spread m), cooldown; green after growS s, gone lastS s later; the pool never exceeds pool and replaces the oldest; seeds over the void are lost',
+    ng139.cast && ng139.cd && ng139.planted === C0.KITS.nong.skills[0].seeds && ng139.ring && Math.abs(ng139.growS - C0.KITS.nong.skills[0].growS) < 0.05 && Math.abs(ng139.lastS - C0.KITS.nong.skills[0].lastS) < 0.05
+    && ng139.sproutN === 0 && ng139.maxPlanted === C0.KITS.nong.skills[0].pool && ng139.after4 === C0.KITS.nong.skills[0].pool && ng139.oldestGone && ng139.sproutN4 === C0.KITS.nong.skills[0].pool && ng139.void === 0, JSON.stringify(ng139));
+  // 140 W 并耕: the plough dashes range m and leaves a furrow (width m) along its path for furrowS s; a bot on it is slowed by slow, one beside it is not;
+  // a seed on the furrow grows growK times as fast as one off it; the plough itself deals no damage.
+  const ng140 = await g(() => {
+    const G = __game, C = G.config, N = window.__ng, Q = C.KITS.nong.skills[0], W = C.KITS.nong.skills[1], o = {};
+    // Bots in the plough's path (x 7 and 9 on its line): the plough deals no damage.
+    N.start(2); G.setHp(1e9); G.teleport(5, -24); const park = () => { G.placeBot(0, 7, -22.5); G.placeBot(1, 9, -25.5); }; park(); G.step(2);
+    o.cast = G.cast(1, 15, -24); N.hold(W.dashS + 0.1, park); const p = G.state(), s0 = G.nongState(-1); o.dash = +Math.hypot(p.x - 5, p.z + 24).toFixed(2); o.furrow = s0.furrow;
+    o.hits = [100 - G.bots().list[0].hp, 100 - G.bots().list[1].hp];
+    // He steps off the furrow (so he eats nothing); bot 0 on the furrow (on its line), bot 1 beside it.
+    G.teleport(14, -20); const on = () => { G.placeBot(0, 6, -24); G.placeBot(1, 6, -24 + W.width); }; on(); G.step(2); const a = G.kitState(0), b = G.kitState(1);
+    o.slow = [a.slowT > 0, b.slowT > 0, +(a.spd / C.STATS.speed.Mid).toFixed(3)];
+    // Seeds at (8, -24) on the furrow's line (only those within width / 2 of it lie on it) and at (8, -17) off it.
+    G.nongSow(-1, 8, -24); G.nongSow(-1, 8, -17); const onIdx = G.nongState(-1).sprouts.map((q, i) => (q.st === 1 && Math.abs(q.z + 24) <= W.width / 2 ? i : -1)).filter((i) => i >= 0); o.onN = onIdx.length;
+    let fast = -1, slow = -1;
+    for (let k = 0; k < 600 && (fast < 0 || slow < 0); k++) { on(); G.step(1); const s = G.nongState(-1).sprouts; if (fast < 0 && onIdx.every((i) => s[i].st === 2)) fast = k + 1; if (slow < 0 && s.some((q, i) => !onIdx.includes(i) && q.st === 2)) slow = k + 1; }
+    o.grow = [+(fast * C.STEP).toFixed(2), +(slow * C.STEP).toFixed(2)];
+    N.until(() => G.nongState(-1).furrow.t < 0, 600, on); o.gone = !G.nongState(-1).furrow.inScene && G.nongState(-1).furrowN === 0; o.after = G.kitState(0).slowT <= 0.2;
+    N.end(); return o;
+  });
+  check('140 农甲 W: the plough dashes range m and lays a furrow (width) along it; a bot on it is slowed, one beside it is not; seeds on it grow growK times as fast; no damage; the furrow ends after furrowS s',
+    ng140.cast && Math.abs(ng140.dash - C0.KITS.nong.skills[1].range) < 0.05 && ng140.furrow.inScene && ng140.furrow.vis && Math.abs(ng140.furrow.len - C0.KITS.nong.skills[1].range) < 0.05 && ng140.furrow.w === C0.KITS.nong.skills[1].width
+    && ng140.hits.join() === '0,0' && ng140.slow[0] && !ng140.slow[1] && Math.abs(ng140.slow[2] - (1 - C0.KITS.nong.skills[1].slow)) < 1e-6
+    && ng140.onN >= 1 && Math.abs(ng140.grow[0] - C0.KITS.nong.skills[0].growS / C0.KITS.nong.skills[1].growK) < 0.1 && Math.abs(ng140.grow[1] - C0.KITS.nong.skills[0].growS) < 0.1
+    && ng140.gone && ng140.after, JSON.stringify(ng140));
+  // 141 R 百草生机: locked under a full meter; full, every seed of his ripens, every grown sprout within radius is eaten (harvN), each heals heal and pulses
+  // dmg to every target within pulseR (a bot inside takes harvN x dmg, one outside nothing); sprouts beyond radius stay (grown); the ring shows ringS s; the meter emptied
+  // (then only the pulses' own damage charge, ULT.dealt per hp dealt).
+  const ng141 = await g(() => {
+    const G = __game, C = G.config, N = window.__ng, Q = C.KITS.nong.skills[0], R = C.KITS.nong.skills[2], o = {};
+    N.start(2); G.setHp(1e9); G.teleport(12, -20); const park = () => { G.placeBot(0, 14, -20); G.placeBot(1, 12 + R.pulseR + 2, -16); }; park(); G.step(2);
+    G.setCharge(-1, 50); o.locked = G.cast(2, 12, -20);
+    G.nongSow(-1, 9, -18); N.hold(Q.growS + 0.1, park); G.nongSow(-1, 9, -23); G.nongSow(-1, 12 + R.radius + 3, -20);
+    const s0 = G.nongState(-1); o.before = [s0.planted, s0.grown];
+    G.setHp(40); G.setCharge(-1, C.ULT.full); o.cast = G.cast(2, 12, -20); const s1 = G.nongState(-1);
+    o.harvN = s1.harvN; o.hp = s1.hp; o.left = [s1.planted, s1.grown]; o.bots = [100 - G.bots().list[0].hp, 100 - G.bots().list[1].hp]; o.ring = [s1.ringIn, s1.ringR]; o.ch = +G.chargeOf(-1).toFixed(6); o.ultN = G.kitState(-1).ultN;
+    const steps = N.until(() => !G.nongState(-1).ringIn, 200, park); o.ringS = +((steps + 1) * C.STEP).toFixed(3);
+    N.end(); return o;
+  });
+  check('141 农甲 R: locked without a full meter; seeds ripen, grown sprouts within radius eaten (heal each, a dmg pulse each within pulseR), those beyond stay grown; ring ringS s; meter emptied',
+    ng141.locked === false && ng141.before.join() === '9,3' && ng141.cast && ng141.harvN === 6 && ng141.hp === 40 + 6 * C0.KITS.nong.skills[2].heal && ng141.left.join() === '3,3'
+    && ng141.bots[0] === 6 * C0.KITS.nong.skills[2].dmg && ng141.bots[1] === 0 && ng141.ring[0] && ng141.ring[1] === C0.KITS.nong.skills[2].radius && Math.abs(ng141.ch - 6 * C0.KITS.nong.skills[2].dmg * C0.ULT.dealt) < 1e-6 && ng141.ultN === 1
+    && Math.abs(ng141.ringS - C0.KITS.nong.skills[2].ringS) < 0.05, JSON.stringify(ng141));
+  // 142 Plays with altars and collapses: under "Our altars are dry" an altar does not heal him but a sprout he eats still does; a field on a falling section
+  // is lost with it (the roof falls at the first wave).
+  const ng142 = await g(() => {
+    const G = __game, C = G.config, N = window.__ng, Q = C.KITS.nong.skills[0], o = {};
+    N.start(1); G.setHp(1e9); const a = G.altars()[2]; G.teleport(a.x + 4, a.z); const park = () => G.placeBot(0, 14, -28); park(); G.forceDecree('dry', null, 30); N.hold(5.1, park); o.dry = G.decree().key === 'dry' && G.decree().st === 3;
+    G.nongSow(-1, a.x + 4, a.z - 3); N.hold(Q.growS + 0.1, park);
+    G.teleport(a.x + 1.2, a.z); G.setHp(50); N.hold(1, park); o.altar = G.state().hp;
+    const sp = G.nongState(-1).sprouts.find((q) => q.st === 2); G.teleport(sp.x, sp.z); G.step(1); o.eat = G.state().hp;
+    // The roof: sown just before the first wave, the player back in the centre court; the section falls and the field is gone.
+    G.reset(); G.setHp(1e9); G.setTime(C.FIRST_WAVE_S - C.COLLAPSE_WARN_S - 1); G.teleport(0, 33); G.step(1); G.nongSow(-1, 3, 33); o.roof = [G.nongState(-1).planted, G.nongState(-1).sprouts.filter((q) => q.st > 0).every((q) => q.sec === 'ROOF')];
+    G.teleport(14, -20); N.hold(1 + C.COLLAPSE_WARN_S + C.COLLAPSE_FALL_S + 0.2, park); o.roofAfter = [G.nongState(-1).planted, G.nongState(-1).sproutN, G.state().sec.ROOF];
+    N.end(); return o;
+  });
+  check('142 农甲 plays with altars and collapses: under the dry decree an altar does not heal him but an eaten sprout does; a field on a section that falls is lost with it',
+    ng142.dry && ng142.altar === 50 && ng142.eat === 50 + C0.KITS.nong.tiller.heal && ng142.roof[0] === C0.KITS.nong.skills[0].seeds && ng142.roof[1] && ng142.roofAfter[0] === 0 && ng142.roofAfter[1] === 0 && ng142.roofAfter[2] >= 2, JSON.stringify(ng142));
+  // 143 农甲 in the hunt: R is ready at the start (the hunt keeps the cooldown); with three grown sprouts near, R eats them and pulses a minion within pulseR
+  // (3 x dmg), then its 30 s cooldown runs; the wake cleared the royale field.
+  const ng143 = await g(() => {
+    const G = __game, C = G.config, H = window.__h, Q = C.KITS.nong.skills[0], R = C.KITS.nong.skills[2], o = {};
+    G.setPkitP(false); G.pickSchool(8); G.setBots(0); G.reset(); G.nongSow(-1, 0, -14); o.royale = G.nongState(-1).planted;
+    G.startHunt(); o.wake = G.nongState(-1).planted; G.step(Math.round(C.APEX.wakeS / C.STEP) + 1); for (let i = 0; i < 3; i++) H.mute(i); G.setHp(1e9);
+    G.teleport(0, -50); G.placeUnit(1, 2, -50); G.placeUnit(0, -15, -70); G.placeUnit(2, 15, -70); G.nongSow(-1, 0, -48);
+    H.until(() => false, Math.round((Q.growS + 0.1) / C.STEP)); G.placeUnit(1, 2, -50); G.step(1);
+    const hp0 = G.hunt().units[1].hp; o.cast = G.cast(2, 0, -50); o.harvN = G.nongState(-1).harvN; o.minion = +(hp0 - G.hunt().units[1].hp).toFixed(2); o.cd = +G.skills()[2].toFixed(2);
+    G.setPkitP(true); G.pickSchool(0); G.reset(); return o;
+  });
+  check('143 农甲 in the hunt: the wake clears the royale field; R ready at the start; it eats the grown sprouts near and pulses a minion within pulseR; then the 30 s cooldown',
+    ng143.royale === C0.KITS.nong.skills[0].seeds && ng143.wake === 0 && ng143.cast && ng143.harvN === 3 && ng143.minion === 3 * C0.KITS.nong.skills[2].dmg && ng143.cd === C0.KITS.nong.skills[2].cd, JSON.stringify(ng143));
+  // 144 农甲 in whole matches: 3 seeds with the 农甲 bot (the player picks 道甲, still on the placeholder) and 1 with the player on 农甲 (autopilot), watched to the end:
+  // on a floor every tick, the hunter cap holds, nobody stuck over 3 s, his pool never above pool and the planted count matches the game's, no furrow or ring
+  // outlives its time; the bot sows, ploughs and harvests (R) over the 3, and eats sprouts.
+  const ng144 = await g(() => {
+    const G = __game, C = G.config, K = C.KITS.nong, o = { viol: [], casts: { q: 0, w: 0, r: 0 }, player: { q: 0, w: 0, r: 0 }, eat: 0, tramp: 0, decided: [], poolMax: 0, furrowMax: 0, ringMax: 0 }, bad = (x) => { if (o.viol.length < 5) o.viol.push(x); };
+    const one = (seed, playerNg) => {
+      G.setSeed(seed); G.setBots(C.BOTS.count); G.setPkitP(!playerNg); G.pickSchool(playerNg ? 8 : 1); G.autoPlayer(true); G.setWatch(true);
+      const ni = playerNg ? -1 : G.schools().suits.findIndex((q) => q.school === 'nong') - 1, cnt = playerNg ? o.player : o.casts; let last = [0, 0], ult = 0, fw = 0, rg = 0, eat = 0, tr = 0;
+      if (!playerNg && G.schools().suits[ni + 1].kit !== 'nong') bad('nong bot not on its kit');
+      for (let t = 0; t < 300 / C.STEP; t++) {
+        G.step(1); const r = G.royale(); if (r.decidedAt >= 0) { o.decided.push(+r.decidedAt.toFixed(1)); break; }
+        const k = G.kitState(ni), cd = k.bcd, n = G.nongState(ni);
+        if (cd[0] > last[0] + 1e-9) cnt.q++; if (cd[1] > last[1] + 1e-9) cnt.w++; if (k.ultN > ult) cnt.r += k.ultN - ult; last = [cd[0], cd[1]]; ult = k.ultN;
+        if (n.planted > o.poolMax) o.poolMax = n.planted; if (n.planted > K.skills[0].pool) bad(`s${seed} t${t} pool ${n.planted}`);
+        if (n.sproutN !== n.planted && !playerNg) bad(`s${seed} t${t} sproutN ${n.sproutN} != planted ${n.planted}`);
+        if (n.eatN > eat) eat = n.eatN; if (n.trampN > tr) tr = n.trampN;
+        fw = n.furrow.inScene ? fw + C.STEP : 0; if (fw > o.furrowMax) o.furrowMax = +fw.toFixed(3); rg = n.ringIn ? rg + C.STEP : 0; if (rg > o.ringMax) o.ringMax = +rg.toFixed(3);
+        const h = G.hunters(); if (h.capOnP > h.max) bad(`s${seed} t${t} cap ${h.capOnP}>${h.max}`);
+        if (t % 10 === 0 && ni >= 0) { const q = G.bots().list[ni]; if (!q.standOk) bad(`s${seed} t${t} nong off floor`); if (!Number.isFinite(q.x + q.z + q.hp)) bad(`s${seed} t${t} NaN`); }
+        if (t % 10 === 0 && ni < 0 && !G.player().dead && !G.state().falling && !G.walkable(G.player().x, G.player().z, G.player().y + 0.05)) bad(`s${seed} t${t} player off floor`);
+      }
+      for (const q of G.bots().list) if (q.stuck > 3) bad(`s${seed} bot${q.id} stuck ${q.stuck}`);
+      if (!playerNg) { o.eat += eat; o.tramp += tr; }
+      G.setWatch(false); G.autoPlayer(false);
+    };
+    for (const seed of [12345, 2, 3]) one(seed, false);
+    one(4, true);
+    G.setPkitP(true); G.pickSchool(0); G.setBots(0); G.reset(); const n = G.nongState(-1); o.clean = n.sproutN === 0 && n.furrowN === 0 && n.harvRingN === 0; return o;
+  });
+  check('144 农甲 in whole matches: on a floor, nobody stuck > 3 s, pool <= pool, furrows and rings end on time, hunter cap every tick, the 农甲 bot sows, ploughs, harvests and eats (player 农甲 autopilot reported)',
+    ng144.viol.length === 0 && ng144.poolMax <= C0.KITS.nong.skills[0].pool && ng144.furrowMax <= C0.KITS.nong.skills[1].furrowS + 0.02 && ng144.ringMax <= C0.KITS.nong.skills[2].ringS + 0.02 && ng144.clean
+    && ng144.casts.q > 0 && ng144.casts.w > 0 && ng144.casts.r > 0 && ng144.eat > 0, JSON.stringify(ng144));
+  // 145 Budget with 农甲's effects: the heaviest royale (every suit, 7 cubs, tells) with a full pool (seeds and grown sprouts), the furrow and the harvest ring shown;
+  // calls < 500, tris < 500k, no shader compile, geometry flat.
+  const ng145 = await g(() => {
+    const G = __game, C = G.config, K = window.__k, Q = C.KITS.nong.skills[0], waves = C.KENNEL.waves; let best = null;
+    try {
+      C.KENNEL.waves = [[['stalker', 0], ['stalker', 0], ['stalker', 0], ['stalker', 0], ['howler', 0], ['howler', 0], ['howler', 0]]];
+      G.setSeed(12345); G.setBots(C.BOTS.count); G.setPkitP(false); G.pickSchool(8); G.setDecNext(1e9); K.sp(C.KENNEL.firstS + 0.1); G.setHp(1e9);
+      const cx = G.camps[0][0], cz = G.camps[0][1] + 4; G.teleport(cx, cz);
+      const park = () => { for (let i = 0; i < C.BOTS.count; i++) G.placeBot(i, cx - 4 + (i % 3) * 3, cz + 2 + Math.floor(i / 3) * 1.5); };
+      // A far field (beyond the harvest's radius) grows; he ploughs west, harvests (the far field stays grown) and sows a new one: seeds, sprouts, furrow and ring at once.
+      park(); G.step(1); G.nongSow(-1, cx + 10, cz);
+      for (let n = 0; n < Math.round((Q.growS + 0.1) / C.STEP); n++) { park(); G.step(1); }
+      G.cast(1, cx - 8, cz);
+      for (let n = 0; n < 30; n++) {
+        park(); G.step(1); const c = G.cubs();
+        // After the plough has landed (its dash takes about dashS + a few steps).
+        if (n === 20) { G.setCharge(-1, C.ULT.full); G.cast(2, cx, cz); }
+        if (n === 21) G.nongSow(-1, G.state().x, G.state().z - 3);
+        const s = G.nongState(-1);
+        if (n > 21 && s.furrow.inScene && s.ringIn && s.grown >= 3 && s.planted > s.grown && (!best || c.tells.length >= best.tells)) { const r = G.render(true); best = { tells: c.tells.length, planted: s.planted, grown: s.grown, ring: s.ringIn, calls: r.calls, tris: r.tris, programs: r.programs, geoms: r.geoms }; }
+      }
+    } finally { C.KENNEL.waves = waves; G.setPkitP(true); G.pickSchool(0); G.setBots(0); G.reset(); }
+    return best;
+  });
+  check('145 budget with 农甲 effects: every suit + cubs + tells + seeds, sprouts, furrow and harvest ring (calls<500, tris<500k), no shader compile, geometry flat',
+    !!ng145 && ng145.calls < 500 && ng145.tris < 500000 && ng145.programs === base.programs && ng145.geoms === base.geoms, JSON.stringify(ng145));
   // 66 Idle player: standing at the spawn doing nothing loses the royale (frozen loss with a cause) before the last collapse is over.
   const idle = await g(() => {
     const G = __game, C = G.config; G.setSeed(12345); G.setBots(G.config.BOTS.count); G.reset(); let t = 0;
