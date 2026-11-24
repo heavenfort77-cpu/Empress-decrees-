@@ -65,6 +65,7 @@ X = {
     'garden_ground': dict(repeat=True, value=(85, 125), wrap='xy'), 'garden_plants': dict(alpha=(0.06, 0.6), cells=4),
     'star_ceiling': dict(value=(22, 50), wrap='xy'), 'signal_flags': dict(alpha=(0.25, 0.7), cells=3), 'slips': dict(value=(120, 165), wrap='x'),
     'slips_burnt': dict(value=(28, 70), wrap='x'),
+    'hall_wall': dict(value=(150, 185)),   # FIXB 25 Nov: approved A2 plaster value kept (owner 02:2x), study range updated to it
     'pond_water': dict(repeat=True, value=(115, 155), wrap='xy', teal=True), 'star_inlay': dict(alpha=(0.01, 0.08), cells=2, decal='hall_floor'),
 }
 # FIXB 25 Nov: mercury value raised from 110-190 to 145-190 (owner 02:2x 'mercury brighter'; round 3 measured 130).

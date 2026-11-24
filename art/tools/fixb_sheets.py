@@ -23,20 +23,17 @@ def sheet(name, rows, w=960):
     out.save(f'{O}/{name}.jpg', quality=88); print(name, out.size)
 
 s = lambda n: f'{S}/{n}.png'
-sheet('plaster_side_by_side', [[('A2 approved (lum 169) hall_wide', s('hall_wide'), None), ('candidate PLASTER_K hall_wide', s('hall_wide_k'), None)],
-                              [('approved hall_play', s('hall_play'), None), ('candidate hall_play', s('hall_play_k'), None)],
-                              [('A10 mural (matched to A2) corridor_play', s('corridor_play'), None), ('candidate corridor_play', s('corridor_play_k'), None)]])
 sheet('core_inlay', [[('core_wide (inlay)', s('core_wide'), None), ('core_wide no inlay', s('core_wide_noinlay'), None)],
                      [('core_play (inlay)', s('core_play'), None), ('core_play no inlay', s('core_play_noinlay'), None)],
                      [('core_play + hazard rings (inlay)', s('core_play_tell'), None), ('core_play + hazard rings, no inlay', s('core_play_tell_noinlay'), None)]])
-sheet('core_throne', [[('round 2: dais 2.8 m, throne x1.0', s('core_wide_r2'), None), ('FIXB: dais 1.5 m, throne x1.4', s('core_wide_noinlay'), None)],
+sheet('core_throne', [[('round 2 GLB: dais 2.8 m, throne x1.0 (turned to face south)', s('core_wide_r2'), None), ('FIXB: dais 1.5 m, throne x1.4', s('core_wide_noinlay'), None)], [('FIXB core_play', s('core_play_noinlay'), None)],
                       [('piece throne_dais', s('piece_throne_dais'), None)]])
 sheet('hall_racks', [[('round 2 racks 1.6 x 1.8 m', s('hall_wide_r2'), None), ('FIXB racks 2.4 x 2.8 m', s('hall_wide'), None)],
                      [('round 2 burnt', s('hall_burnt_wide_r2'), None), ('FIXB burnt', s('hall_burnt_wide'), None)],
-                     [('FIXB hall_play', s('hall_play'), None), ('piece slip_rack', s('piece_slip_rack'), None)]])
+                     [('FIXB hall_play at the racks', s('hall_play_racks'), None), ('piece slip_rack', s('piece_slip_rack'), None)]])
 sheet('garden', [[('round 2 garden_wide (170 cards, black-lake pond)', s('garden_wide_r2'), None), ('FIXB garden_wide', s('garden_wide'), None)],
                  [('round 2 garden_play', s('garden_play_r2'), None), ('FIXB garden_play', s('garden_play'), None)]])
-sheet('flags_court', [[('court_wide', s('court_wide'), None), ('court_play', s('court_play'), None)], [('piece que_pair', s('piece_que_pair'), None)]])
+sheet('flags_court', [[('court_wide', s('court_wide'), None), ('court_play at the north wall-walk flags', s('court_play_flags'), None)], [('piece que_pair', s('piece_que_pair'), None)]])
 sheet('brass_pieces', [[('pillar (brass sleeve)', s('piece_pillar'), None), ('door (brass bar, masks)', s('piece_door'), None)],
                        [('hall_locked_play', s('hall_locked_play'), None), ('bridge_play (mercury)', s('bridge_play'), None)]])
 sheet('tally_round3', [[('round 2 play (500 tris)', 'art/tally/round2/play.png', (560, 260, 1360, 710)), ('round 3 play (brass)', s('tally_play'), (560, 260, 1360, 710))],
@@ -47,7 +44,7 @@ sheet('tally_round3', [[('round 2 play (500 tris)', 'art/tally/round2/play.png',
 sheet('merc_round2', [[('round 1 idle', 'art/merc/round1/play_idle.png', (420, 160, 1500, 760)), ('round 2 idle', s('merc_play_idle'), (420, 160, 1500, 760))],
                       [('round 1 warn', 'art/merc/round1/play_warn.png', (420, 160, 1500, 760)), ('round 2 warn', s('merc_play_warn'), (420, 160, 1500, 760))],
                       [('round 1 hot', 'art/merc/round1/play_hot.png', (420, 160, 1500, 760)), ('round 2 hot', s('merc_play_hot'), (420, 160, 1500, 760))],
-                      [('close idle', s('merc_close_idle'), None), ('close warn', s('merc_close_warn'), None)]], w=800)
+                      [('close idle', s('merc_close_idle'), None), ('close warn t 0.40', s('merc_close_warn'), None)], [('close hot', s('merc_close_hot'), None), ('close warn t 0.55 (shimmer moved)', s('merc_close_warn_t2'), None)]], w=800)
 # textures: pond water, star inlay over the approved floor, flags on grey, mercury matcap (each 1024 = 4 m, shown at 512)
 fl = Image.open(f'{TX}/hall_floor.png').convert('RGBA'); inl = Image.open(f'{TX}/star_inlay.png').convert('RGBA'); comp = fl.copy(); comp.alpha_composite(inl)
 comp.convert('RGB').save(f'{O}/_inlay_over_floor.png')

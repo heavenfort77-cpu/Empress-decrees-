@@ -97,12 +97,6 @@ if not MUT:
     cache = {}
     I = lambda n: cache.setdefault(n, img(n))
     R = gates(I, ST); f = report(R); print(f'{len(R) - f} of {len(R)} pass')
-    # numbers for the owner's plaster question (not gates): wall and floor on screen, approved wall vs the candidate
-    for v in ('wide', 'play'):
-        wm, fm = mask(f'mask_hall_{v}_wall'), mask(f'mask_hall_{v}_floor'); a, k = img(f'hall_{v}'), img(f'hall_{v}_k')
-        print(f'INFO plaster hall_{v}: wall lum approved {lum(a)[wm].mean():.0f} / candidate {lum(k)[wm].mean():.0f}; floor {lum(a)[fm].mean():.0f}; wall-floor dE approved {dE(a[wm].mean(0), a[fm].mean(0)):.1f} / candidate {dE(k[wm].mean(0), k[fm].mean(0)):.1f}')
-    mm = mask('mask_corridor_play_mural'); a, k = img('corridor_play'), img('corridor_play_k')
-    print(f'INFO plaster corridor_play: mural wall lum approved-matched {lum(a)[mm].mean():.0f} / candidate {lum(k)[mm].mean():.0f}')
     if os.path.exists(f'{R1}/play_idle.png'):
         mm = mask('mask_merc_play')
         r1 = {k: lum(np.asarray(Image.open(f'{R1}/play_{k}.png').convert('RGB')).astype(float))[mm].mean() for k in ('idle', 'warn', 'hot')}
@@ -111,7 +105,12 @@ else:
     base = {}
     def I0(n): return base.setdefault(n, img(n))
     def swap(m): return lambda n: I0(m.get(n, n))
-    def darken(name, k): return lambda n: I0(n) * (k if n == name else 1)
+    def darken(name, k):  # the pond pixels only (darkening the whole shot darkens the ground too: round 1 MISSED)
+        def f(n):
+            a = I0(n)
+            if n != name: return a
+            b = a.copy(); pm = mask('mask_garden_wide_pond'); b[pm] *= k; return b
+        return f
     def bright(name, d): return lambda n: np.clip(I0(n) + (d if n == name else 0), 0, 255)
     def flat_pond(n):
         a = I0(n)

@@ -33,6 +33,8 @@ HAUNCH, SHOULDER, HEAD = (-0.44, 0.36, 0.17, 0.17), (0.3, 0.37, 0.13, 0.17), (0.
 # Stripes: (x, top z offset, bottom z offset as fractions of the local radius, lean in design units); on the body, shoulder, haunch, head.
 STRIPES = [(-0.54, 0.9, -0.35, 0.03), (-0.36, 0.95, -0.4, 0.04), (-0.2, 0.92, -0.3, 0.04), (-0.05, 0.9, -0.3, 0.04), (0.09, 0.92, -0.3, 0.03),
            (0.22, 0.94, -0.45, 0.02), (0.36, 0.9, -0.2, 0.0), (0.56, 0.95, 0.35, -0.02), (0.64, 0.98, 0.45, -0.02)]
+# LOD1 decimation ratio after the half-segment build, LOD2 ratio (of the LOD1 build).
+LOD1_RATIO, LOD2_RATIO = 0.62, 0.27
 MUT = os.environ.get('TALLY_MUT', '')
 if MUT == 'budget': BUDGET = (100, 50, 20)
 if MUT == 'stripes': STRIPES = STRIPES[:3]
@@ -63,7 +65,7 @@ def half(side, x0, detail):
     zb = STAND[2]; f0 = side * GAP / 2; fc = f0 + side * HALF_T / 2; s = L / 1.3; th = HALF_T / 2
     def Pt(x, z): return (x0 + x * s, fc, zb + z * s)
     sweep(f'body_{side}', [Pt(x, z) for x, z, _ in BODY], [r * s for _, _, r in BODY], 'palBronze', 'plain', n=8, flat=(1.0, th / (0.16 * s)), side=(0, 0, 1))
-    for nm, (cx, cz, rx, rz), sg in (('haunch', HAUNCH, (7, 5)), ('shoulder', SHOULDER, (7, 5)), ('head', HEAD, (9, 6))):
+    for nm, (cx, cz, rx, rz), sg in (('haunch', HAUNCH, (6, 5)), ('shoulder', SHOULDER, (6, 5)), ('head', HEAD, (8, 6))):
         spheroid(f'{nm}_{side}', Pt(cx, cz), (rx * s, th, rz * s), 'palBronze', 'plain', sg=sg)
     sweep(f'muzzle_{side}', [Pt(0.7, 0.47), Pt(0.78, 0.45), Pt(0.82, 0.42)], [0.08 * s, 0.065 * s, 0.045 * s], 'palBronze', 'plain', n=6, flat=(1.0, th * 0.8 / (0.08 * s)), side=(0, 0, 1))
     if detail:
@@ -73,8 +75,9 @@ def half(side, x0, detail):
     for k, pts, rr in ((0, [(0.32, 0.3), (0.37, 0.14), (0.39, 0.04)], [0.08, 0.055, 0.045]), (1, [(-0.44, 0.3), (-0.52, 0.15), (-0.46, 0.04)], [0.095, 0.05, 0.045])):
         sweep(f'leg_{side}{k}', [Pt(*p) for p in pts], [r * s for r in rr], 'palBronze', 'plain', n=5, flat=(1.0, th * 0.85 / (rr[0] * s)), side=(1, 0, 0))
         spheroid(f'paw_{side}{k}', Pt(pts[-1][0] + 0.04, 0.035), (0.075 * s, th * 0.85, 0.035 * s), 'palBronze', 'plain', sg=(6, 3))
-    tp = [(-0.66, 0.44), (-0.8, 0.4), (-0.92, 0.32), (-1.0, 0.36), (-1.0, 0.5), (-0.92, 0.57)]
-    sweep(f'tail_{side}', [Pt(*p) for p in tp], [0.05 * s, 0.045 * s, 0.04 * s, 0.04 * s, 0.035 * s, 0.0], 'palBronze', 'flange', n=5 if detail else 4)
+    # tail: a smooth drooping S that curls up at the tip (round 3a: six points with hard turns read as broken hooks)
+    tp = [(-0.64 - 0.38 * q, 0.44 - 0.16 * math.sin(q * math.pi * 0.9) + 0.2 * max(0, q - 0.7) ** 2 * 12) for q in [k / 8 for k in range(9)]]
+    sweep(f'tail_{side}', [Pt(*p) for p in tp], [s * (0.05 - 0.016 * k / 8) for k in range(8)] + [0.0], 'palBronze', 'plain', n=5 if detail else 4)
     # inlaid stripes following the rounded flank (each point set STRIPE_PROUD outside the relief surface)
     for i, (x, top, bot, lean) in enumerate(STRIPES):
         b = body_at(x)
@@ -99,7 +102,8 @@ def build(detail):
 
 
 K.reset()
-lod0, lod1, lod2 = K.lods('tally', build, ratio2=0.42)
+lod0, lod1, lod2 = K.lods('tally', build, ratio2=LOD2_RATIO)
+K.decimate(lod1, LOD1_RATIO)   # round 3b: LOD1 at half segments was 908 tris (stripes and masses at their segment minimums)
 G = K.Gates()
 for ob, lim in zip((lod0, lod1, lod2), BUDGET): G(K.tris(ob) <= lim, f'{ob.name} tris {K.tris(ob)} (budget {lim})')
 G(K.tris(lod0) >= 900, f'tally_lod0 uses the raised budget: {K.tris(lod0)} tris (min 900; rounds 1-2 had 456)')

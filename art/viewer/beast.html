@@ -44,13 +44,16 @@ function glowTex() {  // soft radial ember glow for the lit card (additive; no n
 }
 // CONFIG (FIXB mercury): per state material colour (linear multiplier on the matcap), ripple normal strength, shimmer slide speed (UV per s);
 // ripple tile repeat on the surface UVs (trim UVs: 0.25 per m, so 8 = a 0.5 m ripple tile); still-shot phase s (&t= overrides).
-const MERC = { idle: { col: [0.6, 0.62, 0.66], ns: 0.25, speed: 0.02 }, warn: { col: [1.3, 1.34, 1.4], ns: 1.0, speed: 0.35 }, hot: { col: [1.9, 1.9, 1.95], ns: 0.5, speed: 0.6 } };
-const RIPPLE_REP = 8, SHIMMER_T = Q.get('t') !== null ? +Q.get('t') : 0.4;
+// round 2 (FIXB run 45462167005: warn only +24 lum over idle; the 0.5 m ripple tile read as chain mail): warn colour 1.3 -> 1.7 with a softer
+// ripple, a 1.33 m irregular ripple tile, idle almost calm.
+const MERC = { idle: { col: [0.6, 0.62, 0.66], ns: 0.12, speed: 0.02 }, warn: { col: [1.7, 1.74, 1.8], ns: 0.45, speed: 0.35 }, hot: { col: [2.6, 2.6, 2.65], ns: 0.3, speed: 0.6 } };
+const RIPPLE_REP = 3, SHIMMER_T = Q.get('t') !== null ? +Q.get('t') : 0.4;
 let RIP = null;
 function rippleTex() {  // tileable ripple normal map from whole sine cycles (generated once; shared by every mercury surface)
   if (RIP) return RIP; const N = 128, c = document.createElement('canvas'); c.width = c.height = N; const g = c.getContext('2d'), im = g.createImageData(N, N);
-  const W = [[3, 1, 0.5], [1, 4, 0.35], [5, -2, 0.25], [-2, 6, 0.2]], hgt = (x, y) => W.reduce((a, [fx, fy, A]) => a + A * Math.sin(2 * Math.PI * (fx * x + fy * y) / N), 0);
-  for (let y = 0; y < N; y++) for (let x = 0; x < N; x++) { const dx = (hgt(x + 1, y) - hgt(x - 1, y)) * 4, dy = (hgt(x, y + 1) - hgt(x, y - 1)) * 4, l = Math.hypot(dx, dy, 1), i = (y * N + x) * 4;
+  const W = [[3, 1, 0.5, 0], [1, 4, 0.35, 1.3], [5, -2, 0.25, 2.1], [-2, 7, 0.2, 0.7], [7, 3, 0.12, 4.0], [-5, -6, 0.15, 2.9], [11, -4, 0.06, 1.1]];
+  const hgt = (x, y) => W.reduce((a, [fx, fy, A, ph]) => a + A * Math.sin(2 * Math.PI * (fx * x + fy * y) / N + ph), 0);
+  for (let y = 0; y < N; y++) for (let x = 0; x < N; x++) { const dx = (hgt(x + 1, y) - hgt(x - 1, y)) * 2.5, dy = (hgt(x, y + 1) - hgt(x, y - 1)) * 2.5, l = Math.hypot(dx, dy, 1), i = (y * N + x) * 4;
     im.data[i] = 128 - 127 * dx / l; im.data[i + 1] = 128 - 127 * dy / l; im.data[i + 2] = 128 + 127 / l; im.data[i + 3] = 255; }
   g.putImageData(im, 0, 0); RIP = new THREE.CanvasTexture(c); RIP.wrapS = RIP.wrapT = THREE.RepeatWrapping; RIP.repeat.set(RIPPLE_REP, RIPPLE_REP); return RIP;
 }

@@ -21,7 +21,8 @@ const GLBDIR = Q.get('glbdir') || 'arch', R2 = GLBDIR === 'arch_r2';
 const INLAY = Q.get('inlay') !== '0', TELL = Q.get('tell') === '1', MASK = Q.get('mask') ? Q.get('mask').split(',') : null;
 // CONFIG (FIXB): pond open-water vertex colour (linear; the 1 m margin stays 1.0 = the pale edge), margin and fade widths m; inlay cell m;
 // garden planting target count and card scale range; hazard ring radius m (the game's ring is r-0.3..r).
-const POND_DEEP = [0.62, 0.70, 0.70], POND_EDGE = [0.35, 1.4], INLAY_CELL = 4, PLANTS_N = 560, PLANT_S = [1.0, 1.9], RING_R = 3;
+// round 2 (run 45462167005: pond margin only +7 lum over the open water, planting x1.73): deeper open water, 820 cards at 1.2-2.2 m.
+const POND_DEEP = [0.48, 0.56, 0.56], POND_EDGE = [0.3, 1.2], INLAY_CELL = 4, PLANTS_N = 820, PLANT_S = [1.2, 2.2], RING_R = 3;
 const W = innerWidth, H = innerHeight;
 const r = new THREE.WebGLRenderer({ antialias: true }); r.setPixelRatio(1); r.setSize(W, H); r.shadowMap.enabled = true; document.body.appendChild(r.domElement);
 const scene = new THREE.Scene(); scene.background = new THREE.Color(0x0e1a1c);
@@ -69,24 +70,24 @@ function meshesOf(root, node) {
 const T = (x, z, ry = 0, y = 0, s = 1) => new THREE.Matrix4().compose(new THREE.Vector3(x, y, z), new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), ry), new THREE.Vector3(s, s, s));
 const OVERRIDE = {};
 let TAG = '';  // mask tag given to every mesh made while it is set
-const tagged = (o) => { if (TAG) o.userData.tag = TAG; return o; };
+const tagged = (o, tag = TAG) => { if (tag) o.userData.tag = tag; return o; };  // async callers pass the tag they captured before their first await
 // instanced placement: one InstancedMesh per piece material
 async function inst(piece, mats, node, over) {
   if (!mats.length) return;
-  const root = await load(piece);
+  const tag = TAG, root = await load(piece);
   for (const p of meshesOf(root, node)) {
     const name = (over && over[p.name]) || p.name;
     const im = new THREE.InstancedMesh(p.geo, mat(name), mats.length);
     mats.forEach((M, i) => im.setMatrixAt(i, M.clone().multiply(p.m)));
-    im.castShadow = name !== 'palPlant'; im.receiveShadow = true; im.computeBoundingSphere(); scene.add(tagged(im));
+    im.castShadow = name !== 'palPlant'; im.receiveShadow = true; im.computeBoundingSphere(); scene.add(tagged(im, tag));
   }
 }
 // single prop with LOD (distances in m)
 async function single(piece, M, dists = [0, 35, 70]) {
-  const root = await load(piece), lod = new THREE.LOD();
+  const tag = TAG, root = await load(piece), lod = new THREE.LOD();
   for (let i = 0; i < 3; i++) {
     const g = new THREE.Group();
-    for (const p of meshesOf(root, `${piece}_lod${i}`)) { const me = new THREE.Mesh(p.geo, mat(p.name)); me.applyMatrix4(p.m); me.castShadow = me.receiveShadow = true; g.add(tagged(me)); }
+    for (const p of meshesOf(root, `${piece}_lod${i}`)) { const me = new THREE.Mesh(p.geo, mat(p.name)); me.applyMatrix4(p.m); me.castShadow = me.receiveShadow = true; g.add(tagged(me, tag)); }
     lod.addLevel(g, dists[i]);
   }
   lod.applyMatrix4(M); scene.add(lod); return lod;
@@ -166,16 +167,20 @@ async function build() {
     rim(['s', 'w', 'e']);
     if (ROOM === 'hall') {  // A20: three slip racks on the west wall with their bundles (G1: the burning of the books)
       // FIXB: racks 2.4 x 0.7 x 2.8 m, 5 shelves at 0.5 m (arch_blender RACK); bundles 0.5 x 0.09 m lie end-on (spiral ends face the room), two layers
-      TAG = 'racks'; const racks = (R2 ? [-6, -1, 4] : [-7, -2.5, 2]).map((z) => T(x0 + (R2 ? 0.85 : 0.95), z, Math.PI / 2)); await inst('slip_rack', racks);
+      // round 2: three on the west wall plus six along the north wall either side of the door, facing the camera (round 1 west-wall racks
+      // were seen edge-on from the south and still read weak at the wide camera)
+      TAG = 'racks'; const racks = R2 ? [-6, -1, 4].map((z) => T(x0 + 0.85, z, Math.PI / 2)) : [...[-7, -2.5, 2].map((z) => T(x0 + 0.95, z, Math.PI / 2)),
+        ...[-14.6, -11.6, -8.6, 6.2, 9.2, 12.2].map((x) => T(x, z0 + 0.95, 0))]; await inst('slip_rack', racks);
       const b = []; if (R2) for (const R of racks) for (let k = 0; k < 4; k++) for (let j = 0; j < 9; j++) b.push(R.clone().multiply(T(0.1 + j * 0.16, -0.25, 0, 0.29 + k * 0.45)).multiply(new THREE.Matrix4().makeRotationY((j % 3 - 1) * 0.08)));
       else for (const R of racks) for (let k = 0; k < 5; k++) for (let j = 0; j < 11; j++) for (let l = 0; l < 2; l++) { if ((j * 5 + k * 3 + l) % 7 === 6) continue;
         b.push(R.clone().multiply(T(0.2 + j * 0.2 + l * 0.1, -0.08 - l * 0.04, Math.PI / 2 + ((j + k) % 3 - 1) * 0.05, 0.25 + k * 0.5 + 0.09 + l * 0.165))); }
       await inst('slip_bundle', b); TAG = '';
       player.position.set(-4, 1.025, 0);
     } else {
-      TAG = 'throne'; await single('throne_dais', T(0, z0 + (R2 ? 5 : 4.5), Math.PI)); TAG = '';
+      // the throne faces south (the arena and the camera), screen behind it on the north side; round 1-2 viewers had it turned by PI
+      TAG = 'throne'; await single('throne_dais', T(0, z0 + (R2 ? 5 : 4.5), 0)); TAG = '';
       if (INLAY) await inlay(-12, 12, z0 + 9, z1 - 1);   // the apex arena in front of the dais
-      if (TELL) { tellRing(0, z0 + 10.5); tellRing(4, 4); }
+      if (TELL) { tellRing(0, z0 + 10.5); tellRing(-1, 6); }
       for (const x of [-6, 6]) mercury(x - 0.5, x + 0.5, z0 + 9, z1 - 0.5);  // A14: mercury rivers (the channel lip is C7)
       player.position.set(2, 1.025, 4);
     }
@@ -224,6 +229,7 @@ async function build() {
     await single('debris', T(4, 14, 0.4));
     player.position.set(-2, 1.025, 1);
   }
+  if (Q.get('at')) { const [ax, az] = Q.get('at').split(',').map(Number); player.position.set(ax, 1.025, az); }  // &at=x,z: player (play camera) position
   scene.add(player);
 }
 await build();

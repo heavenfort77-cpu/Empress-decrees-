@@ -35,7 +35,8 @@ POND = dict(base='#5f8f88', crest='#86b2aa', trough='#4a7872', glint='#d4e6e0', 
 # FIXB star-map inlay (owner 02:2x: A17 becomes a core floor inlay, subtle lines at 256 px/m, must not fight the 丹 floor or hide tells):
 # brass inlay tones (lines, studs, highlight), line and stud widths px, number of asterisms, single studs, margin kept clear px (the
 # tile can then be turned 0/90/180/270 deg per 4 m cell without a seam).
-INLAY = dict(tones=['#a8864c', '#9a7a44', '#b8965a'], line=7, stud=13, ring=5, asterisms=11, singles=46, margin=24)
+# Round 2: lines 7 -> 11 px, studs 13 -> 18, ring 5 -> 8 (round 1: 0.24 of drawn pixels lost at the alpha test; nearly unseen at play).
+INLAY = dict(tones=['#a8864c', '#9a7a44', '#b8965a'], line=11, stud=18, ring=8, asterisms=11, singles=46, margin=24)
 
 
 def layered_earth(name, R, seed, lmin, lmax, soot=False, pocks=3200, thick=0.18):
@@ -755,7 +756,7 @@ def pond_water():
     r = t.r
     t.stage = 1
     for _ in range(70):
-        t.blot(r.uniform(0, 1024), r.uniform(0, 1024), r.uniform(70, 160), 'sponge', 120, r.choice([POND['trough'], POND['crest'], POND['base'], POND['sand']]), 0.3, 3)
+        t.blot(r.uniform(0, 1024), r.uniform(0, 1024), r.uniform(70, 160), 'sponge', 120, r.choice([POND['trough'], POND['crest'], POND['base']]), 0.14, 3)   # round 2: 0.3 with sand made 50 cm blocks (sd 4.7)
     t.stage = 2
     for _ in range(2400):  # ripples: short, mostly horizontal, 4-15 cm
         x, y = r.uniform(0, 1024), r.uniform(0, 1024); L = r.uniform(4, 15) * CM; a = r.uniform(-0.2, 0.2)
@@ -804,7 +805,8 @@ def star_inlay():
 SCHOOLS = [('ru', '#b8862e'), ('dao', '#e2b84a'), ('fa', '#d9d2c3'), ('mo', '#a8321e'), ('yinyang', '#1a1614'), ('za', '#c8ccd0'),
            ('ming', '#5b3f8c'), ('zongheng', '#2f8a5c'), ('nong', '#2e5a9c')]
 # Accents darker than this luminance (bone black on Qin black) get bone keylines (KEYLINE colour, px each side) so band and sigil still read.
-KEY_LUM, KEYLINE, KEY_W = 45, '#e9dfca', 3
+# Band and sigil stroke width px (round 2: 8 -> 6, the light accents pushed the flag lum sd to 35.4 over the study's 30).
+KEY_LUM, KEYLINE, KEY_W, BAND_W = 45, '#e9dfca', 2, 6
 
 
 def sigil(t, kind, cx, cy, s, c, w=8):
@@ -856,7 +858,7 @@ def signal_flags():
             t.stroke([(fx, y0 + 4), (fx + r.uniform(-6, 6), y0 + h - 4)], 'oil', r.uniform(14, 26), r.choice(['#2b2521', '#0f0c0b']), 0.6, taper=[0, 0], wrap=False)
         t.stage = 2
         lum = sum(k * int(acc[j:j + 2], 16) for k, j in ((0.2126, 1), (0.7152, 3), (0.0722, 5)))
-        layers = [(KEYLINE, 8 + 2 * KEY_W), (acc, 8)] if lum < KEY_LUM else [(acc, 8)]
+        layers = [(KEYLINE, BAND_W + 2 * KEY_W), (acc, BAND_W)] if lum < KEY_LUM else [(acc, BAND_W)]
         for col, bw in layers:  # accent border bands top and bottom, and along the pole edge (dark accents over a bone keyline)
             for yy in (y0 + 8, y0 + h - 8):
                 t.stroke([(x0, yy), (x0 + w * 0.8, yy)], 'ink', bw, col, 1.0, taper=[0, 0], wrap=False)

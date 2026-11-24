@@ -35,11 +35,9 @@ A('hall_burnt_wide_r2', 'room=hall&view=wide&burnt=1&glbdir=arch_r2');
 A('mask_garden_wide_plants', 'room=garden&view=wide&mask=plants'); A('mask_garden_wide_plants_r2', 'room=garden&view=wide&mask=plants&glbdir=arch_r2'); A('garden_wide_r2', 'room=garden&view=wide&glbdir=arch_r2');
 A('garden_play_r2', 'room=garden&view=play&glbdir=arch_r2');
 A('mask_garden_wide_pond', 'room=garden&view=wide&mask=pond'); A('mask_garden_wide_ground', 'room=garden&view=wide&mask=ground');
-// plaster candidate side by side (A2 hall wall and the A10 mural plaster that follows it)
-A('hall_wide_k', 'room=hall&view=wide&wall=hall_wall_k'); A('hall_play_k', 'room=hall&view=play&wall=hall_wall_k');
-A('corridor_play_k', 'room=corridor&view=play&mural=mural_wall_k'); A('corridor_wide_k', 'room=corridor&view=wide&mural=mural_wall_k');
-A('mask_hall_wide_wall', 'room=hall&view=wide&mask=wall'); A('mask_hall_wide_floor', 'room=hall&view=wide&mask=floor'); A('mask_hall_play_wall', 'room=hall&view=play&mask=wall');
-A('mask_hall_play_floor', 'room=hall&view=play&mask=floor'); A('mask_corridor_play_mural', 'room=corridor&view=play&mask=mural');
+// plaster: the candidate side by side was round 1 (run 45462167005, art/arch/round3/plaster_candidate/); A2 kept (owner rule: align or keep)
+// flags at play size on the court's north wall-walk (W1a mapping)
+A('court_play_flags', 'room=court&view=play&at=-16,-10'); A('hall_play_racks', 'room=hall&view=play&at=-9,-6');
 // pieces
 for (const p of ['throne_dais', 'slip_rack', 'pillar', 'door', 'que_pair']) A(`piece_${p}`, `piece=${p}&yaw=30`, [960, 720]);
 // props on the brass sheet: tally (round 3), mercury (round 2)
@@ -48,8 +46,8 @@ B('tally_play', 'model=tally&view=play&sheet=brass'); B('tally_wide', 'model=tal
 B('tally_top', 'model=tally&view=turn&yaw=20&pitch=55&sheet=brass', SQ); B('tally_lods', 'model=tally&view=lods&sheet=brass', [1280, 640]);
 for (const m of ['sil', 'flat', 'shade', 'tex']) B(`tally_pass_${m}`, `model=tally&view=turn&yaw=35&mode=${m}&sheet=brass`, SQ);
 for (const st of ['idle', 'warn', 'hot']) { B(`merc_play_${st}`, `model=merc&view=play&state=${st}&sheet=brass`); B(`merc_close_${st}`, `model=merc&view=turn&yaw=35&pitch=35&state=${st}&sheet=brass`, SQ); }
-B('merc_play_warn_t2', 'model=merc&view=play&state=warn&sheet=brass&t=0.55'); B('merc_play_idle_t2', 'model=merc&view=play&state=idle&sheet=brass&t=0.55');
-B('merc_wide', 'model=merc&view=wide&sheet=brass'); B('mask_merc_play', 'model=merc&view=play&mask=palMerc');
+B('merc_play_warn_t2', 'model=merc&view=play&state=warn&sheet=brass&t=0.55'); B('merc_close_warn_t2', 'model=merc&view=turn&yaw=35&pitch=35&state=warn&sheet=brass&t=0.55', SQ); B('merc_play_idle_t2', 'model=merc&view=play&state=idle&sheet=brass&t=0.55');
+B('merc_wide', 'model=merc&view=wide&sheet=brass'); B('mask_merc_play', 'model=merc&view=play&mask=palMerc&sheet=brass');
 // brass-gate mutation: the old bronze sheet must be caught by fixb_measure.py
 B('mut_bronze_tally_play', 'model=tally&view=play');
 const stats = {};

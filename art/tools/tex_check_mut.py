@@ -21,13 +21,13 @@ def saturate(a): b = a.copy(); b[..., 0] = np.clip(a[..., 0] * 1.6, 0, 255); b[.
 def swap01(a): b = a.copy(); C = a.shape[1] // 3; b[:C, :C], b[:C, C:2 * C] = a[:C, C:2 * C].copy(), a[:C, :C].copy(); return b
 def nokey(a):
     b = a.copy(); C = a.shape[1] // 3; y0, x0 = C + 40 * a.shape[0] // 1024, C + 12 * a.shape[1] // 1024; blk = b[y0 - 4:y0 + 30, x0:x0 + C - 30]
-    L = 0.2126 * blk[..., 0] + 0.7152 * blk[..., 1] + 0.0722 * blk[..., 2]; blk[L > 120, :3] = np.array([26, 22, 20]); return b
-def roll20(a): return np.roll(a, 20, axis=1)
+    L = 0.2126 * blk[..., 0] + 0.7152 * blk[..., 1] + 0.0722 * blk[..., 2]; blk[L > 60, :3] = np.array([26, 22, 20]); return b   # keylines and their soft edges painted over
+def roll20(a): b = a.copy(); b[500:520, 4:16] = np.array([168, 134, 76, 255]); return b   # a stud set into the border
 def tellred(a): b = a.copy(); b[a[..., 3] > 127, :3] = np.array([224, 48, 26]); return b
 def white(a): b = a.copy(); b[a[..., 3] > 127, :3] = 245; return b
 def r3(a): b = a.copy(); b[..., :3] = a[..., :3] * 0.82; return b
 M = [  # (texture, mutation, rule that must fail)
-    ('signal_flags', swap01, 'school colours'), ('signal_flags', nokey, 'band reads'), ('star_inlay', roll20, 'edge clear'), ('star_inlay', tellred, 'not hazard ring'),
+    ('hall_wall', dull, 'value'), ('signal_flags', swap01, 'school colours'), ('signal_flags', nokey, 'band reads'), ('star_inlay', roll20, 'edge clear'), ('star_inlay', tellred, 'not hazard ring'),
     ('star_inlay', white, 'subtle'), ('pond_water', dull, 'value'), ('pond_water', grey, 'teal tint'), ('mercury_matcap', r3, 'value'),
     ('rammed_earth', flat, 'brush scale'), ('rammed_earth', flat, 'contrast'), ('rammed_earth', shear, 'seam x'),
     ('stone_paving', saturate, 'saturation'), ('stone_paving', blocks, 'repeat'), ('rammed_earth', blocks, 'repeat'), ('black_lake', grey, 'teal tint'), ('garden_plants', faint, 'alpha test'),
