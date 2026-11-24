@@ -1301,8 +1301,12 @@ mat('palFloor', TEXCOL.palFloor); mat('palWall', TEXCOL.palWall); mat('palPillar
 mat('palDoor', TEXCOL.palDoor, { metalness: 0.4, roughness: 0.6 }); mat('palLion', TEXCOL.palLion);
 const PTEX = { on: false, list: [] };
 if (CONFIG.TEX.on) {
-  const TX = CONFIG.TEX, ld = new THREE.TextureLoader(), keys = Object.keys(TX.files);
-  const all = Promise.all(keys.map((k) => ld.loadAsync(TX.files[k])));
+  // fetch + createImageBitmap, not <img> (TextureLoader): image elements hold the page's load event until they finish (cause of the CI page.goto
+  // timeouts in runs 45366908283 and 45388273002; proof: textures delayed 8 s held load 8.2 s), fetches do not.
+  const TX = CONFIG.TEX, keys = Object.keys(TX.files);
+  const one = (u) => fetch(u).then((r) => { if (!r.ok) throw new Error(u); return r.blob(); }).then((bl) => createImageBitmap(bl, { imageOrientation: 'flipY' }))
+    .then((bm) => { const t = new THREE.Texture(bm); t.flipY = false; t.needsUpdate = true; return t; });
+  const all = Promise.all(keys.map((k) => one(TX.files[k])));
   const got = await Promise.race([all.catch(() => null), new Promise((res) => setTimeout(() => res(null), TX.waitMs))]);
   if (got) {
     for (let i = 0; i < keys.length; i++) {
