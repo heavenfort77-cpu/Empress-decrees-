@@ -3,9 +3,9 @@
 Owner 25 Nov 00:08: "use /cocolito along with current procedures to continue with all asset and suit, ensure follow GDD. If you know it will fail, do it again. Do all; any that have problems deciding, leave to show after all are done."
 
 ## Readings the lead took while the owner sleeps (stated here so the morning report can be checked against them)
-1. "All asset" = every item in art/ASSET-LIST.md sections A-C (surfaces, architecture pieces, props, giants). "Suit" = the nine school suits of docs/SUITS.md (儒 道 阴阳 法 名 墨 纵横 杂 农). The apex Tiger Demon, cubs, 皇家 guard and 反贼 are not in tonight's run (not named; models undecided).
+1. "All asset" = every item in art/ASSET-LIST.md sections A-C (surfaces, architecture pieces, props, giants). "Suit" = the nine school suits of docs/SUITS.md (儒 道 阴阳 法 名 墨 纵横 杂 农). Owner 00:15: the apex Tiger Demon, the 皇家 guard and the 反贼 rebels are in tonight's run as well (the cubs go with the apex: they are its shed plates).
 2. Assets are built, textured, rigged and shown on review sheets; they are NOT put into the game tonight (no approvals yet; never hand over a half-finished build). Game integration is a morning decision.
-3. The suit_style_kit_v2 upload is B.O.I's Suit Mythology kit. The repo rule (CLAUDE.md: "never copy B.O.I code, systems or art") forbids using its generators or art; only its general lessons (distinct silhouettes, seams, light from one side, checks) are used. Flagged for the owner.
+3. suit_style_kit_v2 (Suit Mythology) is art reference (owner 00:15: "it is reference, not telling you to copy; use it if it better matches the design in the GDD"). Its approved suit sheets are looked at for design ideas (silhouettes, plate seams, bronze/green/steel ramps, light from the upper left); no generator code or sprite is copied (repo rule: never copy B.O.I code, systems or art). Where its ideas fit the GDD and the Qin research better than the techno-plate kit, they win.
 4. The techno-plate kit (3D armoured set) is used as a technique reference for suits (plate construction, engraving, per-character look table, sculpted-shell heads, its known weak points); our builders are new Blender scripts, not its main.js.
 5. ComfyUI concepts (CPU, GitHub runners, branch ci-comfy) are references only; when the owner is asleep the worker picks by the study criteria and keeps the next two candidates for the owner.
 6. "If you know it will fail, do it again": each asset gets an honest verdict against its criteria after every round; a failing asset gets up to 3 rounds; still failing after 3 = parked in "Needs owner" with the reason.
@@ -26,5 +26,7 @@ Owner 25 Nov 00:08: "use /cocolito along with current procedures to continue wit
 | W3 | Nine school suits: study (cocolito), concepts, Blender builder, rig, klad lacquer/lamellar sheet | queued |
 | W1b | C4 crane and censer, C5 water clock, C6 华表, C9 lamps, C10 bell stand, C11 tiger tally, C7 mercury channel | queued |
 | W1c | C8 twelve bronze giants (shared cast body, 12 heads/beams/motifs, patina dormant / brass awake, rig) | queued |
+| W4 | Apex Tiger Demon (兵家 bronze tiger, patina dormant / brass awake, three inlaid organ weak points, plates that shed) and its cubs Stalker and Howler (four-legged tread machines) | queued |
+| W5 | 皇家 guard (卒, 弩手, 盾, 车 chariot, 伍长; bronze on treads, black and water-blue) and 反贼 rebels (黄巾力士, 符水道人, 死士, 渠帅; bootleg suits, yellow headbands, school-colour patches); fodder budget about 4k / 1.5k / 500, instanced | queued |
 
 ## Needs owner (filled during the night)
