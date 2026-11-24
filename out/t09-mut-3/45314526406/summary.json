@@ -1,0 +1,32 @@
+[
+ {
+  "i": 0,
+  "fails": [
+   "162"
+  ],
+  "tot": [
+   "RUNTIME 166 of 167 pass"
+  ],
+  "s": 106,
+  "name": "hang-reads-live-sk",
+  "want": "162",
+  "applied": true,
+  "caught_named": true
+ },
+ {
+  "i": 1,
+  "fails": [
+   "119",
+   "127",
+   "157"
+  ],
+  "tot": [
+   "RUNTIME 164 of 167 pass"
+  ],
+  "s": 106,
+  "name": "bot-never-swaps",
+  "want": "157",
+  "applied": true,
+  "caught_named": true
+ }
+]

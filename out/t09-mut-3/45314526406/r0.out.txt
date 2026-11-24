@@ -1,0 +1,2 @@
+FAIL 162 a 名甲 bot broken mid-strike by his own hanging line (share through the cord): no error, the next target in the line is still hit :: {"kit":"ming","cast":true,"tie":[1,7],"err":"TypeError: Cannot read properties of null (reading 'type')"}
+RUNTIME 166 of 167 pass
