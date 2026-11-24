@@ -1,0 +1,12 @@
+FAIL play ru: sigil box 60 px tall (>= 24), sigil vs painted IoU 0.44 (>= 0.45), contrast L* 27
+FAIL play dao: sigil box 60 px tall (>= 24), sigil vs painted IoU 0.17 (>= 0.45), contrast L* 33
+FAIL play fa: sigil box 60 px tall (>= 24), sigil vs painted IoU 0.15 (>= 0.45), contrast L* 39
+PASS play mo: sigil box 60 px tall (>= 24), sigil vs painted IoU 0.55 (>= 0.45), contrast L* 29
+PASS play yinyang: sigil box 60 px tall (>= 24), sigil vs painted IoU 0.46 (>= 0.45), contrast L* 46
+FAIL play za: sigil box 60 px tall (>= 24), sigil vs painted IoU 0.13 (>= 0.45), contrast L* 40
+FAIL play ming: sigil box 60 px tall (>= 24), sigil vs painted IoU 0.22 (>= 0.45), contrast L* 32
+FAIL play zongheng: sigil box 60 px tall (>= 24), sigil vs painted IoU 0.11 (>= 0.45), contrast L* 23
+FAIL play nong: sigil box 60 px tall (>= 24), sigil vs painted IoU 0.26 (>= 0.45), contrast L* 35
+FAIL play field colours distinct: 34 of 36 pairs dE >= 10 (closest fa-za 7.2)
+PASS play sigils distinct: 36 of 36 pairs IoU < 0.75 (max ru-mo 0.39)
+3 of 11 pass

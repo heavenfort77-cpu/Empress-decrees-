@@ -1,0 +1,14 @@
+PASS glb standard_lod0 skinned on 4 joints (pole + 3 cloth)
+PASS glb standard_lod1 and standard_lod2 present, static
+PASS glb lod0 tris 248 (max 348)
+PASS glb lod1 tris 94 (max 130)
+PASS glb lod2 tris 40 (max 45)
+PASS glb banner alpha-tested: [('palBanner', 'MASK', 0.5)], no BLEND material
+PASS glb height 3.84 m (range (3.0, 4.0)), foot 0.000
+PASS glb lod0 banner UVs in cell 0: u -0.000-0.200, v 0.000-0.500
+PASS glb lod1 banner UVs in cell 0: u -0.000-0.200, v 0.000-0.500
+PASS glb lod2 banner UVs in cell 0: u -0.000-0.200, v 0.000-0.500
+PASS glb lod0 skin weights sum 1 on 330 of 330 vertices (4 per vertex max by format)
+FAIL glb clip idle 2.54 s (loop 2.0), animated joints ['cloth_1', 'cloth_2', 'cloth_3'] (pole still)
+PASS glb extras schools ru,dao,fa,mo,yinyang,za,ming,zongheng,nong atlas assets/tex/school_standards.png
+12 of 13 pass

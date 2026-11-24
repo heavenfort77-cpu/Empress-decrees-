@@ -1,0 +1,150 @@
+== klad atlas
+school_standards 4757 ops
+school_standards passes base > tone > marks
+== tex check
+PASS atlas size (1024, 1024) RGBA (1024 RGBA, max 1024)
+PASS ru cell: margin alpha max 0.00 (< 0.1, no bleed), cloth covers 88% (70-97%)
+PASS ru alpha-tested cloth: partial alpha 1.7% of painted px (< 6%), body alpha min 1.00 (>= 0.98)
+PASS ru tongues: 3 (3)
+PASS ru field = accent #b8862e: dE 0.2 (<= 8)
+PASS ru sigil contrast L* 50 (>= 30), covers 30% of its box (8%-50%)
+PASS dao cell: margin alpha max 0.00 (< 0.1, no bleed), cloth covers 88% (70-97%)
+PASS dao alpha-tested cloth: partial alpha 1.7% of painted px (< 6%), body alpha min 1.00 (>= 0.98)
+PASS dao tongues: 3 (3)
+PASS dao field = accent #e2b84a: dE 0.4 (<= 8)
+PASS dao sigil contrast L* 67 (>= 30), covers 22% of its box (8%-50%)
+PASS fa cell: margin alpha max 0.00 (< 0.1, no bleed), cloth covers 88% (70-97%)
+PASS fa alpha-tested cloth: partial alpha 1.7% of painted px (< 6%), body alpha min 1.00 (>= 0.98)
+PASS fa tongues: 3 (3)
+PASS fa field = accent #d9d2c3: dE 0.0 (<= 8)
+PASS fa sigil contrast L* 75 (>= 30), covers 18% of its box (8%-50%)
+PASS mo cell: margin alpha max 0.00 (< 0.1, no bleed), cloth covers 88% (70-97%)
+PASS mo alpha-tested cloth: partial alpha 1.8% of painted px (< 6%), body alpha min 1.00 (>= 0.98)
+PASS mo tongues: 3 (3)
+PASS mo field = accent #a8321e: dE 0.4 (<= 8)
+PASS mo sigil contrast L* 50 (>= 30), covers 31% of its box (8%-50%)
+PASS yinyang cell: margin alpha max 0.00 (< 0.1, no bleed), cloth covers 88% (70-97%)
+PASS yinyang alpha-tested cloth: partial alpha 1.8% of painted px (< 6%), body alpha min 1.00 (>= 0.98)
+PASS yinyang tongues: 3 (3)
+PASS yinyang field = accent #1a1614: dE 0.0 (<= 8)
+PASS yinyang sigil contrast L* 81 (>= 30), covers 21% of its box (8%-50%)
+PASS za cell: margin alpha max 0.00 (< 0.1, no bleed), cloth covers 88% (70-97%)
+PASS za alpha-tested cloth: partial alpha 1.7% of painted px (< 6%), body alpha min 1.00 (>= 0.98)
+PASS za tongues: 3 (3)
+PASS za field = accent #c8ccd0: dE 0.0 (<= 8)
+PASS za sigil contrast L* 73 (>= 30), covers 19% of its box (8%-50%)
+PASS ming cell: margin alpha max 0.00 (< 0.1, no bleed), cloth covers 88% (70-97%)
+PASS ming alpha-tested cloth: partial alpha 1.7% of painted px (< 6%), body alpha min 1.00 (>= 0.98)
+PASS ming tongues: 3 (3)
+PASS ming field = accent #5b3f8c: dE 0.1 (<= 8)
+PASS ming sigil contrast L* 56 (>= 30), covers 16% of its box (8%-50%)
+PASS zongheng cell: margin alpha max 0.00 (< 0.1, no bleed), cloth covers 88% (70-97%)
+PASS zongheng alpha-tested cloth: partial alpha 1.7% of painted px (< 6%), body alpha min 1.00 (>= 0.98)
+PASS zongheng tongues: 3 (3)
+PASS zongheng field = accent #2f8a5c: dE 0.0 (<= 8)
+PASS zongheng sigil contrast L* 38 (>= 30), covers 15% of its box (8%-50%)
+PASS nong cell: margin alpha max 0.00 (< 0.1, no bleed), cloth covers 88% (70-97%)
+PASS nong alpha-tested cloth: partial alpha 1.8% of painted px (< 6%), body alpha min 1.00 (>= 0.98)
+PASS nong tongues: 3 (3)
+PASS nong field = accent #2e5a9c: dE 0.0 (<= 8)
+PASS nong sigil contrast L* 51 (>= 30), covers 20% of its box (8%-50%)
+PASS cell 9 empty (alpha max 0.00)
+PASS field colours distinct: 36 of 36 pairs dE >= 10 (closest fa-za 11.1)
+PASS sigil silhouettes distinct: 36 of 36 pairs IoU < 0.75 (max ru-mo 0.41, next ru-dao 0.32)
+49 of 49 pass
+tex mutation dup: 3 FAIL lines (must be > 0)
+tex mutation blend: 4 FAIL lines (must be > 0)
+tex mutation flat: 1 FAIL lines (must be > 0)
+tex mutation bleed: 1 FAIL lines (must be > 0)
+tex mutation tongue: 1 FAIL lines (must be > 0)
+== builder
+PASS lod0 rigid tris 224 (budget 300)
+PASS lod0 cloth card tris 24 (max 48)
+PASS standard_lod1 tris 94 incl. card (budget 130)
+PASS standard_lod2 tris 40 incl. card (budget 45)
+PASS height 3.84 m (range (3.0, 4.0), under the 4.0 m hall wall), foot at 0.000
+PASS footprint 1.10 x 0.48 m (max 1.2 x 0.6)
+PASS banner UVs inside atlas cell 0: u -0.000-0.200, v 0.000-0.500 (cell (0.2, 0.5)); one shared mesh, school = UV offset
+PASS banner texel density 256 x 256 px/m (target 256 +-5%)
+PASS materials ['palBanner', 'palBronze', 'palLacquerPlain']: bronze fittings, lacquer pole, banner card
+PASS bones ['pole', 'cloth_1', 'cloth_2', 'cloth_3']: rigid pole + 3 cloth bones
+PASS weights: every lod0 vertex on bones, sum 1 (0 bad of 176), max 2 influences (limit 4)
+PASS pole rigid through the clip: max move 0.00 mm (max 1)
+PASS banner top edge stays on the crossbar: max move 5.6 mm (max 10)
+PASS banner foot sway 0.188 m (gentle: (0.05, 0.35))
+PASS cloth clears the pole by 0.040 m through the clip (min 0.02)
+PASS idle loop seamless: t=0 vs t=2.0 max 0.00 mm (max 1); loop 2.0 s
+PASS no lights in the file
+17 of 17 pass
+18:25:57 | INFO: Starting glTF 2.0 export
+18:25:57 | INFO: Extracting primitive: standard_lod1
+18:25:57 | INFO: Primitives created: 3
+18:25:57 | INFO: Extracting primitive: standard_lod2
+18:25:57 | INFO: Primitives created: 3
+18:25:57 | INFO: Extracting primitive: standard_lod0
+18:25:57 | INFO: Primitives created: 3
+18:25:57 | INFO: Finished glTF 2.0 export in 0.04554867744445801 s
+wrote /home/runner/work/Empress-decrees-/Empress-decrees-/assets/models/standard.glb 43464 bytes
+INFO tris 224 24 94 40 sway 0.188 clear 0.04
+build mutation tris: 1 FAIL lines (must be > 0)
+build mutation weights: 1 FAIL lines (must be > 0)
+build mutation rigid: 1 FAIL lines (must be > 0)
+build mutation height: 1 FAIL lines (must be > 0)
+build mutation loop: 3 FAIL lines (must be > 0)
+build mutation texel: 2 FAIL lines (must be > 0)
+== glb re-read
+PASS glb standard_lod0 skinned on 4 joints (pole + 3 cloth)
+PASS glb standard_lod1 and standard_lod2 present, static
+PASS glb lod0 tris 248 (max 348)
+PASS glb lod1 tris 94 (max 130)
+PASS glb lod2 tris 40 (max 45)
+PASS glb banner alpha-tested: [('palBanner', 'MASK', 0.5)], no BLEND material
+PASS glb height 3.84 m (range (3.0, 4.0)), foot 0.000
+PASS glb lod0 banner UVs in cell 0: u -0.000-0.200, v 0.000-0.500
+PASS glb lod1 banner UVs in cell 0: u -0.000-0.200, v 0.000-0.500
+PASS glb lod2 banner UVs in cell 0: u -0.000-0.200, v 0.000-0.500
+PASS glb lod0 skin weights sum 1 on 330 of 330 vertices (4 per vertex max by format)
+FAIL glb clip idle 2.54 s (loop 2.0), animated joints ['cloth_1', 'cloth_2', 'cloth_3'] (pole still)
+PASS glb extras schools ru,dao,fa,mo,yinyang,za,ming,zongheng,nong atlas assets/tex/school_standards.png
+12 of 13 pass
+glb mutation blend: 2 FAIL lines (must be > 0)
+glb mutation skin: 2 FAIL lines (must be > 0)
+glb mutation clip: 1 FAIL lines (must be > 0)
+glb mutation uv: 4 FAIL lines (must be > 0)
+glb mutation schools: 2 FAIL lines (must be > 0)
+== shots (brass sheet)
+play ok
+lineup ok
+lineup_sway ok
+wide ok
+wide_lineup ok
+turn_front ok
+turn_34 ok
+turn_side ok
+turn_back ok
+pass_sil ok
+pass_flat ok
+pass_shade ok
+pass_tex ok
+lods ok
+sway_0 ok
+sway_0.5 ok
+sway_1 ok
+sway_1.5 ok
+== play-size check
+play mutation dup: 8 FAIL lines (must be > 0)
+FAIL play ru: sigil box 60 px tall (>= 24), sigil vs painted IoU 0.44 (>= 0.45), contrast L* 27
+FAIL play dao: sigil box 60 px tall (>= 24), sigil vs painted IoU 0.17 (>= 0.45), contrast L* 33
+FAIL play fa: sigil box 60 px tall (>= 24), sigil vs painted IoU 0.15 (>= 0.45), contrast L* 39
+PASS play mo: sigil box 60 px tall (>= 24), sigil vs painted IoU 0.55 (>= 0.45), contrast L* 29
+PASS play yinyang: sigil box 60 px tall (>= 24), sigil vs painted IoU 0.46 (>= 0.45), contrast L* 46
+FAIL play za: sigil box 60 px tall (>= 24), sigil vs painted IoU 0.13 (>= 0.45), contrast L* 40
+FAIL play ming: sigil box 60 px tall (>= 24), sigil vs painted IoU 0.22 (>= 0.45), contrast L* 32
+FAIL play zongheng: sigil box 60 px tall (>= 24), sigil vs painted IoU 0.11 (>= 0.45), contrast L* 23
+FAIL play nong: sigil box 60 px tall (>= 24), sigil vs painted IoU 0.26 (>= 0.45), contrast L* 35
+FAIL play field colours distinct: 34 of 36 pairs dE >= 10 (closest fa-za 7.2)
+PASS play sigils distinct: 36 of 36 pairs IoU < 0.75 (max ru-mo 0.39)
+3 of 11 pass
+== sheets
+sheets ['standard_detail_sheet.png', 'standard_play_sheet.png']
+RESULT done
