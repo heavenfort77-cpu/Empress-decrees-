@@ -1,8 +1,23 @@
-# Handoff (2026-11-24 17:15: Burning Palace built on boxes and merged; next session: palace textures with klad, dispose, LOD). GDD: docs/GDD.md (also Project "empress decrees", claude/GDD.md)
+# Handoff (2026-11-24 21:00: dynamic combat camera + klad textures round 2 merged; next session: owner's look answers, then (g), then KTX2/per-level load/dispose/LOD). GDD: docs/GDD.md (also Project "empress decrees", claude/GDD.md)
 
 ## Fresh-session brief (read first)
-- State (24 Nov 17:15): The Burning Palace is built on boxes and merged on batches-3-5 at 5703a4f: tickets 01-05 and 07-10 plus 09b, all done (tickets/burning-palace). Royal Rumble is parked: kept, all its checks green.
-- Checks: static PASS; CI suite 45360489381 gives 267 of 268 on 5703a4f, the only FAIL is 42 (balance item). Mutation rounds were caught per ticket (runs in the ticket files and the log); integration round 45355984990 caught 10 of 10, BP10M round 45361031301 caught 3 of 3.
+- State (24 Nov 21:00): batches-3-5 at 828692d (CI 45397493782: 272 of 273, only 42 = balance item; static PASS). Royal Rumble parked, green.
+- Done this session (session 015w2gCC):
+  - Palace camera = dynamic combat framing (owner 19:33; docs/BURNING-PALACE.md "Camera"; CONFIG.PAL_FRAME; checks 1204, 1209-1213; mutations 6 of 6). Room card and announcement stacked in #msgs.
+  - klad textures round 2 (assets/tex, 5 PNG 1024; CONFIG.TEX): style study art/Qin-Palace-Painted-Study.md (cocolito, proposal) with art/tools/tex_check.py 20 of 20; generator art/tools/palace_tex.py + paint_palace.py; sources art/src/*.klad; round 1 in art/round1. Textures load by fetch + createImageBitmap (img elements held the page load event: CI goto timeouts).
+  - Research report docs/research/Qin-palace-medieval-tech-fusion.md (one-page art-direction rule list at the end).
+  - Phone link (artifact 1688f9ba-a0e5-4f7b-ac2e-3a68d6fc67c3) version 1795525000-580e = 828692d with the CDN importmap + assets/tex.
+- Waiting on the owner (ask in ONE question at session start):
+  1. Approve the round 2 look (screens r1_vs_r2_door/hall sent 24 Nov 20:57)?
+  2. Lions: grey stone (kept) or segmented bronze guardian beasts with silver inlay (research: stone lions are post-Qin)?
+  3. (b) close zoom 0.75x still to confirm (now the fight framing's nearest distance).
+- Next, in order (one batch each, perf gate first):
+  1. (g) the 175-312 ms long task in palace_heavy medium (see below): frame-over-100-ms log with the 200 ms before it, name the cause, fix, re-measure on the macOS perf job (branch ci-perf, ci_probe/perfgpu.mjs).
+  2. Textures step 3: KTX2 (prove toktx/basisu or npm encoder round trip), 512 px phone set, load per level under a loading card (renderer.initTexture + compile), Met/scan licences only CC0/CC BY.
+  3. Dispose on leaving the palace / layout change (renderer.info.memory flat over N runs + mode switches, mutation-tested); LOD for single props (THREE.LOD) and InstancedMesh levels for repeats.
+  4. Props: models per the research rule list (Qin bronze/lacquer/earth; own designs). Blender route works here: pip venv /home/claude/bpyenv (bpy 5.3) — recreate with python3 -m venv + pip install bpy==5.3.0; script art/tools/lion_blender.py; first lion (branch lion-sample-01, not merged) reads as a dog: recut in hard carved planes. Tripo: secret TRIPO_API_KEY works but the API account has no credit (code 2010); runner job ready on branch ci-tripo (make it end red on a failed job). Owner's Sketchfab lion (DailyArt) is CC BY-NC: never ship it. A Sketchfab CC0/CC-BY prop search was started and stopped by the owner (no results).
+- Tools on the session disk (gone in a new session): klad 0.4.0 build (/home/claude/kladsrc; rebuild per the klad-headless-cli skill, about 4-12 min, detached), CI helper /home/claude/citools/ci_mut.sh (copy from origin/ci-run:ci/ci_mut.sh + worktree /home/claude/ci-wt), glTF-Transform (npm @gltf-transform/cli in /home/claude/gltftools).
+- Older state (24 Nov 17:15): The Burning Palace is built on boxes and merged: tickets 01-05 and 07-10 plus 09b (tickets/burning-palace).
 - Built:
   - The mode menu.
   - A 29-room 阿房宫-model palace in six wings; only the current room plus the one behind an open door is drawn; you start in your school's hall.
@@ -11,7 +26,7 @@
   - The burning: a wing every 40 s, 5 s warning, fairness monitor burnState().bad.
   - 皇家 guard (5 types) and 反贼 rebels (4 types, bootleg moves, F charge), hostile to each other.
   - Pieces: 石狮, 水银, smoke, 华表, 鼎 (ticket 08); water clocks, vats, twelve giants (ticket 09; giants killable at 400 hp and 50 charge, owner 15:41).
-  - Camera: 120 px character floor at 1080p (owner 15:46), close in at attack distance, step capped at 0.4 m; a room-layout minimap.
+  - Camera: see "Done this session" (the 17:15 camera was 120 px floor wide, close at attack distance; replaced by the dynamic framing).
 - Pacing (CI 45355174647 on 9b8b39d, 12 seeds, full palace, 8 rivals): idle 11% (5-24%), longest idle 3 s, 0 stretches over 5 s (Royal Rumble: 26%, 35.5 s). The probe player died in all 12 runs (15.5-193.3 s; 5 falls in warned rooms, 4 hits, 3 hazards) and none reached the core: a simple autopilot, so this says nothing yet about difficulty.
 - Open items:
   - (a) The burn order is fixed per layout (CONFIG.BURN.orderFull): seeds 2, 5 and 8 ended the same at 46.3 s. Proposal, not approved: her wings come from a shuffled bag.
@@ -27,7 +42,6 @@
     | palace_garden (smoke) | 214 / 200.9 | 11.4 / 11.9 | 63 / 38 | 0.4 / 0.6% | 23 / 36 | 1.9k / 3.1k |
     Memory flat (programs 7, geometries 257, textures 1, heap). Room first draw: only hall_ming grows geometries (257 to 266); worst first-entry frame 16-35 ms.
   - (g) OPEN, do first next session (perf gate before the texture work): one main-thread long task of 175 / 312 ms in palace_heavy medium per run, in the window holding the wing fall and the third giant waking; cause NOT named (low tier saw the same fall at 34 / 52 ms; the reference scene also had a 112 ms frame in run 2). Add the frame-over-100-ms log with the 200 ms before it (spawn, kill, first draw, sound, GC), name the cause, fix, re-measure.
-  - Phone link: version 1795511963-f257 is the merged Burning Palace build (byte-identical to batches-3-5 index.html with the CDN importmap; sha256 3bd35467).
   - (e) Balance talk (items under "Known balance items").
   - (f) No bot finishes a palace run yet.
 - Parallel build method (owner 14:29): builders on their own branches and worktrees per docs/BP-INTERFACES.md, one integrator merges, the lead verifies every run on ci-out.
