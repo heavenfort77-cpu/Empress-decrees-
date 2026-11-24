@@ -1,0 +1,52 @@
+ROW {"scene":"ref","fps":169.6,"p50":6.6,"p95":12.2,"worst":53.8,"over20":37,"frames":3400,"gpuMean":4.349,"gpuP50":3.823,"gpuP95":8.224,"gpuN":64,"calls":3,"tris":566,"progNew":0,"progs":3,"texs":2,"cardTexMB":0,"loadMs":1519,"timer":true,"errs":0}
+ROW {"scene":"A_n1","fps":159,"p50":6,"p95":15,"worst":169.5,"over20":90,"frames":3190,"gpuMean":4.122,"gpuP50":3.683,"gpuP95":7.66,"gpuN":64,"calls":4,"tris":568,"progNew":0,"progs":4,"texs":3,"cardTexMB":0.84,"loadMs":360,"timer":true,"errs":0}
+ROW {"scene":"B_n1","fps":190.8,"p50":4.7,"p95":12.5,"worst":66,"over20":56,"frames":3822,"gpuMean":4.335,"gpuP50":3.693,"gpuP95":6.933,"gpuN":66,"calls":4,"tris":568,"progNew":0,"progs":4,"texs":3,"cardTexMB":4.48,"loadMs":400,"timer":true,"errs":0}
+ROW {"scene":"A_n40","fps":161.3,"p50":2.5,"p95":12.1,"worst":5376,"over20":45,"frames":4102,"gpuMean":4.463,"gpuP50":4,"gpuP95":8.303,"gpuN":98,"calls":4,"tris":646,"progNew":0,"progs":4,"texs":3,"cardTexMB":0.84,"loadMs":249,"timer":true,"errs":0}
+ROW {"scene":"B_n40","fps":163.2,"p50":6.7,"p95":11.9,"worst":67.1,"over20":41,"frames":3267,"gpuMean":4.024,"gpuP50":3.425,"gpuP95":4.744,"gpuN":64,"calls":4,"tris":646,"progNew":0,"progs":4,"texs":3,"cardTexMB":4.48,"loadMs":233,"timer":true,"errs":0}
+ROW {"scene":"B_n40#2","fps":188.2,"p50":5.3,"p95":11.9,"worst":73,"over20":44,"frames":3768,"gpuMean":3.789,"gpuP50":3.417,"gpuP95":5.186,"gpuN":66,"calls":4,"tris":646,"progNew":0,"progs":4,"texs":3,"cardTexMB":4.48,"loadMs":269,"timer":true,"errs":0}
+ROW {"scene":"A_n40#2","fps":151.7,"p50":6.5,"p95":17.5,"worst":92.2,"over20":88,"frames":3037,"gpuMean":3.849,"gpuP50":3.256,"gpuP95":8.009,"gpuN":55,"calls":4,"tris":646,"progNew":0,"progs":4,"texs":3,"cardTexMB":0.84,"loadMs":212,"timer":true,"errs":0}
+ROW {"scene":"ref#2","fps":167.5,"p50":1,"p95":18.8,"worst":72.6,"over20":103,"frames":3355,"gpuMean":4.576,"gpuP50":3.985,"gpuP95":7.261,"gpuN":66,"calls":3,"tris":566,"progNew":0,"progs":3,"texs":2,"cardTexMB":0,"loadMs":161,"timer":true,"errs":0}
+ROW {"scene":"B_n1#2","fps":117.6,"p50":1.1,"p95":18.7,"worst":7164.3,"over20":116,"frames":3199,"gpuMean":4.42,"gpuP50":3.907,"gpuP95":7.512,"gpuN":83,"calls":4,"tris":568,"progNew":0,"progs":4,"texs":3,"cardTexMB":4.48,"loadMs":256,"timer":true,"errs":0}
+ROW {"scene":"A_n1#2","fps":117.6,"p50":1.1,"p95":19,"worst":7271,"over20":120,"frames":3212,"gpuMean":5.158,"gpuP50":4.128,"gpuP95":9.29,"gpuN":65,"calls":4,"tris":568,"progNew":0,"progs":4,"texs":3,"cardTexMB":0.84,"loadMs":266,"timer":true,"errs":0}
+
+scene      fps     p50    p95   worst  >20ms  gpuMean gpuP95  calls  tris   newProg texMB(cards)
+ref         169.6    6.6   12.2   53.8     37    4.349   8.224      3    566        0        0
+A_n1          159      6     15  169.5     90    4.122    7.66      4    568        0     0.84
+B_n1        190.8    4.7   12.5     66     56    4.335   6.933      4    568        0     4.48
+A_n40       161.3    2.5   12.1   5376     45    4.463   8.303      4    646        0     0.84
+B_n40       163.2    6.7   11.9   67.1     41    4.024   4.744      4    646        0     4.48
+B_n40#2     188.2    5.3   11.9     73     44    3.789   5.186      4    646        0     4.48
+A_n40#2     151.7    6.5   17.5   92.2     88    3.849   8.009      4    646        0     0.84
+ref#2       167.5      1   18.8   72.6    103    4.576   7.261      3    566        0        0
+B_n1#2      117.6    1.1   18.7 7164.3    116     4.42   7.512      4    568        0     4.48
+A_n1#2      117.6    1.1     19   7271    120    5.158    9.29      4    568        0     0.84
+GATE ref warmup newPrograms 0 PASS
+GATE ref budget calls 3 tris 566 PASS
+GATE ref errors 0 PASS
+GATE A_n1 warmup newPrograms 0 PASS
+GATE A_n1 budget calls 4 tris 568 PASS
+GATE A_n1 errors 0 PASS
+GATE B_n1 warmup newPrograms 0 PASS
+GATE B_n1 budget calls 4 tris 568 PASS
+GATE B_n1 errors 0 PASS
+GATE A_n40 warmup newPrograms 0 PASS
+GATE A_n40 budget calls 4 tris 646 PASS
+GATE A_n40 errors 0 PASS
+GATE B_n40 warmup newPrograms 0 PASS
+GATE B_n40 budget calls 4 tris 646 PASS
+GATE B_n40 errors 0 PASS
+GATE B_n40#2 warmup newPrograms 0 PASS
+GATE B_n40#2 budget calls 4 tris 646 PASS
+GATE B_n40#2 errors 0 PASS
+GATE A_n40#2 warmup newPrograms 0 PASS
+GATE A_n40#2 budget calls 4 tris 646 PASS
+GATE A_n40#2 errors 0 PASS
+GATE ref#2 warmup newPrograms 0 PASS
+GATE ref#2 budget calls 3 tris 566 PASS
+GATE ref#2 errors 0 PASS
+GATE B_n1#2 warmup newPrograms 0 PASS
+GATE B_n1#2 budget calls 4 tris 568 PASS
+GATE B_n1#2 errors 0 PASS
+GATE A_n1#2 warmup newPrograms 0 PASS
+GATE A_n1#2 budget calls 4 tris 568 PASS
+GATE A_n1#2 errors 0 PASS
