@@ -151,16 +151,20 @@ Match size: 9 suits, one per school (owner 20:03). The player plus 8 bots (built
 - Sim target: no kill order is dominant.
 - As built on boxes (batch 6, 23 Nov; numbers in CONFIG): arena is the core hall with the gate sealed; H or the Hunt button starts it until the royale exists. Every enemy move shows its shape for its whole windup (all >= 0.4 s; Pounce 0.5 s, not 320 ms) and hits only a player still inside it. Demon ultimate: one use at half health. A killed minion's plate flies to the demon in 0.9 s and brings both of its skills; stolen moves keep the minion's tell colour. Win and loss freeze the game; retry restarts the hunt. Bot sweep: minions-first is currently the better order for a 0.3 s-reaction bot, so the sim target is not met yet (placeholder player kit).
 
-## Tiger Demon (apex)
+## Tiger Demon (apex): 兵家 (owner 24 Nov 09:44-09:5x; tiger look and the HUD name "Tiger Demon" kept)
+- **Lore.** 兵家, the School of the Military, is not one of the 九流. Kaymuse never summons it: it already serves the throne. The tiger tally 虎符 under her throne is a 兵家 object, the token that moves armies; her war-beast is that school made bronze. The 10th spawn disc stays empty (owner 20:56): it is 兵家's place. The tenth school was never a guest. The ending is unchanged: the winner becomes the next tiger, so every doctrine ends as her army.
+- **Moves renamed from 《孙子兵法》 (风林火山 and 奇正), mechanics unchanged:** Pounce = 其疾如风 (swift as the wind); Metal roar = 动如雷震 (moves like thunder); Shed the limit = 侵掠如火，不动如山 (raids like fire, unmoved like the mountain). HUD text: English name with the phrase in brackets.
+- **Passive 攻其无备** (「攻其无备，出其不意」, strike where they are unprepared): the demon and both hunt minions deal +20% (CONFIG.BINGJIA.bonus) to a suit whose escape skill is on cooldown: its dash; 墨甲 (no dash) his wall (Q); 阴阳甲 his step back (Q); 道甲 his flow (W). Frenzy and this bonus together stay under the 1.4x cap. Not on the statue, lions, collapses or royale cubs. The boss panel says "Unprepared" while it applies. Every hit still has its tell (>= 0.4 s).
 Assumption to confirm: a hard-surface beast like the war suits.
 | Slot | Name | Effect |
 |---|---|---|
 | Attack | Claw swipe | short cone, range 1.5 |
-| Skill 1 (dash) | Pounce | low flat leap, 7.5 m (CONFIG.MOVES), damage, sheds an outer plate. Windup 0.5 s is the telegraph |
-| Skill 2 | Metal roar | radius 4, slows 40% for 2 s, interrupts channels |
-| Ultimate | Shed the limit | 8 s frenzy: +40% speed, +30% attack, cannot be stunned or slowed. Open: single use below 50% HP |
+| Skill 1 (dash) | 其疾如风 (was Pounce) | low flat leap, 7.5 m (CONFIG.MOVES), damage, sheds an outer plate. Windup 0.5 s is the telegraph |
+| Skill 2 | 动如雷震 (was Metal roar) | radius 4, slows 40% for 2 s, interrupts channels |
+| Ultimate | 侵掠如火，不动如山 (was Shed the limit) | 8 s frenzy: +40% speed, +30% attack, cannot be stunned or slowed. Open: single use below 50% HP |
 
-## Minions (working names)
+## Minions (working names): 奇正 (「凡战者，以正合，以奇胜」)
+The Stalker is 正, the straight force that meets the enemy head on; the Howler is 奇, the surprise force that wins from behind. A broken minion's plate flying home is 奇正相生: straight and surprise beget each other.
 | Minion | Attack | Skill 1 | Skill 2 | Apex gains |
 |---|---|---|---|---|
 | Stalker | bite | Lunge: straight 4.5 m dash, damage | Rend: bleed 4 s, stacks | a second dash, bleed on hits |

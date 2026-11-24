@@ -551,6 +551,67 @@ try {
   const mk = await g(() => __game.moves.filter((k) => !__game.text['move_' + k]));
   check('45 text keys for every move', mk.length === 0, mk.join(' '));
 
+  // ===== Batch 16 ticket 11: the apex is 兵家 (owner 24 Nov 09:44-09:5x): renamed moves (孙子兵法), passive 攻其无备 =====
+  // 200 Names and lines: moves and lines carry their 孙子兵法 names; the HUD boss name stays "Tiger Demon"; the boss panel lists the renamed moves.
+  const bj0 = await g(() => {
+    const G = __game, X = G.text, H = window.__h; H.start(); const ui = G.huntUi();
+    return { pounce: X.move_pounce, roar: X.move_roar, frenzy: X.rule_frenzy, plate: X.rule_plate, wake: X.rule_wake, boss: X.boss_name, note: X.boss_unprepared, bossText: ui.bossText };
+  });
+  check('200 兵家 names: 其疾如风, 动如雷震, 侵掠如火，不动如山, 奇正相生, 正/奇 minions; boss name stays Tiger Demon; boss panel lists them',
+    /其疾如风/.test(bj0.pounce) && /动如雷震/.test(bj0.roar) && /侵掠如火，不动如山/.test(bj0.frenzy) && /奇正相生/.test(bj0.plate) && /正/.test(bj0.wake) && /奇/.test(bj0.wake)
+    && bj0.boss === 'Tiger Demon' && /攻其无备/.test(bj0.note) && /其疾如风/.test(bj0.bossText) && /动如雷震/.test(bj0.bossText), JSON.stringify(bj0));
+  // 201-202 攻其无备 on the placeholder player (escape = W dash): a claw (demon) and a bite (Stalker) hit for their move damage while the dash is ready,
+  // and for move damage x (1 + BINGJIA.bonus) while it is on cooldown; the boss panel note shows only while unprepared.
+  const bjHit = async (unit, move) => g(({ unit, move }) => {
+    const G = __game, C = G.config, H = window.__h, o = { hits: [] };
+    H.start(); for (let i = 0; i < 3; i++) H.mute(i); H.mute(unit, move); G.setHp(1000); G.teleport(0, -55); G.placeUnit(unit, 0, -56.2);
+    for (const cd of [0, 30]) {
+      G.setSkillCd(-1, 1, cd); const before = G.hunt().p.hp; let n = 0;
+      while (G.hunt().p.hp === before && n < 900) { G.setSkillCd(-1, 1, cd); G.placeUnit(unit, 0, -56.2); G.step(1); n++; }
+      o.hits.push(+(before - G.hunt().p.hp).toFixed(4)); o['un' + cd] = G.unprepared(-1); o['note' + cd] = G.bossNote().shown;
+      H.until((h) => h.tells.length === 0, 300);
+    }
+    o.want = C.MOVES[move].dmg; o.k = 1 + C.BINGJIA.bonus; o.noteText = G.bossNote().text; return o;
+  }, { unit, move });
+  const bj1 = await bjHit(0, 'claw'), bj2 = await bjHit(1, 'bite');
+  for (const [n, o, who] of [['201', bj1, 'demon claw'], ['202', bj2, 'Stalker bite']])
+    check(`${n} 攻其无备 (${who}): normal damage with the dash ready, x(1 + bonus) with it on cooldown; boss note only while unprepared`,
+      Math.abs(o.hits[0] - o.want) < 1e-6 && Math.abs(o.hits[1] - o.want * o.k) < 1e-6 && !o.un0 && o.un30 && o.note0 === 'none' && o.note30 === 'block' && /20%/.test(o.noteText), JSON.stringify(o));
+  // 203 Cap: in the demon's frenzy an unprepared suit takes claw x min(BONUS_CAP, frenzy x (1 + bonus)), a prepared one claw x frenzy.
+  const bj3 = await g(() => {
+    const G = __game, C = G.config, H = window.__h, o = { hits: [] };
+    H.start(); for (let i = 0; i < 3; i++) H.mute(i); G.setHp(1000); G.teleport(0, -45);
+    G.hitUnit(0, C.DEMON.hp * 0.5); H.until((h) => h.units[0].frenzy > 0, 600); H.mute(0, 'claw'); G.teleport(0, -55); G.placeUnit(0, 0, -56.2);
+    for (const cd of [0, 30]) {
+      const before = G.hunt().p.hp; let n = 0;
+      while (G.hunt().p.hp === before && n < 600) { G.setSkillCd(-1, 1, cd); G.placeUnit(0, 0, -56.2); G.step(1); n++; }
+      o.hits.push(+(before - G.hunt().p.hp).toFixed(4)); o.frenzy = G.hunt().units[0].frenzy; H.until((h) => h.tells.length === 0, 300);
+    }
+    o.wantReady = C.MOVES.claw.dmg * C.DEMON_ULT.dmg; o.wantUn = C.MOVES.claw.dmg * Math.min(C.BONUS_CAP, C.DEMON_ULT.dmg * (1 + C.BINGJIA.bonus)); o.capBites = C.DEMON_ULT.dmg * (1 + C.BINGJIA.bonus) > C.BONUS_CAP;
+    return o;
+  });
+  check('203 攻其无备 under frenzy: capped at BONUS_CAP together with the frenzy', bj3.frenzy > 0 && Math.abs(bj3.hits[0] - bj3.wantReady) < 1e-6 && Math.abs(bj3.hits[1] - bj3.wantUn) < 1e-6 && bj3.capBites, JSON.stringify(bj3));
+  // 204 Escape per kit: the dash where the kit has one; 墨甲 (no dash) his wall (Q); 阴阳甲 his step back (Q); 道甲 his flow (W); unbuilt schools the placeholder W.
+  // A 墨甲 player is unprepared only while his wall is on cooldown; the statue's strike and a royale cub's bite are never raised.
+  const bj4 = await g(() => {
+    const G = __game, C = G.config, H = window.__h, o = { esc: {} };
+    for (const k of C.SCHOOLS) o.esc[k] = G.escapeOf(k);
+    G.setPkitP(false); G.setSchool(C.SCHOOLS.indexOf('mo')); H.start(); o.moSlot = G.escapeOf('mo');
+    G.setSkillCd(-1, 0, 0); G.setSkillCd(-1, 1, 30); o.moWReady = G.unprepared(-1); G.setSkillCd(-1, 0, 30); o.moQcd = G.unprepared(-1);
+    G.setPkitP(true); G.setSchool(0); G.reset();
+    const st = G.hazards()[0]; G.teleport(st.x, st.z + 4); G.setSkillCd(-1, 1, 30); G.step(1); let n = 0; while (G.state().hp === 100 && n < 120) { G.setSkillCd(-1, 1, 30); G.step(1); n++; }
+    o.statueHit = 100 - G.state().hp; o.statueWant = C.STATUE.dmg;
+    G.reset(); G.step(Math.round((C.KENNEL.firstS + 0.1) / C.STEP)); const cubs = G.cubs().list, ci = cubs.findIndex((u) => u.alive);
+    for (const k of G.moves) G.cubCd(ci, k, k === 'bite' ? 0 : 9999);
+    G.teleport(cubs[ci].x + 1.2, cubs[ci].z); let m = 0; while (G.state().hp === 100 && m < 600) { G.setSkillCd(-1, 1, 30); G.step(1); m++; }
+    o.cubHit = +(100 - G.state().hp).toFixed(4); o.cubWant = C.MOVES.bite.dmg * C.CUB.dmgK; G.reset(); return o;
+  });
+  const wantEsc = { ru: 0, dao: 1, fa: 0, mo: 0, yinyang: 0, za: 1, ming: 0, zongheng: 1, nong: 1 };
+  const built = await g(() => Object.fromEntries(__game.config.SCHOOLS.map((k) => [k, !!__game.config.KITS[k].built])));
+  check('204 攻其无备 escape per kit (dash; 墨甲 wall; 阴阳 step back; 道 flow); 墨甲 unprepared only with his wall on cooldown; statue and royale cubs unchanged',
+    Object.keys(wantEsc).every((k) => !built[k] ? bj4.esc[k] === 1 : bj4.esc[k] === wantEsc[k] || (k === 'za' || k === 'zongheng')) && bj4.moSlot === 0 && !bj4.moWReady && bj4.moQcd
+    && bj4.statueHit === bj4.statueWant && Math.abs(bj4.cubHit - bj4.cubWant) < 1e-6, JSON.stringify(bj4) + ' built ' + JSON.stringify(built));
+
   // ===== Batch 7: royale minions (kennel waves, cubs at camps, plate reward) =====
   await g(() => { const G = __game, C = G.config; window.__k = { sp: (t) => G.step(Math.round(t / C.STEP)), mute: (i, except) => { for (const k of G.moves) G.cubCd(i, k, k === except ? 0 : 9999); },
     until: (cond, max) => { let n = 0; while (n < max && !cond(G.cubs())) { G.step(1); n++; } return n; } }; });
@@ -1553,8 +1614,7 @@ try {
     // Batch 16 ticket 06 (game changed on purpose): 阴阳甲 built too (ultMode 'lock').
     // Batch 16 ticket 07 (game changed on purpose): 农甲 built too.
     // Batch 16 ticket 08 (game changed on purpose): 道甲 built too (ultMode 'counters').
-    // Batch 16 ticket 09 (game changed on purpose): 纵横甲 built too.
-    o.unbuilt = C.SCHOOLS.filter((k) => C.KITS[k].built).join(',') === 'ru,dao,fa,mo,yinyang,ming,zongheng,nong';
+    o.unbuilt = C.SCHOOLS.filter((k) => C.KITS[k].built).join(',') === 'ru,dao,fa,mo,yinyang,ming,nong';
     o.placeholder = sc.suits.every((q) => (C.KITS[q.school].built && q.id !== 0 ? q.kit === q.school && q.ultMode === C.KITS[q.school].ultMode : q.kit === 'placeholder' && q.ultMode === 'charge'));
     o.player = sc.suits[0].school; o.bots = sc.suits.slice(1).map((q) => q.name).join(','); o.tags = C.SKILLS.map((k) => k.tag).join(',');
     o.speedMid = C.STATS.speed.Mid === C.PLAYER_SPEED && C.STATS.yard === 'Mid'; o.keys = C.SCHOOLS.map((k) => 'school_' + k).concat(['hud_school', 'sel_title', 'sel_rule', 'sel_random', 'sel_key']).filter((k) => !T[k]);
@@ -2750,200 +2810,6 @@ try {
   });
   check('153 budget with 道甲 effects: every suit + cubs + tells + stance shimmer + 反 (calls<500, tris<500k), no shader compile, geometry flat',
     !!d153 && d153.calls < 500 && d153.tris < 500000 && d153.programs === base.programs && d153.geoms === base.geoms, JSON.stringify(d153));
-  // ===== Batch 16 ticket 09: 纵横甲 kit (docs/SUITS.md; numbers in CONFIG.KITS.zongheng) =====
-  // Page helper: start(n) = the player plays 纵横甲 (school 7) against n bots (on the placeholder unless keep lists them); bot(n) = the player on the
-  // placeholder and BOTLIST[6] on 纵横甲 (the other bots on the placeholder). Decrees pushed away; bots' skills on long cooldowns, hp high.
-  await g(() => { const G = __game, C = G.config; window.__zh = {
-    start(n, keep) { G.setSeed(12345); G.setPkitP(false); G.setBots(n); G.pickSchool(7); for (let i = 0; i < n; i++) if (!(keep || []).includes(i)) G.placeholderKit(i); G.setDecNext(1e9); for (let i = 0; i < n; i++) { G.setBotHp(i, 100); for (let k = 0; k < 3; k++) G.setBotCd(i, k, 99); } },
-    bot(n) { G.setSeed(12345); G.setPkitP(true); G.setBots(n); G.pickSchool(0); for (let i = 0; i < n; i++) if (i !== 6) G.placeholderKit(i); G.setDecNext(1e9); for (let i = 0; i < n; i++) { G.setBotHp(i, 1e6); for (let k = 0; k < 3; k++) G.setBotCd(i, k, 99); } },
-    hold(sec, fn) { for (let k = 0; k < Math.round(sec / C.STEP); k++) { if (fn) fn(); G.step(1); } },
-    until(cond, max, fn) { let n = 0; while (n < max && !cond()) { if (fn) fn(); G.step(1); n++; } return n; },
-    end() { G.setPkitP(true); G.pickSchool(0); G.setBots(0); G.reset(); } }; });
-  // 154 Passive 事一强: a bot about to fight 纵横甲 (it answers his hit) takes the nearest other suit within reach instead, once per bot every everyS s
-  // (at everyS - 0.5 s it keeps him; past everyS it switches); with no hunter slot free it never takes the player (another bot instead); with a slot free it
-  // may (the slot is claimed; the cap holds); a bot's circle over the player moves the player nowhere (the player is never steered).
-  const d154 = await g(() => {
-    const G = __game, C = G.config, Z = window.__zh, L = C.KITS.zongheng.lianheng, cap0 = C.BOT.maxHunters, pref0 = C.BOT.preferPlayerOnSight, o = {};
-    try {
-      Z.bot(7); G.setHp(1e9); G.teleport(0, -15);
-      const far = [14, -40], at = { 0: [3, -15], 1: [0, -19], 2: [-12, -24], 3: [-14, -40], 4: [-10, -40], 5: [10, -40], 6: [6, -15] };
-      const park = () => { for (const k in at) G.placeBot(+k, at[k][0], at[k][1]); G.teleport(0, -15); };
-      park(); G.step(2);
-      // No slot: bot0 (hit by him) turns from him to bot1, never the player (3 m away).
-      C.BOT.maxHunters = 0; G.hitBy(6, 0, 1); Z.hold(0.5, park); const a = G.zhState(0), pa = a.persAt;
-      o.noSlot = { tgt: a.tgt, why: a.why, persN: G.zhState(6).persN, capOk: G.hunters().capOnP <= G.hunters().max };
-      // Rate: bot1 out of sight, hit again: back on him; bot1 back in reach: kept until everyS s after the first steer, then bot1.
-      at[1] = far; G.hitBy(6, 0, 1); Z.hold(0.5, park); o.back = G.zhState(0).tgt;
-      at[1] = [0, -19]; Z.until(() => G.state().t - pa >= L.everyS - 0.5, 1200, () => { park(); G.hitBy(6, 0, 0); }); o.early = G.zhState(0).tgt;
-      Z.hold(0.9, park); o.late = [G.zhState(0).tgt, G.zhState(0).persAt > pa];
-      // A slot free: bot2 (hit by him, the player 3 m away and nearest) turns on the player and holds a slot.
-      C.BOT.maxHunters = cap0; C.BOT.preferPlayerOnSight = false; at[2] = [-3, -15]; at[6] = [-6, -11]; park(); G.hitBy(6, 2, 1); Z.hold(0.5, park);
-      const h = G.hunters(); o.slot = { tgt: G.zhState(2).tgt, hunter: G.zhState(2).hunter, capOk: h.capOnP <= h.max && h.slots <= h.max };
-      // The player is never steered: his circle over the player moves nothing of the player's.
-      G.stop(); const p0 = G.state(); G.botCast(6, 2, 0, -15); Z.hold(1, () => { for (const k in at) G.placeBot(+k, at[k][0], at[k][1]); });
-      const p1 = G.state(); o.player = [+Math.hypot(p1.x - p0.x, p1.z - p0.z).toFixed(4), G.zhState(6).circle.t > 0];
-    } finally { C.BOT.maxHunters = cap0; C.BOT.preferPlayerOnSight = pref0; Z.end(); }
-    return o;
-  });
-  check('154 纵横甲 passive 事一强: a bot turns from him to the nearest other suit in reach (once per bot every everyS s); never the player without a hunter slot; with a slot, claimed within the cap; the player never steered',
-    d154.noSlot.tgt === 2 && d154.noSlot.why === 'persuade' && d154.noSlot.persN === 1 && d154.noSlot.capOk && d154.back === 7 && d154.early === 7 && d154.late.join() === '2,true'
-    && d154.slot.tgt === 0 && d154.slot.hunter && d154.slot.capOk && d154.player[0] === 0 && d154.player[1], JSON.stringify(d154));
-  // 155 Attack 符节 and stats: Mid armor (1x), Mid speed; the token shot hits a dummy 5 m away (mid range) for dmg; R charges (ultMode 'charge').
-  const d155 = await g(() => {
-    const G = __game, C = G.config, Z = window.__zh, K = C.KITS.zongheng, o = {};
-    Z.start(0); const s = G.zhState(-1); o.armorK = s.armorK; o.spd = s.spd; o.ultMode = G.kitState(-1).kit;
-    const d = G.dummies()[1]; G.teleport(d.x, d.z - 5); G.step(2); G.attack(1); Z.hold(K.attack.interval * 0.5); o.dummy = 100 - G.dummies()[1].hp; o.dist = +Math.hypot(G.state().x - d.x, G.state().z - d.z).toFixed(2); G.stop();
-    Z.end(); return o;
-  });
-  check('155 纵横甲 attack 符节 and stats: Mid armor and speed; a token shot hits 5 m away for dmg',
-    Math.abs(d155.armorK - 1) < 1e-9 && d155.spd === C0.STATS.speed.Mid && d155.ultMode === 'zongheng' && d155.dummy === C0.KITS.zongheng.attack.dmg && d155.dist > 4.5, JSON.stringify(d155));
-  // 156 Q 合纵: with no second enemy within snapM of the first, no cast and no cooldown; with two, a cord ties them for dur s (drawn between them) and the cooldown
-  // starts; half of what one loses (any cause) is dealt to the other (at its armor), both ways, never passed back; past snapM it snaps: both slowed (slow, slowS);
-  // the cord ends after dur s.
-  const d156 = await g(() => {
-    const G = __game, C = G.config, Z = window.__zh, Q = C.KITS.zongheng.skills[0], o = {};
-    Z.start(3); G.setHp(1e9); G.teleport(14, -20); const at = { 0: [17, -20], 1: [14, -40], 2: [-14, -40] }, park = () => { for (const k in at) G.placeBot(+k, at[k][0], at[k][1]); };
-    park(); G.step(2);
-    o.none = [G.cast(0, 17, -20), G.zhState(-1).cd[0], G.zhState(-1).cordN];
-    at[1] = [19, -20]; park(); G.step(1); o.cast = G.cast(0, 17, -20); const s0 = G.zhState(-1);
-    o.cord = { t: s0.cord.t, a: s0.cord.a, b: s0.cord.b, inScene: s0.cord.inScene, len: +s0.cord.len.toFixed(2), cd: s0.cd[0], cordN: s0.cordN, linkN: s0.linkN };
-    const k1 = G.zhState(1).armorK, k0 = G.zhState(0).armorK;
-    G.hitBot(0, 20); o.share1 = [+(100 - G.zhState(0).hp).toFixed(6), +(100 - G.zhState(1).hp).toFixed(6), k1];
-    G.setBotHp(0, 100); G.setBotHp(1, 100); G.hitBot(1, 10); o.share2 = [+(100 - G.zhState(0).hp).toFixed(6), +(100 - G.zhState(1).hp).toFixed(6), k0];
-    Z.hold(Q.dur - 0.1, park); o.on = [G.zhState(-1).cord.t > 0, G.zhState(-1).cord.inScene, G.zhState(-1).cord.vis];
-    Z.hold(0.2, park); const s1 = G.zhState(-1); o.ended = [s1.cord.t, s1.cord.inScene, s1.cordN];
-    // Snap: cast again, then bot1 pulled snapM + 1 m from bot0.
-    G.zhReady(); G.cast(0, 17, -20); at[1] = [17, -20 + Q.snapM + 1]; park(); G.step(1); const s2 = G.zhState(-1), b0 = G.zhState(0), b1 = G.zhState(1);
-    o.snap = { t: s2.cord.t, cordN: s2.cordN, slow0: [+b0.slowT.toFixed(3), b0.slowK], slow1: [+b1.slowT.toFixed(3), b1.slowK] };
-    Z.end(); return o;
-  });
-  const Q156 = C0.KITS.zongheng.skills[0];
-  check('156 纵横甲 Q 合纵: no second enemy = no cast, no cooldown; a cord for dur s, cooldown; half of the loss dealt to the other end (its armor), both ways, not passed back; snaps past snapM (both slowed)',
-    d156.none.join() === 'false,0,0' && d156.cast && d156.cord.t === Q156.dur && d156.cord.a === 1 && d156.cord.b === 2 && d156.cord.inScene && Math.abs(d156.cord.len - 2) < 0.01 && d156.cord.cd === Q156.cd && d156.cord.cordN === 1
-    && d156.share1[0] === 20 && Math.abs(d156.share1[1] - 20 * Q156.share * d156.share1[2]) < 1e-5 && d156.share2[1] === 10 && Math.abs(d156.share2[0] - 10 * Q156.share * d156.share2[2]) < 1e-5
-    && d156.on.join() === 'true,true,true' && d156.ended.join() === '-1,false,0' && d156.snap.t === -1 && d156.snap.cordN === 0
-    && Math.abs(d156.snap.slow0[0] - Q156.slowS) < 0.02 && d156.snap.slow0[1] === Q156.slow && Math.abs(d156.snap.slow1[0] - Q156.slowS) < 0.02 && d156.snap.slow1[1] === Q156.slow, JSON.stringify(d156));
-  // 157 W 连横: the player swaps places with a bot standing in a warned section (the player lands in it), cooldown; 道甲's 不争 counters it (no swap, the cast
-  // spent, +1 counter); the 纵横甲 bot on a warned section swaps out with an enemy standing clear of it, never with one standing in it, and never with the
-  // player without a hunter slot.
-  const d157 = await g(() => {
-    const G = __game, C = G.config, Z = window.__zh, W = C.KITS.zongheng.skills[1], o = {};
-    Z.start(2, [1]); G.setHp(1e9); G.teleport(6, -15); const at = { 0: [6, -8], 1: [-14, -40] }, park = () => { for (const k in at) G.placeBot(+k, at[k][0], at[k][1]); };
-    park(); G.zhWarn('C2'); G.step(2);
-    o.cast = G.cast(1, 6, -8); const s0 = G.zhState(-1), b0 = G.zhState(0); G.step(1); const s0z = G.zhState(-1);
-    o.swap = { p: [+s0.x.toFixed(2), +s0.z.toFixed(2), s0z.zone, s0z.zoneSt], b: [+b0.x.toFixed(2), +b0.z.toFixed(2)], cd: s0.cd[1], n: s0.swapN };
-    // 道甲 (bot1) in 不争: countered.
-    Z.start(2, [1]); G.setHp(1e9); G.teleport(6, -15); at[0] = [-14, -40]; at[1] = [6, -10]; park(); G.step(2);
-    G.castSelfOf(1, 1); o.dao = { cast: G.cast(1, 6, -10) }; const s1 = G.zhState(-1); o.dao.p = [+s1.x.toFixed(2), +s1.z.toFixed(2)]; o.dao.n = s1.swapN; o.dao.cd = s1.cd[1]; o.dao.daoN = G.daoState(1).daoN;
-    Z.end();
-    // The 纵横甲 bot (6) in warned C2: no swap with bot0 also in C2, nor with the player in C1 (no slot); bot0 moved into C1: swapped.
-    Z.bot(7); G.setHp(1e9); const bt = { 0: [2, -3], 1: [-14, -40], 2: [-10, -40], 3: [10, -40], 4: [14, -40], 5: [-12, -36], 6: [6, -4] };
-    const park2 = () => { for (const k in bt) if (+k !== 6) G.placeBot(+k, bt[k][0], bt[k][1]); G.teleport(6, -12); };
-    G.placeBot(6, 6, -4); park2(); G.setBotCd(6, 1, 0); G.zhWarn('C2'); G.step(1);
-    Z.hold(1, park2); const z0 = G.zhState(6); o.stay = { n: z0.swapN, hunter: z0.hunter };
-    G.placeBot(6, 6, -4); bt[0] = [5, -11]; Z.until(() => G.zhState(6).swapN > 0, 120, park2); const z1 = G.zhState(6);
-    // bot0 may step before the 纵横甲 bot thinks in the same tick: he lands where bot0 stood then (in C1), bot0 exactly where he stood.
-    o.bot = { n: z1.swapN, z: +z1.z.toFixed(2), zone: z1.zone, b0z: +G.zhState(0).z.toFixed(2), cd: +z1.cd[1].toFixed(2) };
-    Z.end(); return o;
-  });
-  check('157 纵横甲 W 连横: the player swaps into a warned section (positions traded, cooldown); 不争 counters it; the 纵横甲 bot swaps out of a warned section only with an enemy clear of it, never the player without a slot',
-    d157.cast && d157.swap.p.join() === '6,-8,C2,1' && d157.swap.b.join() === '6,-15' && d157.swap.cd === C0.KITS.zongheng.skills[1].cd && d157.swap.n === 1
-    && d157.dao.cast && d157.dao.p.join() === '6,-15' && d157.dao.n === 0 && d157.dao.cd === C0.KITS.zongheng.skills[1].cd && d157.dao.daoN === 1
-    && d157.stay.n === 0 && !d157.stay.hunter && d157.bot.n === 1 && d157.bot.zone === 'C1' && Math.abs(d157.bot.z + 11) < 0.3 && d157.bot.b0z === -4, JSON.stringify(d157));
-  // 158 R 不攻自破: a circle (radius m) shown for its whole dur s; bots inside turn on the nearest other suit (not him); damage between suits inside is x (1 + bonus),
-  // outside plain; the HUD line names it; the ring is removed at the end and the line goes.
-  const d158 = await g(() => {
-    const G = __game, C = G.config, Z = window.__zh, R = C.KITS.zongheng.skills[2], o = {};
-    Z.start(3); G.setHp(1e9); G.teleport(0, -12); const at = { 0: [3, -20], 1: [5, -20], 2: [-14, -40] }, park = () => { for (const k in at) G.placeBot(+k, at[k][0], at[k][1]); };
-    park(); G.step(2); G.setCharge(-1, C.ULT.full); o.cast = G.cast(2, 4, -20); G.step(1); const s0 = G.zhState(-1);
-    o.circle = { t: s0.circle.t, r: s0.circle.r, inScene: s0.circle.inScene, vis: s0.circle.vis, status: s0.status.includes(G.text.st_buong) };
-    Z.hold(0.6, park); o.turned = [G.zhState(0).tgt, G.zhState(0).why, G.zhState(1).tgt];
-    G.setBotHp(1, 100); G.strike(0, 1, 20); const k1 = G.zhState(1).armorK; o.inside = +(100 - G.zhState(1).hp).toFixed(6);
-    at[1] = [-6, -27]; park(); G.setBotHp(1, 100); G.strike(0, 1, 20); o.outside = +(100 - G.zhState(1).hp).toFixed(6); o.k1 = k1;
-    Z.hold(R.dur - 0.7, park); o.late = [G.zhState(-1).circle.t > 0, G.zhState(-1).circle.inScene]; Z.hold(0.2, park); const s1 = G.zhState(-1);
-    o.ended = [s1.circle.t, s1.circle.inScene, s1.circleN, s1.status.includes(G.text.st_buong)];
-    Z.end(); return o;
-  });
-  const R158 = C0.KITS.zongheng.skills[2];
-  check('158 纵横甲 R 不攻自破: circle drawn for its whole dur s; bots inside turn on another suit (not him); damage between suits inside x (1 + bonus); HUD line; removed at the end',
-    d158.cast && Math.abs(d158.circle.t - (R158.dur - C0.STEP)) < 1e-6 && d158.circle.r === R158.radius && d158.circle.inScene && d158.circle.vis && d158.circle.status
-    && d158.turned.join() === '2,persuade,1' && d158.outside > 0 && Math.abs(d158.inside / d158.outside - (1 + R158.bonus)) < 1e-6
-    && d158.late.join() === 'true,true' && d158.ended.join() === '-1,false,0,false', JSON.stringify(d158));
-  // 159 纵横甲 in the hunt: a minion that sees him waits huntWaitS s before its next skill (once per everyS s per minion; never the demon); 合纵 ties the demon and
-  // a minion (half of the demon's loss dealt to it); 连横 swaps with a minion; in 不攻自破 the demon and a minion turn on each other, and a minion broken by the
-  // demon still sends its plate home (the demon gains its skills).
-  const d159 = await g(() => {
-    const G = __game, C = G.config, H = window.__h, L = C.KITS.zongheng.lianheng, Q = C.KITS.zongheng.skills[0], o = {};
-    const until = (cond, max) => { let n = 0; while (n < max && !cond()) { G.step(1); n++; } return n; };
-    G.setPkitP(false); G.setSchool(7); H.start(); for (let i = 0; i < 3; i++) H.mute(i); G.setHp(1e9); G.teleport(0, -50);
-    G.placeUnit(0, 0, -58); G.placeUnit(1, 3, -56); G.step(1); const t0 = G.state().t;
-    const m0 = G.zhUnit('stalker'); o.wait = { gap: +m0.gapT.toFixed(3), at: +(m0.persAt - t0).toFixed(3), demon: G.zhUnit('demon').persAt };
-    G.step(Math.round((L.everyS - 1) / C.STEP)); o.within = G.zhUnit('stalker').persAt === m0.persAt; G.step(Math.round(1.2 / C.STEP)); o.after = G.zhUnit('stalker').persAt > m0.persAt;
-    // 合纵 on the demon and the stalker.
-    G.teleport(0, -50); G.placeUnit(0, 0, -56); G.placeUnit(1, 3, -56); G.step(1); o.link = G.cast(0, 0, -56); const c0 = G.zhState(-1).cord;
-    const dh = G.zhUnit('demon').hp, sh = G.zhUnit('stalker').hp; G.hitUnit(0, 20); o.share = [c0.a, c0.b, +(dh - G.zhUnit('demon').hp).toFixed(6), +(sh - G.zhUnit('stalker').hp).toFixed(6)];
-    // 连横 with the stalker.
-    G.zhReady(); G.teleport(0, -50); G.placeUnit(1, 4, -53); G.step(1); const su0 = G.zhUnit('stalker'); o.swap = G.cast(1, su0.x, su0.z); const p = G.state(), su = G.zhUnit('stalker');
-    o.swapAt = [+(p.x - su0.x).toFixed(3), +(p.z - su0.z).toFixed(3), +su.x.toFixed(2), +su.z.toFixed(2)];
-    // 不攻自破 on the demon and the stalker (the player 9 m away, outside), their attacks back on: they fight; the stalker falls to the demon, its plate flies home.
-    G.zhReady(); G.setCharge(-1, C.ULT.full); G.teleport(0, -47); G.placeUnit(0, 0, -56); G.placeUnit(1, 1.5, -56); G.unitCd(0, 'claw', 0); G.unitCd(1, 'bite', 0); G.step(1);
-    const sk0 = G.zhUnit('demon').skills; G.hitUnit(1, Math.max(0, G.zhUnit('stalker').hp - 15)); o.circle = G.cast(2, 0, -56);
-    let n = 0; while (n < 900 && G.zhUnit('stalker').alive) { G.teleport(0, -47); G.step(1); n++; }
-    o.fight = { tgtD: G.zhUnit('demon').tgt, pers: G.zhState(-1).unitPersN, stalker: G.zhUnit('stalker').alive, plate: G.zhUnit('stalker').plateOn, hunt: G.hunt().phase || G.royale().phase };
-    until(() => G.zhUnit('demon').skills > sk0, Math.round((C.APEX.plateS + 1) / C.STEP)); o.plate = G.zhUnit('demon').skills - sk0;
-    G.setPkitP(true); G.setSchool(0); G.reset(); return o;
-  });
-  check('159 纵横甲 in the hunt: a minion that sees him waits huntWaitS s (once per everyS s; not the demon); 合纵 ties the demon and a minion; 连横 swaps with a minion; in the circle the demon breaks the minion, whose plate still flies home',
-    Math.abs(d159.wait.gap - (C0.KITS.zongheng.lianheng.huntWaitS - 0)) < 0.02 && d159.wait.at <= 0 && d159.wait.demon === -99 && d159.within && d159.after
-    && d159.link && d159.share[0] === 'demon' && d159.share[1] === 'stalker' && d159.share[2] === 20 && Math.abs(d159.share[3] - 20 * Q156.share) < 1e-5
-    && d159.swap && d159.swapAt.join() === '0,0,0,-50' && d159.circle && !d159.fight.stalker && d159.fight.pers > 0 && d159.plate === 2, JSON.stringify(d159));
-  // 160 纵横甲 in whole matches: 3 seeds with the 纵横甲 bot (the player on the placeholder, autopilot) and 1 with the player on 纵横甲 (autopilot), watched to the
-  // end: on a floor, nobody stuck over 3 s, the hunter cap every tick, no cord drawn past snapM, cord and circle counts never below 0; the bot casts R
-  // over the 3 seeds (links, swaps and steers reported).
-  const d160 = await g(() => {
-    const G = __game, C = G.config, Q = C.KITS.zongheng.skills[0], o = { viol: [], bot: { q: 0, w: 0, r: 0, pers: 0 }, player: { q: 0, w: 0, r: 0 }, decided: [] }, bad = (x) => { if (o.viol.length < 5) o.viol.push(x); };
-    const one = (seed, playerZh) => {
-      G.setSeed(seed); G.setBots(C.BOTS.count); G.setPkitP(!playerZh); G.pickSchool(playerZh ? 7 : 0); G.autoPlayer(true); G.setWatch(true);
-      const zi = playerZh ? -1 : G.schools().suits.findIndex((q) => q.school === 'zongheng') - 1, cnt = playerZh ? o.player : o.bot; let ult = 0;
-      if (!playerZh && G.schools().suits[zi + 1].kit !== 'zongheng') bad('zongheng bot not on its kit');
-      for (let t = 0; t < 300 / C.STEP; t++) {
-        G.step(1); const r = G.royale(); if (r.decidedAt >= 0) { o.decided.push(+r.decidedAt.toFixed(1)); break; }
-        const z = G.zhState(zi), k = G.kitState(zi); if (k.ultN > ult) cnt.r += k.ultN - ult; ult = k.ultN;
-        if (z.cord.t >= 0 && z.cord.len > Q.snapM + 1e-6) bad(`s${seed} t${t} cord ${z.cord.len}`);
-        if (z.cordN < 0 || z.circleN < 0) bad(`s${seed} t${t} counts ${z.cordN},${z.circleN}`);
-        const h = G.hunters(); if (h.capOnP > h.max) bad(`s${seed} t${t} cap ${h.capOnP}>${h.max}`);
-        if (t % 10 === 0 && zi >= 0) { const q = G.bots().list[zi]; if (!q.standOk) bad(`s${seed} t${t} zh off floor`); if (!Number.isFinite(q.x + q.z + q.hp)) bad(`s${seed} t${t} NaN`); }
-        if (t % 10 === 0 && zi < 0 && !G.player().dead && !G.state().falling && !G.walkable(G.player().x, G.player().z, G.player().y + 0.05)) bad(`s${seed} t${t} player off floor`);
-      }
-      for (const q of G.bots().list) if (q.stuck > 3) bad(`s${seed} bot${q.id} stuck ${q.stuck}`);
-      const z = G.zhState(zi); cnt.q += z.linkN; cnt.w += z.swapN; if (!playerZh) o.bot.pers += z.persN;
-      G.setWatch(false); G.autoPlayer(false);
-    };
-    for (const seed of [12345, 2, 3]) one(seed, false);
-    one(4, true);
-    G.setPkitP(true); G.pickSchool(0); G.setBots(0); G.reset(); const e = G.zhState(-1); o.clean = e.cordN === 0 && e.circleN === 0; return o;
-  });
-  check('160 纵横甲 in whole matches: on a floor, nobody stuck > 3 s, hunter cap every tick, no cord past snapM, counts never below 0; the 纵横甲 bot casts R (links, swaps, steers and the player autopilot reported)',
-    d160.viol.length === 0 && d160.clean && d160.bot.r > 0, JSON.stringify(d160));
-  // 161 Budget with 纵横甲's effects: the heaviest royale (every suit, 7 cubs, tells) with his cord and circle drawn; calls < 500, tris < 500k, no shader
-  // compile, geometry flat.
-  const d161 = await g(() => {
-    const G = __game, C = G.config, K = window.__k, waves = C.KENNEL.waves; let best = null;
-    try {
-      C.KENNEL.waves = [[['stalker', 0], ['stalker', 0], ['stalker', 0], ['stalker', 0], ['howler', 0], ['howler', 0], ['howler', 0]]];
-      G.setSeed(12345); G.setBots(C.BOTS.count); G.setPkitP(false); G.pickSchool(7); G.setDecNext(1e9); K.sp(C.KENNEL.firstS + 0.1); G.setHp(1e9);
-      const cx = G.camps[0][0], cz = G.camps[0][1] + 4; G.teleport(cx, cz);
-      const park = () => { for (let i = 0; i < C.BOTS.count; i++) G.placeBot(i, cx - 4 + (i % 3) * 3, cz + 2 + Math.floor(i / 3) * 1.5); };
-      for (let n = 0; n < 300; n++) {
-        park(); if (n % 60 === 0) { G.zhReady(); G.cast(0, cx - 4, cz + 2); G.setCharge(-1, C.ULT.full); G.cast(2, cx - 1, cz + 3); }
-        G.step(1); const c = G.cubs(), z = G.zhState(-1);
-        if (z.cord.inScene && z.circle.inScene && (!best || c.tells.length >= best.tells)) { const r = G.render(true); best = { tells: c.tells.length, cord: z.cord.inScene, circle: z.circle.inScene, calls: r.calls, tris: r.tris, programs: r.programs, geoms: r.geoms }; }
-      }
-    } finally { C.KENNEL.waves = waves; G.setPkitP(true); G.pickSchool(0); G.setBots(0); G.reset(); }
-    return best;
-  });
-  check('161 budget with 纵横甲 effects: every suit + cubs + tells + cord + circle (calls<500, tris<500k), no shader compile, geometry flat',
-    !!d161 && d161.calls < 500 && d161.tris < 500000 && d161.programs === base.programs && d161.geoms === base.geoms, JSON.stringify(d161));
   // 66 Idle player: standing at the spawn doing nothing loses the royale (frozen loss with a cause) before the last collapse is over.
   const idle = await g(() => {
     const G = __game, C = G.config; G.setSeed(12345); G.setBots(G.config.BOTS.count); G.reset(); let t = 0;
