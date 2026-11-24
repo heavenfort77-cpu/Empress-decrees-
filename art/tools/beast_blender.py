@@ -98,6 +98,12 @@ def loft(name, secs, mat, bone, row='plain', n_exp=2.6, M=24, cap=True):
     bmesh.ops.recalc_face_normals(bm, faces=bm.faces)
     return put(name, bm, mat, bone, row, True)
 
+def curl(name, c, r, axis, bone):
+    """a cast spiral curl of the mane: a short disc with a sharp rim and a raised centre boss (round 3b: puffy lobes read as fur)."""
+    a = Vector(axis).normalized(); c = Vector(c)
+    prism(name, ngon(r, 9), tuple(c - a * 0.03), tuple(c + a * 0.03), 'palBronze', bone, 'clouds', rnd=True)  # hard rim from the cap angle, no bevel (budget)
+    prism(name + '_boss', ngon(r * 0.45, 6), tuple(c + a * 0.03), tuple(c + a * 0.06), 'palBronze', bone, 'flange', scale_b=0.7, rnd=True)
+
 # figure proportions (concept 2130, figure height FH on the plinth top)
 FH = 2.1
 
@@ -136,33 +142,31 @@ def build(detail):
                   (HB + 0.62, 0.1, 0.44, 0.38, 0), (HB + 0.74, 0.07, 0.36, 0.3, 0), (HB + 0.82, 0.05, 0.22, 0.19, 0), (HB + 0.85, 0.04, 0.08, 0.07, 0)], 'palBronze', 'head', 'plain', n_exp=2.8)  # domed crown (round 3a: the flat cap read as a box)
     # muzzle and jaw (the jaw on its own bone for the strike tell), sharp nose wedge, sharp brow ridge, almond silver eyes, small round ears
     loft('muzzle', [(HB + 0.12, 0.5, 0.24, 0.16, 0), (HB + 0.22, 0.56, 0.26, 0.18, 0), (HB + 0.32, 0.52, 0.22, 0.14, 0)], 'palBronze', 'head', 'plain', n_exp=2.4, M=18)
-    loft('jaw', [(HB - 0.02, 0.4, 0.15, 0.12, 0), (HB + 0.06, 0.45, 0.17, 0.13, 0), (HB + 0.12, 0.46, 0.16, 0.12, 0)], 'palBronze', 'jaw', 'lozenge', n_exp=2.2, M=16)  # tucked under the muzzle (round 3: read as a shelf)
-    prism('nose', [(-0.1, -0.04), (0.1, -0.04), (0, 0.08)], (0, 0.7, HB + 0.32), (0, 0.76, HB + 0.24), 'palBronze', 'head', 'flange', scale_b=0.6)
-    prism('brow', [(-0.4, -0.04), (0.4, -0.04), (0.34, 0.06), (0, 0.0), (-0.34, 0.06)], (0, 0.5, HB + 0.5), (0, 0.6, HB + 0.48), 'palBronze', 'head', 'flange')
+    loft('jaw', [(HB - 0.16, 0.42, 0.15, 0.13, 0), (HB - 0.08, 0.5, 0.18, 0.15, 0), (HB - 0.02, 0.52, 0.17, 0.14, 0)], 'palBronze', 'jaw', 'lozenge', n_exp=2.2, M=16)  # round 3b: dropped open (a roar at rest; round 3 closed mouth read as a cat)
+    loft('mouth', [(HB - 0.04, 0.46, 0.16, 0.08, 0), (HB + 0.04, 0.5, 0.2, 0.1, 0), (HB + 0.1, 0.48, 0.18, 0.09, 0)], 'palDark', 'head', 'plain', n_exp=2.2, M=14)
+    prism('nose', [(-0.16, -0.05), (0.16, -0.05), (0.08, 0.07), (-0.08, 0.07)], (0, 0.68, HB + 0.3), (0, 0.78, HB + 0.22), 'palBronze', 'head', 'flange', scale_b=0.8)  # broad, flared
+    prism('brow', [(-0.44, -0.02), (-0.06, -0.08), (0.06, -0.08), (0.44, -0.02), (0.4, 0.1), (0, 0.0), (-0.4, 0.1)], (0, 0.5, HB + 0.5), (0, 0.66, HB + 0.47), 'palBronze', 'head', 'flange')  # scowl: dips to the centre
     loft('bridge', [(HB + 0.3, 0.58, 0.09, 0.07, 0), (HB + 0.4, 0.57, 0.08, 0.06, 0), (HB + 0.5, 0.55, 0.1, 0.06, 0)], 'palBronze', 'head', 'plain', n_exp=2.2, M=12)
     for s in (-1, 1):
         spheroid(f'cheek_{s}', (s * 0.2, 0.55, HB + 0.22), (0.14, 0.09, 0.12), 'palBronze', 'head', 'plain', segs=(10, 6))
     for s in (-1, 1):
-        spheroid(f'eye_{s}', (s * 0.18, 0.585, HB + 0.42), (0.1, 0.04, 0.055), 'palInlay', 'head', segs=(8, 5))
-        spheroid(f'ear_{s}', (s * 0.38, 0.08, HB + 0.72), (0.09, 0.045, 0.08), 'palBronze', 'head', 'plain', segs=(8, 5))  # set into the head sides
+        spheroid(f'eye_{s}', (s * 0.17, 0.585, HB + 0.4), (0.075, 0.035, 0.045), 'palInlay', 'head', segs=(8, 5))  # round 3b: smaller, deep under the brow
         if detail:
-            for k in range(3):  # whisker grooves as silver lines on the muzzle
-                prism(f'whisker_{s}{k}', rect(0.2, 0.016), (s * 0.24, 0.6, HB + 0.16 + k * 0.05), (s * 0.24, 0.62, HB + 0.16 + k * 0.05), 'palInlay', 'head')
             for k in (0.06, 0.13):
-                prism(f'fang_{s}{k}', blade(0.05, 0.04), (s * k, 0.6, HB + 0.12), (s * k, 0.61, HB + 0.02), 'palInlay', 'head', scale_b=0.1)
+                prism(f'fang_{s}{k}', blade(0.06, 0.05), (s * k, 0.6, HB + 0.13), (s * k, 0.62, HB - 0.03), 'palInlay', 'head', scale_b=0.1)
+                prism(f'lfang_{s}{k}', blade(0.05, 0.04), (s * k, 0.55, HB - 0.06), (s * k, 0.56, HB + 0.04), 'palInlay', 'jaw', scale_b=0.1)
     # mane collar: tuft lobes around the sides of the face and under the chin, then two rows down the back of the head and neck
-    n = 15 if detail else 9
+    n = 15 if detail else 7
     for i in range(n):
         a = math.radians(-120 + 240 * i / (n - 1))  # 0 = under the chin, +-120 = up the sides of the face
         lx, lz = math.sin(a) * 0.56, -math.cos(a) * 0.34
         big = 1.25 if abs(a) < 0.8 else 1.0  # the ruff under the chin is the biggest part of the collar (concept 2130)
-        spheroid(f'tuft_{i}', (lx, 0.42, HB + 0.3 + lz), (0.13 * big, 0.07, 0.11 * big), 'palBronze', 'head', 'clouds', segs=(8, 5), axis=(math.sin(a), 0.6, -math.cos(a)))
+        curl(f'tuft_{i}', (lx, 0.42, HB + 0.3 + lz), 0.12 * big, (math.sin(a), 0.6, -math.cos(a)), 'head')
     for ri in range(2):
-        m = 5 if detail else 3
+        m = 5 if detail else 2
         for i in range(m):
             a = math.radians(-80 + 160 * i / (m - 1))
-            spheroid(f'mane_{ri}_{i}', (math.sin(a) * 0.4, -0.18 - ri * 0.12, HB + 0.5 - ri * 0.32), (0.13, 0.06, 0.12), 'palBronze', 'head' if ri == 0 else 'body', 'clouds',
-                     segs=(8, 5), axis=(math.sin(a), -1, 0.2))
+            curl(f'mane_{ri}_{i}', (math.sin(a) * 0.4, -0.18 - ri * 0.12, HB + 0.5 - ri * 0.32), 0.13, (math.sin(a), -1, 0.2), 'head' if ri == 0 else 'body')
     # tail: round segments curling up the back, a sharp flame tuft
     pts = [(0, -0.9, Z0 + 0.15), (0, -0.98, Z0 + 0.45), (0, -0.92, Z0 + 0.8), (0, -0.82, Z0 + 1.0)]
     for i in range(3):
@@ -227,7 +231,7 @@ def tris(ob): return sum(len(p.vertices) - 2 for p in ob.data.polygons)
 bpy.ops.wm.read_factory_settings(use_empty=True)
 sc = bpy.context.scene; sc.render.fps = FPS
 
-Q['seg'] = 0.55; build(False); lod1 = finish('beast_lod1', False)
+Q['seg'] = 0.5; build(False); lod1 = finish('beast_lod1', False)
 for vg in list(lod1.vertex_groups): lod1.vertex_groups.remove(vg)
 build(False); lod2 = finish('beast_lod2', False)
 for vg in list(lod2.vertex_groups): lod2.vertex_groups.remove(vg)

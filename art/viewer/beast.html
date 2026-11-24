@@ -26,6 +26,7 @@ floor.rotation.x = -Math.PI / 2; floor.receiveShadow = true; if (MODE === 'tex' 
 const MATS = {
   tex: { palBronze: () => { const t = tex('../../assets/tex/bronze_trim.png'); t.flipY = false; return new THREE.MeshStandardMaterial({ map: t, metalness: 0.4, roughness: 0.6 }); },
     palInlay: () => new THREE.MeshStandardMaterial({ color: 0xc8ccd0, metalness: 0.6, roughness: 0.35 }),
+    palDark: () => new THREE.MeshStandardMaterial({ color: 0x2a1f14, roughness: 0.9 }),
     palStone: () => new THREE.MeshStandardMaterial({ map: tex('../../assets/tex/lion_stone.png'), roughness: 0.9 }) },
   shade: { palBronze: () => new THREE.MeshStandardMaterial({ color: 0x9a7a48, metalness: 0.4, roughness: 0.6 }), palInlay: () => new THREE.MeshStandardMaterial({ color: 0xc8ccd0, metalness: 0.6, roughness: 0.35 }), palStone: () => new THREE.MeshStandardMaterial({ color: 0x9a968c, roughness: 0.9 }) },
   flat: { palBronze: () => new THREE.MeshBasicMaterial({ color: 0x9a7a48 }), palInlay: () => new THREE.MeshBasicMaterial({ color: 0xc8ccd0 }), palStone: () => new THREE.MeshBasicMaterial({ color: 0x9a968c }) },
