@@ -1,4 +1,4 @@
-# Handoff (2026-11-23 night, after batch 15: ultimate charge meter, tickets 01-04). GDD: docs/GDD.md (also Project "empress decrees", claude/GDD.md)
+# Handoff (2026-11-24 12:30, batch 16 in progress: tickets 01-09 and 11 done, 10 (杂甲) in progress, 12 close-out next). GDD: docs/GDD.md (also Project "empress decrees", claude/GDD.md)
 
 ## Session start (every session)
 0. CI (owner rule, reminded 24 Nov 08:47): full suite and mutation rounds run on GitHub runners via ci/ci_mut.sh on branch ci-run (results on branch ci-out, out/<label>/<run id>/summary.txt). If /home/claude/citools/ci_mut.sh is missing, copy it from origin/ci-run:ci/ci_mut.sh and create the worktree: git worktree add /home/claude/ci-wt -b ci-run origin/ci-run. Proof run 45298683619 (26 of 26, matches local). Job file: {"mode":"suite"} or {"mode":"mut","muts":[{name,want,a,b}]}.
@@ -49,6 +49,14 @@ Sims (12 seeds, one -sims run at c638527): old autopilot decided 152.3-211.4 s (
 kennel autopilot decided 148.2-214.6 s, plate 11 of 12, leader win share 4 of 12, reached camp 18 of 30 free warnings; bagged decrees in force per match 2-3 (3,3,2,3,3,3,3,3,3,3,2,3), told incl. bounty 3-4 per the order list; bounties 0-1 per match (5 in 12, 3 paid); breaks player 0, bots 8.
 R casts per suit per royale: not printed by -sims (the first gate run, before the checks were updated, logged bots 2-6 vs 8-13 with the old cooldown; player 0-2).
 
+## Batch 16 (IN PROGRESS, tickets/batch-16): all nine kits + suit stats + the 兵家 apex
+- Done on batches-3-5: 01 framework (b623a9a), 02 法 (58ddf09), 03 儒 (8de1b7a), 04 墨 (7d7a757), 05 名 (8bcba1d), 06 阴阳 (66b78b9), 07 农 (5dcd284), 08 道 (5809208), 09 纵横 (787ba8b), 11 兵家 apex (built in parallel on t11-bingjia ba32e01, merged b298701; CI 45315350373: 171 of 172, only 42).
+- In progress: 10 杂甲. WIP backup branch t10-wip (4c47225, not passing: CI 45318378897 174 of 181: 42 + 56 + new 165-169). Worker resumed from it 24 Nov 12:2x.
+- Next: rerun the close-out tools on the final head (branch t12-prep 6a178d3: ci_probe/schools.mjs per-school 12-seed matches, ci_probe/huntsweep.mjs per-school hunt sweep), then ticket 12 close-out (sims, sweep, HANDOFF, docs, phone link, project docs), then the balance talk with the owner.
+- Known balance items (reported, NOT tuned; owner 24 Nov 01:22 "get all results first then talk about balanced"): check 42 (攻其无备 costs the 0.3 s sweep bot its only hunt win), 144 R clause (农甲 bot rarely fills its meter), 83 decrees per match (2-5 depending on the kits in the match), 65 band; first per-school numbers (8 kits, runs 45316662334/45316662538): bot wins of 96: 儒 24, 纵横 19, 墨 14, 农 8, 道 7, 阴阳 6, 法 5, 名 3; hunt sweep: 阴阳, 名, 纵横 never win at 0.15 s (generic sweep bot: not proven).
+- Restarts: the server stopped 3 times (23-24 Nov). Procedure: read the tail of /home/claude/batch16.log and the CI runs; save the tree as a patch and to a wip branch; cmp index.html with the last good copy (a stop mid-mutation once left a mutation applied); start a replacement worker from the log. A 30-min self watchdog (scheduled task) does this while batch 16 is open.
+- CI: full suite and mutation rounds on GitHub (ci-run / ci-out, lanes ci-run-*); see Session start step 0 and CLAUDE.md. Parallel split: a second worker may build an independent ticket in its own worktree and branch with its own CI lane and checks numbered 200+; the lead merges.
+
 ## Next batch: 16 = ALL NINE kits + suit stats (owner 23 Nov 23:26 "do all 9": batches 16 and 17 merged; approval by play comes after all nine, not after a 法甲 sample). Panel note below, then the owner's go in ONE AskUserQuestion.
 Panel note 16 (lead, 23 Nov 23:30; proposal):
 - Player suit: a school select before each run (9 buttons, 44 px on phone, last pick remembered in try/catch storage); bots take the other 8 (6-1). The placeholder kit stays only for the map test (?bots=0) and its checks.
@@ -64,6 +72,11 @@ Panel note 16 (lead, 23 Nov 23:30; proposal):
 15 ultimate charge (DONE); 16 法甲 kit + suit stats sample (owner plays and approves); 17 the other eight kits (docs/SUITS.md); 18 hiding (curtains, 道甲 stillness, sight blocked by walls); 19 the ending + WINNER_STATUE; 20 final map size + balancing pass (re-measure, retune the CONFIG timing list once). Hunt sweep re-check with kits (0.15 s bot now loses demon-first).
 
 ## Owner decisions (dated)
+- 24 Nov 12:29: "update repo"; restarts must not need an owner reminder (self watchdog added).
+- 24 Nov 10:27: more workers in parallel where safe ("having more can be faster?").
+- 24 Nov 09:44-09:5x: the apex is 兵家 (tiger look and the HUD name "Tiger Demon" kept); moves renamed from 孙子兵法 (其疾如风, 动如雷震, 侵掠如火，不动如山; minions 奇正; 奇正相生); passive 攻其无备 (bonus vs a suit whose escape is on cooldown); ticket 11 before the close-out.
+- 24 Nov 08:35/08:47: heavy work on GitHub runners, never the session machine (rule was already in the project instructions).
+- 24 Nov 01:22: "get all results first then talk about balanced": no balance tuning in batch 16; checks never loosened (a report-only switch was refused by the permission check); balance FAILs stay visible until the balance talk.
 - 23 Nov 23:3x (batch 16 questions): player suit = school select (9 buttons) plus a random button, last pick remembered; stats as docs/STATS-MATH.md; hiding: minimal unseen state now ("then draw": read by the lead as art after the loop; confirm); numbers: one set per kit, balance only when all nine are ready ("balance when all is ready").
 - 23 Nov 23:26: "do all 9": batches 16 and 17 merged; all nine kits in batch 16.
 - 23 Nov 22:25: batch 15 split into tickets (tickets/batch-15, 01-04, to-tickets); one ticket per worker, in order.
