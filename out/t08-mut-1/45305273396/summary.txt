@@ -1,0 +1,25 @@
+jobs 24; caught by named check 24 of 24
+{"i": 0, "fails": ["83", "127", "144", "146"], "tot": ["RUNTIME 154 of 158 pass"], "s": 97, "name": "castAt-reset", "want": "146", "applied": true, "caught_named": true}
+{"i": 1, "fails": ["56"], "tot": ["RUNTIME 157 of 158 pass"], "s": 81, "name": "flee-walks-to-safe", "want": "56", "applied": true, "caught_named": true}
+{"i": 2, "fails": ["127", "136", "144"], "tot": ["RUNTIME 155 of 158 pass"], "s": 138, "name": "navnode-skips-wall", "want": "136", "applied": true, "caught_named": true}
+{"i": 3, "fails": ["127", "144", "146"], "tot": ["RUNTIME 155 of 158 pass"], "s": 133, "name": "wuwei-never", "want": "146", "applied": true, "caught_named": true}
+{"i": 4, "fails": ["83", "127", "144", "146"], "tot": ["RUNTIME 154 of 158 pass"], "s": 71, "name": "wuwei-move-keeps", "want": "146", "applied": true, "caught_named": true}
+{"i": 5, "fails": ["127", "144", "147", "148"], "tot": ["RUNTIME 154 of 158 pass"], "s": 139, "name": "basic-routed-as-skill", "want": "147", "applied": true, "caught_named": true}
+{"i": 6, "fails": ["127", "144", "147"], "tot": ["RUNTIME 155 of 158 pass"], "s": 99, "name": "rou-no-push", "want": "147", "applied": true, "caught_named": true}
+{"i": 7, "fails": ["83", "127", "144", "147"], "tot": ["RUNTIME 154 of 158 pass"], "s": 138, "name": "rou-attacker-unhurt", "want": "147", "applied": true, "caught_named": true}
+{"i": 8, "fails": ["83", "127", "144", "147", "148"], "tot": ["RUNTIME 153 of 158 pass"], "s": 138, "name": "refund-full", "want": "147", "applied": true, "caught_named": true}
+{"i": 9, "fails": ["127", "144", "148", "150"], "tot": ["RUNTIME 154 of 158 pass"], "s": 145, "name": "zheng-no-flow", "want": "148", "applied": true, "caught_named": true}
+{"i": 10, "fails": ["83", "127", "144", "148"], "tot": ["RUNTIME 154 of 158 pass"], "s": 113, "name": "zheng-no-flowmax", "want": "148", "applied": true, "caught_named": true}
+{"i": 11, "fails": ["127", "144", "150"], "tot": ["RUNTIME 155 of 158 pass"], "s": 75, "name": "units-not-countered", "want": "150", "applied": true, "caught_named": true}
+{"i": 12, "fails": ["83", "127", "144", "149"], "tot": ["RUNTIME 154 of 158 pass"], "s": 140, "name": "daoN-uncapped", "want": "149", "applied": true, "caught_named": true}
+{"i": 13, "fails": ["83", "127", "144", "149"], "tot": ["RUNTIME 154 of 158 pass"], "s": 72, "name": "fan-uncapped", "want": "149", "applied": true, "caught_named": true}
+{"i": 14, "fails": ["83", "127", "144", "149"], "tot": ["RUNTIME 154 of 158 pass"], "s": 99, "name": "fan-keeps-counters", "want": "149", "applied": true, "caught_named": true}
+{"i": 15, "fails": ["83", "127", "144", "149"], "tot": ["RUNTIME 154 of 158 pass"], "s": 146, "name": "fan-no-armor", "want": "149", "applied": true, "caught_named": true}
+{"i": 16, "fails": ["83", "127", "144", "149"], "tot": ["RUNTIME 154 of 158 pass"], "s": 100, "name": "fan-no-speed", "want": "149", "applied": true, "caught_named": true}
+{"i": 17, "fails": ["83", "127", "144", "149"], "tot": ["RUNTIME 154 of 158 pass"], "s": 140, "name": "fan-no-damage", "want": "149", "applied": true, "caught_named": true}
+{"i": 18, "fails": ["83", "127", "144", "149"], "tot": ["RUNTIME 154 of 158 pass"], "s": 150, "name": "ult2x-not-counters", "want": "149", "applied": true, "caught_named": true}
+{"i": 19, "fails": ["83", "127", "144", "149"], "tot": ["RUNTIME 154 of 158 pass"], "s": 134, "name": "rbtn-no-count", "want": "149", "applied": true, "caught_named": true}
+{"i": 20, "fails": ["83", "127", "144", "151"], "tot": ["RUNTIME 154 of 158 pass"], "s": 64, "name": "bot-no-holdoff", "want": "151", "applied": true, "caught_named": true}
+{"i": 21, "fails": ["127", "144", "152"], "tot": ["RUNTIME 155 of 158 pass"], "s": 142, "name": "bot-no-stance", "want": "152", "applied": true, "caught_named": true}
+{"i": 22, "fails": ["83", "127", "144", "147", "152"], "tot": ["RUNTIME 153 of 158 pass"], "s": 109, "name": "shimmer-stays", "want": "152", "applied": true, "caught_named": true}
+{"i": 23, "fails": ["83", "127", "144", "153"], "tot": ["RUNTIME 154 of 158 pass"], "s": 98, "name": "stance-own-geometry", "want": "153", "applied": true, "caught_named": true}

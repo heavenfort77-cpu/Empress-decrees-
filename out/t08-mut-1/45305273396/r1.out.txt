@@ -1,0 +1,2 @@
+FAIL 56 bots: 8 at the other spawns, roam 230 s: on a floor every tick, never stuck > 3 s, <= 1 path search per step, seen only in vision, every out has a cause :: {"n":8,"distinct":true,"inScene":true,"navPeak":1,"navPerStep":0.0454,"stuck":6.18,"out":["hit","hit","hit","hit","hit","fall","hit"],"noCause":0,"navMs":{"median":0,"max":0.7},"viol":[]}
+RUNTIME 157 of 158 pass
