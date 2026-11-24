@@ -2,7 +2,7 @@
 // Usage: node art/tools/shoot_viewer.mjs OUTDIR [MODEL] [EXTRA] [ONLY]   (MODEL beast (default) | ding | vat; EXTRA = query added to every shot,
 // e.g. metal=0.2; software GL locally: look only, no frame rate)
 import { createServer } from 'node:http';
-import { readFile, mkdir } from 'node:fs/promises';
+import { readFile, mkdir, writeFile } from 'node:fs/promises';
 import { extname, join, normalize } from 'node:path';
 let chromium;
 try { ({ chromium } = await import('playwright')); } catch { ({ chromium } = await import('/opt/npm-tools/node_modules/playwright/index.mjs')); }
@@ -36,6 +36,10 @@ const SHOTS = {
   merc: [['play_idle', 'view=play&state=idle', 1920, 1080], ['play_warn', 'view=play&state=warn', 1920, 1080], ['play_hot', 'view=play&state=hot', 1920, 1080], ['wide', 'view=wide', 1920, 1080],
     ['turn_34', 'view=turn&yaw=35&pitch=35', 640, 640], ['close_warn', 'view=turn&yaw=35&pitch=35&state=warn', 640, 640], ['pass_tex', 'view=turn&yaw=35&pitch=35&mode=tex', 640, 640]],
   censer: [['play', 'view=play', 1920, 1080], ['wide', 'view=wide', 1920, 1080], ...TURN(''), ...PASSES, ['lods', 'view=lods', 1280, 640]],
+  // C12 school standard (W6): lineup = all nine at the play camera (lineup.json: banner boxes for standard_check.py crops)
+  standard: [['play', 'view=play', 1920, 1080], ['lineup', 'view=play&lineup=1', 1920, 1080], ['lineup_sway', 'view=play&lineup=1&t=0.5', 1920, 1080], ['lineup_zacool', 'view=play&lineup=1&atlas=school_standards_zacool', 1920, 1080],
+    ['wide', 'view=wide', 1920, 1080], ['wide_lineup', 'view=wide&lineup=1', 1920, 1080], ...TURN(''), ...PASSES, ['lods', 'view=lods', 1280, 640],
+    ...[0, 0.5, 1, 1.5].map((t) => [`sway_${t}`, `view=turn&yaw=0&t=${t}`, 640, 640])],
 }[MODEL];
 // ONLY (5th argument): a comma list of shot names to take (e.g. play for the one default-sheet shot)
 const ONLY = process.argv[5] ? process.argv[5].split(',') : null;
@@ -45,6 +49,8 @@ for (const [name, q, w, h] of SHOTS.filter(([n]) => !ONLY || ONLY.includes(n))) 
   await page.goto(BASE + '?model=' + MODEL + '&' + q + EXTRA);
   await page.waitForFunction(() => window.__ready === true, null, { timeout: 60000 });
   await page.screenshot({ path: `${OUT}/${name}.png` });
+  const dump = await page.evaluate(() => window.__dump || null);  // optional per-shot data (C12 lineup boxes)
+  if (dump) await writeFile(`${OUT}/${name}.json`, JSON.stringify(dump));
   console.log(name, errs.length ? 'ERR ' + errs[0].slice(0, 120) : 'ok');
   await page.close();
 }

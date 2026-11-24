@@ -28,7 +28,7 @@ Owner 25 Nov 00:08: "use /cocolito along with current procedures to continue wit
 | W1c | C8 twelve bronze giants (shared cast body, 12 heads/beams/motifs, patina dormant / brass awake, rig) | done: ci-art-w1c e84602e, run 45452564180 119 of 119; merged 1e26a11 |
 | W4 | Apex Tiger Demon (兵家 bronze tiger, patina dormant / brass awake, three inlaid organ weak points, plates that shed) and its cubs Stalker and Howler (four-legged tread machines) | done: ci-art-w4 4c45ba7, run 45447534120 tex 11/11, tiger 15/15, cubs 21/21, shots 43/43; merged 1e26a11 |
 | W5 | 皇家 guard (卒, 弩手, 盾, 车 chariot, 伍长; bronze on treads, black and water-blue) and 反贼 rebels (黄巾力士, 符水道人, 死士, 渠帅; bootleg suits, yellow headbands, school-colour patches); fodder budget about 4k / 1.5k / 500, instanced | done: round 3 (W5) then rounds 4-5 (W5b), run 45451027192 guard 11/11/11/10/12, rebels 10/10/11/11; merged 1e26a11 |
-| W6 | C12 school emblem standards (missed from the first queue; lead omission) | running (branch ci-art-w6) |
+| W6 | C12 school emblem standards (missed from the first queue; lead omission) | done (restarted once): ci-art-w6 afe72e2, run 45460704861 atlas 49/49, build 18/18, GLB 13/13, play 10/11; merged |
 
 Merge: all worker deliverables merged into batches-3-5 at 1e26a11 (CI files left on the branches; tex_check.py hand-merged, 238 of 239 locally, the fail is the known suit_bronze brush 3.9 cm). Nothing is in the game.
 
@@ -45,3 +45,4 @@ Merge: all worker deliverables merged into batches-3-5 at 1e26a11 (CI files left
 - (W5b, guard) Tracks don't roll (per-link bones or scrolling texture); chariot canopy round vs flat square vs none; 卒 pike 2.70 m; slimmer bodies at the game camera.
 - (W1c, giants) Size follows the 4.9 m game box, not the 11.5 m source; sweep hit area 7 x 3 m vs beam reach about 2.2 m; all twelve share one squat body (distinct heads and beams only); motifs 02, 05, 07, 08 weak at play size; 4 draw calls each (2 if merged), 6.6 MB GLB needs compression.
 - (fodder, from W5) Draw calls and skinned instancing need baked bone textures before integration; rebel colour clashes; 死士 glint small.
+- (W6, C12) fa (lead white) and za (silver) banners are only dE 7.1 apart at play size: keep silver (gate stays FAIL) or a cooler banner-only silver #b2bccb (dE 12.2, play 11 of 11; fa_za_option.png). Approve the nine sigils (yinyang redrawn: it read as the digit 8).
