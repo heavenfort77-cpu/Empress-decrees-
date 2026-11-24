@@ -31,6 +31,9 @@ body.touch #next{top:10px;right:12px}
 .sk .ch{position:absolute;inset:-6px;border-radius:inherit;z-index:-1;display:none;pointer-events:none}
 .sk .lb{position:absolute;bottom:-15px;font:11px system-ui;color:#ddd;white-space:nowrap}
 .sk .zs{position:absolute;top:-17px;left:50%;transform:translateX(-50%);font:10px system-ui;color:#9fe8d8;white-space:nowrap;display:none;pointer-events:none}
+.sk .fzl{display:block;color:#ffd21a}
+.sk.fz{position:fixed;left:calc(50% + 104px);bottom:10px}
+body.touch .sk.fz{left:auto}
 body.touch #bar{left:auto;right:18px;bottom:18px;transform:none;width:230px;height:200px;display:block}
 body.touch .sk{position:absolute;width:64px;height:64px;border-radius:50%;pointer-events:auto;touch-action:none}
 body.touch .sk.atk{width:88px;height:88px;right:0;bottom:0;font-size:15px}
@@ -267,9 +270,11 @@ const CONFIG = {
     phases: ['royale'],
     // Factions (lead note 24 Nov 13:47: the 反贼 rebels join in ticket 07): body colour per unit type; foeSuits = hostile to the suits (bots farm them).
     // Units of different factions are hostile to each other.
-    factions: { huangjia: { foeSuits: true, zu: 0x1c2733, nu: 0x24506e, dun: 0x0e1318, che: 0x2f6f8f, wz: 0x4aa6c8 } },
+    factions: { huangjia: { foeSuits: true, zu: 0x1c2733, nu: 0x24506e, dun: 0x0e1318, che: 0x2f6f8f, wz: 0x4aa6c8 },
+      // 反贼 (ticket 07): its own unit types only; a 力士 wears its squad's school colour instead (FANZEI).
+      fanzei: { foeSuits: true, ls: 0xc9a227, fs: 0xe8d27a, ss: 0x3a3320, qs: 0xd4a017 } },
     // Pool size per unit type (two full squads at once); built at load, never grown.
-    pool: { zu: 10, nu: 6, dun: 4, che: 2, wz: 2 },
+    pool: { zu: 10, nu: 6, dun: 4, che: 2, wz: 2, ls: 12, fs: 2, ss: 4, qs: 2 },
     // Most units in one squad (the room cap).
     squadMax: 12,
     // Most squads at once.
@@ -280,18 +285,24 @@ const CONFIG = {
     aggro: 12, leash: 18,
     // 方阵: the 伍长 stops keep m from its target (alone, it closes in); slot per unit type: [m ahead of the 伍长, m apart across, 1 = flanks only (no centre slot)];
     // a unit in its slot steps out at a hostile within stepOut m of the slot.
-    keep: 3, stepOut: 3, rows: { dun: [2, 1.4, 0], zu: [0.8, 1.2, 0], nu: [-1.6, 1.4, 0], che: [0, 4.5, 1], wz: [0, 0, 0] },
+    keep: 3, stepOut: 3, rows: { dun: [2, 1.4, 0], zu: [0.8, 1.2, 0], nu: [-1.6, 1.4, 0], che: [0, 4.5, 1], wz: [0, 0, 0], ls: [0.8, 1.2, 0], fs: [-2.6, 1.6, 0], ss: [0, 5, 1], qs: [0, 0, 0] },
     // 伍长 buff on squad units within r m of a live 伍长: damage dealt x (1 + dmg), damage taken x (1 - def).
     buff: { r: 8, dmg: 0.25, def: 0.25 },
     // 盾 block: a basic blow from within arc degrees of its front deals x k (skills break through; go around it).
     block: { arc: 60, k: 0.2 },
     // Unit types: health, walk speed (m/s), body radius (m), scale, move = its one attack; on a kill by a suit: ult = ultimate charge, heal = health.
+    // lead = leads its squad (the first in the list); 反贼 (ticket 07) flags: wear = bootleg move that stalls (力士), healer = mends allies (符水道人),
+    // hunter = lurks unseen and goes for the run leader (死士), loner = never holds a slot, charge = its kill gives a bootleg charge (渠帅).
     types: {
       zu: { hp: 20, speed: 3.6, r: 0.45, scale: 1, move: 'thrust', ult: 5, heal: 2 },
       nu: { hp: 16, speed: 3.4, r: 0.45, scale: 1, move: 'volley', ult: 6, heal: 2 },
       dun: { hp: 40, speed: 3.0, r: 0.6, scale: 1, move: 'shove', ult: 8, heal: 4 },
       che: { hp: 60, speed: 5.0, r: 0.9, scale: 1, move: 'charge', ult: 12, heal: 6 },
-      wz: { hp: 45, speed: 3.4, r: 0.5, scale: 1, move: 'cut', ult: 15, heal: 6 },
+      wz: { hp: 45, speed: 3.4, r: 0.5, scale: 1, move: 'cut', ult: 15, heal: 6, lead: 1 },
+      ls: { hp: 14, speed: 3.8, r: 0.45, scale: 1, move: 'bl_ru', ult: 4, heal: 1, wear: 1 },
+      fs: { hp: 16, speed: 3.4, r: 0.45, scale: 1, move: 'talisman', ult: 6, heal: 2, healer: 1 },
+      ss: { hp: 18, speed: 4.4, r: 0.45, scale: 1, move: 'lunge', ult: 8, heal: 3, hunter: 1, loner: 1 },
+      qs: { hp: 40, speed: 3.6, r: 0.55, scale: 1, move: 'cleave', ult: 15, heal: 6, lead: 1, charge: 1 },
     },
     // Short boon for breaking the 伍长: boon slot (0 power, 3 speed), value, seconds.
     leaderBoon: { i: 0, v: 0.1, s: 12 },
@@ -303,7 +314,41 @@ const CONFIG = {
       shove: { shape: 'circle', radius: 1.8, windup: 0.5, cd: 2.6, dmg: 3, min: 0, max: 1.6, shove: 2.5 },
       charge: { shape: 'line', range: 10, width: 1.8, windup: 0.9, cd: 6, dmg: 10, min: 3, max: 10, dashS: 0.45 },
       cut: { shape: 'line', range: 2.4, width: 1.0, windup: 0.5, cd: 2.0, dmg: 5, min: 0, max: 2.2, stay: true },
+      // 反贼 (ticket 07): heal = health mended on allies in the mark (no damage); 死士's lunge; 渠帅's cleave. 力士 moves: FANZEI.bootleg.
+      talisman: { shape: 'mark', radius: 2.5, windup: 0.8, cd: 4, dmg: 0, heal: 8, min: 5, max: 9, stay: true },
+      lunge: { shape: 'line', range: 7, width: 1.0, windup: 0.6, cd: 3.5, dmg: 9, min: 0, max: 6.5, dashS: 0.25 },
+      cleave: { shape: 'circle', radius: 2.2, windup: 0.6, cd: 2.4, dmg: 5, min: 0, max: 2.0 },
     },
+  },
+  // Feature switch: the 反贼 rebels (Burning Palace ticket 07, owner 24 Nov 13:47). Squads come only from spawnSquad('fanzei', ...); the Royal Rumble spawns none.
+  FANZEI_ON: true,
+  // 反贼 numbers (worker's picks, not tuned: owner "results first"). Types, pools, slots and moves sit in GUARD (one framework); these are the rebels' own rules.
+  FANZEI: {
+    // 力士 bootleg moves per school (guard move fields; joined to GUARD.moves as 'bl_<school>' at load): weaker copies of a school move, tells 0.8-1.0 s
+    // (the 皇家 guard's 0.5). ru/fa/nong dash lines, dao/zongheng circles around him, mo/yinyang marks on the target, za/ming lines that stay.
+    bootleg: {
+      ru: { shape: 'line', range: 5, width: 1.6, windup: 0.8, cd: 3.0, dmg: 5, min: 0, max: 4.5, dashS: 0.3 },
+      dao: { shape: 'circle', radius: 1.8, windup: 0.8, cd: 3.0, dmg: 3, min: 0, max: 1.6, shove: 2.5 },
+      fa: { shape: 'line', range: 5, width: 1.4, windup: 0.8, cd: 3.2, dmg: 5, min: 0, max: 4.5, dashS: 0.3 },
+      mo: { shape: 'mark', radius: 2.0, windup: 1.0, cd: 3.6, dmg: 4, min: 2, max: 6, stay: true, shove: 2 },
+      yinyang: { shape: 'mark', radius: 2.2, windup: 1.0, cd: 3.4, dmg: 6, min: 3, max: 9, stay: true },
+      za: { shape: 'line', range: 7, width: 1.0, windup: 0.8, cd: 3.4, dmg: 4, min: 0, max: 6.5, stay: true },
+      ming: { shape: 'line', range: 7, width: 1.0, windup: 0.8, cd: 3.4, dmg: 5, min: 0, max: 6.5, stay: true },
+      zongheng: { shape: 'circle', radius: 2.4, windup: 0.9, cd: 3.6, dmg: 3, min: 0, max: 2.2 },
+      nong: { shape: 'line', range: 5, width: 1.6, windup: 0.8, cd: 3.2, dmg: 4, min: 0, max: 4.5, dashS: 0.35 },
+    },
+    // A 力士's bootleg 甲 stalls after stallN moves: no move for stallS s more (a spark flash shows it).
+    stallN: 3, stallS: 4,
+    // 符水道人 mends an ally of its faction below healBelow of its health within its move's max m.
+    healBelow: 0.9,
+    // 死士 lurks unseen (drawn only within UNSEEN.shimmerM of the player, in the shimmer colour) until its prey (the run leader, else the player) is within lurkR m.
+    lurkR: 7,
+    // 渠帅's bootleg charge: uses given to the suit that breaks it; its damage = the bootleg move's x chargeK (the school move at its proper strength).
+    chargeN: 1, chargeK: 3,
+    // The player's key for the charge (desktop); phones get a button (right, bottom px) shown only while a charge is held.
+    key: 'KeyF', btnPos: [8, 176],
+    // Colours: 死士 lunge glint (yellow tell), 符水 heal mark (green), 死士 lurking shimmer.
+    tellY: 0xffd21a, tellHeal: 0x5cff9a, shimmer: 0x8a8570,
   },
   // Feature switch: buff creatures (crab and wanderer), drawn from marble bags.
   NEUTRALS: true,
@@ -775,6 +820,12 @@ const TEXT = {
   // 皇家 guard (Burning Palace ticket 02): the player broke a squad's 伍长.
   voice_guard_break: 'Our 伍长 falls, and his square with him. Our household hath more men than thou hast breath.',
   rule_guard_break: '伍长 down: the 方阵 breaks (no more buff). +{v}% damage for {s} s.',
+  // 反贼 (Burning Palace ticket 07): the 渠帅's bootleg charge (one free use of its school's move), its button and each school's bootleg name.
+  fz_voice_charge: 'Thou hast taken a rebel art. Use it, and become what they are.',
+  fz_rule_charge: '渠帅 down: {who} bootleg move, one use. Press F.',
+  fz_btn: 'F',
+  fz_bl_ru: 'Bootleg Ru', fz_bl_dao: 'Bootleg Dao', fz_bl_fa: 'Bootleg Fa', fz_bl_mo: 'Bootleg Mo', fz_bl_yinyang: 'Bootleg Yinyang', fz_bl_za: 'Bootleg Za',
+  fz_bl_ming: 'Bootleg Ming', fz_bl_zongheng: 'Bootleg Zongheng', fz_bl_nong: 'Bootleg Nong',
   voice_plate_take: 'It is thine. For now.',
   suit_0: 'You',
   school_ru: 'Ru suit', school_dao: 'Dao suit', school_fa: 'Fa suit', school_mo: 'Mo suit', school_yinyang: 'Yinyang suit', school_za: 'Za suit',
@@ -1402,13 +1453,37 @@ const GUARD_GEO = {
   dun: mergeGeoms([tread(), box(0.6, 1.1, 0.5, 0, 0.85, 0), box(0.42, 0.35, 0.42, 0, 1.6, 0), box(1.3, 1.4, 0.14, 0, 0.95, -0.45)]),
   che: mergeGeoms([box(1.7, 0.7, 2.4, 0, 0.6, 0.2), box(0.2, 0.9, 0.9, -0.95, 0.45, 0.4), box(0.2, 0.9, 0.9, 0.95, 0.45, 0.4), box(0.9, 0.8, 0.9, 0, 0.75, -1.5), box(0.5, 1.0, 0.4, 0, 1.4, 0.4)]),
   wz: mergeGeoms([tread(), box(0.65, 1.3, 0.5, 0, 0.95, 0), box(0.45, 0.4, 0.45, 0, 1.8, 0), box(0.07, 2.4, 0.07, -0.4, 1.4, 0.2), box(0.6, 0.5, 0.04, -0.7, 2.3, 0.2)]),
+  // 反贼 (ticket 07): men on foot, no treads. 力士 with a headband and a staff; 符水道人 in a robe with a gourd; 死士 crouched with a short blade; 渠帅 with a glaive and a banner.
+  ls: mergeGeoms([box(0.6, 1.2, 0.45, 0, 0.6, 0), box(0.42, 0.38, 0.42, 0, 1.4, 0), box(0.46, 0.1, 0.46, 0, 1.52, 0), box(0.12, 0.12, 1.6, 0.35, 0.95, -0.4)]),
+  fs: mergeGeoms([box(0.7, 1.4, 0.6, 0, 0.7, 0), box(0.4, 0.36, 0.4, 0, 1.6, 0), box(0.25, 0.35, 0.25, 0.4, 1.0, -0.3)]),
+  ss: mergeGeoms([box(0.5, 0.9, 0.4, 0, 0.45, 0), box(0.36, 0.32, 0.36, 0, 1.06, 0), box(0.06, 0.06, 0.8, 0.25, 0.6, -0.5)]),
+  qs: mergeGeoms([box(0.7, 1.35, 0.55, 0, 0.68, 0), box(0.46, 0.42, 0.46, 0, 1.56, 0), box(0.5, 0.12, 0.5, 0, 1.72, 0), box(0.1, 0.1, 2.0, 0.4, 1.0, -0.5), box(0.5, 0.6, 0.05, -0.5, 2.0, 0.2)]),
 };
 // One matte material for every guard; the per-instance colour carries the faction and type colour (and the hit flash).
 const guardMat = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.85, metalness: 0.15 });
 const GUARD_COL = {};
-for (const f in GC.factions) { GUARD_COL[f] = {}; for (const t of GUARD_TYPES) GUARD_COL[f][t] = new THREE.Color(GC.factions[f][t]); }
+// A faction's colour table holds only its own unit types (a type without a colour there is not spawned for it).
+for (const f in GC.factions) { GUARD_COL[f] = {}; for (const t of GUARD_TYPES) if (GC.factions[f][t] !== undefined) GUARD_COL[f][t] = new THREE.Color(GC.factions[f][t]); }
 // Hit flash colour (brighter than white: instance colour multiplies the material colour).
 const GUARD_FLASH = new THREE.Color(2.5, 2.5, 2.5);
+// ===== 反贼 rebels (Burning Palace ticket 07): their unit types live in the guard tables above; these are the rebels' own load-time parts.
+const FZ = CONFIG.FANZEI, FZ_SCH = CONFIG.SCHOOLS;
+// Each school's bootleg move joins the guard move table as 'bl_<school>', so a 力士 runs the guard move code unchanged.
+for (const k of FZ_SCH) GMV['bl_' + k] = FZ.bootleg[k];
+// Patched armour: a 力士 wears its squad's school colour (school select order); a lurking 死士 is drawn in the shimmer colour.
+const FZ_COL = FZ_SCH.map((k, i) => new THREE.Color(COL.schools[i])), FZ_SHIMMER = new THREE.Color(FZ.shimmer);
+mat('fzY', FZ.tellY, { emissive: FZ.tellY, emissiveIntensity: 1.2 }); mat('fzHeal', FZ.tellHeal, { emissive: FZ.tellHeal, emissiveIntensity: 1.0 });
+// The 渠帅's charge per school: the bootleg move as a copied unit move a suit casts (杂甲's copied-move code: tell for its windup, then the hit), x chargeK damage.
+const FZ_SK = FZ_SCH.map((k) => {
+  const m = FZ.bootleg[k], sh = m.shape === 'mark' ? 'spot' : m.shape;
+  return { move: 'bl_' + k, nameKey: 'fz_bl_' + k, label: T('fz_bl_' + k), shape: sh, type: sh === 'line' ? 'line' : 'circle', range: sh === 'line' ? m.range : sh === 'spot' ? m.max : 0,
+    width: m.width || 0, radius: m.radius || 0, windup: m.windup, dmg: m.dmg * FZ.chargeK, slow: 0, slowS: 0, stun: 0, bleed: 0, dashS: m.dashS || 0.2, dash: !!m.dashS, delay: 0, cd: 0, tell: M.fzY };
+});
+const FZ_VARS = { who: '' }, FZ_NAMES = FZ_SCH.map((k) => T('school_' + k));
+// The rebels' own seeded generator (a squad's school), so the marble bags draw the same with or without rebels; seeded on every new run (fzClear).
+const FRNG = { s: 1 };
+// The charge button (fzButton; written on change by fzHud).
+const FZB = { b: null, lb: null, on: false, sk: null };
 // GDRAW[type] = its InstancedMesh (count = units drawn this frame; in the scene only while it draws any); GPOOL[type] = its pooled units; GUARDS = all of them.
 const GDRAW = {}, GPOOL = {}, GUARDS = [], GM4 = new THREE.Matrix4();
 for (const t of GUARD_TYPES) {
@@ -1428,9 +1503,12 @@ for (const t of GUARD_TYPES) {
     GPOOL[t].push(u); GUARDS.push(u);
   }
 }
+// 反贼 tells: the 死士's lunge glints yellow, the 符水道人's mend mark is green (others keep the red unit tell).
+for (const u of GUARDS) { if (u.cfg.hunter) u.ring.material = u.line.material = M.fzY; if (u.cfg.healer) u.ring.material = u.line.material = M.fzHeal; }
 // Squads (fixed): on, faction, leader (the 伍长 or null), n = units alive, facing, anchor, target, broken (no live 伍长), open = chariots allowed.
 const SQUADS = [];
-for (let i = 0; i < GC.squadsMax; i++) SQUADS.push({ on: false, id: i, faction: '', leader: null, n: 0, fx: 0, fz: 1, x: 0, z: 0, y: 0, tgt: null, broken: false, open: false });
+// school = the 反贼 squad's school (index in CONFIG.SCHOOLS; -1 for the 皇家 guard).
+for (let i = 0; i < GC.squadsMax; i++) SQUADS.push({ on: false, id: i, faction: '', leader: null, n: 0, fx: 0, fz: 1, x: 0, z: 0, y: 0, tgt: null, broken: false, open: false, school: -1 });
 // Slot counter per type while a squad is placed; cosine of the 盾's block arc.
 const GSLOT = {}, GBLOCK_COS = Math.cos(GC.block.arc * Math.PI / 180);
 const SPOTS = CONFIG.BAGS.spots.map(([x, z, sec]) => [x * K, z * K, sec]);
@@ -1609,6 +1687,7 @@ addEventListener('keydown', (e) => {
   if (G.modeOpen) { modeKey(e); return; }
   if (G.selecting) { selectKey(e); return; }
   for (let i = 0; i < CONFIG.SKILLS.length; i++) if (e.code === CONFIG.SKILLS[i].key) { startAim(i, 'key'); e.preventDefault(); return; }
+  if (e.code === CONFIG.FANZEI.key) { fzKey(); e.preventDefault(); return; }
   if (e.code === 'KeyS') stopOrders();
   if (e.code === 'KeyA') ORD.attackMove = true;
   if (e.code === 'Escape') { cancelAim(); ORD.attackMove = false; }
@@ -1683,6 +1762,16 @@ function buildBar() {
     // 杂甲's stored skill (ticket 10): its name above the R button, shown only while he holds one.
     if (i === 2) { const zs = document.createElement('div'); zs.className = 'zs'; x.b.appendChild(zs); SK[i].zsEl = zs; }
   });
+  fzButton();
+}
+// The 反贼 bootleg charge (ticket 07): F on desktop, a button on phones (beside the ability bar, not in it); hidden until a charge is held (fzHud).
+// Its name sits above it.
+function fzButton() {
+  const b = document.createElement('div'), lb = document.createElement('div');
+  b.className = 'sk skill fz'; b.textContent = T('fz_btn'); lb.className = 'zs fzl'; b.appendChild(lb); document.body.appendChild(b);
+  FZB.b = b; FZB.lb = lb; b.style.display = 'none';
+  if (TOUCH) { b.style.right = FZ.btnPos[0] + 'px'; b.style.bottom = FZ.btnPos[1] + 'px'; }
+  b.addEventListener('pointerdown', (e) => { e.preventDefault(); fzKey(); });
 }
 function dragAim(e) {
   const d = ORD.drag, sk = aimSk(d.slot), dx = e.clientX - d.ox, dy = e.clientY - d.oy, len = Math.hypot(dx, dy);
@@ -3082,6 +3171,7 @@ function stepCombat(dt) {
   // 杂甲's 兼收并蓄 (ticket 10): the stored skill's name on the R button, written on change.
   const zs = P.kit.passive === 'store' ? P.storeSk : null;
   if (zs !== G.zaShown) { G.zaShown = zs; if (SK[2].zsEl) { if (zs) setText(SK[2].zsEl, T(zs.nameKey)); setShow(SK[2].zsEl, !!zs); } G.zaWrites++; }
+  fzHud();
   if (PEND.on) { PEND.t -= dt; if (PEND.t <= 0) { PEND.on = false; fxTele.visible = false; applySkill(PEND.slot, PEND.x, PEND.z, PEND.dx, PEND.dz); } }
   if (G.fxT > 0) { G.fxT -= dt; if (G.fxT <= 0) { fxLine.visible = false; fxRing.visible = false; } }
   const VR = G.visR;
@@ -4988,7 +5078,7 @@ function botDecide(b) {
     const nc = CUBS.length + NEUTRALS.length, ng = G.guardN > 0 ? GUARDS.length : 0;
     for (let i = 0; i < nc + ng; i++) {
       const u = i < CUBS.length ? CUBS[i] : i < nc ? NEUTRALS[i - CUBS.length] : GUARDS[i - nc];
-      if (!u.alive || (u.guard && !GC.factions[u.faction].foeSuits) || u === b.skip || Math.abs(u.y - b.y) > 1.5 || (G.hiAvoid && u.y >= CONFIG.DECREES.heightY - 0.5)) continue;
+      if (!u.alive || u.hid || (u.guard && !GC.factions[u.faction].foeSuits) || u === b.skip || Math.abs(u.y - b.y) > 1.5 || (G.hiAvoid && u.y >= CONFIG.DECREES.heightY - 0.5)) continue;
       const d = Math.hypot(u.x - b.x, u.z - b.z); if (d < bd) { bd = d; c = u; }
     }
     if (c && brnd() > b.skill.aggro) { b.skip = c; c = null; }
@@ -5045,6 +5135,8 @@ function botUseSkills(b, q, d, ultOnly) {
   const noDash = (decOn('nodash') && !!b.floor && b.floor.s === DEC.zone) || held(b);
   // A target in 道甲's 不争 stance that the bot has seen for its reaction time: no skill at it now.
   if (stanceHeld(q, false, b)) return;
+  // A 反贼 bootleg charge (ticket 07) goes first at a target in its reach.
+  if (!ultOnly && fzBot(b, q, d)) return;
   for (let slot = ultOnly ? 2 : 0; slot < 3; slot++) {
     const sk = S[slot];
     // 道甲's stances are raised by botStance (against a blow about to land), not at a target.
@@ -5333,6 +5425,8 @@ function spotTaken(k) { for (let i = 0; i < NEUTRALS.length; i++) if (NEUTRALS[i
 // guardN = guards alive; guardDrawn = an instanced guard mesh is in the scene; guardKills / guardBreaks / guardBlocks = guards broken by suits,
 // 伍长 lost, blows the 盾 blocked; guardHits / guardMinTell = guard hits on the player and the shortest tell before one (checks).
 Object.assign(G, { guardN: 0, guardDrawn: false, guardKills: 0, guardBreaks: 0, guardBlocks: 0, guardHits: 0, guardMinTell: 99 });
+// 反贼 (ticket 07) counters for the checks: 死士 shown, mends landed, bootleg stalls, charges given, charges cast.
+Object.assign(G, { fzReveals: 0, fzHeals: 0, fzStalls: 0, fzCharges: 0, fzCasts: 0 });
 // The player's note when the 伍长 falls to him: the boon in percent and seconds.
 const GBREAK_VARS = { v: Math.round(GC.leaderBoon.v * 100), s: GC.leaderBoon.s };
 // PERFRAME-BEGIN
@@ -5340,11 +5434,12 @@ const GBREAK_VARS = { v: Math.round(GC.leaderBoon.v * 100), s: GC.leaderBoon.s }
 function guardPhaseOk() { const ph = GC.phases; for (let i = 0; i < ph.length; i++) if (ph[i] === G.phase) return true; return false; }
 function freeGuard(t) { const p = GPOOL[t]; for (let i = 0; i < p.length; i++) if (!p[i].alive) return p[i]; return null; }
 // Spawn API (ticket 03 calls it when a door opens; ticket 07 adds the 反贼 faction): a squad of faction f from the unit types in list
-// ('zu' 卒, 'nu' 弩手, 'dun' 盾, 'che' 车, 'wz' 伍长), around x, z. opts: fx, fz = facing (default +z); open = chariots allowed (open rooms only).
-// The first 'wz' leads the 方阵 (others in the list are skipped); a squad without one starts broken. At most GUARD.squadMax units, pool permitting.
+// ('zu' 卒, 'nu' 弩手, 'dun' 盾, 'che' 车, 'wz' 伍长; 反贼 'ls' 力士, 'fs' 符水道人, 'ss' 死士, 'qs' 渠帅), around x, z. opts: fx, fz = facing (default +z);
+// open = chariots allowed (open rooms only); school = a 反贼 squad's school (key or index; else drawn). Types not of the faction are skipped.
+// The first leader type ('wz', 'qs') leads the 方阵 (others in the list are skipped); a squad without one starts broken. At most GUARD.squadMax units, pool permitting.
 // Returns the squad id, or -1 (switched off, not a guard phase, unknown faction, no floor at x, z, no free squad, no free unit).
 function spawnSquad(f, list, x, z, opts) {
-  if (!CONFIG.GUARD_ON || !GUARD_COL[f] || !list || !guardPhaseOk()) return -1;
+  if (!CONFIG.GUARD_ON || !GUARD_COL[f] || !list || !guardPhaseOk() || (f === 'fanzei' && !CONFIG.FANZEI_ON)) return -1;
   let sq = null;
   for (let i = 0; i < SQUADS.length; i++) if (!SQUADS[i].on) { sq = SQUADS[i]; break; }
   if (!sq) return -1;
@@ -5353,11 +5448,13 @@ function spawnSquad(f, list, x, z, opts) {
   // No floor at the anchor (the void): no squad.
   const y0 = topY(x, z); if (y0 < -1e8) return -1;
   sq.faction = f; sq.leader = null; sq.n = 0; sq.fx = fx; sq.fz = fz; sq.x = x; sq.z = z; sq.y = y0; sq.tgt = null; sq.broken = true; sq.open = !!(opts && opts.open);
+  sq.school = f === 'fanzei' ? fzSchool(opts) : -1;
   for (let k = 0; k < GUARD_TYPES.length; k++) GSLOT[GUARD_TYPES[k]] = 0;
   // Pass 0 places the 伍长 (the slots hang on it), pass 1 the others in list order.
   for (let pass = 0; pass < 2; pass++) for (let i = 0; i < list.length && sq.n < GC.squadMax; i++) {
     const t = list[i];
-    if (!GC.types[t] || (pass === 0) !== (t === 'wz') || (t === 'wz' && sq.leader) || (t === 'che' && !sq.open)) continue;
+    const lt = !!(GC.types[t] && GC.types[t].lead);
+    if (!GC.types[t] || !GUARD_COL[f][t] || (pass === 0) !== lt || (lt && sq.leader) || (t === 'che' && !sq.open)) continue;
     const u = freeGuard(t); if (!u) continue;
     const row = GC.rows[t], k = GSLOT[t]++;
     // Across the row: centre, right, left, ... (flank rows skip the centre).
@@ -5369,7 +5466,8 @@ function spawnSquad(f, list, x, z, opts) {
     u.x = u.px = sx; u.z = u.pz = sz; u.y = topYUnder(sx, sz, sq.y + 0.5); u.fx = fx; u.fz = fz;
     u.hp = u.maxHp; u.alive = true; u.seen = false; u.st = 0; u.t = 0; u.cur = ''; u.tellT = 0; u.gcd = 0; u.flashT = 0; u.bleedT = 0; u.slowT = 0; u.sealT = 0;
     u.atkAt = -99; u.by = null; u.bleedBy = null; u.tgt = null; u.dmgK = 1; u.defK = 1; u.form = false;
-    if (t === 'wz') { sq.leader = u; sq.broken = false; }
+    fzDress(u, sq);
+    if (lt) { sq.leader = u; sq.broken = false; }
     sq.n++; G.guardN++;
   }
   if (sq.n === 0) return -1;
@@ -5390,7 +5488,7 @@ function nearestFoe(f, x, z, y, r) {
     const d = Math.hypot(s.x - x, s.z - z); if (d <= bd) { bd = d; best = s; }
   }
   for (let i = 0; i < GUARDS.length; i++) {
-    const o = GUARDS[i]; if (!o.alive || o.faction === f || !guardFoe(f, o, y)) continue;
+    const o = GUARDS[i]; if (!o.alive || o.hid || o.faction === f || !guardFoe(f, o, y)) continue;
     const d = Math.hypot(o.x - x, o.z - z); if (d <= bd) { bd = d; best = o; }
   }
   return best;
@@ -5413,7 +5511,7 @@ function stepGuards(dt) {
     const u = GUARDS[i]; if (!u.alive) continue;
     // A guard with no floor under it (its section fell) is lost: no reward.
     if (!floorAt(u.x, u.z, u.y + 0.1)) guardDown(u, false); else stepGuard(u, dt);
-    u.seen = u.alive && Math.hypot(u.x - P.x, u.z - P.z) <= VR;
+    u.seen = u.alive && Math.hypot(u.x - P.x, u.z - P.z) <= (u.hid ? CONFIG.UNSEEN.shimmerM : VR);
   }
 }
 // How near a guard walks to a target it fights out of a 方阵: crossbows to the middle of their band, others to 0.8 of their reach.
@@ -5431,7 +5529,7 @@ function stepGuard(u, dt) {
   if (u.flashT > 0) u.flashT -= dt;
   // The 伍长's buff: on the other units of a formed 方阵 within buff.r of the live 伍长 (not on the 伍长 itself).
   const sq = u.sq, L = sq.leader;
-  u.form = !sq.broken && !!L && L.alive;
+  u.form = !sq.broken && !!L && L.alive && !u.cfg.loner;
   const buffed = u.form && u !== L && Math.hypot(L.x - u.x, L.z - u.z) <= GC.buff.r;
   u.dmgK = buffed ? 1 + GC.buff.dmg : 1; u.defK = buffed ? 1 - GC.buff.def : 1;
   if (u.st === 1) { u.t -= dt; u.tellT += dt; if (u.t <= 0) guardResolve(u); return; }
@@ -5442,6 +5540,8 @@ function stepGuard(u, dt) {
     return;
   }
   if (u.st === 3) { u.t -= dt; if (u.t <= 0) u.st = 0; return; }
+  // 反贼: a lurking 死士 waits for its prey; a 符水道人 mends a hurt ally first (true = this step is spent).
+  if ((u.hid || u.cfg.healer) && fzStep(u)) return;
   // In a 方阵 the squad's target; broken, its own nearest hostile.
   let q = null;
   if (u.form) q = sq.tgt;
@@ -5450,12 +5550,14 @@ function stepGuard(u, dt) {
     if (q && (!foeSeen(u.faction, q, u.x, u.z, u.y) || Math.hypot(q.x - u.x, q.z - u.z) > GC.leash)) q = null;
     if (!q) q = nearestFoe(u.faction, u.x, u.z, u.y, GC.aggro);
   }
+  // A 死士 goes for the run leader (else the player) whenever it sees one in reach.
+  if (u.cfg.hunter) q = fzPrey(u, q);
   u.tgt = q;
   const m = GMV[u.atk], hs = unitHeld(u), sp = u.cfg.speed * (hs ? 1 - hs.slow : 1) * (u.slowT > 0 ? 1 - u.slowK : 1);
   if (q) {
     const px = q.x - u.x, pz = q.z - u.z, dist = Math.hypot(px, pz) || 1e-6, dx = px / dist, dz = pz / dist;
     // Its one move when ready and in its band (sealed by 杂甲: none; held in a 势 ring: no dash move).
-    if (u.gcd <= 0 && u.sealT <= 0 && dist >= m.min && dist <= m.max && !(hs && m.dashS) && guardBegin(u, q, dx, dz)) return;
+    if (!m.heal && u.gcd <= 0 && u.sealT <= 0 && dist >= m.min && dist <= m.max && !(hs && m.dashS) && guardBegin(u, q, dx, dz)) return;
     u.fx = dx; u.fz = dz;
   }
   let gx = u.x, gz = u.z, stop = 0.3;
@@ -5482,6 +5584,8 @@ function guardBegin(u, q, dx, dz) {
     u.ring.position.set(u.tx, u.ty + 0.07, u.tz); u.ring.scale.setScalar(m.radius); u.ring.visible = true; scene.add(u.ring);
   }
   u.fx = dx; u.fz = dz; u.st = 1; u.cur = u.atk; u.t = m.windup; u.tellT = 0; u.gcd = m.cd;
+  // A 力士's bootleg 甲 wears out: after FANZEI.stallN moves it stalls.
+  if (u.cfg.wear) fzWear(u);
   return true;
 }
 function guardHideTell(u) {
@@ -5498,6 +5602,8 @@ function guardCovers(u, m, o) {
 function guardResolve(u) {
   const m = GMV[u.cur], dmg = m.dmg * u.dmgK;
   guardHideTell(u);
+  // A mend (符水道人): heals its allies in the mark, hits no one.
+  if (m.heal) { fzMend(u, m); return; }
   // A wall raised during the windup (墨甲's 距云梯) shortens a line: it stops there and hits only up to it.
   if (m.shape === 'line' && G.wallN > 0) u.tl = Math.min(u.tl, dashLen(u, u.fx, u.fz, u.tl));
   if (GC.factions[u.faction].foeSuits) for (let i = 0; i < SUITS.length; i++) {
@@ -5546,7 +5652,9 @@ function guardDown(u, rewarded) {
   G.guardKills++;
   gainCharge(s, u.cfg.ult);
   s.hp = Math.min(CONFIG.MAX_HP, s.hp + u.cfg.heal);
-  if (lead) {
+  // A 渠帅 (反贼) drops a bootleg charge; a 伍长 gives the short boon.
+  if (lead && u.cfg.charge) fzGrant(s, sq);
+  else if (lead) {
     const B = GC.leaderBoon; s.bT[B.i] = Math.max(s.bT[B.i], B.s); s.bV[B.i] = Math.max(s.bV[B.i], B.v);
     if (s === P) showNote('voice_guard_break', 'rule_guard_break', GBREAK_VARS);
   }
@@ -5562,6 +5670,7 @@ function clearGuards() {
   for (let i = 0; i < SQUADS.length; i++) { const sq = SQUADS[i]; sq.on = false; sq.leader = null; sq.tgt = null; sq.n = 0; sq.broken = false; }
   for (let k = 0; k < GUARD_TYPES.length; k++) { const im = GDRAW[GUARD_TYPES[k]]; im.count = 0; if (im.parent) scene.remove(im); }
   G.guardN = 0; G.guardDrawn = false; G.guardKills = 0; G.guardBreaks = 0; G.guardBlocks = 0; G.guardHits = 0; G.guardMinTell = 99;
+  fzClear();
 }
 // A guard tell this bot has seen for its reaction time covers x, z (radius + margin): leaves the escape direction in DNG.
 function guardDanger(b, x, z, margin) {
@@ -5586,13 +5695,118 @@ function drawGuards(alpha) {
     for (let i = 0; i < pool.length; i++) {
       const u = pool[i]; if (!u.seen) continue;
       GM4.makeRotationY(Math.atan2(-u.fx, -u.fz)); GM4.setPosition(u.px + (u.x - u.px) * alpha, u.y, u.pz + (u.z - u.pz) * alpha);
-      im.setMatrixAt(n, GM4); im.setColorAt(n, u.flashT > 0 ? GUARD_FLASH : u.col); n++;
+      im.setMatrixAt(n, GM4); im.setColorAt(n, u.flashT > 0 ? GUARD_FLASH : u.hid ? FZ_SHIMMER : u.col); n++;
     }
     if (im.count !== n) im.count = n;
     if (n > 0) { im.instanceMatrix.needsUpdate = true; im.instanceColor.needsUpdate = true; if (!im.parent) scene.add(im); any = true; }
     else if (im.parent) scene.remove(im);
   }
   G.guardDrawn = any;
+}
+// ----- 反贼 rebels (Burning Palace ticket 07): bootleg 甲, the 符水道人's mend, the 死士's lurk and prey, the 渠帅's bootleg charge.
+function fzRnd() {
+  FRNG.s = (FRNG.s + 0x6D2B79F5) | 0; let t = FRNG.s;
+  t = Math.imul(t ^ (t >>> 15), t | 1); t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+  return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+}
+// A 反贼 squad's school (index in CONFIG.SCHOOLS): opts.school as a key or index, else drawn from the rebels' generator.
+function fzSchool(opts) {
+  const v = opts ? opts.school : undefined;
+  if (typeof v === 'number' && v >= 0 && v < FZ_SCH.length) return v;
+  const i = typeof v === 'string' ? FZ_SCH.indexOf(v) : -1;
+  return i >= 0 ? i : Math.min(FZ_SCH.length - 1, Math.floor(fzRnd() * FZ_SCH.length));
+}
+// A pooled unit joins squad sq: its own move and state (nothing carried over); a 力士 takes its squad's bootleg move and colour; a 死士 starts lurking.
+function fzDress(u, sq) {
+  u.atk = u.cfg.move; u.uses = 0; u.hid = !!u.cfg.hunter; u.stallT = 0;
+  if (u.cfg.wear) { u.atk = 'bl_' + FZ_SCH[sq.school]; u.col = FZ_COL[sq.school]; }
+}
+// Its prey: the run leader, else the player, if seen and within the leash; otherwise q.
+function fzPrey(u, q) {
+  const L = G.leader;
+  if (L && foeSeen(u.faction, L, u.x, u.z, u.y) && Math.hypot(L.x - u.x, L.z - u.z) <= GC.leash) return L;
+  if (foeSeen(u.faction, P, u.x, u.z, u.y) && Math.hypot(P.x - u.x, P.z - u.z) <= GC.leash) return P;
+  return q;
+}
+// 死士 lurking: still and unseen until hit or its prey comes within lurkR (then it shows and its lunge winds up: the yellow glint is that windup).
+// 符水道人: begins a mend on the most hurt ally in reach. True = this step is spent.
+function fzStep(u) {
+  if (u.hid) {
+    const q = fzPrey(u, null);
+    if (u.flashT <= 0 && (!q || Math.hypot(q.x - u.x, q.z - u.z) > FZ.lurkR)) return true;
+    u.hid = false; G.fzReveals++;
+    return false;
+  }
+  if (u.gcd > 0 || u.sealT > 0) return false;
+  const a = fzHurtAlly(u); if (!a) return false;
+  const dx = a.x - u.x, dz = a.z - u.z, l = Math.hypot(dx, dz) || 1;
+  return guardBegin(u, a, dx / l, dz / l);
+}
+// The ally of u's faction lowest in health (under healBelow of its maximum) within its mend's reach.
+function fzHurtAlly(u) {
+  const m = GMV[u.atk]; let best = null, bk = FZ.healBelow;
+  for (let i = 0; i < GUARDS.length; i++) {
+    const o = GUARDS[i];
+    if (!o.alive || o.faction !== u.faction || Math.abs(o.y - u.y) >= 1.5 || o.hp >= o.maxHp * bk || Math.hypot(o.x - u.x, o.z - u.z) > m.max) continue;
+    bk = o.hp / o.maxHp; best = o;
+  }
+  return best;
+}
+// The mend lands: every live ally of u's faction in the mark heals m.heal (to its maximum).
+function fzMend(u, m) {
+  for (let i = 0; i < GUARDS.length; i++) {
+    const o = GUARDS[i];
+    if (!o.alive || o.faction !== u.faction || Math.abs(o.y - u.ty) >= 1.5 || Math.hypot(o.x - u.tx, o.z - u.tz) > m.radius) continue;
+    o.hp = Math.min(o.maxHp, o.hp + m.heal); G.fzHeals++;
+  }
+  u.st = 3; u.t = CONFIG.APEX.recoverS;
+}
+// A bootleg move used: after stallN of them the 甲 stalls (its next move waits stallS s more; a spark flash).
+function fzWear(u) {
+  u.uses++;
+  if (u.uses < FZ.stallN) return;
+  u.uses = 0; u.gcd += FZ.stallS; u.stallT = FZ.stallS; u.flashT = 0.3; G.fzStalls++;
+}
+// The suit that broke a 渠帅 takes its school's bootleg charge (the player is told).
+function fzGrant(s, sq) {
+  s.fzSk = FZ_SK[sq.school]; s.fzN = FZ.chargeN; G.fzCharges++;
+  if (s === P) { FZ_VARS.who = FZ_NAMES[sq.school]; showNote('fz_voice_charge', 'fz_rule_charge', FZ_VARS); }
+}
+// Suit s casts its charge toward tx, tz: the copied unit move (its tell for the whole windup, then the hit). ord = a player order. False = no cast.
+function fzCast(s, tx, tz, ord) {
+  const c = s.fzSk;
+  if (!c || s.fzN <= 0 || s.dead || s.zm.on || (c.dash && held(s))) return false;
+  let dx = tx - s.x, dz = tz - s.z; const len = Math.hypot(dx, dz);
+  if (len > 0.01) { dx /= len; dz /= len; } else { dx = s.faceX; dz = s.faceZ; }
+  const dist = c.type === 'line' ? c.range : Math.min(len, c.range), x = s.x + dx * dist, z = s.z + dz * dist;
+  s.fzN--; if (s.fzN <= 0) s.fzSk = null;
+  s.copySk = c; breakUnseen(s); s.castAt = G.time; s.faceX = dx; s.faceZ = dz; G.fzCasts++;
+  zaMove(s, c, x, z, dx, dz, ord);
+  return true;
+}
+// The player's key or button: at the nearest target in reach, else straight ahead.
+function fzKey() {
+  const c = P.fzSk;
+  if (!c || P.fzN <= 0 || !canAct() || P.dashLeft > 0) return;
+  if (silenced(P)) { showNote('voice_silenced', 'rule_silenced'); return; }
+  const t = autoTarget(c.range + c.radius + 1);
+  if (t) fzCast(P, t.x, t.z, true); else fzCast(P, P.x + P.faceX * c.range, P.z + P.faceZ * c.range, true);
+}
+// A bot with a charge casts it at its fight target within reach.
+function fzBot(b, q, d) { const c = b.fzSk; return !!c && b.fzN > 0 && d <= c.range + c.radius + 0.5 && fzCast(b, q.x, q.z, false); }
+// The charge button: shown (and its name written) only when the held charge changes.
+function fzHud() {
+  const sk = P.fzN > 0 ? P.fzSk : null;
+  if (!FZB.b || sk === FZB.sk) return;
+  FZB.sk = sk; FZB.b.style.display = sk ? 'flex' : 'none';
+  if (sk) setText(FZB.lb, sk.label);
+}
+// New run or the wake: the rebels' generator re-seeded; no suit keeps a charge; no rebel stays lurking.
+function fzClear() {
+  FRNG.s = (G.seed ^ 0x3c6ef372) | 0;
+  for (let i = 0; i < SUITS.length; i++) { SUITS[i].fzN = 0; SUITS[i].fzSk = null; }
+  for (let i = 0; i < GUARDS.length; i++) { GUARDS[i].hid = false; GUARDS[i].uses = 0; GUARDS[i].stallT = 0; }
+  G.fzReveals = 0; G.fzHeals = 0; G.fzStalls = 0; G.fzCharges = 0; G.fzCasts = 0;
 }
 // PERFRAME-END
 const ZONE_VARS = { zone: '' }, BOON_VARS = { v: 0, s: 0 }, BOON_TXT = [T('bn_power'), T('bn_regen'), T('bn_vision'), T('bn_speed')];
@@ -6333,6 +6547,20 @@ window.__game = {
   guardStrike(i, g, n, basic) { return hitTarget(i < 0 ? P : BOTLIST[i], GUARDS[g], n, !!basic); },
   guardSet(g, o) { Object.assign(GUARDS[g], o); },
   guardFaction(q, f) { const s = SQUADS[q]; s.faction = f; for (const u of GUARDS) if (u.sq === s && u.alive) u.faction = f; },
+  // 反贼 (Burning Palace ticket 07, checks 900+): fz = rebel state (read); fzCharge = give suit i (-1 = player) school k's bootleg charge; fzCast = suit i casts it
+  // toward x, z; fzLead = make suit i the run leader (checks only); fzKey = the player's F key.
+  fz() {
+    return { on: CONFIG.FANZEI_ON, reveals: G.fzReveals, heals: G.fzHeals, stalls: G.fzStalls, charges: G.fzCharges, casts: G.fzCasts,
+      list: GUARDS.map((u) => ({ hid: !!u.hid, uses: u.uses || 0, atk: u.atk, stallT: u.stallT || 0, yellow: u.line.material === M.fzY, green: u.ring.material === M.fzHeal,
+        col: u.col ? u.col.getHex() : -1 })),
+      squads: SQUADS.map((s) => ({ school: s.school, faction: s.faction })), cols: FZ_COL.map((c) => c.getHex()),
+      suits: SUITS.map((q) => ({ n: q.fzN || 0, sk: q.fzSk ? q.fzSk.move : '', copy: q.copySk ? q.copySk.move || '' : '', zm: { on: q.zm.on, t: q.zm.t, sk: q.zm.sk ? q.zm.sk.move || '' : '', yellow: !!q.zm.mesh && q.zm.mesh.material === M.fzY } })),
+      btn: { display: FZB.b ? FZB.b.style.display : '', label: FZB.lb ? FZB.lb.textContent : '' }, leader: G.leader ? (G.leader === P ? 'P' : 'b' + BOTLIST.indexOf(G.leader)) : '' };
+  },
+  fzCharge(i, k) { const q = i < 0 ? P : BOTLIST[i]; q.fzSk = FZ_SK[k]; q.fzN = FZ.chargeN; },
+  fzCast(i, x, z) { return fzCast(i < 0 ? P : BOTLIST[i], x, z, i < 0); },
+  fzLead(i) { setLeader(i < 0 ? P : BOTLIST[i]); },
+  fzKey() { fzKey(); },
   player: () => ({ mode: P.mode, tgt: P.tgt ? (P.tgt.kind === 'suit' ? P.tgt.id : -2) : -1, dead: P.dead, cause: P.cause, diedAt: P.diedAt, plates: P.plates, boons: P.boons, x: P.x, y: P.y, z: P.z, kills: P.kills }),
   bots: () => ({ n: G.botN, alive: G.alive, navRuns: G.navRuns, navPeak: G.navPeak, huntN: G.huntN, huntClaims: G.huntClaims, huntFrees: G.huntFrees, list: BOTLIST.slice(0, G.botN).map((b) => ({ id: b.id, x: b.x, y: b.y, z: b.z, hp: b.hp, dead: b.dead, cause: b.cause, diedAt: b.diedAt,
     killer: b.killer ? b.killer.id : -1, stuck: b.stuckMax, zone: b.zone ? b.zone.id : null, seen: b.seen, vis: b.group.visible, inScene: !!b.group.parent, plates: b.plates, boons: b.boons,
