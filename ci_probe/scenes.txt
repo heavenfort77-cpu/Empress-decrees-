@@ -1,1 +1,1 @@
-heavy_base,heavy_fix,latin_base,cjk_base,cjk_fix,heavy_fix,heavy_base,cjk_base,cjk_fix,latin_base,reference30
+heavy_fix,heavy_base,cjk_fix,cjk_base,heavy_fix,cjk_fix,heavy_base,reference30

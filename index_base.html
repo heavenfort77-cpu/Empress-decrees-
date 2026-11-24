@@ -642,15 +642,6 @@ const CONFIG = {
   // fowR = fog radius inside the palace (walls block sight instead), m; lakeY = height of the black lake under the platform, m;
   // saveKey = browser storage key of the last mode picked.
   PALACE: { origin: [400, 0], wallH: 4, lowH: 0.8, wallT: 0.5, doorW: 4, doorH: 3.5, previewR: 6, openR: 2.2, closeR: 4.5, passM: 1.2, fowR: 60, lakeY: -6, saveKey: 'empressDecrees.mode' },
-  // Text warm-up at load (item (g), 25 Nov): every CJK character in TEXT is laid out once at load, off screen, in each text style below, so the
-  // system's CJK fallback fonts load under the load and not on the first banner line in play (cause: probe run 45460602692, 178 ms of style and layout
-  // in one frame right after the banner text was set). on false = no warm-up.
-  FONT_WARM: {
-    // Switch for the text warm-up.
-    on: true,
-    // CSS font shorthands to warm: one per family, weight and style the HUD, banner and cards use (fallback fonts differ per combination).
-    styles: ['italic 24px Georgia,serif', '16px Georgia,serif', '15px system-ui,sans-serif', 'bold 13px system-ui,sans-serif'],
-  },
   // Palace textures, painted in klad (owner go 24 Nov 16:58; SAMPLE 01: one hall look + the stone lion, waiting for the owner's approval).
   // Only palace materials use them (Royal Rumble keeps its box colours). on false = the palace keeps its box colours.
   TEX: {
@@ -7485,15 +7476,6 @@ setText(el.help, T(TOUCH ? 'help_touch' : 'help_desktop'));
 if (TOUCH) document.body.classList.add('touch');
 setShow(el.btnMap, DEBUG);
 setupMini(); buildBar(); buildSelect(); buildMode();
-// Text warm-up (CONFIG.FONT_WARM): the CJK characters of every TEXT value, laid out off screen in each style, then left in place (static, never redrawn).
-if (CONFIG.FONT_WARM.on) {
-  const cjk = new Set();
-  for (const k in TEXT) for (const ch of String(TEXT[k])) { const c = ch.codePointAt(0); if ((c >= 0x3000 && c <= 0x9fff) || (c >= 0xff00 && c <= 0xffef)) cjk.add(ch); }
-  const fw = document.createElement('div'), txt = Array.from(cjk).join('');
-  fw.id = 'fontWarm'; fw.setAttribute('aria-hidden', 'true'); fw.style.cssText = 'position:fixed;left:-10000px;top:0;white-space:nowrap;pointer-events:none';
-  for (const f of CONFIG.FONT_WARM.styles) { const d = document.createElement('div'); d.style.font = f; d.textContent = txt; fw.appendChild(d); }
-  document.body.appendChild(fw); G.fontWarmN = cjk.size; G.fontWarmW = Math.round(fw.getBoundingClientRect().width);
-}
 setShow(el.dbg, DEBUG);
 applyTier(tier);
 setView('follow');

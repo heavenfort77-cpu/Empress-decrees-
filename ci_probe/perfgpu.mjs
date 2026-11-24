@@ -190,18 +190,18 @@ const SCENES = {
       + ' units ' + s.unitsGR + ' spawns ' + s.spawns + ' deaths ' + s.deaths + ' despawn ' + s.despawn + ' shots ' + s.shots + ' step avg ' + (s.stepMs / s.steps).toFixed(3) + 'ms max ' + s.stepMax.toFixed(1) + 'ms checks/step ' + Math.round(s.checks / s.steps) + ' shadowRe ' + s.shadowRe + ' warmCalls ' + s.warmCalls + (window.__err ? ' ERR ' + window.__err.slice(0, 80) : '');
   } },
 };
-// Item (g) A/B (fresh browser each): base = index.html as shipped, fix = index_fontwarm.html (the same game plus CONFIG.FONT_WARM, the only
+// Item (g) A/B (fresh browser each): base = index_base.html (the game before the fix), fix = index.html (the same game plus CONFIG.FONT_WARM, the only
 // difference). heavy_* = the palace_heavy fight with its own banners; cjk_* / latin_* = the same fight plus one banner line written by the probe
 // 3 s into the timed window, with CJK characters (as TEXT.voice_guard_break / rule_guard_break) or the same line in Latin letters only.
 const INJ = (cjk) => `() => { const G = __game; G.setHp(1e9); const t = performance.now(); if (!window.__inj0) window.__inj0 = t;
   if (!window.__injDone && t - window.__inj0 > ${(SETTLE + 3) * 1000}) { window.__injDone = true; const v = document.querySelector('#banner .voice'), r = document.querySelector('#banner .rule');
     v.textContent = ${cjk ? "'Our 伍长 falls, and his square with him.'" : "'Our Wuzhang falls, and his square with him.'"}; r.textContent = ${cjk ? "'伍长 down: the 方阵 breaks. 反贼 华表 渠帅 奇正相生'" : "'Wuzhang down: the Fangzhen breaks. Fanzei Huabiao Qushuai Qizheng'"};
     document.getElementById('banner').style.display = 'block'; } }`;
-SCENES.heavy_base = { ...SCENES.palace_heavy };
-SCENES.heavy_fix = { ...SCENES.palace_heavy, path: 'index_fontwarm.html' };
-SCENES.cjk_base = { ...SCENES.palace_heavy, timed: 15, driver: INJ(true) };
-SCENES.cjk_fix = { ...SCENES.cjk_base, path: 'index_fontwarm.html' };
-SCENES.latin_base = { ...SCENES.palace_heavy, timed: 15, driver: INJ(false) };
+SCENES.heavy_base = { ...SCENES.palace_heavy, path: 'index_base.html' };
+SCENES.heavy_fix = { ...SCENES.palace_heavy };
+SCENES.cjk_base = { ...SCENES.palace_heavy, path: 'index_base.html', timed: 15, driver: INJ(true) };
+SCENES.cjk_fix = { ...SCENES.palace_heavy, timed: 15, driver: INJ(true) };
+SCENES.latin_base = { ...SCENES.palace_heavy, path: 'index_base.html', timed: 15, driver: INJ(false) };
 SCENES.reference30 = { ...SCENES.reference, timed: 30 };
 SCENES.scale_med_scan = { ...SCENES.scale_med, q: 'tier=medium&coll=scan' };
 SCENES.scale_low = { ...SCENES.scale_med, q: 'tier=low' };
@@ -313,7 +313,7 @@ for (const name of LIST) {
     const glc1 = window.__glc || {}, glDelta = Object.keys(glc1).map((k) => k + ' ' + ((glc1[k] || 0) - (glc0[k] || 0))).join(', ');
     const evts = stLog.filter((x) => x[0] >= tStart).map((x) => +((x[0] - tStart) / 1000).toFixed(2) + 's ' + x[1]);
     const CJL = window.__cjkLog || [];
-    window.__diag = { cjkFirst: CJL.length ? +((CJL[0][0] - tStart) / 1000).toFixed(2) + 's ' + CJL[0][1] + ' ' + CJL[0][2] : 'none', cjkN: CJL.length, fontWarm: (() => { const e = document.getElementById('fontWarm'); return e ? e.textContent.length : 0; })(), e0: +(TO + tStart).toFixed(1), e1: +(TO + tEnd).toFixed(1), wGapN: wGaps.filter((g) => g[0] > TO + tStart).length, wGap50: wGaps.filter((g) => g[0] > TO + tStart && g[1] - g[0] > 50).length, evts: evts.slice(0, 40), loafN, loafN100, domWrites: mut.filter((x) => x[0] >= tStart).length, markT, tStart, longRaw: longF, disj: disj.slice(0, 40), disjN: disj.length, caps, gpuN: gs.length, gpuP50: gq(0.5), gpuP95: gq(0.95), gpuMax: gq(1), longs, loaf: loaf.slice(0, 12), glDelta, drvSlow: drvLog.length };
+    window.__diag = { cjkFirst: CJL.length ? +((CJL[0][0] - tStart) / 1000).toFixed(2) + 's ' + CJL[0][1] + ' ' + CJL[0][2] : 'none', cjkN: CJL.length, fontWarm: (() => { const e = document.getElementById('fontWarm'); return e ? e.textContent.length + ' chars ' + e.dataset.ms + ' ms at load' : 0; })(), e0: +(TO + tStart).toFixed(1), e1: +(TO + tEnd).toFixed(1), wGapN: wGaps.filter((g) => g[0] > TO + tStart).length, wGap50: wGaps.filter((g) => g[0] > TO + tStart && g[1] - g[0] > 50).length, evts: evts.slice(0, 40), loafN, loafN100, domWrites: mut.filter((x) => x[0] >= tStart).length, markT, tStart, longRaw: longF, disj: disj.slice(0, 40), disjN: disj.length, caps, gpuN: gs.length, gpuP50: gq(0.5), gpuP95: gq(0.95), gpuMax: gq(1), longs, loaf: loaf.slice(0, 12), glDelta, drvSlow: drvLog.length };
     const m1 = mem(), info = __game.render(false);
     d.sort((a, b) => a - b);
     const sum = d.reduce((a, b) => a + b, 0), n = d.length;
