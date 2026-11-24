@@ -162,6 +162,28 @@ art/ding/round1/: ding_round1_sheet.png, ding_schools_sheet.png, play_lit.png, p
 - Owner: confirm the school-to-pigment assignment; pick the bronze sheet (shots use the brass variant; play_lit_default_sheet.png shows the current sheet).
 - Integration (not tonight): nine materials (one per hall, each hall is its own room, so no extra calls per room), glow cards pooled and warmed, the state swap on the dry decree, the green ring kept.
 
+## 门海 water vat (C3), round 1 (25 Nov 2026, overnight worker W1a; not approved)
+GDD: break one to flood a spot: it cracks (CONFIG.PIECES2.vat.crackS 0.5 s tell with the red ring), then splashes (radius 3.5 m): douses the burning there and knocks back anyone in it (BURNING-PALACE "Palace pieces"). Box vat in index.html: radius 0.8, height 1.4, solid 1.6 x 1.6 m.
+### Concept (ComfyUI round D, run 45434186975, jobs 2-3, 16 images; reference only)
+- Picked **4207** (wide deep basin, raised horizontal bands, small ring knobs: Qin-first 鉴 basin rather than the Ming/Qing 门海 tub); alternates **4203** (banded rim, foot) and **4212** (ringed bands, stamp). Files art/vat/concepts/.
+- Measured on 4207 (numpy row widths, H = 343 px; the bowl touches the frame, so the rim width is a lower bound): rim at least 1.5 H, tapering to about 0.75 H near the bottom, a low foot. The first build kept that straight taper and read as a flowerpot; round 1 final has a bulging belly (0.78 m radius at 0.76 m), a drawn-in neck and a flared lip (rim radius 0.8 m), height 1.10 m.
+### Build (art/tools/vat_blender.py, our own design)
+- Lathe-turned tub (round), sharp flared lip and two raised flange rings (segmented casting); stamp bands by height from the brass trim sheet (hooked lozenge low, cloud scroll high, flange row on the lip); four 铺首 mask-and-ring handles at 45 deg off the camera axis.
+- vat_water: the surface 0.12 m under the rim (the game's water colour in the viewer). vat_cracks (the tell overlay on the intact body): five jagged dark cracks 6 cm wide from the lip down over the camera side (20-160 deg) and light water sprays fanning out. vat_shards_00-09 plus vat_shards_base: wall pieces (each its own node, pooled in the game) laid out as they land 1.0-2.5 m out, and vat_puddle.
+### Checks run
+- vat_blender.py 10 of 10: body tris 1488 / 408 / 162 (budget 1500 / 500 / 200; asset list 1.5k / 500); shards 11 pieces 680 tris together (budget 1500); crack overlay 276 tris (budget 600); footprint 1.60 x 1.60 m, height 1.10 m (solid 1.6 x 1.6); crack tell 5 cracks 6 cm wide (6.6 px at the fight framing); 11 shard nodes all within 2.47 m (splash 3.5) and on the floor; water 0.98 m under the rim 1.10 m, water and puddle facing up (the first draft's discs faced down and were culled: the gate now checks it); smooth share 100%.
+### Files
+art/vat/round1/: vat_round1_sheet.png, play_intact.png, play_cracked.png, play_shards.png, play_intact_default_sheet.png, wide.png, turn_*.png (incl. turn_cracked, turn_shards), top_intact.png, pass_*.png, lods.png, gates.txt; assets/models/vat.glb.
+### Verdict (lead's read of the shots, software GL)
+| Criterion | Round 1 | Result |
+|---|---|---|
+| Cast bronze with stamp bands | lozenge and cloud bands, flange rings, mask-and-ring handles read at play size | PASS |
+| Breakable: intact, cracked, pooled shards | three states; shards are separate nodes for pooling; the cracked state reads at play size (dark cracks, white sprays); the sprays read as stiff cones close up | PASS (sprays weak) |
+| Water surface | visible from the play pitch (play_intact.png) | PASS |
+| Footprint fits the vat config | 1.60 x 1.60 m inside the 1.6 x 1.6 solid; 1.10 m tall against the box's 1.4 (the box was a placeholder; owner may want it taller) | PASS |
+### Open
+- Owner: height (1.10 m now), sheet pick. Integration (not tonight): shards thrown on the splash from a pool, body hidden, cracks shown for crackS, all warmed under the loading card.
+
 ## Open
 - ComfyUI (owner 22:43: use it): CPU job on GitHub runners, branch ci-comfy (ci_comfy/prompts.json, gen.py, .github/workflows/comfy.yml), SD 1.5 emaonly (CreativeML OpenRAIL-M, commercial use allowed), 512 x 768, 28 steps; output to ci-out out/comfy/<run>/. Prompt = this study's values in words (Qin bronze, segmented casting, silver inlay, cloud-scroll bands, brass-gold, fierce face, spiral-curl mane, round masses, sharp claws and fangs, stepped stone plinth) with the avoid list as the negative prompt. Reference only, never shipped or traced.
 - Phone texture set (512) and KTX2 with texture step 3.

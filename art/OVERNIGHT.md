@@ -21,7 +21,7 @@ Owner 25 Nov 00:08: "use /cocolito along with current procedures to continue wit
 ## Queue (owner 00:15: "github can't help?" -> heavy jobs run on GitHub runners (workflow art-run, branches ci-art-<w>; route proof run 45435204434), so workers run in parallel; local heavy jobs only under flock /home/claude/heavy.lock; guide /home/claude/RUNNERS.md)
 | Worker | Scope | Status |
 |---|---|---|
-| W1a | C1 guardian beast round 4 (face from ComfyUI round C), C2 鼎 x9 (lit/dry), C3 门海 vat (intact/cracked/shards) | C1 round 4 done (gates 9 of 9); C2 round 1 done (gates 11 of 11, accents 10 of 10); C3 in progress |
+| W1a | C1 guardian beast round 4 (face from ComfyUI round C), C2 鼎 x9 (lit/dry), C3 门海 vat (intact/cracked/shards) | done: C1 round 4 (gates 9 of 9), C2 round 1 (gates 11 of 11, accents 10 of 10), C3 round 1 (gates 10 of 10); all waiting for the owner |
 | W2 | Surfaces A6-A12, A14-A20 (klad), architecture B1-B11 (Blender), one room scene sheet | running (00:25, branch ci-art-w2) |
 | W3 | Nine school suits: study (cocolito), concepts, Blender builder, rig, klad lacquer/lamellar sheet | running (00:25, branch ci-art-w3) |
 | W1b | C4 crane and censer, C5 water clock, C6 华表, C9 lamps, C10 bell stand, C11 tiger tally, C7 mercury channel | queued (after W1a: same bronze study) |

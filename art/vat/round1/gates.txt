@@ -1,0 +1,11 @@
+PASS vat_body_lod0 tris 1488 (budget 1500)
+PASS vat_body_lod1 tris 408 (budget 500)
+PASS vat_body_lod2 tris 162 (budget 200)
+PASS shards 11 pieces, 680 tris together (budget 1500)
+PASS cracks overlay 276 tris (budget 600)
+PASS footprint 1.60 x 1.60 m, height 1.10 m (solid 1.6 x 1.6; box vat 1.4 m)
+PASS crack tell: 5 cracks 6 cm wide over 20-160 deg (camera side), spurts present
+PASS 11 shard nodes (pooled), all within 2.47 m of the centre (splash 3.5) and on or above the floor: True
+PASS water surface at 0.98 m under the rim 1.10 m; water and puddle face up: True
+PASS smooth-shaded share 100% (turned vessel, min 50%)
+10 of 10 pass
