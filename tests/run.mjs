@@ -3283,10 +3283,10 @@ try {
 
   // ===== The Burning Palace BP01 (owner 24 Nov 13:18-13:44): mode menu, rooms built once and attached/detached, doors with previews, walls block sight,
   // context camera; Royal Rumble unchanged. Checks 400-408.
-  const PB = await g(() => { const G = __game; G.setSeed(12345); G.setBots(0); G.setMode('rumble'); G.reset(); G.step(1); const p = G.palace(); return { solids: p.solids, floors: p.floors, r: G.render(true), sunX: p.sunX, fow: p.fow, help: p.help }; });
+  const bpPB = await g(() => { const G = __game; G.setSeed(12345); G.setBots(0); G.setMode('rumble'); G.reset(); G.step(1); const p = G.palace(); return { solids: p.solids, floors: p.floors, r: G.render(true), sunX: p.sunX, fow: p.fow, help: p.help }; });
   // 400 Mode menu before the school select: two modes (44 px), keys 1-2, Enter the last pick, frozen while open, game keys ignored; the pick opens the select,
   // which names the mode (M or its button returns to the menu); Royal Rumble = the royale map; The Burning Palace = the rooms; the pick is stored.
-  const md = await g(async () => {
+  const bpMd = await g(async () => {
     const G = __game, o = {}, frames = (n) => new Promise((r) => { let k = 0; const f = () => (++k >= n ? r() : requestAnimationFrame(f)); requestAnimationFrame(f); });
     G.setSeed(12345); G.setMode('rumble'); G.reset();
     G.openMode(); let m = G.modes();
@@ -3308,13 +3308,13 @@ try {
     G.setMode('rumble'); G.reset(); return o;
   });
   check('400 mode menu: The Burning Palace / Royal Rumble (44 px, keys 1-2, Enter last), frozen while open, then the school select (M returns); Rumble = royale map, Palace = rooms; pick stored',
-    md.open && md.n === 2 && md.small === 0 && md.texts === '1. The Burning Palace|2. Royal Rumble' && md.lastRumble && md.frozen && md.keysIgnored && md.toSelect
-    && md.rumble.phase === 'royale' && !md.rumble.on && md.rumble.floors && md.rumble.royaleIn === 12 && md.rumble.abyss && !md.rumble.lake && md.rumble.attached === 0 && !md.rumble.body
-    && md.selPal && md.palace.phase === 'palace' && md.palace.on && md.palace.cur === 'hall' && md.palace.royaleIn === 0 && md.palace.lake && !md.palace.abyss && md.palace.body
-    && md.palace.help && md.palace.btn !== 'block' && md.stored === 'palace' && md.mOpens && md.enterLast && md.back === 'palace', JSON.stringify(md));
+    bpMd.open && bpMd.n === 2 && bpMd.small === 0 && bpMd.texts === '1. The Burning Palace|2. Royal Rumble' && bpMd.lastRumble && bpMd.frozen && bpMd.keysIgnored && bpMd.toSelect
+    && bpMd.rumble.phase === 'royale' && !bpMd.rumble.on && bpMd.rumble.floors && bpMd.rumble.royaleIn === 12 && bpMd.rumble.abyss && !bpMd.rumble.lake && bpMd.rumble.attached === 0 && !bpMd.rumble.body
+    && bpMd.selPal && bpMd.palace.phase === 'palace' && bpMd.palace.on && bpMd.palace.cur === 'hall' && bpMd.palace.royaleIn === 0 && bpMd.palace.lake && !bpMd.palace.abyss && bpMd.palace.body
+    && bpMd.palace.help && bpMd.palace.btn !== 'block' && bpMd.stored === 'palace' && bpMd.mOpens && bpMd.enterLast && bpMd.back === 'palace', JSON.stringify(bpMd));
   // 401 Rooms built once, attached on entry, detached on leaving: the start shows the hall only; a door opens on approach and draws the room behind it;
   // through it and away, the door shuts behind and the old room leaves the scene; draw calls follow (hall < hall+court > court); 5 round trips keep programs and geometry flat.
-  const at = await g(() => {
+  const bpAt = await g(() => {
     const G = __game, o = {};
     G.setSeed(12345); G.setMode('palace'); G.reset();
     let p = G.palace(); const d0 = p.doors[0];
@@ -3334,12 +3334,12 @@ try {
     G.setMode('rumble'); G.reset(); return o;
   });
   check('401 palace rooms attach/detach: start = hall only (doors shut, solid); door opens within reach and draws the room behind; shut behind you, old room out; calls follow; 5 round trips flat',
-    at.start.attached === 'hall' && at.start.doorsIn === 1 && at.start.open === 0 && at.start.inSolids && !at.far && at.near.open && !at.near.solid && !at.near.panel && at.near.attached === 'hall,court'
-    && at.inCourt.cur === 'court' && at.inCourt.attached === 'hall,court' && at.away.attached === 'court' && !at.away.open && at.away.solid && at.away.panel && at.away.doorsIn === 3
-    && at.calls[1] > at.calls[0] && at.calls[2] < at.calls[1] && at.back.cur === 'hall' && at.back.attached === 'hall' && at.flat, JSON.stringify(at));
+    bpAt.start.attached === 'hall' && bpAt.start.doorsIn === 1 && bpAt.start.open === 0 && bpAt.start.inSolids && !bpAt.far && bpAt.near.open && !bpAt.near.solid && !bpAt.near.panel && bpAt.near.attached === 'hall,court'
+    && bpAt.inCourt.cur === 'court' && bpAt.inCourt.attached === 'hall,court' && bpAt.away.attached === 'court' && !bpAt.away.open && bpAt.away.solid && bpAt.away.panel && bpAt.away.doorsIn === 3
+    && bpAt.calls[1] > bpAt.calls[0] && bpAt.calls[2] < bpAt.calls[1] && bpAt.back.cur === 'hall' && bpAt.back.attached === 'hall' && bpAt.flat, JSON.stringify(bpAt));
   // 402 Door travel: a move order across the palace walks room to room through the doors (hall, court, corridor, bridge, core) and the core hall ends the run
   // (prototype end: banner, New run button, the simulation frozen); a route to the garden takes the other door; H does nothing in a palace run.
-  const tr = await g(() => {
+  const bpTr = await g(() => {
     const G = __game, o = {};
     G.setSeed(12345); G.setMode('palace'); G.reset();
     let p = G.palace(); const R = Object.fromEntries(p.rooms.map((r) => [r.id, r]));
@@ -3354,11 +3354,11 @@ try {
     G.setMode('rumble'); G.reset(); return o;
   });
   check('402 door travel: hall > court > garden, and hall > court > corridor > bridge > core; the core hall ends the run (banner, New run, frozen); H does nothing in the palace',
-    tr.hNoop && tr.ok && tr.garden === 'hall>court>garden' && tr.ok2 && tr.core === 'hall>court>corridor>bridge>core' && tr.end.phase === 'palend' && tr.end.n === 5
-    && tr.end.banner === 'block' && tr.end.voice && tr.end.rule.indexOf('5 rooms') >= 0 && tr.end.btn === 'block' && tr.end.btnText === 'New run' && tr.frozen, JSON.stringify(tr));
+    bpTr.hNoop && bpTr.ok && bpTr.garden === 'hall>court>garden' && bpTr.ok2 && bpTr.core === 'hall>court>corridor>bridge>core' && bpTr.end.phase === 'palend' && bpTr.end.n === 5
+    && bpTr.end.banner === 'block' && bpTr.end.voice && bpTr.end.rule.indexOf('5 rooms') >= 0 && bpTr.end.btn === 'block' && bpTr.end.btnText === 'New run' && bpTr.frozen, JSON.stringify(bpTr));
   // 403 Door previews (owner 24 Nov 13:26): near a door its card shows the room behind it (type, decree, reward, something stirs / all quiet) from TEXT keys;
   // none away from doors; every room's keys exist.
-  const pv = await g(() => {
+  const bpPv = await g(() => {
     const G = __game, T = G.text, o = {};
     G.setSeed(12345); G.setMode('palace'); G.reset();
     let p = G.palace(); const R = Object.fromEntries(p.rooms.map((r) => [r.id, r])), D = p.doors;
@@ -3373,10 +3373,10 @@ try {
     return o;
   });
   check('403 door previews: the card names the room behind (type, decree, reward, stirs/quiet) near a door only; every room text key exists; hidden in Royal Rumble',
-    pv.hallStart === 'none' && pv.hall && pv.mid === 'none' && pv.corridor && pv.garden && pv.keys && pv.rumble === 'none', JSON.stringify(pv));
+    bpPv.hallStart === 'none' && bpPv.hall && bpPv.mid === 'none' && bpPv.corridor && bpPv.garden && bpPv.keys && bpPv.rumble === 'none', JSON.stringify(bpPv));
   // 404 Walls block sight in the palace (fog and bot vision): a bot behind a shut door does not see the player; through the open door in line it does;
   // off the line of the opening it does not; in the same room it does.
-  const sg = await g(() => {
+  const bpSg = await g(() => {
     const G = __game, o = {};
     G.setSeed(12345); G.setMode('palace'); G.reset();
     const p = G.palace(), D = p.doors[0], R = Object.fromEntries(p.rooms.map((r) => [r.id, r]));
@@ -3389,10 +3389,10 @@ try {
     G.setMode('rumble'); G.reset(); return o;
   });
   check('404 walls block sight in the palace: shut door blocks; open door in line sees; off the opening blocked; same room sees; palace fog radius',
-    !sg.shut.sight && !sg.shut.sees && sg.open.door && sg.open.sight && sg.open.sees && !sg.off.sight && !sg.off.sees && sg.same.sight && sg.same.sees && sg.fow, JSON.stringify(sg));
+    !bpSg.shut.sight && !bpSg.shut.sees && bpSg.open.door && bpSg.open.sight && bpSg.open.sees && !bpSg.off.sight && !bpSg.off.sees && bpSg.same.sight && bpSg.same.sees && bpSg.fow, JSON.stringify(bpSg));
   // 405 Context camera (owner 24 Nov 13:18): wide with no enemy in reach, close with one in reach and in sight, eased over PAL_CAM.easeS (between at 0.2 s,
   // there by 0.45 s); Z cycles auto, wide, close; corridor closer; Royal Rumble stays at 1.
-  const cm = await g(() => {
+  const bpCm = await g(() => {
     const G = __game, C = G.config.PAL_CAM, o = {}, key = () => dispatchEvent(new KeyboardEvent('keydown', { code: 'KeyZ' }));
     G.setSeed(12345); G.setMode('palace'); G.reset();
     const p = G.palace(), R = Object.fromEntries(p.rooms.map((r) => [r.id, r])), sx = p.x, sz = p.z;
@@ -3411,30 +3411,30 @@ try {
     return o;
   });
   check('405 context camera: wide idle, eases to close with an enemy in reach (between at 0.2 s, there by 0.45 s), Z = auto/wide/close, corridor closer, Rumble at 1',
-    cm.ok, JSON.stringify(cm));
+    bpCm.ok, JSON.stringify(bpCm));
   {
     const ctx = await browser.newContext({ viewport: { width: 844, height: 390 }, isMobile: true, hasTouch: true });
     const ph = await ctx.newPage(); const perr = []; ph.on('pageerror', (e) => perr.push(String(e)));
     await ph.goto(URL0 + '&mode=palace'); await ph.waitForFunction(() => window.__ready === true, null, { timeout: 60000 });
-    const pc = await ph.evaluate(() => { const G = __game, C = G.config.PAL_CAM, p = G.palace(); return { on: p.on, k: p.camK, want: C.wide * C.phone * C.type.hall, help: p.help === G.text.help_pal_touch }; });
+    const bpPc = await ph.evaluate(() => { const G = __game, C = G.config.PAL_CAM, p = G.palace(); return { on: p.on, k: p.camK, want: C.wide * C.phone * C.type.hall, help: p.help === G.text.help_pal_touch }; });
     await ctx.close();
-    check('405b phone: a palace run starts closer (PAL_CAM.phone), touch help, no page errors', pc.on && Math.abs(pc.k - pc.want) < 1e-6 && pc.help && perr.length === 0, JSON.stringify(pc) + ' ' + perr.slice(0, 2).join(' | '));
+    check('405b phone: a palace run starts closer (PAL_CAM.phone), touch help, no page errors', bpPc.on && Math.abs(bpPc.k - bpPc.want) < 1e-6 && bpPc.help && perr.length === 0, JSON.stringify(bpPc) + ' ' + perr.slice(0, 2).join(' | '));
   }
   // 406 Royal Rumble unchanged after a palace run: floors, solids, sections, abyss, sun, fog, help, camera and the draw counts as before the palace.
-  const rr = await g((PB) => {
+  const bpRr = await g((bpPB) => {
     const G = __game;
     G.setSeed(12345); G.setMode('palace'); G.reset(); G.step(30); const pal = G.palace();
     // Drawn after one step, as a frame does (reset leaves the training dummies' sight flags to the first step, before and after this batch).
     G.setMode('rumble'); G.reset(); G.step(1); const p = G.palace(), r = G.render(true);
-    return { palFloors: pal.floors > pal.navNF, palSolids: pal.solids === PB.solids + pal.palSolids, floors: p.floors === PB.floors, solids: p.solids === PB.solids, on: p.on, phase: p.phase, attached: p.attached.length,
-      doorsIn: p.doorsIn, lake: p.lake, abyss: p.abyss, royaleIn: p.royaleIn, camK: p.camK, fow: p.fow === PB.fow, sun: p.sunX === PB.sunX, help: p.help === PB.help, body: p.bodyPalace,
-      calls: [PB.r.calls, r.calls], tris: [PB.r.tris, r.tris] };
-  }, PB);
+    return { palFloors: pal.floors > pal.navNF, palSolids: pal.solids === bpPB.solids + pal.palSolids, floors: p.floors === bpPB.floors, solids: p.solids === bpPB.solids, on: p.on, phase: p.phase, attached: p.attached.length,
+      doorsIn: p.doorsIn, lake: p.lake, abyss: p.abyss, royaleIn: p.royaleIn, camK: p.camK, fow: p.fow === bpPB.fow, sun: p.sunX === bpPB.sunX, help: p.help === bpPB.help, body: p.bodyPalace,
+      calls: [bpPB.r.calls, r.calls], tris: [bpPB.r.tris, r.tris] };
+  }, bpPB);
   check('406 Royal Rumble unchanged after a palace run (floors, solids, sections, abyss, sun, fog, help, camera 1, same draw counts)',
-    rr.palFloors && rr.palSolids && rr.floors && rr.solids && !rr.on && rr.phase === 'royale' && rr.attached === 0 && rr.doorsIn === 0 && !rr.lake && rr.abyss && rr.royaleIn === 12 && rr.camK === 1
-    && rr.fow && rr.sun && rr.help && !rr.body && rr.calls[0] === rr.calls[1] && rr.tris[0] === rr.tris[1], JSON.stringify(rr));
+    bpRr.palFloors && bpRr.palSolids && bpRr.floors && bpRr.solids && !bpRr.on && bpRr.phase === 'royale' && bpRr.attached === 0 && bpRr.doorsIn === 0 && !bpRr.lake && bpRr.abyss && bpRr.royaleIn === 12 && bpRr.camK === 1
+    && bpRr.fow && bpRr.sun && bpRr.help && !bpRr.body && bpRr.calls[0] === bpRr.calls[1] && bpRr.tris[0] === bpRr.tris[1], JSON.stringify(bpRr));
   // 407 Budget per palace room on tier medium (heaviest = max over the rooms and a door open on two rooms): under 500 calls and 0.5M triangles.
-  const bg = await g(() => {
+  const bpBg = await g(() => {
     const G = __game, o = { rooms: {} };
     G.setSeed(12345); G.setMode('palace'); G.reset();
     const p = G.palace(), D = p.doors[0];
@@ -3444,10 +3444,10 @@ try {
     o.oneRoom = p.rooms.every((r) => o.rooms[r.id][2] === 1);
     G.setMode('rumble'); G.reset(); return o;
   });
-  check('407 palace budget per room, tier medium (calls<500, tris<500k; one room drawn per room)', bg.maxCalls < 500 && bg.maxTris < 500000 && bg.oneRoom, JSON.stringify(bg));
+  check('407 palace budget per room, tier medium (calls<500, tris<500k; one room drawn per room)', bpBg.maxCalls < 500 && bpBg.maxTris < 500000 && bpBg.oneRoom, JSON.stringify(bpBg));
   // 408 New run in the same page: everything a palace run changes is back (start hall, doors shut and solid, only the hall drawn, camera, Z, card, rooms count);
   // New run from the palace end screen starts a palace run again.
-  const nr = await g(() => {
+  const bpNr = await g(() => {
     const G = __game, o = {};
     G.setSeed(12345); G.setMode('palace'); G.reset();
     const p0 = G.palace(), D = p0.doors[0];
@@ -3459,8 +3459,8 @@ try {
     G.setMode('rumble'); G.reset(); return o;
   });
   check('408 palace new run in the same page: start hall, doors shut, hall only, camera, Z and card reset; New run from the end screen starts again',
-    nr.reset.cur === 'hall' && nr.reset.attached === 'hall' && nr.reset.shut && nr.reset.man === 0 && nr.reset.camK && nr.reset.card === 'none' && nr.reset.n === 1 && nr.reset.phase === 'palace'
-    && nr.reset.banner === 'none' && nr.reset.x && nr.ended === 'palend' && nr.again.phase === 'palace' && nr.again.cur === 'hall' && nr.again.banner === 'none' && nr.again.attached === 'hall', JSON.stringify(nr));
+    bpNr.reset.cur === 'hall' && bpNr.reset.attached === 'hall' && bpNr.reset.shut && bpNr.reset.man === 0 && bpNr.reset.camK && bpNr.reset.card === 'none' && bpNr.reset.n === 1 && bpNr.reset.phase === 'palace'
+    && bpNr.reset.banner === 'none' && bpNr.reset.x && bpNr.ended === 'palend' && bpNr.again.phase === 'palace' && bpNr.again.cur === 'hall' && bpNr.again.banner === 'none' && bpNr.again.attached === 'hall', JSON.stringify(bpNr));
 
   // 15 Graphics context lost and restored: no errors, renders again.
   const errBefore = errors.length;
