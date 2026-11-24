@@ -266,8 +266,8 @@ const CONFIG = {
   GUARD_ON: true,
   // 皇家 guard numbers (worker's picks, not tuned: owner "results first"). Every move's windup is its tell (fairness: never under 0.4 s).
   GUARD: {
-    // Phases in which guards act and can be hit: the royale (test hook spawns) and the palace (rooms spawn them; ticket 03, wired at the merge 24 Nov).
-    phases: ['royale', 'palace'],
+    // Phases in which guards act and can be hit (ticket 03 adds the palace phase here).
+    phases: ['royale'],
     // Factions (lead note 24 Nov 13:47: the 反贼 rebels join in ticket 07): body colour per unit type; foeSuits = hostile to the suits (bots farm them).
     // Units of different factions are hostile to each other.
     factions: { huangjia: { foeSuits: true, zu: 0x1c2733, nu: 0x24506e, dun: 0x0e1318, che: 0x2f6f8f, wz: 0x4aa6c8 },
@@ -640,10 +640,24 @@ const CONFIG = {
   // fowR = fog radius inside the palace (walls block sight instead), m; lakeY = height of the black lake under the platform, m;
   // saveKey = browser storage key of the last mode picked.
   PALACE: { origin: [400, 0], wallH: 4, lowH: 0.8, wallT: 0.5, doorW: 4, doorH: 3.5, previewR: 6, openR: 2.2, closeR: 4.5, passM: 1.2, fowR: 60, lakeY: -6, saveKey: 'empressDecrees.mode' },
-  // Context camera in the palace (owner 24 Nov 13:18: zoom out in a room, in at attack range). Multipliers of CAM_DIST: wide = no enemy within
-  // reach metres (in sight), close = one is; easeS = seconds to ease between them; phone = multiplier on phones (they start closer); type = per
-  // room type (corridors closer, courtyards wider). Z cycles auto, wide, close (manual override). Royal Rumble keeps 1.
-  PAL_CAM: { wide: 1.6, close: 1.0, reach: 10, easeS: 0.4, phone: 0.85, type: { hall: 1, court: 1.15, corridor: 0.85, garden: 1, bridge: 1, core: 1.15 } },
+  // Context camera in the palace (owner 24 Nov 13:18; ticket 10, owner 24 Nov 15:43-15:46). Field of view and pitch never change (no fisheye, no
+  // squashed characters): the camera only moves back/up or in. Wide (no enemy within attack distance) = as far out as the floor allows: a room that
+  // fits whole above the floor is shown whole, a bigger one is revealed as you walk ("reasonable larger character as room can show bit by bit as walk").
+  // Close (an enemy in sight within the player's kit attack distance) = the follow camera at close x CAM_DIST. Z cycles auto, wide, close.
+  // Royal Rumble keeps its follow camera at CAM_DIST.
+  // close = close framing, multiplier of CAM_DIST (ticket 10 pick 0.75, was 1.0: at the 120 px floor the wide view sits about where 1.0 was, so
+  // close moves in to stay visibly closer; a look choice for the owner).
+  // minPx = the floor: the player's body is never shown smaller than minPx on a refH-pixel-high screen (owner 24 Nov 15:46: 120; 36 was too small).
+  // refH = screen height in pixels that minPx is given for (the floor scales with the screen height).
+  // margin = share of the screen height and width kept clear around a room shown whole (each side).
+  // easeS = seconds for a full wide <-> close change; backS = seconds with no enemy in reach before it eases back to wide.
+  // panS = time constant (s) of the pan to a new room or a new lead point (never a cut).
+  // pad = metres added to the kit's attack distance (body radius of the target); lagM = metres the panned framing may trail the player while
+  // walking (kept inside the floor).
+  // leadMove = metres the wide framing leans ahead along the walking direction; leadOpen = share of the way toward the room's centre (its open
+  // space) it leans; leadMax = the most the lean moves the framing from the player, m (both in big rooms only).
+  // phone = on phones the floor is minPx / phone (characters larger on small screens, so phones sit closer) and close is x phone.
+  PAL_CAM: { close: 0.75, minPx: 120, refH: 1080, margin: 0.04, easeS: 0.4, backS: 1.5, panS: 0.15, pad: 0.6, lagM: 1, leadMove: 3, leadOpen: 0.25, leadMax: 4, phone: 0.85 },
   // The burning (BP04; design owner 24 Nov 13:18-13:44: about every 40 s she names a wing, 5 s warning, its rooms fall into the black lake;
   // a locked room is never warned, the wave waits until its fight is over). on = switch (palace runs only; Royal Rumble never burns);
   // firstS = game seconds when the first wing is named; everyS = seconds from one naming to the next (counted from the naming, so a wave
@@ -668,8 +682,13 @@ const CONFIG = {
   // Room minimap in the palace (owner 13:26: off-screen fights only by announcement, so it shows rooms and the player, no rivals). Colours per
   // room type; cur = outline of the room you stand in; warned = a room named for the burning; fallen = outline left where a room fell;
   // door = door marks; you = the player's dot; pad = pixels of margin around the plan.
+  // Ticket 10 (owner 24 Nov 15:43 "the mini map show the room layout"): the map is centred on the room you stand in, enlarged so it fills fill of the
+  // map's shorter side (never smaller than the whole plan), with the neighbouring rooms around it; wall = the current room's wall outline;
+  // icons = colour of each piece's icon inside the current room (lion 石狮, huabiao 华表, ding 鼎, merc 水银, smoke 铜鹤/香炉, clock 铜壶滴漏, vat 门海,
+  // giant = a dormant 十二金人); iconPx = icon size in map pixels.
   PAL_MINI: { hall: '#a8784a', court: '#8c8a80', corridor: '#56524c', garden: '#3f6a3a', bridge: '#9a6a3a', core: '#8a3a2a',
-    cur: '#ffd060', warned: '#b33a2a', fallen: '#2a2430', door: '#cfcabd', you: '#40c0ff', pad: 6 },
+    cur: '#ffd060', warned: '#b33a2a', fallen: '#2a2430', door: '#cfcabd', you: '#40c0ff', pad: 6, fill: 0.62, wall: '#e8dcc0',
+    icons: { lion: '#d8d2c4', huabiao: '#f0e6c8', ding: '#5cff9a', merc: '#c8d4e0', smoke: '#8a8a94', clock: '#4aa6c8', vat: '#2e7fb8', giant: '#b8864a' }, iconPx: 4 },
   // Palace pieces (BP08; owner picks 24 Nov 14:24-14:27: 石狮 lions, 水银 mercury, 铜鹤/香炉 smoke, 华表 beasts, 鼎 cauldrons). on = feature switch (palace
   // runs only; Royal Rumble never has them). Lions use CONFIG.LION and the 鼎 heal by CONFIG.ALTAR (the Royal Rumble rules, reused).
   // mercury: period = seconds per cycle; warn = seconds the channel shimmers before it burns (the tell, >= 0.4); on = seconds it burns; dps = damage per
@@ -688,34 +707,11 @@ const CONFIG = {
   // giant = 十二金人 bronze giants on the core approach: n = how many stand there; cap = most awake at once; wakeS = wake tell seconds before it moves;
   // speed = m/s (slow: suits walk 5.6-6.4); r = body radius m; thinkS = seconds between route choices; gapS = seconds between its moves; recoverS = rest
   // after a move; slam = ring around itself, sweep = line ahead: windup s (tell, >= 0.4), radius / len + width m, dmg hp, kb m/s, range m to start it, cd s.
-  // colors = water, the awake giant's glow, its health bar (linear vertex-free picks; art later).
-  // Killable giants (owner 24 Nov 15:41 "make them killable"; first picks, not tuned): giant.hp = health of an awake giant (a dormant one cannot be hurt);
-  // giant.charge = ultimate charge for the suit that breaks one (a suit kill gives 20); giant.fallS = seconds of its collapse; it then lies there for the run;
-  // vat.giantDmg = damage a vat's splash deals to a giant inside it (lure one onto a vat).
-  PIECES2: { on: true, clock: { steps: 48 }, vat: { hp: 30, crackS: 0.5, radius: 3.5, kb: 12, floodS: 3, douseS: 4, perWave: 1, giantDmg: 60 },
-    giant: { n: 12, cap: 4, wakeS: 2, hp: 400, charge: 50, fallS: 0.8, speed: 3.2, r: 1.1, thinkS: 0.5, gapS: 0.6, recoverS: 1,
+  // colors = water, the awake giant's glow (linear vertex-free picks; art later).
+  PIECES2: { on: true, clock: { steps: 48 }, vat: { hp: 30, crackS: 0.5, radius: 3.5, kb: 12, floodS: 3, douseS: 4, perWave: 1 },
+    giant: { n: 12, cap: 4, wakeS: 2, speed: 3.2, r: 1.1, thinkS: 0.5, gapS: 0.6, recoverS: 1,
       slam: { windup: 1, radius: 4, dmg: 30, kb: 10, range: 3.2, cd: 3 }, sweep: { windup: 1.2, len: 7, width: 3, dmg: 24, kb: 8, range: 6, cd: 4 } },
-    colors: { water: 0x2a6a9a, glow: 0xff6a20, bar: 0xd04020 } },
-  // BP03 door locks (owner 24 Nov 13:26: no fleeing; doors lock while a fight is on). on = switch; clearM = a room locks once the player is inside it
-  // and at least this far from each of its doors (never on a door's solid), m. Owner 24 Nov 14:16: the core hall stays sealed until the player is
-  // the last suit standing (sealCore = switch for that rule).
-  PAL_LOCK: { on: true, clearM: 2, sealCore: true },
-  // BP03 rivals out of sight (owner 24 Nov 13:26: off-screen fights only announced): a simulation seeded per run (own generator).
-  // on = switch. moveS = seconds between a rival's room moves (drawn 0.75-1.25x); moveP = chance it moves then; engageP = chance two rivals that
-  // meet in a room fight; fightS = seconds an off-screen fight lasts (a door opened on it shows both mid-fight). share = strength per school =
-  // measured bot wins of 96 (batch 16, CI 45329303870; not tuned). Strength = share x hp/100 x (1 + plateK x plates) x (1 + meterK x meter).
-  // winHpK = the winner loses this x MAX_HP x the loser's strength share (x 0.5-1.5 drawn). hunterS = seconds before one rival (the strongest)
-  // starts tracking the player room by room; annS = seconds each of her announcements stays on the banner; farmS = seconds a rival alone in a room
-  // takes to break a guard squad there off-screen, farmHp = health it loses doing it; guard = guard squads per room type at the start
-  // (placeholder until ticket 05's escalation table); squad = the units of one squad (ticket 02 types; first 'wz' leads). Assumptions 24 Nov (BP03).
-  PAL_SIM: { on: true, moveS: 8, moveP: 0.6, engageP: 0.6, fightS: 10, share: { ru: 27, mo: 16, zongheng: 13, nong: 10, fa: 9, za: 9, dao: 6, ming: 5, yinyang: 4 },
-    plateK: 0.25, meterK: 0.005, winHpK: 0.6, hunterS: 45, annS: 3, farmS: 12, farmHp: 12,
-    guard: { hall: 1, court: 1, corridor: 1, garden: 1, bridge: 1, core: 0 }, squad: ['wz', 'zu', 'zu', 'zu', 'nu', 'dun'],
-    // Integration 24 Nov (lead's merge list; first picks, not tuned): guard and squad above are the six-room box's (its checks' fixture); the full
-    // palace takes squads and units from PAL_ESC (BP05). rebelP = chance a full-palace room (not the start hall or the core) holds a 反贼 squad
-    // (ticket 07) besides its guard, drawn at the run start; rebelSquad = its units ('qs' 渠帅 leads, 'ls' 力士, 'fs' 符水道人, 'ss' 死士).
-    // giantDps = health per second an awake bronze giant (ticket 09) takes from each rival out of sight in its room.
-    rebelP: 0.3, rebelSquad: ['qs', 'ls', 'ls', 'ls', 'fs', 'ss'], giantDps: 4 },
+    colors: { water: 0x2a6a9a, glow: 0xff6a20 } },
   // Unseen state (batch 16, minimal; full hiding with curtains and walls is batch 18): an unseen suit is not drawn for others and cannot be
   // targeted, except within shimmerM metres (drawn as a shimmer) or while marked; attacking or being hit ends it.
   UNSEEN: { shimmerM: 3 },
@@ -899,26 +895,8 @@ const TEXT = {
   burn_now: 'Burning: {wing}',
   burn_none: 'Nothing more shall burn.',
   piece2_giant_voice: 'One of Our twelve wakes. Bronze does not tire.',
-  piece2_giant_down: 'One of Our twelve lies broken. So bronze does tire.',
   door_card_burn: '{room}\nBURNING: it falls within seconds.\nDecree: {decree}\nReward: {reward}\n{stir}',
   door_fallen: '{room}\nFallen into the black lake.',
-  pal3_door_sealed: '{room}\nSealed by Our decree while {n} rivals stand.',
-  pal3_door_locked: '{room}\nLocked: break every enemy in this room.',
-  pal3_v_lock: 'The doors are shut. None leave.',
-  pal3_r_lock: 'Locked in the {room}: break every enemy here to open the doors.',
-  pal3_v_kill: 'We have seen it.',
-  pal3_r_kill: '{a} broke {b} in the {room}.',
-  pal3_r_fell: '{b} fell in the {room}.',
-  pal3_v_hunt: 'We loose a hunter upon thee.',
-  pal3_r_hunt: '{a} tracks you, room by room.',
-  pal3_v_final: 'Two remain. Let them meet.',
-  pal3_r_final: '{a} comes for you. Win, and the core hall opens.',
-  pal3_v_core: 'The last one standing. Come to Our throne.',
-  pal3_r_core: 'The core hall is open: the apex waits there.',
-  pal3_you: 'You',
-  pal3_v_rebels: 'Yellow headbands in Our halls. Let them choke on smoke.',
-  pal3_r_rebels: '反贼 in the {room}: bootleg suits, out for the throne and for you.',
-  pal3_r_giant: 'A bronze giant crushed {b} in the {room}.',
   help_pal_desktop: 'Right-click move / attack · Q W R aim at cursor (release to cast) · Z zoom: auto, wide, close · S stop · N new run',
   help_pal_touch: 'Left stick: move · tap or drag skills · New run',
   piece_voice_hb: 'The beast upon the pillar hath seen thee.',
@@ -1141,12 +1119,6 @@ const P2_VAT_SPOTS = P2_VAT_AT.map((v) => ({ lay: 'proto', room: v.room, x: v.x,
 for (const id in PAL_FULL_PIECES) for (const q of PAL_FULL_PIECES[id]) if (q.type === 'vat') P2_VAT_SPOTS.push({ lay: 'full', room: id, x: q.x, z: q.z });
 const P2_VATS = P2_VAT_SPOTS.map((v, i) => ({ vat: true, idx: i, lay: v.lay, room: v.room, x: CONFIG.PALACE.origin[0] + v.x, z: CONFIG.PALACE.origin[1] + v.z, y: 0, r: 0.8,
   hp: CONFIG.PIECES2.vat.hp, seen: false, st: 0, t: 0, r0: null, solid: null, body: null, ring: null, flood: null, flashT: 0, deadT: 0 }));
-// The giants are targets too (owner 24 Nov 15:41: killable), like the vats (no kind: blows reach them through hitDummy): giant.n per palace plan,
-// made here so TARGETS holds them; the palace build fills each one in (lay = its plan; only the plan in use acts). seen / alive while awake and drawn.
-const P2_GIANT_T = [];
-for (const LK in PAL_LAYOUTS) for (let i = 0; i < CONFIG.PIECES2.giant.n; i++) {
-  P2_GIANT_T.push({ giant: true, lay: LK, i, x: 0, y: 0, z: 0, r: CONFIG.PIECES2.giant.r, hp: CONFIG.PIECES2.giant.hp, seen: false, alive: false });
-}
 
 // ===================== DOM helpers (writes only on change) =====================
 const $ = (id) => document.getElementById(id);
@@ -1658,7 +1630,7 @@ const halfDiskGeo = new THREE.CircleGeometry(1, 40, 0, Math.PI); halfDiskGeo.rot
 // Places in 农甲's sprout pool (ticket 07): one pool per suit, built once at load (the pool size is the skill's, read here once).
 const NONG_POOL = CONFIG.KITS.nong.skills[0].pool;
 // Most targets one hit can reach (dummies, hunt units, cubs, buff creatures, bots, 皇家 guards, 门海 vats and the player): the size of 名甲's per-pass hit list (ticket 05).
-const TARGET_MAX = DUMMY_LIST.length + ENEMIES.length + CUBS.length + NEUTRALS.length + BOTLIST.length + GUARDS.length + P2_VATS.length + P2_GIANT_T.length + 1;
+const TARGET_MAX = DUMMY_LIST.length + ENEMIES.length + CUBS.length + NEUTRALS.length + BOTLIST.length + GUARDS.length + P2_VATS.length + 1;
 for (let k = 0; k < SUITS.length; k++) {
   const s = SUITS[k], m = new THREE.Mesh(markGeo, M.ring);
   m.position.y = DD.markY; m.visible = false; m.castShadow = false;
@@ -1734,7 +1706,7 @@ Object.assign(P, { campK: -1, cd: [0, 0, 0], navWant: false, gx: 0, gz: 0, gy: 0
   heal: null, skip: null, castT: 0, lastBy: null, lastByT: -99, declined: null, declinedT: -99, flee: false, fleeGo: false, pathGen: 0, why: '', hunter: false, huntLostT: 0, mx: 0, mz: 0,
   pend: false, pendT: 0, pendS: 2, pendX: 0, pendZ: 0, pendDx: 0, pendDz: 0, pendAge: 0, ring: new THREE.Mesh(fxTele.geometry, M.ring) });
 // Everything the player can target: training dummies, hunt units, cubs, buff creatures and bot suits share x, z, r, hp, seen.
-const TARGETS = DUMMY_LIST.concat(ENEMIES, CUBS, NEUTRALS, BOTLIST, GUARDS, P2_VATS, P2_GIANT_T);
+const TARGETS = DUMMY_LIST.concat(ENEMIES, CUBS, NEUTRALS, BOTLIST, GUARDS, P2_VATS);
 // Gate seal shown during the hunt.
 const sealMesh = new THREE.Mesh(new THREE.BoxGeometry((GATE.x1 - GATE.x0), 2.6, 0.3).translate(0, 1.3, CH.z1 - 0.5), M.tellD);
 sealMesh.matrixAutoUpdate = false; sealMesh.updateMatrix();
@@ -1986,7 +1958,7 @@ function hitTarget(by, d, n, basic, sk) {
   if (sk && d.kind === 'suit') zaStore(d, sk);
   if (by.expArmT > 0) { if (d.kind === 'suit') expose(d, by.expS); by.expArmT = 0; }
   if (by.kit && by.kit.passive === 'halving') chainHit(by, d);
-  if (!d.kind) { hitDummy(d, n, by); return true; }
+  if (!d.kind) { hitDummy(d, n); return true; }
   if (d.kind === 'suit') { hurtSuit(d, n, 'hit', by); return true; }
   // 皇家 guard (Burning Palace ticket 02): the 伍长 buff and the 盾's front block cut the blow.
   if (d.guard) n *= guardTakenK(d, by, !!basic);
@@ -2014,10 +1986,9 @@ function gainCharge(s, v) {
   if (!onMeter(s) || s.dead || v <= 0) return;
   s.ch = Math.min(CONFIG.ULT.full, s.ch + v * (decOn('ult2x') ? CONFIG.DECREES.ultK : 1));
 }
-function hitDummy(d, n, by) {
-  // BP09: a bronze vat takes the blow (it cracks, then splashes); a bronze giant too (owner 24 Nov 15:41: killable).
+function hitDummy(d, n) {
+  // BP09: a bronze vat takes the blow (it cracks, then splashes).
   if (d.vat) { hitVat(d, n); return; }
-  if (d.giant) { hitGiant(d, n, by, 'blow'); return; }
   d.hp = Math.max(0, d.hp - n); d.flashT = 0.12; d.body.material = M.hit;
   d.bar.scale.x = Math.max(0.001, d.hp / CONFIG.DUMMY_HP);
   if (d.hp <= 0) { d.deadT = CONFIG.DUMMY_RESPAWN_S; if (ORD.attack === d) ORD.attack = null; }
@@ -2319,7 +2290,70 @@ function heapPop(hs) {
 // A palace run: FLOORS gains the palace floors and SOLIDS its walls and doors (removed again for Royal Rumble, which is unchanged).
 const PC = CONFIG.PALACE, POX = PC.origin[0], POZ = PC.origin[1];
 const PAL = { on: false, rooms: [], doors: [], byId: {}, cur: null, start: null, pv: null, man: 0, n: 0, camT: 1, cx: 0, cz: 0,
-  floors: [], solids: [], lake: null, q: null, from: null, stk: null, sets: {}, layout: '', want: PAL_LAYOUTS[params.get('layout')] ? params.get('layout') : '', bx0: 0, bx1: 0, bz0: 0, bz1: 0, miniSig: -1 };
+  floors: [], solids: [], lake: null, q: null, from: null, stk: null, sets: {}, layout: '', want: PAL_LAYOUTS[params.get('layout')] ? params.get('layout') : '', bx0: 0, bx1: 0, bz0: 0, bz1: 0, miniSig: -1, miniSig2: -1, miniDraws: 0, miniIcons: 0 };
+// Palace camera (ticket 10). b = 0 wide .. 1 close (eased); pb = its value one step ago (drawing interpolates); hold = seconds the close framing
+// stays after the last enemy in reach; wx/wz/wd = the wide framing point and distance (panned toward the wanted ones), pw* one step ago;
+// tx/tz/td = the wanted wide framing this step; lpx/lpz = the player's position at the last framing update; vx/vz = the player's smoothed walking velocity, lx/lz = the player's position one step ago; fit* = the current room's fit, cached until the
+// room, the screen shape or the touch mode changes; lead = wide distance when the room is too big to show whole; atk = the kit's attack distance.
+const PCAM = { b: 0, pb: 0, hold: 0, wx: 0, wz: 0, wd: 1, pwx: 0, pwz: 0, pwd: 1, vx: 0, vz: 0, lx: 0, lz: 0, lpx: 0, lpz: 0, fitR: null, fitA: 0, fitT: false,
+  fit: false, fx: 0, fz: 0, fd: 1, tx: 0, tz: 0, td: 1, lead: 1, atk: 0, atkKit: null, fits: 0, cam: new THREE.PerspectiveCamera(CONFIG.CAM_FOV, 1, 0.5, 1000),
+  v: new THREE.Vector3(), sp: Math.sin(THREE.MathUtils.degToRad(CONFIG.CAM_PITCH_DEG)), cp: Math.cos(THREE.MathUtils.degToRad(CONFIG.CAM_PITCH_DEG)) };
+// The measuring camera looks at ground point (tx, tz) from distance d, at the game's fixed pitch (same rule as the view).
+function palCamAt(tx, tz, d) { const c = PCAM.cam; c.position.set(tx, PCAM.sp * d, tz + PCAM.cp * d); c.lookAt(tx, 0, tz); c.updateMatrixWorld(); }
+// Height on screen, in pixels of a refH-high screen, of a player standing at (x, z) for the measuring camera.
+function palCamPx(x, z) {
+  const v = PCAM.v.set(x, 0, z).project(PCAM.cam), a = v.y;
+  v.set(x, BODY, z).project(PCAM.cam); return (v.y - a) / 2 * CONFIG.PAL_CAM.refH;
+}
+// The floor in refH pixels (larger on phones).
+function palCamFloor() { const C = CONFIG.PAL_CAM; return TOUCH ? C.minPx / C.phone : C.minPx; }
+// True when every corner of room r (floor and wall tops) is on screen inside the margin for the measuring camera.
+function palCamIn(r) {
+  const lim = 1 - 2 * CONFIG.PAL_CAM.margin, H = CONFIG.PALACE.wallH, v = PCAM.v;
+  for (let k = 0; k < 8; k++) {
+    v.set(k & 1 ? r.x1 : r.x0, k & 4 ? H : 0, k & 2 ? r.z1 : r.z0).project(PCAM.cam);
+    if (v.x < -lim || v.x > lim || v.y < -lim || v.y > lim) return false;
+  }
+  return true;
+}
+// Largest distance at which test(d) still holds (test true near, false far), by halving between lo and hi metres.
+function palCamFar(lo, hi, test) { for (let i = 0; i < 30; i++) { const m = (lo + hi) / 2; if (test(m)) lo = m; else hi = m; } return lo; }
+// Room fit (run on a room, screen-shape or touch change only, never per frame): the wide distance for a room too big to show whole (the player
+// trails the framing point by up to leadMax + lagM and stays above the floor), and, for each framing point along the room's depth, the nearest
+// distance that shows the whole room and the farthest that keeps a player at its far wall above the floor; the room is shown whole when some
+// point allows both (the farthest such distance: as far out as the floor allows).
+function palCamFit(r) {
+  const C = CONFIG.PAL_CAM, c = PCAM.cam, fl = palCamFloor(), off = C.leadMax + C.lagM;
+  c.aspect = camera.aspect; c.updateProjectionMatrix();
+  PCAM.lead = palCamFar(1, 200, (d) => { palCamAt(0, 0, d); return palCamPx(0, -off) >= fl; });
+  PCAM.fit = false; PCAM.fitR = r; PCAM.fitA = camera.aspect; PCAM.fitT = TOUCH; PCAM.fits++;
+  let slack = -1;
+  for (let k = 0; k <= 12; k++) {
+    const tz = r.z0 + (r.z1 - r.z0) * k / 12;
+    const far = palCamFar(1, 200, (d) => { palCamAt(r.cx, tz, d); return Math.min(palCamPx(r.x0, r.z0), palCamPx(r.x1, r.z0)) >= fl; });
+    palCamAt(r.cx, tz, far);
+    if (!palCamIn(r)) continue;
+    let lo = 1, near = far;
+    for (let i = 0; i < 30; i++) { const m = (lo + near) / 2; palCamAt(r.cx, tz, m); if (palCamIn(r)) near = m; else lo = m; }
+    if (far - near > slack) { slack = far - near; PCAM.fit = true; PCAM.fx = r.cx; PCAM.fz = tz; PCAM.fd = far; }
+  }
+}
+// The player's attack distance (ticket 10): the longest offensive reach of his kit (basic attack, line skills' range, area skills' range + radius).
+function palAtkReach() {
+  const k = P.kit; let m = k.attack ? k.attack.range : 0;
+  for (const s of k.skills) if (s.dmg > 0) m = Math.max(m, (s.range || 0) + (s.type === 'line' ? 0 : s.radius || 0));
+  PCAM.atk = m; PCAM.atkKit = k;
+}
+// Close framing distance, metres.
+function palCloseD() { const C = CONFIG.PAL_CAM; return CONFIG.CAM_DIST * C.close * (TOUCH ? C.phone : 1); }
+// Snap the palace camera to the wide framing of the current room (new run, layout change): no pan, no ease.
+function palCamSnap() {
+  palCamFit(PAL.cur);
+  PCAM.b = PCAM.pb = 0; PCAM.hold = 0; PCAM.vx = PCAM.vz = 0; PCAM.lx = PCAM.lpx = P.x; PCAM.lz = PCAM.lpz = P.z;
+  palCamTarget(PAL.cur);
+  PCAM.wx = PCAM.pwx = PCAM.tx; PCAM.wz = PCAM.pwz = PCAM.tz; PCAM.wd = PCAM.pwd = PCAM.td;
+  G.camK = PAL.camT = PCAM.wd / CONFIG.CAM_DIST;
+}
 // Modes on the mode menu, in key order.
 const MODES = ['palace', 'rumble'];
 const DOOR_VARS = { room: '', decree: '', reward: '', stir: '' }, PAL_END = { s: 0, n: 0, room: '', retry: '' }, MODE_VARS = { mode: '' };
@@ -2457,8 +2491,6 @@ PIECE_SIDES.push(PIECE_PROBE);
 PIECE_SIDES.push({ list: GUARDS,
   hurt(u, n) { hitEnemy(u, n, null); },
   heal(u, n) { const h = Math.min(n, u.maxHp - u.hp); u.hp += h; u.bar.scale.x = Math.max(0.001, u.hp / u.maxHp); return h; } });
-// The bronze giants are a side too (owner 24 Nov 15:41: killable): pieces hurt an awake one (no knockback: bronze; no reward); the 鼎 does not mend bronze.
-PIECE_SIDES.push({ list: P2_GIANT_T, hurt(u, n) { hitGiant(u, n, null, 'piece'); }, heal() { return 0; } });
 {
   const PP = CONFIG.PIECES, col = PP.col;
   mat('merc', col.merc, { metalness: 0.8, roughness: 0.3 });
@@ -2709,23 +2741,46 @@ function palEscSquads(r, t) {
   return Math.min(n, E.cap);
 }
 function palEscMix(r) { const E = CONFIG.PAL_ESC; return r.depth <= E.innerD ? E.mix.inner : r.depth <= E.midD ? E.mix.mid : E.mix.rim; }
-// Room minimap (BP05): the plan fitted into the corner map; rooms by type, warned rooms red, fallen rooms only an outline, the current room
-// outlined, doors marked. No rivals (owner 13:26: off-screen fights only by announcement). The static layer is redrawn only when it changes.
+// Room minimap (BP05; ticket 10, owner 24 Nov 15:43 "the mini map show the room layout"): centred on the room you stand in, enlarged (PAL_MINI.fill)
+// with the neighbouring rooms around it in their real shapes and positions; rooms by type, warned rooms red, fallen rooms only an outline; the
+// current room's walls with its door openings, its pieces as icons, and its outline. No rivals (owner 13:26: off-screen fights only by
+// announcement). The static layer is redrawn only when it changes (palMini's signature).
 function palMiniBase() {
-  const c = MINI.bctx, C = CONFIG.PAL_MINI, sc = Math.min((MINI.W - C.pad * 2) / (PAL.bx1 - PAL.bx0), (MINI.H - C.pad * 2) / (PAL.bz1 - PAL.bz0));
-  PAL.mS = sc; PAL.mOx = (MINI.W - (PAL.bx1 - PAL.bx0) * sc) / 2; PAL.mOy = (MINI.H - (PAL.bz1 - PAL.bz0) * sc) / 2;
+  const c = MINI.bctx, C = CONFIG.PAL_MINI, r0 = PAL.cur, sc0 = Math.min((MINI.W - C.pad * 2) / (PAL.bx1 - PAL.bx0), (MINI.H - C.pad * 2) / (PAL.bz1 - PAL.bz0));
+  const rs = r0 ? C.fill * Math.min(MINI.W / (r0.x1 - r0.x0), MINI.H / (r0.z1 - r0.z0)) : 0, sc = Math.max(sc0, rs);
+  PAL.mS = sc; PAL.miniDraws++;
+  if (sc > sc0) { PAL.mOx = MINI.W / 2 - (r0.cx - PAL.bx0) * sc; PAL.mOy = MINI.H / 2 - (r0.cz - PAL.bz0) * sc; }
+  else { PAL.mOx = (MINI.W - (PAL.bx1 - PAL.bx0) * sc) / 2; PAL.mOy = (MINI.H - (PAL.bz1 - PAL.bz0) * sc) / 2; }
+  const X = (x) => PAL.mOx + (x - PAL.bx0) * sc, Z = (z) => PAL.mOy + (z - PAL.bz0) * sc;
   c.fillStyle = '#0c0a10'; c.fillRect(0, 0, MINI.W, MINI.H);
   for (const r of PAL.rooms) {
-    const x = PAL.mOx + (r.x0 - PAL.bx0) * sc, y = PAL.mOy + (r.z0 - PAL.bz0) * sc, w = (r.x1 - r.x0) * sc, h = (r.z1 - r.z0) * sc;
+    const x = X(r.x0), y = Z(r.z0), w = (r.x1 - r.x0) * sc, h = (r.z1 - r.z0) * sc;
     if (r.fallen || r.state >= 2) { c.strokeStyle = C.fallen; c.lineWidth = 1; c.strokeRect(x + 0.5, y + 0.5, w - 1, h - 1); continue; }
     c.fillStyle = r.warned || r.state === 1 ? C.warned : C[r.type]; c.fillRect(x, y, w, h);
   }
+  if (r0) palMiniRoom(c, C, r0, sc, X, Z);
   c.fillStyle = C.door;
-  for (const d of PAL.doors) c.fillRect(PAL.mOx + (d.x - PAL.bx0) * sc - 1.5, PAL.mOy + (d.z - PAL.bz0) * sc - 1.5, 3, 3);
-  if (PAL.cur) {
-    const r = PAL.cur; c.strokeStyle = C.cur; c.lineWidth = 2;
-    c.strokeRect(PAL.mOx + (r.x0 - PAL.bx0) * sc + 1, PAL.mOy + (r.z0 - PAL.bz0) * sc + 1, (r.x1 - r.x0) * sc - 2, (r.z1 - r.z0) * sc - 2);
+  for (const d of PAL.doors) {
+    if (d.ra === r0 || d.rb === r0) { const l = Math.max(3, d.w * sc); if (d.vert) c.fillRect(X(d.x) - 1.5, Z(d.z) - l / 2, 3, l); else c.fillRect(X(d.x) - l / 2, Z(d.z) - 1.5, l, 3); }
+    else c.fillRect(X(d.x) - 1.5, Z(d.z) - 1.5, 3, 3);
   }
+  if (r0) { c.strokeStyle = C.cur; c.lineWidth = 2; c.strokeRect(X(r0.x0) + 1, Z(r0.z0) + 1, (r0.x1 - r0.x0) * sc - 2, (r0.z1 - r0.z0) * sc - 2); }
+}
+// The current room's layout on the minimap (ticket 10): its walls, then its pieces as icons (mercury as its channel); counted for the checks.
+function palMiniRoom(c, C, r, sc, X, Z) {
+  const I = C.icons, h = C.iconPx / 2;
+  c.strokeStyle = C.wall; c.lineWidth = 3; c.strokeRect(X(r.x0) + 2.5, Z(r.z0) + 2.5, (r.x1 - r.x0) * sc - 5, (r.z1 - r.z0) * sc - 5);
+  let n = 0;
+  const dot = (col, x, z) => { c.fillStyle = col; c.fillRect(X(x) - h, Z(z) - h, C.iconPx, C.iconPx); n++; };
+  c.fillStyle = I.merc;
+  for (const m of PIECE_MERC) if (m.s === r) { c.fillRect(X(m.x0), Z(m.z0), Math.max(2, (m.x1 - m.x0) * sc), Math.max(2, (m.z1 - m.z0) * sc)); n++; }
+  for (const p of PIECE_HAZ) if (p.s === r) dot(I[p.kind] || I.lion, p.x, p.z);
+  for (const p of PIECE_DING) if (p.s === r) dot(I.ding, p.x, p.z);
+  for (const p of PIECE_SMOKE) if (p.s === r) dot(I.smoke, p.x, p.z);
+  for (const k of P2.clocks) if (k.room === r) dot(I.clock, k.water.position.x, k.water.position.z);
+  for (const v of P2_VATS) if (v.lay === PAL.layout && v.st < 2 && p2Room(v.room) === r) dot(I.vat, v.x, v.z);
+  for (const g of P2.giants) if (g.st === 0 && palRoomAt(g.x, g.z) === r) dot(I.giant, g.x, g.z);
+  PAL.miniIcons = n;
 }
 // A right-click or tap on the palace minimap walks there through the doors.
 function palMiniWalk(e) {
@@ -2746,28 +2801,26 @@ function palSync() {
     const want = PAL.on && (!!d.ra.group.parent || !!d.rb.group.parent);
     if (want !== !!d.group.parent) { if (want) scene.add(d.group); else scene.remove(d.group); }
   }
-  palSimSync();
 }
 function palDoor(d, open) {
   d.open = open; d.solid.off = open; d.panel.visible = !open; renderer.shadowMap.needsUpdate = true; palSync();
 }
 function palEnter(r) {
   PAL.cur = r; PAL.n++; palSync(); palSunAt(r);
-  if (r.type === 'core') palApex();
+  if (r.type === 'core') endPalace(true);
 }
 // The door card: the room behind the nearest door of the current room (type, decree, reward, something stirs). Written on change only.
 function palCard() {
   const d = PAL.pv;
   if (!d) { setShow(el.door, false); return; }
-  if (palCardLock(d)) return;
   const r = d.ra === PAL.cur ? d.rb : d.ra;
-  DOOR_VARS.room = r.name; DOOR_VARS.decree = T('door_dec_' + r.decree); DOOR_VARS.reward = T('door_rew_' + r.reward); DOOR_VARS.stir = T(r.stir || r.rebelLeft > 0 ? 'door_stir' : 'door_quiet');
+  DOOR_VARS.room = r.name; DOOR_VARS.decree = T('door_dec_' + r.decree); DOOR_VARS.reward = T('door_rew_' + r.reward); DOOR_VARS.stir = T(r.stir ? 'door_stir' : 'door_quiet');
   // BP04: a burning room's card warns; a fallen room's card says so.
   setText(el.door, T(r.state >= 2 ? 'door_fallen' : r.state === 1 ? 'door_card_burn' : 'door_card', DOOR_VARS)); setShow(el.door, true);
 }
 // A palace run starts (called by reset): royale map out of the scene, palace floors and walls in, doors shut, the player in the start hall.
 function enterPalace() {
-  const CC = CONFIG.PAL_CAM, LK = PAL.want || CONFIG.PAL_PLAN.layout;
+  const LK = PAL.want || CONFIG.PAL_PLAN.layout;
   if (PAL.layout !== LK) { if (PAL.on || PAL.lake.parent) leavePalace(); palUseLayout(LK); }
   PAL.on = true; G.phase = 'palace';
   clearBots(); G.alive = 1;
@@ -2777,13 +2830,12 @@ function enterPalace() {
   if (FLOORS.length === NAV.NF) for (const f of PAL.floors) FLOORS.push(f);
   if (SOLIDS.indexOf(PAL.solids[0]) < 0) for (const b of PAL.solids) SOLIDS.push(b);
   for (const d of PAL.doors) { d.open = false; d.locked = false; d.solid.off = false; d.panel.visible = true; }
-  PAL.start = palStartRoom(); PAL.miniSig = -1;
+  PAL.start = palStartRoom(); PAL.miniSig = -1; PAL.miniSig2 = -1;
   PAL.cur = PAL.start; PAL.pv = null; PAL.man = 0; PAL.n = 1;
-  palSimStart();
   palSync();
   const sp = PAL.start.spawn;
   P.x = P.px = sp[0]; P.z = P.pz = sp[1]; P.y = P.py = topY(sp[0], sp[1]); P.floor = null; P.zone = null; PATH.n = 0; PATH.i = 0;
-  G.camK = PAL.camT = (TOUCH ? CC.phone : 1) * CC.wide * CC.type[PAL.start.type];
+  palCamSnap();
   palSunAt(PAL.start);
   document.body.classList.add('palace'); setShow(el.door, false);
   setText(el.help, T(TOUCH ? 'help_pal_touch' : 'help_pal_desktop'));
@@ -2808,8 +2860,7 @@ function leavePalace() {
   if (G.view === 'follow') FOW.uFowR.value = fowR();
   renderer.shadowMap.needsUpdate = true;
 }
-// The palace run ends: the core hall reached with the apex hunt switched off (BP03: otherwise the core wakes the apex, palApex) or the player
-// broken. The simulation freezes on the banner.
+// The palace run ends: the core hall reached (BP01: the apex comes with BP03) or the player broken. The simulation freezes on the banner.
 function endPalace(reached) {
   G.phase = 'palend'; PAL.pv = null; setShow(el.door, false);
   ORD.attack = null; ORD.atkHeld = false; ORD.rightHeld = false; PATH.n = 0; PATH.i = 0; cancelAim();
@@ -2835,17 +2886,20 @@ function palSight(ax, az, bx, bz) {
   for (let i = 0; i < ra.doors.length; i++) { const d = ra.doors[i]; if (d.open && (d.ra === rb || d.rb === rb) && palDoorSight(d, ax, az, bx, bz)) return !smokeBlocks(ax, az, bx, bz); }
   return false;
 }
-// An enemy within the camera's reach that the player can see (rival suits, apex units; BP02 adds the guard).
+// An enemy within the player's attack distance that he can see (ticket 10): rival suits (not unseen to him), apex units, 皇家 guard and 反贼
+// (not lurking), and woken giants.
 function palFoeNear() {
-  const reach = CONFIG.PAL_CAM.reach;
-  for (let i = 0; i < BOTLIST.length; i++) { const b = BOTLIST[i]; if (!b.dead && Math.hypot(b.x - P.x, b.z - P.z) <= reach && palSight(P.x, P.z, b.x, b.z)) return true; }
+  if (PCAM.atkKit !== P.kit) palAtkReach();
+  const reach = PCAM.atk + CONFIG.PAL_CAM.pad;
+  for (let i = 0; i < BOTLIST.length; i++) { const b = BOTLIST[i]; if (!b.dead && !hiddenFrom(b, P.x, P.z) && Math.hypot(b.x - P.x, b.z - P.z) <= reach && palSight(P.x, P.z, b.x, b.z)) return true; }
   for (let i = 0; i < ENEMIES.length; i++) { const u = ENEMIES[i]; if (u.alive && Math.hypot(u.x - P.x, u.z - P.z) <= reach && palSight(P.x, P.z, u.x, u.z)) return true; }
+  for (let i = 0; i < GUARDS.length; i++) { const u = GUARDS[i]; if (u.alive && !u.hid && GC.factions[u.faction].foeSuits && Math.hypot(u.x - P.x, u.z - P.z) <= reach && palSight(P.x, P.z, u.x, u.z)) return true; }
+  for (let i = 0; i < P2.giants.length; i++) { const g = P2.giants[i]; if (g.st >= 1 && g.st <= 4 && Math.hypot(g.x - P.x, g.z - P.z) <= reach && palSight(P.x, P.z, g.x, g.z)) return true; }
   return false;
 }
 // Palace step: room under the player, doors (open on approach, shut behind), the door card, the context camera.
 function stepPalace(dt) {
   if (!palIn(PAL.cur, P.x, P.z)) { const r = palRoomAt(P.x, P.z); if (r) palEnter(r); if (G.phase !== 'palace') return; }
-  stepPalRivals(dt); if (G.phase !== 'palace') return;
   let pv = null, pd = PC.previewR;
   for (let i = 0; i < PAL.doors.length; i++) {
     const d = PAL.doors[i], dd = Math.hypot(P.x - d.x, P.z - d.z), mine = d.ra === PAL.cur || d.rb === PAL.cur;
@@ -2854,11 +2908,39 @@ function stepPalace(dt) {
     if (mine && dd < pd) { pd = dd; pv = d; }
   }
   if (pv !== PAL.pv) { PAL.pv = pv; palCard(); }
-  // Context camera: wide with no enemy in reach, close with one; eased so a full change takes easeS seconds; Z overrides it.
-  const CC = CONFIG.PAL_CAM, ph = TOUCH ? CC.phone : 1;
-  PAL.camT = ph * (PAL.man === 1 ? CC.wide : PAL.man === 2 ? CC.close : (palFoeNear() ? CC.close : CC.wide) * CC.type[PAL.cur.type]);
-  const dk = PAL.camT - G.camK, mv = (CC.wide - CC.close) * ph / CC.easeS * dt;
-  G.camK = Math.abs(dk) <= mv ? PAL.camT : G.camK + (dk > 0 ? mv : -mv);
+  palCamStep(dt);
+}
+// Context camera (ticket 10), one fixed step: close (b -> 1) while an enemy is in attack distance and for backS after; wide (b -> 0) otherwise;
+// Z overrides it. The wide framing is the room fit when the room shows whole, else a point a little ahead of the player (walking direction and
+// the room's open space, at most leadMax away); it pans there (panS), never cuts. Room fit recomputed only on room, screen-shape or touch change.
+function palCamStep(dt) {
+  const C = CONFIG.PAL_CAM, r = PAL.cur;
+  if (PCAM.fitR !== r || PCAM.fitA !== camera.aspect || PCAM.fitT !== TOUCH) palCamFit(r);
+  PCAM.pb = PCAM.b; PCAM.pwx = PCAM.wx; PCAM.pwz = PCAM.wz; PCAM.pwd = PCAM.wd;
+  const kp = 1 - Math.exp(-dt / C.panS);
+  PCAM.vx += ((P.x - PCAM.lx) / dt - PCAM.vx) * kp; PCAM.vz += ((P.z - PCAM.lz) / dt - PCAM.vz) * kp; PCAM.lx = P.x; PCAM.lz = P.z;
+  palCamTarget(r);
+  // A room shown whole: the framing point pans to the fit. A bigger room: the framing rides with the player and only its lean (the offset from
+  // him) pans, so he never trails the frame. Both start from the current frame, so a change of room or mode never cuts.
+  if (PCAM.fit) { PCAM.wx += (PCAM.tx - PCAM.wx) * kp; PCAM.wz += (PCAM.tz - PCAM.wz) * kp; }
+  else { const ox = PCAM.wx - PCAM.lpx, oz = PCAM.wz - PCAM.lpz; PCAM.wx = P.x + ox + (PCAM.tx - P.x - ox) * kp; PCAM.wz = P.z + oz + (PCAM.tz - P.z - oz) * kp; }
+  PCAM.wd += (PCAM.td - PCAM.wd) * kp; PCAM.lpx = P.x; PCAM.lpz = P.z;
+  if (palFoeNear()) PCAM.hold = C.backS; else if (PCAM.hold > 0) PCAM.hold -= dt;
+  const want = PAL.man === 1 ? 0 : PAL.man === 2 ? 1 : PCAM.hold > 0 ? 1 : 0, mv = dt / C.easeS;
+  PCAM.b = want > PCAM.b ? Math.min(want, PCAM.b + mv) : Math.max(want, PCAM.b - mv);
+  const e = PCAM.b * PCAM.b * (3 - 2 * PCAM.b), dc = palCloseD();
+  G.camK = (PCAM.wd + (dc - PCAM.wd) * e) / CONFIG.CAM_DIST; PAL.camT = (want ? dc : PCAM.td) / CONFIG.CAM_DIST;
+}
+// The wanted wide framing (tx, tz, td): the room fit when the room shows whole, else a point a little ahead of the player along his walking
+// direction and toward the room's open space (its centre), at most leadMax away, at the lead distance.
+function palCamTarget(r) {
+  const C = CONFIG.PAL_CAM;
+  if (PCAM.fit) { PCAM.tx = PCAM.fx; PCAM.tz = PCAM.fz; PCAM.td = PCAM.fd; return; }
+  const sp = Math.hypot(PCAM.vx, PCAM.vz);
+  let ox = (r.cx - P.x) * C.leadOpen, oz = (r.cz - P.z) * C.leadOpen;
+  if (sp > 1) { ox += PCAM.vx / sp * C.leadMove; oz += PCAM.vz / sp * C.leadMove; }
+  const ol = Math.hypot(ox, oz); if (ol > C.leadMax) { ox *= C.leadMax / ol; oz *= C.leadMax / ol; }
+  PCAM.tx = P.x + ox; PCAM.tz = P.z + oz; PCAM.td = PCAM.lead;
 }
 // Walking route in the palace (no grid): through the door points from room to room (breadth-first over the room graph), then to the goal.
 function palRoute(gx, gz, path) {
@@ -2891,361 +2973,6 @@ function palRoute(gx, gz, path) {
 }
 // PERFRAME-END
 
-// ===================== The Burning Palace BP03: door locks, rivals out of sight, her announcements, the core seal =====================
-// Rivals and guard squads live in the rooms only in a match (bots > 0; ?bots=0 stays the map test). Each bot has one record: st = 'sim' (out of
-// sight, settled by the simulation), 'live' (its room is in the scene: the bot brain plays it), 'out' (broken). Own seeded generator SRNG.
-const SRNG = { s: 1 };
-function srnd() {
-  SRNG.s = (SRNG.s + 0x6D2B79F5) | 0; let t = SRNG.s;
-  t = Math.imul(t ^ (t >>> 15), t | 1); t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
-  return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
-}
-const PS = CONFIG.PAL_SIM, PL = CONFIG.PAL_LOCK;
-// recs = one per bot; hunter = the rival tracking the player; final = two suits left; open = the core hall unsealed; q = her announcement queue
-// (fixed ring); log = results for the checks (fixed ring, kind|winner|loser|room|time); outN, lockN, annN, liveN = counters for the checks.
-const PSIM = { on: false, recs: [], hunter: null, final: false, open: false, q: [], qh: 0, qn: 0, qDrop: 0, log: [], logN: 0, outN: 0, lockN: 0, annN: 0, liveN: 0,
-  bq: new Int16Array(Math.max(PAL.sets.full.rooms.length, PAL.sets.proto.rooms.length)), bfrom: new Int16Array(Math.max(PAL.sets.full.rooms.length, PAL.sets.proto.rooms.length)),
-  coreDoors: [], late: 0 };
-for (let i = 0; i < 16; i++) PSIM.q.push({ k: '', v: '', a: '', b: '', room: '', n: 0, wing: '', s: 0 });
-for (let i = 0; i < 64; i++) PSIM.log.push('');
-for (const d of PAL.doors) if (d.ra.type === 'core' || d.rb.type === 'core') PSIM.coreDoors.push(d);
-for (const r of PAL.rooms) { r.locked = false; r.guardLeft = 0; }
-const ANN_VARS = { a: '', b: '', room: '', n: 0, wing: '', s: 0 }, ANNX = { a: '', b: '', room: '', n: 0, voice: '' }, SEAL_VARS = { room: '', n: 0 }, SQ_OPTS = { fx: 0, fz: 1, open: false };
-// Where a rival fell: a dark bronze plate on the floor of that room (one per bot, part of the room so it comes and goes with it).
-const TRACES = [];
-{
-  const g = new THREE.BoxGeometry(1.4, 0.08, 1.4);
-  for (let i = 0; i < CONFIG.BOTS.count; i++) { const m = new THREE.Mesh(g, M.bronze); m.matrixAutoUpdate = false; m.receiveShadow = true; TRACES.push(m); }
-}
-// A palace run starts (enterPalace): rivals placed out of sight in seeded rooms (never the start hall or the core), guard squads per room,
-// locks off, the core sealed while rivals stand.
-function palSimStart() {
-  SRNG.s = (G.seed ^ 0x1b873593) | 0;
-  PSIM.on = PS.on && G.botN > 0; PSIM.hunter = null; PSIM.final = false; PSIM.open = false; PSIM.qh = 0; PSIM.qn = 0; PSIM.qDrop = 0;
-  PSIM.logN = 0; PSIM.outN = 0; PSIM.lockN = 0; PSIM.annN = 0; PSIM.liveN = 0;
-  for (const m of TRACES) if (m.parent) m.parent.remove(m);
-  // The start hall begins empty (no squad on the player at the start).
-  // Full palace (BP05 escalation, integration 24 Nov): squads by depth; a seeded share of rooms also hold a 反贼 squad. The six-room box keeps PS.guard.
-  const full = PAL.layout === 'full'; PSIM.late = 0;
-  for (const r of PAL.rooms) {
-    r.locked = false; r.guardLeft = PSIM.on && r !== PAL.start ? (full ? palEscSquads(r, 0) : PS.guard[r.type] || 0) : 0;
-    r.rebelLeft = PSIM.on && full && r !== PAL.start && r.type !== 'core' && srnd() < PS.rebelP ? 1 : 0;
-  }
-  while (PSIM.recs.length < BOTLIST.length) PSIM.recs.push({ idx: PSIM.recs.length, b: BOTLIST[PSIM.recs.length], st: 'out', room: null, hp: 0, ch: 0, plates: 0, moveT: 0, foe: null, fightT: 0, farmT: 0 });
-  let nAllowed = 0;
-  for (const r of PAL.rooms) if (r !== PAL.start && r.type !== 'core') nAllowed++;
-  for (const rec of PSIM.recs) {
-    rec.foe = null; rec.fightT = 0; rec.farmT = 0; rec.room = null; rec.st = 'out';
-    if (!PSIM.on || rec.idx >= G.botN) continue;
-    // Each suit starts in its own school's hall (owner 24 Nov 13:18; full palace); the six-room box has none, so a seeded room.
-    for (const r of PAL.rooms) if (full && r.school === rec.b.school && r !== PAL.start) rec.room = r;
-    let k = rec.room ? -1 : Math.floor(srnd() * nAllowed);
-    for (const r of PAL.rooms) if (k >= 0 && r !== PAL.start && r.type !== 'core' && k-- === 0) { rec.room = r; break; }
-    rec.st = 'sim'; rec.hp = CONFIG.MAX_HP; rec.ch = CONFIG.ULT.start; rec.plates = 0; rec.moveT = PS.moveS * (0.75 + 0.5 * srnd());
-  }
-  palDoorLocks();
-}
-// PERFRAME-BEGIN
-// Suits still standing besides the player (simulated or live).
-function palStanding() { let n = 0; for (let i = 0; i < PSIM.recs.length; i++) if (PSIM.recs[i].st !== 'out') n++; return n; }
-// Door locks from the room locks, plus the core seal (owner 24 Nov 14:16: the core opens only to the last suit standing).
-function palDoorLocks() {
-  const seal = PL.on && PL.sealCore && palStanding() > 0;
-  for (let i = 0; i < PAL.doors.length; i++) {
-    const d = PAL.doors[i], core = d.ra.type === 'core' || d.rb.type === 'core';
-    d.locked = d.ra.locked || d.rb.locked || (core && seal);
-    if (d.locked && d.open) palDoor(d, false);
-  }
-}
-// A suit's name in her announcements.
-function palName(s) { return s === P ? T('pal3_you') : T(s.nameKey); }
-// Her announcement (contract docs/BP-INTERFACES.md: palAnnounce(key, vars); replaces BP04's thin one at the merge). With vars.voice: her line =
-// T(voice), the rule line = T(key, vars); without it (BP04's use): her line = T(key, vars) and no rule line. vars fields a, b, room, n, wing, s
-// are copied. Queued; shown one at a time on the banner for annS seconds once it is free (no fell note, no burning warning holding it).
-function palAnnounce(key, args) {
-  if (PSIM.qn >= PSIM.q.length) { PSIM.qDrop++; return; }
-  const e = PSIM.q[(PSIM.qh + PSIM.qn) % PSIM.q.length]; PSIM.qn++;
-  e.k = key; e.v = args && args.voice ? args.voice : ''; e.a = args && args.a || ''; e.b = args && args.b || ''; e.room = args && args.room || ''; e.n = args && args.n || 0;
-  e.wing = args && args.wing || ''; e.s = args && args.s || 0;
-}
-function palAnnStep() {
-  if (PSIM.qn === 0 || G.fellT > 0 || G.bannerWave >= 0 || G.phase !== 'palace') return;
-  const e = PSIM.q[PSIM.qh]; PSIM.qh = (PSIM.qh + 1) % PSIM.q.length; PSIM.qn--; PSIM.annN++;
-  ANN_VARS.a = e.a; ANN_VARS.b = e.b; ANN_VARS.room = e.room; ANN_VARS.n = e.n; ANN_VARS.wing = e.wing; ANN_VARS.s = e.s;
-  if (e.v) { setText(el.voice, T(e.v)); setText(el.rule, T(e.k, ANN_VARS)); } else { setText(el.voice, T(e.k, ANN_VARS)); setText(el.rule, ''); }
-  setShow(el.banner, true); G.fellT = PS.annS;
-}
-function palLog(kind, a, b, room) {
-  PSIM.log[PSIM.logN % PSIM.log.length] = kind + '|' + a + '|' + b + '|' + room + '|' + G.time.toFixed(2); PSIM.logN++;
-}
-// Ticket 02 adapters (the 皇家 guard is merged separately): its spawn API and unit list when present; none before the merge.
-function palGuardAlive(r) {
-  if (typeof GUARDS === 'undefined') return 0;
-  let n = 0;
-  for (let i = 0; i < GUARDS.length; i++) { const u = GUARDS[i]; if (u.alive && palIn(r, u.x, u.z)) n++; }
-  return n;
-}
-function palGuardSpawn(r) {
-  if (typeof spawnSquad !== 'function' || r.guardLeft <= 0 || r.type === 'core' || palGuardAlive(r) > 0) return -1;
-  // Facing the door it was seen through (the current room's side), else north.
-  let fx = 0, fz = -1;
-  for (let i = 0; i < r.doors.length; i++) { const d = r.doors[i]; if (d.ra === PAL.cur || d.rb === PAL.cur) { const l = Math.hypot(d.x - r.cx, d.z - r.cz) || 1; fx = (d.x - r.cx) / l; fz = (d.z - r.cz) / l; } }
-  SQ_OPTS.fx = fx; SQ_OPTS.fz = fz; SQ_OPTS.open = r.type === 'court';
-  const id = spawnSquad('huangjia', PAL.layout === 'full' ? palEscMix(r) : PS.squad, r.cx, r.cz, SQ_OPTS);
-  if (id >= 0) r.guardLeft--;
-  return id;
-}
-// A room's 反贼 squad comes into sight with it (integration 24 Nov; ticket 07 units): a quarter of the room from its centre, facing like the guard;
-// her line names the room (announced through palAnnounce). It fights the guard and the suits alike (factions hostile to each other).
-function palRebelSpawn(r) {
-  if (!CONFIG.FANZEI_ON || r.rebelLeft <= 0 || r.type === 'core') return -1;
-  const id = spawnSquad('fanzei', PS.rebelSquad, r.cx + (r.x1 - r.x0) / 4, r.cz + (r.z1 - r.z0) / 4, SQ_OPTS);
-  if (id < 0) return -1;
-  r.rebelLeft--;
-  ANNX.a = ''; ANNX.b = ''; ANNX.room = r.name; ANNX.n = 0; ANNX.voice = 'pal3_v_rebels'; palAnnounce('pal3_r_rebels', ANNX);
-  return id;
-}
-// A guard unit hostile to the suits that bot b sees (ticket 02), or null.
-function palGuardFoe(b) {
-  if (typeof GUARDS === 'undefined' || !(G.guardN > 0)) return null;
-  let best = null, bd = PC.fowR;
-  for (let i = 0; i < GUARDS.length; i++) {
-    const u = GUARDS[i]; if (!u.alive || !CONFIG.GUARD.factions[u.faction].foeSuits || !palSight(b.x, b.z, u.x, u.z)) continue;
-    const d = Math.hypot(u.x - b.x, u.z - b.z); if (d < bd) { bd = d; best = u; }
-  }
-  return best;
-}
-// A free standing point in room r (seeded from gen), away from walls, pillars and props (margin m): written to PT.
-const PT = { x: 0, z: 0 };
-function palPoint(r, gen, m) {
-  for (let t = 0; t < 12; t++) {
-    const x = r.x0 + m + (r.x1 - r.x0 - 2 * m) * gen(), z = r.z0 + m + (r.z1 - r.z0 - 2 * m) * gen();
-    let ok = true;
-    for (let i = 0; i < PAL.solids.length && ok; i++) { const s = PAL.solids[i]; if (!s.off && x > s.x0 - 1 && x < s.x1 + 1 && z > s.z0 - 1 && z < s.z1 + 1) ok = false; }
-    if (ok) { PT.x = x; PT.z = z; return; }
-  }
-  PT.x = r.cx; PT.z = r.cz;
-}
-// A rival comes into sight in its current state (owner 24 Nov 13:26): at door d inside its room when it walked in, else at a free point.
-function palLive(rec, d) {
-  const b = rec.b, r = rec.room;
-  if (d) { const sg = (d.vert ? r.cx : r.cz) < d.e ? -PC.passM : PC.passM; PT.x = d.vert ? d.e + sg : d.c; PT.z = d.vert ? d.c : d.e + sg; }
-  else palPoint(r, srnd, 3);
-  b.x = b.px = PT.x; b.z = b.pz = PT.z; b.y = b.py = topY(PT.x, PT.z);
-  b.vy = 0; b.air = false; b.airFromY = 0; b.voidT = 0; b.dead = false; b.deadT = 0; b.hp = rec.hp; b.hpShown = -1; b.noHealT = 0;
-  b.kx = b.kz = 0; b.atkT = 0; b.stuckT = 0; b.stuckMax = 0; b.ax = b.x; b.az = b.z; b.anchorT = 0; b.repathed = false; b.zone = null; b.floor = null; b.moved = 0;
-  b.slowT = 0; b.slowK = 0; b.stunT = 0; b.bleedN = 0; b.bleedT = 0; b.ch = rec.ch; b.plates = rec.plates; b.cause = ''; b.diedAt = -1; b.killer = null;
-  b.navWant = false; b.path.n = 0; b.path.i = 0; b.gx = b.x; b.gz = b.z; b.gy = b.y; b.goalT = 1e9; b.flashT = 0; b.body.material = b.mat;
-  b.thinkT = 0; b.tgt = null; b.tgtT = 0; b.mode = ''; b.modeT = 0; b.pend = false; b.pendT = 0; b.mx = b.mz = 0; b.direct = false; b.heal = null; b.skip = null; b.castT = 0;
-  b.bar.scale.x = Math.max(0.001, b.hp / CONFIG.MAX_HP); b.seen = false; b.group.visible = false; b.group.position.set(b.x, b.y, b.z);
-  if (!b.group.parent) scene.add(b.group);
-  rec.st = 'live'; rec.foe = null; rec.fightT = 0; PSIM.liveN++;
-}
-// Out of sight again (its room left the scene): the simulation keeps its health, meter and plates; the bot leaves the scene.
-function palPark(rec) {
-  const b = rec.b;
-  rec.hp = b.hp; rec.ch = b.ch; rec.plates = heldPlates(b); rec.st = 'sim'; rec.farmT = 0; rec.moveT = PS.moveS * (0.75 + 0.5 * srnd());
-  botOut(b);
-}
-// Rooms came into or left the scene (palSync): rivals in them come into sight or go out of it; a room's guard squad appears when it comes into sight.
-function palSimSync() {
-  if (!PSIM.on || !PAL.on) return;
-  for (let i = 0; i < PSIM.recs.length; i++) {
-    const rec = PSIM.recs[i];
-    if (rec.st === 'sim' && rec.room.group.parent) palLive(rec, null);
-    else if (rec.st === 'live') { const r = palRoomAt(rec.b.x, rec.b.z); if (r) rec.room = r; if (!rec.room.group.parent) palPark(rec); }
-  }
-  for (let i = 0; i < PAL.rooms.length; i++) {
-    const r = PAL.rooms[i]; if (!r.group.parent) continue;
-    if (r.guardLeft > 0) palGuardSpawn(r);
-    if (r.rebelLeft > 0) palRebelSpawn(r);
-  }
-}
-// A rival's strength in an off-screen fight (measured win share, health, plates, meter).
-function palStr(rec) { return (PS.share[rec.b.school] || 1) * Math.max(1, rec.hp) / CONFIG.MAX_HP * (1 + PS.plateK * rec.plates) * (1 + PS.meterK * rec.ch); }
-// A rival is broken: out of the run, a trace where it fell, her announcement (every result; key = another line than kill/fall), the seal and the
-// door card refreshed.
-function palOut(rec, by, key) {
-  const b = rec.b, r = rec.room, tr = TRACES[rec.idx];
-  rec.st = 'out'; rec.foe = null; PSIM.outN++;
-  if (PSIM.hunter === rec) PSIM.hunter = null;
-  if (tr && r) { tr.position.set(b.dead && palIn(r, b.x, b.z) ? b.x : r.cx + (rec.idx % 3 - 1) * 2, 0.04, b.dead && palIn(r, b.x, b.z) ? b.z : r.cz + ((rec.idx / 3) | 0) - 1); tr.updateMatrix(); r.group.add(tr); }
-  const kill = !!by && by.kind === 'suit' && by !== b;
-  ANNX.a = kill ? palName(by) : ''; ANNX.b = palName(b); ANNX.room = r ? r.name : ''; ANNX.n = 0; ANNX.voice = 'pal3_v_kill';
-  palAnnounce(key || (kill ? 'pal3_r_kill' : 'pal3_r_fell'), ANNX);
-  palLog(key ? 'giant' : kill ? 'kill' : 'fell', kill ? (by === P ? 'P' : by.school) : '', b.school, r ? r.id : '');
-  palDoorLocks();
-  if (PAL.pv) palCard();
-}
-// A rival out of sight broken by a bronze giant in its room: out like a fall, with her own line.
-function palGiantOut(rec) {
-  const b = rec.b; b.cause = 'giant'; b.diedAt = G.time; b.killer = null;
-  palOut(rec, null, 'pal3_r_giant');
-}
-// An off-screen fight is settled: the winner by strength share (seeded draw), the loser out where they fought.
-function palSettle(x, y) {
-  const sx = palStr(x), sy = palStr(y), w = srnd() * (sx + sy) < sx ? x : y, l = w === x ? y : x, ls = (w === x ? sy : sx) / (sx + sy);
-  w.hp = Math.max(1, w.hp - PS.winHpK * CONFIG.MAX_HP * ls * (0.5 + srnd())); w.ch = Math.min(CONFIG.ULT.full, w.ch + CONFIG.ULT.kill);
-  x.foe = null; y.foe = null; w.moveT = PS.moveS * (0.75 + 0.5 * srnd());
-  l.b.cause = 'sim'; l.b.diedAt = G.time; l.b.killer = w.b;
-  palOut(l, w.b);
-}
-// First door on the way from room a to room z through doors that are not locked (breadth-first), or null.
-function palNextDoor(a, z) {
-  if (a === z) return null;
-  const from = PSIM.bfrom, q = PSIM.bq;
-  from.fill(-2); from[a.idx] = -1; q[0] = a.idx;
-  let qh = 0, qt = 1;
-  while (qh < qt && from[z.idx] === -2) {
-    const r = PAL.rooms[q[qh++]];
-    for (let i = 0; i < r.doors.length; i++) { const d = r.doors[i], o = d.ra === r ? d.rb : d.ra; if (from[o.idx] !== -2 || d.locked || o.fallen) continue; from[o.idx] = d.idx; q[qt++] = o.idx; }
-  }
-  if (from[z.idx] === -2) return null;
-  let d = null;
-  for (let r = z; r !== a;) { d = PAL.doors[from[r.idx]]; r = d.ra === r ? d.rb : d.ra; }
-  return d;
-}
-// A rival's room move (hunter: toward the player's room; others: a random door, never into a locked, warned or fallen room, the core or the
-// player's room; a rival in a warned room always tries to move).
-// Walking into a room in sight brings it into sight at that door; meeting another rival out of sight may start a fight.
-function palSimMove(rec) {
-  let d = null;
-  if (rec === PSIM.hunter) d = palNextDoor(rec.room, PAL.cur);
-  else if (rec.room.warned || srnd() < PS.moveP) {
-    let n = 0;
-    for (let i = 0; i < rec.room.doors.length; i++) { const e = rec.room.doors[i], o = e.ra === rec.room ? e.rb : e.ra; if (!e.locked && o.type !== 'core' && o !== PAL.cur && !o.fallen && !o.warned) n++; }
-    let k = n > 0 ? Math.floor(srnd() * n) : -1;
-    for (let i = 0; i < rec.room.doors.length && k >= 0; i++) { const e = rec.room.doors[i], o = e.ra === rec.room ? e.rb : e.ra; if (!e.locked && o.type !== 'core' && o !== PAL.cur && !o.fallen && !o.warned && k-- === 0) d = e; }
-  }
-  if (!d || d.locked) return;
-  const to = d.ra === rec.room ? d.rb : d.ra;
-  if (to.locked || to.fallen) return;
-  rec.room = to; rec.farmT = 0;
-  if (to.group.parent) { palLive(rec, d); return; }
-  for (let i = 0; i < PSIM.recs.length; i++) {
-    const o = PSIM.recs[i];
-    if (o !== rec && o.st === 'sim' && o.room === to && !o.foe && srnd() < PS.engageP) { rec.foe = o; o.foe = rec; rec.fightT = o.fightT = PS.fightS; break; }
-  }
-}
-// Live enemies inside room r: rivals in sight and guard units (ticket 02).
-function palFoesIn(r) {
-  let n = palGuardAlive(r);
-  for (let i = 0; i < PSIM.recs.length; i++) { const rec = PSIM.recs[i]; if (rec.st === 'live' && !rec.b.dead && palIn(r, rec.b.x, rec.b.z)) n++; }
-  return n;
-}
-// The player's room locks once an enemy is inside it and the player stands clear of its doors; it opens when no enemy is left there.
-function palLockStep() {
-  const r = PAL.cur; if (!PL.on || !r || r.type === 'core') return;
-  const n = palFoesIn(r);
-  // BP04 fairness: never lock a warned or fallen room (burnCanLock once the burning is merged; the same rule before it).
-  if (!r.locked && n > 0 && !P.dead && (typeof burnCanLock === 'function' ? burnCanLock(r) : !r.warned && !r.fallen)) {
-    for (let i = 0; i < r.doors.length; i++) if (Math.hypot(P.x - r.doors[i].x, P.z - r.doors[i].z) < PL.clearM) return;
-    r.locked = true; PSIM.lockN++; palDoorLocks();
-    ANNX.a = ''; ANNX.b = ''; ANNX.room = r.name; ANNX.n = n; ANNX.voice = 'pal3_v_lock'; palAnnounce('pal3_r_lock', ANNX);
-    if (PAL.pv) palCard();
-  } else if (r.locked && n === 0) { r.locked = false; palDoorLocks(); if (PAL.pv) palCard(); }
-}
-// The door card of a locked or sealed door (written on change only); true when it was shown.
-function palCardLock(d) {
-  if (!d.locked) return false;
-  const o = d.ra === PAL.cur ? d.rb : d.ra;
-  if (!PAL.cur.locked && !o.locked) { SEAL_VARS.room = o.name; SEAL_VARS.n = palStanding(); setText(el.door, T('pal3_door_sealed', SEAL_VARS)); }
-  else { SEAL_VARS.room = PAL.cur.locked ? PAL.cur.name : o.name; SEAL_VARS.n = 0; setText(el.door, T('pal3_door_locked', SEAL_VARS)); }
-  setShow(el.door, true);
-  return true;
-}
-// The simulation, one fixed step: off-screen fights, farming, moves; live rivals; hunter and the final two; the core seal; locks; announcements.
-function stepPalRivals(dt) {
-  if (!PSIM.on) { palAnnStep(); return; }
-  const dec = G.decidedAt; stepBots(dt); G.decidedAt = dec;
-  for (let i = 0; i < PSIM.recs.length; i++) {
-    const rec = PSIM.recs[i];
-    if (rec.st === 'live') { const r = palRoomAt(rec.b.x, rec.b.z); if (r) rec.room = r; if (rec.b.dead) palOut(rec, rec.b.killer); continue; }
-    if (rec.st !== 'sim') continue;
-    // BP04: a room that fell into the lake takes the rivals standing in it out of sight (announced as a fall).
-    if (rec.room.fallen) { rec.b.cause = 'fall'; rec.b.diedAt = G.time; rec.b.killer = null; palOut(rec, null); continue; }
-    rec.ch = Math.min(CONFIG.ULT.full, rec.ch + CONFIG.ULT.passive * dt);
-    // An awake bronze giant (ticket 09) in its room wears it down out of sight; broken, she announces it.
-    if (P2.awake > 0 && P2.on && P2.giantsOn) {
-      const gn = giantsInRoom(rec.room);
-      if (gn > 0) { rec.hp -= PS.giantDps * gn * dt; if (rec.hp <= 0) { rec.hp = 0; palGiantOut(rec); continue; } }
-    }
-    if (rec.foe) {
-      if (rec.foe.st !== 'sim' || rec.foe.foe !== rec) { rec.foe = null; continue; }
-      rec.fightT -= dt;
-      if (rec.fightT <= 0 && rec.idx < rec.foe.idx) palSettle(rec, rec.foe);
-      continue;
-    }
-    if (rec.room.guardLeft > 0 || rec.room.rebelLeft > 0) {
-      let alone = true;
-      for (let k = 0; k < PSIM.recs.length; k++) if (k !== i && PSIM.recs[k].st === 'sim' && PSIM.recs[k].room === rec.room) alone = false;
-      if (alone) { rec.farmT += dt; if (rec.farmT >= PS.farmS) { rec.farmT = 0; if (rec.room.guardLeft > 0) rec.room.guardLeft--; else rec.room.rebelLeft--; rec.hp = Math.max(1, rec.hp - PS.farmHp); rec.ch = Math.min(CONFIG.ULT.full, rec.ch + CONFIG.ULT.kill); palLog('farm', rec.b.school, '', rec.room.id); } }
-    }
-    rec.moveT -= dt;
-    if (rec.moveT <= 0) { rec.moveT = PS.moveS * (0.75 + 0.5 * srnd()); palSimMove(rec); }
-  }
-  // Full palace escalation (BP05 PAL_ESC.lateAt): one more squad joins every standing room (cap), rooms in sight get it now.
-  if (PAL.layout === 'full' && PSIM.late < CONFIG.PAL_ESC.lateAt.length && G.time >= CONFIG.PAL_ESC.lateAt[PSIM.late]) {
-    PSIM.late++;
-    for (let i = 0; i < PAL.rooms.length; i++) { const r = PAL.rooms[i]; if (r.type !== 'core' && r.state < 2) r.guardLeft = Math.min(CONFIG.PAL_ESC.cap, r.guardLeft + 1); }
-    palSimSync();
-  }
-  const n = palStanding();
-  if (!PSIM.hunter && !PSIM.final && n > 0 && G.time >= PS.hunterS) {
-    let best = null, bs = -1;
-    for (let i = 0; i < PSIM.recs.length; i++) { const rec = PSIM.recs[i]; if (rec.st !== 'out') { const s = palStr(rec); if (s > bs) { bs = s; best = rec; } } }
-    PSIM.hunter = best; ANNX.a = palName(best.b); ANNX.b = ''; ANNX.room = ''; ANNX.n = 0; ANNX.voice = 'pal3_v_hunt'; palAnnounce('pal3_r_hunt', ANNX);
-  }
-  if (n === 1 && !PSIM.final) {
-    PSIM.final = true;
-    for (let i = 0; i < PSIM.recs.length; i++) if (PSIM.recs[i].st !== 'out') PSIM.hunter = PSIM.recs[i];
-    ANNX.a = palName(PSIM.hunter.b); ANNX.b = ''; ANNX.room = ''; ANNX.n = 0; ANNX.voice = 'pal3_v_final'; palAnnounce('pal3_r_final', ANNX);
-  }
-  if (n === 0 && !PSIM.open) {
-    PSIM.open = true; palDoorLocks(); if (G.decidedAt < 0) G.decidedAt = G.time;
-    ANNX.a = ''; ANNX.b = ''; ANNX.room = ''; ANNX.n = 0; ANNX.voice = 'pal3_v_core'; palAnnounce('pal3_r_core', ANNX);
-  }
-  G.alive = 1 + n;
-  palLockStep();
-  palAnnStep();
-}
-// Rival bots in sight (bot brain hook): the nearest suit or guard unit they see, else a walk to a free point in their own room.
-function palBotDecide(b) {
-  let best = null, bd = 1e9;
-  for (let i = 0; i < SUITS.length; i++) {
-    const s = SUITS[i]; if (s === b || s.dead) continue;
-    const d = Math.hypot(s.x - b.x, s.z - b.z); if (d < bd && botSees(b, s, PC.fowR)) { bd = d; best = s; }
-  }
-  let u = palGuardFoe(b), ud = u ? Math.hypot(u.x - b.x, u.z - b.z) : 1e9;
-  // An awake bronze giant in sight is a target like a guard unit (ticket 09b, owner 24 Nov 15:41: killable). Integration 24 Nov: palace bots decide
-  // here (BP03), so 09b's giant target in botDecide never ran in the palace.
-  for (let i = 0; i < P2.giants.length; i++) {
-    const g = P2.giants[i]; if (!g.alive || Math.abs(b.y) > 1.5 || !palSight(b.x, b.z, g.x, g.z)) continue;
-    const d = Math.hypot(g.x - b.x, g.z - b.z); if (d < ud && d <= PC.fowR) { ud = d; u = g; }
-  }
-  if (u && ud < bd) { if (b.tgt !== u) b.tgtT = 0; b.tgt = u; b.mode = 'creature'; b.direct = true; b.path.n = 0; return; }
-  if (best) { if (b.tgt !== best) b.tgtT = 0; b.tgt = best; b.mode = 'fight'; b.direct = true; b.path.n = 0; return; }
-  b.tgt = null; b.direct = false;
-  if (b.mode !== 'roam' || b.goalT > CONFIG.BOT.goalHoldS || b.path.i >= b.path.n) palBotRoam(b);
-}
-function palBotRoam(b) {
-  const r = palRoomAt(b.x, b.z) || PAL.cur;
-  palPoint(r, brnd, 3);
-  b.mode = 'roam'; b.gx = PT.x; b.gz = PT.z; b.gy = b.y; b.goalT = 0; b.navWant = false; b.flee = false;
-  b.path.pts[0] = PT.x; b.path.pts[1] = PT.z; b.path.n = 1; b.path.i = 0;
-}
-// The bots' path search in the palace (no walk grid): straight to the goal inside the room.
-function palBotPath(b) { b.path.pts[0] = b.gx; b.path.pts[1] = b.gz; b.path.n = 1; b.path.i = 0; }
-// The core hall reached (only as the last suit standing): the palace leaves the scene and the 兵家 apex wakes in its hall (the hunt as built).
-function palApex() {
-  if (!CONFIG.APEX_HUNT) { endPalace(true); return; }
-  PSIM.on = false; PSIM.qn = 0;
-  leavePalace();
-  for (const s of SECLIST) if (!s.group.parent) scene.add(s.group);
-  startHunt();
-}
-// PERFRAME-END
-
 // ===================== The burning (BP04): she names a wing, it warns for BURN.warnS seconds, its rooms fall into the black lake =====================
 // Room fields owned here: warned, fallen, warnAt, fallAt (state: 0 standing, 1 warned, 2 falling, 3 gone). Read here: room.locked (owner BP03),
 // room.wing (owner BP05; BURN_WINGS until then). Entry points for BP09 and BP03: onWingWarn(wing), onWingFall(wing). Fairness monitor every tick:
@@ -3266,6 +2993,11 @@ function burnBind() {
   const LK = PAL.want || CONFIG.PAL_PLAN.layout, S = PAL.sets[LK] || PAL.sets.full;
   BURN.order = S === PAL.sets.proto ? CONFIG.BURN.order : CONFIG.BURN.orderFull;
   for (const w of BURN.order) BURN.rooms[w] = S.rooms.filter((r) => r.wing === w);
+}
+// Her announcements through the banner slot (BP03 owns the queue; this thin version shows one line and lets the fell-note timer hide it).
+function palAnnounce(key, vars) {
+  if (G.bannerWave >= 0) return;
+  setText(el.voice, T(key, vars)); setText(el.rule, ''); setShow(el.banner, true); G.fellT = CONFIG.BURN.noteS;
 }
 // May BP03 lock this room? Never once it is warned or fallen (the fairness rule's other half).
 function burnCanLock(r) { return !r.warned && !r.fallen; }
@@ -3363,10 +3095,7 @@ function stepBurn(dt) {
 // Placement: P2_CLOCKS / P2_VAT_AT / P2_GIANT_AT (BP01 rooms) until BP05's room.pieces. Every side is hit alike (suits now; BP02's guard by tag at the merge).
 const C2 = CONFIG.PIECES2, G2 = C2.giant;
 const P2 = { on: C2.on, giantsOn: true, clocks: [], giants: [], awake: 0, wakes: 0, lost: 0, douses: 0, douseWave: -1, note: false, notes: 0,
-  instWrites: 0, dirty: true, nDorm: 0, nAwake: 0, wingIdx: {}, kills: 0, downNote: 0, downNotes: 0, nBars: 0,
-  dmg: { blow: 0, guard: 0, piece: 0, vat: 0 } };
-// Giant health bars (owner 24 Nov 15:41): one instanced bar over every awake giant drawn, its length the health left (written with the giants' matrices).
-const p2BarMat = new THREE.MeshStandardMaterial({ color: C2.colors.bar, emissive: C2.colors.bar, emissiveIntensity: 1, roughness: 1 }), p2BarQ = new THREE.Quaternion(), p2BarS = new THREE.Vector3(), p2BarP = new THREE.Vector3(), p2Euler = new THREE.Euler();
+  instWrites: 0, dirty: true, nDorm: 0, nAwake: 0, wingIdx: {} };
 const p2WaterMat = new THREE.MeshStandardMaterial({ color: C2.colors.water, roughness: 0.3, metalness: 0.1 });
 const p2GlowMat = new THREE.MeshStandardMaterial({ color: COL.bronze, emissive: C2.colors.glow, emissiveIntensity: 0.6, metalness: 0.4, roughness: 0.6 });
 const p2Mat4 = new THREE.Matrix4();
@@ -3395,8 +3124,7 @@ function p2Static(r, geo, m) { const mesh = new THREE.Mesh(geo, m); mesh.castSha
   const gGeo = mergeGeoms([box(0.7, 2, 0.8, -0.5, 1, 0), box(0.7, 2, 0.8, 0.5, 1, 0), box(2.2, 2, 1.2, 0, 3, 0), box(0.9, 0.9, 0.9, 0, 4.45, 0),
     box(0.6, 2, 0.6, -1.45, 3, 0), box(0.6, 2, 0.6, 1.45, 3, 0)]);
   P2.dorm = new THREE.InstancedMesh(gGeo, M.bronze, G2.n); P2.wake = new THREE.InstancedMesh(gGeo, p2GlowMat, G2.n);
-  P2.bars = new THREE.InstancedMesh(new THREE.BoxGeometry(2.4, 0.25, 0.25).translate(1.2, 0, 0), p2BarMat, G2.n);
-  for (const im of [P2.dorm, P2.wake, P2.bars]) {
+  for (const im of [P2.dorm, P2.wake]) {
     // No shadow from giants (they move; the shadow map is redrawn only on change); count 0 and hidden until one stands in a drawn room.
     im.castShadow = false; im.receiveShadow = true; im.count = 0; im.visible = false; im.matrixAutoUpdate = false;
     // Culling stays on: one sphere around the whole palace (instances move between rooms; both plans fit inside it).
@@ -3429,9 +3157,9 @@ function p2Static(r, geo, m) { const mesh = new THREE.Mesh(geo, m); mesh.castSha
   for (let i = 0; i < Math.min(G2.n, spots.length); i++) {
     const a = spots[i], r = p2Room(a.room), x = ox + a.x, z = oz + a.z;
     const ring = new THREE.Mesh(tellRingGeo, M.tellD), line = new THREE.Mesh(tellLineGeo, M.tellD);
-    S.giants.push(Object.assign(P2_GIANT_T.find((t) => t.lay === LK && t.i === i), { hx: x, hz: z, x, z, px: x, pz: z, ry: Math.PI, fx: 0, fz: 1, st: 0, t: 0, tellT: 0, cur: '', thinkT: 0, gapT: 0, cdS: 0, cdW: 0,
+    S.giants.push({ i, hx: x, hz: z, x, z, px: x, pz: z, ry: Math.PI, fx: 0, fz: 1, st: 0, t: 0, tellT: 0, cur: '', thinkT: 0, gapT: 0, cdS: 0, cdW: 0,
       tgt: null, wx: x, wz: z, door: null, tl: 0, tx: 0, tz: 0, ring, line, home: r, order: Math.hypot(x - core.cx, z - core.z1),
-      hits: 0, minTell: 99, vis: false, fallT: 0, killer: null }));
+      hits: 0, minTell: 99, vis: false });
   }
   // Wake order: nearest the core hall's door first.
   S.byWake = S.giants.slice().sort((a, b) => a.order - b.order);
@@ -3467,34 +3195,6 @@ function hitVat(v, n) {
   v.st = 1; v.t = C2.vat.crackS; if (ORD.attack === v) ORD.attack = null;
   scene.add(v.ring);
 }
-// A blow on a giant (owner 24 Nov 15:41: killable): only an awake one of the plan in use (1 waking .. 4 recovering) takes it; at 0 it collapses
-// (fallS), then lies there for the run; the suit that broke it takes giant.charge; her line waits for the banner; its awake slot frees (another may wake).
-// src = what struck it ('blow' a suit or other target's blow, 'guard', 'piece', 'vat'): P2.dmg counts the damage by source (checks read it).
-function hitGiant(g, n, by, src) {
-  if (g.st < 1 || g.st > 4 || g.lay !== PAL.layout || !PAL.on) return;
-  P2.dmg[src] += Math.min(n, g.hp);
-  g.hp = Math.max(0, g.hp - n); P2.dirty = true;
-  if (g.hp > 0) return;
-  if (g.ring.parent) scene.remove(g.ring); if (g.line.parent) scene.remove(g.line);
-  g.st = 6; g.t = G2.fallS; g.fallT = 0; g.killer = by; g.seen = false; g.alive = false; P2.awake--; P2.kills++; P2.downNote++;
-  if (ORD.attack === g) ORD.attack = null;
-  if (by && by.kind === 'suit') gainCharge(by, G2.charge);
-}
-// Bots dodge a giant's shown move (seen for the reaction time) like any other tell: away from the slam's centre, sideways out of the sweep.
-function p2Danger(b, x, z, margin) {
-  const react = b.skill.react;
-  for (let i = 0; i < P2.giants.length; i++) {
-    const g = P2.giants[i];
-    if (g.st !== 3 || g.tellT < react || Math.abs(b.y) >= 3) continue;
-    if (g.cur === 'slam') {
-      if (Math.hypot(x - g.tx, z - g.tz) < G2.slam.radius + margin) { DNG.ex = b.x - g.tx; DNG.ez = b.z - g.tz; if (DNG.ex === 0 && DNG.ez === 0) DNG.ez = 1; return true; }
-    } else {
-      const qx = x - g.x, qz = z - g.z, along = qx * g.fx + qz * g.fz, side = qx * g.fz - qz * g.fx;
-      if (along >= -margin && along <= g.tl + margin && Math.abs(side) <= G2.sweep.width / 2 + margin) { const sg = side >= 0 ? 1 : -1; DNG.ex = g.fz * sg; DNG.ez = -g.fx * sg; return true; }
-    }
-  }
-  return false;
-}
 // The splash: knockback for every suit inside; inside the wing that is burning now it holds the fall douseS seconds (once per wave).
 function p2Splash(v) {
   v.st = 2; v.t = C2.vat.floodS; v.seen = false; v.solid.off = true; v.body.visible = false; scene.remove(v.ring); v.r0.group.add(v.flood);
@@ -3505,8 +3205,6 @@ function p2Splash(v) {
     if (d >= C2.vat.radius) continue;
     if (d > 0.01) { s.kx += hx / d * C2.vat.kb; s.kz += hz / d * C2.vat.kb; } else s.kz += C2.vat.kb;
   }
-  // A giant inside the splash takes giantDmg (no reward: the water broke it).
-  for (let i = 0; i < P2.giants.length; i++) { const g = P2.giants[i]; if (Math.hypot(g.x - v.x, g.z - v.z) < C2.vat.radius + G2.r) hitGiant(g, C2.vat.giantDmg, null, 'vat'); }
   const r = v.r0;
   if (BURN.st === 1 && r.warned && !r.fallen && r.wing === BURN.wing && P2.douseWave !== BURN.i) {
     BURN.warnAt += C2.vat.douseS; BURN.shownS = -1; P2.douses++; P2.douseWave = BURN.i;
@@ -3518,14 +3216,13 @@ function p2Holds(d) {
   return false;
 }
 // Awake giants standing in room r (BP03's off-screen simulation reads this: to wire at the merge).
-// Only awake giants still standing count (st 2-4; 5 = fell into the lake; integration 24 Nov).
-function giantsInRoom(r) { let n = 0; for (let i = 0; i < P2.giants.length; i++) { const g = P2.giants[i]; if (g.st >= 2 && g.st <= 4 && palRoomAt(g.x, g.z) === r) n++; } return n; }
+function giantsInRoom(r) { let n = 0; for (let i = 0; i < P2.giants.length; i++) { const g = P2.giants[i]; if (g.st >= 2 && palRoomAt(g.x, g.z) === r) n++; } return n; }
 // New run (called by reset, both modes): giants dormant at home, vats whole, clocks full; the instanced meshes in the scene for palace runs only.
 function p2Reset() {
   p2Bind();
   for (const LK in P2.sets) for (const g of P2.sets[LK].giants) {
     g.x = g.hx; g.z = g.hz; g.px = g.x; g.pz = g.z; g.ry = Math.PI; g.st = 0; g.t = 0; g.tellT = 0; g.cur = ''; g.thinkT = 0; g.gapT = 0; g.cdS = 0; g.cdW = 0;
-    g.tgt = null; g.door = null; g.hits = 0; g.minTell = 99; g.vis = false; g.hp = G2.hp; g.seen = false; g.alive = false; g.fallT = 0; g.killer = null;
+    g.tgt = null; g.door = null; g.hits = 0; g.minTell = 99; g.vis = false;
     if (g.ring.parent) scene.remove(g.ring); if (g.line.parent) scene.remove(g.line);
   }
   for (const v of P2_VATS) {
@@ -3534,18 +3231,17 @@ function p2Reset() {
   }
   for (const c of P2.clocks) { c.step = -1; c.writes = 0; }
   P2.awake = 0; P2.wakes = 0; P2.lost = 0; P2.douses = 0; P2.douseWave = -1; P2.note = false; P2.notes = 0; P2.instWrites = 0; P2.dirty = true;
-  P2.kills = 0; P2.downNote = 0; P2.downNotes = 0; P2.nBars = 0; P2.dmg.blow = 0; P2.dmg.guard = 0; P2.dmg.piece = 0; P2.dmg.vat = 0;
   const on = G.mode === 'palace' && CONFIG.PALACE_ON && P2.on;
-  for (const im of [P2.dorm, P2.wake, P2.bars]) { im.count = 0; im.visible = false; if (on && !im.parent) scene.add(im); else if (!on && im.parent) scene.remove(im); }
+  for (const im of [P2.dorm, P2.wake]) { im.count = 0; im.visible = false; if (on && !im.parent) scene.add(im); else if (!on && im.parent) scene.remove(im); }
 }
 // Load warm-up (palace draw): giant meshes, tells, a vat ring and flood are drawn once so their programs and buffers exist before play.
 function p2Warm(on) {
   const g = P2.giants[0], v = P2_VATS[0];
   if (on) {
-    for (const im of [P2.dorm, P2.wake, P2.bars]) { im.count = 1; im.visible = true; p2Mat4.makeTranslation(g.hx, 0, g.hz); im.setMatrixAt(0, p2Mat4); im.instanceMatrix.needsUpdate = true; scene.add(im); }
+    for (const im of [P2.dorm, P2.wake]) { im.count = 1; im.visible = true; p2Mat4.makeTranslation(g.hx, 0, g.hz); im.setMatrixAt(0, p2Mat4); im.instanceMatrix.needsUpdate = true; scene.add(im); }
     g.ring.position.set(g.hx, 0.08, g.hz); g.line.position.set(g.hx, 0.08, g.hz); scene.add(g.ring, g.line, v.ring); v.r0.group.add(v.flood);
   } else {
-    for (const im of [P2.dorm, P2.wake, P2.bars]) { im.count = 0; im.visible = false; scene.remove(im); }
+    for (const im of [P2.dorm, P2.wake]) { im.count = 0; im.visible = false; scene.remove(im); }
     scene.remove(g.ring, g.line, v.ring); v.r0.group.remove(v.flood);
   }
 }
@@ -3621,15 +3317,8 @@ function p2In(g, k, x, z) {
 function p2StepGiant(g, dt) {
   g.px = g.x; g.pz = g.z;
   if (g.st === 0 || g.st === 5) return;
-  // Broken (6 collapsing, 7 lying for the run): it never acts again; a fall of its room takes the body into the lake (not counted as lost).
-  if (g.st >= 6) {
-    const r = palRoomAt(g.x, g.z);
-    if (r && r.state >= 2) { g.st = 5; P2.dirty = true; return; }
-    if (g.st === 6) { g.fallT = Math.min(G2.fallS, g.fallT + dt); P2.dirty = true; if (g.fallT >= G2.fallS) g.st = 7; }
-    return;
-  }
   const here = palRoomAt(g.x, g.z);
-  if (here && here.state >= 2) { if (g.ring.parent) scene.remove(g.ring); if (g.line.parent) scene.remove(g.line); g.st = 5; g.seen = false; g.alive = false; P2.awake--; P2.lost++; P2.dirty = true; return; }
+  if (here && here.state >= 2) { if (g.ring.parent) scene.remove(g.ring); if (g.line.parent) scene.remove(g.line); g.st = 5; P2.awake--; P2.lost++; P2.dirty = true; return; }
   if (g.cdS > 0) g.cdS -= dt; if (g.cdW > 0) g.cdW -= dt; if (g.gapT > 0) g.gapT -= dt;
   if (g.st === 1) { g.t -= dt; if (g.t <= 0) { g.st = 2; g.thinkT = 0; } return; }
   if (g.st === 3) { g.t -= dt; g.tellT += dt; if (g.t <= 0) p2Resolve(g); return; }
@@ -3669,7 +3358,6 @@ function stepPieces2(dt) {
   }
   if (P2.giantsOn) for (let i = 0; i < P2.giants.length; i++) p2StepGiant(P2.giants[i], dt);
   if (P2.note && G.bannerWave < 0 && G.fellT <= 0) { P2.note = false; P2.notes++; palAnnounce('piece2_giant_voice'); }
-  else if (P2.downNote > 0 && G.bannerWave < 0 && G.fellT <= 0) { P2.downNote--; P2.downNotes++; palAnnounce('piece2_giant_down'); }
   p2Draw();
 }
 // Instances: giants standing in a room that is in the scene; matrices written only when one moved or the drawn set changed.
@@ -3678,24 +3366,19 @@ function p2Draw() {
   for (let i = 0; i < P2.giants.length; i++) {
     const g = P2.giants[i], r = palRoomAt(g.x, g.z), vis = g.st !== 5 && !!r && !!r.group.parent && r.state < 2;
     if (vis !== g.vis) { g.vis = vis; moved = true; }
-    // A target (the auto-target, blows, bots) while awake (waking .. recovering) and drawn.
-    g.alive = g.st >= 1 && g.st <= 4; g.seen = vis && g.alive;
     if (vis && (g.x !== g.px || g.z !== g.pz)) moved = true;
   }
   if (!moved) return;
   P2.dirty = false;
-  let nd = 0, na = 0, nb = 0;
+  let nd = 0, na = 0;
   for (let i = 0; i < P2.giants.length; i++) {
     const g = P2.giants[i];
     if (!g.vis) continue;
     p2Mat4.makeRotationY(g.ry); p2Mat4.setPosition(g.x, 0, g.z);
-    // A broken giant tips over backwards during its collapse and lies on the floor (bronze, no glow).
-    if (g.st >= 6) { p2BarQ.setFromEuler(p2Euler.set(-Math.PI / 2 * (g.fallT / G2.fallS), g.ry, 0, 'YXZ')); p2BarP.set(g.x, 0, g.z); p2BarS.set(1, 1, 1); p2Mat4.compose(p2BarP, p2BarQ, p2BarS); }
-    if (g.st === 0 || g.st >= 6) P2.dorm.setMatrixAt(nd++, p2Mat4); else P2.wake.setMatrixAt(na++, p2Mat4);
-    if (g.st >= 1 && g.st <= 4) { p2BarP.set(g.x - 1.2, 5.4, g.z); p2BarS.set(Math.max(0.001, g.hp / G2.hp), 1, 1); p2BarQ.identity(); p2Mat4.compose(p2BarP, p2BarQ, p2BarS); P2.bars.setMatrixAt(nb++, p2Mat4); }
+    if (g.st === 0) P2.dorm.setMatrixAt(nd++, p2Mat4); else P2.wake.setMatrixAt(na++, p2Mat4);
   }
-  P2.dorm.count = nd; P2.wake.count = na; P2.bars.count = nb; P2.nDorm = nd; P2.nAwake = na; P2.nBars = nb; P2.dorm.visible = nd > 0; P2.wake.visible = na > 0; P2.bars.visible = nb > 0;
-  P2.dorm.instanceMatrix.needsUpdate = true; P2.wake.instanceMatrix.needsUpdate = true; P2.bars.instanceMatrix.needsUpdate = true; P2.instWrites++;
+  P2.dorm.count = nd; P2.wake.count = na; P2.nDorm = nd; P2.nAwake = na; P2.dorm.visible = nd > 0; P2.wake.visible = na > 0;
+  P2.dorm.instanceMatrix.needsUpdate = true; P2.wake.instanceMatrix.needsUpdate = true; P2.instWrites++;
 }
 // PERFRAME-END
 
@@ -5690,7 +5373,7 @@ function stepBots(dt) {
   for (let k = 0; k < BOTLIST.length; k++) {
     const b = BOTLIST[k];
     if (!b.dead) { stepBot(b, dt); if (!b.dead) alive++; }
-    const vis = !b.dead && !hiddenFrom(b, P.x, P.z) && (seenAnywhere(b) || (PAL.on ? palSight(P.x, P.z, b.x, b.z) : Math.abs(b.y - P.y) < 6 && Math.hypot(b.x - P.x, b.z - P.z) <= VR));
+    const vis = !b.dead && !hiddenFrom(b, P.x, P.z) && (seenAnywhere(b) || (Math.abs(b.y - P.y) < 6 && Math.hypot(b.x - P.x, b.z - P.z) <= VR));
     b.seen = vis;
     if (b.group.visible !== vis) b.group.visible = vis;
   }
@@ -5701,7 +5384,6 @@ function stepBots(dt) {
 // Run the path search a bot asked for (a flee search or a goal search).
 function botNav(b) {
   b.navWant = false;
-  if (PAL.on) { palBotPath(b); return; }
   if (b.flee) { b.flee = false; const v = navFlee(b.x, b.z, b.y, b.path); if (v >= 0) { b.gx = NAV.x0 + (NAV.ni[v] + 0.5) * NAV.st; b.gz = NAV.z0 + (NAV.nj[v] + 0.5) * NAV.st; b.gy = NAV.ny[v]; } }
   else navSearch(b.x, b.z, b.y, b.gx, b.gz, b.gy, b.path, false);
 }
@@ -5778,7 +5460,6 @@ function botThink(b, dt) {
   if (!warned && (b.mx !== 0 || b.mz !== 0) && botDanger(b, b.x + b.mx * 0.8, b.z + b.mz * 0.8, 0.3)) { b.mx = 0; b.mz = 0; }
 }
 function botDecide(b) {
-  if (PAL.on) { palBotDecide(b); return; }
   const B = CONFIG.BOT, vr = CONFIG.VISION_R + (boonOn(b, 2) ? b.bV[2] : 0);
   // Airborne (a drop in progress): keep the current decision until landing (batch 13 fix: a bot fleeing Our heights stepped off the ramp edge,
   // decided again in the air, no longer counted as on the heights, and walked back onto the ramp, over and over).
@@ -5859,11 +5540,6 @@ function botDecide(b) {
       const u = i < CUBS.length ? CUBS[i] : i < nc ? NEUTRALS[i - CUBS.length] : GUARDS[i - nc];
       if (!u.alive || u.hid || (u.guard && !GC.factions[u.faction].foeSuits) || u === b.skip || Math.abs(u.y - b.y) > 1.5 || (G.hiAvoid && u.y >= CONFIG.DECREES.heightY - 0.5)) continue;
       const d = Math.hypot(u.x - b.x, u.z - b.z); if (d < bd) { bd = d; c = u; }
-    }
-    // An awake bronze giant in sight is a creature target too (owner 24 Nov 15:41: killable; target tag giant).
-    for (let i = 0; PAL.on && i < P2.giants.length; i++) {
-      const g = P2.giants[i]; if (!g.alive || g === b.skip || Math.abs(b.y) > 1.5 || !palSight(b.x, b.z, g.x, g.z)) continue;
-      const d = Math.hypot(g.x - b.x, g.z - b.z); if (d < bd) { bd = d; c = g; }
     }
     if (c && brnd() > b.skill.aggro) { b.skip = c; c = null; }
   }
@@ -6122,8 +5798,6 @@ function botDanger(b, x, z, margin) {
   }
   // 皇家 guard tells (Burning Palace ticket 02).
   if (G.guardN > 0 && guardDanger(b, x, z, margin)) return true;
-  // Bronze giants' moves (BP09; killable, owner 24 Nov 15:41).
-  if (PAL.on && P2.awake > 0 && p2Danger(b, x, z, margin)) return true;
   for (let i = 0; i < BOTLIST.length; i++) {
     const o = BOTLIST[i];
     if (o === b || !o.pend || o.pendAge < react) continue;
@@ -6196,7 +5870,6 @@ function botFollow(b) {
 function botGoal(b, x, z, y) { b.gx = x; b.gz = z; b.gy = y; b.goalT = 0; b.navWant = true; b.flee = false; b.fleeGo = false; b.path.n = 0; b.path.i = 0; b.pathGen = G.warnGen; }
 // A random standing spot on a section that is neither warned nor gone (12 tries, else stay).
 function botRoamGoal(b) {
-  if (PAL.on) { palBotRoam(b); return; }
   for (let t = 0; t < 12; t++) {
     const v = Math.floor(brnd() * NAV.V), f = FLOORS[NAV.nf[v]];
     if (!f.active || f.s.state !== 0 || (G.hiAvoid && f.hi)) continue;
@@ -6277,11 +5950,6 @@ function nearestFoe(f, x, z, y, r) {
   for (let i = 0; i < GUARDS.length; i++) {
     const o = GUARDS[i]; if (!o.alive || o.hid || o.faction === f || !guardFoe(f, o, y)) continue;
     const d = Math.hypot(o.x - x, o.z - z); if (d <= bd) { bd = d; best = o; }
-  }
-  // An awake bronze giant in the palace is every faction's foe (seen through open doors only).
-  for (let i = 0; i < P2.giants.length; i++) {
-    const g = P2.giants[i]; if (!g.alive || !PAL.on || Math.abs(y) >= 1.5 || !palSight(x, z, g.x, g.z)) continue;
-    const d = Math.hypot(g.x - x, g.z - z); if (d <= bd) { bd = d; best = g; }
   }
   return best;
 }
@@ -6417,8 +6085,6 @@ function guardResolve(u) {
     if (!o.alive || o.faction === u.faction || Math.abs(o.y - u.ty) >= 1.5 || !guardCovers(u, m, o)) continue;
     hitEnemy(o, dmg * o.defK, null);
   }
-  // An awake bronze giant inside the move is hit too (owner 24 Nov 15:41: killable by every side; no reward for a guard's blow).
-  for (let i = 0; i < P2.giants.length; i++) { const g = P2.giants[i]; if (g.alive && Math.abs(u.ty) < 1.5 && guardCovers(u, m, g)) hitGiant(g, dmg, null, 'guard'); }
   if (m.shape !== 'line' || m.stay) { u.st = 3; u.t = CONFIG.APEX.recoverS; return; }
   u.ax = u.x; u.az = u.z; u.dashS = m.dashS; u.st = 2; u.t = 0; u.bx = u.x + u.fx * u.tl; u.bz = u.z + u.fz * u.tl;
 }
@@ -6838,7 +6504,10 @@ function palMini() {
   let sig = 0;
   for (let i = 0; i < PAL.rooms.length; i++) { const r = PAL.rooms[i]; sig = sig * 3 + (r.fallen || r.state >= 2 ? 2 : r.warned || r.state === 1 ? 1 : 0); }
   sig = sig * 64 + (PAL.cur ? PAL.cur.idx + 1 : 0);
-  if (sig !== PAL.miniSig) { PAL.miniSig = sig; palMiniBase(); }
+  // Ticket 10: broken vats and woken or lost giants change the room icons.
+  let vb = 0; for (let i = 0; i < P2_VATS.length; i++) if (P2_VATS[i].st >= 2) vb++;
+  const sig2 = (vb * 64 + P2.wakes) * 64 + P2.lost;
+  if (sig !== PAL.miniSig || sig2 !== PAL.miniSig2) { PAL.miniSig = sig; PAL.miniSig2 = sig2; palMiniBase(); }
   const c = MINI.ctx;
   c.drawImage(MINI.base, 0, 0);
   c.fillStyle = CONFIG.PAL_MINI.you; c.beginPath(); c.arc(PAL.mOx + (P.x - PAL.bx0) * PAL.mS, PAL.mOy + (P.z - PAL.bz0) * PAL.mS, 3, 0, 6.2832); c.fill();
@@ -7036,10 +6705,19 @@ cv.addEventListener('webglcontextrestored', () => { G.ctxLost = false; renderer.
 
 let acc = 0, last = 0, slowT = 0, dbgT = 0, frameMs = 0, errShown = false;
 // PERFRAME-BEGIN
+// Palace view (ticket 10): between the wide framing (room fit or lead point, on the floor) and the close one (on the player), by the eased b;
+// the pan and b are interpolated between fixed steps, so 30 and 60 fps draw the same path. Lens and tilt never change.
+function palView(x, y, z, a) {
+  const b0 = PCAM.pb + (PCAM.b - PCAM.pb) * a, e = b0 * b0 * (3 - 2 * b0);
+  const wx = PCAM.pwx + (PCAM.wx - PCAM.pwx) * a, wz = PCAM.pwz + (PCAM.wz - PCAM.pwz) * a, wd = PCAM.pwd + (PCAM.wd - PCAM.pwd) * a;
+  const fx = wx + (x - wx) * e, fz = wz + (z - wz) * e, fy = y * e, d = wd + (palCloseD() - wd) * e;
+  camera.position.set(fx, fy + PCAM.sp * d, fz + PCAM.cp * d); camera.lookAt(fx, fy, fz);
+}
 function placeView(alpha) {
   const x = P.px + (P.x - P.px) * alpha, z = P.pz + (P.z - P.pz) * alpha, y = P.py + (P.y - P.py) * alpha;
   playerGroup.position.set(x, y, z);
-  if (G.view === 'follow') { camera.position.set(x, y + camOffY * G.camK, z + camOffZ * G.camK); camera.lookAt(x, y, z); }
+  if (G.view === 'follow' && PAL.on) palView(x, y, z, alpha);
+  else if (G.view === 'follow') { camera.position.set(x, y + camOffY * G.camK, z + camOffZ * G.camK); camera.lookAt(x, y, z); }
   else { camera.position.set(CONFIG.OVERVIEW_POS[0] * K, CONFIG.OVERVIEW_POS[1] * K, CONFIG.OVERVIEW_POS[2] * K); camera.lookAt(0, 0, -12 * K); }
   camera.updateMatrixWorld();
   playerGroup.rotation.y = Math.atan2(-P.faceX, -P.faceZ);
@@ -7173,11 +6851,8 @@ for (const d of PAL.doors) scene.add(d.group);
 scene.add(PAL.lake);
 // BP09: giants (both instanced meshes), a giant's tells, a vat ring and flood are drawn once in this palace draw.
 p2Warm(true);
-// BP03: a rival's trace plate (shared shape, door bronze) is drawn there once too.
-TRACES[0].position.set(PAL.start.cx, 0.04, PAL.start.cz); TRACES[0].updateMatrix(); PAL.start.group.add(TRACES[0]);
 camera.position.set(PAL.cx, 90, PAL.cz + 60); camera.lookAt(PAL.cx, 0, PAL.cz); camera.updateMatrixWorld(); renderer.render(scene, camera);
 warmPieces(false);
-PAL.start.group.remove(TRACES[0]);
 for (const r of PAL.rooms) scene.remove(r.group);
 for (const d of PAL.doors) scene.remove(d.group);
 scene.remove(PAL.lake);
@@ -7550,38 +7225,35 @@ Object.assign(window.__game, {
     clocks: P2.clocks.map((c) => ({ room: c.room.id, wing: c.wing, level: c.level, eta: c.eta, full: c.full, step: c.step, scale: c.water.scale.y, writes: c.writes, attached: !!c.room.group.parent })),
     vats: P2_VATS.filter((v) => v.lay === PAL.layout).map((v) => ({ room: v.room, x: v.x, z: v.z, hp: v.hp, st: v.st, seen: v.seen, solidOff: v.solid.off, body: v.body.visible, ring: !!v.ring.parent, flood: !!v.flood.parent })),
     giants: P2.giants.map((g) => ({ i: g.i, st: g.st, x: g.x, z: g.z, hx: g.hx, hz: g.hz, room: (palRoomAt(g.x, g.z) || { id: '' }).id, cur: g.cur, t: g.t, tellT: g.tellT,
-      ring: !!g.ring.parent, line: !!g.line.parent, hits: g.hits, minTell: g.minTell, tgt: g.tgt === P ? 'P' : g.tgt ? 'suit' : '', vis: g.vis,
-      hp: g.hp, alive: g.alive, seen: g.seen, fallT: g.fallT, killer: g.killer === P ? 'P' : g.killer ? 'suit' : '' })),
-    kills: P2.kills, downNotes: P2.downNotes, nBars: P2.nBars, barsIn: !!P2.bars.parent, dmg: Object.assign({}, P2.dmg), hpMax: CONFIG.PIECES2.giant.hp,
+      ring: !!g.ring.parent, line: !!g.line.parent, hits: g.hits, minTell: g.minTell, tgt: g.tgt === P ? 'P' : g.tgt ? 'suit' : '', vis: g.vis })),
     burnWarnAt: BURN.warnAt, t: G.time }),
   pieces2(on, giants) { P2.on = !!on; P2.giantsOn = giants === undefined ? true : !!giants; },
   giantWake: () => p2Wake(),
   vatAttack(i) { ORD.attack = P2_VATS[i]; PATH.n = 0; },
-  // Killable giants (owner 24 Nov 15:41; checks only): giantAttack (the player's attack order on giant i), giantStrike (suit k's basic attack on it,
-  // -1 = the player), giantSetHp, giantPlace (moves it, no step), giantDanger (bot k's dodge test at x, z), botDecideNow (bot k decides now: mode, giant index).
-  giantAttack(i) { ORD.attack = P2.giants[i]; PATH.n = 0; },
-  giantStrike(i, k) { basicAttack(k < 0 ? P : BOTLIST[k], P2.giants[i]); },
-  giantSetHp(i, hp) { P2.giants[i].hp = hp; P2.dirty = true; },
-  giantPlace(i, x, z) { const g = P2.giants[i]; g.x = x; g.z = z; g.px = x; g.pz = z; P2.dirty = true; },
-  giantDanger(k, x, z) { return p2Danger(BOTLIST[k], x, z, 0.5); },
-  botDecideNow(k) { const b = BOTLIST[k]; b.skip = null; botDecide(b); return { mode: b.mode, giant: b.tgt && b.tgt.giant ? b.tgt.i : -1 }; },
 });
-// BP03 hooks: palSim (read: rivals, hunter, final, seal, locks, counters, the result log), palSimSet (checks only: rival k out of sight in room id
-// with hp and meter, or out with id null), palHunter (checks only: rival k tracks the player now), palDoorLocked (door index locked).
+// Palace camera and room minimap hooks (ticket 10): palCam (read; sets the view for the current state first), palFits (read; every room of the
+// current plan fitted at the current screen shape; the cache is cleared so the next step refits), palMiniTick (runs the minimap's per-frame
+// tick n times, as n drawn frames would), palMiniState (read).
+const PCV = new THREE.Vector3();
+function palCamNdc(x, y, z) { PCV.set(x, y, z).project(camera); return { x: PCV.x, y: PCV.y }; }
 Object.assign(window.__game, {
-  palSim: () => ({ on: PSIM.on, standing: palStanding(), hunter: PSIM.hunter ? PSIM.hunter.idx : -1, final: PSIM.final, open: PSIM.open,
-    recs: PSIM.recs.map((r) => ({ st: r.st, room: r.room ? r.room.id : null, hp: r.st === 'live' ? r.b.hp : r.hp, ch: r.st === 'live' ? r.b.ch : r.ch, foe: r.foe ? r.foe.idx : -1,
-      school: r.b.school, x: r.b.x, z: r.b.z, dead: r.b.dead, inScene: !!r.b.group.parent })),
-    locked: PAL.rooms.filter((r) => r.locked).map((r) => r.id), doorsLocked: PAL.doors.map((d) => d.locked), guardLeft: PAL.rooms.map((r) => r.guardLeft), rebelLeft: PAL.rooms.map((r) => r.rebelLeft || 0),
-    outN: PSIM.outN, lockN: PSIM.lockN, annN: PSIM.annN, qn: PSIM.qn, qDrop: PSIM.qDrop, liveN: PSIM.liveN,
-    log: PSIM.log.slice(0, Math.min(PSIM.logN, PSIM.log.length)), logN: PSIM.logN, alive: G.alive, foesCur: PAL.cur ? palFoesIn(PAL.cur) : 0, guardsCur: PAL.cur ? palGuardAlive(PAL.cur) : 0,
-    traces: TRACES.filter((m) => !!m.parent).map((m) => m.parent === null ? '' : PAL.rooms.find((r) => r.group === m.parent).id) }),
-  palSimSet(k, id, hp, ch) {
-    const rec = PSIM.recs[k]; if (rec.st === 'live') botOut(rec.b);
-    if (id === null) { rec.st = 'out'; rec.room = null; } else { rec.st = 'sim'; rec.room = PAL.byId[id]; rec.hp = hp; rec.ch = ch; rec.moveT = 1e9; }
-    rec.foe = null; palDoorLocks(); palSimSync();
+  palCam() {
+    placeView(1);
+    const r = PAL.cur, H = CONFIG.PALACE.wallH, C = CONFIG.PAL_CAM, f = palCamNdc(P.x, P.y, P.z), h = palCamNdc(P.x, P.y + BODY, P.z);
+    let allIn = !!r; const lim = 1 - C.margin;
+    if (r) for (let k = 0; k < 8; k++) { const q = palCamNdc(k & 1 ? r.x1 : r.x0, k & 4 ? H : 0, k & 2 ? r.z1 : r.z0); if (Math.abs(q.x) > lim || Math.abs(q.y) > lim) allIn = false; }
+    camera.getWorldDirection(PCV);
+    return { on: PAL.on, b: PCAM.b, hold: PCAM.hold, wx: PCAM.wx, wz: PCAM.wz, wd: PCAM.wd, fit: PCAM.fit, fd: PCAM.fd, lead: PCAM.lead, atk: PCAM.atk,
+      close: palCloseD(), fov: camera.fov, pitch: THREE.MathUtils.radToDeg(Math.asin(-PCV.y)), px: (h.y - f.y) / 2 * C.refH, floor: palCamFloor(),
+      allIn, room: r ? r.id : '', pnx: f.x, pny: f.y, pd: Math.hypot(camera.position.x - P.x, camera.position.y - P.y, camera.position.z - P.z), camX: camera.position.x, camY: camera.position.y, camZ: camera.position.z, fits: PCAM.fits, aspect: camera.aspect };
   },
-  palHunter(k) { PSIM.hunter = PSIM.recs[k]; PSIM.recs[k].moveT = 0; },
+  palFits() {
+    const out = [];
+    for (const r of PAL.rooms) { palCamFit(r); out.push({ id: r.id, type: r.type, w: r.x1 - r.x0, d: r.z1 - r.z0, fit: PCAM.fit, fd: PCAM.fd, lead: PCAM.lead }); }
+    PCAM.fitR = null; return out;
+  },
+  palMiniTick(n) { for (let i = 0; i < n; i++) palMini(); },
+  palMiniState: () => ({ draws: PAL.miniDraws, icons: PAL.miniIcons, scale: PAL.mS, ox: PAL.mOx, oy: PAL.mOy, W: MINI.W, H: MINI.H, cur: PAL.cur ? PAL.cur.id : '' }),
 });
 window.__ready = true;
 requestAnimationFrame(frame);

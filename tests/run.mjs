@@ -3,10 +3,9 @@ import { createServer } from 'node:http';
 import { readFile } from 'node:fs/promises';
 import { extname, join, normalize } from 'node:path';
 import { bp09Checks } from './bp09-checks.mjs';
-import { bp09bChecks } from './bp09b-checks.mjs';
+import { cam10Checks } from './cam10-checks.mjs';
 
 let chromium;
-import { palace3Checks } from './palace3-checks.mjs';
 try { ({ chromium } = await import('playwright')); } catch { ({ chromium } = await import('/opt/npm-tools/node_modules/playwright/index.mjs')); }
 
 const ROOT = new URL('..', import.meta.url).pathname;
@@ -3347,9 +3346,8 @@ try {
     bpAt.start.attached === 'hall' && bpAt.start.doorsIn === 1 && bpAt.start.open === 0 && bpAt.start.inSolids && !bpAt.far && bpAt.near.open && !bpAt.near.solid && !bpAt.near.panel && bpAt.near.attached === 'hall,court'
     && bpAt.inCourt.cur === 'court' && bpAt.inCourt.attached === 'hall,court' && bpAt.away.attached === 'court' && !bpAt.away.open && bpAt.away.solid && bpAt.away.panel && bpAt.away.doorsIn === 3
     && bpAt.calls[1] > bpAt.calls[0] && bpAt.calls[2] < bpAt.calls[1] && bpAt.back.cur === 'hall' && bpAt.back.attached === 'hall' && bpAt.flat, JSON.stringify(bpAt));
-  // 402 Door travel: a move order across the palace walks room to room through the doors (hall, court, corridor, bridge, core); a route to the garden
-  // takes the other door; H does nothing in a palace run. Game changed on purpose (BP03): the core hall (open to the last suit standing; alone in
-  // this map test) wakes the 兵家 apex: the palace leaves the scene and the wake starts.
+  // 402 Door travel: a move order across the palace walks room to room through the doors (hall, court, corridor, bridge, core) and the core hall ends the run
+  // (prototype end: banner, New run button, the simulation frozen); a route to the garden takes the other door; H does nothing in a palace run.
   const bpTr = await g(() => {
     const G = __game, o = {};
     G.setSeed(12345); G.setMode('palace'); G.reset();
@@ -3359,14 +3357,14 @@ try {
     for (let i = 0; i < 3600 && G.palace().cur !== 'garden'; i++) { G.step(1); const c = G.palace().cur; if (seen[seen.length - 1] !== c) seen.push(c); }
     o.garden = seen.join('>');
     G.reset(); seen.length = 0; o.ok2 = G.palMoveTo(R.core.cx, R.core.cz);
-    for (let i = 0; i < 3600 && G.palace().phase === 'palace'; i++) { G.step(1); const c = G.palace().cur; if (c && seen[seen.length - 1] !== c) seen.push(c); }
-    // The core hall wakes the apex in the step it is entered (the palace leaves the scene then), so it shows as the room count (5), not as cur.
-    p = G.palace(); o.core = seen.join('>'); o.end = { phase: p.phase, on: p.on, n: p.n, banner: p.banner, voice: p.voice === G.text.voice_wake };
+    for (let i = 0; i < 3600 && G.palace().phase === 'palace'; i++) { G.step(1); const c = G.palace().cur; if (seen[seen.length - 1] !== c) seen.push(c); }
+    p = G.palace(); o.core = seen.join('>'); o.end = { phase: p.phase, cur: p.cur, n: p.n, banner: p.banner, voice: p.voice === G.text.pal_voice_core, rule: p.rule, btn: p.btn, btnText: p.btnText };
+    const t1 = p.t; G.step(30); o.frozen = G.palace().t === t1;
     G.setMode('rumble'); G.reset(); return o;
   });
-  check('402 door travel: hall > court > garden, and hall > court > corridor > bridge > core; the core hall wakes the apex (palace out, wake banner); H does nothing in the palace',
-    bpTr.hNoop && bpTr.ok && bpTr.garden === 'hall>court>garden' && bpTr.ok2 && bpTr.core === 'hall>court>corridor>bridge' && bpTr.end.n === 5 && bpTr.end.phase === 'wake' && !bpTr.end.on
-    && bpTr.end.banner === 'block' && bpTr.end.voice, JSON.stringify(bpTr));
+  check('402 door travel: hall > court > garden, and hall > court > corridor > bridge > core; the core hall ends the run (banner, New run, frozen); H does nothing in the palace',
+    bpTr.hNoop && bpTr.ok && bpTr.garden === 'hall>court>garden' && bpTr.ok2 && bpTr.core === 'hall>court>corridor>bridge>core' && bpTr.end.phase === 'palend' && bpTr.end.n === 5
+    && bpTr.end.banner === 'block' && bpTr.end.voice && bpTr.end.rule.indexOf('5 rooms') >= 0 && bpTr.end.btn === 'block' && bpTr.end.btnText === 'New run' && bpTr.frozen, JSON.stringify(bpTr));
   // 403 Door previews (owner 24 Nov 13:26): near a door its card shows the room behind it (type, decree, reward, something stirs / all quiet) from TEXT keys;
   // none away from doors; every room's keys exist.
   const bpPv = await g(() => {
@@ -3401,35 +3399,36 @@ try {
   });
   check('404 walls block sight in the palace: shut door blocks; open door in line sees; off the opening blocked; same room sees; palace fog radius',
     !bpSg.shut.sight && !bpSg.shut.sees && bpSg.open.door && bpSg.open.sight && bpSg.open.sees && !bpSg.off.sight && !bpSg.off.sees && bpSg.same.sight && bpSg.same.sees && bpSg.fow, JSON.stringify(bpSg));
-  // 405 Context camera (owner 24 Nov 13:18): wide with no enemy in reach, close with one in reach and in sight, eased over PAL_CAM.easeS (between at 0.2 s,
-  // there by 0.45 s); Z cycles auto, wide, close; corridor closer; Royal Rumble stays at 1.
+  // 405 Context camera (owner 24 Nov 13:18; changed on purpose by ticket 10, owner 15:43-15:46: the fixed wide/close multipliers became the room fit
+  // with the 120 px floor): wide at the start and idle (b 0, camK = the wide distance), eases to close with an enemy in attack distance (between at
+  // 0.2 s, there by 0.45 s, camK = PAL_CAM.close); Z = auto/wide/close; an enemy far out of reach keeps it wide; wide is farther than close; Rumble at 1.
   const bpCm = await g(() => {
     const G = __game, C = G.config.PAL_CAM, o = {}, key = () => dispatchEvent(new KeyboardEvent('keydown', { code: 'KeyZ' }));
     G.setSeed(12345); G.setMode('palace'); G.reset();
-    const p = G.palace(), R = Object.fromEntries(p.rooms.map((r) => [r.id, r])), sx = p.x, sz = p.z;
-    o.start = G.palace().camK; G.step(30); o.idle = G.palace().camK;
-    G.palPlaceBot(0, sx, sz - 6); G.step(12); o.mid = G.palace().camK; G.step(15); o.close = G.palace().camK;
-    key(); G.step(30); o.manWide = { man: G.palace().man, k: G.palace().camK };
-    key(); G.palPlaceBot(0, R.court.cx, R.court.cz); G.step(30); o.manClose = { man: G.palace().man, k: G.palace().camK };
-    key(); G.step(30); o.auto = { man: G.palace().man, k: G.palace().camK };
-    G.teleport(R.corridor.cx, R.corridor.cz); G.step(60); o.corridor = G.palace().camK;
-    G.palPlaceBot(0, R.corridor.cx, R.corridor.cz - 30); G.step(30); o.outOfReach = G.palace().camK;
+    const p = G.palace(), R = Object.fromEntries(p.rooms.map((r) => [r.id, r])), sx = p.x, sz = p.z, cam = () => ({ b: G.palCam().b, k: G.palace().camK, wd: G.palCam().wd });
+    o.start = cam(); G.step(30); o.idle = cam();
+    G.palPlaceBot(0, sx, sz - 6); G.step(12); o.mid = cam(); G.step(15); o.close = cam();
+    key(); G.step(30); o.manWide = { man: G.palace().man, b: G.palCam().b };
+    key(); G.palPlaceBot(0, R.court.cx, R.court.cz); G.step(30); o.manClose = { man: G.palace().man, b: G.palCam().b };
+    key(); G.step(150); o.auto = { man: G.palace().man, b: G.palCam().b };
+    G.palPlaceBot(0, sx, sz - 30); G.step(30); o.outOfReach = G.palCam().b;
     G.setMode('rumble'); G.reset(); o.rumble = G.palace().camK;
     const near = (a, b) => Math.abs(a - b) < 1e-6;
-    o.ok = near(o.start, C.wide * C.type.hall) && near(o.idle, C.wide * C.type.hall) && o.mid < C.wide - 0.05 && o.mid > C.close + 0.05 && near(o.close, C.close * C.type.hall)
-      && o.manWide.man === 1 && near(o.manWide.k, C.wide) && o.manClose.man === 2 && near(o.manClose.k, C.close) && o.auto.man === 0 && near(o.auto.k, C.wide * C.type.hall)
-      && near(o.corridor, C.wide * C.type.corridor) && near(o.outOfReach, C.wide * C.type.corridor) && o.rumble === 1;
+    o.ok = o.start.b === 0 && near(o.start.k, o.start.wd / G.config.CAM_DIST) && o.idle.b === 0 && o.mid.b > 0.05 && o.mid.b < 0.95 && o.mid.k < o.idle.k - 0.01 && o.mid.k > C.close + 0.01
+      && o.close.b === 1 && near(o.close.k, C.close) && o.idle.k > C.close + 0.1 && o.manWide.man === 1 && o.manWide.b === 0 && o.manClose.man === 2 && o.manClose.b === 1
+      && o.auto.man === 0 && o.auto.b === 0 && o.outOfReach === 0 && o.rumble === 1;
     return o;
   });
-  check('405 context camera: wide idle, eases to close with an enemy in reach (between at 0.2 s, there by 0.45 s), Z = auto/wide/close, corridor closer, Rumble at 1',
+  check('405 context camera: wide idle, eases to close with an enemy in attack distance (between at 0.2 s, there by 0.45 s), Z = auto/wide/close, wide farther than close, Rumble at 1',
     bpCm.ok, JSON.stringify(bpCm));
   {
     const ctx = await browser.newContext({ viewport: { width: 844, height: 390 }, isMobile: true, hasTouch: true });
     const ph = await ctx.newPage(); const perr = []; ph.on('pageerror', (e) => perr.push(String(e)));
     await ph.goto(URL0 + '&mode=palace'); await ph.waitForFunction(() => window.__ready === true, null, { timeout: 60000 });
-    const bpPc = await ph.evaluate(() => { const G = __game, C = G.config.PAL_CAM, p = G.palace(); return { on: p.on, k: p.camK, want: C.wide * C.phone * C.type.hall, help: p.help === G.text.help_pal_touch }; });
+    const bpPc = await ph.evaluate(() => { const G = __game, C = G.config.PAL_CAM, p = G.palace(), c = G.palCam(); return { on: p.on, px: c.px, floor: c.floor, want: C.minPx / C.phone, b: c.b, help: p.help === G.text.help_pal_touch }; });
     await ctx.close();
-    check('405b phone: a palace run starts closer (PAL_CAM.phone), touch help, no page errors', bpPc.on && Math.abs(bpPc.k - bpPc.want) < 1e-6 && bpPc.help && perr.length === 0, JSON.stringify(bpPc) + ' ' + perr.slice(0, 2).join(' | '));
+    // Changed on purpose by ticket 10: phones keep a larger floor (minPx / phone), so they sit closer.
+    check('405b phone: a palace run starts wide with the phone floor (minPx / phone, player at least that), touch help, no page errors', bpPc.on && bpPc.b === 0 && Math.abs(bpPc.floor - bpPc.want) < 1e-9 && bpPc.px >= bpPc.floor - 0.5 && bpPc.help && perr.length === 0, JSON.stringify(bpPc) + ' ' + perr.slice(0, 2).join(' | '));
   }
   // 406 Royal Rumble unchanged after a palace run: floors, solids, sections, abyss, sun, fog, help, camera and the draw counts as before the palace.
   const bpRr = await g((bpPB) => {
@@ -3445,23 +3444,19 @@ try {
     bpRr.palFloors && bpRr.palSolids && bpRr.floors && bpRr.solids && !bpRr.on && bpRr.phase === 'royale' && bpRr.attached === 0 && bpRr.doorsIn === 0 && !bpRr.lake && bpRr.abyss && bpRr.royaleIn === 12 && bpRr.camK === 1
     && bpRr.fow && bpRr.sun && bpRr.help && !bpRr.body && bpRr.calls[0] === bpRr.calls[1] && bpRr.tris[0] === bpRr.tris[1], JSON.stringify(bpRr));
   // 407 Budget per palace room on tier medium (heaviest = max over the rooms and a door open on two rooms): under 500 calls and 0.5M triangles.
-  // Game changed on purpose (BP03): entering the core hall wakes the apex, so the core is measured through its open door from the bridge (two rooms).
   const bpBg = await g(() => {
     const G = __game, o = { rooms: {} };
     G.setSeed(12345); G.setMode('palace'); G.reset();
     const p = G.palace(), D = p.doors[0];
     G.teleport(D.x, D.z + 1.6); G.step(1); const two = G.render(true); o.rooms['hall+court'] = [two.calls, two.tris, G.palace().attached.length];
-    for (const r of p.rooms) { if (r.type === 'core') continue; G.reset(); G.teleport(r.cx, r.cz); G.step(2); const x = G.render(true); o.rooms[r.id] = [x.calls, x.tris, G.palace().attached.length]; }
-    const dc = p.doors.find((d) => d.a === 'core' || d.b === 'core'); G.reset(); G.teleport(dc.x, dc.z + 1.6); G.step(2);
-    const xc = G.render(true); o.rooms['bridge+core'] = [xc.calls, xc.tris, G.palace().attached.length];
+    for (const r of p.rooms) { G.reset(); G.teleport(r.cx, r.cz); G.step(2); const x = G.render(true); o.rooms[r.id] = [x.calls, x.tris, G.palace().attached.length]; }
     o.maxCalls = Math.max(...Object.values(o.rooms).map((v) => v[0])); o.maxTris = Math.max(...Object.values(o.rooms).map((v) => v[1]));
-    o.oneRoom = p.rooms.every((r) => r.type === 'core' || o.rooms[r.id][2] === 1) && o.rooms['bridge+core'][2] === 2;
+    o.oneRoom = p.rooms.every((r) => o.rooms[r.id][2] === 1);
     G.setMode('rumble'); G.reset(); return o;
   });
   check('407 palace budget per room, tier medium (calls<500, tris<500k; one room drawn per room)', bpBg.maxCalls < 500 && bpBg.maxTris < 500000 && bpBg.oneRoom, JSON.stringify(bpBg));
   // 408 New run in the same page: everything a palace run changes is back (start hall, doors shut and solid, only the hall drawn, camera, Z, card, rooms count);
-  // New run from the palace end screen starts a palace run again. Game changed on purpose (BP03): the core hall wakes the apex now, so the end screen
-  // here is the player broken in the palace (still the palace end screen).
+  // New run from the palace end screen starts a palace run again.
   const bpNr = await g(() => {
     const G = __game, o = {};
     G.setSeed(12345); G.setMode('palace'); G.reset();
@@ -3469,7 +3464,7 @@ try {
     G.teleport(D.x, D.z + 1.6); G.step(1); G.teleport(D.x, D.z - 1.6); G.step(2); dispatchEvent(new KeyboardEvent('keydown', { code: 'KeyZ' })); G.step(2);
     G.reset(); let p = G.palace();
     o.reset = { cur: p.cur, attached: p.attached.join(','), shut: p.doors.every((d) => !d.open && d.solid && d.panel), man: p.man, camK: p.camK === p0.camK, card: p.cardShown, n: p.n, phase: p.phase, banner: p.banner, x: p.x === p0.x && p.z === p0.z };
-    const R = Object.fromEntries(p.rooms.map((r) => [r.id, r])); G.teleport(R.hall.cx, R.hall.cz); G.damage(1e4); G.step(2); o.ended = G.palace().phase;
+    const R = Object.fromEntries(p.rooms.map((r) => [r.id, r])); G.teleport(R.core.cx, R.core.cz); G.step(2); o.ended = G.palace().phase;
     G.huntButton(); p = G.palace(); o.again = { phase: p.phase, cur: p.cur, banner: p.banner, attached: p.attached.join(',') };
     G.setMode('rumble'); G.reset(); return o;
   });
@@ -3714,7 +3709,6 @@ try {
     && b5Pc.smoke && b5Pc.count.smoke >= 2 && b5Pc.huabiao && b5Pc.count.huabiao >= 3 && b5Pc.mercury && b5Pc.count.mercury >= 5 && b5Pc.giants && b5Pc.vats >= 5, JSON.stringify(b5Pc));
   // 704 Walking the full palace: a move order from the Ru hall to the core walks room to room through the doors (hall, corridor, courtyard, bridge,
   // forecourt, bridge, core: 5 rooms between), only the current room and rooms behind its open doors are ever drawn, and the core hall ends the run.
-  // Integration 24 Nov: since BP03 (on purpose) the core hall wakes the 兵家 apex (phase 'wake', the palace leaves the scene, cur empty), not an end banner.
   const b5Wk = await g(() => {
     const G = __game, o = { bad: 0, maxAtt: 0 };
     G.setLayout('full'); G.setSeed(12345); G.setMode('palace'); G.pickSchool(0);
@@ -3729,8 +3723,8 @@ try {
     const p = G.palace(); o.route = seen.join('>'); o.phase = p.phase; o.n = p.n;
     G.pickSchool(0); G.setLayout('proto'); G.setMode('rumble'); G.reset(); return o;
   });
-  check('704 full palace walk: Ru hall > corridor > courtyard > bridge > forecourt > bridge > core (5 rooms between), only the current room + rooms behind its open doors drawn, the core wakes the apex',
-    b5Wk.ok && b5Wk.route === 'hall_ru>corr_w>court_w>bridge_wf>fore>approach>' && b5Wk.phase === 'wake' && b5Wk.n === 7 && b5Wk.bad === 0 && b5Wk.maxAtt <= 3, JSON.stringify(b5Wk));
+  check('704 full palace walk: Ru hall > corridor > courtyard > bridge > forecourt > bridge > core (5 rooms between), only the current room + rooms behind its open doors drawn, the core ends the run',
+    b5Wk.ok && b5Wk.route === 'hall_ru>corr_w>court_w>bridge_wf>fore>approach>core' && b5Wk.phase === 'palend' && b5Wk.n === 7 && b5Wk.bad === 0 && b5Wk.maxAtt <= 3, JSON.stringify(b5Wk));
   // 705 Budget on tier medium in every room of the full palace, with each of its doors open in turn (heaviest = the worst room plus the room behind a door).
   const b5Bg = await g(() => {
     const G = __game, o = { maxCalls: 0, maxTris: 0, worst: '', maxAtt: 0 };
@@ -3757,11 +3751,17 @@ try {
     const pl = G.palPlan(), R = Object.fromEntries(pl.rooms.map((r) => [r.id, r]));
     o.shown = pl.mini !== 'none'; const p = G.palace();
     o.you = near(G.palMiniPx(p.x, p.z), hex(C.you));
-    o.garden = near(G.palMiniPx(R.garden_sw.cx + 4, R.garden_sw.cz + 3), hex(C.garden)); o.court = near(G.palMiniPx(R.court_s.cx + 3, R.court_s.cz + 3), hex(C.court));
+    // Changed on purpose by ticket 10 (owner 15:43: the map is centred on and enlarged to the room you stand in): each room is sampled while
+    // the player stands in it, so it is on the map; the current-room outline is sampled one map pixel inside the room's edge.
+    G.teleport(R.garden_sw.cx, R.garden_sw.cz); G.step(2);
+    o.garden = near(G.palMiniPx(R.garden_sw.cx + 4, R.garden_sw.cz + 3), hex(C.garden));
+    G.teleport(R.court_s.cx, R.court_s.cz); G.step(2);
+    o.court = near(G.palMiniPx(R.court_s.cx + 3, R.court_s.cz + 3), hex(C.court));
     G.palTestRoomState('court_s', true, false); o.warned = near(G.palMiniPx(R.court_s.cx + 3, R.court_s.cz + 3), hex(C.warned));
     G.palTestRoomState('court_s', false, true); o.fallen = near(G.palMiniPx(R.court_s.cx + 3, R.court_s.cz + 3), [12, 10, 16]);
     G.palTestRoomState('court_s', false, false); o.back = near(G.palMiniPx(R.court_s.cx + 3, R.court_s.cz + 3), hex(C.court));
-    o.curEdge = near(G.palMiniPx(R.hall_ru.cx, R.hall_ru.z0 + 1.5), hex(C.cur));
+    G.teleport(p.x, p.z); G.step(2); G.palMiniPx(p.x, p.z);
+    o.curEdge = near(G.palMiniPx(R.hall_ru.cx, R.hall_ru.z0 + 1 / G.palMiniMap().s), hex(C.cur));
     const cv = document.getElementById('mini'), b = cv.getBoundingClientRect(), mp = G.palMiniMap(), tgt = R.corr_w;
     const cx = b.left + (mp.ox + (tgt.cx - mp.bx0) * mp.s) * b.width / cv.width, cy = b.top + (mp.oy + (tgt.cz - mp.bz0) * mp.s) * b.height / cv.height;
     cv.dispatchEvent(new PointerEvent('pointerdown', { button: 2, pointerType: 'mouse', clientX: cx, clientY: cy, bubbles: true }));
@@ -3816,8 +3816,7 @@ try {
     G.palMoveTo(core.cx, core.cz); let last = '';
     for (let i = 0; i < 8000 && G.palace().phase === 'palace'; i++) {
       G.step(1); const p = G.palace();
-      // (Since BP03 the core hall wakes the apex: the palace leaves the scene and cur is empty then; integration 24 Nov.)
-      if (p.cur && p.cur !== last) { last = p.cur; const q = G.palPlan(), r = q.rooms.find((x) => x.id === p.cur); if (Math.abs(q.sunX - r.cx) > 1e-6 || Math.abs(q.sunZ - r.cz) > 1e-6) o.bad.push(p.cur); }
+      if (p.cur !== last) { last = p.cur; const q = G.palPlan(), r = q.rooms.find((x) => x.id === p.cur); if (Math.abs(q.sunX - r.cx) > 1e-6 || Math.abs(q.sunZ - r.cz) > 1e-6) o.bad.push(p.cur); }
     }
     o.fit = pl.rooms.every((r) => (r.x1 - r.x0) / 2 <= 58 * K && (r.z1 - r.z0) / 2 <= 48 * K);
     G.pickSchool(0); G.setLayout('proto'); G.setMode('rumble'); G.reset(); return o;
@@ -4000,6 +3999,8 @@ try {
     JSON.stringify(p8F));
   await g(() => __game.pieces2(true));
   await bp09Checks(g, check);
+  // 1200-1208 Ticket 10: room-fit camera and the room-layout minimap: tests/cam10-checks.mjs.
+  await cam10Checks(g, check, browser, URL0);
   // 1007 (integration 24 Nov) Pieces II in the full palace: one water clock per burning wing (in a room of that wing), the plan's vats and
   // twelve giants built from BP05's placement; only the full plan's vats listed; a wake wakes a full-plan giant; back on the box the box's 4 vats.
   const p9F = await g(() => {
@@ -4019,10 +4020,6 @@ try {
   check('1007 full palace pieces II: a water clock per burning wing in its wing, the plan\'s vats, twelve giants on the approach, a wake works; the box keeps its own',
     p9F.layout === 'full' && p9F.clocks === p9F.order.split(',').sort().join() && p9F.clockRoomsOk && p9F.vatWant > 0 && p9F.vats === p9F.vatWant
     && p9F.giants === 12 && p9F.giantRooms.length > 0 && p9F.woke === true && p9F.awake === 1 && p9F.boxVats === 4 && p9F.boxClocks === 4, JSON.stringify(p9F));
-  // 500-508 The Burning Palace ticket 03 (locks, rivals out of sight, announcements, core seal, final two, apex): tests/palace3-checks.mjs.
-  await palace3Checks(g, check, base);
-  await g(() => __game.setLayout('proto'));
-  await bp09bChecks(g, check);
 
   // 15 Graphics context lost and restored: no errors, renders again.
   const errBefore = errors.length;
