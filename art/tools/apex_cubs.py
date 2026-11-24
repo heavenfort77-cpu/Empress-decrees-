@@ -2,7 +2,7 @@
 # gear, ox or tortoise movement, ding or lei hull; W4 overnight 25 Nov). Each cub is one of the Tiger Demon's shed plates grown legs, so
 # its hull is cast like the tiger's plates: the same bronze trim sheet, flange rims and cast seams, gold inlay crack lines (apexCrack,
 # glowing while alive), a workshop mark on the hull; feet are tread bogies (track belt over chariot wheels).
-# Concepts (ComfyUI run 45435750508, reference only, nothing traced): Stalker from 5216 (low long hull, short legs: hull L/H 1.96,
+# Concepts (ComfyUI run 45435750508, reference only, nothing traced): Stalker from 5208 (segmented tortoise shell; alt 5216 low hull: L/H 1.96,
 # legs 0.37 of the height); Howler from 5218 (ding hull on tall legs: legs 0.49 of the height, rim flange, side lugs); ringed leg
 # joints and ornament bands from 5213.
 # Stalker: low tortoise dome on four short splayed legs, long tread bogies with two wheels, a low wedge head that bites straight ahead.

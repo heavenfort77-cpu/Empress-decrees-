@@ -14,14 +14,15 @@ import palace_tex as P
 import bronze_tex as B
 
 # CONFIG ---------------------------------------------------------------------------------------------------------------
-# Patina colours (study: dormant patina #4f7a62 / #3f5a4c / #6f927c) and the dark bronze that shows through.
-PATINA = (B.VERD, B.VERD_D, B.VERD_L, '#5a6e4e')
+# Patina colours (study: dormant patina #4f7a62 / #3f5a4c; round 1 also used the light #6f927c and measured mean lum 110,
+# over the dormant value rule 55-105, so the light tone is left to the crust specks).
+PATINA = (B.VERD, B.VERD_D, '#33463a', '#5a6e4e')
 # Patina blots over the ornament rows (0-768): count, radius range (px), opacity range. Lower opacity on the bands keeps their relief.
 BLOTS_PLATE, BLOTS_BANDS = 260, 160
 RAD = (24, 60)
 OP_PLATE, OP_BANDS = (0.55, 0.8), (0.3, 0.5)
 # Pale crust specks (lead carbonate bloom) and dark pits: counts.
-CRUST, PITS = 120, 160
+CRUST, PITS = 110, 220
 
 
 def apex_patina():
@@ -35,7 +36,7 @@ def apex_patina():
         t.blot(r.uniform(0, 1024), r.uniform(384, 768), r.uniform(16, 30), 'sponge', r.uniform(30, 50), r.choice(PATINA), r.uniform(*OP_BANDS), 3)
     for _ in range(CRUST):
         x, y = r.uniform(0, 1024), r.uniform(0, 1024)
-        t.stroke([(x, y), (x + r.uniform(4, 14), y + r.uniform(-3, 3))], 'chalk', r.uniform(5, 10), '#9db7a2', r.uniform(0.3, 0.5))
+        t.stroke([(x, y), (x + r.uniform(4, 14), y + r.uniform(-3, 3))], 'chalk', r.uniform(5, 10), '#8fa894', r.uniform(0.25, 0.4))
     for _ in range(PITS):
         x, y = r.uniform(0, 1024), r.uniform(0, 1024)
         t.stroke([(x, y), (x + 1, y + 1)], 'ink', r.uniform(3, 7), '#26322a', r.uniform(0.5, 0.8), taper=[0, 0])

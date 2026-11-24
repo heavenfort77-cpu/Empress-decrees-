@@ -32,7 +32,7 @@ sheet('tiger_sheet.png', [
     [('tiger_wake_0', 'wake 0.0 s'), ('tiger_wake_1.4', 'wake 1.4 s'), ('tiger_wake_2.1', 'wake 2.1 s'), ('tiger_wake_2.6', 'wake 2.6 s'), ('tiger_wake_3', 'wake 3.0 s (plates peel)')],
     [('tiger_lods', 'LOD0 / LOD1 / LOD2')]])
 sheet('cubs_sheet.png', [
-    [(cpt(5216), 'concept 5216 (Stalker pick)'), ('stalker_front', 'Stalker front'), ('stalker_34', '3/4'), ('stalker_side', 'side'), ('stalker_back', 'back'), ('stalker_attack_windup', 'attack windup 0.5 s')],
+    [(cpt(5208), 'concept 5208 (Stalker pick)'), ('stalker_front', 'Stalker front'), ('stalker_34', '3/4'), ('stalker_side', 'side'), ('stalker_back', 'back'), ('stalker_attack_windup', 'attack windup 0.5 s')],
     [(cpt(5218), 'concept 5218 (Howler pick)'), ('howler_front', 'Howler front'), ('howler_34', '3/4'), ('howler_side', 'side'), ('howler_back', 'back'), ('howler_attack_windup', 'attack windup 0.5 s')],
     [('stalker_sil', 'Stalker silhouette'), ('howler_sil', 'Howler silhouette'), ('stalker_move', 'Stalker move'), ('howler_move', 'Howler move')],
     [('stalker_lods', 'Stalker LODs'), ('howler_lods', 'Howler LODs')]])
