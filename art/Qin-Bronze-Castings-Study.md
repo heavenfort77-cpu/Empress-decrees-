@@ -82,7 +82,17 @@ Where the two studies and later owner decisions differ, the later owner decision
 - Look (lead's read of the shots, code tool only): rounded and lion-like now; the face reads friendly (big round eyes and cheeks) rather than fierce; the bronze reads dark brown and the stamp bands are hard to see at play size; mane curls read as discs from the back.
 - Not done: phone texture (512), KTX2, game integration (THREE.LOD, pooled, warmed), real-GPU and phone screenshots, the jaw opening measured only in Blender (paw rise is gated; jaw angle 30 deg is keyed, not gated).
 - Supersedes round 1 (art/beast/round1/).
+### Verdict against the study's criteria (owner 22:43: "the figure is still bad"): does NOT meet them
+| Criterion | Round 2 | Result |
+|---|---|---|
+| A guardian (fierce, imperial) that reads at play size | friendly face: big round eyes, round cheeks, small snout; reads as a toy lion or teddy | FAIL |
+| Segmented casting: seams, flanges, stamp bands, inlay visible | flanges at elbows and collar only; body masses are plain spheroids; stamp bands not readable at play size | FAIL |
+| Round where round, sharp where sharp (owner 22:30) | rounded, but forms are generic spheres and tubes, not anatomy (no shoulder mass, no wrist, no muscle planes) | FAIL (shape quality) |
+| Fresh brass-gold bronze on a live hazard | reads dark brown under the game lights | FAIL (value 104 passes the number, the look misses) |
+| Not the apex tiger's silhouette | lion mane and seated pose | PASS |
+| Size, footprint, tell, budget, rig | gates 8 of 8 | PASS |
+Cause: the build method (spheres and tubes placed by hand, no reference drawn first) gives volume but no design. Next: concept references from ComfyUI with the study's values as the prompt (run 45417469651 on branch ci-comfy, reference only), the owner picks one, its proportions are measured, then the model is rebuilt to it.
 
 ## Open
-- ComfyUI: huggingface.co and pip are reachable from the session shell, but there is no GPU (2 CPU cores, 7 GB); SD 1.5 class models on CPU would take minutes per image. Not used unless round 2's shape still misses; then a CPU job on a GitHub runner, reference images only, never shipped.
+- ComfyUI (owner 22:43: use it): CPU job on GitHub runners, branch ci-comfy (ci_comfy/prompts.json, gen.py, .github/workflows/comfy.yml), SD 1.5 emaonly (CreativeML OpenRAIL-M, commercial use allowed), 512 x 768, 28 steps; output to ci-out out/comfy/<run>/. Prompt = this study's values in words (Qin bronze, segmented casting, silver inlay, cloud-scroll bands, brass-gold, fierce face, spiral-curl mane, round masses, sharp claws and fangs, stepped stone plinth) with the avoid list as the negative prompt. Reference only, never shipped or traced.
 - Phone texture set (512) and KTX2 with texture step 3.
