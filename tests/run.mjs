@@ -16,7 +16,8 @@ const server = createServer(async (req, res) => {
 // bots=0: the map-test checks run with the player alone; the bot checks (56+) set the bots themselves.
 // Batch 16 ticket 03 (game changed on purpose): the default pick (儒甲) now has its own kit, so pkit=placeholder keeps the player on the placeholder kit
 // the map and match checks were written for; the 儒甲 checks switch it off with __game.setPkitP(false).
-const URL0 = `http://127.0.0.1:${server.address().port}/?lock&tier=medium&bots=0&pkit=placeholder`;
+// layout=proto: the palace checks of tickets 01-04/08 run on the six-room BP01 box; the full palace (BP05) is picked in checks 700-709 by setLayout.
+const URL0 = `http://127.0.0.1:${server.address().port}/?lock&tier=medium&bots=0&pkit=placeholder&layout=proto`;
 
 import { guardChecks } from './guard-checks.mjs';
 const results = [], SIMS = [];
@@ -3464,6 +3465,349 @@ try {
   check('408 palace new run in the same page: start hall, doors shut, hall only, camera, Z and card reset; New run from the end screen starts again',
     bpNr.reset.cur === 'hall' && bpNr.reset.attached === 'hall' && bpNr.reset.shut && bpNr.reset.man === 0 && bpNr.reset.camK && bpNr.reset.card === 'none' && bpNr.reset.n === 1 && bpNr.reset.phase === 'palace'
     && bpNr.reset.banner === 'none' && bpNr.reset.x && bpNr.ended === 'palend' && bpNr.again.phase === 'palace' && bpNr.again.cur === 'hall' && bpNr.again.banner === 'none' && bpNr.again.attached === 'hall', JSON.stringify(bpNr));
+
+  // ===== BP04 the burning (checks 600-605) =====
+  // 600 Waves (owner design 24 Nov: about every 40 s she names a wing, 5 s warning, its rooms fall into the black lake): from a room that never burns
+  // (the bridge) the wings are named at 40, 80, 120, 160 s in CONFIG order, each falls warnS later and leaves the scene; warned floors glow; her line
+  // and the countdown on the banner (TEXT keys); the next-to-burn line shown and written only on change; doors to a fallen room stay shut, its card says so.
+  const bwA = await g(() => {
+    const G = __game, o = { warn: [], fall: [], glow: [], voice: [], rule: [] };
+    G.setSeed(12345); G.setMode('palace'); G.reset();
+    const R = Object.fromEntries(G.palace().rooms.map((r) => [r.id, r]));
+    G.teleport(R.bridge.cx, R.bridge.cz); G.step(2);
+    let b = G.burnState(); o.next0 = b.next; o.shown = b.nextShown; o.order = b.order.join(','); o.w0 = b.writes;
+    let last = b.st;
+    for (let i = 0; i < 200 * 4 && G.palace().phase === 'palace'; i++) {
+      G.step(15); b = G.burnState();
+      if (b.st === 1 && last !== 1) {
+        o.warn.push([b.wing, b.warnAt]); const p = G.palace(); o.voice.push(p.voice); o.rule.push(p.rule);
+        o.glow.push(b.rooms.filter((r) => r.warned && r.state === 1).every((r) => r.warnMat) && b.rooms.filter((r) => r.wing === b.wing).every((r) => r.warned));
+      }
+      if (b.st === 2 && last !== 2) o.fall.push([b.wing, b.fallAt]);
+      last = b.st;
+    }
+    b = G.burnState(); o.end = { next: b.next, i: b.i, bad: b.bad, phase: b.phase, writes: b.writes, alive: !b.pdead, checks: b.checks };
+    o.rooms = b.rooms.map((r) => [r.id, r.state, r.attached, r.floorsOn, r.y < -5 || r.state < 2].join(':'));
+    G.teleport(R.bridge.x0 + 2, R.bridge.cz); G.step(2);
+    const p = G.palace(), dCor = p.doors.find((d) => d.a === 'corridor' && d.b === 'bridge');
+    G.teleport(dCor.x, dCor.z - 1.6); G.step(10); const q = G.palace();
+    o.door = { open: q.doors.find((d) => d.a === 'corridor' && d.b === 'bridge').open, card: q.card, cur: q.cur };
+    G.setMode('rumble'); G.reset(); return o;
+  });
+  {
+    const tx = await g(() => __game.text);
+    const ws = ['outer', 'court', 'west', 'east'], near = (a, b) => Math.abs(a - b) < 0.3;
+    const wOk = bwA.warn.length === 4 && bwA.warn.every((w, i) => w[0] === ws[i] && near(w[1], 40 + 40 * i));
+    const fOk = bwA.fall.length === 4 && bwA.fall.every((f, i) => f[0] === ws[i] && near(f[1] - bwA.warn[i][1], 5));
+    const vOk = bwA.voice.every((v, i) => v === tx.burn_voice.replace('{wing}', tx['burn_wing_' + ws[i]])) && bwA.rule.every((r, i) => r.indexOf(tx['burn_wing_' + ws[i]]) === 0 && / in [1-5] s\./.test(r));
+    const rOk = bwA.rooms.join(',') === 'hall:3:false:0:true,court:3:false:0:true,corridor:3:false:0:true,garden:3:false:0:true,bridge:0:true:1:true,core:0:false:1:true';
+    check('600 burning waves: wings named at 40/80/120/160 s in order, each falls 5 s after its naming and leaves the scene; warned floors glow; her line + countdown; next-to-burn line on change; fallen door stays shut, card says so',
+      wOk && fOk && vOk && rOk && bwA.glow.every(Boolean) && bwA.order === 'outer,court,west,east' && bwA.shown !== 'none' && bwA.next0 === tx.burn_next.replace('{wing}', tx.burn_wing_outer).replace('{s}', '40')
+      && bwA.end.next === tx.burn_none && bwA.end.bad === 0 && bwA.end.alive && bwA.end.phase === 'palace' && bwA.end.writes > 100 && bwA.end.writes <= 210 && bwA.end.checks > 10000
+      && !bwA.door.open && bwA.door.card === tx.door_fallen.replace('{room}', tx.room_corridor), JSON.stringify(bwA));
+  }
+  // 601 No death by a fall without the 5 s warning: standing in the start hall, the player is told at 40 s (banner, countdown down to 1 s) and falls
+  // only after 45 s (cause fall, palace lost); walking into the warned hall 0.5 s before it falls also kills only after the fall; monitor clean.
+  const bwB = await g(() => {
+    const G = __game, o = {};
+    G.setSeed(12345); G.setMode('palace'); G.reset();
+    const R = Object.fromEntries(G.palace().rooms.map((r) => [r.id, r]));
+    while (G.burnState().t < 40.5) G.step(6);
+    o.t40 = { voice: G.palace().voice, banner: G.palace().banner, st: G.burnState().st, alive: !G.burnState().pdead };
+    while (G.burnState().t < 44.4) G.step(6);
+    o.t44 = { rule: G.palace().rule, alive: !G.burnState().pdead, phase: G.burnState().phase };
+    for (let i = 0; i < 600 && G.palace().phase === 'palace'; i++) G.step(1);
+    let b = G.burnState(); o.a = { phase: b.phase, cause: b.pcause, diedAt: b.pdiedAt, warnAt: b.warnAt, fallAt: b.fallAt, bad: b.bad, fellN: b.fellN, voice: G.palace().voice };
+    G.reset(); G.teleport(R.bridge.cx, R.bridge.cz); G.step(2);
+    while (G.burnState().t < 44.5) G.step(3);
+    G.teleport(R.hall.cx, R.hall.cz); G.step(1); o.inHall = G.palace().cur;
+    for (let i = 0; i < 600 && G.palace().phase === 'palace'; i++) G.step(1);
+    b = G.burnState(); o.b = { phase: b.phase, cause: b.pcause, diedAt: b.pdiedAt, warnAt: b.warnAt, fallAt: b.fallAt, bad: b.bad, fellN: b.fellN };
+    G.setMode('rumble'); G.reset(); return o;
+  });
+  {
+    const tx = await g(() => __game.text);
+    const okA = bwB.a.phase === 'palend' && bwB.a.cause === 'fall' && bwB.a.diedAt >= bwB.a.warnAt + 5 - 1e-6 && bwB.a.diedAt >= bwB.a.fallAt && bwB.a.bad === 0 && bwB.a.fellN === 1 && bwB.a.voice === tx.pal_voice_lost;
+    const okB = bwB.inHall === 'hall' && bwB.b.phase === 'palend' && bwB.b.cause === 'fall' && bwB.b.diedAt >= bwB.b.fallAt && bwB.b.fallAt - bwB.b.warnAt >= 5 - 1e-6 && bwB.b.bad === 0;
+    check('601 no fall death without the 5 s warning: told at 40 s (banner, countdown to 1 s), falls only after 45 s (cause fall); a late entrant also dies only after the fall; monitor clean',
+      bwB.t40.voice === tx.burn_voice.replace('{wing}', tx.burn_wing_outer) && bwB.t40.banner === 'block' && bwB.t40.st === 1 && bwB.t40.alive
+      && / in 1 s\./.test(bwB.t44.rule) && bwB.t44.alive && bwB.t44.phase === 'palace' && okA && okB, JSON.stringify(bwB));
+  }
+  // 602 Fairness rule (owner 24 Nov 13:28): a locked room is never warned; the wave that needs it waits ("when the fight there ends") and is named the
+  // moment the room unlocks; it still falls 5 s later; the next wing is due 40 s after that naming; a warned or fallen room may not be locked.
+  const bwC = await g(() => {
+    const G = __game, o = {};
+    G.setSeed(12345); G.setMode('palace'); G.reset();
+    const R = Object.fromEntries(G.palace().rooms.map((r) => [r.id, r]));
+    G.teleport(R.bridge.cx, R.bridge.cz); G.step(2);
+    o.canBefore = G.burnCanLock('hall'); G.burnLock('hall', true);
+    while (G.burnState().t < 60) G.step(6);
+    let b = G.burnState(); const hall = b.rooms.find((r) => r.id === 'hall');
+    o.locked = { st: b.st, waiting: b.waiting, waits: b.waits, warned: hall.warned, next: b.next, bad: b.bad };
+    G.burnLock('hall', false); const t0 = G.burnState().t; G.step(1); b = G.burnState();
+    o.named = { st: b.st, warnAt: b.warnAt, t0, waiting: b.waiting }; o.canWarned = G.burnCanLock('hall');
+    while (G.burnState().st !== 2 && G.burnState().t < 80) G.step(1);
+    b = G.burnState(); o.fallAt = b.fallAt; o.canFallen = G.burnCanLock('hall');
+    while (!(G.burnState().st === 1 && G.burnState().wing === 'court') && G.burnState().t < 130) G.step(1);
+    b = G.burnState(); o.second = { wing: b.wing, warnAt: b.warnAt, bad: b.bad };
+    G.setMode('rumble'); G.reset(); return o;
+  });
+  {
+    const tx = await g(() => __game.text);
+    check('602 a locked room is never warned: the wave waits (HUD says so), is named when it unlocks, falls 5 s later; next wing 40 s after that naming; warned/fallen rooms may not lock',
+      bwC.canBefore && bwC.locked.st === 0 && bwC.locked.waiting && bwC.locked.waits === 1 && !bwC.locked.warned && bwC.locked.bad === 0
+      && bwC.locked.next === tx.burn_wait.replace('{wing}', tx.burn_wing_outer) && bwC.named.st === 1 && Math.abs(bwC.named.warnAt - bwC.named.t0) < 0.05 && !bwC.named.waiting
+      && !bwC.canWarned && !bwC.canFallen && Math.abs(bwC.fallAt - bwC.named.warnAt - 5) < 0.05 && bwC.second.wing === 'court' && Math.abs(bwC.second.warnAt - bwC.named.warnAt - 40) < 0.05
+      && bwC.second.bad === 0, JSON.stringify(bwC));
+  }
+  // 603 The fairness monitor runs every tick and catches a break: a warned room locked after its warning (a BP03 bug) counts at once (badWhy 'locked').
+  const bwD = await g(() => {
+    const G = __game, o = {};
+    G.setSeed(12345); G.setMode('palace'); G.reset();
+    const R = Object.fromEntries(G.palace().rooms.map((r) => [r.id, r]));
+    G.teleport(R.bridge.cx, R.bridge.cz); G.step(2);
+    while (G.burnState().t < 41) G.step(6);
+    const c0 = G.burnState().checks; o.clean = G.burnState().bad; G.burnLock('hall', true); G.step(3);
+    const b = G.burnState(); o.after = { bad: b.bad, why: b.badWhy, room: b.badRoom, ticks: b.checks - c0 }; G.burnLock('hall', false);
+    G.setMode('rumble'); G.reset(); return o;
+  });
+  check('603 fairness monitor every tick: a warned room that gets locked is counted at once (locked / hall)',
+    bwD.clean === 0 && bwD.after.bad === 3 && bwD.after.why === 'locked' && bwD.after.room === 'hall' && bwD.after.ticks === 3, JSON.stringify(bwD));
+  // 604 Royal Rumble never burns; a new run in the same page (twice) brings every room back: standing, level, floors on, own materials, the hall only
+  // drawn, the clock from the start, monitor clean; the Royal Rumble draw counts and floors are the same before and after a burned-out palace.
+  const bwE = await g(() => {
+    const G = __game, o = {};
+    G.setSeed(12345); G.setBots(0); G.setMode('rumble'); G.reset(); G.step(2);
+    const rr0 = G.render(true), p0 = G.palace();
+    for (let i = 0; i < 60 * 4; i++) G.step(15);
+    let b = G.burnState(); o.rumble = { i: b.i, st: b.st, checks: b.checks, rooms: b.rooms.every((r) => r.state === 0 && !r.warned) };
+    o.runs = [];
+    for (let k = 0; k < 2; k++) {
+      G.setMode('palace'); G.reset();
+      const R = Object.fromEntries(G.palace().rooms.map((r) => [r.id, r]));
+      G.teleport(R.bridge.cx, R.bridge.cz); for (let i = 0; i < 180 * 4; i++) G.step(15);
+      const burned = G.burnState().i;
+      G.reset(); G.step(1); b = G.burnState(); const p = G.palace();
+      o.runs.push({ burned, i: b.i, st: b.st, bad: b.bad, nextAt: b.nextAt, rooms: b.rooms.every((r) => r.state === 0 && !r.warned && !r.fallen && r.y === 0 && !r.warnMat && r.floorsOn === 1),
+        attached: p.attached.join(','), cur: p.cur, next: b.next });
+    }
+    G.setMode('rumble'); G.reset(); G.step(2); const rr1 = G.render(true), p1 = G.palace();
+    o.rr = { calls: [rr0.calls, rr1.calls], tris: [rr0.tris, rr1.tris], floors: [p0.floors, p1.floors], solids: [p0.solids, p1.solids], royaleIn: [p0.royaleIn, p1.royaleIn], next: p1.hud !== undefined };
+    return o;
+  });
+  {
+    const tx = await g(() => __game.text);
+    check('604 Royal Rumble never burns; new run (twice) restores every room (standing, level, floors, materials, hall only, clock); Rumble counts/floors same after a burned palace',
+      bwE.rumble.i === 0 && bwE.rumble.st === 0 && bwE.rumble.checks === 0 && bwE.rumble.rooms
+      && bwE.runs.every((r) => r.burned === 4 && r.i === 0 && r.st === 0 && r.bad === 0 && r.nextAt === 40 && r.rooms && r.attached === 'hall' && r.cur === 'hall' && r.next === tx.burn_next.replace('{wing}', tx.burn_wing_outer).replace('{s}', '40'))
+      && bwE.rr.calls[0] === bwE.rr.calls[1] && bwE.rr.tris[0] === bwE.rr.tris[1] && bwE.rr.floors[0] === bwE.rr.floors[1] && bwE.rr.solids[0] === bwE.rr.solids[1] && bwE.rr.royaleIn[0] === bwE.rr.royaleIn[1], JSON.stringify(bwE));
+  }
+  // 605 Budget while burning, tier medium: a warned hall seen with the court door open, a falling room in view; under 500 calls / 0.5M tris;
+  // shader programs and geometries flat after a whole burn sequence and a new run (warnMat is warmed at load; nothing built per wave).
+  const bwF = await g(() => {
+    const G = __game, o = {};
+    G.setSeed(12345); G.setMode('palace'); G.reset(); G.step(1);
+    const base = G.render(true);
+    const D = G.palace().doors.find((d) => d.a === 'hall' && d.b === 'court');
+    G.teleport(D.x, D.z - 1.6); G.step(2);
+    while (G.burnState().t < 41) G.step(6);
+    G.teleport(D.x, D.z - 1.6); G.step(2); const warned = G.render(true); o.warned = [warned.calls, warned.tris, G.palace().attached.join(','), G.burnState().st];
+    while (G.burnState().st !== 2) G.step(1);
+    G.step(20); const fall = G.render(true); o.fall = [fall.calls, fall.tris, G.palace().attached.join(',')];
+    const R = Object.fromEntries(G.palace().rooms.map((r) => [r.id, r]));
+    G.teleport(R.bridge.cx, R.bridge.cz); for (let i = 0; i < 180 * 4; i++) G.step(15);
+    G.reset(); G.step(1); const after = G.render(true);
+    o.prog = [base.programs, warned.programs, fall.programs, after.programs]; o.geo = [base.geoms, after.geoms]; o.tex = [base.texs, after.texs];
+    G.setMode('rumble'); G.reset(); return o;
+  });
+  check('605 burning budget (tier medium): warned hall + court, falling room in view under 500 calls / 0.5M tris; programs, geometries, textures flat after a full burn + new run',
+    bwF.warned[0] < 500 && bwF.warned[1] < 500000 && bwF.warned[2] === 'hall,court' && bwF.warned[3] === 1 && bwF.fall[0] < 500 && bwF.fall[1] < 500000
+    && bwF.prog.every((v) => v === bwF.prog[0]) && bwF.geo[0] === bwF.geo[1] && bwF.tex[0] === bwF.tex[1], JSON.stringify(bwF));
+
+  // ---- BP05 the full palace (checks 700-709; owner 24 Nov 13:18 阿房宫 model, 14:16 at least 5 rooms to the core, 14:27 pieces) ----
+  // 700 The plan: the full palace is the default plan (CONFIG), 25-30 rooms, nine school halls (one per school), every room type, every room in a wing,
+  // six wings (five outer + the centre), hall names from TEXT keys.
+  const b5Pl = await g(() => {
+    const G = __game, o = {};
+    o.cfg = G.config.PAL_PLAN.layout; G.setLayout('full'); G.setSeed(12345); G.setMode('palace'); G.reset();
+    const p = G.palPlan(), halls = p.rooms.filter((r) => r.type === 'hall');
+    o.layout = p.layout; o.n = p.rooms.length; o.halls = halls.length; o.schools = halls.map((r) => r.school).sort().join(',');
+    o.want = G.config.SCHOOLS.slice().sort().join(','); o.types = [...new Set(p.rooms.map((r) => r.type))].sort().join(',');
+    o.wings = [...new Set(p.rooms.map((r) => r.wing))].sort().join(','); o.noWing = p.rooms.filter((r) => !r.wing).length;
+    o.names = halls.every((r) => r.name === G.text['pal5_hall_' + r.school]); o.doors = p.doors.length;
+    G.setLayout('proto'); G.setMode('rumble'); G.reset(); return o;
+  });
+  check('700 full palace plan: default layout full; 25-30 rooms; 9 school halls, one per school; all room types; 6 wings, every room in one; hall names from TEXT',
+    b5Pl.cfg === 'full' && b5Pl.layout === 'full' && b5Pl.n >= 25 && b5Pl.n <= 30 && b5Pl.halls === 9 && b5Pl.schools === b5Pl.want && b5Pl.types === 'bridge,core,corridor,court,garden,hall'
+    && b5Pl.wings === 'centre,east,south,southeast,southwest,west' && b5Pl.noWing === 0 && b5Pl.names, JSON.stringify(b5Pl));
+  // 701 Reachability and route length (owner 14:16): every room reaches the core; the shortest way from every school hall to the core passes at least
+  // 5 rooms (graph from the doors); one outer wing burnt never cuts another wing's halls off from the core; room depth = doors from the core.
+  const b5Rc = await g(() => {
+    const G = __game, o = {};
+    G.setLayout('full'); G.setSeed(12345); G.setMode('palace'); G.reset();
+    const p = G.palPlan(), adj = {};
+    for (const r of p.rooms) adj[r.id] = [];
+    for (const d of p.doors) { adj[d.a].push(d.b); adj[d.b].push(d.a); }
+    const bfs = (ban) => { const d = { core: 0 }, q = ['core']; for (const x of q) for (const y of adj[x]) if (!(y in d) && !ban.has(y)) { d[y] = d[x] + 1; q.push(y); } return d; };
+    const d0 = bfs(new Set());
+    o.reach = p.rooms.every((r) => r.id in d0); o.depthOk = p.rooms.every((r) => r.depth === d0[r.id]);
+    o.passed = Object.fromEntries(p.rooms.filter((r) => r.type === 'hall').map((r) => [r.id, d0[r.id] - 1]));
+    o.minPassed = Math.min(...Object.values(o.passed)); o.cfgMin = G.config.PAL_PLAN.minRoute;
+    o.cut = {};
+    for (const w of ['west', 'southwest', 'south', 'southeast', 'east']) {
+      const ban = new Set(p.rooms.filter((r) => r.wing === w).map((r) => r.id)), d = bfs(ban);
+      o.cut[w] = p.rooms.filter((r) => r.type === 'hall' && !ban.has(r.id) && !(r.id in d)).map((r) => r.id).join(',');
+    }
+    G.setLayout('proto'); G.setMode('rumble'); G.reset(); return o;
+  });
+  check('701 full palace reachability: every room reaches the core; every school hall passes >= 5 rooms to the core; one wing burnt cuts no other hall off; depth = doors from the core',
+    b5Rc.reach && b5Rc.depthOk && b5Rc.minPassed >= 5 && b5Rc.cfgMin >= 5 && Object.values(b5Rc.cut).every((v) => v === ''), JSON.stringify(b5Rc));
+  // 702 A suit starts in its own school's hall: picking each school starts the run in that hall, on its spawn, the hall drawn alone and doors shut.
+  const b5St = await g(() => {
+    const G = __game, o = { bad: [] };
+    G.setLayout('full'); G.setSeed(12345); G.setMode('palace');
+    const L = G.config.SCHOOLS;
+    for (let i = 0; i < L.length; i++) {
+      G.pickSchool(i); const p = G.palace(), pl = G.palPlan(), r = pl.rooms.find((x) => x.id === pl.start);
+      const ok = r && r.school === L[i] && p.cur === r.id && p.x === r.spawn[0] && p.z === r.spawn[1] && p.attached.join(',') === r.id && p.doors.every((d) => !d.open);
+      if (!ok) o.bad.push(L[i] + ':' + pl.start + ':' + p.cur + ':' + p.attached.join('+'));
+    }
+    G.pickSchool(0); G.setLayout('proto'); G.setMode('rumble'); G.reset(); return o;
+  });
+  check('702 a palace run starts in the player\'s own school hall (all nine schools): on its spawn, that hall alone drawn, doors shut', b5St.bad.length === 0, JSON.stringify(b5St));
+  // 703 Pieces placed for tickets 08/09 (owner 14:24-14:27): 石狮 pairs beside hall and gate doors, 水银 on bridges and the forecourt, smoke in gardens,
+  // 华表 in courtyards, a 鼎 in every school hall, a 铜壶滴漏 in each burning wing (none in the centre), 门海 vats, the 十二金人 (0-11) on the core approach;
+  // every piece inside its room.
+  const b5Pc = await g(() => {
+    const G = __game, o = {};
+    G.setLayout('full'); G.setSeed(12345); G.setMode('palace'); G.reset();
+    const p = G.palPlan(), all = [];
+    for (const r of p.rooms) for (const q of r.pieces) all.push(Object.assign({ room: r.id, rtype: r.type, wing: r.wing, rx0: r.x0, rx1: r.x1, rz0: r.z0, rz1: r.z1, rdoors: r.doors }, q));
+    const of = (t) => all.filter((q) => q.type === t);
+    o.count = {}; for (const q of all) o.count[q.type] = (o.count[q.type] || 0) + 1;
+    o.inside = all.every((q) => q.x > q.rx0 && q.x < q.rx1 && q.z > q.rz0 && q.z < q.rz1);
+    o.lionsAtDoors = of('lion').every((q) => q.rdoors.some((k) => Math.hypot(p.doors[k].x - q.x, p.doors[k].z - q.z) < 5)) && of('lion').every((q) => q.rtype === 'hall' || q.room === 'fore');
+    o.lionHalls = new Set(of('lion').filter((q) => q.rtype === 'hall').map((q) => q.room)).size;
+    o.ding = of('ding').every((q) => q.rtype === 'hall') && new Set(of('ding').map((q) => q.room)).size === 9;
+    o.clock = of('clock').map((q) => q.wing).sort().join(',');
+    o.smoke = of('smoke').every((q) => q.rtype === 'garden'); o.huabiao = of('huabiao').every((q) => q.rtype === 'court');
+    o.mercury = of('mercury').every((q) => q.rtype === 'bridge' || q.rtype === 'court' && q.room === 'fore') && of('mercury').every((q) => q.sx > 0 && q.sz > 0);
+    o.giants = of('giant').map((q) => q.i).sort((a, b) => a - b).join(',') === '0,1,2,3,4,5,6,7,8,9,10,11' && of('giant').every((q) => q.room === 'fore' || q.room === 'approach');
+    o.vats = of('vat').length;
+    G.setLayout('proto'); G.setMode('rumble'); G.reset(); return o;
+  });
+  check('703 palace pieces: lions in pairs at hall/gate doors, mercury on bridges + forecourt, smoke in gardens, 华表 in courts, 鼎 in all 9 halls, a clock per burning wing, vats, giants 0-11 on the approach; all inside their rooms',
+    b5Pc.inside && b5Pc.lionsAtDoors && b5Pc.lionHalls === 9 && b5Pc.count.lion === 20 && b5Pc.ding && b5Pc.count.ding === 9 && b5Pc.clock === 'east,south,southeast,southwest,west'
+    && b5Pc.smoke && b5Pc.count.smoke >= 2 && b5Pc.huabiao && b5Pc.count.huabiao >= 3 && b5Pc.mercury && b5Pc.count.mercury >= 5 && b5Pc.giants && b5Pc.vats >= 5, JSON.stringify(b5Pc));
+  // 704 Walking the full palace: a move order from the Ru hall to the core walks room to room through the doors (hall, corridor, courtyard, bridge,
+  // forecourt, bridge, core: 5 rooms between), only the current room and rooms behind its open doors are ever drawn, and the core hall ends the run.
+  const b5Wk = await g(() => {
+    const G = __game, o = { bad: 0, maxAtt: 0 };
+    G.setLayout('full'); G.setSeed(12345); G.setMode('palace'); G.pickSchool(0);
+    const pl = G.palPlan(), core = pl.rooms.find((r) => r.id === 'core'), seen = [];
+    o.ok = G.palMoveTo(core.cx, core.cz);
+    for (let i = 0; i < 8000 && G.palace().phase === 'palace'; i++) {
+      G.step(1); const p = G.palace();
+      if (seen[seen.length - 1] !== p.cur) seen.push(p.cur);
+      const okAtt = p.attached.every((id) => id === p.cur || p.doors.some((d) => d.open && (d.a === p.cur && d.b === id || d.b === p.cur && d.a === id)));
+      if (!okAtt) o.bad++; o.maxAtt = Math.max(o.maxAtt, p.attached.length);
+    }
+    const p = G.palace(); o.route = seen.join('>'); o.phase = p.phase; o.n = p.n;
+    G.pickSchool(0); G.setLayout('proto'); G.setMode('rumble'); G.reset(); return o;
+  });
+  check('704 full palace walk: Ru hall > corridor > courtyard > bridge > forecourt > bridge > core (5 rooms between), only the current room + rooms behind its open doors drawn, the core ends the run',
+    b5Wk.ok && b5Wk.route === 'hall_ru>corr_w>court_w>bridge_wf>fore>approach>core' && b5Wk.phase === 'palend' && b5Wk.n === 7 && b5Wk.bad === 0 && b5Wk.maxAtt <= 3, JSON.stringify(b5Wk));
+  // 705 Budget on tier medium in every room of the full palace, with each of its doors open in turn (heaviest = the worst room plus the room behind a door).
+  const b5Bg = await g(() => {
+    const G = __game, o = { maxCalls: 0, maxTris: 0, worst: '', maxAtt: 0 };
+    G.setLayout('full'); G.setSeed(12345); G.setMode('palace'); G.reset();
+    const pl = G.palPlan();
+    for (const r of pl.rooms) {
+      G.reset(); G.teleport(r.cx, r.cz); G.step(2);
+      const meas = (tag) => { const x = G.render(true), a = G.palace().attached.length; if (x.calls > o.maxCalls) { o.maxCalls = x.calls; o.worst = tag; } o.maxTris = Math.max(o.maxTris, x.tris); o.maxAtt = Math.max(o.maxAtt, a); };
+      meas(r.id);
+      for (const k of r.doors) {
+        const d = pl.doors[k], sx = d.vert ? (r.cx < d.x ? -1.6 : 1.6) : 0, sz = d.vert ? 0 : (r.cz < d.z ? -1.6 : 1.6);
+        G.teleport(d.x + sx, d.z + sz); G.step(1); meas(r.id + '+' + (d.a === r.id ? d.b : d.a));
+      }
+    }
+    G.setLayout('proto'); G.setMode('rumble'); G.reset(); return o;
+  });
+  check('705 full palace budget per room, tier medium, each door open in turn (calls<500, tris<500k, at most 2 rooms drawn)', b5Bg.maxCalls < 500 && b5Bg.maxTris < 500000 && b5Bg.maxAtt <= 2, JSON.stringify(b5Bg));
+  // 706 Room minimap: shown in a palace run; the player's dot; rooms in their type colour; a warned room red and a fallen room only an outline (the burning,
+  // ticket 04, sets them); the current room outlined; a right-click on it walks there; Royal Rumble's own minimap is back afterwards.
+  const b5Mn = await g(() => {
+    const G = __game, o = {}, C = G.config.PAL_MINI, hex = (h) => [parseInt(h.slice(1, 3), 16), parseInt(h.slice(3, 5), 16), parseInt(h.slice(5, 7), 16)];
+    const near = (a, b) => Math.abs(a[0] - b[0]) + Math.abs(a[1] - b[1]) + Math.abs(a[2] - b[2]) < 30;
+    G.setLayout('full'); G.setSeed(12345); G.setMode('palace'); G.pickSchool(0);
+    const pl = G.palPlan(), R = Object.fromEntries(pl.rooms.map((r) => [r.id, r]));
+    o.shown = pl.mini !== 'none'; const p = G.palace();
+    o.you = near(G.palMiniPx(p.x, p.z), hex(C.you));
+    o.garden = near(G.palMiniPx(R.garden_sw.cx + 4, R.garden_sw.cz + 3), hex(C.garden)); o.court = near(G.palMiniPx(R.court_s.cx + 3, R.court_s.cz + 3), hex(C.court));
+    G.palTestRoomState('court_s', true, false); o.warned = near(G.palMiniPx(R.court_s.cx + 3, R.court_s.cz + 3), hex(C.warned));
+    G.palTestRoomState('court_s', false, true); o.fallen = near(G.palMiniPx(R.court_s.cx + 3, R.court_s.cz + 3), [12, 10, 16]);
+    G.palTestRoomState('court_s', false, false); o.back = near(G.palMiniPx(R.court_s.cx + 3, R.court_s.cz + 3), hex(C.court));
+    o.curEdge = near(G.palMiniPx(R.hall_ru.cx, R.hall_ru.z0 + 1.5), hex(C.cur));
+    const cv = document.getElementById('mini'), b = cv.getBoundingClientRect(), mp = G.palMiniMap(), tgt = R.corr_w;
+    const cx = b.left + (mp.ox + (tgt.cx - mp.bx0) * mp.s) * b.width / cv.width, cy = b.top + (mp.oy + (tgt.cz - mp.bz0) * mp.s) * b.height / cv.height;
+    cv.dispatchEvent(new PointerEvent('pointerdown', { button: 2, pointerType: 'mouse', clientX: cx, clientY: cy, bubbles: true }));
+    for (let i = 0; i < 2000 && G.palace().cur !== 'corr_w'; i++) G.step(1);
+    o.walked = G.palace().cur;
+    G.pickSchool(0); G.setLayout('proto'); G.setMode('rumble'); G.reset(); G.step(2);
+    o.rumbleMini = getComputedStyle(document.getElementById('mini')).display !== 'none' && !near(G.miniPixel(0, 0), hex(C.court)) && !near(G.miniPixel(0, 0), hex(C.hall));
+    return o;
+  });
+  check('706 palace room minimap: shown; your dot; type colours; warned room red, fallen room an outline, back again; current room outlined; right-click walks there; Rumble minimap back',
+    b5Mn.shown && b5Mn.you && b5Mn.garden && b5Mn.court && b5Mn.warned && b5Mn.fallen && b5Mn.back && b5Mn.curEdge && b5Mn.walked === 'corr_w' && b5Mn.rumbleMini, JSON.stringify(b5Mn));
+  // 707 Guard escalation data (for tickets 02/03): squads by depth from the core (none in the core: the apex), one more after each lateAt time, capped;
+  // the unit list by depth band (rim: foot soldiers; mid: shields, crossbows, a leader; inner: also a chariot).
+  const b5Es = await g(() => {
+    const G = __game, o = {}, E = G.config.PAL_ESC;
+    G.setLayout('full'); G.setSeed(12345); G.setMode('palace'); G.reset();
+    const e = (id, t) => G.palEsc(id, t);
+    o.core = [e('core', 0).squads, e('core', 999).squads]; o.approach = e('approach', 0).squads; o.fore = [e('fore', 0).squads, e('fore', 200).squads];
+    o.hall = [e('hall_ru', 0).squads, e('hall_ru', E.lateAt[0]).squads, e('hall_ru', E.lateAt[1] + 1).squads, e('hall_fa', E.lateAt[1] + 1).squads];
+    o.mix = [e('hall_ru', 0).mix.join(','), e('court_w', 0).mix.join(','), e('fore', 0).mix.join(',')];
+    o.want = [E.mix.rim.join(','), E.mix.mid.join(','), E.mix.inner.join(',')];
+    G.setLayout('proto'); G.setMode('rumble'); G.reset(); return o;
+  });
+  check('707 palace guard escalation: core 0 always; approach 2, forecourt 3 (cap 3 late); rim hall 1, 2 after lateAt[0], 3 after lateAt[1]; unit lists by depth band',
+    b5Es.core.join() === '0,0' && b5Es.approach === 2 && b5Es.fore.join() === '3,3' && b5Es.hall.join() === '1,2,3,3' && b5Es.mix.join('|') === b5Es.want.join('|'), JSON.stringify(b5Es));
+  // 708 Plan switch and new runs in the same page: full > proto > full palace runs and back to Royal Rumble leave floors, solids, rooms drawn and the
+  // lake exactly as a fresh start of each (the other plan's rooms all out of the scene); a new full run starts again in the start hall with doors shut.
+  const b5Sw = await g(() => {
+    const G = __game, o = {};
+    G.setSeed(12345); G.setMode('rumble'); G.reset(); G.step(1); const r0 = G.palace();
+    const snap = () => { const p = G.palace(), pl = G.palPlan(); return { layout: pl.layout, rooms: p.rooms.length, floors: p.floors - p.navNF, solids: p.solids, palSolids: p.palSolids, attached: p.attached.join(','), lake: p.lake, lakeW: pl.lakeW, scene: G.render(true).calls }; };
+    G.setLayout('full'); G.setMode('palace'); G.reset(); G.step(1); o.full1 = snap();
+    const pl = G.palPlan(), d = pl.doors[pl.rooms.find((r) => r.id === pl.start).doors[0]]; G.teleport(d.x, d.z); G.step(2);
+    G.setLayout('proto'); G.reset(); G.step(1); o.proto = snap();
+    G.setLayout('full'); G.reset(); G.step(1); o.full2 = snap();
+    G.reset(); G.step(1); const p = G.palace(); o.again = { cur: p.cur, shut: p.doors.every((x) => !x.open), attached: p.attached.join(',') };
+    G.setLayout('proto'); G.setMode('rumble'); G.reset(); G.step(1); const r1 = G.palace();
+    o.rumble = { floors: r1.floors === r0.floors, solids: r1.solids === r0.solids, lake: r1.lake, abyss: r1.abyss, royaleIn: r1.royaleIn === r0.royaleIn, attached: r1.attached.length };
+    o.bounds = pl.bounds; return o;
+  });
+  check('708 plan switch full > proto > full and back to Rumble: floors, solids, rooms drawn, lake as a fresh start of each; new full run in the start hall, doors shut; Rumble unchanged',
+    b5Sw.full1.layout === 'full' && b5Sw.full1.rooms >= 25 && b5Sw.proto.layout === 'proto' && b5Sw.proto.rooms === 6 && b5Sw.proto.attached === 'hall'
+    && b5Sw.full2.floors === b5Sw.full1.floors && b5Sw.full2.solids === b5Sw.full1.solids && b5Sw.full2.attached === b5Sw.full1.attached && b5Sw.full2.scene === b5Sw.full1.scene
+    && b5Sw.proto.floors === 6 && b5Sw.proto.solids - b5Sw.proto.palSolids === b5Sw.full1.solids - b5Sw.full1.palSolids && b5Sw.full1.lakeW >= b5Sw.bounds[1] - b5Sw.bounds[0]
+    && b5Sw.again.cur === b5Sw.full1.attached && b5Sw.again.shut && b5Sw.again.attached === b5Sw.full1.attached
+    && b5Sw.rumble.floors && b5Sw.rumble.solids && !b5Sw.rumble.lake && b5Sw.rumble.abyss && b5Sw.rumble.royaleIn && b5Sw.rumble.attached === 0, JSON.stringify(b5Sw));
+  // 709 The sun's tight shadow box follows the room you enter (rule 39): its target is the current room's centre, and the largest room fits in the box.
+  const b5Sn = await g(() => {
+    const G = __game, o = { bad: [] };
+    G.setLayout('full'); G.setSeed(12345); G.setMode('palace'); G.pickSchool(0);
+    const pl = G.palPlan(), K = G.config.MAP_SCALE, core = pl.rooms.find((r) => r.id === 'core');
+    G.palMoveTo(core.cx, core.cz); let last = '';
+    for (let i = 0; i < 8000 && G.palace().phase === 'palace'; i++) {
+      G.step(1); const p = G.palace();
+      if (p.cur !== last) { last = p.cur; const q = G.palPlan(), r = q.rooms.find((x) => x.id === p.cur); if (Math.abs(q.sunX - r.cx) > 1e-6 || Math.abs(q.sunZ - r.cz) > 1e-6) o.bad.push(p.cur); }
+    }
+    o.fit = pl.rooms.every((r) => (r.x1 - r.x0) / 2 <= 58 * K && (r.z1 - r.z0) / 2 <= 48 * K);
+    G.pickSchool(0); G.setLayout('proto'); G.setMode('rumble'); G.reset(); return o;
+  });
+  check('709 palace sun follows the room you enter (shadow box on the current room), largest room fits the shadow box', b5Sn.bad.length === 0 && b5Sn.fit, JSON.stringify(b5Sn));
 
   // 15 Graphics context lost and restored: no errors, renders again.
   const errBefore = errors.length;
