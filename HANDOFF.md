@@ -17,7 +17,7 @@
   - (a) The burn order is fixed per layout (CONFIG.BURN.orderFull): seeds 2, 5 and 8 ended the same at 46.3 s. Proposal, not approved: her wings come from a shuffled bag.
   - (b) Close zoom changed from 1.0x to 0.75x of the base distance by BP10: owner to confirm.
   - (c) Palace geometry count grows the first time each room is drawn (check 1207): warm every room under the loading card.
-  - (d) Close-out still to do in THIS session after the handover (owner 15:52): real-GPU fps for the palace, then the phone link.
+  - (d) Close-out (owner 15:52): real-GPU fps for the palace, then the phone link. Started 24 Nov 17:15 (perf worker, branch perf-probe / ci-perf, scenes palace_room, palace_heavy, palace_heavy_low and reference, on game commit 6c5642d). If this session ended first: look for the PERF2 lines in /home/claude/batch16.log and out/perf/<run id>/ on ci-out; if neither exists, re-run the probe from the worktree. Then republish the phone link (slug 1688f9ba-a0e5-4f7b-ac2e-3a68d6fc67c3), which still shows ticket 01, before the texture work.
   - (e) Balance talk (items under "Known balance items").
   - (f) No bot finishes a palace run yet.
 - Parallel build method (owner 14:29): builders on their own branches and worktrees per docs/BP-INTERFACES.md, one integrator merges, the lead verifies every run on ci-out.
