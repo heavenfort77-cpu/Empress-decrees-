@@ -60,7 +60,7 @@ body.touch #school{left:auto;right:12px;top:124px}
 .sel__btn{min-width:44px;min-height:44px;padding:10px;font:15px system-ui,sans-serif;color:#fff;background:#2a2030;border:2px solid #6a5a7a;border-radius:8px}
 .sel__btn.is-last{border-color:#c9a040}
 .sel__btn--random{grid-column:1/-1;background:#3a2a1a}
-body.palace #mini,body.palace #next{display:none !important}
+body.palace #mini{display:none !important}
 #mode{position:fixed;inset:0;display:none;background:#120d16;z-index:9;overflow:auto}
 .sel__btn--mode{margin-top:14px;background:#1a2a3a}
 #door{position:fixed;left:50%;top:22%;transform:translateX(-50%);display:none;pointer-events:none;white-space:pre-line;text-align:center;font:15px system-ui,sans-serif;color:#fff;background:#120d16cc;border:2px solid #c9a040;border-radius:8px;padding:10px 16px;max-width:80vw}
@@ -600,6 +600,13 @@ const CONFIG = {
   // reach metres (in sight), close = one is; easeS = seconds to ease between them; phone = multiplier on phones (they start closer); type = per
   // room type (corridors closer, courtyards wider). Z cycles auto, wide, close (manual override). Royal Rumble keeps 1.
   PAL_CAM: { wide: 1.6, close: 1.0, reach: 10, easeS: 0.4, phone: 0.85, type: { hall: 1, court: 1.15, corridor: 0.85, garden: 1, bridge: 1, core: 1.15 } },
+  // The burning (BP04; design owner 24 Nov 13:18-13:44: about every 40 s she names a wing, 5 s warning, its rooms fall into the black lake;
+  // a locked room is never warned, the wave waits until its fight is over). on = switch (palace runs only; Royal Rumble never burns);
+  // firstS = game seconds when the first wing is named; everyS = seconds from one naming to the next (counted from the naming, so a wave
+  // that waited on a locked room does not bunch the next one); warnS = warning seconds before the wing falls (fairness tell, >= 0.4; owner
+  // 5 s); fallS = seconds its rooms take to drop out of sight; noteS = seconds her "has fallen" line stays up; order = wings in burning
+  // order (until BP05's layout: the BP01 rooms' wings in BURN_WINGS below). Numbers are the design's, not tuned (owner: results first).
+  BURN: { on: true, firstS: 40, everyS: 40, warnS: 5, fallS: 1.2, noteS: 2.5, order: ['outer', 'court', 'west', 'east'] },
   // Unseen state (batch 16, minimal; full hiding with curtains and walls is batch 18): an unseen suit is not drawn for others and cannot be
   // targeted, except within shimmerM metres (drawn as a shimmer) or while marked; attacking or being hit ends it.
   UNSEEN: { shimmerM: 3 },
@@ -762,6 +769,16 @@ const TEXT = {
   pal_rule_core: 'Core hall reached in {s} s through {n} rooms (prototype: the apex comes in a later build). {retry}',
   pal_voice_lost: 'The palace keeps you.',
   pal_rule_lost: 'Broken in the {room}. {retry}',
+  burn_wing_outer: 'the outer hall', burn_wing_court: 'the courtyard', burn_wing_west: 'the west wing', burn_wing_east: 'the east wing',
+  burn_voice: 'Let {wing} burn.',
+  burn_rule: '{wing} falls into the lake in {s} s. Get out.',
+  burn_fell: '{wing} is ash upon the black water.',
+  burn_next: 'Next to burn: {wing} in {s} s',
+  burn_wait: 'Next to burn: {wing}, when the fight there ends',
+  burn_now: 'Burning: {wing}',
+  burn_none: 'Nothing more shall burn.',
+  door_card_burn: '{room}\nBURNING: it falls within seconds.\nDecree: {decree}\nReward: {reward}\n{stir}',
+  door_fallen: '{room}\nFallen into the black lake.',
   help_pal_desktop: 'Right-click move / attack · Q W R aim at cursor (release to cast) · Z zoom: auto, wide, close · S stop · N new run',
   help_pal_touch: 'Left stick: move · tap or drag skills · New run',
   sel_key: '{n}. {who}',
@@ -890,6 +907,9 @@ const PAL_DOORS = [
   { a: 'hall', b: 'court', at: 0 }, { a: 'court', b: 'corridor', at: 8 }, { a: 'court', b: 'garden', at: 8 },
   { a: 'corridor', b: 'bridge', at: -24 }, { a: 'garden', b: 'bridge', at: 30 }, { a: 'bridge', b: 'core', at: 0 },
 ];
+// BP04: each BP01 room's wing for the burning ('' = never burns: the bridge to the core and the core hall). BP05's layout gives every room
+// its own wing in the room data; a room that already has one keeps it.
+const BURN_WINGS = { hall: 'outer', court: 'court', corridor: 'west', garden: 'east', bridge: '', core: '' };
 
 // ===================== DOM helpers (writes only on change) =====================
 const $ = (id) => document.getElementById(id);
@@ -2117,8 +2137,8 @@ function fowR() { return PAL.on ? PC.fowR : G.visR; }
 // Rooms in the scene: the current one, and any whose door to it stands open; door panels with either of their rooms. Writes only on change.
 function palSync() {
   for (const r of PAL.rooms) {
-    let want = PAL.on && r === PAL.cur;
-    if (PAL.on && !want) for (const d of r.doors) if (d.open && (d.ra === PAL.cur || d.rb === PAL.cur)) want = true;
+    let want = PAL.on && r.state < 3 && r === PAL.cur;
+    if (PAL.on && !want && r.state < 3) for (const d of r.doors) if (d.open && (d.ra === PAL.cur || d.rb === PAL.cur)) want = true;
     if (want !== !!r.group.parent) { if (want) scene.add(r.group); else scene.remove(r.group); renderer.shadowMap.needsUpdate = true; }
   }
   for (const d of PAL.doors) {
@@ -2139,7 +2159,8 @@ function palCard() {
   if (!d) { setShow(el.door, false); return; }
   const r = d.ra === PAL.cur ? d.rb : d.ra;
   DOOR_VARS.room = r.name; DOOR_VARS.decree = T('door_dec_' + r.decree); DOOR_VARS.reward = T('door_rew_' + r.reward); DOOR_VARS.stir = T(r.stir ? 'door_stir' : 'door_quiet');
-  setText(el.door, T('door_card', DOOR_VARS)); setShow(el.door, true);
+  // BP04: a burning room's card warns; a fallen room's card says so.
+  setText(el.door, T(r.state >= 2 ? 'door_fallen' : r.state === 1 ? 'door_card_burn' : 'door_card', DOOR_VARS)); setShow(el.door, true);
 }
 // A palace run starts (called by reset): royale map out of the scene, palace floors and walls in, doors shut, the player in the start hall.
 function enterPalace() {
@@ -2221,7 +2242,7 @@ function stepPalace(dt) {
   let pv = null, pd = PC.previewR;
   for (let i = 0; i < PAL.doors.length; i++) {
     const d = PAL.doors[i], dd = Math.hypot(P.x - d.x, P.z - d.z), mine = d.ra === PAL.cur || d.rb === PAL.cur;
-    if (!d.open && mine && !d.locked && !P.dead && dd <= PC.openR) palDoor(d, true);
+    if (!d.open && mine && !d.locked && d.ra.state < 2 && d.rb.state < 2 && !P.dead && dd <= PC.openR) palDoor(d, true);
     else if (d.open && (dd > PC.closeR || !mine)) palDoor(d, false);
     if (mine && dd < pd) { pd = dd; pv = d; }
   }
@@ -2244,7 +2265,7 @@ function palRoute(gx, gz, path) {
     let qh = 0, qt = 1;
     while (qh < qt && from[rb.idx] === -2) {
       const r = PAL.rooms[q[qh++]];
-      for (let i = 0; i < r.doors.length; i++) { const d = r.doors[i], o = d.ra === r ? d.rb : d.ra; if (from[o.idx] !== -2 || d.locked) continue; from[o.idx] = d.idx; q[qt++] = o.idx; }
+      for (let i = 0; i < r.doors.length; i++) { const d = r.doors[i], o = d.ra === r ? d.rb : d.ra; if (from[o.idx] !== -2 || d.locked || o.state >= 2) continue; from[o.idx] = d.idx; q[qt++] = o.idx; }
     }
     if (from[rb.idx] === -2) return false;
     let k = 0;
@@ -2260,6 +2281,113 @@ function palRoute(gx, gz, path) {
   path.pts[n * 2] = gx; path.pts[n * 2 + 1] = gz; n++;
   path.n = n;
   return true;
+}
+// PERFRAME-END
+
+// ===================== The burning (BP04): she names a wing, it warns for BURN.warnS seconds, its rooms fall into the black lake =====================
+// Room fields owned here: warned, fallen, warnAt, fallAt (state: 0 standing, 1 warned, 2 falling, 3 gone). Read here: room.locked (owner BP03),
+// room.wing (owner BP05; BURN_WINGS until then). Entry points for BP09 and BP03: onWingWarn(wing), onWingFall(wing). Fairness monitor every tick:
+// no warned room is locked; every room falls >= warnS after its warning; every fall death comes from such a room (bad counts any break).
+const BURN = { i: 0, wing: '', st: 0, nextAt: 0, warnAt: -1, fallAt: -1, waiting: false, waits: 0, shownS: -1, nk: '', ns: -1,
+  bad: 0, badWhy: '', badRoom: '', checks: 0, falls: 0, fellN: 0, names: {}, rooms: {}, writes: 0 };
+const BURN_VARS = { wing: '', s: 0 };
+// Sentinel for G.bannerWave while her burning warning holds the banner (the fell-note timer then leaves it alone).
+const BURN_BANNER = 90;
+for (const r of PAL.rooms) {
+  if (r.wing === undefined) r.wing = BURN_WINGS[r.id] !== undefined ? BURN_WINGS[r.id] : '';
+  r.warned = false; r.fallen = false; r.warnAt = -1; r.fallAt = -1;
+}
+for (const w of CONFIG.BURN.order) { BURN.names[w] = T('burn_wing_' + w); BURN.rooms[w] = PAL.rooms.filter((r) => r.wing === w); }
+// Her announcements through the banner slot (BP03 owns the queue; this thin version shows one line and lets the fell-note timer hide it).
+function palAnnounce(key, vars) {
+  if (G.bannerWave >= 0) return;
+  setText(el.voice, T(key, vars)); setText(el.rule, ''); setShow(el.banner, true); G.fellT = CONFIG.BURN.noteS;
+}
+// May BP03 lock this room? Never once it is warned or fallen (the fairness rule's other half).
+function burnCanLock(r) { return !r.warned && !r.fallen; }
+function burnWingLocked(w) { const rs = BURN.rooms[w]; for (let i = 0; i < rs.length; i++) if (rs[i].locked) return true; return false; }
+// The wing is named: its rooms glow, her line and the countdown hold the banner, open doors stay usable (leave now).
+function onWingWarn(w) {
+  BURN.st = 1; BURN.wing = w; BURN.warnAt = G.time; BURN.shownS = -1; BURN.waiting = false;
+  const rs = BURN.rooms[w];
+  for (let i = 0; i < rs.length; i++) {
+    const r = rs[i]; r.warned = true; r.state = 1; r.warnAt = G.time;
+    for (let k = 0; k < r.floorMeshes.length; k++) r.floorMeshes[k].material = warnMat;
+  }
+  BURN_VARS.wing = BURN.names[w];
+  G.bannerWave = BURN_BANNER; G.fellT = 0; setText(el.voice, T('burn_voice', BURN_VARS)); setShow(el.banner, true);
+  renderer.shadowMap.needsUpdate = true; palCard();
+}
+// The wing falls: floors gone (suits on them drop), doors to it never open again, her line after the warning.
+function onWingFall(w) {
+  BURN.st = 2; BURN.fallAt = G.time; BURN.falls++;
+  const rs = BURN.rooms[w], need = CONFIG.BURN.warnS - 1e-6;
+  for (let i = 0; i < rs.length; i++) {
+    const r = rs[i];
+    if (!r.warned || G.time - r.warnAt < need) { BURN.bad++; BURN.badWhy = 'nowarn'; BURN.badRoom = r.id; }
+    r.fallen = true; r.state = 2; r.fallT = 0; r.fallAt = G.time;
+    for (let k = 0; k < FLOORS.length; k++) if (FLOORS[k].s === r) FLOORS[k].active = false;
+    for (let k = 0; k < r.doors.length; k++) if (r.doors[k].open) palDoor(r.doors[k], false);
+  }
+  if (G.bannerWave === BURN_BANNER) { G.bannerWave = -1; setShow(el.banner, false); }
+  BURN_VARS.wing = BURN.names[w]; palAnnounce('burn_fell', BURN_VARS); palCard();
+}
+// The fallen rooms leave the scene; the next wing is due everyS after this one was named.
+function burnGone() {
+  const rs = BURN.rooms[BURN.wing];
+  for (let i = 0; i < rs.length; i++) { rs[i].state = 3; if (rs[i].group.parent) scene.remove(rs[i].group); }
+  BURN.st = 0; BURN.i++; BURN.nextAt = BURN.warnAt + CONFIG.BURN.everyS; renderer.shadowMap.needsUpdate = true;
+}
+// Fairness monitor on every fall death in the palace: the suit stood in a fallen room that was warned warnS before it fell.
+function burnFallCheck(s) {
+  BURN.fellN++;
+  const r = palRoomAt(s.x, s.z);
+  if (!r || !r.fallen || r.fallAt - r.warnAt < CONFIG.BURN.warnS - 1e-6) { BURN.bad++; BURN.badWhy = 'fall'; BURN.badRoom = r ? r.id : ''; }
+}
+// New run (called by reset, both modes): every room standing, floors back, groups level, materials back, the clock from the start.
+function burnReset() {
+  for (const r of PAL.rooms) {
+    r.warned = false; r.fallen = false; r.warnAt = -1; r.fallAt = -1; r.state = 0; r.fallT = 0;
+    r.group.position.y = 0; r.group.updateMatrix();
+    for (let k = 0; k < r.floorMeshes.length; k++) r.floorMeshes[k].material = r.floorMats[k];
+  }
+  for (const f of PAL.floors) f.active = true;
+  BURN.i = 0; BURN.wing = ''; BURN.st = 0; BURN.nextAt = CONFIG.BURN.firstS; BURN.warnAt = -1; BURN.fallAt = -1; BURN.waiting = false; BURN.waits = 0;
+  BURN.shownS = -1; BURN.nk = ''; BURN.ns = -1; BURN.bad = 0; BURN.badWhy = ''; BURN.badRoom = ''; BURN.checks = 0; BURN.falls = 0; BURN.fellN = 0; BURN.writes = 0;
+}
+// PERFRAME-BEGIN
+// The next-to-burn line, written only when its key or seconds change.
+function burnHud(key, s) {
+  if (key === BURN.nk && s === BURN.ns) return;
+  BURN.nk = key; BURN.ns = s; BURN.writes++; BURN_VARS.s = s;
+  if (key !== 'burn_none') BURN_VARS.wing = BURN.names[CONFIG.BURN.order[BURN.i]];
+  setText(el.next, T(key, BURN_VARS));
+}
+// Burning step (palace runs): monitor, then the wave states (waiting -> warned -> falling -> gone), the falling rooms, the banner countdown.
+function stepBurn(dt) {
+  const B = CONFIG.BURN, rs = PAL.rooms;
+  BURN.checks++;
+  for (let i = 0; i < rs.length; i++) if (rs[i].warned && rs[i].locked) { BURN.bad++; BURN.badWhy = 'locked'; BURN.badRoom = rs[i].id; }
+  if (BURN.st === 0 && BURN.i < B.order.length && G.time >= BURN.nextAt) {
+    const w = B.order[BURN.i];
+    if (!burnWingLocked(w)) onWingWarn(w);
+    else if (!BURN.waiting) { BURN.waiting = true; BURN.waits++; }
+  } else if (BURN.st === 1 && G.time >= BURN.warnAt + B.warnS) onWingFall(BURN.wing);
+  else if (BURN.st === 2 && G.time >= BURN.fallAt + B.fallS) burnGone();
+  for (let i = 0; i < rs.length; i++) {
+    const r = rs[i];
+    if (r.state !== 2) continue;
+    r.fallT += dt; r.group.position.y = -0.5 * CONFIG.GRAVITY * r.fallT * r.fallT; r.group.updateMatrix();
+    if (r.group.parent) renderer.shadowMap.needsUpdate = true;
+  }
+  if (BURN.st === 1 && G.bannerWave === BURN_BANNER) {
+    const c = Math.ceil(BURN.warnAt + B.warnS - G.time);
+    if (c !== BURN.shownS) { BURN.shownS = c; BURN_VARS.wing = BURN.names[BURN.wing]; BURN_VARS.s = c; setText(el.rule, T('burn_rule', BURN_VARS)); }
+  }
+  if (BURN.i >= B.order.length) burnHud('burn_none', 0);
+  else if (BURN.st !== 0) burnHud('burn_now', 0);
+  else if (BURN.waiting) burnHud('burn_wait', 0);
+  else burnHud('burn_next', Math.max(0, Math.ceil(BURN.nextAt - G.time)));
 }
 // PERFRAME-END
 
@@ -2400,6 +2528,7 @@ function step(dt) {
   if (roy && G.botN > 0 && CONFIG.LEADER.on) stepLeader(dt);
   if (G.phase === 'wake' || G.phase === 'hunt') stepHunt(dt);
   if (G.phase === 'palace') stepPalace(dt);
+  if (G.phase === 'palace' && CONFIG.BURN.on) stepBurn(dt);
   if (G.phase === 'won' || G.phase === 'lost' || G.phase === 'palend') { updateHp(); updateStatus(); return; }
   // Player.
   P.px = P.x; P.pz = P.z; P.py = P.y;
@@ -3781,7 +3910,7 @@ function updateLeaderHud() {
   setText(el.leader, T(on ? 'hud_leader_bounty' : 'hud_leader', LEADER_VARS)); setShow(el.leader, true);
 }
 // A suit fell into the void. The player: back to the centre courtyard in the map test (no bots); in a match it is out like a bot.
-function suitFell(s) { if (s === P && G.botN === 0) respawn('fell'); else suitDown(s, 'fall', null); }
+function suitFell(s) { if (PAL.on) burnFallCheck(s); if (s === P && G.botN === 0 && !PAL.on) respawn('fell'); else suitDown(s, 'fall', null); }
 // A bot leaves the match: body out of the scene, no longer a target.
 function botOut(b) {
   b.dead = true; b.hp = 0; b.seen = false; b.navWant = false; b.path.n = 0; b.pend = false; endAura(b); endBells(b); endMing(b); endYinyang(b); endZongheng(b); endZa(b);
@@ -5434,6 +5563,7 @@ function reset() {
   assignSchools();
   spawnBots();
   setShow(el.banner, false);
+  burnReset();
   // BP01: the mode decides the map (Royal Rumble: the royale map as before; The Burning Palace: the rooms).
   if (G.mode === 'palace' && CONFIG.PALACE_ON) enterPalace(); else leavePalace();
   renderer.shadowMap.needsUpdate = true;
@@ -5914,6 +6044,17 @@ Object.assign(window.__game, {
     b.group.position.set(b.x, b.y, b.z); b.group.visible = true; if (!b.group.parent) scene.add(b.group);
   },
   botSeesP: (k) => botSees(BOTLIST[k], P, CONFIG.VISION_R),
+});
+// The burning hooks (BP04): burnState (read), burnLock (sets room.locked; checks only, until BP03 owns locking), burnCanLock (read).
+Object.assign(window.__game, {
+  burnState: () => ({ on: CONFIG.BURN.on, i: BURN.i, wing: BURN.wing, st: BURN.st, nextAt: BURN.nextAt, warnAt: BURN.warnAt, fallAt: BURN.fallAt,
+    waiting: BURN.waiting, waits: BURN.waits, bad: BURN.bad, badWhy: BURN.badWhy, badRoom: BURN.badRoom, checks: BURN.checks, falls: BURN.falls, fellN: BURN.fellN,
+    writes: BURN.writes, next: el.next.textContent, nextShown: getComputedStyle(el.next).display, order: CONFIG.BURN.order.slice(), warnS: CONFIG.BURN.warnS,
+    rooms: PAL.rooms.map((r) => ({ id: r.id, wing: r.wing, state: r.state, warned: r.warned, fallen: r.fallen, locked: !!r.locked, warnAt: r.warnAt, fallAt: r.fallAt,
+      y: r.group.position.y, attached: !!r.group.parent, warnMat: r.floorMeshes.some((m) => m.material === warnMat), floorsOn: PAL.floors.filter((f) => f.s === r && f.active).length })),
+    pcause: P.cause, pdead: P.dead, pdiedAt: P.diedAt, phase: G.phase, t: G.time }),
+  burnLock(id, on) { PAL.byId[id].locked = on; },
+  burnCanLock: (id) => burnCanLock(PAL.byId[id]),
 });
 window.__ready = true;
 requestAnimationFrame(frame);
