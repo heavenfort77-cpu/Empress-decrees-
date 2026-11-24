@@ -3,6 +3,7 @@ import { createServer } from 'node:http';
 import { readFile } from 'node:fs/promises';
 import { extname, join, normalize } from 'node:path';
 import { bp09Checks } from './bp09-checks.mjs';
+import { bp09bChecks } from './bp09b-checks.mjs';
 
 let chromium;
 try { ({ chromium } = await import('playwright')); } catch { ({ chromium } = await import('/opt/npm-tools/node_modules/playwright/index.mjs')); }
@@ -4010,6 +4011,8 @@ try {
   check('1007 full palace pieces II: a water clock per burning wing in its wing, the plan\'s vats, twelve giants on the approach, a wake works; the box keeps its own',
     p9F.layout === 'full' && p9F.clocks === p9F.order.split(',').sort().join() && p9F.clockRoomsOk && p9F.vatWant > 0 && p9F.vats === p9F.vatWant
     && p9F.giants === 12 && p9F.giantRooms.length > 0 && p9F.woke === true && p9F.awake === 1 && p9F.boxVats === 4 && p9F.boxClocks === 4, JSON.stringify(p9F));
+  await g(() => __game.setLayout('proto'));
+  await bp09bChecks(g, check);
 
   // 15 Graphics context lost and restored: no errors, renders again.
   const errBefore = errors.length;
