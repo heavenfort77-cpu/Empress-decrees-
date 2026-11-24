@@ -1,0 +1,141 @@
+{
+ "_about": "W3 suits round 1 (25 Nov 00:3x): concept references for the nine school suits (docs/SUITS.md), reference only: never shipped, never traced; the Blender builder takes proportions measured on the picked image. Outline cues per school from art/Qin-Lamellar-Suits-Study.md (crest, shoulder mass, weapon). Model SD 1.5 (CreativeML OpenRAIL-M) + LCM LoRA (openrail++), 6 steps, 512x768 portrait for full figures.",
+ "checkpoint": "v1-5-pruned-emaonly.safetensors",
+ "checkpoint_url": "https://huggingface.co/stable-diffusion-v1-5/stable-diffusion-v1-5/resolve/main/v1-5-pruned-emaonly.safetensors",
+ "width": 512,
+ "height": 768,
+ "steps": 6,
+ "cfg": 1.5,
+ "sampler": "lcm",
+ "scheduler": "sgm_uniform",
+ "positive": "{view}, ancient chinese warring states armour of small lacquered lamellar plates tied with cords, full body standing front view, game character concept art, plain grey background",
+ "negative": "text, watermark, samurai, katana, japanese, torii, qing dynasty, chainmail, sci-fi, neon, panel lines, modern, blurry, cropped, two people, crowd",
+ "jobs": [
+  {
+   "items": [
+    {
+     "name": "fa",
+     "view": "lean swift law officer, tall single forward-curving horn crest, black lacquer, red cords, long straight bronze sword held low",
+     "seeds": [
+      5100,
+      5101,
+      5102,
+      5103
+     ]
+    },
+    {
+     "name": "ru",
+     "view": "broad noble gentleman knight, tall slanted board cap, layered wide shoulder plates, long plated skirt, bow on his back, sword at hip",
+     "seeds": [
+      5110,
+      5111,
+      5112,
+      5113
+     ]
+    },
+    {
+     "name": "dao",
+     "view": "slender daoist sage fighter, topknot crown with flowing ribbons, huge wide sleeves, bell shaped long robe over light plates, empty open hands",
+     "seeds": [
+      5120
+     ]
+    }
+   ]
+  },
+  {
+   "items": [
+    {
+     "name": "dao",
+     "view": "slender daoist sage fighter, topknot crown with flowing ribbons, huge wide sleeves, bell shaped long robe over light plates, empty open hands",
+     "seeds": [
+      5121,
+      5122,
+      5123
+     ]
+    },
+    {
+     "name": "mo",
+     "view": "short massive defender, low wide dome helmet, huge rounded shoulder plates, heavy repeating crossbow, ochre cords, bronze fittings",
+     "seeds": [
+      5130,
+      5131,
+      5132,
+      5133
+     ]
+    },
+    {
+     "name": "yy",
+     "view": "astrologer mage, crescent moon horns and sun disc crest, one black and one white shoulder cape, two floating orbs, long robe",
+     "seeds": [
+      5140,
+      5141
+     ]
+    }
+   ]
+  },
+  {
+   "items": [
+    {
+     "name": "yy",
+     "view": "astrologer mage, crescent moon horns and sun disc crest, one black and one white shoulder cape, two floating orbs, long robe",
+     "seeds": [
+      5142,
+      5143
+     ]
+    },
+    {
+     "name": "za",
+     "view": "court retainer mage, soft cap with side flaps, fan of bamboo slips on his back, mismatched plates, blue cords, glowing orb",
+     "seeds": [
+      5150,
+      5151,
+      5152,
+      5153
+     ]
+    },
+    {
+     "name": "ming",
+     "view": "slim debater marksman, long swept-back plume, one big round shoulder guard, large spoked bronze wheel in his hand",
+     "seeds": [
+      5160,
+      5161,
+      5162
+     ]
+    }
+   ]
+  },
+  {
+   "items": [
+    {
+     "name": "ming",
+     "view": "slim debater marksman, long swept-back plume, one big round shoulder guard, large spoked bronze wheel in his hand",
+     "seeds": [
+      5163
+     ]
+    },
+    {
+     "name": "zh",
+     "view": "envoy diplomat, tall staff with three tiers of tassel tufts, cape over one shoulder, twin long plumes, purple cords",
+     "seeds": [
+      5170,
+      5171,
+      5172,
+      5173
+     ]
+    },
+    {
+     "name": "nong",
+     "view": "sturdy farmer warrior, wide conical brim hat helmet, two-pronged digging hoe over shoulder, basket on back, green cords",
+     "seeds": [
+      5180,
+      5181,
+      5182,
+      5183
+     ]
+    }
+   ]
+  }
+ ],
+ "lora": "lcm-lora-sdv1-5.safetensors",
+ "lora_url": "https://huggingface.co/latent-consistency/lcm-lora-sdv1-5/resolve/main/pytorch_lora_weights.safetensors"
+}
