@@ -5,6 +5,7 @@ import { extname, join, normalize } from 'node:path';
 import { bp09Checks } from './bp09-checks.mjs';
 
 let chromium;
+import { palace3Checks } from './palace3-checks.mjs';
 try { ({ chromium } = await import('playwright')); } catch { ({ chromium } = await import('/opt/npm-tools/node_modules/playwright/index.mjs')); }
 
 const ROOT = new URL('..', import.meta.url).pathname;
@@ -3345,8 +3346,9 @@ try {
     bpAt.start.attached === 'hall' && bpAt.start.doorsIn === 1 && bpAt.start.open === 0 && bpAt.start.inSolids && !bpAt.far && bpAt.near.open && !bpAt.near.solid && !bpAt.near.panel && bpAt.near.attached === 'hall,court'
     && bpAt.inCourt.cur === 'court' && bpAt.inCourt.attached === 'hall,court' && bpAt.away.attached === 'court' && !bpAt.away.open && bpAt.away.solid && bpAt.away.panel && bpAt.away.doorsIn === 3
     && bpAt.calls[1] > bpAt.calls[0] && bpAt.calls[2] < bpAt.calls[1] && bpAt.back.cur === 'hall' && bpAt.back.attached === 'hall' && bpAt.flat, JSON.stringify(bpAt));
-  // 402 Door travel: a move order across the palace walks room to room through the doors (hall, court, corridor, bridge, core) and the core hall ends the run
-  // (prototype end: banner, New run button, the simulation frozen); a route to the garden takes the other door; H does nothing in a palace run.
+  // 402 Door travel: a move order across the palace walks room to room through the doors (hall, court, corridor, bridge, core); a route to the garden
+  // takes the other door; H does nothing in a palace run. Game changed on purpose (BP03): the core hall (open to the last suit standing; alone in
+  // this map test) wakes the 兵家 apex: the palace leaves the scene and the wake starts.
   const bpTr = await g(() => {
     const G = __game, o = {};
     G.setSeed(12345); G.setMode('palace'); G.reset();
@@ -3356,14 +3358,14 @@ try {
     for (let i = 0; i < 3600 && G.palace().cur !== 'garden'; i++) { G.step(1); const c = G.palace().cur; if (seen[seen.length - 1] !== c) seen.push(c); }
     o.garden = seen.join('>');
     G.reset(); seen.length = 0; o.ok2 = G.palMoveTo(R.core.cx, R.core.cz);
-    for (let i = 0; i < 3600 && G.palace().phase === 'palace'; i++) { G.step(1); const c = G.palace().cur; if (seen[seen.length - 1] !== c) seen.push(c); }
-    p = G.palace(); o.core = seen.join('>'); o.end = { phase: p.phase, cur: p.cur, n: p.n, banner: p.banner, voice: p.voice === G.text.pal_voice_core, rule: p.rule, btn: p.btn, btnText: p.btnText };
-    const t1 = p.t; G.step(30); o.frozen = G.palace().t === t1;
+    for (let i = 0; i < 3600 && G.palace().phase === 'palace'; i++) { G.step(1); const c = G.palace().cur; if (c && seen[seen.length - 1] !== c) seen.push(c); }
+    // The core hall wakes the apex in the step it is entered (the palace leaves the scene then), so it shows as the room count (5), not as cur.
+    p = G.palace(); o.core = seen.join('>'); o.end = { phase: p.phase, on: p.on, n: p.n, banner: p.banner, voice: p.voice === G.text.voice_wake };
     G.setMode('rumble'); G.reset(); return o;
   });
-  check('402 door travel: hall > court > garden, and hall > court > corridor > bridge > core; the core hall ends the run (banner, New run, frozen); H does nothing in the palace',
-    bpTr.hNoop && bpTr.ok && bpTr.garden === 'hall>court>garden' && bpTr.ok2 && bpTr.core === 'hall>court>corridor>bridge>core' && bpTr.end.phase === 'palend' && bpTr.end.n === 5
-    && bpTr.end.banner === 'block' && bpTr.end.voice && bpTr.end.rule.indexOf('5 rooms') >= 0 && bpTr.end.btn === 'block' && bpTr.end.btnText === 'New run' && bpTr.frozen, JSON.stringify(bpTr));
+  check('402 door travel: hall > court > garden, and hall > court > corridor > bridge > core; the core hall wakes the apex (palace out, wake banner); H does nothing in the palace',
+    bpTr.hNoop && bpTr.ok && bpTr.garden === 'hall>court>garden' && bpTr.ok2 && bpTr.core === 'hall>court>corridor>bridge' && bpTr.end.n === 5 && bpTr.end.phase === 'wake' && !bpTr.end.on
+    && bpTr.end.banner === 'block' && bpTr.end.voice, JSON.stringify(bpTr));
   // 403 Door previews (owner 24 Nov 13:26): near a door its card shows the room behind it (type, decree, reward, something stirs / all quiet) from TEXT keys;
   // none away from doors; every room's keys exist.
   const bpPv = await g(() => {
@@ -3442,19 +3444,23 @@ try {
     bpRr.palFloors && bpRr.palSolids && bpRr.floors && bpRr.solids && !bpRr.on && bpRr.phase === 'royale' && bpRr.attached === 0 && bpRr.doorsIn === 0 && !bpRr.lake && bpRr.abyss && bpRr.royaleIn === 12 && bpRr.camK === 1
     && bpRr.fow && bpRr.sun && bpRr.help && !bpRr.body && bpRr.calls[0] === bpRr.calls[1] && bpRr.tris[0] === bpRr.tris[1], JSON.stringify(bpRr));
   // 407 Budget per palace room on tier medium (heaviest = max over the rooms and a door open on two rooms): under 500 calls and 0.5M triangles.
+  // Game changed on purpose (BP03): entering the core hall wakes the apex, so the core is measured through its open door from the bridge (two rooms).
   const bpBg = await g(() => {
     const G = __game, o = { rooms: {} };
     G.setSeed(12345); G.setMode('palace'); G.reset();
     const p = G.palace(), D = p.doors[0];
     G.teleport(D.x, D.z + 1.6); G.step(1); const two = G.render(true); o.rooms['hall+court'] = [two.calls, two.tris, G.palace().attached.length];
-    for (const r of p.rooms) { G.reset(); G.teleport(r.cx, r.cz); G.step(2); const x = G.render(true); o.rooms[r.id] = [x.calls, x.tris, G.palace().attached.length]; }
+    for (const r of p.rooms) { if (r.type === 'core') continue; G.reset(); G.teleport(r.cx, r.cz); G.step(2); const x = G.render(true); o.rooms[r.id] = [x.calls, x.tris, G.palace().attached.length]; }
+    const dc = p.doors.find((d) => d.a === 'core' || d.b === 'core'); G.reset(); G.teleport(dc.x, dc.z + 1.6); G.step(2);
+    const xc = G.render(true); o.rooms['bridge+core'] = [xc.calls, xc.tris, G.palace().attached.length];
     o.maxCalls = Math.max(...Object.values(o.rooms).map((v) => v[0])); o.maxTris = Math.max(...Object.values(o.rooms).map((v) => v[1]));
-    o.oneRoom = p.rooms.every((r) => o.rooms[r.id][2] === 1);
+    o.oneRoom = p.rooms.every((r) => r.type === 'core' || o.rooms[r.id][2] === 1) && o.rooms['bridge+core'][2] === 2;
     G.setMode('rumble'); G.reset(); return o;
   });
   check('407 palace budget per room, tier medium (calls<500, tris<500k; one room drawn per room)', bpBg.maxCalls < 500 && bpBg.maxTris < 500000 && bpBg.oneRoom, JSON.stringify(bpBg));
   // 408 New run in the same page: everything a palace run changes is back (start hall, doors shut and solid, only the hall drawn, camera, Z, card, rooms count);
-  // New run from the palace end screen starts a palace run again.
+  // New run from the palace end screen starts a palace run again. Game changed on purpose (BP03): the core hall wakes the apex now, so the end screen
+  // here is the player broken in the palace (still the palace end screen).
   const bpNr = await g(() => {
     const G = __game, o = {};
     G.setSeed(12345); G.setMode('palace'); G.reset();
@@ -3462,7 +3468,7 @@ try {
     G.teleport(D.x, D.z + 1.6); G.step(1); G.teleport(D.x, D.z - 1.6); G.step(2); dispatchEvent(new KeyboardEvent('keydown', { code: 'KeyZ' })); G.step(2);
     G.reset(); let p = G.palace();
     o.reset = { cur: p.cur, attached: p.attached.join(','), shut: p.doors.every((d) => !d.open && d.solid && d.panel), man: p.man, camK: p.camK === p0.camK, card: p.cardShown, n: p.n, phase: p.phase, banner: p.banner, x: p.x === p0.x && p.z === p0.z };
-    const R = Object.fromEntries(p.rooms.map((r) => [r.id, r])); G.teleport(R.core.cx, R.core.cz); G.step(2); o.ended = G.palace().phase;
+    const R = Object.fromEntries(p.rooms.map((r) => [r.id, r])); G.teleport(R.hall.cx, R.hall.cz); G.damage(1e4); G.step(2); o.ended = G.palace().phase;
     G.huntButton(); p = G.palace(); o.again = { phase: p.phase, cur: p.cur, banner: p.banner, attached: p.attached.join(',') };
     G.setMode('rumble'); G.reset(); return o;
   });
@@ -4010,6 +4016,8 @@ try {
   check('1007 full palace pieces II: a water clock per burning wing in its wing, the plan\'s vats, twelve giants on the approach, a wake works; the box keeps its own',
     p9F.layout === 'full' && p9F.clocks === p9F.order.split(',').sort().join() && p9F.clockRoomsOk && p9F.vatWant > 0 && p9F.vats === p9F.vatWant
     && p9F.giants === 12 && p9F.giantRooms.length > 0 && p9F.woke === true && p9F.awake === 1 && p9F.boxVats === 4 && p9F.boxClocks === 4, JSON.stringify(p9F));
+  // 500-508 The Burning Palace ticket 03 (locks, rivals out of sight, announcements, core seal, final two, apex): tests/palace3-checks.mjs.
+  await palace3Checks(g, check, base);
 
   // 15 Graphics context lost and restored: no errors, renders again.
   const errBefore = errors.length;
