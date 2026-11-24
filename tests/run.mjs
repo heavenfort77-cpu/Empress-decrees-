@@ -2702,7 +2702,7 @@ try {
   check('151 道甲 the shimmer is the tell: a bot in reach holds its basic attack while 柔 has been up for its reaction time (no counter, no damage), and swings again after the stance; the shimmer is drawn',
     d151.ring.join() === 'true,true' && !d151.held.swing && d151.held.lost === 0 && d151.held.daoN === 0 && d151.after.swing && d151.after.lost > 0, JSON.stringify(d151));
   // 152 道甲 in whole matches: 3 seeds with the 道甲 bot (the player on the placeholder) and 1 with the player on 道甲 (autopilot), watched to the end: on a floor every
-  // tick, the hunter cap holds, nobody stuck over 3 s, no stance shimmer outlives its stance, 反 never above the cap; the bot raises 柔 and makes counters over the 3
+  // tick, the hunter cap holds, nobody stuck over 3 s, the stance shimmer is never drawn a step after both stances are down (ringMax = steps), 反 never above the cap; the bot raises 柔 and makes counters over the 3
   // (不争 and R reported).
   const d152 = await g(() => {
     const G = __game, C = G.config, K = C.KITS.dao, o = { viol: [], casts: { q: 0, w: 0, r: 0 }, player: { q: 0, w: 0, r: 0 }, counters: 0, playerCounters: 0, decided: [], ringMax: 0, fanMax: 1 }, bad = (x) => { if (o.viol.length < 5) o.viol.push(x); };
@@ -2714,7 +2714,7 @@ try {
         G.step(1); const r = G.royale(); if (r.decidedAt >= 0) { o.decided.push(+r.decidedAt.toFixed(1)); break; }
         const k = G.kitState(di), cd = k.bcd, d = G.daoState(di);
         if (cd[0] > last[0] + 1e-9) cnt.q++; if (cd[1] > last[1] + 1e-9) cnt.w++; if (k.ultN > ult) cnt.r += k.ultN - ult; last = [cd[0], cd[1]]; ult = k.ultN;
-        rg = d.ringIn ? rg + C.STEP : 0; if (rg > o.ringMax) o.ringMax = +rg.toFixed(3); if (d.fanK > o.fanMax) o.fanMax = d.fanK;
+        rg = d.ringIn && d.rouT <= 0 && d.zhengT <= 0 ? rg + 1 : 0; if (rg > o.ringMax) o.ringMax = rg; if (d.fanK > o.fanMax) o.fanMax = d.fanK;
         if (d.fanK > C.BONUS_CAP + 1e-9) bad(`s${seed} t${t} fan ${d.fanK}`);
         const h = G.hunters(); if (h.capOnP > h.max) bad(`s${seed} t${t} cap ${h.capOnP}>${h.max}`);
         if (t % 10 === 0 && di >= 0) { const q = G.bots().list[di]; if (!q.standOk) bad(`s${seed} t${t} dao off floor`); if (!Number.isFinite(q.x + q.z + q.hp)) bad(`s${seed} t${t} NaN`); }
@@ -2729,7 +2729,7 @@ try {
     G.setPkitP(true); G.pickSchool(0); G.setBots(0); G.reset(); o.clean = G.daoState(-1).stanceN === 0; return o;
   });
   check('152 道甲 in whole matches: on a floor, nobody stuck > 3 s, no shimmer outlives its stance, 反 within the cap, hunter cap every tick; the 道甲 bot raises 柔 and makes counters (不争, R and the player autopilot reported)',
-    d152.viol.length === 0 && d152.ringMax <= Math.max(C0.KITS.dao.skills[0].stance, C0.KITS.dao.skills[1].stance) + 0.02 && d152.clean && d152.casts.q > 0 && d152.counters > 0, JSON.stringify(d152));
+    d152.viol.length === 0 && d152.ringMax === 0 && d152.clean && d152.casts.q > 0 && d152.counters > 0, JSON.stringify(d152));
   // 153 Budget with 道甲's effects: the heaviest royale (every suit, 7 cubs, tells) with his stance shimmer up and 反 in force (and the bots' shimmer pool);
   // calls < 500, tris < 500k, no shader compile, geometry flat.
   const d153 = await g(() => {
