@@ -1,0 +1,14 @@
+ROW {"scene":"empty","setupMs":2,"errs":0,"err0":"","frames":322,"fps":16.1,"p50":71.3,"p95":83.2,"worst":90.7,"over20":96,"over33":268,"calls":0,"tris":0,"programs":0,"geoms":0,"texs":0,"heap0":10,"heap1":10,"longN":0,"longMax":0,"longSum":0,"geo0":0,"tex0":0,"drvErr":""}
+ROW {"scene":"emptydiv","setupMs":2,"errs":0,"err0":"","frames":343,"fps":17.1,"p50":64.6,"p95":83.7,"worst":99.9,"over20":90.1,"over33":267,"calls":0,"tris":0,"programs":0,"geoms":0,"texs":0,"heap0":10,"heap1":10,"longN":0,"longMax":0,"longSum":0,"geo0":0,"tex0":0,"drvErr":""}
+ROW {"scene":"select","setupMs":25,"errs":0,"err0":"","frames":614,"fps":30.6,"p50":27.6,"p95":74.5,"worst":88.5,"over20":97.2,"over33":116,"calls":27,"tris":2842,"programs":3,"geoms":98,"texs":1,"heap0":10,"heap1":10,"longN":0,"longMax":0,"longSum":0,"geo0":98,"tex0":1,"drvErr":"","bots":8,"cubs":0}
+ROW {"scene":"select_nocanvas","setupMs":1,"errs":0,"err0":"","frames":613,"fps":30.7,"p50":27.7,"p95":71,"worst":85.6,"over20":97.9,"over33":106,"calls":27,"tris":2842,"programs":3,"geoms":98,"texs":1,"heap0":10,"heap1":10,"longN":0,"longMax":0,"longSum":0,"geo0":98,"tex0":1,"drvErr":"","bots":8,"cubs":0}
+ROW {"scene":"reference","setupMs":15,"errs":0,"err0":"","frames":4212,"fps":210.5,"p50":4.2,"p95":11.8,"worst":53.6,"over20":0.3,"over33":5,"calls":27,"tris":2842,"programs":3,"geoms":98,"texs":1,"heap0":11,"heap1":11,"longN":0,"longMax":0,"longSum":0,"geo0":98,"tex0":1,"drvErr":"","bots":0,"cubs":0}
+ROW {"scene":"heavy","setupMs":197,"errs":0,"err0":"","frames":3894,"fps":194.5,"p50":3.2,"p95":15.7,"worst":36.3,"over20":0.8,"over33":2,"calls":35,"tris":2542,"programs":3,"geoms":98,"texs":1,"heap0":18,"heap1":18,"longN":0,"longMax":0,"longSum":0,"geo0":98,"tex0":1,"drvErr":"","bots":8,"cubs":1}
+RENDERER ANGLE (Apple, ANGLE Metal Renderer: Apple Paravirtual device, Unspecified Version)
+scene       fps    p50   p95   worst  >20ms%  >33ms  calls  tris    prog geo  heap MB  geo/tex start-end  live
+empty        16.1  71.3  83.2   90.7     96    268      0       0    0    0     10-10       0-0/0-0   long 0/0ms/0ms
+emptydiv     17.1  64.6  83.7   99.9   90.1    267      0       0    0    0     10-10       0-0/0-0   long 0/0ms/0ms
+select       30.6  27.6  74.5   88.5   97.2    116     27    2842    3   98     10-10     98-98/1-1  bots 8 cubs 0 long 0/0ms/0ms
+select_nocanvas   30.7  27.7    71   85.6   97.9    106     27    2842    3   98     10-10     98-98/1-1  bots 8 cubs 0 long 0/0ms/0ms
+reference   210.5   4.2  11.8   53.6    0.3      5     27    2842    3   98     11-11     98-98/1-1  bots 0 cubs 0 long 0/0ms/0ms
+heavy       194.5   3.2  15.7   36.3    0.8      2     35    2542    3   98     18-18     98-98/1-1  bots 8 cubs 1 long 0/0ms/0ms
