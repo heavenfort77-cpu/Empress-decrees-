@@ -1,0 +1,242 @@
+{
+ "lineup_guard": {
+  "calls": 12,
+  "triangles": 15218
+ },
+ "lineup_rebels": {
+  "calls": 9,
+  "triangles": 5920
+ },
+ "lineup_all_wide": {
+  "calls": 19,
+  "triangles": 21124
+ },
+ "lineup_all_sil": {
+  "calls": 17,
+  "triangles": 21110
+ },
+ "schools": {
+  "calls": 28,
+  "triangles": 16128
+ },
+ "schools_sil": {
+  "calls": 27,
+  "triangles": 16126
+ },
+ "zu_turn_0": {
+  "calls": 3,
+  "triangles": 3234
+ },
+ "zu_turn_35": {
+  "calls": 3,
+  "triangles": 3234
+ },
+ "zu_turn_90": {
+  "calls": 3,
+  "triangles": 3234
+ },
+ "zu_turn_180": {
+  "calls": 3,
+  "triangles": 3234
+ },
+ "zu_tell": {
+  "calls": 7,
+  "triangles": 9698
+ },
+ "zu_lods": {
+  "calls": 7,
+  "triangles": 4410
+ },
+ "nu_turn_0": {
+  "calls": 3,
+  "triangles": 3594
+ },
+ "nu_turn_35": {
+  "calls": 3,
+  "triangles": 3594
+ },
+ "nu_turn_90": {
+  "calls": 3,
+  "triangles": 3594
+ },
+ "nu_turn_180": {
+  "calls": 3,
+  "triangles": 3594
+ },
+ "nu_tell": {
+  "calls": 7,
+  "triangles": 10778
+ },
+ "nu_lods": {
+  "calls": 7,
+  "triangles": 4946
+ },
+ "dun_turn_0": {
+  "calls": 3,
+  "triangles": 3518
+ },
+ "dun_turn_35": {
+  "calls": 3,
+  "triangles": 3518
+ },
+ "dun_turn_90": {
+  "calls": 3,
+  "triangles": 3518
+ },
+ "dun_turn_180": {
+  "calls": 3,
+  "triangles": 3518
+ },
+ "dun_tell": {
+  "calls": 7,
+  "triangles": 10550
+ },
+ "dun_lods": {
+  "calls": 7,
+  "triangles": 4742
+ },
+ "che_turn_0": {
+  "calls": 3,
+  "triangles": 1418
+ },
+ "che_turn_35": {
+  "calls": 3,
+  "triangles": 1418
+ },
+ "che_turn_90": {
+  "calls": 3,
+  "triangles": 1418
+ },
+ "che_turn_180": {
+  "calls": 3,
+  "triangles": 1418
+ },
+ "che_tell": {
+  "calls": 7,
+  "triangles": 4250
+ },
+ "che_lods": {
+  "calls": 7,
+  "triangles": 2226
+ },
+ "wz_turn_0": {
+  "calls": 3,
+  "triangles": 3450
+ },
+ "wz_turn_35": {
+  "calls": 3,
+  "triangles": 3450
+ },
+ "wz_turn_90": {
+  "calls": 3,
+  "triangles": 3450
+ },
+ "wz_turn_180": {
+  "calls": 3,
+  "triangles": 3450
+ },
+ "wz_tell": {
+  "calls": 7,
+  "triangles": 10346
+ },
+ "wz_lods": {
+  "calls": 7,
+  "triangles": 4672
+ },
+ "ls_turn_0": {
+  "calls": 4,
+  "triangles": 1824
+ },
+ "ls_turn_35": {
+  "calls": 4,
+  "triangles": 1824
+ },
+ "ls_turn_90": {
+  "calls": 4,
+  "triangles": 1824
+ },
+ "ls_turn_180": {
+  "calls": 4,
+  "triangles": 1824
+ },
+ "ls_tell": {
+  "calls": 10,
+  "triangles": 5468
+ },
+ "ls_lods": {
+  "calls": 9,
+  "triangles": 2818
+ },
+ "fs_turn_0": {
+  "calls": 2,
+  "triangles": 1306
+ },
+ "fs_turn_35": {
+  "calls": 2,
+  "triangles": 1306
+ },
+ "fs_turn_90": {
+  "calls": 2,
+  "triangles": 1306
+ },
+ "fs_turn_180": {
+  "calls": 2,
+  "triangles": 1306
+ },
+ "fs_tell": {
+  "calls": 4,
+  "triangles": 3914
+ },
+ "fs_lods": {
+  "calls": 4,
+  "triangles": 2013
+ },
+ "ss_turn_0": {
+  "calls": 3,
+  "triangles": 1310
+ },
+ "ss_turn_35": {
+  "calls": 3,
+  "triangles": 1310
+ },
+ "ss_turn_90": {
+  "calls": 3,
+  "triangles": 1310
+ },
+ "ss_turn_180": {
+  "calls": 3,
+  "triangles": 1310
+ },
+ "ss_tell": {
+  "calls": 7,
+  "triangles": 3926
+ },
+ "ss_lods": {
+  "calls": 5,
+  "triangles": 2001
+ },
+ "qs_turn_0": {
+  "calls": 2,
+  "triangles": 1474
+ },
+ "qs_turn_35": {
+  "calls": 2,
+  "triangles": 1474
+ },
+ "qs_turn_90": {
+  "calls": 2,
+  "triangles": 1474
+ },
+ "qs_turn_180": {
+  "calls": 2,
+  "triangles": 1474
+ },
+ "qs_tell": {
+  "calls": 4,
+  "triangles": 4418
+ },
+ "qs_lods": {
+  "calls": 4,
+  "triangles": 2437
+ }
+}
