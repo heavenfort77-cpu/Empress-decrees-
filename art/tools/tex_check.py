@@ -24,6 +24,7 @@ T = {
     'door': (1024 / 4, 1024 / 3.5, (80, 470), 0.6),
     'lion_stone': (1024 / LT, 1024 / LT, (0, 1024), 0.55),
     'bronze_trim': (1024 / 4, 1024 / 4, (0, 384), 0.6),
+    'bronze_trim_brass': (1024 / 4, 1024 / 4, (0, 384), 0.6),
 }
 fails = 0
 checks = 0
@@ -47,6 +48,11 @@ for n, (du, dv, (y0, y1), scap) in T.items():
     ]
     if n == 'bronze_trim':  # bronze value plan (palace study): mean luminance 70-110 on the plain plate
         res.append(('value', 70 <= lum.mean() <= 110, f'mean lum {lum.mean():.0f}'))
+    if n == 'bronze_trim_brass':  # brass variant (beast round 4): fresh brass-gold plate, mean luminance 120-160 and mean hue 36-46 deg
+        hh = a[..., :3]; mxh, mnh = hh.max(2), hh.min(2); dd = np.maximum(mxh - mnh, 1)
+        hue = np.where(mxh == hh[..., 0], 60 * ((hh[..., 1] - hh[..., 2]) / dd % 6), np.where(mxh == hh[..., 1], 60 * ((hh[..., 2] - hh[..., 0]) / dd + 2), 60 * ((hh[..., 0] - hh[..., 1]) / dd + 4)))
+        res.append(('value', 120 <= lum.mean() <= 160, f'mean lum {lum.mean():.0f}'))
+        res.append(('hue', 36 <= hue.mean() <= 46, f'mean hue {hue.mean():.0f} deg'))
     checks += len(res)
     for rule, ok, val in res:
         if not ok:

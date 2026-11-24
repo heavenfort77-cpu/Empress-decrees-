@@ -16,7 +16,12 @@ Layout, 1024 x 1024 = 4 x 4 m at 256 px/m (rows in 1024 px; every row wraps acro
   704-768  workshop marks: square cartouches with invented sigils
   768-1024 dormant bronze: verdigris over dark bronze (sunk or sleeping pieces)
 
-Usage: python3 bronze_tex.py OUTDIR [SIZE]   (writes bronze_trim.jsonl / .passes.json / .bg for paint_palace.py)
+Variant 'brass' (25 Nov, W1a, beast round 4; owner criterion "brass-gold, not dark brown"): the same sheet painted from lighter brass
+ramps (research palette fresh bronze #C9A050), written as bronze_trim_brass. Measured cause: under the game lights the round 3b beast's
+bronze shows on screen as #543e2a (hue 29, mean lum 66, play view) from a sheet of mean lum 104; metalness 0.1-0.6 moves it only 59-70.
+The default sheet is unchanged (the owner picks the variant).
+
+Usage: python3 bronze_tex.py OUTDIR [SIZE] [brass]   (writes bronze_trim[_brass].jsonl / .passes.json / .bg for paint_palace.py)
 """
 import math, sys, os
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
@@ -26,11 +31,14 @@ import palace_tex as P  # reads OUTDIR and SIZE from argv like this script
 # Round 2: base darkened to the palace study's bronze value plan (mean luminance 70-110; round 1 measured 122).
 DEEP, SHADOW, BASE, LIGHT, HI = '#3a2b1a', '#5e482b', '#82653a', '#a4844f', '#c0a066'
 SILVER, SILVER_D = '#c8ccd0', '#8e9396'
+VARIANT = sys.argv[3] if len(sys.argv) > 3 else ''
+if VARIANT == 'brass':  # hue 38-42, plain plate mean lum about 135 (fresh brass-gold), saturation under the 0.6 cap
+    DEEP, SHADOW, BASE, LIGHT, HI = '#4a3a1e', '#7e6436', '#a8894a', '#c4a560', '#dcc283'
 VERD, VERD_D, VERD_L = '#4f7a62', '#3f5a4c', '#6f927c'
 
 
 def bronze_trim():
-    t = P.Tex('bronze_trim', BASE, True, False, 711)
+    t = P.Tex('bronze_trim' + ('_' + VARIANT if VARIANT else ''), BASE, True, False, 711)
     r = t.r
     # base pass: the rows' ground colours
     t.stage = 0
@@ -39,8 +47,9 @@ def bronze_trim():
         P.band(t, y0, y1, c, 'flat-bristle', 40 if y1 - y0 <= 64 else 60, 1.0, 20, 2)
     # tone pass: cast-metal mottling (sand-casting texture) on the plain plate; patina blooms on the dormant row
     t.stage = 1
+    MID = ('#735834', '#8e7042') if VARIANT != 'brass' else ('#977a40', '#b4974f')
     for _ in range(140):
-        t.blot(r.uniform(0, 1024), r.uniform(40, 344), r.uniform(30, 70), 'sponge', r.uniform(40, 80), r.choice([LIGHT, SHADOW, '#735834', '#8e7042']), r.uniform(0.3, 0.5), 3)
+        t.blot(r.uniform(0, 1024), r.uniform(40, 344), r.uniform(30, 70), 'sponge', r.uniform(40, 80), r.choice([LIGHT, SHADOW, MID[0], MID[1]]), r.uniform(0.3, 0.5), 3)
     for _ in range(90):
         t.blot(r.uniform(0, 1024), r.uniform(810, 1014), r.uniform(30, 60), 'sponge', r.uniform(40, 80), r.choice([VERD, VERD_D, VERD_L, DEEP]), r.uniform(0.45, 0.7), 3)
     # marks pass: stamp bands, inlay lines, flange, cartouches (our own ornament)

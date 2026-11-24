@@ -102,6 +102,40 @@ Cause: the build method (spheres and tubes placed by hand, no reference drawn fi
 - Files: art/beast/round3/ (round3_sheet.png with the concept beside the model, play, wide, strike_windup, turn_*, pass_*, lods); rounds 1-2 kept.
 - Against the criteria (lead's read, code tool only): mass, proportions, ringed segmented legs and the brass bronze now follow the concept and the study (better); the face still reads as a simple mask (no carved lids, lips or whisker pads like the concept), the chin ruff barely shows from the front, and the back is a plain dome: the guardian-face criterion is still not met.
 
+## Samples, round 4 (25 Nov 2026, overnight worker W1a; owner asleep, not approved)
+Owner on round 3b: the brow reads as a helmet visor, the face is a mask, body and back are plain; "if you know it will fail, do it again".
+### Concept (ComfyUI round C, run 45432241899, SD 1.5 + LCM, 6 steps; reference only, nothing traced)
+- 24 face concepts were back when picked (job 0's 8 were still running). Picked by the round 4 criteria: **3129** (brass-gold, lion, flame-tongue mane framing the face, V brows from the nose bridge, deep slit eyes, big open mouth, beard tuft); alternates for the owner **3120** (cast curl-disc mane, lion face) and **3111** (dark, heavy brows, mane locks). Files art/beast/concepts/roundC/ (the three picks and round_C_all.jpg).
+- Measured on 3129 (numpy, figure height H = 449 px incl. mane): mane width 0.79 H at 0.45-0.55 H; eyes 0.23 H below the top at +-0.15 H; nose 0.28-0.42 H; mouth open 0.46-0.69 H, about 0.45 H wide; beard tuft to 1.0 H. Built with H = 1.05 m (head with mane).
+### What changed (art/tools/beast_blender.py, round 4)
+- Face: two slanted brow ridges meeting over the nose bridge in a V (no bar), a forehead knot, snarl wrinkles, deep-set silver almond eyes with dark irises under angry upper lids, a bulb nose with flared nostrils 0.25 m in front of the eyes, whisker pads, cheeks sweeping into the mane, open dark mouth with silver fangs and incisors, jaw on its own bone, a flame beard.
+- Mane: a rounded hood mass sloping down the back to the shoulders, a double ring of sharp flame tongues framing the face (swept back over the crown), four rows of tongues falling down the back.
+- Body: two cast segment flanges with 6 cm silver inlay bands around the torso; haunch masses with roundels (silver rim, cloud-band face, boss); forelegs with shoulder masses, elbow and wrist flanges and two 6 cm inlay bands; a pendant bell on a strap; a tail laid up the spine with flange cuffs and a flame fan.
+- Strike windup: the right foreleg swings up and out (local Euler (-30, 0, 110) at the shoulder, chosen from a printed pose grid, POSE_SEARCH=1); the round 4 draft's forward raise (0.54 m) was foreshortened at the 40 deg play pitch.
+- Colour: measured cause of "dark brown": under the game lights the bronze shows on screen (play view, beast pixels from the silhouette pass) as #533e29, hue 29, mean lum 65 from a sheet of mean lum 104; metalness 0.1 / 0.2 / 0.4 / 0.6 gives 70 / 70 / 66 / 59 (material is not the cause; light and sheet value are). New sheet variant **assets/tex/bronze_trim_brass.png** (bronze_tex.py `brass`, klad, art/src/bronze_trim_brass.klad, passes art/beast/round4/bronze_trim_brass_passes.png): plain plate mean lum 137, hue 41 (research fresh bronze #C9A050). On screen: #644c30, hue 32, mean lum 79, p90 110. The default sheet is unchanged; the beast shots use `&sheet=brass`; play_default_sheet.png shows the same model on the current sheet.
+### Checks run
+- beast_blender.py 9 of 9: tris 6988 / 2422 / 708 (budget 7000 / 2500 / 800); every vertex on a bone; windup paw rise 1.49 m, 0.77 m out to the side (min 0.4); jaw open 32 deg, chin down (new gate, min 25); height 2.92 m (min 2.6); footprint 1.80 x 2.20 m; smooth-shaded share 80%. 160 parts, 13 bones.
+- tex_check.py 31 of 31 (adds bronze_trim_brass: density 256 px/m, brush 8.5 cm, lum sd 10.7, saturation 0.56, value mean lum 137 in 120-160, hue 41 in 36-46). New value and hue rules mutation-tested: the default sheet copied in as the brass file fails both (lum 104, hue 36).
+- Viewer: art/viewer/beast.html now takes ?model= (beast default, ding, vat), &state=, &school=, &sheet=, &metal=/&rough=; the round 3b beast shots re-shot through it are pixel-identical (play, turn, strike, silhouette: 0 px differ; lods mean diff 0.05, LOD2 decimation).
+### Files
+art/beast/round4/: round4_sheet.png (concept, 3b, round 4 turns, play size, windup, old sheet), face.png, play.png, wide.png, strike_windup.png, turn_*.png, pass_*.png, lods.png, play_default_sheet.png, beast_blender_round4.py, beast_round4.glb; assets/models/beast.glb (round 4); round 3b script and GLB kept in art/beast/round3b/.
+### Verdict against the round 4 criteria (lead's read of the shots, software GL, not a real GPU)
+| Criterion | Round 4 | Result |
+|---|---|---|
+| Fierce imperial guardian that reads at play size | open fanged mouth, V brows, flame mane, bell collar read at play size (play.png); at play size the crown tongues still read a little like a sunburst | PASS (owner to judge the crown) |
+| Not a cat, not a teddy, not a robot dog, not a helmet visor | no bar brow, no ears or whiskers, mane and fangs; whisker pads and cheeks are round and could read soft close up | PASS |
+| Lion-like, clearly not the apex bronze tiger | mane hood, seated upright, bell collar, flame tail fan | PASS |
+| Segmented-casting cues visible at play size | torso flanges with 6 cm silver bands, banded forelegs, silver-rimmed haunch roundels visible in play.png | PASS |
+| Brass-gold, not dark brown | brass sheet: hue 32 lum 79 on screen (was hue 29 lum 65); reads gold-ochre, not brown, in play.png; needs the owner's pick of the sheet variant (all bronze props share it) | PASS with the brass sheet only |
+| Round where round, sharp where sharp | lofted masses smooth (80%), tongues, brows, fangs, claws, flanges sharp | PASS |
+| Body and back no longer plain | side: roundel, bands, tail; back: tongue rows on the mane, bands, tail fan; the back of the mane reads busy (pine-cone like) in turn_back.png | PASS (weakest view: back) |
+| Strike tell (paw rise >= 0.4 m, jaw open) | 1.49 m up and 0.77 m out, jaw 32 deg; reads clearly in strike_windup.png | PASS |
+| Footprint 1.8 x 2.2 m, height >= 2.6 m | 1.80 x 2.20, 2.92 m | PASS |
+### Open (round 4)
+- Owner: pick the bronze sheet (current or brass); the beast's look depends on it. Concept alternates 3120 and 3111 kept.
+- LOD2 (decimated) loses the mane tongues; fine at distance, not checked in the game.
+- Not done tonight: game integration (THREE.LOD, pooled, warmed), phone texture (512), KTX2, real-GPU and phone shots.
+
 ## Open
 - ComfyUI (owner 22:43: use it): CPU job on GitHub runners, branch ci-comfy (ci_comfy/prompts.json, gen.py, .github/workflows/comfy.yml), SD 1.5 emaonly (CreativeML OpenRAIL-M, commercial use allowed), 512 x 768, 28 steps; output to ci-out out/comfy/<run>/. Prompt = this study's values in words (Qin bronze, segmented casting, silver inlay, cloud-scroll bands, brass-gold, fierce face, spiral-curl mane, round masses, sharp claws and fangs, stepped stone plinth) with the avoid list as the negative prompt. Reference only, never shipped or traced.
 - Phone texture set (512) and KTX2 with texture step 3.

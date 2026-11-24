@@ -1,15 +1,21 @@
 <!doctype html>
-<!-- Review viewer for the bronze guardian beast sample (art tool, not shipped). Same camera FOV and pitch, the same two lights and the
-     approved hall floor texture as the game; a player-size box and the current box lion beside it for scale.
-     ?view=play (fight framing, 0.75 x 14 m) | wide (22 m) | turn (close turntable, &yaw=deg) | lods (LOD0, LOD1, LOD2 side by side)
-     glTF UVs: the trim sheet loads with flipY false (glTF convention; the round 1 shots showed patina on fresh plates without it).
-     &mode=tex | shade | flat | sil (passes) &t=seconds into the 'strike' clip (omit = rest pose) -->
+<!-- Review viewer for the cast-bronze props (art tool, not shipped). Same camera FOV and pitch, the same two lights and the approved hall
+     floor texture as the game; a player-size box and the current box version of the prop beside it for scale.
+     ?model=beast (default) | ding | vat   (assets/models/<model>.glb; objects <model>_lod0/1/2, optional rig <model>_rig, state objects below)
+     &view=play (fight framing, 0.75 x 14 m) | wide (22 m) | turn (close turntable, &yaw=deg) | lods (LOD0, LOD1, LOD2 side by side)
+     &mode=tex | shade | flat | sil (passes) &t=seconds into the model's clip (beast: 'strike'; omit = rest pose)
+     &state= the model's state (ding: lit | dry; vat: intact | cracked | shards) &school=0-8 (ding accent, CONFIG.SCHOOLS order)
+     &metal= &rough= bronze material override (look tests only); &sheet=brass uses the brass trim sheet variant
+     glTF UVs: the trim sheet loads with flipY false (glTF convention; the round 1 shots showed patina on fresh plates without it). -->
 <html><head><meta charset="utf-8"><style>html,body{margin:0;background:#120d16;overflow:hidden}</style>
 <script type="importmap">{"imports":{"three":"../../lib/three.module.min.js"}}</script></head><body>
 <script type="module">
 import * as THREE from 'three';
 import { GLTFLoader } from './vendor/loaders/GLTFLoader.js';
 const Q = new URLSearchParams(location.search), VIEW = Q.get('view') || 'play', MODE = Q.get('mode') || 'tex', T = Q.get('t');
+const MODEL = Q.get('model') || 'beast';
+const METAL = Q.get('metal') !== null ? +Q.get('metal') : 0.4, ROUGH = Q.get('rough') !== null ? +Q.get('rough') : 0.6;
+const SHEET = Q.get('sheet') || '';  // '' = assets/tex/bronze_trim.png; 'brass' = the brass variant (bronze_trim_brass.png)
 const W = innerWidth, H = innerHeight;
 const r = new THREE.WebGLRenderer({ antialias: true }); r.setPixelRatio(1); r.setSize(W, H); r.shadowMap.enabled = MODE !== 'sil' && MODE !== 'flat'; document.body.appendChild(r.domElement);
 const scene = new THREE.Scene(); scene.background = new THREE.Color(MODE === 'sil' ? 0xffffff : 0x120d16);
@@ -23,36 +29,65 @@ const tl = new THREE.TextureLoader();
 const tex = (f, rep) => { const t = tl.load(f); t.colorSpace = THREE.SRGBColorSpace; t.wrapS = t.wrapT = THREE.RepeatWrapping; t.anisotropy = 4; if (rep) t.repeat.set(rep, rep); return t; };
 const floor = new THREE.Mesh(new THREE.PlaneGeometry(24, 24), new THREE.MeshStandardMaterial({ map: tex('../../assets/tex/hall_floor.png', 6), roughness: 0.9 }));
 floor.rotation.x = -Math.PI / 2; floor.receiveShadow = true; if (MODE === 'tex' || MODE === 'shade') scene.add(floor);
+// ding accents in CONFIG.SCHOOLS order (ru dao fa mo yinyang za ming zongheng nong); the GLB's extras.accents overrides this list
+let ACCENTS = ['#a8321e', '#2f8a5c', '#1a1614', '#c8ccd0', '#d9d2c3', '#b8862e', '#e2b84a', '#2e5a9c', '#5b3f8c'];
+const SCHOOL = +(Q.get('school') || 0);
+function glowTex() {  // soft radial ember glow for the lit card (additive; no neon: warm, low saturation at the edge)
+  const c = document.createElement('canvas'); c.width = c.height = 128; const g = c.getContext('2d'), gr = g.createRadialGradient(64, 64, 4, 64, 64, 62);
+  gr.addColorStop(0, 'rgba(255,190,110,1)'); gr.addColorStop(0.4, 'rgba(232,116,42,0.55)'); gr.addColorStop(1, 'rgba(232,116,42,0)'); g.fillStyle = gr; g.fillRect(0, 0, 128, 128);
+  const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; return t;
+}
 const MATS = {
-  tex: { palBronze: () => { const t = tex('../../assets/tex/bronze_trim.png'); t.flipY = false; return new THREE.MeshStandardMaterial({ map: t, metalness: 0.4, roughness: 0.6 }); },
+  tex: { palBronze: () => { const t = tex(`../../assets/tex/bronze_trim${SHEET ? '_' + SHEET : ''}.png`); t.flipY = false; return new THREE.MeshStandardMaterial({ map: t, metalness: METAL, roughness: ROUGH }); },
     palInlay: () => new THREE.MeshStandardMaterial({ color: 0xc8ccd0, metalness: 0.6, roughness: 0.35 }),
     palDark: () => new THREE.MeshStandardMaterial({ color: 0x2a1f14, roughness: 0.9 }),
+    palAccent: () => new THREE.MeshStandardMaterial({ color: new THREE.Color(ACCENTS[SCHOOL]), metalness: 0.2, roughness: 0.45 }),
+    palEmber: () => new THREE.MeshBasicMaterial({ color: 0xe8742a }),
+    palGlow: () => new THREE.MeshBasicMaterial({ map: glowTex(), transparent: true, depthWrite: false, blending: THREE.AdditiveBlending }),
+    palAsh: () => new THREE.MeshStandardMaterial({ color: 0x4a443e, roughness: 1 }),
+    palWater: () => new THREE.MeshStandardMaterial({ color: 0x0e1a1c, roughness: 0.15, metalness: 0.2 }),
     palStone: () => new THREE.MeshStandardMaterial({ map: tex('../../assets/tex/lion_stone.png'), roughness: 0.9 }) },
-  shade: { palBronze: () => new THREE.MeshStandardMaterial({ color: 0x9a7a48, metalness: 0.4, roughness: 0.6 }), palInlay: () => new THREE.MeshStandardMaterial({ color: 0xc8ccd0, metalness: 0.6, roughness: 0.35 }), palStone: () => new THREE.MeshStandardMaterial({ color: 0x9a968c, roughness: 0.9 }) },
+  shade: { palBronze: () => new THREE.MeshStandardMaterial({ color: 0x9a7a48, metalness: METAL, roughness: ROUGH }), palInlay: () => new THREE.MeshStandardMaterial({ color: 0xc8ccd0, metalness: 0.6, roughness: 0.35 }), palStone: () => new THREE.MeshStandardMaterial({ color: 0x9a968c, roughness: 0.9 }) },
   flat: { palBronze: () => new THREE.MeshBasicMaterial({ color: 0x9a7a48 }), palInlay: () => new THREE.MeshBasicMaterial({ color: 0xc8ccd0 }), palStone: () => new THREE.MeshBasicMaterial({ color: 0x9a968c }) },
   sil: { palBronze: () => new THREE.MeshBasicMaterial({ color: 0x000000 }), palInlay: () => new THREE.MeshBasicMaterial({ color: 0x000000 }), palStone: () => new THREE.MeshBasicMaterial({ color: 0x000000 }) },
 };
-const made = {}; const matFor = (n) => made[n] || (made[n] = (MATS[MODE][n] || MATS[MODE].palBronze)());
-function boxLion(x) {  // the current palace lion (index.html: three boxes)
-  const m = new THREE.MeshStandardMaterial({ color: 0x9a968c, roughness: 0.9 }), g = new THREE.Group();
-  for (const [w, h, d, y, z] of [[1.6, 0.6, 2.2, 0.3, 0], [1.2, 1.2, 1.6, 1.2, 0], [1.0, 1.0, 0.8, 2.1, 0.6]]) { const b = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), m); b.position.set(x, y, z); b.castShadow = b.receiveShadow = true; g.add(b); }
-  return g;
-}
+const made = {}; const matFor = (n) => { const k = MODE === 'tex' || MATS[MODE][n] ? n : (n === 'palGlow' ? 'palGlow' : 'palBronze'); return made[k] || (made[k] = (MATS[MODE][k] || MATS.tex[k] || MATS[MODE].palBronze)()); };
+const boxMat = () => new THREE.MeshStandardMaterial({ color: 0x9a968c, roughness: 0.9 });
+function boxes(x, list, geo) { const m = boxMat(), g = new THREE.Group(); for (const [a, b, c, y, z] of list) { const o = new THREE.Mesh(geo(a, b, c), m); o.position.set(x, y, z); o.castShadow = o.receiveShadow = true; g.add(o); } return g; }
+// per model: GLB, clip, the box version it replaces (index.html), its states (object name prefixes shown per state), camera look point
+const SPEC = {
+  beast: { clip: 'strike', box: (x) => boxes(x, [[1.6, 0.6, 2.2, 0.3, 0], [1.2, 1.2, 1.6, 1.2, 0], [1.0, 1.0, 0.8, 2.1, 0.6]], (w, h, d) => new THREE.BoxGeometry(w, h, d)),
+    states: null, lookY: 1.1, turnY: 1.25, turnD: 4.2, boxX: -3.4 },
+  ding: { clip: null, box: (x) => boxes(x, [[0.85, 1.0, 0, 0.75, 0], [0.95, 0.12, 0, 1.3, 0]], (rr, h) => new THREE.CylinderGeometry(rr, rr, h, 16)),
+    states: { lit: ['ding_lit'], dry: ['ding_dry'] }, def: 'lit', lookY: 0.6, turnY: 0.7, turnD: 3.4, boxX: -3.0 },
+  vat: { clip: null, box: (x) => boxes(x, [[0.8, 1.4, 0, 0.7, 0]], (rr, h) => new THREE.CylinderGeometry(rr, rr, h, 16)),
+    states: { intact: ['vat_intact', 'vat_water'], cracked: ['vat_cracked', 'vat_water'], shards: ['vat_shards', 'vat_puddle'] }, def: 'intact', lookY: 0.6, turnY: 0.7, turnD: 3.6, boxX: -3.0 },
+}[MODEL];
+const STATE = SPEC.states ? (Q.get('state') || SPEC.def) : null;
 const player = new THREE.Mesh(new THREE.BoxGeometry(0.9, 2.05, 0.9), new THREE.MeshStandardMaterial({ color: 0x3a7bd5, roughness: 0.6 })); player.position.set(2.2, 1.025, 2.6); player.castShadow = true;
-new GLTFLoader().load('../../assets/models/beast.glb', (g) => {
+new GLTFLoader().load(`../../assets/models/${MODEL}.glb`, (g) => {
   const root = g.scene;
-  root.traverse((o) => { if (o.isMesh) { o.material = matFor(o.material.name); o.castShadow = o.receiveShadow = true; } });
-  const lod = ['beast_lod0', 'beast_lod1', 'beast_lod2'].map((n) => root.getObjectByName(n));
-  if (VIEW === 'lods') {  // LOD0 is skinned: its bones place it, so move the rig, not the mesh (round 1 viewer bug)
-    const rig = root.getObjectByName('beast_rig'); rig.position.x = -3; lod[1].position.x = 0; lod[2].position.x = 3; }
-  else { lod[1].visible = false; lod[2].visible = false; }
+  root.traverse((o) => { if (o.userData && o.userData.accents) ACCENTS = o.userData.accents; });
+  root.traverse((o) => { if (o.isMesh) { o.material = matFor(o.material.name); o.castShadow = o.material.name !== 'palGlow' && !o.material.transparent; o.receiveShadow = true; } });
+  // state objects: shown only in their state (and in the lods view, only LOD0-level state objects with LOD0)
+  if (SPEC.states) {
+    const mine = SPEC.states[STATE] || [], all = [].concat(...Object.values(SPEC.states));
+    for (const o of root.children) { const tagged = all.find((p) => o.name.startsWith(p)); if (tagged) o.visible = mine.some((p) => o.name.startsWith(p)); }
+  }
+  // top-level objects by LOD: name ends _lod1 / _lod2; everything else (LOD0, the rig, state objects without LODs) counts as LOD0
+  const lodOf = (o) => (/_lod([12])$/.exec(o.name) || [0, 0])[1] | 0;
+  for (const o of root.children) {
+    const i = lodOf(o);
+    if (VIEW === 'lods') o.position.x = (i - 1) * 3;  // a skinned LOD0 is placed by its bones: its rig moves, not the mesh (round 1 viewer bug)
+    else if (i > 0) o.visible = false;
+  }
   scene.add(root);
-  if (T !== null) { const mix = new THREE.AnimationMixer(root), clip = g.animations.find((a) => a.name === 'strike'); const a = mix.clipAction(clip); a.play(); mix.setTime(+T); }
-  if (VIEW === 'play' || VIEW === 'wide') { scene.add(player); if (MODE === 'tex' || MODE === 'shade') scene.add(boxLion(-3.4)); }
-  const pitch = 40 * Math.PI / 180, look = new THREE.Vector3(VIEW === 'play' || VIEW === 'wide' ? -0.4 : 0, 1.1, 0.6);
-  let dist = VIEW === 'play' ? 10.5 : VIEW === 'wide' ? 22 : VIEW === 'lods' ? 9 : 4.2, yaw = (+(Q.get('yaw') || (VIEW === 'turn' ? 30 : 0))) * Math.PI / 180;
-  if (VIEW === 'turn') { pitch; look.set(0, 1.25, 0.1); }
-  const p2 = VIEW === 'turn' ? 15 * Math.PI / 180 : pitch;
+  if (T !== null && SPEC.clip) { const mix = new THREE.AnimationMixer(root), clip = g.animations.find((a) => a.name === SPEC.clip); const a = mix.clipAction(clip); a.play(); mix.setTime(+T); }
+  if (VIEW === 'play' || VIEW === 'wide') { scene.add(player); if (MODE === 'tex' || MODE === 'shade') scene.add(SPEC.box(SPEC.boxX)); }
+  const pitch = 40 * Math.PI / 180, look = new THREE.Vector3(VIEW === 'play' || VIEW === 'wide' ? -0.4 : 0, SPEC.lookY, 0.6);
+  let dist = VIEW === 'play' ? 10.5 : VIEW === 'wide' ? 22 : VIEW === 'lods' ? 9 : SPEC.turnD, yaw = (+(Q.get('yaw') || (VIEW === 'turn' ? 30 : 0))) * Math.PI / 180;
+  if (VIEW === 'turn') look.set(0, SPEC.turnY, 0.1);
+  const p2 = VIEW === 'turn' ? (+(Q.get('pitch') || 15)) * Math.PI / 180 : pitch;
   cam.position.set(look.x + Math.sin(yaw) * Math.cos(p2) * dist, look.y + Math.sin(p2) * dist, look.z + Math.cos(yaw) * Math.cos(p2) * dist); cam.lookAt(look);
   const go = () => { r.render(scene, cam); window.__ready = true; };
   setTimeout(go, 800);
