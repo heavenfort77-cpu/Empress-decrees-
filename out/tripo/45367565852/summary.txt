@@ -1,0 +1,1 @@
+FAIL no TRIPO_API_KEY secret on the repo
