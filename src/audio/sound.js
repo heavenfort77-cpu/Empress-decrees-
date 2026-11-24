@@ -8,13 +8,15 @@ export const CONFIG = {
   // Master gain after the limiter, 0-1 (13d: default reduced; the player raises it).
   master: 0.9,
   // Bus gains, 0-1: effects, music, ambience, her stingers.
-  vol: { sfx: 1, music: 0.9, amb: 0.8, voice: 0.9 },
+  vol: { sfx: 1, music: 0.9, amb: 0.8, voice: 1 },
   // Compressor in front of the clip (a peak catcher; approximates a limiter; dB, dB, ratio, s, s).
   comp: { threshold: -4, knee: 6, ratio: 8, attack: 0.003, release: 0.15 },
   // Last-stage tanh clip ceiling (linear; 0.7 = -3.1 dBFS, so the mix never peaks above -3 dBFS).
   clip: 0.7,
   // Peak each rendered effect is normalised to, dBFS, per category (all at or under -3).
-  peakDb: { tell: -6, sfx: -7, heavy: -5, voice: -4, ui: -10 },
+  peakDb: { tell: -6, sfx: -7, heavy: -5, voice: -3.5, ui: -10 },
+  // Soft saturation of her stingers before normalising (lowers their crest so they read over the music at the same peak).
+  voiceSat: 2,
   // Loops: RMS target and peak cap after rendering, dBFS (bus and layer gains set the mix).
   loopRmsDb: -18, loopPeakDb: -3.5,
   // Live voices for effects (desktop, phone) and for her stingers; a new sound steals the oldest non-tell voice.
@@ -288,8 +290,8 @@ export const LOOPS = {
   m_peak: { kind: 'music', steady: () => [tn(1600, 0, 0, 0.12, { env: 'flat', am: [6, 0.8] })], events: () => musicEvents('m_peak') },
   // Room tone: a low hall hum (always on, very low; 13b keeps quiet from sounding like a bug).
   a_room: { kind: 'amb', steady: () => [tn(N(-6) * 2, 0, 0, 1, { env: 'flat' }), tn(N(-6) * 3, 0, 0, 0.4, { env: 'flat', am: [0.125, 0.4] }), tn(N(-6) * 4 + 0.25, 0, 0, 0.25, { env: 'flat' }), nz(500, 0.5, 0, 0, 0.5, { env: 'flat' })] },
-  // Wind over the black lake: whistling tones on phones; band noise added on desktop.
-  a_wind: { kind: 'amb', steady: () => [tn(760, 0, 0, 0.4, { env: 'flat', am: [0.0625, 0.9], vib: [0.125, 60] }), tn(1020, 0, 0, 0.3, { env: 'flat', am: [0.1875, 0.9], vib: [0.25, 50] }), tn(560, 0, 0, 0.3, { env: 'flat', am: [0.125, 0.8] }), nz(700, 0.7, 0, 0, 1, { env: 'flat', am: [0.0625, 0.7] })] },
+  // Wind over the black lake: whistling tones that beat and swell on phones (no vibrato: it would break whole-cycle looping); band noise added on desktop.
+  a_wind: { kind: 'amb', steady: () => [tn(760, 0, 0, 0.3, { env: 'flat', am: [0.0625, 0.9] }), tn(767, 0, 0, 0.2, { env: 'flat', am: [0.125, 0.9] }), tn(1020, 0, 0, 0.2, { env: 'flat', am: [0.1875, 0.9] }), tn(1031, 0, 0, 0.15, { env: 'flat', am: [0.25, 0.9] }), tn(560, 0, 0, 0.3, { env: 'flat', am: [0.125, 0.8] }), nz(700, 0.7, 0, 0, 1, { env: 'flat', am: [0.0625, 0.7] })] },
   // Fire: a flickering low rumble and tonal pops (phones); a noise bed and crackle on desktop.
   a_fire: { kind: 'amb', steady: () => [tn(98, 0, 0, 0.6, { env: 'flat', w: 'triangle', am: [3, 0.5] }), tn(147, 0, 0, 0.4, { env: 'flat', w: 'triangle', am: [5, 0.5] }), tn(196, 0, 0, 0.3, { env: 'flat', am: [7, 0.6] }), nz(400, 0.5, 0, 0, 1, { env: 'flat', am: [4, 0.5] })], events: () => [pops(1200, 3200, 0, 16, 0.4, 70), nz(2500, 0.8, 1, 0.05, 0.3), nz(3000, 0.8, 5.3, 0.05, 0.3), nz(2200, 0.8, 9.1, 0.05, 0.3), nz(2800, 0.8, 12.7, 0.05, 0.3)] },
 };
@@ -405,6 +407,7 @@ const db = (v) => Math.pow(10, v / 20);
 export async function renderSound(name, sr, profile) {
   const s = SOUNDS[name]; if (!s) throw new Error('sound: no sound ' + name);
   const end = voicesEnd(s.v) + 0.06, x = await renderVoices(s.v, end, sr, profile === 'phone', CONFIG.seed + hashName(name));
+  if (s.cat === 'voice' && CONFIG.voiceSat > 0 && peakOf(x) > 0) soft(x, peakOf(x), CONFIG.voiceSat);
   const p = peakOf(x);
   return p > 0 ? scale(x, db(CONFIG.peakDb[s.cat]) / p) : x;
 }
