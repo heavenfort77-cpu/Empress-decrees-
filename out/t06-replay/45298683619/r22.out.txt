@@ -1,0 +1,2 @@
+FAIL 137 budget with 阴阳甲 effects: every suit + cubs + tells + both orbs + 太极 (calls<500, tris<500k), no shader compile, geometry flat :: {"tells":4,"calls":54,"tris":2754,"programs":3,"geoms":98}
+RUNTIME 141 of 142 pass

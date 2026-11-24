@@ -1,0 +1,2 @@
+FAIL 135 阴阳甲 in the hunt: the wake fills the lock (R ready at the start); R empties it and starts its cooldown; 阴 on a minion fills the dark half :: {"start":[false,false,false,"hunt"],"cast":false,"after":[false,false,0],"dark":true,"minion":true}
+RUNTIME 141 of 142 pass

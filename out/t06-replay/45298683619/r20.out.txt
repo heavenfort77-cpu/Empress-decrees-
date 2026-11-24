@@ -1,0 +1,3 @@
+FAIL 83 decree pacing: 3-4 decrees told (bounty included) in each of 12 matches, about one a minute (mean warning to warning <= 60 s), no banner over a decree warning, no heights break near a warned section :: told 12345:3,2:3,3:3,4:4,5:5,6:3,7:3,8:3,9:3,10:4,11:3,12:3; mean warning to warning 50.8 s (28 gaps); bannerOv 0; heights breaks 0, near warned 0
+FAIL 136 阴阳甲 in whole matches: on a floor, nobody stuck > 3 s, orbs and disks end on time, hunter cap every tick, the 阴阳甲 bot casts Q and W and unlocks and casts R (player 阴阳甲 autopilot reported) :: {"viol":[],"casts":{"q":0,"w":0,"r":0},"player":{"q":0,"w":0,"r":0},"decided":[187.9,182,181.1,181.1],"orbMax":0.65,"diskMax":0,"clean":true,"orbLife":1.111,"diskLife":4}
+RUNTIME 140 of 142 pass

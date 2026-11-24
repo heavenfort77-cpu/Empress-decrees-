@@ -1,0 +1,2 @@
+FAIL 133 阴阳甲 R: locked without both halves; the disk is shown in full tellS s (>= 0.4) with no burn or pull; then dark half pulls and slows, light half burns; the halves swap; gone after; lock emptied, cooldown :: {"tellHit":false,"steps":[59,90,90],"pullD":[0,0,90],"pullL":[0,90,0],"slowD":[0,0,90],"locked":false,"cast":true,"lock":[false,false,30],"disk":{"in":true,"vis":true,"r":5},"toldS":1,"seg":3,"dmg":[[24,0],[0,24]],"gone":true,"phaseSteps":90,"burnWant":24}
+RUNTIME 141 of 142 pass

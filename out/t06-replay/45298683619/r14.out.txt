@@ -1,0 +1,3 @@
+FAIL 132 阴阳甲 W: a sunburst on nothing fills nothing; at a suit it is shown delay s (>= 0.4) with no damage before, then dmg inside its radius, none outside; light half filled; cooldown :: {"empty":[false,false],"cast":true,"cd":true,"toldS":0.117,"early":false,"hit":24,"off":0,"light":true}
+FAIL 136 阴阳甲 in whole matches: on a floor, nobody stuck > 3 s, orbs and disks end on time, hunter cap every tick, the 阴阳甲 bot casts Q and W and unlocks and casts R (player 阴阳甲 autopilot reported) :: {"viol":["s4 bot1 stuck 3.1499999999999937"],"casts":{"q":11,"w":8,"r":4},"player":{"q":2,"w":2,"r":0},"decided":[184.9,211.4,193.3,204.4],"orbMax":1.117,"diskMax":4,"clean":true,"orbLife":1.111,"diskLife":4}
+RUNTIME 140 of 142 pass

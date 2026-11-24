@@ -1,0 +1,2 @@
+FAIL 130 阴阳甲 attack: the orb is fired without walking in, drawn while it flies, lands for dmg; shots alternate dark and light; no half filled; a wall stops it :: {"moved":0,"flying":true,"looks":[true,true],"dealt":14,"halves":[false,false],"clear":true,"wall":true,"wallHp":0,"wallOrb":false}
+RUNTIME 141 of 142 pass

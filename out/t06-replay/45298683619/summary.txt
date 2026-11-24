@@ -1,0 +1,27 @@
+jobs 26; caught by named check 26 of 26
+{"i": 0, "fails": ["56", "129", "131", "134", "135", "136"], "tot": ["RUNTIME 136 of 142 pass"], "s": 117, "name": "Q fills light", "want": "129", "applied": true, "caught_named": true}
+{"i": 1, "fails": ["129"], "tot": ["RUNTIME 141 of 142 pass"], "s": 114, "name": "full half fills the other", "want": "129", "applied": true, "caught_named": true}
+{"i": 2, "fails": ["83", "129", "132", "136"], "tot": ["RUNTIME 138 of 142 pass"], "s": 69, "name": "W fills nothing", "want": "132", "applied": true, "caught_named": true}
+{"i": 3, "fails": ["129", "133", "134", "136"], "tot": ["RUNTIME 138 of 142 pass"], "s": 67, "name": "R not locked", "want": "129", "applied": true, "caught_named": true}
+{"i": 4, "fails": ["129", "133", "134", "135", "136"], "tot": ["RUNTIME 137 of 142 pass"], "s": 124, "name": "R keeps lock", "want": "133", "applied": true, "caught_named": true}
+{"i": 5, "fails": ["134"], "tot": ["RUNTIME 141 of 142 pass"], "s": 66, "name": "no 2x for lock", "want": "134", "applied": true, "caught_named": true}
+{"i": 6, "fails": ["134"], "tot": ["RUNTIME 141 of 142 pass"], "s": 115, "name": "silence ignored", "want": "134", "applied": true, "caught_named": true}
+{"i": 7, "fails": ["110", "130"], "tot": ["RUNTIME 140 of 142 pass"], "s": 83, "name": "attack fills a half", "want": "130", "applied": true, "caught_named": true}
+{"i": 8, "fails": ["130"], "tot": ["RUNTIME 141 of 142 pass"], "s": 66, "name": "attack one look", "want": "130", "applied": true, "caught_named": true}
+{"i": 9, "fails": ["130"], "tot": ["RUNTIME 141 of 142 pass"], "s": 107, "name": "orb through walls", "want": "130", "applied": true, "caught_named": true}
+{"i": 10, "fails": ["56", "119", "131", "136"], "tot": ["RUNTIME 138 of 142 pass"], "s": 117, "name": "no step back", "want": "131", "applied": true, "caught_named": true}
+{"i": 11, "fails": ["56", "131"], "tot": ["RUNTIME 140 of 142 pass"], "s": 68, "name": "no drain", "want": "131", "applied": true, "caught_named": true}
+{"i": 12, "fails": ["56", "131"], "tot": ["RUNTIME 140 of 142 pass"], "s": 84, "name": "no slow", "want": "131", "applied": true, "caught_named": true}
+{"i": 13, "fails": ["56", "131", "136"], "tot": ["RUNTIME 139 of 142 pass"], "s": 114, "name": "orb too fast", "want": "131", "applied": true, "caught_named": true}
+{"i": 14, "fails": ["132", "136"], "tot": ["RUNTIME 140 of 142 pass"], "s": 118, "name": "W short tell", "want": "132", "applied": true, "caught_named": true}
+{"i": 15, "fails": ["110", "133"], "tot": ["RUNTIME 140 of 142 pass"], "s": 116, "name": "R short tell", "want": "133", "applied": true, "caught_named": true}
+{"i": 16, "fails": ["133", "136"], "tot": ["RUNTIME 140 of 142 pass"], "s": 81, "name": "R never turns", "want": "133", "applied": true, "caught_named": true}
+{"i": 17, "fails": ["133"], "tot": ["RUNTIME 141 of 142 pass"], "s": 82, "name": "dark pushes out", "want": "133", "applied": true, "caught_named": true}
+{"i": 18, "fails": ["133"], "tot": ["RUNTIME 141 of 142 pass"], "s": 67, "name": "halves swapped", "want": "133", "applied": true, "caught_named": true}
+{"i": 19, "fails": ["135"], "tot": ["RUNTIME 141 of 142 pass"], "s": 61, "name": "wake leaves lock", "want": "135", "applied": true, "caught_named": true}
+{"i": 20, "fails": ["83", "136"], "tot": ["RUNTIME 140 of 142 pass"], "s": 57, "name": "bot never alternates", "want": "136", "applied": true, "caught_named": true}
+{"i": 21, "fails": ["133", "136"], "tot": ["RUNTIME 140 of 142 pass"], "s": 92, "name": "disk lingers", "want": "136", "applied": true, "caught_named": true}
+{"i": 22, "fails": ["137"], "tot": ["RUNTIME 141 of 142 pass"], "s": 119, "name": "disk not warmed", "want": "137", "applied": true, "caught_named": true}
+{"i": 23, "fails": ["129"], "tot": ["RUNTIME 141 of 142 pass"], "s": 117, "name": "R button written every step", "want": "129", "applied": true, "caught_named": true}
+{"i": 24, "fails": ["129"], "tot": ["RUNTIME 141 of 142 pass"], "s": 115, "name": "no taiji on status", "want": "129", "applied": true, "caught_named": true}
+{"i": 25, "fails": ["65", "83", "96", "129", "130", "131", "132", "133", "134", "135", "136", "137"], "tot": ["RUNTIME 130 of 142 pass"], "s": 94, "name": "yinyang not built", "want": "96", "applied": true, "caught_named": true}

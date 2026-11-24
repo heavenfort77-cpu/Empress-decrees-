@@ -1,0 +1,2 @@
+FAIL 134 阴阳甲 lock rules: "Ultimates 2x" runs only the cooldown after use 2x (1x in the warning) and R stays locked at cooldown 0; no meter; a 阴 landing while he stands silenced on a bridge fills nothing, off the bridge it fills :: {"warnRate":1,"onRate":2,"cd0Locked":false,"ch":0,"silOk":true,"bridge":{"cast":true,"hit":14,"zone":"WB2","yin":true},"ground":{"cast":true,"hit":14,"zone":"C2","yin":true}}
+RUNTIME 141 of 142 pass
