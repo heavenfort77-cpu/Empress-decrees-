@@ -9,10 +9,6 @@ echo "== klad atlas"
 python3 art/tools/standard_tex.py /tmp/ops
 python3 art/tools/paint_palace.py "$KLAD" /tmp/ops "$OUT/src" assets/tex "$OUT/passes" school_standards
 cp assets/tex/school_standards.png "$OUT/"
-# measurement-only variant for the owner (za silver laid cooler): painted for the lineup_zacool shot, never committed unless chosen
-STD_VARIANT=zacool python3 art/tools/standard_tex.py /tmp/ops
-python3 art/tools/paint_palace.py "$KLAD" /tmp/ops "$OUT/src" assets/tex "$OUT/passes" school_standards_zacool
-cp assets/tex/school_standards_zacool.png "$OUT/"
 echo "== tex check"; python3 art/tools/standard_check.py tex assets/tex/school_standards.png | tee "$OUT/tex_check.txt"
 for m in dup blend flat bleed tongue; do echo "tex mutation $m: $(python3 art/tools/standard_check.py tex assets/tex/school_standards.png --mut $m | grep -c '^FAIL') FAIL lines (must be > 0)"; done | tee "$OUT/tex_mut.txt"
 echo "== builder"; $BPY art/tools/standard_blender.py "$PWD/assets/models/standard.glb" 2>&1 | grep -E "^(PASS|FAIL)|of [0-9]+ pass|wrote|INFO|Error|Traceback|line [0-9]" | tee "$OUT/build_gates.txt"
@@ -24,7 +20,6 @@ echo "== shots (brass sheet)"; node art/tools/shoot_viewer.mjs "$OUT/shots" stan
 echo "== play-size check"
 for m in dup blur; do echo "play mutation $m: $(python3 art/tools/standard_check.py crops "$OUT/shots" assets/tex/school_standards.png --mut $m | grep -c '^FAIL') FAIL lines (must be > 0)"; done | tee "$OUT/play_mut.txt"
 python3 art/tools/standard_check.py crops "$OUT/shots" assets/tex/school_standards.png | tee "$OUT/play_check.txt"
-echo "== za cool variant (owner option, measurement only)"; python3 art/tools/standard_check.py crops "$OUT/shots" assets/tex/school_standards_zacool.png --shot lineup_zacool | tee "$OUT/play_zacool.txt"
 echo "== sheets"; python3 art/tools/standard_sheet.py "$OUT/shots" "$OUT/sheets"
 # leave the checkout clean (the workflow switches to ci-out after this script)
 git checkout -q -- . && git clean -qfd assets art

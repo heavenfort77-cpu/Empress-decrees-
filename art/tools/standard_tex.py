@@ -7,18 +7,13 @@ One 1024 x 1024 alpha atlas, 5 x 2 cells of 204.8 x 512 px (0.8 x 2.0 m at 256 p
 Each banner: the school's accent as the field (the owner's one school mapping, 25 Nov: the 鼎 accents), a Qin-black
 heading band with bronze ties, black side hems and a hem over three tongues (alpha cut), shallow cloth folds, and an invented sigil in
 black or bone (whichever contrasts with the field). Sigils are pictures and abstract marks drawn as filled shapes (no calligraphy, no
-characters): ru a ritual cauldron, dao a spiral, fa a balance, mo a wall with a gate, yinyang a sun disc beside a moon ring over a horizon bar, za nine dots,
+characters): ru a ritual cauldron, dao a spiral, fa a Qin steelyard weight (quan), mo a rammed-earth wall under a gate tower, yinyang a sun disc beside a moon ring over a horizon bar, za nine dots,
 ming a diamond holding a point, zongheng two crossed arrows, nong a ripe grain ear with two leaves.
 Usage: python3 standard_tex.py OPSDIR   then  python3 paint_palace.py KLAD OPSDIR SRCDIR OUTDIR STRIPDIR school_standards
 Checked by art/tools/standard_check.py.
 """
 import math, os, sys
 OPS = sys.argv[1]
-# Measurement-only variant for the owner (never shipped unless chosen): STD_VARIANT=zacool writes school_standards_zacool with za's
-# silver laid cooler and darker, to measure how far fa (lead white) and za (silver) part in play (round 1: dE 7.2 in play, 11.1 on the atlas).
-VARIANT = os.environ.get('STD_VARIANT') == 'zacool'
-# The za field in that variant (owner's silver is #c8ccd0).
-ZA_COOL = '#b2bccb'
 sys.argv = [sys.argv[0], OPS, '1024']
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import palace_tex as P
@@ -31,8 +26,9 @@ CW, CH = 1024 / 5, 1024 / 2
 MARGIN = 6
 # School order = index.html CONFIG.SCHOOLS; accents = the owner's one mapping for every school item (25 Nov 02:1x: W1a's 鼎 accents,
 # art/tools/ding_blender.py ACCENTS): ru ochre, dao gold, fa lead white, mo cinnabar, yinyang bone black, za silver, ming Han purple,
-# zongheng malachite, nong azurite.
-SCHOOLS = [('ru', '#b8862e'), ('dao', '#e2b84a'), ('fa', '#d9d2c3'), ('mo', '#a8321e'), ('yinyang', '#1a1614'), ('za', '#c8ccd0'),
+# zongheng malachite, nong azurite. Owner 25 Nov 02:4x: the za BANNER uses the cooler silver #b2bccb (za keeps #c8ccd0 elsewhere);
+# round 2 measured fa-za dE 7.1 in play with #c8ccd0 and 12.2 with #b2bccb (run 45460704861).
+SCHOOLS = [('ru', '#b8862e'), ('dao', '#e2b84a'), ('fa', '#d9d2c3'), ('mo', '#a8321e'), ('yinyang', '#1a1614'), ('za', '#b2bccb'),
            ('ming', '#5b3f8c'), ('zongheng', '#2f8a5c'), ('nong', '#2e5a9c')]
 # Qin black (hems, heading, dark sigils), bone (light sigils), bronze ties on the heading band.
 QIN_BLACK = '#1e1916'
@@ -93,10 +89,10 @@ def banner_outline(x0, y0, x1, y1):
     return body, tongues, yt
 
 
-def sigil(t, kind, cx, cy, s, c):
+def sigil(t, kind, cx, cy, s, c, bg):
     """invented school sigils as filled shapes (unit coords -1..1 scaled by s)."""
     U = lambda pts: [(cx + x * s, cy + y * s) for x, y in pts]
-    line = lambda pts, w: t.stroke(U(pts), 'ink', w * s, c, 1.0, taper=[0, 0], wrap=False)
+    line = lambda pts, w, col=None: t.stroke(U(pts), 'ink', w * s, col or c, 1.0, taper=[0, 0], wrap=False)
     disc = lambda x, y, r: fill(t, [circle(cx + x * s, cy + y * s, r * s, 36)], c)
     ring = lambda x, y, r, w: t.stroke(circle(cx + x * s, cy + y * s, r * s, 40) + [circle(cx + x * s, cy + y * s, r * s, 40)[0]], 'ink', w * s, c, 1.0, taper=[0, 0], wrap=False)
     if kind == 'ru':  # ritual cauldron: rim, round belly, two upright ears, three legs
@@ -106,17 +102,19 @@ def sigil(t, kind, cx, cy, s, c):
         for x0_, x1_ in ((-0.45, -0.62), (0.0, 0.0), (0.45, 0.62)): line([(x0_, 0.3), (x1_, 0.92)], 0.17)
     elif kind == 'dao':  # one bold spiral opening outward
         line([(math.cos(k * 0.22) * (0.08 + 0.82 * k / 64), math.sin(k * 0.22) * (0.08 + 0.82 * k / 64)) for k in range(65)], 0.17)
-    elif kind == 'fa':  # balance: post on a foot, beam, cords, two pans
-        line([(0, -0.72), (0, 0.86)], 0.15); line([(-0.42, 0.88), (0.42, 0.88)], 0.17); line([(-0.86, -0.52), (0.86, -0.52)], 0.13)
-        disc(0, -0.76, 0.13)
-        for sx in (-1, 1):
-            line([(sx * 0.74, -0.52), (sx * 0.95, 0.06)], 0.06); line([(sx * 0.74, -0.52), (sx * 0.53, 0.06)], 0.06)
-            fill(t, [U([(sx * 0.74 + math.cos(a) * 0.27, 0.06 + math.sin(a) * 0.22) for a in [k * math.pi / 12 for k in range(13)]])], c)
-    elif kind == 'mo':  # defended wall: four merlons over a wall with an arched gate (the gate is a hole)
-        wall = [(-0.92, -0.2), (0.92, -0.2), (0.92, 0.62), (-0.92, 0.62)]
-        gate = [(-0.27, 0.62), (0.27, 0.62), (0.27, 0.22)] + [(math.cos(a) * 0.27, 0.22 - math.sin(a) * 0.27) for a in [k * math.pi / 10 for k in range(11)]] + [(-0.27, 0.22)]
+    elif kind == 'fa':  # Qin steelyard weight (quan): beam, cord, nose loop, domed weight on a foot band, ribs cut in field colour
+        line([(-0.9, -0.88), (0.9, -0.88)], 0.12); line([(0, -0.88), (0, -0.6)], 0.07); ring(0, -0.46, 0.15, 0.11)
+        fill(t, [U([(math.cos(a) * 0.72, 0.7 - math.sin(a) * 1.0) for a in [k * math.pi / 20 for k in range(21)]])], c)
+        fill(t, [U([(-0.84, 0.64), (0.84, 0.64), (0.84, 0.86), (-0.84, 0.86)])], c)
+        for rx in (-0.36, 0.0, 0.36): line([(rx * 0.55, -0.22), (rx, 0.6)], 0.05, bg)
+    elif kind == 'mo':  # rammed-earth wall (battered sides, flat-lintel gate hole, two courses cut in field colour) under a gate tower with a straight hipped roof
+        wall = [(-0.95, 0.88), (0.95, 0.88), (0.78, 0.1), (-0.78, 0.1)]
+        gate = [(-0.24, 0.88), (0.24, 0.88), (0.2, 0.42), (-0.2, 0.42)]
         fill(t, [U(wall), U(gate)], c)
-        for a in (-0.92, -0.42, 0.12, 0.62): fill(t, [U([(a, -0.58), (a + 0.3, -0.58), (a + 0.3, -0.18), (a, -0.18)])], c)
+        for cy_ in (0.3, 0.6): line([(-0.9 + (0.88 - cy_) * 0.2, cy_), (-0.27, cy_)], 0.05, bg); line([(0.27, cy_), (0.9 - (0.88 - cy_) * 0.2, cy_)], 0.05, bg)
+        fill(t, [U([(-0.36, 0.1), (0.36, 0.1), (0.36, -0.24), (-0.36, -0.24)])], c)
+        fill(t, [U([(-0.66, -0.3), (0.66, -0.3), (0.26, -0.64), (-0.26, -0.64)])], c)
+        line([(-0.34, -0.66), (0.34, -0.66)], 0.1)
     elif kind == 'yinyang':  # sun disc beside a moon ring over a horizon bar (round 1 stacked them and read as a numeral 8 at play size)
         disc(-0.46, -0.12, 0.4); ring(0.46, -0.12, 0.34, 0.15); line([(-0.86, 0.5), (0.86, 0.5)], 0.14)
     elif kind == 'za':  # nine dots
@@ -146,10 +144,9 @@ def sigil(t, kind, cx, cy, s, c):
 
 def school_standards():
     """stages run outer and schools inner, so the passes strip has four frames (base, tone, marks, all nine schools each)."""
-    t = P.Tex('school_standards' + ('_zacool' if VARIANT else ''), 'none', False, False, 1201); r = t.r
+    t = P.Tex('school_standards', 'none', False, False, 1201); r = t.r
     cells = []
     for i, (kind, acc) in enumerate(SCHOOLS):
-        if VARIANT and kind == 'za': acc = ZA_COOL
         cx0, cy0 = (i % GRID[0]) * CW, (i // GRID[0]) * CH
         x0, y0, x1, y1 = cx0 + MARGIN, cy0 + MARGIN, cx0 + CW - MARGIN, cy0 + CH - MARGIN
         body, tongues, yt = banner_outline(x0, y0, x1, y1)
@@ -177,7 +174,7 @@ def school_standards():
         for xx in (x0 + 26, (x0 + x1) / 2, x1 - 26): fill(t, [[(xx - 8, y0 + 4), (xx + 8, y0 + 4), (xx + 8, y0 + HEAD_H - 4), (xx - 8, y0 + HEAD_H - 4)]], BRONZE, size=4, step=3)
         for a in (x0, x1 - HEM_W): fill(t, [[(a, y0 + HEAD_H), (a + HEM_W, y0 + HEAD_H), (a + HEM_W, yt), (a, yt)]], hem, size=5, step=3)
         fill(t, [[(x0, yt - HEM_H), (x1, yt - HEM_H), (x1, yt), (x0, yt)]], hem, size=5, step=3)
-        sigil(t, kind, (x0 + x1) / 2, cy0 + CH * SIGIL_Y, SIGIL_HALF, sig)
+        sigil(t, kind, (x0 + x1) / 2, cy0 + CH * SIGIL_Y, SIGIL_HALF, sig, acc)
     return t
 
 

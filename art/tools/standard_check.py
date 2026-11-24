@@ -19,7 +19,8 @@ from PIL import Image, ImageFilter
 # CONFIG ---------------------------------------------------------------------------------------------------------------
 # Atlas layout (standard_tex.py): 5 x 2 cells, 6 px margin, heading band 30 px, tongues 78 px, sigil centre 0.40 of the cell, half 74 px.
 GRID, MARGIN, HEAD_H, TONGUE_L, SIGIL_Y, SIGIL_HALF = (5, 2), 6, 30, 78, 0.40, 74
-SCHOOLS = [('ru', '#b8862e'), ('dao', '#e2b84a'), ('fa', '#d9d2c3'), ('mo', '#a8321e'), ('yinyang', '#1a1614'), ('za', '#c8ccd0'),
+# Field accents per school (standard_tex.py SCHOOLS; za banner #b2bccb by owner decision 25 Nov 02:4x).
+SCHOOLS = [('ru', '#b8862e'), ('dao', '#e2b84a'), ('fa', '#d9d2c3'), ('mo', '#a8321e'), ('yinyang', '#1a1614'), ('za', '#b2bccb'),
            ('ming', '#5b3f8c'), ('zongheng', '#2f8a5c'), ('nong', '#2e5a9c')]
 # Limits: field vs accent dE, pairwise field dE, sigil L* contrast, sigil coverage of its box, IoU, partial-alpha share, play-size rules.
 ACC_DE, PAIR_DE, SIG_CONTRAST, SIG_COVER, IOU_MAX, PARTIAL_MAX = 8, 10, 30, (0.08, 0.5), 0.75, 0.06

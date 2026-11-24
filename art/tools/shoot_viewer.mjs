@@ -37,7 +37,7 @@ const SHOTS = {
     ['turn_34', 'view=turn&yaw=35&pitch=35', 640, 640], ['close_warn', 'view=turn&yaw=35&pitch=35&state=warn', 640, 640], ['pass_tex', 'view=turn&yaw=35&pitch=35&mode=tex', 640, 640]],
   censer: [['play', 'view=play', 1920, 1080], ['wide', 'view=wide', 1920, 1080], ...TURN(''), ...PASSES, ['lods', 'view=lods', 1280, 640]],
   // C12 school standard (W6): lineup = all nine at the play camera (lineup.json: banner boxes for standard_check.py crops)
-  standard: [['play', 'view=play', 1920, 1080], ['lineup', 'view=play&lineup=1', 1920, 1080], ['lineup_sway', 'view=play&lineup=1&t=0.5', 1920, 1080], ['lineup_zacool', 'view=play&lineup=1&atlas=school_standards_zacool', 1920, 1080],
+  standard: [['play', 'view=play', 1920, 1080], ['lineup', 'view=play&lineup=1', 1920, 1080], ['lineup_sway', 'view=play&lineup=1&t=0.5', 1920, 1080],
     ['wide', 'view=wide', 1920, 1080], ['wide_lineup', 'view=wide&lineup=1', 1920, 1080], ...TURN(''), ...PASSES, ['lods', 'view=lods', 1280, 640],
     ...[0, 0.5, 1, 1.5].map((t) => [`sway_${t}`, `view=turn&yaw=0&t=${t}`, 640, 640])],
 }[MODEL];
