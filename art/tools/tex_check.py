@@ -26,6 +26,7 @@ T = {
     'bronze_trim': (1024 / 4, 1024 / 4, (0, 384), 0.6),
 }
 fails = 0
+checks = 0
 import os
 T = {k: v for k, v in T.items() if os.path.exists(f'{D}/{k}.png')}
 for n, (du, dv, (y0, y1), scap) in T.items():
@@ -44,8 +45,11 @@ for n, (du, dv, (y0, y1), scap) in T.items():
         ('contrast', 8 <= sd <= 30, f'lum sd {sd:.1f}'),
         ('saturation', sat <= scap, f'{sat:.2f} (cap {scap})'),
     ]
+    if n == 'bronze_trim':  # bronze value plan (palace study): mean luminance 70-110 on the plain plate
+        res.append(('value', 70 <= lum.mean() <= 110, f'mean lum {lum.mean():.0f}'))
+    checks += len(res)
     for rule, ok, val in res:
         if not ok:
             fails += 1
         print(f"{'PASS' if ok else 'FAIL'} {n} {rule}: {val}")
-print(f'{4 * len(T) - fails} of {4 * len(T)} pass')
+print(f'{checks - fails} of {checks} pass')

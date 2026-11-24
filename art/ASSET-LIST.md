@@ -40,7 +40,7 @@ APPROVED = owner approved. SAMPLE NEXT = the next one to make. TODO = needed, no
 | A10 | Mural band on white plaster (chariots, guards, attendants, strange animals; own drawing) | corridor walls | TODO |
 | A11 | Grey roof tile and round cloud-pattern 瓦当 tile ends | eave edges seen from the camera | TODO |
 | A12 | Timber (beams, trestle, posts) | bridges, eaves, gardens | TODO |
-| A13 | Bronze trim sheet: stamp bands, inlay lines, workshop marks; fresh brass-gold and verdigris variants | every bronze prop | SAMPLE round 1 (24 Nov 22:3x): assets/tex/bronze_trim.png, art/src/bronze_trim.klad, art/tools/bronze_tex.py; tex_check 4 of 4; waiting for approval |
+| A13 | Bronze trim sheet: stamp bands, inlay lines, workshop marks; fresh brass-gold and verdigris variants | every bronze prop | SAMPLE round 2 (24 Nov 22:5x): darker base (value 104), 6 cm inlay; tex_check 25 of 25; waiting for approval |
 | A14 | Mercury: the only bright cool reflective surface (matcap) | mercury channels | TODO (today a flat colour) |
 | A15 | Black lake, blue-green near-black | under the platform | TODO |
 | A16 | Garden ground and sparse alpha-tested planting (wheat-ear motif) | 3 gardens | TODO |
@@ -68,7 +68,7 @@ Room types in the plan: hall, court, corridor, garden, bridge, core. Walls 4 m h
 ## C. Props (gameplay pieces already built in code, box shapes today)
 | # | Prop | In game | Look (research rule list) | Mesh budget, LOD | Status |
 |---|---|---|---|---|---|
-| C1 | Bronze guardian beast, a pair beside big doors | 石狮 hazard (0.6 s red ring, 3.5 m strike) | segmented bronze beast, silver inlay, own design; strike pose readable | about 3k / 1k / 300 tris | SAMPLE round 1 (24 Nov 22:3x): assets/models/beast.glb (2980 / 628 / 146 tris, rigid rig, clips idle + strike), art/tools/beast_blender.py, shots art/beast/round1/; waiting for approval; not in the game yet |
+| C1 | Bronze guardian beast, a pair beside big doors | 石狮 hazard (0.6 s red ring, 3.5 m strike) | segmented bronze beast, silver inlay, own design; strike pose readable | 7k / 2.5k / 800 tris (palace study budget; was 3k / 1k / 300) | SAMPLE round 2 (24 Nov 22:5x): round/sharp rebuild, 5440 / 1426 / 424 tris, gates 8 of 8, shots art/beast/round2/; study art/Qin-Bronze-Castings-Study.md; waiting for approval; not in the game yet |
 | C2 | 鼎 cauldron, 9 (one per school hall, the 九鼎) | replaces the healing altar; lit and dry states (G4) | real Warring States proportions, deconstructed taotie; school accent inlay | 2k / 600 | TODO |
 | C3 | 门海 water vat | breakable: floods, douses fire, knockback | cast bronze, stamp bands; intact, cracked, pooled shards | 1.5k / 500 | TODO |
 | C4 | 铜鹤 crane and 香炉 censer | smoke clouds for hiding | cast bronze; smoke as few small cards | 1.5k / 500 each | TODO |

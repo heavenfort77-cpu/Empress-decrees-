@@ -42,7 +42,8 @@ new GLTFLoader().load('../../assets/models/beast.glb', (g) => {
   const root = g.scene;
   root.traverse((o) => { if (o.isMesh) { o.material = matFor(o.material.name); o.castShadow = o.receiveShadow = true; } });
   const lod = ['beast_lod0', 'beast_lod1', 'beast_lod2'].map((n) => root.getObjectByName(n));
-  if (VIEW === 'lods') { lod.forEach((m, i) => { m.position.set((i - 1) * 3, 0, 0); }); }
+  if (VIEW === 'lods') {  // LOD0 is skinned: its bones place it, so move the rig, not the mesh (round 1 viewer bug)
+    const rig = root.getObjectByName('beast_rig'); rig.position.x = -3; lod[1].position.x = 0; lod[2].position.x = 3; }
   else { lod[1].visible = false; lod[2].visible = false; }
   scene.add(root);
   if (T !== null) { const mix = new THREE.AnimationMixer(root), clip = g.animations.find((a) => a.name === 'strike'); const a = mix.clipAction(clip); a.play(); mix.setTime(+T); }
