@@ -1,6 +1,6 @@
 # Runs on GitHub's Linux runners when the branch ci-run is pushed (never on main or batches-3-5).
 # ci/job.json says what to run: mode "mut" = one job per mutation, each runs the full suite (tests/run.mjs);
-# mode "suite" = one full suite run with -sims. Results are committed to the branch ci-out under out/<label>/<run id>/.
+# mode "suite" = one full suite run with -sims; mode "cmd" = one shell command (probe scripts in the tree), its output kept. Results are committed to the branch ci-out under out/<label>/<run id>/.
 name: ci-run
 on:
   push:
@@ -41,7 +41,10 @@ jobs:
           mkdir -p results
           MODE=$(python3 -c "import json;print(json.load(open('ci/job.json'))['mode'])")
           T0=$(date +%s)
-          if [ "$MODE" = mut ]; then
+          if [ "$MODE" = cmd ]; then
+            CMD=$(python3 -c "import json;print(json.load(open('ci/job.json'))['cmd'])")
+            bash -c "$CMD" > out.txt 2>&1 || true
+          elif [ "$MODE" = mut ]; then
             python3 ci/apply_mut.py ${{ matrix.i }} > apply.txt 2>&1 || true
             node tests/run.mjs > out.txt 2>&1 || true
           else
@@ -57,6 +60,8 @@ jobs:
               m = json.load(open('ci/job.json', encoding='utf-8'))['muts'][i]
               ap = open('apply.txt').read().strip()
               r.update({'name': m['name'], 'want': m['want'], 'applied': ap.startswith('applied'), 'caught_named': m['want'] in fails})
+          elif mode == 'cmd':
+              r['tail'] = out[-6000:]
           else:
               r['sims'] = re.findall(r'^SIM .*', out, re.M); r['faillines'] = re.findall(r'^FAIL .*', out, re.M)
           json.dump(r, open(f'results/r{i}.json', 'w'), ensure_ascii=False)
