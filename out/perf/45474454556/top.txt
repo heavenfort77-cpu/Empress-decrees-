@@ -1,0 +1,1817 @@
+T 1795549865
+PID   COMMAND         %CPU STATE   
+1297  node            36.2 sleeping
+109   mds             13.8 stuck   
+982   Runner.Worker   10.8 stuck   
+1300  top             5.4  running 
+306   mds_stores      4.0  stuck   
+119   thermalmonitord 3.1  sleeping
+T 1795549867
+PID   COMMAND          %CPU STATE   
+159   trustd           12.5 running 
+982   Runner.Worker    9.0  sleeping
+1313  top              8.4  running 
+972   provjobd23645964 6.1  stuck   
+1304  node             4.7  running 
+0     kernel_task      3.9  running 
+T 1795549869
+PID   COMMAND          %CPU STATE   
+1316  chrome-headless- 35.4 sleeping
+1319  top              6.7  running 
+130   dasd             6.5  sleeping
+1304  node             6.2  sleeping
+147   WindowServer     3.6  running 
+148   tccd             3.2  sleeping
+T 1795549870
+PID   COMMAND          %CPU STATE   
+1316  chrome-headless- 39.7 stuck   
+1323  top              8.7  running 
+127   locationd        7.0  sleeping
+1304  node             4.8  sleeping
+152   runningboardd    4.0  sleeping
+0     kernel_task      3.8  running 
+T 1795549872
+PID   COMMAND          %CPU STATE   
+181   storagekitd      15.5 running 
+1316  chrome-headless- 15.1 sleeping
+109   mds              13.9 stuck   
+401   fontd            9.1  sleeping
+344   WindowManager    9.0  sleeping
+1326  chrome-headless- 7.0  stuck   
+T 1795549873
+PID   COMMAND          %CPU STATE   
+972   provjobd23645964 14.6 running 
+1344  chrome-headless- 13.0 sleeping
+181   storagekitd      10.0 sleeping
+112   diskarbitrationd 9.1  sleeping
+1     launchd          5.3  sleeping
+1326  chrome-headless- 5.1  sleeping
+T 1795549875
+PID   COMMAND          %CPU STATE   
+1344  chrome-headless- 47.1 running 
+1401  MTLCompilerServi 14.4 sleeping
+1326  chrome-headless- 7.9  sleeping
+466   cloudd           4.5  running 
+1297  node             4.4  sleeping
+1309  mdworker_shared  3.9  sleeping
+T 1795549877
+PID   COMMAND          %CPU STATE   
+1401  MTLCompilerServi 56.8 running 
+1402  MTLCompilerServi 33.7 sleeping
+1344  chrome-headless- 19.2 sleeping
+1326  chrome-headless- 17.0 sleeping
+1494  top              4.2  running 
+466   cloudd           3.0  running 
+T 1795549878
+PID   COMMAND          %CPU STATE   
+1401  MTLCompilerServi 69.8 running 
+159   trustd           54.4 sleeping
+91    accessoryupdater 16.5 sleeping
+1326  chrome-headless- 13.4 sleeping
+1344  chrome-headless- 10.1 sleeping
+1402  MTLCompilerServi 9.4  sleeping
+T 1795549879
+PID   COMMAND          %CPU STATE   
+1401  MTLCompilerServi 72.1 running 
+1344  chrome-headless- 68.2 running 
+1402  MTLCompilerServi 32.7 sleeping
+1326  chrome-headless- 26.7 running 
+0     kernel_task      5.5  running 
+109   mds              3.9  running 
+T 1795549881
+PID   COMMAND          %CPU  STATE   
+1326  chrome-headless- 162.9 running 
+1344  chrome-headless- 33.0  sleeping
+159   trustd           15.0  sleeping
+1507  top              6.8   running 
+993   mdworker_shared  6.4   sleeping
+109   mds              4.8   stuck   
+T 1795549882
+PID   COMMAND          %CPU  STATE   
+1326  chrome-headless- 110.2 running 
+1344  chrome-headless- 63.4  running 
+159   trustd           23.0  sleeping
+0     kernel_task      9.6   running 
+91    accessoryupdater 6.6   running 
+1511  top              5.9   running 
+T 1795549883
+PID   COMMAND          %CPU  STATE   
+1326  chrome-headless- 105.0 running 
+1344  chrome-headless- 49.9  sleeping
+159   trustd           27.3  sleeping
+91    accessoryupdater 10.1  running 
+0     kernel_task      6.1   running 
+109   mds              5.1   stuck   
+T 1795549885
+PID   COMMAND          %CPU  STATE   
+1326  chrome-headless- 112.0 running 
+1344  chrome-headless- 49.4  sleeping
+972   provjobd23645964 13.2  sleeping
+0     kernel_task      8.4   running 
+109   mds              5.6   running 
+1520  top              5.2   running 
+T 1795549886
+PID   COMMAND          %CPU STATE   
+1326  chrome-headless- 91.9 running 
+972   provjobd23645964 78.2 running 
+1344  chrome-headless- 48.4 running 
+0     kernel_task      7.4  running 
+1561  top              5.1  running 
+1304  node             3.8  sleeping
+T 1795549887
+PID   COMMAND          %CPU  STATE   
+1326  chrome-headless- 100.4 running 
+972   provjobd23645964 76.7  running 
+1344  chrome-headless- 36.8  running 
+0     kernel_task      6.9   running 
+159   trustd           5.3   sleeping
+1579  top              4.1   running 
+T 1795549889
+PID   COMMAND          %CPU STATE   
+1326  chrome-headless- 97.1 running 
+972   provjobd23645964 77.2 running 
+1344  chrome-headless- 45.8 running 
+0     kernel_task      7.0  running 
+1586  top              4.4  running 
+1304  node             3.3  sleeping
+T 1795549890
+PID   COMMAND          %CPU STATE   
+1326  chrome-headless- 94.9 running 
+972   provjobd23645964 70.1 running 
+1344  chrome-headless- 47.0 running 
+159   trustd           12.1 sleeping
+0     kernel_task      6.9  running 
+1591  top              5.2  running 
+T 1795549891
+PID   COMMAND          %CPU STATE   
+1326  chrome-headless- 99.9 running 
+972   provjobd23645964 74.3 running 
+1344  chrome-headless- 43.8 running 
+159   trustd           10.1 running 
+0     kernel_task      6.9  running 
+1596  top              4.1  running 
+T 1795549892
+PID   COMMAND          %CPU STATE   
+1326  chrome-headless- 99.0 running 
+1344  chrome-headless- 40.6 running 
+972   provjobd23645964 31.7 sleeping
+159   trustd           13.9 sleeping
+0     kernel_task      6.5  running 
+1     launchd          5.3  sleeping
+T 1795549894
+PID   COMMAND          %CPU  STATE   
+1326  chrome-headless- 112.1 running 
+1344  chrome-headless- 39.5  sleeping
+159   trustd           17.4  sleeping
+109   mds              7.3   stuck   
+993   mdworker_shared  7.1   sleeping
+1309  mdworker_shared  7.0   sleeping
+T 1795549895
+PID   COMMAND          %CPU  STATE   
+1326  chrome-headless- 115.3 running 
+1344  chrome-headless- 42.9  sleeping
+159   trustd           17.5  sleeping
+306   mds_stores       10.1  running 
+109   mds              6.9   stuck   
+0     kernel_task      6.6   running 
+T 1795549896
+PID   COMMAND          %CPU  STATE   
+1326  chrome-headless- 108.5 running 
+1344  chrome-headless- 44.7  sleeping
+159   trustd           34.8  sleeping
+91    accessoryupdater 11.4  running 
+0     kernel_task      5.7   running 
+109   mds              5.7   running 
+T 1795549898
+PID   COMMAND          %CPU  STATE   
+1326  chrome-headless- 102.0 running 
+1344  chrome-headless- 49.9  sleeping
+159   trustd           9.9   sleeping
+0     kernel_task      6.5   running 
+1633  top              5.5   running 
+109   mds              4.5   stuck   
+T 1795549899
+PID   COMMAND          %CPU  STATE   
+1326  chrome-headless- 110.1 running 
+1344  chrome-headless- 54.7  running 
+159   trustd           11.8  running 
+0     kernel_task      6.5   running 
+1310  mdworker_shared  4.8   sleeping
+1640  top              4.7   running 
+T 1795549900
+PID   COMMAND          %CPU  STATE   
+1326  chrome-headless- 106.4 running 
+1344  chrome-headless- 40.8  sleeping
+159   trustd           34.3  running 
+91    accessoryupdater 10.5  running 
+109   mds              5.9   stuck   
+0     kernel_task      5.5   running 
+T 1795549901
+PID   COMMAND          %CPU  STATE   
+1326  chrome-headless- 112.8 running 
+1344  chrome-headless- 42.9  running 
+159   trustd           12.5  sleeping
+0     kernel_task      5.6   running 
+979   Runner.Listener  4.9   sleeping
+1651  top              4.8   running 
+T 1795549903
+PID   COMMAND          %CPU STATE   
+1326  chrome-headless- 96.3 running 
+1344  chrome-headless- 47.6 sleeping
+159   trustd           17.1 running 
+972   provjobd23645964 9.7  sleeping
+0     kernel_task      6.7  running 
+91    accessoryupdater 6.0  running 
+T 1795549904
+PID   COMMAND          %CPU STATE   
+1326  chrome-headless- 87.2 running 
+1344  chrome-headless- 37.3 running 
+159   trustd           19.5 sleeping
+306   mds_stores       10.2 stuck   
+91    accessoryupdater 6.3  running 
+0     kernel_task      6.3  running 
+T 1795549905
+PID   COMMAND          %CPU STATE   
+1326  chrome-headless- 98.7 running 
+1344  chrome-headless- 47.1 running 
+159   trustd           28.9 sleeping
+91    accessoryupdater 9.4  sleeping
+0     kernel_task      6.5  running 
+1308  mdworker_shared  6.0  running 
+T 1795549907
+PID   COMMAND          %CPU  STATE   
+1326  chrome-headless- 110.8 running 
+1344  chrome-headless- 38.7  sleeping
+1742  mdworker_shared  7.6   running 
+109   mds              7.6   stuck   
+0     kernel_task      7.4   running 
+1743  mdworker_shared  7.4   running 
+T 1795549908
+PID   COMMAND          %CPU  STATE   
+1326  chrome-headless- 100.5 running 
+1344  chrome-headless- 41.2  sleeping
+159   trustd           23.3  sleeping
+91    accessoryupdater 7.9   running 
+0     kernel_task      7.0   running 
+1739  mdworker_shared  5.2   running 
+T 1795549909
+PID   COMMAND          %CPU  STATE   
+1326  chrome-headless- 100.5 running 
+1344  chrome-headless- 42.8  sleeping
+159   trustd           13.9  sleeping
+0     kernel_task      9.2   running 
+1743  mdworker_shared  6.5   sleeping
+1739  mdworker_shared  6.2   sleeping
+T 1795549910
+PID   COMMAND          %CPU  STATE   
+1326  chrome-headless- 110.7 running 
+1344  chrome-headless- 50.0  sleeping
+159   trustd           14.5  running 
+109   mds              8.4   stuck   
+1738  mdworker_shared  7.3   sleeping
+1766  mdworker_shared  7.0   sleeping
+T 1795549912
+PID   COMMAND          %CPU  STATE   
+1326  chrome-headless- 114.1 running 
+1344  chrome-headless- 52.1  sleeping
+159   trustd           11.2  sleeping
+1721  mdworker_shared  10.0  running 
+109   mds              9.9   running 
+1739  mdworker_shared  8.7   running 
+T 1795549913
+PID   COMMAND          %CPU STATE   
+1326  chrome-headless- 92.1 running 
+1344  chrome-headless- 49.5 running 
+972   provjobd23645964 13.1 sleeping
+0     kernel_task      10.5 running 
+159   trustd           8.9  sleeping
+1738  mdworker_shared  8.1  running 
+T 1795549914
+PID   COMMAND          %CPU  STATE   
+1326  chrome-headless- 100.7 running 
+1344  chrome-headless- 44.6  running 
+159   trustd           32.9  sleeping
+91    accessoryupdater 10.4  running 
+0     kernel_task      9.2   running 
+1738  mdworker_shared  7.6   running 
+T 1795549916
+PID   COMMAND          %CPU STATE   
+1846  remotemanagement 76.6 running 
+159   trustd           13.2 sleeping
+0     kernel_task      7.4  running 
+1297  node             5.5  running 
+1849  top              4.9  running 
+306   mds_stores       3.6  running 
+T 1795549917
+PID   COMMAND          %CPU STATE   
+1846  remotemanagement 41.5 stuck   
+159   trustd           20.6 sleeping
+248   softwareupdated  7.8  sleeping
+306   mds_stores       6.7  stuck   
+91    accessoryupdater 5.5  sleeping
+1858  top              4.0  running 
+T 1795549918
+PID   COMMAND          %CPU STATE   
+1863  chrome-headless- 26.3 stuck   
+348   ControlCenter    16.5 running 
+161   airportd         7.6  sleeping
+453   com.apple.dock.e 7.1  sleeping
+140   bluetoothd       4.9  sleeping
+1865  top              3.5  running 
+T 1795549920
+PID   COMMAND          %CPU STATE   
+1863  chrome-headless- 27.6 stuck   
+147   WindowServer     9.6  sleeping
+348   ControlCenter    6.0  sleeping
+127   locationd        6.0  sleeping
+1869  top              5.9  running 
+0     kernel_task      5.4  running 
+T 1795549921
+PID   COMMAND          %CPU STATE   
+1872  chrome-headless- 29.4 sleeping
+1863  chrome-headless- 18.1 running 
+1297  node             11.4 sleeping
+1873  chrome-headless- 7.2  sleeping
+344   WindowManager    4.9  sleeping
+1875  top              4.6  running 
+T 1795549922
+PID   COMMAND          %CPU STATE   
+1878  chrome-headless- 77.5 running 
+1872  chrome-headless- 31.4 running 
+1     launchd          14.3 sleeping
+1854  amsondevicestora 4.1  stuck   
+1881  top              3.4  running 
+130   dasd             2.9  sleeping
+T 1795549924
+PID   COMMAND          %CPU  STATE   
+1872  chrome-headless- 101.7 running 
+1878  chrome-headless- 54.1  running 
+0     kernel_task      13.1  running 
+1854  amsondevicestora 8.4   running 
+972   provjobd23645964 7.2   running 
+1853  devicecheckd     5.6   running 
+T 1795549925
+PID   COMMAND          %CPU STATE   
+1872  chrome-headless- 90.5 running 
+1878  chrome-headless- 58.9 running 
+972   provjobd23645964 10.3 sleeping
+0     kernel_task      9.1  running 
+506   parsec-fbf       7.0  running 
+1854  amsondevicestora 6.5  running 
+T 1795549926
+PID   COMMAND          %CPU  STATE   
+1872  chrome-headless- 103.7 running 
+1878  chrome-headless- 55.6  sleeping
+1854  amsondevicestora 14.0  running 
+159   trustd           12.4  sleeping
+0     kernel_task      9.3   running 
+506   parsec-fbf       9.0   running 
+T 1795549928
+PID   COMMAND          %CPU STATE   
+1872  chrome-headless- 96.5 running 
+1878  chrome-headless- 39.7 running 
+159   trustd           29.1 running 
+0     kernel_task      8.9  running 
+91    accessoryupdater 8.2  running 
+506   parsec-fbf       7.8  running 
+T 1795549929
+PID   COMMAND          %CPU  STATE   
+1872  chrome-headless- 106.7 running 
+1878  chrome-headless- 43.5  running 
+159   trustd           15.1  sleeping
+109   mds              6.7   sleeping
+0     kernel_task      6.6   running 
+1977  top              5.6   running 
+T 1795549930
+PID   COMMAND          %CPU  STATE   
+1872  chrome-headless- 101.3 running 
+1878  chrome-headless- 44.2  sleeping
+159   trustd           13.3  sleeping
+0     kernel_task      7.3   running 
+1982  mdmclient        6.8   running 
+1739  mdworker_shared  5.9   running 
+T 1795549932
+PID   COMMAND          %CPU  STATE   
+1872  chrome-headless- 108.8 running 
+1878  chrome-headless- 37.9  running 
+1736  mdworker_shared  9.9   stuck   
+1743  mdworker_shared  7.6   running 
+1767  mdworker_shared  7.4   running 
+506   parsec-fbf       7.2   running 
+T 1795549933
+PID   COMMAND          %CPU  STATE   
+1872  chrome-headless- 105.7 running 
+1878  chrome-headless- 49.7  running 
+159   trustd           10.9  sleeping
+0     kernel_task      8.4   running 
+109   mds              7.2   sleeping
+1766  mdworker_shared  5.2   running 
+T 1795549934
+PID   COMMAND          %CPU  STATE   
+1872  chrome-headless- 115.4 running 
+1878  chrome-headless- 40.7  running 
+159   trustd           9.9   running 
+1743  mdworker_shared  8.4   running 
+306   mds_stores       7.4   stuck   
+109   mds              7.1   sleeping
+T 1795549935
+PID   COMMAND          %CPU STATE   
+1872  chrome-headless- 86.3 running 
+1878  chrome-headless- 52.1 running 
+972   provjobd23645964 18.9 sleeping
+159   trustd           14.8 sleeping
+0     kernel_task      7.4  running 
+91    accessoryupdater 5.0  running 
+T 1795549937
+PID   COMMAND          %CPU  STATE   
+1872  chrome-headless- 103.0 running 
+1878  chrome-headless- 40.7  sleeping
+159   trustd           24.1  sleeping
+1743  mdworker_shared  10.4  sleeping
+91    accessoryupdater 7.8   sleeping
+1742  mdworker_shared  7.7   sleeping
+T 1795549938
+PID   COMMAND          %CPU  STATE   
+1872  chrome-headless- 116.5 running 
+1878  chrome-headless- 44.5  sleeping
+1736  mdworker_shared  12.0  running 
+109   mds              9.9   running 
+1991  mdworker_shared  8.9   running 
+1742  mdworker_shared  8.7   running 
+T 1795549939
+PID   COMMAND          %CPU  STATE   
+1872  chrome-headless- 111.6 running 
+1878  chrome-headless- 45.4  sleeping
+159   trustd           18.0  sleeping
+109   mds              8.7   running 
+1765  mdworker_shared  7.8   running 
+1768  mdworker_shared  7.2   sleeping
+T 1795549940
+PID   COMMAND          %CPU  STATE   
+1872  chrome-headless- 105.7 running 
+1878  chrome-headless- 46.6  sleeping
+159   trustd           34.9  sleeping
+91    accessoryupdater 11.7  running 
+1768  mdworker_shared  8.5   running 
+109   mds              8.0   running 
+T 1795549942
+PID   COMMAND          %CPU  STATE   
+1872  chrome-headless- 109.2 running 
+1878  chrome-headless- 45.4  running 
+109   mds              12.8  running 
+1766  mdworker_shared  11.7  stuck   
+306   mds_stores       8.7   running 
+159   trustd           7.1   sleeping
+T 1795549943
+PID   COMMAND          %CPU STATE   
+1872  chrome-headless- 83.6 running 
+1878  chrome-headless- 46.0 running 
+0     kernel_task      17.4 running 
+181   storagekitd      17.2 sleeping
+2143  top              6.6  running 
+112   diskarbitrationd 6.2  sleeping
+T 1795549944
+PID   COMMAND          %CPU STATE   
+1872  chrome-headless- 81.8 running 
+1878  chrome-headless- 45.8 running 
+181   storagekitd      8.4  running 
+112   diskarbitrationd 7.9  sleeping
+0     kernel_task      6.8  running 
+1     launchd          5.0  sleeping
+T 1795549946
+PID   COMMAND          %CPU  STATE   
+1872  chrome-headless- 103.6 running 
+1878  chrome-headless- 45.1  running 
+972   provjobd23645964 12.4  running 
+109   mds              11.1  running 
+0     kernel_task      7.7   running 
+1991  mdworker_shared  6.3   running 
+T 1795549947
+PID   COMMAND          %CPU  STATE   
+1872  chrome-headless- 102.0 running 
+1878  chrome-headless- 43.7  running 
+159   trustd           12.5  sleeping
+109   mds              9.3   running 
+0     kernel_task      8.1   running 
+972   provjobd23645964 7.8   sleeping
+T 1795549948
+PID   COMMAND          %CPU  STATE   
+1872  chrome-headless- 110.1 running 
+1878  chrome-headless- 52.0  running 
+159   trustd           26.9  sleeping
+109   mds              10.2  running 
+1743  mdworker_shared  9.5   running 
+91    accessoryupdater 9.2   running 
+T 1795549950
+PID   COMMAND          %CPU STATE   
+1872  chrome-headless- 84.9 running 
+1878  chrome-headless- 58.5 running 
+159   trustd           9.5  sleeping
+0     kernel_task      9.3  running 
+2344  top              6.4  running 
+1304  node             4.2  sleeping
+T 1795549951
+PID   COMMAND          %CPU STATE   
+1872  chrome-headless- 88.9 running 
+2347  SafariBookmarksS 66.7 running 
+1878  chrome-headless- 41.7 running 
+159   trustd           19.4 sleeping
+0     kernel_task      7.9  running 
+91    accessoryupdater 7.0  sleeping
+T 1795549953
+PID   COMMAND          %CPU STATE   
+1872  chrome-headless- 86.0 running 
+2347  SafariBookmarksS 61.8 running 
+1878  chrome-headless- 35.8 running 
+2346  homeenergyd      12.6 stuck   
+0     kernel_task      8.4  running 
+2362  top              5.0  running 
+T 1795549954
+PID   COMMAND          %CPU STATE   
+1872  chrome-headless- 92.4 running 
+2347  SafariBookmarksS 80.8 running 
+1878  chrome-headless- 32.3 running 
+159   trustd           18.2 sleeping
+0     kernel_task      6.1  running 
+91    accessoryupdater 5.4  running 
+T 1795549955
+PID   COMMAND          %CPU STATE   
+1872  chrome-headless- 98.9 running 
+2347  SafariBookmarksS 44.2 sleeping
+1878  chrome-headless- 36.5 sleeping
+159   trustd           25.9 sleeping
+91    accessoryupdater 8.3  running 
+0     kernel_task      5.9  running 
+T 1795549957
+PID   COMMAND          %CPU STATE   
+1872  chrome-headless- 97.3 running 
+1878  chrome-headless- 37.8 running 
+159   trustd           9.4  sleeping
+972   provjobd23645964 8.4  sleeping
+0     kernel_task      8.3  running 
+109   mds              7.9  running 
+T 1795549958
+PID   COMMAND          %CPU  STATE   
+1872  chrome-headless- 102.0 running 
+1878  chrome-headless- 37.0  running 
+972   provjobd23645964 20.6  sleeping
+159   trustd           7.6   sleeping
+0     kernel_task      7.1   running 
+306   mds_stores       5.5   running 
+T 1795549959
+PID   COMMAND          %CPU STATE   
+109   mds              11.9 sleeping
+0     kernel_task      9.4  running 
+1766  mdworker_shared  5.8  stuck   
+1739  mdworker_shared  5.6  stuck   
+2476  top              5.4  running 
+1297  node             5.4  sleeping
+T 1795549961
+PID   COMMAND          %CPU STATE   
+2485  chrome-headless- 34.3 stuck   
+979   Runner.Listener  8.0  sleeping
+2487  top              3.6  running 
+0     kernel_task      3.0  running 
+1304  node             2.3  sleeping
+147   WindowServer     2.0  sleeping
+T 1795549962
+PID   COMMAND          %CPU STATE   
+2485  chrome-headless- 21.7 stuck   
+148   tccd             5.8  sleeping
+127   locationd        5.4  sleeping
+161   airportd         4.9  sleeping
+140   bluetoothd       4.3  sleeping
+147   WindowServer     4.1  sleeping
+T 1795549964
+PID   COMMAND          %CPU STATE   
+2498  chrome-headless- 30.3 sleeping
+2485  chrome-headless- 21.9 stuck   
+1297  node             10.3 sleeping
+2500  chrome-headless- 6.1  sleeping
+344   WindowManager    5.6  sleeping
+2501  top              5.5  running 
+T 1795549965
+PID   COMMAND          %CPU STATE   
+2505  chrome-headless- 78.5 running 
+2498  chrome-headless- 28.2 running 
+492   homed            22.6 stuck   
+2348  dataaccessd      8.2  stuck   
+2507  top              5.7  running 
+2482  modelmanagerd    5.3  stuck   
+T 1795549966
+PID   COMMAND          %CPU STATE   
+2505  chrome-headless- 88.6 running 
+2498  chrome-headless- 62.2 running 
+130   dasd             7.0  sleeping
+492   homed            5.3  sleeping
+2348  dataaccessd      5.3  running 
+0     kernel_task      4.5  running 
+T 1795549967
+PID   COMMAND          %CPU STATE   
+2498  chrome-headless- 92.8 running 
+2505  chrome-headless- 58.2 running 
+0     kernel_task      12.8 running 
+2482  modelmanagerd    10.9 running 
+443   remindd          9.8  running 
+2520  top              6.3  running 
+T 1795549969
+PID   COMMAND          %CPU STATE   
+2498  chrome-headless- 87.3 running 
+2505  chrome-headless- 45.8 sleeping
+972   provjobd23645964 14.9 sleeping
+0     kernel_task      9.3  running 
+2534  top              4.2  running 
+109   mds              3.9  running 
+T 1795549970
+PID   COMMAND          %CPU  STATE   
+2498  chrome-headless- 109.0 running 
+2505  chrome-headless- 41.7  sleeping
+109   mds              13.4  sleeping
+1739  mdworker_shared  7.4   running 
+0     kernel_task      7.0   running 
+1991  mdworker_shared  6.7   running 
+T 1795549972
+PID   COMMAND          %CPU  STATE   
+2498  chrome-headless- 106.7 running 
+2505  chrome-headless- 43.0  stuck   
+538   localspeechrecog 17.9  stuck   
+109   mds              13.1  running 
+1997  mdworker_shared  9.4   stuck   
+1766  mdworker_shared  8.6   stuck   
+T 1795549973
+PID   COMMAND          %CPU  STATE   
+2498  chrome-headless- 111.8 running 
+2505  chrome-headless- 40.3  sleeping
+109   mds              17.2  sleeping
+1766  mdworker_shared  13.4  stuck   
+1991  mdworker_shared  13.3  stuck   
+1997  mdworker_shared  12.9  stuck   
+T 1795549974
+PID   COMMAND          %CPU  STATE   
+2498  chrome-headless- 113.0 running 
+2505  chrome-headless- 43.6  running 
+109   mds              17.5  running 
+306   mds_stores       12.2  running 
+1739  mdworker_shared  12.0  running 
+1743  mdworker_shared  9.6   running 
+T 1795549975
+PID   COMMAND          %CPU  STATE   
+2498  chrome-headless- 105.3 running 
+2505  chrome-headless- 41.3  running 
+109   mds              18.2  sleeping
+1742  mdworker_shared  14.9  running 
+1767  mdworker_shared  11.9  running 
+1991  mdworker_shared  10.9  running 
+T 1795549977
+PID   COMMAND          %CPU  STATE   
+2498  chrome-headless- 109.6 running 
+2505  chrome-headless- 38.7  sleeping
+109   mds              17.9  running 
+1766  mdworker_shared  12.9  running 
+1742  mdworker_shared  12.2  sleeping
+1997  mdworker_shared  8.9   running 
+T 1795549978
+PID   COMMAND          %CPU STATE   
+2498  chrome-headless- 90.5 running 
+2505  chrome-headless- 43.4 running 
+306   mds_stores       9.9  running 
+130   dasd             9.0  running 
+0     kernel_task      8.4  running 
+109   mds              7.6  running 
+T 1795549979
+PID   COMMAND          %CPU STATE   
+2498  chrome-headless- 82.0 running 
+2505  chrome-headless- 33.5 sleeping
+348   ControlCenter    17.0 sleeping
+972   provjobd23645964 16.4 sleeping
+0     kernel_task      8.3  running 
+109   mds              5.7  running 
+T 1795549981
+PID   COMMAND          %CPU  STATE   
+2498  chrome-headless- 108.4 running 
+2505  chrome-headless- 39.8  running 
+109   mds              18.8  running 
+1767  mdworker_shared  13.1  running 
+1766  mdworker_shared  11.4  running 
+1743  mdworker_shared  10.6  sleeping
+T 1795549982
+PID   COMMAND          %CPU  STATE   
+2498  chrome-headless- 109.3 running 
+2505  chrome-headless- 47.7  running 
+109   mds              12.0  running 
+2774  top              8.5   running 
+0     kernel_task      8.5   running 
+1743  mdworker_shared  8.2   running 
+T 1795549984
+PID   COMMAND          %CPU  STATE   
+2498  chrome-headless- 113.7 running 
+2505  chrome-headless- 42.3  running 
+109   mds              16.9  sleeping
+306   mds_stores       15.3  stuck   
+1991  mdworker_shared  14.8  running 
+1765  mdworker_shared  12.5  running 
+T 1795549985
+PID   COMMAND          %CPU  STATE   
+2498  chrome-headless- 113.1 running 
+2505  chrome-headless- 38.8  sleeping
+109   mds              13.8  running 
+2671  privatecloudcomp 8.0   sleeping
+1736  mdworker_shared  7.7   running 
+2788  top              7.6   running 
+T 1795549986
+PID   COMMAND          %CPU  STATE   
+2498  chrome-headless- 107.7 running 
+2505  chrome-headless- 37.0  sleeping
+109   mds              15.6  running 
+1768  mdworker_shared  11.1  running 
+1742  mdworker_shared  10.5  running 
+1766  mdworker_shared  10.4  running 
+T 1795549988
+PID   COMMAND          %CPU STATE   
+109   mds              16.5 sleeping
+306   mds_stores       10.1 stuck   
+0     kernel_task      8.7  running 
+1997  mdworker_shared  7.8  stuck   
+1765  mdworker_shared  7.7  stuck   
+1991  mdworker_shared  7.1  stuck   
+T 1795549989
+PID   COMMAND          %CPU STATE   
+2814  top              3.3  running 
+0     kernel_task      2.9  running 
+306   mds_stores       2.7  stuck   
+1304  node             2.3  sleeping
+140   bluetoothd       2.2  sleeping
+1297  node             2.1  sleeping
+T 1795549990
+PID   COMMAND          %CPU STATE   
+2818  chrome-headless- 28.4 running 
+972   provjobd23645964 14.2 sleeping
+148   tccd             6.7  sleeping
+147   WindowServer     4.8  sleeping
+2821  top              3.4  running 
+0     kernel_task      3.1  running 
+T 1795549991
+PID   COMMAND          %CPU STATE   
+2818  chrome-headless- 26.5 running 
+127   locationd        6.0  sleeping
+0     kernel_task      5.1  running 
+452   Spotlight        4.7  sleeping
+344   WindowManager    4.0  sleeping
+2898  top              3.9  running 
+T 1795549993
+PID   COMMAND          %CPU STATE   
+2904  chrome-headless- 74.3 sleeping
+2902  chrome-headless- 26.1 sleeping
+1297  node             13.7 sleeping
+2908  top              4.0  running 
+1304  node             2.6  sleeping
+2818  chrome-headless- 2.5  sleeping
+T 1795549994
+PID   COMMAND          %CPU STATE   
+2904  chrome-headless- 93.4 running 
+2902  chrome-headless- 78.3 running 
+0     kernel_task      6.6  running 
+2913  top              4.5  running 
+306   mds_stores       3.6  running 
+1304  node             3.5  sleeping
+T 1795549995
+PID   COMMAND          %CPU  STATE   
+2902  chrome-headless- 110.4 running 
+2904  chrome-headless- 63.3  sleeping
+306   mds_stores       17.4  stuck   
+0     kernel_task      9.8   running 
+2918  top              4.7   running 
+161   airportd         4.2   sleeping
+T 1795549996
+PID   COMMAND          %CPU  STATE   
+2902  chrome-headless- 116.1 running 
+2904  chrome-headless- 50.0  sleeping
+2923  top              5.5   running 
+0     kernel_task      5.5   running 
+306   mds_stores       4.1   stuck   
+1304  node             3.1   sleeping
+T 1795549998
+PID   COMMAND          %CPU  STATE   
+2902  chrome-headless- 113.2 running 
+2904  chrome-headless- 45.3  running 
+306   mds_stores       21.9  running 
+0     kernel_task      6.4   running 
+2930  top              5.2   running 
+1304  node             3.4   running 
+T 1795549999
+PID   COMMAND          %CPU STATE   
+2902  chrome-headless- 99.9 running 
+2904  chrome-headless- 42.3 running 
+502   searchpartyusera 9.2  sleeping
+0     kernel_task      6.4  running 
+439   imagent          5.4  stuck   
+306   mds_stores       5.3  running 
+T 1795550000
+PID   COMMAND          %CPU STATE   
+2902  chrome-headless- 89.7 running 
+2904  chrome-headless- 39.9 running 
+504   networkservicepr 33.2 running 
+0     kernel_task      8.4  running 
+972   provjobd23645964 6.6  running 
+306   mds_stores       4.2  running 
+T 1795550002
+PID   COMMAND          %CPU  STATE   
+2902  chrome-headless- 104.8 running 
+2904  chrome-headless- 37.4  sleeping
+306   mds_stores       26.4  running 
+0     kernel_task      7.7   running 
+972   provjobd23645964 5.8   sleeping
+2973  top              4.1   running 
+T 1795550003
+PID   COMMAND          %CPU  STATE   
+2902  chrome-headless- 103.2 running 
+2904  chrome-headless- 47.8  running 
+306   mds_stores       37.7  stuck   
+0     kernel_task      8.4   running 
+3036  top              5.3   running 
+1304  node             3.5   running 
+T 1795550004
+PID   COMMAND          %CPU  STATE   
+2902  chrome-headless- 109.6 running 
+2904  chrome-headless- 43.1  sleeping
+306   mds_stores       22.6  running 
+0     kernel_task      8.7   running 
+3043  top              3.9   running 
+1304  node             3.2   sleeping
+T 1795550006
+PID   COMMAND          %CPU  STATE   
+2902  chrome-headless- 111.7 running 
+306   mds_stores       83.8  stuck   
+2904  chrome-headless- 37.8  sleeping
+0     kernel_task      8.5   running 
+3050  top              5.6   running 
+1304  node             3.3   sleeping
+T 1795550007
+PID   COMMAND          %CPU  STATE   
+2902  chrome-headless- 109.4 running 
+2904  chrome-headless- 38.0  running 
+306   mds_stores       33.7  stuck   
+0     kernel_task      8.5   running 
+3057  top              4.6   running 
+1304  node             3.2   running 
+T 1795550008
+PID   COMMAND          %CPU  STATE   
+2902  chrome-headless- 110.1 running 
+306   mds_stores       40.0  running 
+2904  chrome-headless- 36.8  running 
+0     kernel_task      8.5   running 
+3068  top              4.7   running 
+1304  node             3.0   sleeping
+T 1795550010
+PID   COMMAND          %CPU  STATE   
+2902  chrome-headless- 113.3 running 
+2904  chrome-headless- 44.4  running 
+306   mds_stores       36.6  stuck   
+0     kernel_task      5.8   running 
+3075  top              5.0   running 
+1304  node             3.2   sleeping
+T 1795550011
+PID   COMMAND          %CPU  STATE   
+2902  chrome-headless- 116.0 running 
+2904  chrome-headless- 50.8  sleeping
+306   mds_stores       50.3  stuck   
+0     kernel_task      7.6   running 
+3082  top              6.9   running 
+1304  node             4.3   sleeping
+T 1795550012
+PID   COMMAND          %CPU STATE   
+2902  chrome-headless- 88.8 running 
+2904  chrome-headless- 33.0 running 
+306   mds_stores       14.6 running 
+972   provjobd23645964 10.3 sleeping
+0     kernel_task      8.0  running 
+1     launchd          5.8  sleeping
+T 1795550014
+PID   COMMAND          %CPU STATE   
+2902  chrome-headless- 87.7 running 
+2904  chrome-headless- 36.9 running 
+181   storagekitd      18.8 sleeping
+112   diskarbitrationd 6.5  sleeping
+0     kernel_task      6.0  running 
+1     launchd          4.2  sleeping
+T 1795550015
+PID   COMMAND          %CPU STATE   
+0     kernel_task      6.5  running 
+1297  node             5.7  stuck   
+112   diskarbitrationd 5.6  sleeping
+181   storagekitd      5.5  sleeping
+306   mds_stores       4.2  stuck   
+3235  top              3.8  running 
+T 1795550017
+PID   COMMAND          %CPU STATE   
+3286  chrome-headless- 25.5 stuck   
+161   airportd         8.4  sleeping
+140   bluetoothd       4.4  sleeping
+3289  top              2.8  running 
+306   mds_stores       2.7  stuck   
+147   WindowServer     2.2  sleeping
+T 1795550018
+PID   COMMAND          %CPU STATE   
+3286  chrome-headless- 23.9 running 
+344   WindowManager    4.6  sleeping
+3295  top              4.1  running 
+0     kernel_task      4.0  running 
+127   locationd        4.0  sleeping
+147   WindowServer     3.4  sleeping
+T 1795550019
+PID   COMMAND          %CPU STATE   
+3301  chrome-headless- 78.4 stuck   
+3299  chrome-headless- 20.3 sleeping
+3303  top              4.2  running 
+1297  node             3.5  sleeping
+3286  chrome-headless- 3.3  sleeping
+0     kernel_task      2.3  running 
+T 1795550021
+PID   COMMAND          %CPU STATE   
+3301  chrome-headless- 86.7 running 
+3299  chrome-headless- 79.8 running 
+466   cloudd           4.8  sleeping
+3310  top              4.3  running 
+0     kernel_task      3.8  running 
+306   mds_stores       2.8  stuck   
+T 1795550022
+PID   COMMAND          %CPU  STATE   
+3299  chrome-headless- 100.1 running 
+3301  chrome-headless- 64.5  running 
+0     kernel_task      12.8  running 
+979   Runner.Listener  7.4   sleeping
+306   mds_stores       6.1   running 
+3315  top              5.8   running 
+T 1795550023
+PID   COMMAND          %CPU  STATE   
+3299  chrome-headless- 104.5 running 
+3301  chrome-headless- 55.9  sleeping
+972   provjobd23645964 15.3  sleeping
+0     kernel_task      7.4   running 
+306   mds_stores       5.7   running 
+3331  top              5.5   running 
+T 1795550025
+PID   COMMAND          %CPU  STATE   
+3299  chrome-headless- 105.0 running 
+3301  chrome-headless- 43.0  sleeping
+306   mds_stores       14.3  running 
+0     kernel_task      5.8   running 
+3408  top              5.3   running 
+1304  node             2.7   sleeping
+T 1795550026
+PID   COMMAND          %CPU  STATE   
+3299  chrome-headless- 109.6 running 
+3301  chrome-headless- 44.0  sleeping
+306   mds_stores       22.0  running 
+0     kernel_task      5.8   running 
+3419  top              5.1   running 
+1304  node             3.2   running 
+T 1795550027
+PID   COMMAND          %CPU  STATE   
+3299  chrome-headless- 107.4 running 
+3301  chrome-headless- 43.4  running 
+306   mds_stores       17.4  running 
+0     kernel_task      5.3   running 
+3426  top              4.7   running 
+1304  node             2.9   running 
+T 1795550028
+PID   COMMAND          %CPU  STATE   
+3299  chrome-headless- 114.2 running 
+3301  chrome-headless- 44.7  running 
+306   mds_stores       37.1  running 
+0     kernel_task      6.1   running 
+3433  top              4.9   running 
+1304  node             3.2   sleeping
+T 1795550030
+PID   COMMAND          %CPU  STATE   
+3299  chrome-headless- 109.9 running 
+3301  chrome-headless- 45.0  sleeping
+306   mds_stores       17.8  stuck   
+0     kernel_task      5.5   running 
+3440  top              3.5   running 
+1304  node             3.1   sleeping
+T 1795550031
+PID   COMMAND          %CPU  STATE   
+3299  chrome-headless- 120.7 running 
+3301  chrome-headless- 47.8  running 
+306   mds_stores       45.7  running 
+0     kernel_task      6.3   running 
+3447  top              4.7   running 
+1304  node             3.6   running 
+T 1795550032
+PID   COMMAND          %CPU  STATE   
+3299  chrome-headless- 109.5 running 
+3301  chrome-headless- 56.6  sleeping
+306   mds_stores       21.3  stuck   
+0     kernel_task      9.3   running 
+3454  top              5.8   running 
+1304  node             4.0   sleeping
+T 1795550033
+PID   COMMAND          %CPU  STATE   
+3299  chrome-headless- 104.0 running 
+3301  chrome-headless- 46.7  running 
+0     kernel_task      9.3   running 
+972   provjobd23645964 8.2   running 
+306   mds_stores       5.4   stuck   
+1304  node             4.6   running 
+T 1795550035
+PID   COMMAND          %CPU STATE   
+3299  chrome-headless- 93.4 running 
+3301  chrome-headless- 34.1 sleeping
+0     kernel_task      11.4 running 
+306   mds_stores       8.3  running 
+972   provjobd23645964 6.1  sleeping
+3500  top              5.0  running 
+T 1795550036
+PID   COMMAND          %CPU  STATE   
+3299  chrome-headless- 109.7 running 
+306   mds_stores       96.0  running 
+3301  chrome-headless- 44.6  running 
+0     kernel_task      6.7   running 
+3548  top              6.0   running 
+1304  node             3.7   sleeping
+T 1795550037
+PID   COMMAND          %CPU  STATE   
+3299  chrome-headless- 114.3 running 
+306   mds_stores       50.6  running 
+3301  chrome-headless- 47.9  running 
+0     kernel_task      8.2   running 
+3555  top              4.8   running 
+1304  node             3.9   sleeping
+T 1795550039
+PID   COMMAND          %CPU STATE   
+3299  chrome-headless- 98.1 running 
+306   mds_stores       57.9 running 
+3301  chrome-headless- 38.2 running 
+0     kernel_task      16.3 running 
+348   ControlCenter    14.4 running 
+3566  top              5.1  running 
+T 1795550040
+PID   COMMAND          %CPU  STATE   
+3299  chrome-headless- 110.5 running 
+3301  chrome-headless- 50.7  running 
+306   mds_stores       21.6  running 
+0     kernel_task      8.2   running 
+3573  top              5.4   running 
+1304  node             4.2   sleeping
+T 1795550041
+PID   COMMAND          %CPU  STATE   
+3299  chrome-headless- 108.8 running 
+306   mds_stores       79.2  running 
+3301  chrome-headless- 45.8  running 
+0     kernel_task      10.5  running 
+109   mds              6.2   running 
+3580  top              5.7   running 
+T 1795550042
+PID   COMMAND          %CPU STATE   
+3299  chrome-headless- 79.9 running 
+3301  chrome-headless- 37.6 running 
+0     kernel_task      11.6 running 
+109   mds              9.6  running 
+3587  top              4.0  running 
+306   mds_stores       3.7  running 
+T 1795550044
+PID   COMMAND          %CPU  STATE   
+3299  chrome-headless- 107.9 running 
+3301  chrome-headless- 36.6  running 
+109   mds              10.1  stuck   
+306   mds_stores       8.9   stuck   
+0     kernel_task      7.0   running 
+3599  mdworker_shared  5.7   sleeping
+T 1795550045
+PID   COMMAND          %CPU STATE   
+3299  chrome-headless- 91.1 running 
+3301  chrome-headless- 43.9 running 
+972   provjobd23645964 11.7 sleeping
+0     kernel_task      9.5  running 
+3626  top              5.9  running 
+306   mds_stores       5.5  running 
+T 1795550047
+PID   COMMAND          %CPU  STATE   
+3299  chrome-headless- 102.5 running 
+3301  chrome-headless- 41.3  sleeping
+0     kernel_task      5.8   running 
+3699  top              5.5   running 
+306   mds_stores       4.9   running 
+109   mds              4.2   stuck   
+T 1795550048
+PID   COMMAND          %CPU STATE   
+3299  chrome-headless- 89.0 running 
+3301  chrome-headless- 37.3 sleeping
+248   softwareupdated  25.3 stuck   
+0     kernel_task      7.8  running 
+306   mds_stores       7.4  running 
+3709  top              4.9  running 
+T 1795550049
+PID   COMMAND          %CPU STATE   
+3299  chrome-headless- 88.0 running 
+248   softwareupdated  80.5 running 
+3301  chrome-headless- 47.3 running 
+0     kernel_task      7.6  running 
+3723  top              4.6  running 
+1304  node             3.3  running 
+T 1795550051
+PID   COMMAND          %CPU STATE   
+3299  chrome-headless- 88.0 running 
+248   softwareupdated  73.7 running 
+3301  chrome-headless- 48.4 running 
+0     kernel_task      7.9  running 
+3732  top              5.8  running 
+1304  node             3.1  sleeping
+T 1795550052
+PID   COMMAND          %CPU STATE   
+248   softwareupdated  95.2 running 
+3299  chrome-headless- 83.3 running 
+3301  chrome-headless- 37.4 running 
+0     kernel_task      7.1  running 
+3741  top              5.5  running 
+1304  node             3.2  running 
+T 1795550053
+PID   COMMAND          %CPU STATE   
+248   softwareupdated  99.5 running 
+3299  chrome-headless- 96.0 running 
+3301  chrome-headless- 38.8 running 
+0     kernel_task      7.5  running 
+3757  top              5.8  running 
+3738  mdworker_shared  3.7  sleeping
+T 1795550055
+PID   COMMAND          %CPU STATE   
+3299  chrome-headless- 88.9 running 
+248   softwareupdated  44.1 sleeping
+3301  chrome-headless- 41.3 sleeping
+0     kernel_task      7.7  running 
+109   mds              7.6  running 
+3725  mdworker_shared  7.0  running 
+T 1795550056
+PID   COMMAND          %CPU STATE   
+0     kernel_task      7.7  running 
+109   mds              6.5  sleeping
+306   mds_stores       5.7  stuck   
+972   provjobd23645964 5.1  sleeping
+3721  parsec-fbf       3.1  stuck   
+3789  top              3.0  running 
+T 1795550058
+PID   COMMAND          %CPU STATE   
+3866  chrome-headless- 19.6 stuck   
+3868  mdworker_shared  7.0  stuck   
+3872  mdworker_shared  6.2  stuck   
+3871  mdworker_shared  6.0  stuck   
+3867  mdworker_shared  6.0  stuck   
+3869  mdworker_shared  5.9  stuck   
+T 1795550060
+PID   COMMAND          %CPU STATE   
+3866  chrome-headless- 22.3 stuck   
+127   locationd        5.1  sleeping
+161   airportd         3.8  sleeping
+344   WindowManager    3.5  sleeping
+3876  top              3.4  running 
+0     kernel_task      3.4  running 
+T 1795550061
+PID   COMMAND          %CPU STATE   
+3882  chrome-headless- 74.6 running 
+3880  chrome-headless- 19.4 sleeping
+3866  chrome-headless- 7.7  sleeping
+1297  node             4.9  sleeping
+109   mds              4.1  sleeping
+504   networkservicepr 3.8  sleeping
+T 1795550062
+PID   COMMAND          %CPU STATE   
+3882  chrome-headless- 75.6 running 
+3880  chrome-headless- 68.7 running 
+3891  top              4.4  running 
+306   mds_stores       3.6  running 
+109   mds              2.8  running 
+0     kernel_task      2.4  running 
+T 1795550063
+PID   COMMAND          %CPU  STATE   
+3880  chrome-headless- 104.2 running 
+3882  chrome-headless- 43.4  running 
+0     kernel_task      12.2  running 
+3721  parsec-fbf       8.3   stuck   
+109   mds              8.1   sleeping
+3869  mdworker_shared  7.0   stuck   
+T 1795550065
+PID   COMMAND          %CPU  STATE   
+3880  chrome-headless- 113.3 running 
+3882  chrome-headless- 56.1  running 
+3721  parsec-fbf       7.5   running 
+109   mds              6.6   running 
+0     kernel_task      5.8   running 
+3869  mdworker_shared  5.6   running 
+T 1795550066
+PID   COMMAND          %CPU  STATE   
+3880  chrome-headless- 114.4 running 
+3882  chrome-headless- 57.3  running 
+979   Runner.Listener  9.3   running 
+306   mds_stores       8.2   running 
+3906  top              7.7   running 
+3721  parsec-fbf       7.5   running 
+T 1795550067
+PID   COMMAND          %CPU STATE   
+3880  chrome-headless- 79.5 running 
+3882  chrome-headless- 28.9 running 
+3721  parsec-fbf       10.7 running 
+972   provjobd23645964 9.1  sleeping
+0     kernel_task      6.9  running 
+3922  top              4.3  running 
+T 1795550069
+PID   COMMAND          %CPU  STATE   
+3880  chrome-headless- 109.3 running 
+3882  chrome-headless- 37.2  running 
+3870  mdworker_shared  12.9  stuck   
+109   mds              10.2  sleeping
+3807  mdworker_shared  9.3   stuck   
+306   mds_stores       8.6   stuck   
+T 1795550070
+PID   COMMAND          %CPU  STATE   
+3880  chrome-headless- 110.2 running 
+3882  chrome-headless- 33.9  sleeping
+109   mds              12.4  sleeping
+306   mds_stores       10.1  running 
+3810  mdworker_shared  10.0  running 
+3725  mdworker_shared  9.9   running 
+T 1795550071
+PID   COMMAND          %CPU  STATE   
+3880  chrome-headless- 112.2 running 
+3882  chrome-headless- 42.6  running 
+306   mds_stores       9.6   stuck   
+0     kernel_task      6.0   running 
+4029  top              5.4   running 
+109   mds              4.4   running 
+T 1795550073
+PID   COMMAND          %CPU  STATE   
+3880  chrome-headless- 105.6 running 
+3882  chrome-headless- 35.4  sleeping
+109   mds              7.4   stuck   
+3870  mdworker_shared  5.8   sleeping
+306   mds_stores       5.8   stuck   
+0     kernel_task      5.5   running 
+T 1795550074
+PID   COMMAND          %CPU  STATE   
+3880  chrome-headless- 112.9 running 
+3882  chrome-headless- 35.5  running 
+109   mds              11.9  stuck   
+306   mds_stores       10.4  stuck   
+3806  mdworker_shared  10.3  sleeping
+3870  mdworker_shared  9.9   sleeping
+T 1795550075
+PID   COMMAND          %CPU  STATE   
+3880  chrome-headless- 119.4 running 
+3882  chrome-headless- 45.5  running 
+0     kernel_task      6.5   running 
+109   mds              6.2   sleeping
+4050  top              5.0   running 
+306   mds_stores       4.4   running 
+T 1795550076
+PID   COMMAND          %CPU  STATE   
+3880  chrome-headless- 103.2 running 
+3882  chrome-headless- 41.1  sleeping
+306   mds_stores       13.0  running 
+109   mds              7.3   stuck   
+0     kernel_task      6.6   running 
+4057  top              5.9   running 
+T 1795550078
+PID   COMMAND          %CPU  STATE   
+3880  chrome-headless- 113.6 running 
+3882  chrome-headless- 44.1  running 
+306   mds_stores       13.0  running 
+972   provjobd23645964 9.2   sleeping
+3747  mdworker_shared  7.7   running 
+0     kernel_task      6.6   running 
+T 1795550079
+PID   COMMAND          %CPU  STATE   
+3880  chrome-headless- 106.7 running 
+3882  chrome-headless- 42.2  running 
+306   mds_stores       9.6   running 
+0     kernel_task      8.5   running 
+972   provjobd23645964 6.3   sleeping
+4065  mdworker_shared  5.8   running 
+T 1795550080
+PID   COMMAND          %CPU  STATE   
+3880  chrome-headless- 113.1 running 
+3882  chrome-headless- 42.6  sleeping
+306   mds_stores       10.9  running 
+109   mds              10.5  running 
+0     kernel_task      7.8   running 
+3868  mdworker_shared  7.7   running 
+T 1795550082
+PID   COMMAND          %CPU STATE   
+3880  chrome-headless- 96.3 running 
+3882  chrome-headless- 32.7 sleeping
+306   mds_stores       13.5 stuck   
+109   mds              8.0  sleeping
+3747  mdworker_shared  7.8  stuck   
+3867  mdworker_shared  7.8  stuck   
+T 1795550083
+PID   COMMAND          %CPU  STATE   
+3880  chrome-headless- 105.1 running 
+3882  chrome-headless- 33.3  running 
+306   mds_stores       24.6  running 
+4065  mdworker_shared  10.4  stuck   
+3868  mdworker_shared  10.2  running 
+4064  mdworker_shared  9.9   stuck   
+T 1795550084
+PID   COMMAND         %CPU STATE   
+306   mds_stores      21.5 stuck   
+109   mds             11.7 sleeping
+3872  mdworker_shared 10.8 stuck   
+3601  mdworker_shared 7.7  stuck   
+148   tccd            7.3  sleeping
+3747  mdworker_shared 6.9  stuck   
+T 1795550086
+PID   COMMAND          %CPU STATE   
+4219  chrome-headless- 16.5 stuck   
+181   storagekitd      13.6 running 
+112   diskarbitrationd 4.6  sleeping
+4224  top              3.7  running 
+0     kernel_task      3.5  running 
+1     launchd          2.8  sleeping
+T 1795550088
+PID   COMMAND          %CPU STATE   
+4219  chrome-headless- 24.4 running 
+112   diskarbitrationd 7.3  sleeping
+181   storagekitd      7.0  sleeping
+0     kernel_task      5.6  running 
+1     launchd          4.5  sleeping
+127   locationd        4.0  sleeping
+T 1795550089
+PID   COMMAND          %CPU STATE   
+4310  chrome-headless- 25.0 sleeping
+4219  chrome-headless- 16.7 sleeping
+972   provjobd23645964 14.4 sleeping
+1297  node             7.2  sleeping
+4318  top              6.6  running 
+0     kernel_task      5.2  running 
+T 1795550090
+PID   COMMAND          %CPU STATE   
+4322  chrome-headless- 69.9 running 
+4310  chrome-headless- 28.5 sleeping
+306   mds_stores       19.0 stuck   
+109   mds              7.1  stuck   
+972   provjobd23645964 5.6  sleeping
+4384  top              5.6  running 
+T 1795550091
+PID   COMMAND          %CPU  STATE   
+4322  chrome-headless- 100.3 running 
+4310  chrome-headless- 68.9  running 
+306   mds_stores       7.1   running 
+109   mds              6.9   running 
+0     kernel_task      6.4   running 
+4426  top              6.3   running 
+T 1795550093
+PID   COMMAND          %CPU  STATE   
+4310  chrome-headless- 103.0 running 
+4322  chrome-headless- 57.2  running 
+0     kernel_task      10.7  running 
+3867  mdworker_shared  8.1   running 
+306   mds_stores       7.7   running 
+109   mds              7.6   running 
+T 1795550094
+PID   COMMAND          %CPU  STATE   
+4310  chrome-headless- 108.8 running 
+4322  chrome-headless- 44.6  sleeping
+306   mds_stores       9.5   running 
+4065  mdworker_shared  9.1   running 
+109   mds              8.6   sleeping
+0     kernel_task      7.0   running 
+T 1795550096
+PID   COMMAND          %CPU  STATE   
+4310  chrome-headless- 112.4 running 
+4322  chrome-headless- 44.3  running 
+306   mds_stores       10.0  running 
+4065  mdworker_shared  9.7   running 
+3747  mdworker_shared  9.3   running 
+109   mds              8.9   running 
+T 1795550097
+PID   COMMAND          %CPU  STATE   
+4310  chrome-headless- 108.4 running 
+4322  chrome-headless- 40.3  sleeping
+306   mds_stores       12.4  running 
+109   mds              9.2   running 
+3872  mdworker_shared  8.2   running 
+3868  mdworker_shared  7.9   running 
+T 1795550099
+PID   COMMAND          %CPU  STATE   
+4310  chrome-headless- 104.3 running 
+4322  chrome-headless- 43.6  running 
+348   ControlCenter    22.8  sleeping
+3867  mdworker_shared  15.8  stuck   
+3601  mdworker_shared  11.0  running 
+306   mds_stores       9.4   running 
+T 1795550100
+PID   COMMAND          %CPU  STATE   
+4310  chrome-headless- 100.5 running 
+4322  chrome-headless- 45.5  sleeping
+972   provjobd23645964 16.0  sleeping
+306   mds_stores       12.3  running 
+3867  mdworker_shared  10.0  running 
+0     kernel_task      8.3   running 
+T 1795550101
+PID   COMMAND          %CPU  STATE   
+4310  chrome-headless- 107.3 running 
+4322  chrome-headless- 44.8  sleeping
+4065  mdworker_shared  8.5   running 
+3747  mdworker_shared  8.4   running 
+0     kernel_task      8.4   running 
+3749  mdworker_shared  7.4   running 
+T 1795550103
+PID   COMMAND          %CPU  STATE   
+4310  chrome-headless- 108.6 running 
+4322  chrome-headless- 45.7  sleeping
+4063  mdworker_shared  13.7  running 
+109   mds              9.9   sleeping
+3868  mdworker_shared  9.7   running 
+0     kernel_task      9.1   running 
+T 1795550104
+PID   COMMAND          %CPU  STATE   
+4310  chrome-headless- 109.8 running 
+4322  chrome-headless- 43.8  sleeping
+306   mds_stores       13.3  running 
+109   mds              11.6  sleeping
+3868  mdworker_shared  10.1  running 
+3747  mdworker_shared  9.5   running 
+T 1795550106
+PID   COMMAND          %CPU  STATE   
+4310  chrome-headless- 111.9 running 
+4322  chrome-headless- 36.5  sleeping
+109   mds              15.6  running 
+4064  mdworker_shared  12.4  sleeping
+4228  mdworker_shared  10.4  running 
+3749  mdworker_shared  10.0  sleeping
+T 1795550107
+PID   COMMAND          %CPU  STATE   
+4310  chrome-headless- 102.6 running 
+4322  chrome-headless- 37.1  sleeping
+109   mds              14.3  sleeping
+3749  mdworker_shared  10.7  stuck   
+4063  mdworker_shared  9.8   stuck   
+4064  mdworker_shared  9.2   stuck   
+T 1795550108
+PID   COMMAND          %CPU  STATE   
+4310  chrome-headless- 107.2 running 
+4322  chrome-headless- 38.5  sleeping
+109   mds              13.8  sleeping
+0     kernel_task      6.6   running 
+4606  top              5.4   running 
+4064  mdworker_shared  5.0   stuck   
+T 1795550110
+PID   COMMAND          %CPU  STATE   
+4310  chrome-headless- 106.8 running 
+4322  chrome-headless- 41.2  sleeping
+109   mds              11.8  sleeping
+306   mds_stores       9.6   stuck   
+0     kernel_task      9.5   running 
+4066  mdworker_shared  7.1   running 
+T 1795550111
+PID   COMMAND          %CPU STATE   
+4310  chrome-headless- 82.0 running 
+4322  chrome-headless- 44.0 running 
+972   provjobd23645964 12.6 sleeping
+0     kernel_task      8.2  running 
+151   analyticsd       5.6  sleeping
+109   mds              5.6  running 
+T 1795550112
+PID   COMMAND          %CPU STATE   
+4310  chrome-headless- 83.5 running 
+4322  chrome-headless- 34.5 running 
+4625  geoanalyticsd    17.8 running 
+0     kernel_task      8.7  running 
+109   mds              8.0  running 
+972   provjobd23645964 5.2  sleeping
+T 1795550114
+PID   COMMAND          %CPU  STATE   
+4310  chrome-headless- 100.2 running 
+4322  chrome-headless- 47.3  sleeping
+306   mds_stores       15.0  running 
+179   mobileassetd     8.4   sleeping
+4626  mlhostd          8.3   running 
+0     kernel_task      8.1   running 
+T 1795550115
+PID   COMMAND          %CPU STATE   
+4310  chrome-headless- 96.1 running 
+179   mobileassetd     40.9 sleeping
+4322  chrome-headless- 36.6 sleeping
+306   mds_stores       14.4 running 
+130   dasd             12.6 sleeping
+4736  top              7.1  running 
+T 1795550117
+PID   COMMAND          %CPU STATE   
+4310  chrome-headless- 92.5 running 
+4322  chrome-headless- 40.2 sleeping
+306   mds_stores       9.0  running 
+0     kernel_task      7.0  running 
+4750  top              6.8  running 
+130   dasd             5.4  running 
+T 1795550118
+PID   COMMAND          %CPU STATE   
+4310  chrome-headless- 94.7 running 
+4322  chrome-headless- 36.5 running 
+306   mds_stores       9.7  running 
+4760  top              7.4  running 
+0     kernel_task      7.4  running 
+423   BiomeAgent       6.8  sleeping
+T 1795550120
+PID   COMMAND          %CPU STATE   
+4310  chrome-headless- 94.5 running 
+4322  chrome-headless- 37.4 sleeping
+306   mds_stores       24.5 running 
+0     kernel_task      7.2  running 
+4770  top              6.8  running 
+1     launchd          5.4  sleeping
+T 1795550121
+PID   COMMAND          %CPU STATE   
+4310  chrome-headless- 87.1 running 
+4322  chrome-headless- 41.0 sleeping
+306   mds_stores       15.3 stuck   
+0     kernel_task      7.3  running 
+4784  top              5.3  running 
+130   dasd             4.0  sleeping
+T 1795550122
+PID   COMMAND          %CPU  STATE   
+4310  chrome-headless- 102.9 running 
+4322  chrome-headless- 35.1  sleeping
+306   mds_stores       14.9  running 
+972   provjobd23645964 7.4   running 
+0     kernel_task      4.9   running 
+4796  top              4.3   running 
+T 1795550123
+PID   COMMAND          %CPU STATE   
+4310  chrome-headless- 96.6 running 
+306   mds_stores       42.0 running 
+4322  chrome-headless- 38.4 running 
+972   provjobd23645964 10.7 sleeping
+0     kernel_task      7.0  running 
+4850  top              5.6  running 
+T 1795550125
+PID   COMMAND          %CPU STATE   
+4310  chrome-headless- 96.7 running 
+4322  chrome-headless- 35.3 sleeping
+306   mds_stores       22.1 running 
+0     kernel_task      10.6 running 
+501   contactsd        10.5 stuck   
+4910  top              8.1  running 
+T 1795550126
+PID   COMMAND          %CPU STATE   
+4310  chrome-headless- 86.5 running 
+4322  chrome-headless- 36.4 running 
+109   mds              17.9 stuck   
+0     kernel_task      10.0 running 
+4916  AddressBookManag 6.6  sleeping
+398   deleted          6.6  stuck   
+T 1795550128
+PID   COMMAND          %CPU STATE   
+4928  CacheDeleteExten 62.8 running 
+109   mds              12.0 stuck   
+0     kernel_task      7.7  running 
+4930  top              5.6  running 
+152   runningboardd    3.9  sleeping
+1297  node             3.3  sleeping
+T 1795550133
+PID   COMMAND          %CPU STATE   
+560   WeatherWidget    23.8 sleeping
+972   provjobd23645964 20.9 running 
+4928  CacheDeleteExten 8.6  stuck   
+4945  top              6.3  running 
+0     kernel_task      5.1  running 
+483   chronod          4.4  sleeping
+T 1795550135
+PID   COMMAND          %CPU STATE   
+4952  chrome-headless- 31.8 running 
+5042  top              6.1  running 
+0     kernel_task      5.2  running 
+127   locationd        5.1  sleeping
+344   WindowManager    4.4  sleeping
+1304  node             3.4  sleeping
+T 1795550137
+PID   COMMAND          %CPU STATE   
+5060  chrome-headless- 83.6 running 
+5055  chrome-headless- 20.8 sleeping
+4928  CacheDeleteExten 12.2 running 
+4952  chrome-headless- 7.0  running 
+5062  top              5.1  running 
+1304  node             4.7  running 
+T 1795550138
+PID   COMMAND          %CPU STATE   
+5055  chrome-headless- 53.3 running 
+5060  chrome-headless- 53.2 sleeping
+5068  top              4.7  running 
+972   provjobd23645964 4.1  sleeping
+130   dasd             3.8  sleeping
+0     kernel_task      3.6  running 
+T 1795550139
+PID   COMMAND          %CPU  STATE   
+5055  chrome-headless- 110.7 running 
+5060  chrome-headless- 32.2  sleeping
+713   ModelCatalogAgen 13.5  sleeping
+306   mds_stores       13.1  running 
+0     kernel_task      12.5  running 
+5077  top              6.6   running 
+T 1795550141
+PID   COMMAND          %CPU  STATE   
+5055  chrome-headless- 111.2 running 
+306   mds_stores       38.9  running 
+5060  chrome-headless- 38.0  sleeping
+398   deleted          13.2  running 
+411   triald           12.4  running 
+5083  top              6.8   running 
+T 1795550142
+PID   COMMAND          %CPU  STATE   
+5055  chrome-headless- 109.3 running 
+306   mds_stores       67.1  running 
+5060  chrome-headless- 28.8  running 
+411   triald           27.2  running 
+398   deleted          8.7   sleeping
+5089  top              6.6   running 
+T 1795550143
+PID   COMMAND          %CPU  STATE   
+5055  chrome-headless- 102.2 running 
+306   mds_stores       100.5 running 
+5060  chrome-headless- 23.3  running 
+411   triald           12.4  running 
+0     kernel_task      6.3   running 
+5098  top              4.9   running 
+T 1795550145
+PID   COMMAND          %CPU STATE   
+5055  chrome-headless- 99.2 running 
+306   mds_stores       41.6 running 
+5060  chrome-headless- 31.1 sleeping
+972   provjobd23645964 16.0 sleeping
+0     kernel_task      6.0  running 
+5104  top              5.7  running 
+T 1795550146
+PID   COMMAND          %CPU STATE   
+5055  chrome-headless- 97.7 running 
+306   mds_stores       91.3 running 
+5060  chrome-headless- 25.3 sleeping
+972   provjobd23645964 7.1  sleeping
+0     kernel_task      5.9  running 
+5176  top              4.1  running 
+T 1795550148
+PID   COMMAND          %CPU  STATE   
+5055  chrome-headless- 112.0 running 
+306   mds_stores       86.8  running 
+5060  chrome-headless- 27.4  running 
+0     kernel_task      6.6   running 
+5223  top              6.4   running 
+109   mds              5.3   running 
+T 1795550149
+PID   COMMAND          %CPU  STATE   
+5055  chrome-headless- 101.0 running 
+5060  chrome-headless- 24.4  running 
+4228  mdworker_shared  16.4  running 
+109   mds              15.0  sleeping
+3867  mdworker_shared  14.0  running 
+4064  mdworker_shared  13.3  running 
+T 1795550150
+PID   COMMAND          %CPU  STATE   
+5055  chrome-headless- 104.8 running 
+5060  chrome-headless- 23.8  sleeping
+306   mds_stores       17.9  running 
+4063  mdworker_shared  12.2  sleeping
+109   mds              12.2  running 
+4064  mdworker_shared  12.0  running 
+T 1795550152
+PID   COMMAND          %CPU  STATE   
+5055  chrome-headless- 109.8 running 
+5060  chrome-headless- 29.8  running 
+4066  mdworker_shared  16.5  running 
+3868  mdworker_shared  14.6  running 
+109   mds              13.0  running 
+4228  mdworker_shared  12.5  running 
+T 1795550153
+PID   COMMAND          %CPU  STATE   
+5055  chrome-headless- 105.7 running 
+5060  chrome-headless- 25.7  sleeping
+3868  mdworker_shared  15.6  running 
+4066  mdworker_shared  13.3  running 
+4228  mdworker_shared  13.2  running 
+109   mds              11.1  sleeping
+T 1795550154
+PID   COMMAND          %CPU  STATE   
+5055  chrome-headless- 104.7 running 
+5060  chrome-headless- 26.5  sleeping
+3872  mdworker_shared  11.3  running 
+4065  mdworker_shared  10.6  running 
+4228  mdworker_shared  10.6  running 
+3867  mdworker_shared  9.6   running 
+T 1795550156
+PID   COMMAND          %CPU STATE   
+5055  chrome-headless- 84.6 running 
+5060  chrome-headless- 27.9 sleeping
+181   storagekitd      13.5 running 
+306   mds_stores       7.2  running 
+0     kernel_task      6.2  running 
+5270  top              5.5  running 
+T 1795550157
+PID   COMMAND          %CPU STATE   
+5055  chrome-headless- 66.4 running 
+5060  chrome-headless- 17.5 sleeping
+181   storagekitd      6.7  sleeping
+972   provjobd23645964 6.4  sleeping
+112   diskarbitrationd 6.4  sleeping
+0     kernel_task      6.0  running 
+T 1795550159
+PID   COMMAND          %CPU  STATE   
+5055  chrome-headless- 104.1 running 
+5060  chrome-headless- 27.4  sleeping
+4228  mdworker_shared  13.2  running 
+109   mds              11.0  sleeping
+4066  mdworker_shared  10.3  running 
+3868  mdworker_shared  8.7   running 
+T 1795550160
+PID   COMMAND          %CPU  STATE   
+5055  chrome-headless- 103.6 running 
+5060  chrome-headless- 26.6  running 
+4064  mdworker_shared  12.7  running 
+109   mds              12.2  sleeping
+3872  mdworker_shared  11.6  running 
+4066  mdworker_shared  10.2  running 
+T 1795550161
+PID   COMMAND          %CPU STATE   
+5055  chrome-headless- 95.3 running 
+5060  chrome-headless- 25.3 sleeping
+109   mds              10.1 sleeping
+4066  mdworker_shared  9.0  running 
+3868  mdworker_shared  8.1  running 
+0     kernel_task      7.8  running 
+T 1795550163
+PID   COMMAND          %CPU  STATE   
+5055  chrome-headless- 108.1 running 
+5060  chrome-headless- 22.9  sleeping
+4066  mdworker_shared  20.8  running 
+5499  mdworker_shared  20.8  running 
+109   mds              14.6  running 
+3871  mdworker_shared  12.7  running 
+T 1795550164
+PID   COMMAND          %CPU  STATE   
+5055  chrome-headless- 105.1 running 
+109   mds              26.8  sleeping
+5060  chrome-headless- 24.5  sleeping
+3868  mdworker_shared  20.7  running 
+3872  mdworker_shared  14.3  running 
+4066  mdworker_shared  12.9  running 
+T 1795550165
+PID   COMMAND          %CPU  STATE   
+5055  chrome-headless- 107.0 running 
+5060  chrome-headless- 23.3  running 
+5500  mdworker_shared  18.5  running 
+3868  mdworker_shared  16.3  running 
+3871  mdworker_shared  16.3  running 
+5499  mdworker_shared  15.9  running 
+T 1795550167
+PID   COMMAND          %CPU  STATE   
+5055  chrome-headless- 107.1 running 
+5060  chrome-headless- 25.2  running 
+3872  mdworker_shared  24.8  running 
+4064  mdworker_shared  16.0  running 
+4063  mdworker_shared  15.1  running 
+109   mds              14.8  running 
+T 1795550168
+PID   COMMAND          %CPU  STATE   
+5055  chrome-headless- 101.9 running 
+306   mds_stores       42.3  running 
+5060  chrome-headless- 23.1  running 
+3868  mdworker_shared  19.3  running 
+3872  mdworker_shared  11.3  running 
+972   provjobd23645964 10.9  sleeping
+T 1795550169
+PID   COMMAND          %CPU  STATE   
+5055  chrome-headless- 103.3 running 
+5060  chrome-headless- 25.7  sleeping
+3749  mdworker_shared  18.6  stuck   
+306   mds_stores       13.1  running 
+4063  mdworker_shared  11.3  stuck   
+4064  mdworker_shared  9.3   stuck   
+T 1795550171
+PID   COMMAND          %CPU STATE   
+5055  chrome-headless- 96.3 running 
+5060  chrome-headless- 28.7 sleeping
+130   dasd             7.1  sleeping
+0     kernel_task      5.3  running 
+3872  mdworker_shared  4.9  running 
+109   mds              4.8  sleeping
+T 1795550172
+PID   COMMAND          %CPU  STATE   
+5055  chrome-headless- 107.3 running 
+5060  chrome-headless- 31.0  running 
+418   corespeechd      8.4   sleeping
+5655  MessagesBlastDoo 7.7   sleeping
+4063  mdworker_shared  7.1   running 
+109   mds              6.4   running 
+T 1795550173
+PID   COMMAND          %CPU  STATE   
+5055  chrome-headless- 108.8 running 
+5060  chrome-headless- 27.6  running 
+5653  analyticsagent   12.8  running 
+3868  mdworker_shared  11.5  running 
+3872  mdworker_shared  11.5  running 
+179   mobileassetd     10.8  running 
+T 1795550175
+PID   COMMAND          %CPU STATE   
+5055  chrome-headless- 56.2 sleeping
+5060  chrome-headless- 24.2 running 
+3872  mdworker_shared  18.3 running 
+4066  mdworker_shared  16.9 running 
+3868  mdworker_shared  16.6 running 
+3871  mdworker_shared  16.3 running 
+T 1795550176
