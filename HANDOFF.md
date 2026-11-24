@@ -35,6 +35,9 @@
 
 ### NEXT SESSION: palace textures with klad + dispose + LOD (owner 24 Nov 16:58)
 STATUS 24 Nov 17:55 (session 015w2gCC): steps 1-2 sample DONE, waiting for the owner's look approval.
+- 24 Nov 20:2x camera batch (cam11): CI 45391445429 272 of 273 (only 42). Texture loading moved to fetch + createImageBitmap: cause of the cam10 page.goto 30 s timeouts (runs 45366908283, 45388273002): <img> textures hold the page load event (proof: textures delayed 8 s held load 8.2 s; after the fix load 0.13 s, ready waits up to TEX.waitMs then box colours). Mutation rounds 45393123516 (5 of 6) + cam11-mut2 (focus check pinned to 0.3, caught): 6 of 6. Final suite 45395748725: 272 of 273 (only 42).
+- Lion: Blender-scripted lion on branch lion-sample-01 (not merged; reads as a dog, round 2 to recut in hard carved planes). Owner upload "Stone lion" by DailyArt is CC BY-NC: NOT usable (commercial-only rule).
+- Style study (cocolito): art/Qin-Palace-Painted-Study.md (proposal): textures not aligned (paint density 45x, texel density up to 2.5x, floor saturation 0.71); rules: 256 px/m, brush runs 4-15 cm, lum sd 8-30, sat cap 0.55. Round 2 after the research report (reports/ on the session disk; copy to docs/ when delivered).
 - klad 0.4.0 built at /home/claude/kladsrc/src/target/linux/release/klad (session disk; rebuild per the skill if gone). Five 1024 px textures painted: assets/tex/hall_floor (丹地), hall_wall (lime plaster, black-lozenge frieze, Qin-black dado), pillar (black lacquer, vermilion bands, cloud scrolls), door (black lacquer, bronze bands, 铺首 masks), lion_stone. Generator art/tools/palace_tex.py, sources art/src/*.klad, references art/REFERENCES.md, CREDITS.md.
 - Game 03f24e6: own materials palFloor/palWall/palPillar/palDoor/palLion (Rumble unchanged), world UVs in mergeGeoms, CONFIG.TEX (on, files, tileM, pillarU, aniso 4, waitMs). CI suite 45368079411: 267 of 268 (only 42). Run 45366908283 on the same tree aborted once (cam10 page.goto 30 s timeout; local loads 1-2 s; not repeated): cause open.
 - Software-GPU screenshot counts (hall_ru): 12 calls, 842 tris, programs 8 (+1), textures 6. Phone link version 1795513925-193c carries the sample.
@@ -186,6 +189,8 @@ Panel note 16 (lead, 23 Nov 23:30; proposal):
 15 ultimate charge (DONE); 16 法甲 kit + suit stats sample (owner plays and approves); 17 the other eight kits (docs/SUITS.md); 18 hiding (curtains, 道甲 stillness, sight blocked by walls); 19 the ending + WINNER_STATUE; 20 final map size + balancing pass (re-measure, retune the CONFIG timing list once). Hunt sweep re-check with kits (0.15 s bot now loses demon-first).
 
 ## Owner decisions (dated)
+- 24 Nov 19:33: palace camera = dynamic combat framing (wide while exploring, two-shot in a fight, damped spring, hysteresis, 70/30 focus, zoom capped by spread, off-screen markers); fix the room card / announcement overlap in the same batch.
+- 24 Nov 20:11: camera batch first; texture round 2 after the research report; use the cocolito method to generate assets.
 - 24 Nov 17:30: use Tripo to create the assets (props) and klad to texture them.
 - 24 Nov 17:01: character textures (suits, guard, rebels, apex) only when their models are decided.
 - 24 Nov 16:58: next session uses klad to texture all palace assets and props, with historical references; dispose geometry, material and texture; THREE.LOD to save frame time (brief at the top).

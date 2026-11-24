@@ -9,7 +9,9 @@ html,body{margin:0;height:100%;overflow:hidden;background:#1b1620;color:#f3e6c8;
 canvas{display:block}
 #hud{position:fixed;left:12px;top:10px;font:16px Georgia,serif;text-shadow:0 1px 3px #000;pointer-events:none}
 #next{position:fixed;right:12px;top:10px;font:14px system-ui,sans-serif;text-align:right;text-shadow:0 1px 3px #000;pointer-events:none;max-width:45vw}
-#banner{position:fixed;left:50%;top:13%;transform:translateX(-50%);text-align:center;pointer-events:none;display:none;max-width:92vw;text-shadow:0 2px 4px #000}
+#msgs{position:fixed;left:50%;top:13%;transform:translateX(-50%);display:flex;flex-direction:column;align-items:center;gap:8px;pointer-events:none;width:max-content;max-width:92vw}
+#threats .tm{position:fixed;left:0;top:0;width:0;height:0;border-left:13px solid transparent;border-right:13px solid transparent;border-bottom:26px solid #ff4a3a;filter:drop-shadow(0 0 3px #000);pointer-events:none;display:none;will-change:transform}
+#banner{text-align:center;pointer-events:none;display:none;max-width:92vw;text-shadow:0 2px 4px #000}
 #banner .voice{font:italic 24px Georgia,serif;color:#ffd98a}
 #banner .rule{font:15px system-ui,sans-serif;color:#fff;margin-top:6px}
 #dbg{position:fixed;left:12px;bottom:10px;font:12px monospace;display:none;pointer-events:none;text-shadow:0 1px 2px #000}
@@ -65,9 +67,9 @@ body.touch #school{left:auto;right:12px;top:124px}
 .sel__btn--random{grid-column:1/-1;background:#3a2a1a}
 #mode{position:fixed;inset:0;display:none;background:#120d16;z-index:9;overflow:auto}
 .sel__btn--mode{margin-top:14px;background:#1a2a3a}
-#door{position:fixed;left:50%;top:22%;transform:translateX(-50%);display:none;pointer-events:none;white-space:pre-line;text-align:center;font:15px system-ui,sans-serif;color:#fff;background:#120d16cc;border:2px solid #c9a040;border-radius:8px;padding:10px 16px;max-width:80vw}
+#door{display:none;pointer-events:none;white-space:pre-line;text-align:center;font:15px system-ui,sans-serif;color:#fff;background:#120d16cc;border:2px solid #c9a040;border-radius:8px;padding:10px 16px;max-width:80vw}
 #bar.silenced .skill{opacity:.35;border-color:#888}
-body.touch #banner{top:26%}
+body.touch #msgs{top:26%}
 #cancel{position:fixed;right:20px;top:90px;width:90px;height:56px;border-radius:10px;background:#5a1a1a;color:#fff;font:15px system-ui;display:none;align-items:center;justify-content:center;border:2px solid #f88}
 </style>
 <script type="importmap">{"imports":{"three":"./lib/three.module.min.js"}}</script>
@@ -76,7 +78,8 @@ body.touch #banner{top:26%}
 <div id="hud"></div>
 <div id="hp"><div id="hpfill"></div><span id="hptext"></span></div>
 <div id="next"></div>
-<div id="banner"><div class="voice"></div><div class="rule"></div></div>
+<div id="msgs"><div id="banner"><div class="voice"></div><div class="rule"></div></div><div id="door"></div></div>
+<div id="threats"></div>
 <div id="dbg"></div>
 <div id="help"></div>
 <button id="btnMap"></button>
@@ -91,7 +94,6 @@ body.touch #banner{top:26%}
 <div id="school"></div>
 <div id="select"><div class="sel__box"><div class="sel__title"></div><div class="sel__rule"></div><div class="sel__list"></div><button id="selMode" class="sel__btn sel__btn--mode"></button></div></div>
 <div id="mode"><div class="sel__box"><div class="sel__title"></div><div class="sel__rule"></div><div class="sel__list"></div></div></div>
-<div id="door"></div>
 <button id="btnHunt"></button>
 <div id="err"></div>
 <script type="module">
@@ -675,6 +677,34 @@ const CONFIG = {
   // phone = on phones the floor is minPx / phone (characters larger on small screens, so phones sit closer) and close is x phone.
   // stepMax = the most the camera itself moves in one fixed step, m (ease and pan together; BP10M: they added to 0.511 m on a room change into a fight).
   PAL_CAM: { close: 0.75, minPx: 120, refH: 1080, margin: 0.04, easeS: 0.4, backS: 1.5, panS: 0.15, pad: 0.6, lagM: 1, leadMove: 3, leadOpen: 0.25, leadMax: 4, phone: 0.85, stepMax: 0.4 },
+  // Dynamic combat framing (owner 24 Nov 19:33): wide while exploring, a two-shot of the player and the threat in a fight, damped spring
+  // transitions, hysteresis, a weighted look point, zoom-in capped by the foes' spread, edge markers for foes off screen.
+  PAL_FRAME: {
+    // A fight starts when a foe in sight is this close, m (enter radius smaller than the exit radius: no pulsing on the edge).
+    enterR: 9,
+    // The fight framing ends when no foe is within this many metres for PAL_CAM.backS seconds.
+    exitR: 13,
+    // Weight of the foes' centre in the fight look point (0.3 = 70% player / 30% threat).
+    focus: 0.3,
+    // Most foes framed with the player (the nearest within exitR); others off screen get edge markers.
+    maxFoes: 4,
+    // Explore: the look-ahead never puts the player further from the screen centre than this fraction of the half-screen.
+    safeExplore: 0.45,
+    // Fight: the player and the framed foes stay within this fraction of the half-screen (the distance grows up to the wide one).
+    safeFight: 0.7,
+    // Spring time constant of the fight look point, its distance and the explore/fight blend, s (critically damped: no overshoot).
+    springS: 0.15,
+    // Edge markers for foes off screen: pool size.
+    markers: 6,
+    // Edge markers: foes within this many metres get one when off screen.
+    markR: 30,
+    // Edge marker size (arrow length), px.
+    markerPx: 26,
+    // Edge marker inset from the screen edge, px.
+    markerInset: 22,
+    // Edge marker colour.
+    markerCol: '#ff4a3a',
+  },
   // The burning (BP04; design owner 24 Nov 13:18-13:44: about every 40 s she names a wing, 5 s warning, its rooms fall into the black lake;
   // a locked room is never warned, the wave waits until its fight is over). on = switch (palace runs only; Royal Rumble never burns);
   // firstS = game seconds when the first wing is named; everyS = seconds from one naming to the next (counted from the naming, so a wave
@@ -1271,8 +1301,12 @@ mat('palFloor', TEXCOL.palFloor); mat('palWall', TEXCOL.palWall); mat('palPillar
 mat('palDoor', TEXCOL.palDoor, { metalness: 0.4, roughness: 0.6 }); mat('palLion', TEXCOL.palLion);
 const PTEX = { on: false, list: [] };
 if (CONFIG.TEX.on) {
-  const TX = CONFIG.TEX, ld = new THREE.TextureLoader(), keys = Object.keys(TX.files);
-  const all = Promise.all(keys.map((k) => ld.loadAsync(TX.files[k])));
+  // fetch + createImageBitmap, not <img> (TextureLoader): image elements hold the page's load event until they finish (cause of the CI page.goto
+  // timeouts in runs 45366908283 and 45388273002; proof: textures delayed 8 s held load 8.2 s), fetches do not.
+  const TX = CONFIG.TEX, keys = Object.keys(TX.files);
+  const one = (u) => fetch(u).then((r) => { if (!r.ok) throw new Error(u); return r.blob(); }).then((bl) => createImageBitmap(bl, { imageOrientation: 'flipY' }))
+    .then((bm) => { const t = new THREE.Texture(bm); t.flipY = false; t.needsUpdate = true; return t; });
+  const all = Promise.all(keys.map((k) => one(TX.files[k])));
   const got = await Promise.race([all.catch(() => null), new Promise((res) => setTimeout(() => res(null), TX.waitMs))]);
   if (got) {
     for (let i = 0; i < keys.length; i++) {
@@ -2390,13 +2424,35 @@ const PAL = { on: false, rooms: [], doors: [], byId: {}, cur: null, start: null,
 // room, the screen shape or the touch mode changes; lead = wide distance when the room is too big to show whole; atk = the kit's attack distance.
 const PCAM = { b: 0, pb: 0, hold: 0, wx: 0, wz: 0, wd: 1, pwx: 0, pwz: 0, pwd: 1, vx: 0, vz: 0, lx: 0, lz: 0, lpx: 0, lpz: 0, fitR: null, fitA: 0, fitT: false,
   fit: false, fx: 0, fz: 0, fd: 1, tx: 0, tz: 0, td: 1, qx: 0, qy: 0, qz: 0, qd: 1, pqx: 0, pqy: 0, pqz: 0, pqd: 1, lead: 1, atk: 0, atkKit: null, fits: 0, cam: new THREE.PerspectiveCamera(CONFIG.CAM_FOV, 1, 0.5, 1000),
+  // Dynamic combat framing (CONFIG.PAL_FRAME): fight state, blend spring velocity, fight look offset from the player and distance (with
+  // spring velocities), its target, the framed foes (nearest first: x, z pairs and distances), the nearest foe in sight, explore limits.
+  fight: false, bv: 0, cox: 0, coz: 0, cfd: 1, cvx: 0, cvz: 0, cvd: 0, ftx: 0, ftz: 0, ftd: 1, fn: 0, near: 1e9,
+  fl: new Float32Array(CONFIG.PAL_FRAME.maxFoes * 2), fdist: new Float32Array(CONFIG.PAL_FRAME.maxFoes), limX: 1e9, limZf: 1e9, limZn: 1e9, switches: 0,
   v: new THREE.Vector3(), sp: Math.sin(THREE.MathUtils.degToRad(CONFIG.CAM_PITCH_DEG)), cp: Math.cos(THREE.MathUtils.degToRad(CONFIG.CAM_PITCH_DEG)) };
+// Edge markers for foes off screen (CONFIG.PAL_FRAME): a fixed pool of arrow elements made once; per frame palMarks writes a marker's place only
+// when it changes. W and H follow the window size (resize), so the frame never reads layout.
+const PMK = { els: [], on: new Uint8Array(CONFIG.PAL_FRAME.markers), px: new Int16Array(CONFIG.PAL_FRAME.markers), py: new Int16Array(CONFIG.PAL_FRAME.markers),
+  pa: new Int16Array(CONFIG.PAL_FRAME.markers), n: 0, shown: 0, W: innerWidth, H: innerHeight, v: new THREE.Vector3() };
+{
+  const F = CONFIG.PAL_FRAME, box = document.getElementById('threats'), h = F.markerPx, half = Math.round(h / 2);
+  for (let i = 0; i < F.markers; i++) {
+    const m = document.createElement('div'); m.className = 'tm';
+    m.style.borderLeftWidth = m.style.borderRightWidth = half + 'px'; m.style.borderBottomWidth = h + 'px'; m.style.borderBottomColor = F.markerCol;
+    box.appendChild(m); PMK.els.push(m);
+  }
+  addEventListener('resize', () => { PMK.W = innerWidth; PMK.H = innerHeight; });
+}
 // The measuring camera looks at ground point (tx, tz) from distance d, at the game's fixed pitch (same rule as the view).
 function palCamAt(tx, tz, d) { const c = PCAM.cam; c.position.set(tx, PCAM.sp * d, tz + PCAM.cp * d); c.lookAt(tx, 0, tz); c.updateMatrixWorld(); }
 // Height on screen, in pixels of a refH-high screen, of a player standing at (x, z) for the measuring camera.
 function palCamPx(x, z) {
   const v = PCAM.v.set(x, 0, z).project(PCAM.cam), a = v.y;
   v.set(x, BODY, z).project(PCAM.cam); return (v.y - a) / 2 * CONFIG.PAL_CAM.refH;
+}
+// True when a standing figure at (x, z) (feet and head) is inside fraction s of the half-screen for the measuring camera.
+function palCamOk(x, z, s) {
+  const v = PCAM.v; v.set(x, 0, z).project(PCAM.cam); if (Math.abs(v.x) > s || Math.abs(v.y) > s) return false;
+  v.set(x, BODY, z).project(PCAM.cam); return Math.abs(v.x) <= s && Math.abs(v.y) <= s;
 }
 // The floor in refH pixels (larger on phones).
 function palCamFloor() { const C = CONFIG.PAL_CAM; return TOUCH ? C.minPx / C.phone : C.minPx; }
@@ -2419,6 +2475,14 @@ function palCamFit(r) {
   const C = CONFIG.PAL_CAM, c = PCAM.cam, fl = palCamFloor(), off = C.leadMax + C.lagM;
   c.aspect = camera.aspect; c.updateProjectionMatrix();
   PCAM.lead = palCamFar(1, 200, (d) => { palCamAt(0, 0, d); return palCamPx(0, -off) >= fl; });
+  // Explore safe zone (owner 19:33; cause of the 19:31 phone shot: the look-ahead was in metres, up to leadMax + lagM = 5 m, while a phone in
+  // portrait shows about 2.4 m either side at the lead distance): the most the look point may sit from the player, sideways, ahead (player
+  // higher on screen) and behind, with the player (feet and head) inside safeExplore of the half-screen.
+  const se = CONFIG.PAL_FRAME.safeExplore;
+  palCamAt(0, 0, PCAM.lead);
+  PCAM.limX = palCamFar(0, 60, (t) => palCamOk(-t, 0, se));
+  PCAM.limZf = palCamFar(0, 60, (t) => palCamOk(0, -t, se));
+  PCAM.limZn = palCamFar(0, 60, (t) => palCamOk(0, t, se));
   PCAM.fit = false; PCAM.fitR = r; PCAM.fitA = camera.aspect; PCAM.fitT = TOUCH; PCAM.fits++;
   let slack = -1;
   for (let k = 0; k <= 12; k++) {
@@ -2443,9 +2507,10 @@ function palCloseD() { const C = CONFIG.PAL_CAM; return CONFIG.CAM_DIST * C.clos
 function palCamSnap() {
   palCamFit(PAL.cur);
   PCAM.b = PCAM.pb = 0; PCAM.hold = 0; PCAM.vx = PCAM.vz = 0; PCAM.lx = PCAM.lpx = P.x; PCAM.lz = PCAM.lpz = P.z;
+  PCAM.fight = false; PCAM.bv = 0; PCAM.cox = PCAM.coz = 0; PCAM.cvx = PCAM.cvz = PCAM.cvd = 0; PCAM.fn = 0; PCAM.near = 1e9; PCAM.switches = 0;
   palCamTarget(PAL.cur);
   PCAM.wx = PCAM.pwx = PCAM.tx; PCAM.wz = PCAM.pwz = PCAM.tz; PCAM.wd = PCAM.pwd = PCAM.td;
-  G.camK = PAL.camT = PCAM.wd / CONFIG.CAM_DIST;
+  G.camK = PAL.camT = PCAM.wd / CONFIG.CAM_DIST; PCAM.cfd = PCAM.ftd = PCAM.wd;
   PCAM.qx = PCAM.pqx = PCAM.wx - P.x; PCAM.qy = PCAM.pqy = -P.y; PCAM.qz = PCAM.pqz = PCAM.wz - P.z; PCAM.qd = PCAM.pqd = PCAM.wd;
 }
 // Modes on the mode menu, in key order.
@@ -2989,17 +3054,6 @@ function palSight(ax, az, bx, bz) {
   for (let i = 0; i < ra.doors.length; i++) { const d = ra.doors[i]; if (d.open && (d.ra === rb || d.rb === rb) && palDoorSight(d, ax, az, bx, bz)) return !smokeBlocks(ax, az, bx, bz); }
   return false;
 }
-// An enemy within the player's attack distance that he can see (ticket 10): rival suits (not unseen to him), apex units, 皇家 guard and 反贼
-// (not lurking), and woken giants.
-function palFoeNear() {
-  if (PCAM.atkKit !== P.kit) palAtkReach();
-  const reach = PCAM.atk + CONFIG.PAL_CAM.pad;
-  for (let i = 0; i < BOTLIST.length; i++) { const b = BOTLIST[i]; if (!b.dead && !hiddenFrom(b, P.x, P.z) && Math.hypot(b.x - P.x, b.z - P.z) <= reach && palSight(P.x, P.z, b.x, b.z)) return true; }
-  for (let i = 0; i < ENEMIES.length; i++) { const u = ENEMIES[i]; if (u.alive && Math.hypot(u.x - P.x, u.z - P.z) <= reach && palSight(P.x, P.z, u.x, u.z)) return true; }
-  for (let i = 0; i < GUARDS.length; i++) { const u = GUARDS[i]; if (u.alive && !u.hid && GC.factions[u.faction].foeSuits && Math.hypot(u.x - P.x, u.z - P.z) <= reach && palSight(P.x, P.z, u.x, u.z)) return true; }
-  for (let i = 0; i < P2.giants.length; i++) { const g = P2.giants[i]; if (g.st >= 1 && g.st <= 4 && Math.hypot(g.x - P.x, g.z - P.z) <= reach && palSight(P.x, P.z, g.x, g.z)) return true; }
-  return false;
-}
 // Palace step: room under the player, doors (open on approach, shut behind), the door card, the context camera.
 function stepPalace(dt) {
   if (!palIn(PAL.cur, P.x, P.z)) { const r = palRoomAt(P.x, P.z); if (r) palEnter(r); if (G.phase !== 'palace') return; }
@@ -3017,31 +3071,115 @@ function stepPalace(dt) {
 // Context camera (ticket 10), one fixed step: close (b -> 1) while an enemy is in attack distance and for backS after; wide (b -> 0) otherwise;
 // Z overrides it. The wide framing is the room fit when the room shows whole, else a point a little ahead of the player (walking direction and
 // the room's open space, at most leadMax away); it pans there (panS), never cuts. Room fit recomputed only on room, screen-shape or touch change.
+// Edge markers, per drawn frame after placeView: each foe within markR that is off screen (or behind the camera) gets an arrow on the screen
+// edge pointing at it; the rest of the pool is hidden. Palace play only; writes only on change.
+function palMarks() {
+  let k = 0;
+  if (PAL.on && G.phase === 'palace') {
+    for (let i = 0; i < BOTLIST.length; i++) { const b = BOTLIST[i]; if (!b.dead && !hiddenFrom(b, P.x, P.z)) k = palMarkAt(b.x, b.z, k); }
+    for (let i = 0; i < ENEMIES.length; i++) { const u = ENEMIES[i]; if (u.alive) k = palMarkAt(u.x, u.z, k); }
+    for (let i = 0; i < GUARDS.length; i++) { const u = GUARDS[i]; if (u.alive && !u.hid && GC.factions[u.faction].foeSuits) k = palMarkAt(u.x, u.z, k); }
+    for (let i = 0; i < P2.giants.length; i++) { const g = P2.giants[i]; if (g.st >= 1 && g.st <= 4) k = palMarkAt(g.x, g.z, k); }
+  }
+  for (let i = k; i < PMK.els.length; i++) if (PMK.on[i]) { PMK.on[i] = 0; PMK.els[i].style.display = 'none'; }
+  PMK.n = k;
+}
+// One marker (slot k) for a foe at (x, z) when it is within markR and off screen; returns the next free slot.
+function palMarkAt(x, z, k) {
+  const F = CONFIG.PAL_FRAME;
+  if (k >= PMK.els.length || Math.hypot(x - P.x, z - P.z) > F.markR) return k;
+  const v = PMK.v.set(x, 1, z).project(camera), behind = v.z > 1;
+  let nx = v.x, ny = v.y;
+  if (behind) { nx = -nx; ny = -ny; } else if (nx >= -1 && nx <= 1 && ny >= -1 && ny <= 1) return k;
+  const W = PMK.W, H = PMK.H, hx = W / 2 - F.markerInset, hy = H / 2 - F.markerInset;
+  let sx = nx * W / 2, sy = -ny * H / 2;
+  const m = Math.max(Math.abs(sx) / hx, Math.abs(sy) / hy, 1e-6); sx /= m; sy /= m;
+  const half = F.markerPx / 2, px = Math.round(W / 2 + sx - half), py = Math.round(H / 2 + sy - half), a = Math.round((Math.atan2(sy, sx) + Math.PI / 2) * 100);
+  const el = PMK.els[k];
+  if (px !== PMK.px[k] || py !== PMK.py[k] || a !== PMK.pa[k] || !PMK.on[k]) { PMK.px[k] = px; PMK.py[k] = py; PMK.pa[k] = a; el.style.transform = 'translate(' + px + 'px,' + py + 'px) rotate(' + a / 100 + 'rad)'; }
+  if (!PMK.on[k]) { PMK.on[k] = 1; el.style.display = 'block'; PMK.shown++; }
+  return k + 1;
+}
 function palCamStep(dt) {
-  const C = CONFIG.PAL_CAM, r = PAL.cur;
+  const C = CONFIG.PAL_CAM, F = CONFIG.PAL_FRAME, r = PAL.cur;
   if (PCAM.fitR !== r || PCAM.fitA !== camera.aspect || PCAM.fitT !== TOUCH) palCamFit(r);
   PCAM.pb = PCAM.b; PCAM.pwx = PCAM.wx; PCAM.pwz = PCAM.wz; PCAM.pwd = PCAM.wd;
   const kp = 1 - Math.exp(-dt / C.panS);
   PCAM.vx += ((P.x - PCAM.lx) / dt - PCAM.vx) * kp; PCAM.vz += ((P.z - PCAM.lz) / dt - PCAM.vz) * kp; PCAM.lx = P.x; PCAM.lz = P.z;
   palCamTarget(r);
   // A room shown whole: the framing point pans to the fit. A bigger room: the framing rides with the player and only its lean (the offset from
-  // him) pans, so he never trails the frame. Both start from the current frame, so a change of room or mode never cuts.
+  // him, held in the explore safe zone) pans, so he never trails the frame. Both start from the current frame, so a change of room never cuts.
   if (PCAM.fit) { PCAM.wx += (PCAM.tx - PCAM.wx) * kp; PCAM.wz += (PCAM.tz - PCAM.wz) * kp; }
-  else { const ox = PCAM.wx - PCAM.lpx, oz = PCAM.wz - PCAM.lpz; PCAM.wx = P.x + ox + (PCAM.tx - P.x - ox) * kp; PCAM.wz = P.z + oz + (PCAM.tz - P.z - oz) * kp; }
+  else { const ox = PCAM.wx - PCAM.lpx, oz = PCAM.wz - PCAM.lpz; PCAM.wx = P.x + palClampX(ox + (PCAM.tx - P.x - ox) * kp); PCAM.wz = P.z + palClampZ(oz + (PCAM.tz - P.z - oz) * kp); }
   PCAM.wd += (PCAM.td - PCAM.wd) * kp; PCAM.lpx = P.x; PCAM.lpz = P.z;
-  if (palFoeNear()) PCAM.hold = C.backS; else if (PCAM.hold > 0) PCAM.hold -= dt;
-  const want = PAL.man === 1 ? 0 : PAL.man === 2 ? 1 : PCAM.hold > 0 ? 1 : 0, mv = dt / C.easeS;
-  PCAM.b = want > PCAM.b ? Math.min(want, PCAM.b + mv) : Math.max(want, PCAM.b - mv);
-  const e = PCAM.b * PCAM.b * (3 - 2 * PCAM.b), dc = palCloseD();
-  G.camK = (PCAM.wd + (dc - PCAM.wd) * e) / CONFIG.CAM_DIST; PAL.camT = (want ? dc : PCAM.td) / CONFIG.CAM_DIST;
-  palCamView(e, dc);
+  // Fight state with hysteresis: in when a foe in sight is within enterR; out when no foe is within exitR for backS seconds.
+  palFoeScan();
+  const was = PCAM.fight;
+  if (PCAM.near <= F.enterR) { PCAM.fight = true; PCAM.hold = C.backS; }
+  else if (PCAM.fight) { if (PCAM.fn > 0) PCAM.hold = C.backS; else { PCAM.hold -= dt; if (PCAM.hold <= 0) { PCAM.hold = 0; PCAM.fight = false; } } }
+  if (was !== PCAM.fight) PCAM.switches++;
+  const want = PAL.man === 1 ? 0 : PAL.man === 2 ? 1 : PCAM.fight ? 1 : 0, w = 1 / F.springS, dc = palCloseD();
+  PCAM.bv += (w * w * (want - PCAM.b) - 2 * w * PCAM.bv) * dt; PCAM.b += PCAM.bv * dt;
+  if (PCAM.b < 0) { PCAM.b = 0; PCAM.bv = 0; } else if (PCAM.b > 1) { PCAM.b = 1; PCAM.bv = 0; }
+  // Fight framing target, then its springs (the offset rides with the player, like the wide lean).
+  palFightTarget(dc);
+  PCAM.cvx += (w * w * (PCAM.ftx - P.x - PCAM.cox) - 2 * w * PCAM.cvx) * dt; PCAM.cox += PCAM.cvx * dt;
+  PCAM.cvz += (w * w * (PCAM.ftz - P.z - PCAM.coz) - 2 * w * PCAM.cvz) * dt; PCAM.coz += PCAM.cvz * dt;
+  PCAM.cvd += (w * w * (PCAM.ftd - PCAM.cfd) - 2 * w * PCAM.cvd) * dt; PCAM.cfd += PCAM.cvd * dt;
+  const e = PCAM.b;
+  G.camK = (PCAM.wd + (PCAM.cfd - PCAM.wd) * e) / CONFIG.CAM_DIST; PAL.camT = (want ? PCAM.ftd : PCAM.td) / CONFIG.CAM_DIST;
+  palCamView(e);
+}
+// One foe for the fight framing at (x, z): counted for the fight start when in sight within enterR; framed (nearest maxFoes kept, sorted)
+// when within exitR and in the current room or in sight.
+function palFoeAdd(x, z) {
+  const F = CONFIG.PAL_FRAME, d = Math.hypot(x - P.x, z - P.z);
+  if (d > F.exitR) return;
+  const inRoom = PAL.cur && palIn(PAL.cur, x, z), seen = inRoom || palSight(P.x, P.z, x, z);
+  if (!seen) return;
+  if (d <= F.enterR && d < PCAM.near && palSight(P.x, P.z, x, z)) PCAM.near = d;
+  let i = PCAM.fn;
+  if (i === F.maxFoes) { if (d >= PCAM.fdist[i - 1]) return; i--; } else PCAM.fn++;
+  while (i > 0 && PCAM.fdist[i - 1] > d) { PCAM.fdist[i] = PCAM.fdist[i - 1]; PCAM.fl[i * 2] = PCAM.fl[i * 2 - 2]; PCAM.fl[i * 2 + 1] = PCAM.fl[i * 2 - 1]; i--; }
+  PCAM.fdist[i] = d; PCAM.fl[i * 2] = x; PCAM.fl[i * 2 + 1] = z;
+}
+// Every live foe of the player (rivals, apex units, hostile guards, woken giants) through palFoeAdd.
+function palFoeScan() {
+  PCAM.fn = 0; PCAM.near = 1e9;
+  for (let i = 0; i < BOTLIST.length; i++) { const b = BOTLIST[i]; if (!b.dead && !hiddenFrom(b, P.x, P.z)) palFoeAdd(b.x, b.z); }
+  for (let i = 0; i < ENEMIES.length; i++) { const u = ENEMIES[i]; if (u.alive) palFoeAdd(u.x, u.z); }
+  for (let i = 0; i < GUARDS.length; i++) { const u = GUARDS[i]; if (u.alive && !u.hid && GC.factions[u.faction].foeSuits) palFoeAdd(u.x, u.z); }
+  for (let i = 0; i < P2.giants.length; i++) { const g = P2.giants[i]; if (g.st >= 1 && g.st <= 4) palFoeAdd(g.x, g.z); }
+}
+// Fight framing target: the look point 70/30 between the player and the framed foes' centre (focus), at the nearest distance (from the close
+// distance up to the current wide one) that keeps the player and every framed foe inside safeFight of the half-screen; no foe = on the player
+// at the close distance (Z close).
+function palFightTarget(dc) {
+  const F = CONFIG.PAL_FRAME, n = PCAM.fn;
+  let fx = P.x, fz = P.z;
+  if (n) { let cx = 0, cz = 0; for (let i = 0; i < n; i++) { cx += PCAM.fl[i * 2]; cz += PCAM.fl[i * 2 + 1]; } fx += (cx / n - P.x) * F.focus; fz += (cz / n - P.z) * F.focus; }
+  const hi = Math.max(dc, PCAM.wd);
+  let d = dc;
+  if (n && !palFightIn(fx, fz, dc)) {
+    if (!palFightIn(fx, fz, hi)) d = hi;
+    else { let lo = dc, up = hi; for (let k = 0; k < 14; k++) { const m = (lo + up) / 2; if (palFightIn(fx, fz, m)) up = m; else lo = m; } d = up; }
+  }
+  PCAM.ftx = fx; PCAM.ftz = fz; PCAM.ftd = d;
+}
+// True when the player and every framed foe are inside safeFight with the measuring camera looking at (fx, fz) from distance d.
+function palFightIn(fx, fz, d) {
+  const s = CONFIG.PAL_FRAME.safeFight;
+  palCamAt(fx, fz, d);
+  if (!palCamOk(P.x, P.z, s)) return false;
+  for (let i = 0; i < PCAM.fn; i++) if (!palCamOk(PCAM.fl[i * 2], PCAM.fl[i * 2 + 1], s)) return false;
+  return true;
 }
 // The view itself per fixed step: the look point relative to the player (q) and the distance (qd), between the wide framing and the player by
 // the eased b. The camera's own move (relative to the player) per step is capped at stepMax: cause (BP10M, CI 45358068047): the ease and the
 // room-change pan each stayed under 0.5 m but added to 0.511 m in one step when a room's squad closed the camera during the pan. The camera
 // position is linear in (q, qd), so scaling both deltas scales its move; the player's own moves are followed as before (no lag after a jump).
-function palCamView(e, dc) {
-  const u = 1 - e, fx = (PCAM.wx - P.x) * u, fz = (PCAM.wz - P.z) * u, fy = -P.y * u, d = PCAM.wd + (dc - PCAM.wd) * e;
+function palCamView(e) {
+  const u = 1 - e, fx = (PCAM.wx - P.x) * u + PCAM.cox * e, fz = (PCAM.wz - P.z) * u + PCAM.coz * e, fy = -P.y * u, d = PCAM.wd + (PCAM.cfd - PCAM.wd) * e;
   PCAM.pqx = PCAM.qx; PCAM.pqy = PCAM.qy; PCAM.pqz = PCAM.qz; PCAM.pqd = PCAM.qd;
   let dx = fx - PCAM.qx, dy = fy - PCAM.qy, dz = fz - PCAM.qz, dd = d - PCAM.qd;
   const m = Math.hypot(dx, dy + PCAM.sp * dd, dz + PCAM.cp * dd), lim = CONFIG.PAL_CAM.stepMax;
@@ -3057,8 +3195,11 @@ function palCamTarget(r) {
   let ox = (r.cx - P.x) * C.leadOpen, oz = (r.cz - P.z) * C.leadOpen;
   if (sp > 1) { ox += PCAM.vx / sp * C.leadMove; oz += PCAM.vz / sp * C.leadMove; }
   const ol = Math.hypot(ox, oz); if (ol > C.leadMax) { ox *= C.leadMax / ol; oz *= C.leadMax / ol; }
-  PCAM.tx = P.x + ox; PCAM.tz = P.z + oz; PCAM.td = PCAM.lead;
+  PCAM.tx = P.x + palClampX(ox); PCAM.tz = P.z + palClampZ(oz); PCAM.td = PCAM.lead;
 }
+// Explore look offsets (look point minus player) held inside the safe zone measured in palCamFit.
+function palClampX(o) { return Math.max(-PCAM.limX, Math.min(PCAM.limX, o)); }
+function palClampZ(o) { return Math.max(-PCAM.limZn, Math.min(PCAM.limZf, o)); }
 // Walking route in the palace (no grid): through the door points from room to room (breadth-first over the room graph), then to the goal.
 function palRoute(gx, gz, path) {
   path.n = 0; path.i = 0;
@@ -7307,6 +7448,7 @@ function frame(now) {
     acc += dt;
     while (acc >= CONFIG.STEP) { step(CONFIG.STEP); acc -= CONFIG.STEP; }
     placeView(acc / CONFIG.STEP);
+    palMarks();
     if (ORD.rightHeld) { ORD.repathT -= dt; if (ORD.repathT <= 0) { ORD.repathT = CONFIG.REPATH_S; rightOrder(); } }
     G.miniT -= dt; if (G.miniT <= 0) { G.miniT = 1 / CONFIG.MINI_HZ; if (PAL.on) palMini(); else drawMini(); }
     renderer.render(scene, camera);
@@ -7808,6 +7950,7 @@ Object.assign(window.__game, {
     if (r) for (let k = 0; k < 8; k++) { const q = palCamNdc(k & 1 ? r.x1 : r.x0, k & 4 ? H : 0, k & 2 ? r.z1 : r.z0); if (Math.abs(q.x) > lim || Math.abs(q.y) > lim) allIn = false; }
     camera.getWorldDirection(PCV);
     return { on: PAL.on, b: PCAM.b, hold: PCAM.hold, wx: PCAM.wx, wz: PCAM.wz, wd: PCAM.wd, fit: PCAM.fit, fd: PCAM.fd, lead: PCAM.lead, atk: PCAM.atk,
+      fight: PCAM.fight, switches: PCAM.switches, fn: PCAM.fn, ftx: PCAM.ftx, ftz: PCAM.ftz, ftd: PCAM.ftd, cfd: PCAM.cfd, limX: PCAM.limX, limZf: PCAM.limZf, limZn: PCAM.limZn,
       close: palCloseD(), fov: camera.fov, pitch: THREE.MathUtils.radToDeg(Math.asin(-PCV.y)), px: (h.y - f.y) / 2 * C.refH, floor: palCamFloor(),
       allIn, room: r ? r.id : '', pnx: f.x, pny: f.y, pd: Math.hypot(camera.position.x - P.x, camera.position.y - P.y, camera.position.z - P.z), camX: camera.position.x, camY: camera.position.y, camZ: camera.position.z, fits: PCAM.fits, aspect: camera.aspect };
   },
@@ -7817,6 +7960,10 @@ Object.assign(window.__game, {
     PCAM.fitR = null; return out;
   },
   palMiniTick(n) { for (let i = 0; i < n; i++) palMini(); },
+  // Fight framing (checks only): places the view, returns screen NDC [x, y] (feet) of the player and each framed foe with the real camera.
+  palFoeNdc() { placeView(1); const out = [[palCamNdc(P.x, 0, P.z).x, palCamNdc(P.x, 0, P.z).y]]; for (let i = 0; i < PCAM.fn; i++) { const q = palCamNdc(PCAM.fl[i * 2], 0, PCAM.fl[i * 2 + 1]); out.push([q.x, q.y]); } return out; },
+  // Edge markers (dynamic combat framing): places the view, runs palMarks once, returns the shown markers (screen px, angle) and the shown count.
+  palMarkState() { placeView(1); palMarks(); const out = []; for (let i = 0; i < PMK.n; i++) out.push([PMK.px[i], PMK.py[i], PMK.pa[i] / 100]); return { n: PMK.n, list: out, W: PMK.W, H: PMK.H }; },
   palMiniState: () => ({ draws: PAL.miniDraws, icons: PAL.miniIcons, scale: PAL.mS, ox: PAL.mOx, oy: PAL.mOy, W: MINI.W, H: MINI.H, cur: PAL.cur ? PAL.cur.id : '' }),
 });
 window.__ready = true;
