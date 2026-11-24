@@ -321,7 +321,7 @@
   ]
  },
  "slip_rack": {
-  "tris": 88,
+  "tris": 100,
   "budget": 300,
   "dens_share": 1.0,
   "mats": [
