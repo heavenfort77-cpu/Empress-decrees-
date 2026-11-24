@@ -269,8 +269,10 @@ export async function palace3Checks(g, check, base) {
       o.escOk = pl.rooms.every((r, i) => r.id === pl.start || s0.guardLeft[i] === G.palEsc(r.id, 0).squads);
       o.rebelRooms = s0.rebelLeft.filter((v) => v > 0).length;
       G.teleport(R.fore.cx, R.fore.cz); G.setHp(1e9); G.autoPlayer(true); let t = 0;
+      // The autopilot is not burn-aware (first run: it walked into a burning wing and fell at 90 s): kept in the forecourt, where it fights what comes.
       for (; t < 260 / C.STEP && G.palace().phase === 'palace'; t++) {
         G.step(1); const b = G.burnState();
+        if (G.palace().cur !== 'fore') G.teleport(R.fore.cx, R.fore.cz);
         if (b.bad !== 0) { bad(`t${t} burn bad ${b.badWhy} ${b.badRoom}`); break; }
         if (t % 6) continue;
         const s = G.palSim(), fallen = new Set(b.rooms.filter((r) => r.fallen).map((r) => r.id)), warned = new Set(b.rooms.filter((r) => r.warned).map((r) => r.id));
@@ -278,7 +280,7 @@ export async function palace3Checks(g, check, base) {
         for (const r of s.recs) if (r.st === 'sim' && fallen.has(r.room)) bad(`t${t} rival in fallen ${r.room}`);
       }
       const s = G.palSim(), b = G.burnState();
-      o.run = { s: +(t * C.STEP).toFixed(0), phase: G.palace().phase, falls: b.falls, out: s.outN, bad: b.bad, drop: s.qDrop, giantLog: s.log.filter((l) => l.startsWith('giant')).length };
+      o.run = { s: +(t * C.STEP).toFixed(0), phase: G.palace().phase, pcause: G.player().cause, falls: b.falls, out: s.outN, bad: b.bad, drop: s.qDrop, giantLog: s.log.filter((l) => l.startsWith('giant')).length };
       G.autoPlayer(false); G.setLayout('proto'); __p3end(); return o;
     });
     check('511 full palace: rivals start in their own halls, squads from the escalation table (none in the start hall or core), rebels in some rooms; bot run with the burning: bad 0, no locked warned/fallen room, no rival in a fallen room, nothing dropped, >= 3 wings fall',
