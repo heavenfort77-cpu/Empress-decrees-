@@ -72,11 +72,14 @@ Room types in the plan: hall, court, corridor, garden, bridge, core. Walls 4 m h
 Burning wing (char swap A18, steady fire cards, smoke), room falling into the lake, vat flood, mercury pulse shimmer, giant waking (patina cracks to brass). All pooled and warmed under the loading card.
 
 ## E. Routes for making a mesh (pick per asset, say which in the sample hand-back)
-1. Own Blender script (bpy venv, recreate: python3 -m venv /home/claude/bpyenv && pip install bpy==5.3.0) with hard carved planes, then klad texture: works in this session (the lion-sample-01 dog-like lion showed the method needs hard planes).
-2. Tripo generation, then klad texture: runner job ready (branch ci-tripo) but the API account has no credit (code 2010); commercial use needs a paid plan.
-3. CC0 / CC BY model (Sketchfab or a museum scan) re-materialled in Qin materials and decimated: list in reports/ from the Sketchfab research (24 Nov 22:0x).
-4. Rig for giants: UniRig needs a CUDA GPU (none here or on GitHub runners); otherwise a Blender script rig.
-Checks for every mesh: triangle count against the budget above, texel density 256 px/m, LOD switch distances, screenshot at play size beside the box version, the perf gate in the heaviest room.
+1. Own Blender script (bpy venv, recreate: python3 -m venv /home/claude/bpyenv && /home/claude/bpyenv/bin/pip install bpy==5.3.0) with hard carved planes, then klad texture: works in this session (the lion-sample-01 dog-like lion showed the method needs hard planes).
+2. Tripo: SKIPPED (owner 24 Nov 21:58: the API account has no credit).
+3. CC0 / CC BY model (Sketchfab or a museum scan) re-materialled in Qin materials and decimated: see reports/Sketchfab Qin palace assets.md (session disk; copy to docs/research/ when delivered).
+4. Rigging without a GPU (owner 21:58: UniRig needs an NVIDIA card, find another way). Proven 24 Nov 22:1x in headless Blender, CPU only, art/tools/rig_test.py:
+   - rigid segments: each cast bronze segment bound 100% to one bone, then joined into one mesh per material: 80 verts, 0 unweighted, GLB with a 1 s clip re-imported as 1 skinned mesh + 1 action: PASS. Fits every bronze piece (beasts, giants, water clock, vat lids), since the art direction makes them segmented castings.
+   - Blender automatic weights (bone heat) on one smooth mesh: 980 verts, 0 unweighted, weights normalised, GLB re-imported: PASS. For cloth or soft parts.
+   - Not proven, not offered: a free UniRig demo on Hugging Face (ZeroGPU Space) could be called from a runner; quota and output terms unchecked.
+Checks for every mesh: triangle count against the budget above, texel density 256 px/m, LOD switch distances, screenshot at play size beside the box version, the perf gate in the heaviest room; rigged meshes also: 0 unweighted vertices, weights sum to 1, max 4 influences, clip length matches the timing table.
 
 ## F. Order
 1. A13 bronze trim sheet, then C1 bronze guardian beast (one sample, wait for approval).
