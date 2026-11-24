@@ -24,6 +24,7 @@ The current open-map royale stays as a second mode, "Royal Rumble" (owner 13:28:
 4. Out of sight, rivals move room to room, farm fodder and meet each other; their fights are resolved by a simulation seeded per run (deterministic: checks and replays still work), using the measured win shares of the kits, health, plates and meter. She announces each result; the loser drops its plates in that room.
 5. Behind a door you may find: an empty room with a reward; fodder; one rival in whatever state it is in; two rivals mid-fight (three-way, locked); the leader with a bounty; the hunter that tracks you between rooms.
 6. The burning: about every 40 s she names a wing, 5 s warning, its rooms fall. FAIRNESS RULE: a locked room is never warned; a wave that needs it waits until its fight is over (no unavoidable death behind locked doors).
+- Owner 24 Nov 14:16: walking to the core in the ticket-01 prototype took under 5 min and was too easy. The core stays sealed until you are the last suit; the route from any rim hall passes at least 5 rooms.
 7. Two suits left: she seals all other doors so the two meet in one hall. The winner opens the core hall: the 兵家 apex.
 - Target length 4-5 min (owner 23 Nov 21:28); about 6-10 rooms, 3-5 rivals met in person; no more than about 5 s without something to fight, dodge or choose.
 

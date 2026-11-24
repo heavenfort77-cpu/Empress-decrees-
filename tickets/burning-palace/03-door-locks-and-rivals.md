@@ -8,6 +8,7 @@ Entering a room with enemies locks its doors until they are broken; the 8 rivals
 - [ ] Door lock rules (sealed both ways; no fleeing); locked rooms never take new entrants.
 - [ ] Off-screen simulation deterministic per seed (same seed = same run, check 82 style), using the measured kit win shares, health, plates and meter; every result announced (TEXT keys) with a trace in the room.
 - [ ] Rivals spawn on door open in their simulated state; the hunter rival may track the player between rooms.
+- [ ] The core hall door stays sealed (preview says so, TEXT key) until the player is the last suit standing; walking to the core early is impossible (owner 24 Nov 14:16: reaching the core in under 5 min was too easy). Check: a run cannot enter the core while any rival lives.
 - [ ] Final duel sealing and the apex start; Royal Rumble untouched.
 - [ ] Checks: lock, determinism, announcements, spawn state, final seal, apex start.
 - [ ] Royal Rumble (parked mode) keeps every existing check green; nothing in it changes.
