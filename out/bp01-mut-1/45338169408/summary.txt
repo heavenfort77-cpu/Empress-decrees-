@@ -1,0 +1,13 @@
+jobs 12; caught by named check 12 of 12
+{"i": 0, "fails": ["42", "400"], "tot": ["RUNTIME 189 of 191 pass"], "s": 131, "name": "mode-pick-ignored", "want": "400", "applied": true, "caught_named": true}
+{"i": 1, "fails": ["42", "401", "407", "408"], "tot": ["RUNTIME 187 of 191 pass"], "s": 104, "name": "rooms-never-detach", "want": "401", "applied": true, "caught_named": true}
+{"i": 2, "fails": ["42", "401"], "tot": ["RUNTIME 189 of 191 pass"], "s": 101, "name": "door-never-shuts", "want": "401", "applied": true, "caught_named": true}
+{"i": 3, "fails": ["42", "402"], "tot": ["RUNTIME 189 of 191 pass"], "s": 131, "name": "route-skips-doors", "want": "402", "applied": true, "caught_named": true}
+{"i": 4, "fails": ["42", "402", "408"], "tot": ["RUNTIME 188 of 191 pass"], "s": 96, "name": "core-never-ends", "want": "402", "applied": true, "caught_named": true}
+{"i": 5, "fails": ["42", "403"], "tot": ["RUNTIME 189 of 191 pass"], "s": 180, "name": "card-names-current-room", "want": "403", "applied": true, "caught_named": true}
+{"i": 6, "fails": ["42", "404"], "tot": ["RUNTIME 189 of 191 pass"], "s": 186, "name": "sight-through-walls", "want": "404", "applied": true, "caught_named": true}
+{"i": 7, "fails": ["42", "404"], "tot": ["RUNTIME 189 of 191 pass"], "s": 180, "name": "bots-ignore-walls", "want": "404", "applied": true, "caught_named": true}
+{"i": 8, "fails": ["42", "405"], "tot": ["RUNTIME 189 of 191 pass"], "s": 151, "name": "camera-jumps", "want": "405", "applied": true, "caught_named": true}
+{"i": 9, "fails": ["42", "405b"], "tot": ["RUNTIME 189 of 191 pass"], "s": 128, "name": "phone-not-closer", "want": "405b", "applied": true, "caught_named": true}
+{"i": 10, "fails": ["42", "406"], "tot": ["RUNTIME 189 of 191 pass"], "s": 143, "name": "floors-kept-in-rumble", "want": "406", "applied": true, "caught_named": true}
+{"i": 11, "fails": ["42", "408"], "tot": ["RUNTIME 189 of 191 pass"], "s": 93, "name": "doors-not-reset", "want": "408", "applied": true, "caught_named": true}
