@@ -1,6 +1,6 @@
 # 皇家 guard units (worker W5; study art/Guard-Rebels-Study.md; docs/BURNING-PALACE.md "Cannon fodder"): Kaymuse's household guard,
 # bronze soldiers on treads in the court's black and water-blue. One shared base (tread sled, lamellar torso, bronze mask) and data per type:
-# 卒 zu (戟, line thrust 0.5 s), 弩手 nu (crossbow, volley 0.8 s), 盾 dun (notched shield, shove 0.5 s), 车 che (canopy chariot, charge 0.9 s),
+# 卒 zu (戟, line thrust 0.5 s), 弩手 nu (crossbow, volley 0.8 s), 盾 dun (notched shield, shove 0.5 s), 车 che (war chariot, no canopy, charge 0.9 s),
 # 伍长 wz (officer cap, signal banner, sword cut 0.5 s). Windups = CONFIG.GUARD.moves (index.html, read only).
 # Materials: gdBronze (assets/tex/bronze_trim.png), gdLacquer (assets/tex/fodder_trim.png: lacquer lamellar, water-blue cord and cloth).
 # Usage: BPY guard_build.py OUTDIR [TYPES]   (TYPES comma list, default all five) -> OUTDIR/<type>.glb and OUTDIR/guard_gates.json
@@ -33,38 +33,28 @@ SHOULDER = (0.24, 0, 1.17)
 ELBOW = (0.27, 0.04, 0.95)
 # Track unit: centre offset tw, link width lw (m); end wheel radius, half wheelbase, link thickness are track() defaults.
 TRACK = {'tw': 0.3, 'lw': 0.15}
-# Track link length as a share of the link pitch (round 4 0.74; round 5 0.66: wider gaps read as separate links).
-LINK_FILL = 0.66
 # Mask half-height (chin to crown centre), m; proportion gate: body at least this many heads tall incl. cap (soldier read, not a toy).
 MASK_RZ = 0.12
 HEADS_MIN = 6.0
 BR, LQ = 'gdBronze', 'gdLacquer'
+MPR = []  # metres per tread texture repeat of the belts built (tread gate)
 Q['zpiv'] = ZPIV
 
 
 # shared base -----------------------------------------------------------------------------------------------------------
 # Round 4 (lead review 25 Nov: treads read as log rafts): each side is a cast-bronze track unit in the chariot running-gear language:
-# a loop of separate cast links (gaps between them), spoked end wheels with a bronze rim and a dark lacquer web, axle-end caps (軎) standing
-# out of the hubs, small road wheels, and a fender plate with a down-turned flange over the top run.
-def track(d, s, tw, hl=0.32, R=0.12, lw=0.15, lt=0.04, fc=0.0, n=None, spokes=4, cap=0.07, pitch=0.12, blades=False):
-    """one track unit on side s, centred at x = s * tw, f = fc; end wheels of radius R at f = fc +- hl; link loop lt thick, lw wide."""
-    x0 = s * tw; zc = R + lt; Rp = R + lt / 2; arc = math.pi * Rp; tot = 4 * hl + 2 * arc
-    n = n or (int(round(tot / pitch)) if d else int(round(tot / (pitch * 2.2))))  # link pitch; LOD1/2 links twice as long
-    def at(u):  # point, tangent and outward normal along the loop (bottom run forward, front arc up, top run back, rear arc down)
-        u %= tot
-        if u < 2 * hl: return (fc - hl + u, zc - Rp), (1, 0), (0, -1)
-        u -= 2 * hl
-        if u < arc: a = -math.pi / 2 + u / Rp; return (fc + hl + Rp * math.cos(a), zc + Rp * math.sin(a)), (-math.sin(a), math.cos(a)), (math.cos(a), math.sin(a))
-        u -= arc
-        if u < 2 * hl: return (fc + hl - u, zc + Rp), (-1, 0), (0, 1)
-        u -= 2 * hl; a = math.pi / 2 + u / Rp
-        return (fc - hl + Rp * math.cos(a), zc + Rp * math.sin(a)), (-math.sin(a), math.cos(a)), (math.cos(a), math.sin(a))
-    L = tot / n * LINK_FILL
-    # round 5: a dark lacquer core inside the loop, so the gaps between links read dark (segmented) at the fight framing
+# a belt of cast links (FIX-A: one scrolling tread band, links and gaps painted in assets/tex/tread_belt.png), spoked end wheels with a
+# bronze rim and a dark lacquer web, axle-end caps (軎) standing out of the hubs, small road wheels, and a fender plate with a down-turned
+# flange over the top run.
+def track(d, s, tw, hl=0.32, R=0.12, lw=0.15, lt=0.04, fc=0.0, spokes=4, cap=0.07, blades=False):
+    """one track unit on side s, centred at x = s * tw, f = fc; end wheels of radius R at f = fc +- hl; belt lt thick, lw wide.
+    FIX-A (owner 25 Nov: treads roll by a scrolling texture): the belt is one ring band (tread_kit.py, material treadBelt) whose
+    texture shows the cast links and dark gaps (round 5 read); the game scrolls it. Returns the belt's metres per texture repeat."""
+    x0 = s * tw; zc = R + lt; Rp = R + lt / 2
+    import tread_kit as T
+    # round 5: a dark lacquer core inside the loop, so the loop reads as a belt round wheels at the fight framing
     prism(f'core_{s}', rect(lw * 0.8, 2 * R - 0.01), (x0, fc - hl, zc), (x0, fc + hl, zc), LQ, 'hull', 'dark', rnd=True)
-    for i in range(n):
-        (f, z), (tf, tz), (nf, nz) = at((i + 0.5) * tot / n)
-        prism(f'link_{s}{i}', rect(lw, lt), (x0, f - tf * L / 2, z - tz * L / 2), (x0, f + tf * L / 2, z + tz * L / 2), BR, 'hull', 'flange', rnd=True, up=tuple(B.Pd(0, nf, nz)))
+    MPR.append(B.tread(f'belt_{s}', T.stadium(fc, zc, hl, Rp), x0 - lw / 2, x0 + lw / 2, lt, 'hull'))
     m = 12 if d else 7; xo = x0 + s * (lw / 2 - 0.012)
     for f in (fc - hl, fc + hl):  # end wheels: bronze rim disc, dark web, bronze spokes and hub, axle-end cap
         prism(f'wheel_{s}{f}', ngon(R - 0.012, m), (x0 - s * (lw / 2 - 0.02), f, zc), (xo, f, zc), BR, 'hull', 'plain', rnd=True, up=(0, 0, 1))
@@ -272,19 +262,17 @@ def dun_clips(arm):
 
 
 # 车 chariot (round 4: a war chariot, not a cart). Qin bronze chariot No. 1 language (reference only): an open box (舆) with a high front
-# breastwork and side rails, a standing armoured driver, a small round canopy on a bronze frame (black lacquer, water-blue edge, bronze ribs and
-# finial), a 戟 in the rear rack and a shield hung on the side rail; the draught pole (辀) curves forward to a yoke bar (衡) with two yoke
-# saddles (轭) and ends in the bronze beast-head ram. Running gear: one long track unit per side with big spoked end wheels and axle caps.
+# breastwork and side rails, a standing armoured driver, a 戟 in the rear rack and a shield hung on the side rail; the draught pole (辀)
+# curves forward to a yoke bar (衡) with two yoke saddles (轭) and ends in the bronze beast-head ram. Running gear: one long track unit per
+# side with big spoked end wheels and axle caps. FIX-A (owner 25 Nov): no canopy (it read as a parasol from above).
 CHE_TIP = (0, 1.42, 0.62)
-# Chariot track units: centre offset, link width, half wheelbase, end wheel radius, link thickness, centre f, spokes per wheel.
-CHE_TRACK = dict(tw=0.6, lw=0.2, hl=0.7, R=0.2, lt=0.05, fc=-0.05, spokes=6, cap=0.1, pitch=0.18, blades=True)
-# Canopy: centre f, underside z, radius (round 3: 0.8 m radius at 2.04 m, read as a blue parasol).
-CHE_CANOPY = dict(f=-0.22, z=1.66, r=0.52)
+# Chariot track units: centre offset, belt width, half wheelbase, end wheel radius, belt thickness, centre f, spokes per wheel.
+CHE_TRACK = dict(tw=0.6, lw=0.2, hl=0.7, R=0.2, lt=0.05, fc=-0.05, spokes=6, cap=0.1, blades=True)
 def che_build(d):
     T = CHE_TRACK; ci = T['tw'] - T['lw'] / 2 - 0.004
     hloft('hull', [(-0.82, 0.34, ci * 0.9, 0.12, 0), (-0.74, 0.34, ci, 0.17, 0), (0.6, 0.34, ci, 0.17, 0), (0.7, 0.34, ci * 0.85, 0.12, 0)], BR, 'hull', 'plain', n_exp=4.0, M=12)
     for s in (-1, 1):
-        track(d, s, T['tw'], hl=T['hl'], R=T['R'], lw=T['lw'], lt=T['lt'], fc=T['fc'], spokes=T['spokes'], cap=T['cap'], pitch=T['pitch'], blades=T['blades'])
+        track(d, s, T['tw'], hl=T['hl'], R=T['R'], lw=T['lw'], lt=T['lt'], fc=T['fc'], spokes=T['spokes'], cap=T['cap'], blades=T['blades'])
     # box (舆): floor, side rails (bronze lattice, black lacquer top rail with a water-blue stripe), high front breastwork, rear corner posts
     prism('floor', rect(1.0, 0.05), (0, -0.8, 0.56), (0, 0.46, 0.56), BR, 'hull', 'plain', rnd=True)
     for s in (-1, 1):
@@ -295,18 +283,6 @@ def che_build(d):
     prism('front', [(-0.5, 0), (0.5, 0), (0.46, 0.44), (0.2, 0.5), (-0.2, 0.5), (-0.46, 0.44)], (0, 0.42, 0.58), (0, 0.47, 0.58), LQ, 'hull', 'lacquer')
     prism('fplaque', [(-0.16, -0.1), (0.16, -0.1), (0.2, 0.04), (0.08, 0.1), (0, 0.05), (-0.08, 0.1), (-0.2, 0.04)], (0, 0.47, 0.8), (0, 0.5, 0.8), BR, 'hull', 'mask', rnd=True)
     prism('fbar', rect(1.0, 0.05), (0, 0.4, 1.06), (0, 0.5, 1.06), BR, 'hull', 'flange', rnd=True)
-    # canopy: bronze pole and collar, black lacquer dome, water-blue edge band, bronze ribs and finial (smaller and lower than round 3)
-    C = CHE_CANOPY; cf, cz, cr = C['f'], C['z'], C['r']
-    tube('pole', (0, cf, 0.58), (0, cf, cz + 0.13), 0.03, 0.026, BR, 'canopy', 'plain', sides=6)
-    loft('canopy', [(cz, cf, cr, cr, 0), (cz + 0.06, cf, cr * 0.8, cr * 0.8, 0), (cz + 0.11, cf, cr * 0.38, cr * 0.38, 0), (cz + 0.125, cf, 0.05, 0.05, 0)], LQ, 'canopy', 'lacquer', n_exp=2.0, M=16)
-    loft('cband', [(cz - 0.012, cf, cr + 0.015, cr + 0.015, 0), (cz + 0.025, cf, cr * 0.93 + 0.012, cr * 0.93 + 0.012, 0)], LQ, 'canopy', 'blue', n_exp=2.0, M=16, cap=False)
-    spheroid('finial', (0, cf, cz + 0.15), (0.045, 0.045, 0.05), BR, 'canopy', 'flange', segs=(8, 5))
-    if d:
-        tube('collar', (0, cf, cz - 0.06), (0, cf, cz + 0.01), 0.045, 0.06, BR, 'canopy', 'flange', sides=8)
-        prof = [(0.0, cz + 0.135), (cr * 0.38, cz + 0.122), (cr * 0.8, cz + 0.068), (cr + 0.02, cz + 0.006)]
-        for k in range(6):
-            a = k * math.tau / 6 + math.pi / 6; c, sn = math.cos(a), math.sin(a)
-            path_tube(f'rib_{k}', [(c * r, cf + sn * r, z) for r, z in prof], 0.012, BR, 'canopy', 'flange', sides=4)
     # driver: a standing armoured figure (coat, chest, small pauldrons, mask and cap), hands on the breastwork
     df = 0.1
     loft('dcoat', [(0.58, df, 0.17, 0.14, 0), (0.8, df, 0.16, 0.13, 0), (1.0, df, 0.14, 0.11, 0)], LQ, 'driver', 'lacquer', n_exp=2.2)
@@ -337,19 +313,17 @@ def che_build(d):
     prism('rhorn', blade(0.08, 0.03), (0, 1.36, 0.7), CHE_TIP, BR, 'ram', 'flange', scale_b=0.1)  # round 4: ears dropped (triangle budget)
 
 def che_bones():
-    C = CHE_CANOPY
-    return [('root', (0, 0, 0), (0, 0, 0.2), None), ('hull', (0, -0.6, 0.42), (0, 0.6, 0.42), 'root'), ('canopy', (0, C['f'], 0.58), (0, C['f'], C['z'] + 0.13), 'hull'),
+    return [('root', (0, 0, 0), (0, 0, 0.2), None), ('hull', (0, -0.6, 0.42), (0, 0.6, 0.42), 'root'),
             ('driver', (0, 0.1, 0.58), (0, 0.1, 1.5), 'hull'), ('ram', (0, 0.6, 0.44), CHE_TIP, 'hull')]
 
 def che_clips(arm):
     R = lambda b, w, a, p=None: rot_for(arm, b, w, a, p); w = WINDUP['che']; s = w + 0.3
-    idle = {'canopy': [(0, (0, 0, 0)), (1.0, R('canopy', 'right', 2)), (2.0, (0, 0, 0))], 'driver': [(0, (0, 0, 0)), (1.0, R('driver', 'fwd', 3)), (2.0, (0, 0, 0))]}
+    idle = {'driver': [(0, (0, 0, 0)), (1.0, R('driver', 'fwd', 3)), (2.0, (0, 0, 0))]}
     move = {'hull': [(0, (0, 0, 0)), (0.25, R('hull', 'up', 1.5)), (0.5, (0, 0, 0)), (0.75, R('hull', 'down', 1.5)), (1.0, (0, 0, 0))],
-            'canopy': [(0, R('canopy', 'back', 3)), (0.5, R('canopy', 'back', 5)), (1.0, R('canopy', 'back', 3))]}
+            'driver': [(0, R('driver', 'back', 2)), (0.5, R('driver', 'back', 4)), (1.0, R('driver', 'back', 2))]}
     mloc = {'hull': [(0, (0, 0, 0)), (0.25, (0, 0, 0.012)), (0.5, (0, 0, 0)), (0.75, (0, 0, 0.012)), (1.0, (0, 0, 0))]}
     att = {'hull': [(0, (0, 0, 0)), (w, R('hull', 'up', 16)), (s, R('hull', 'down', 4)), (s + RECOVER, (0, 0, 0))],
            'driver': [(0, (0, 0, 0)), (w, R('driver', 'back', 12)), (s, R('driver', 'fwd', 15)), (s + RECOVER, (0, 0, 0))],
-           'canopy': [(0, (0, 0, 0)), (w, R('canopy', 'fwd', 6)), (s, R('canopy', 'back', 10)), (s + RECOVER, (0, 0, 0))],
            'ram': [(0, (0, 0, 0)), (w, R('ram', 'up', 22)), (s, R('ram', 'down', 6)), (s + RECOVER, (0, 0, 0))]}
     aloc = {'hull': [(0, (0, 0, 0)), (w, (0, -0.35, 0)), (s, (0, 0.8, 0)), (s + RECOVER, (0, 0, 0))]}
     return {'idle': clip(arm, 'idle', idle), 'move': clip(arm, 'move', move, loc=mloc), 'attack': clip(arm, 'attack', att, loc=aloc)}, None, w, 'ram'
@@ -407,13 +381,21 @@ def extra(key):
             G(y1 - y0 >= 1.9 and z1 <= 2.2, f'chariot body length {y1 - y0:.2f} m (>= 1.9), top {z1:.2f} m (<= 2.2)')
         X0, X1, Y0, Y1, Z0, Z1 = B.bounds(lod0)
         info.update(top=Z1, body_top=z1, half_width=hw, length=Y1 - Y0)
+        # FIX-A tread gate: belts scroll (material treadBelt; U = metres along the loop / metres per repeat, whole repeats round the loop)
+        import tread_kit as T
+        E = T.edges_of(lod0, 'treadBelt'); ok_r, mpr, spread = T.check_mesh(E)
+        me = lod0.data; uvl = me.uv_layers['UVMap']; mi = [i for i, m in enumerate(me.materials) if m and m.name == 'treadBelt']
+        us = [uvl.data[li].uv[0] for p in me.polygons if p.material_index in mi for li in p.loop_indices]
+        span = (max(us) - min(us)) if us else 0.0; whole = bool(us) and abs(span - round(span)) <= T.TOL_WHOLE and abs(min(us)) <= T.TOL_WHOLE
+        G(ok_r and whole, f'tread belts scroll: treadBelt U at {mpr:.3f} m per repeat ({spread}), loop U span {span:.2f} (whole); game: map.offset.x += metres forward / {mpr:.3f}')
+        info.update(tread_mpr=round(mpr, 4))
     return g
 
 if __name__ == '__main__':
     res = {}
     for k in TYPES:
         build, bones, clips_fn, sc = UNITS[k]
-        Q['scale'] = sc
+        Q['scale'] = sc; MPR.clear()
         res[k] = B.build_unit(k, build, bones(), clips_fn, os.path.join(OUT, f'{k}.glb'), extra(k))
         Q['scale'] = 1.0
     if 'wz' in res:

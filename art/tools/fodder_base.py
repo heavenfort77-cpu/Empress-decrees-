@@ -106,6 +106,14 @@ def hloft(name, secs, mat, bone, row, n_exp=2.6, M=14, cap=True):
     bmesh.ops.recalc_face_normals(bm, faces=bm.faces)
     return put(name, bm, mat, bone, row, True)
 
+def tread(name, loop, x0, x1, thick, bone):
+    """a scrolling tread belt ring (tread_kit.py): material treadBelt, belt UVs; returns metres per texture repeat (design metres)."""
+    import tread_kit as T
+    G = T.geometry(loop, x0, x1, thick, seg=max(0.5, Q['seg']))
+    band, _ = T.build_bm(G, P, T.outward_for(G, loop, x0, x1))
+    put(name, band, 'treadBelt', bone, 'tread', True)
+    return G['mpr']
+
 def path_tube(name, pts, r, mat, bone, row, sides=6):
     """a tube along a polyline (bow, wheel rim, headband tails)."""
     for i in range(len(pts) - 1):
@@ -137,7 +145,7 @@ def row_id(mat, row):
 def prep(p, bevel):
     ob = p['ob']; sheet = SHEET.get(p['mat'])
     rows = ROWS_BRONZE if sheet == 'bronze' else ROWS_FODDER
-    uv_trim(ob, rows.get(p['row'], list(rows.values())[0]))
+    if p['row'] != 'tread': uv_trim(ob, rows.get(p['row'], list(rows.values())[0]))  # tread belts keep their scrolling UVs (tread_kit.py)
     ob.data.materials.append(material(p['mat']))
     bm = bmesh.new(); bm.from_mesh(ob.data)
     if bevel and not p['rnd']:

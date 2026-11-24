@@ -1,14 +1,15 @@
 // Apex Tiger Demon and cubs: material states and the school-colour variant rule (W4, 25 Nov; art tool, not shipped yet).
 // Same mesh and UVs in every state; only materials change (GDD: the winner's colour is a material tint plus emblem, no new model).
-//   awake   : apexBronze = bronze_trim.png (fresh brass-gold), apexCrack and apexOrgan glow water-blue (SUITS.md: the cracks glow
+//   awake   : apexBronze = bronze_trim_brass.png (brass sheet), apexCrack and apexOrgan glow water-blue (SUITS.md: the cracks glow
 //             black and water-blue), apexInlay polished gold.
 //   dormant : apexBronze = apex_patina.png (same layout, patina painted over in klad), crack and organ lines dull, no glow.
 //   school  : index into CONFIG.SCHOOLS; bronze tinted toward COL.schools[i] (TINT_AWAKE / TINT_DORMANT), crack lines and organs take
 //             the school colour (glowing awake, unlit inlay asleep). Emblem decal not built (needs the emblem art).
 // Glow colour WATER is deliberately bluer and darker than the reserved hazard hue #3FE6F0 and the Howler tell 0x40e0ff.
 // CONFIG -----------------------------------------------------------------------------------------------------------------
-// School colours, index.html COL.schools (CONFIG.SCHOOLS order: ru dao fa mo yinyang za ming zongheng nong).
-export const SCHOOLS = [0xb05a2a, 0xd5a03a, 0x6a6a6a, 0x8a2a3a, 0x3a3a3a, 0xe8e8f0, 0xc060a0, 0x40c0c0, 0x9a6ad5];
+// School colours in CONFIG.SCHOOLS order (ru dao fa mo yinyang za ming zongheng nong). FIX-A: the one mapping (owner 25 Nov 02:1x) =
+// W1a's ding pigments (art/tools/ding_blender.py ACCENTS): ochre, gold, lead white, cinnabar, bone black, silver, Han purple, malachite, azurite.
+export const SCHOOLS = [0xb8862e, 0xe2b84a, 0xd9d2c3, 0xa8321e, 0x1a1614, 0xc8ccd0, 0x5b3f8c, 0x2f8a5c, 0x2e5a9c];
 // Awake crack and organ glow (water-blue) and its intensities. Round 1 used 1.4 on a dark base: read as neon lines (fails the
 // no-neon rule); round 2: the lines are gold inlay (CRACK_BASE) with a low water-blue glow, the organs a little brighter (weak points).
 export const WATER = 0x3a8fd0, CRACK_GLOW = 0.3, ORGAN_GLOW = 0.8, CRACK_BASE = 0xc9a050;
@@ -31,7 +32,9 @@ export function apexMaterials(THREE, tex, state = 'awake', school = null, brass 
   const B = brass === 2 ? BRASS2 : brass ? BRASS : null;  // brass: 0 = study values, 1 = option A, 2 = option B
   const surf = awake ? (B ? { metalness: B.metalness, roughness: B.roughness } : BRONZE) : PATINA;
   if (B && awake) tint.multiplyScalar(B.gain);
-  const bronze = new THREE.MeshStandardMaterial({ map: tex(awake ? '../../assets/tex/bronze_trim.png' : '../../assets/tex/apex_patina.png'), color: tint, ...surf });
+  // FIX-A: awake bronze = the brass sheet (owner 25 Nov 02:1x: brass for every bronze piece); tread belts on their scrolling strip
+  const bronze = new THREE.MeshStandardMaterial({ map: tex(awake ? '../../assets/tex/bronze_trim_brass.png' : '../../assets/tex/apex_patina.png'), color: tint, ...surf });
+  const tread = new THREE.MeshStandardMaterial({ map: tex('../../assets/tex/tread_belt.png'), color: awake ? 0xffffff : 0x8a8a7a, ...surf });
   const crack = awake
     ? new THREE.MeshStandardMaterial({ color: CRACK_BASE, emissive: glow, emissiveIntensity: CRACK_GLOW, metalness: 0.5, roughness: 0.4, side: THREE.DoubleSide })
     : new THREE.MeshStandardMaterial({ color: sc === null ? 0x6b5a2a : new THREE.Color(sc).multiplyScalar(0.8), metalness: 0.3, roughness: 0.7, side: THREE.DoubleSide });
@@ -40,5 +43,5 @@ export function apexMaterials(THREE, tex, state = 'awake', school = null, brass 
     : new THREE.MeshStandardMaterial({ color: 0x2a2f2a, metalness: 0.2, roughness: 0.8 });
   const inlay = awake ? new THREE.MeshStandardMaterial({ color: 0xe2b84a, metalness: 0.6, roughness: 0.35 }) : new THREE.MeshStandardMaterial({ color: 0x8a7a48, metalness: 0.3, roughness: 0.7 });
   const dark = new THREE.MeshStandardMaterial({ color: 0x1a120c, roughness: 0.9 });
-  return { apexBronze: bronze, apexCrack: crack, apexOrgan: organ, apexInlay: inlay, apexDark: dark };
+  return { apexBronze: bronze, apexCrack: crack, apexOrgan: organ, apexInlay: inlay, apexDark: dark, treadBelt: tread };
 }

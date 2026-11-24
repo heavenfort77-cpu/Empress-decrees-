@@ -22,12 +22,16 @@ const tl = new THREE.TextureLoader();
 const tex = (f, rep, flip) => { const t = tl.load(f); t.colorSpace = THREE.SRGBColorSpace; t.wrapS = t.wrapT = THREE.RepeatWrapping; t.anisotropy = 4; if (rep) t.repeat.set(rep, rep); if (flip === false) t.flipY = false; return t; };
 if (!SIL) { const floor = new THREE.Mesh(new THREE.PlaneGeometry(40, 40), new THREE.MeshStandardMaterial({ map: tex('../../assets/tex/hall_floor.png', 10), roughness: 0.9 }));
   floor.rotation.x = -Math.PI / 2; floor.receiveShadow = true; scene.add(floor); }
-const BRONZE = SIL ? null : tex('../../assets/tex/bronze_trim.png', 0, false), FOD = SIL ? null : tex('../../assets/tex/fodder_trim.png', 0, false);
+// FIX-A: bronze = the brass sheet (owner 25 Nov 02:1x); tread belts scroll (tread_belt.png, &scroll=metres forward travelled, &mpr=metres per repeat from the gates).
+const BRONZE = SIL ? null : tex('../../assets/tex/bronze_trim_brass.png', 0, false), FOD = SIL ? null : tex('../../assets/tex/fodder_trim.png', 0, false);
+const TREAD = SIL ? null : tex('../../assets/tex/tread_belt.png', 0, false), SCROLL = +(Q.get('scroll') || 0), MPR = +(Q.get('mpr') || 0.5);
 const SCHOOLS = ['ru', 'dao', 'fa', 'mo', 'yinyang', 'za', 'ming', 'zongheng', 'nong'];
-const SCOL = [0xb05a2a, 0xd5a03a, 0x6a6a6a, 0x8a2a3a, 0x3a3a3a, 0xe8e8f0, 0xc060a0, 0x40c0c0, 0x9a6ad5];
+// rebel patch colours (rebel_build.py PATCH_COL, variant i wears [i % 3]; never a school colour)
+const SCOL = SCHOOLS.map((s, i) => [0x6f6a34, 0x6a4a32, 0x8e5a52][i % 3]);
 function mat(name, school) {
   if (SIL) return new THREE.MeshBasicMaterial({ color: 0x000000 });
   if (name === 'gdBronze') return new THREE.MeshStandardMaterial({ map: BRONZE, metalness: 0.4, roughness: 0.6 });
+  if (name === 'treadBelt') { const t = TREAD.clone(); t.needsUpdate = true; t.offset.x = SCROLL / MPR; return new THREE.MeshStandardMaterial({ map: t, metalness: 0.4, roughness: 0.6 }); }
   if (name === 'gdLacquer') return new THREE.MeshStandardMaterial({ map: FOD, metalness: 0.05, roughness: 0.8 });
   if (name === 'rbPatch') return new THREE.MeshStandardMaterial({ map: FOD, roughness: 0.85, color: school != null ? SCOL[school] : 0xffffff });
   if (name === 'rbGlint') return new THREE.MeshBasicMaterial({ color: 0xffe066 });

@@ -194,6 +194,18 @@ def shell(name, L, s0, s1, t0, t1, out, thick, mat, bone, row='plain', ns=6, nt=
     return _put(name, bm, mat, bone, row, True, sep)
 
 
+def tread(name, loop, x0, x1, bone, cap_mat='apexBronze', cap_row='lozenge', thick=None):
+    """a scrolling tread belt (tread_kit.py): band faces on material treadBelt with belt UVs, flat side caps on the trim sheet.
+    Returns the belt's metres per texture repeat."""
+    import tread_kit as T
+    G = T.geometry(loop, x0, x1, thick, seg=S['seg'])
+    band, caps = T.build_bm(G, P, T.outward_for(G, loop, x0, x1))
+    _put(name + '_belt', band, 'treadBelt', bone, 'tread', True)
+    if caps is not None:
+        _put(name + '_caps', caps, cap_mat, bone, cap_row, False)
+    return G['mpr']
+
+
 # UVs, materials, joining ---------------------------------------------------------------------------------------------
 def uv_trim(ob, row):
     """per-face planar UVs at 256 px/m on the dominant axis; v inside the part's trim-sheet row (glTF image rows top-down)."""
@@ -214,7 +226,8 @@ def material(name):
 
 
 def _prep(ob, bone, mat, row, rnd, bevel):
-    uv_trim(ob, row); ob.data.materials.append(material(mat))
+    if row != 'tread': uv_trim(ob, row)  # tread belts keep their own scrolling UVs (tread_kit.py)
+    ob.data.materials.append(material(mat))
     vg = ob.vertex_groups.new(name=bone); vg.add(list(range(len(ob.data.vertices))), 1.0, 'REPLACE')
     bm = bmesh.new(); bm.from_mesh(ob.data)
     if bevel and not rnd and len(bm.faces) > 4:

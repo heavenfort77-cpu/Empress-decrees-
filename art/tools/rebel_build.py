@@ -2,7 +2,7 @@
 # and patched bootleg 甲. People on legs (the guard rolls on treads), hemp cloth weighted by automatic weights (bone heat), plates and
 # weapons rigid. Types: 黄巾力士 ls (mob; one body, nine school weapons and the school patch colour), 符水道人 fs (talisman-water healer),
 # 死士 ss (crouched assassin, yellow glint tell), 渠帅 qs (leader, yellow pennant). Windups = CONFIG.GUARD.moves / FANZEI.bootleg (read only).
-# Materials: rbCloth (assets/tex/fodder_trim.png), rbPatch (same sheet, patch row; tinted per school by instance colour), rbGlint (死士 tell).
+# Materials: rbCloth (assets/tex/fodder_trim.png), rbPatch (same sheet, patch row; tinted by PATCH_COL, never a school colour), rbGlint (死士 tell).
 # Usage: BPY rebel_build.py OUTDIR [TYPES]   -> OUTDIR/<type>.glb, OUTDIR/rebel_gates.json, OUTDIR/preview/*.npz
 import sys, os, json, math
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
@@ -24,16 +24,19 @@ RADIUS = {'ls': 0.45, 'fs': 0.45, 'ss': 0.45, 'qs': 0.55}
 HEIGHT = {'ls': (1.4, 1.85), 'fs': (1.5, 1.9), 'ss': (0.9, 1.35), 'qs': (1.6, 2.1)}
 # Leader scale (渠帅 is the biggest rebel).
 QS_SCALE = 1.12
-# School order (CONFIG.SCHOOLS) and the patch colour per school (CONFIG.COL.schools, the colour the suits wear in the game today).
+# School order (CONFIG.SCHOOLS): the nine 力士 variants carry the school's weapon (shape cue only).
 SCHOOLS = ['ru', 'dao', 'fa', 'mo', 'yinyang', 'za', 'ming', 'zongheng', 'nong']
-SCHOOL_COL = [0xb05a2a, 0xd5a03a, 0x6a6a6a, 0x8a2a3a, 0x3a3a3a, 0xe8e8f0, 0xc060a0, 0x40c0c0, 0x9a6ad5]
+# Bootleg patch colours (owner 25 Nov 02:2x: rebels use colours NOT used by the nine schools; toned to sit with the yellow headbands):
+# olive, umber, madder; CIELAB distance >= 24 to every school colour (W1a ding pigments and the game's CONFIG.COL.schools) and >= 20 to
+# the hemp; checked by art/tools/rebel_patch_check.py. Variant i wears PATCH_COL[i % 3] (patchwork, not a school code).
+PATCH_COL = [0x6f6a34, 0x6a4a32, 0x8e5a52]
 CL, PT, GL = 'rbCloth', 'rbPatch', 'rbGlint'
 
 
 # shared rebel body -----------------------------------------------------------------------------------------------------
 def body(d, hunch=0.1, chest=0.24, belly=0.22, robe=False, patch=True, hood=False, pelvis=0.9, tl=0.5, kf=0.02, knot=True, tunic='hemp', mantle=False, limb=1.0):
     """a man in hemp: tunic (cloth), trousers (cloth), sleeves (cloth); skin head and hands; yellow headband with two tails; straw sandals;
-    a rope belt; bootleg plates (one shoulder, a chest plate) where patch=True (patch material = school colour)."""
+    a rope belt; bootleg plates (one shoulder, a chest plate) where patch=True (patch material, tinted by PATCH_COL)."""
     pz = pelvis; sz = pz + tl  # shoulder height (tl = torso length; the 死士 crouches with a short, bent torso)
     hf = hunch  # how far the shoulders and head sit forward
     # tunic from the hips to the shoulders (or a robe to the ankles)
@@ -83,7 +86,7 @@ def body(d, hunch=0.1, chest=0.24, belly=0.22, robe=False, patch=True, hood=Fals
             x, f = math.sin(a) * (chest + 0.1), -math.cos(a) * (chest * 0.84) + hf - 0.03
             L = 0.18 + 0.08 * ((k * 7) % 3)
             prism(f'rag_{k}', blade(0.12, 0.03), (x, f, sz - 0.28), (x * 1.08, f * 1.08, sz - 0.28 - L), CL, 'spine', 'rope', scale_b=0.15, cloth=True)
-    if patch:  # bootleg plates: a chest plate and the left shoulder plate in the school colour, a mismatched plate on the right shoulder
+    if patch:  # bootleg plates: a chest plate and the left shoulder plate in the patch colour, a mismatched plate on the right shoulder
         prism('cplate', [(-0.14, -0.13), (0.14, -0.13), (0.16, 0.1), (0.06, 0.15), (-0.06, 0.15), (-0.16, 0.1)], (0, hf * 0.7 + chest * 0.74, pz + 0.3),
               (0, hf * 0.7 + chest * 0.74 + 0.04, pz + 0.31), PT, 'spine', 'patch')
         loft('pauld_L', [(sz - 0.14, hf, 0.11, 0.12, -(chest + 0.03)), (sz - 0.04, hf, 0.13, 0.13, -(chest + 0.02)), (sz + 0.04, hf, 0.08, 0.09, -chest)], PT, 'uarm_L', 'patch', n_exp=2.0, M=10)
@@ -125,7 +128,7 @@ def walk_idle(arm, crouch=False, idle_extra=None, idle_scl=None):
     return clip(arm, 'idle', idle, scl=idle_scl), clip(arm, 'move', move, loc=mloc, scl=idle_scl)
 
 
-# 黄巾力士 (the mob): hunched and bulky; nine school weapons (shape cue) plus the school patch colour -----------------------------------------
+# 黄巾力士 (the mob): hunched and bulky; nine school weapons (shape cue), patches in non-school colours -----------------------------------------
 LS_HUNCH = 0.12
 def ls_body(d):
     ARM.update(R=(0.32, 0.3, 0.98), L=(-0.3, 0.24, 1.02)); body(d, hunch=LS_HUNCH, chest=0.25, belly=0.24, mantle=True, limb=1.15)
@@ -233,6 +236,9 @@ def fs_clips(arm):
 
 # 死士 assassin: low crouch, hood and veil in dark cloth, two short blades held back; the yellow glint on the blades is the tell -------------
 SS_PZ, SS_HUNCH, SS_TL, SS_KF = 0.6, 0.28, 0.38, 0.24
+# Glint star across and arm thickness, m (round 5: 0.36 x 0.07 = 40 px at the fight framing, read small; FIX-A owner 25 Nov: larger,
+# 0.62 m = 68 px at 110 px/m, shown 0.2 s to the 0.6 s windup = 0.4 s of tell).
+GLINT_W, GLINT_T = 0.62, 0.11
 SS_TIP = (0.36, -0.2, 0.62)
 def ss_build(d):
     ARM.update(R=(0.34, 0.08, 0.72), L=(-0.34, 0.1, 0.74)); body(d, hunch=SS_HUNCH, chest=0.2, belly=0.18, patch=False, hood=True, pelvis=SS_PZ, tl=SS_TL, kf=SS_KF, tunic='dark')
@@ -241,8 +247,8 @@ def ss_build(d):
         prism(f'knife_{side}', blade(0.05, 0.012), g, tip, CL, bone, 'metal', scale_b=0.1)
         # glint cards: a small four-point star on each blade, scaled 0 at rest and 1 through the windup (rbGlint, bright yellow)
         c = tuple((a + b) / 2 for a, b in zip(g, tip))
-        for k, up in enumerate([(0, 0, 1), (1, 0, 0)] if d else []):  # a four-point star 0.36 m across (40 px at the fight framing); LOD0 only (static LODs cannot hide it)
-            prism(f'glint_{side}{k}', blade(0.36, 0.07), (c[0], c[1] - 0.01, c[2]), (c[0], c[1] + 0.01, c[2]), GL, 'glint_' + side, 'glint', up=up)
+        for k, up in enumerate([(0, 0, 1), (1, 0, 0)] if d else []):  # a four-point star GLINT_W across; LOD0 only (static LODs cannot hide it)
+            prism(f'glint_{side}{k}', blade(GLINT_W, GLINT_T), (c[0], c[1] - 0.01, c[2]), (c[0], c[1] + 0.01, c[2]), GL, 'glint_' + side, 'glint', up=up)
 
 def ss_bones():
     gR = ((0.34 + SS_TIP[0]) / 2, (0.08 + SS_TIP[1]) / 2, (0.72 + SS_TIP[2]) / 2); gL = ((-0.34 - 0.36) / 2, (0.1 - 0.18) / 2, (0.74 + 0.66) / 2)
@@ -332,7 +338,7 @@ if __name__ == '__main__':
         build, bones, clips_fn, sc, has_w = UNITS[k]
         Q['scale'] = sc
         res[k] = B.build_unit(k, build, bones(), clips_fn, os.path.join(OUT, f'{k}.glb'), extra(k), weapons={s: ls_weapon(s) for s in SCHOOLS} if has_w else None,
-                              extras={'schools': SCHOOLS, 'schoolColours': ['#%06x' % c for c in SCHOOL_COL]} if has_w else None)
+                              extras={'schools': SCHOOLS, 'patchColours': ['#%06x' % PATCH_COL[i % len(PATCH_COL)] for i in range(len(SCHOOLS))]} if has_w else None)
         Q['scale'] = 1.0
     if 'qs' in res:
         others = [res[k]['top'] for k in res if k != 'qs']
