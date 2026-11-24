@@ -6,7 +6,7 @@
 # Rig: pole bone (everything rigid, 100% weight) and three chained cloth bones; clip 'idle' = gentle sway, 2.0 s loop (sideways swing
 # with a lag down the cloth, and a small forward billow that never swings the cloth back into the pole).
 # Output: standard_rig + standard_lod0 (skinned), standard_lod1 and standard_lod2 (static, flat card) in one GLB.
-# Usage: /path/python-with-bpy standard_blender.py OUT.glb     (STD_MUT=tris|weights|rigid|height|loop|texel breaks one gate on purpose)
+# Usage: /path/python-with-bpy standard_blender.py OUT.glb     (STD_MUT=tris|weights|rigid|height|loop|texel|fps breaks one gate on purpose)
 import sys, os, math, json, struct
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import bpy, bmesh
@@ -130,8 +130,10 @@ def sway(arm):
             lat = math.radians(la) * math.sin(w - ph) + (0.3 if MUT == 'loop' and k == KEYS else 0.0)
             fwd = math.radians(fb + fa * (0.5 + 0.5 * math.sin(w - ph + 0.8)))
             pb.rotation_quaternion = Quaternion(Mi @ lat_ax, lat) @ Quaternion(Mi @ x_ax, -fwd)  # -fwd: billow toward the camera side
-            pb.keyframe_insert('rotation_quaternion', frame=1 + round(t * FPS))
+            pb.keyframe_insert('rotation_quaternion', frame=round(t * FPS))
     for pb in arm.pose.bones: pb.rotation_quaternion = (1, 0, 0, 0)
+    # glTF key times = frame / scene fps: keys from frame 0 at the clip fps, so the exported clip starts at 0 s and lasts LOOP s
+    sc = bpy.context.scene; sc.render.fps = 24 if MUT == 'fps' else FPS; sc.render.fps_base = 1.0; sc.frame_start = 0; sc.frame_end = KEYS
     return act
 
 
@@ -197,13 +199,13 @@ cloth_ix = [v.index for v in lod0.data.vertices if v.index not in set(pole_ix)]
 rest = [v.co.copy() for v in lod0.data.vertices]
 top_ix = [i for i in cloth_ix if rest[i].z >= BANNER_TOP - 1e-4]; bot_ix = [i for i in cloth_ix if rest[i].z <= BANNER_BOT + 1e-4]
 pm = tm = 0.0; bmax = 0.0; clear = 9.0
-last = LOOP * FPS + 1
-for fr in range(1, int(last) + 1, 2):
+last = LOOP * FPS
+for fr in range(0, int(last) + 1, 2):
     co = posed(lod0, arm, act, fr)
     pm = max(pm, max((co[i] - rest[i]).length for i in pole_ix)); tm = max(tm, max((co[i] - rest[i]).length for i in top_ix))
     bmax = max(bmax, max((co[i] - rest[i]).length for i in bot_ix))
     clear = min(clear, min(-co[i].y for i in cloth_ix) - POLE_R)  # design f = -y: cloth stays in front of the pole
-c1 = posed(lod0, arm, act, 1); c2 = posed(lod0, arm, act, int(last)); seam = max((c1[i] - c2[i]).length for i in cloth_ix)
+c1 = posed(lod0, arm, act, 0); c2 = posed(lod0, arm, act, int(last)); seam = max((c1[i] - c2[i]).length for i in cloth_ix)
 arm.animation_data.action = None
 for pb in arm.pose.bones: pb.rotation_quaternion = (1, 0, 0, 0)
 G(pm <= RIGID_MAX, f'pole rigid through the clip: max move {pm * 1000:.2f} mm (max {RIGID_MAX * 1000:.0f})')
@@ -211,9 +213,11 @@ G(tm <= TOP_MAX, f'banner top edge stays on the crossbar: max move {tm * 1000:.1
 G(SWAY_RANGE[0] <= bmax <= SWAY_RANGE[1], f'banner foot sway {bmax:.3f} m (gentle: {SWAY_RANGE})')
 G(clear >= CLEAR_MIN, f'cloth clears the pole by {clear:.3f} m through the clip (min {CLEAR_MIN})')
 G(seam <= SEAM_MAX, f'idle loop seamless: t=0 vs t={LOOP} max {seam * 1000:.2f} mm (max {SEAM_MAX * 1000:.0f}); loop {LOOP} s')
+sc = bpy.context.scene; fr0, fr1 = act.frame_range; secs = (fr1 - fr0) / (sc.render.fps / sc.render.fps_base)
+G(abs(fr0) < 1e-6 and abs(secs - LOOP) <= 0.02, f'clip keys from frame {fr0:.0f} to {fr1:.0f} at {sc.render.fps / sc.render.fps_base:.0f} fps = {secs:.2f} s from 0 s (loop {LOOP} s)')
 G(not [o for o in bpy.data.objects if o.type == 'LIGHT'], 'no lights in the file')
 G.done()
-tr = arm.animation_data.nla_tracks.new(); tr.name = 'idle'; tr.strips.new('idle', 1, act)
+tr = arm.animation_data.nla_tracks.new(); tr.name = 'idle'; tr.strips.new('idle', 0, act)
 K.export(OUT, ((l1, 3), (l2, 6)))
 glb_mask(OUT)
 print('INFO tris', n_rigid, n_card, K.tris(l1), K.tris(l2), 'sway', round(bmax, 3), 'clear', round(clear, 3))

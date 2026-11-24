@@ -40,7 +40,9 @@ let ACCENTS = ['#a8321e', '#2f8a5c', '#1a1614', '#c8ccd0', '#d9d2c3', '#b8862e',
 const SCHOOL = +(Q.get('school') || 0);
 // C12 standard banner: one atlas (assets/tex/school_standards.png, 5 x 2 cells), school = UV offset; alpha-tested cloth, never blended
 const LINEUP = Q.get('lineup') !== null;
-const BANNER_TEX = MODEL === 'standard' ? await tl.loadAsync('../../assets/tex/school_standards.png') : null;
+// &atlas=NAME swaps the banner atlas file (measurement variants only, e.g. school_standards_zacool); default the shipped atlas
+const ATLAS = /^[a-z_]+$/.test(Q.get('atlas') || '') ? Q.get('atlas') : 'school_standards';
+const BANNER_TEX = MODEL === 'standard' ? await tl.loadAsync(`../../assets/tex/${ATLAS}.png`) : null;
 function bannerMat(i, mode) {
   const t = BANNER_TEX.clone(); t.colorSpace = THREE.SRGBColorSpace; t.flipY = false; t.wrapS = t.wrapT = THREE.ClampToEdgeWrapping; t.anisotropy = 4;
   t.offset.set((i % 5) * 0.2, Math.floor(i / 5) * 0.5); t.needsUpdate = true;
@@ -161,17 +163,19 @@ async function lineup() {
   player.position.x = 7.9; scene.add(player);
   const pitch = 40 * Math.PI / 180, look = new THREE.Vector3(-0.4, SPEC.lookY, 0.6), dist = VIEW === 'wide' ? 22 : 10.5;
   cam.position.set(look.x, look.y + Math.sin(pitch) * dist, look.z + Math.cos(pitch) * dist); cam.lookAt(look); cam.updateMatrixWorld();
-  const boxes = [];
+  // boxes: screen bounding box per banner; quads: its rest-pose corners on screen (top-left, top-right, bottom-left, bottom-right of the
+  // atlas cell), so standard_check.py can rectify the perspective before comparing with the painted cell
+  const boxes = [], quads = [];
   for (let i = 0; i < 9; i++) {
-    let a = [1e9, 1e9, -1e9, -1e9];
-    for (const [dx, y] of [[-0.4, 1.3], [0.4, 1.3], [-0.4, 3.3], [0.4, 3.3]]) {
+    let a = [1e9, 1e9, -1e9, -1e9]; const q = [];
+    for (const [dx, y] of [[-0.4, 3.3], [0.4, 3.3], [-0.4, 1.3], [0.4, 1.3]]) {
       const v = new THREE.Vector3((i - 4) * GAP + dx, y, 0.075).project(cam), px = (v.x + 1) / 2 * W, py = (1 - v.y) / 2 * H;
-      a = [Math.min(a[0], px), Math.min(a[1], py), Math.max(a[2], px), Math.max(a[3], py)];
+      a = [Math.min(a[0], px), Math.min(a[1], py), Math.max(a[2], px), Math.max(a[3], py)]; q.push([px, py]);
     }
-    boxes.push(a);
+    boxes.push(a); quads.push(q);
   }
   const bm = bannerMat(0, MODE);
-  window.__dump = { boxes, banner: { alphaTest: bm.alphaTest, transparent: bm.transparent, blending: bm.blending, depthWrite: bm.depthWrite, side: bm.side } };
+  window.__dump = { boxes, quads, banner: { alphaTest: bm.alphaTest, transparent: bm.transparent, blending: bm.blending, depthWrite: bm.depthWrite, side: bm.side } };
   setTimeout(() => { r.render(scene, cam); window.__ready = true; }, 800);
 }
 </script></body></html>

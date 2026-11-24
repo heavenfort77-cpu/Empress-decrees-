@@ -4,15 +4,17 @@
                          alpha-tested cloth (solid inside, partial alpha only on the antialiased edge); three tongues per banner;
                          field colour = the school accent (dE <= 8); sigil contrast with the field (L* >= 30) and size; nine schools
                          distinct: field colour dE >= 10 and sigil silhouette IoU < 0.75 (max over +-8 px shifts) for all 36 pairs.
-  crops SHOTDIR        : the lineup play shot (FOV 50, pitch 40, 10.5 m) and its banner boxes (lineup.json from the viewer):
-                         sigil box at least 24 px tall; the sigil survives at play size (IoU with the painted sigil >= 0.45); rendered
+  crops SHOTDIR        : the lineup play shot (FOV 50, pitch 40, 10.5 m) and its banner corners (lineup.json from the viewer): each
+                         banner is rectified from its projected quad back to cell shape at play resolution (round 1 compared the
+                         sheared banner with the upright cell and so misaligned them); sigil box at least 24 px tall; the sigil
+                         survives at play size (IoU with the painted sigil >= 0.75); rendered
                          field dE >= 10 and rendered sigil IoU < 0.75 for all 36 pairs; writes crops_<school>.png for the sheet.
-  --mut dup|blend|flat|bleed|tongue  breaks the input on purpose (must FAIL).
-Usage: python3 standard_check.py tex ATLAS.png [--mut X] | python3 standard_check.py crops SHOTDIR ATLAS.png [--mut dup]
+  --mut dup|blend|flat|bleed|tongue (tex), dup|blur (crops)  breaks the input on purpose (must FAIL). --shot NAME: another lineup shot.
+Usage: python3 standard_check.py tex ATLAS.png [--mut X] | python3 standard_check.py crops SHOTDIR ATLAS.png [--mut dup|blur] [--shot NAME]
 """
 import itertools, json, os, sys
 import numpy as np
-from PIL import Image
+from PIL import Image, ImageFilter
 
 # CONFIG ---------------------------------------------------------------------------------------------------------------
 # Atlas layout (standard_tex.py): 5 x 2 cells, 6 px margin, heading band 30 px, tongues 78 px, sigil centre 0.40 of the cell, half 74 px.
@@ -21,9 +23,12 @@ SCHOOLS = [('ru', '#b8862e'), ('dao', '#e2b84a'), ('fa', '#d9d2c3'), ('mo', '#a8
            ('ming', '#5b3f8c'), ('zongheng', '#2f8a5c'), ('nong', '#2e5a9c')]
 # Limits: field vs accent dE, pairwise field dE, sigil L* contrast, sigil coverage of its box, IoU, partial-alpha share, play-size rules.
 ACC_DE, PAIR_DE, SIG_CONTRAST, SIG_COVER, IOU_MAX, PARTIAL_MAX = 8, 10, 30, (0.08, 0.5), 0.75, 0.06
-PLAY_SIG_PX, PLAY_FIDELITY = 24, 0.45
+# Play-size rules: sigil box px; sigil IoU with the painted sigil after rectifying (round 2: raised 0.45 -> 0.75 once the banners were
+# registered; a 3 px blur of the shot must fail it).
+PLAY_SIG_PX, PLAY_FIDELITY = 24, 0.75
 
 MUT = sys.argv[sys.argv.index('--mut') + 1] if '--mut' in sys.argv else ''
+SHOT = sys.argv[sys.argv.index('--shot') + 1] if '--shot' in sys.argv else 'lineup'
 fails = n = 0
 def rule(ok, line):
     global fails, n
@@ -42,6 +47,15 @@ def iou_shift(a, b, sh, step):
         for dx in range(-sh, sh + 1, step):
             bb = np.roll(np.roll(b, dy, 0), dx, 1); u = (a | bb).sum(); best = max(best, (a & bb).sum() / u if u else 0)
     return best
+
+def rectify(img, quad, w, h):
+    """the banner's projected quad (tl, tr, bl, br on screen) resampled (nearest) to an upright w x h cell-shaped image."""
+    src = [(0, 0), (w, 0), (0, h), (w, h)]; A = []; b = []
+    for (u, v), (x, y) in zip(src, quad):
+        A.append([u, v, 1, 0, 0, 0, -u * x, -v * x]); b.append(x); A.append([0, 0, 0, u, v, 1, -u * y, -v * y]); b.append(y)
+    co = np.linalg.solve(np.array(A, float), np.array(b, float))
+    return np.asarray(img.transform((w, h), Image.PERSPECTIVE, tuple(co), Image.NEAREST))
+
 
 def cell_geom(i, W=1024, H=1024):
     cw, ch = W / GRID[0], H / GRID[1]; return (i % GRID[0]) * cw, (i // GRID[0]) * ch, cw, ch
@@ -98,15 +112,21 @@ if sys.argv[1] == 'tex':
     rule(nio == 36, f'sigil silhouettes distinct: {nio} of 36 pairs IoU < {IOU_MAX} (max {ious[0][1]}-{ious[0][2]} {ious[0][0]:.2f}, next {ious[1][1]}-{ious[1][2]} {ious[1][0]:.2f})')
 else:
     D = sys.argv[2]; atlas = np.asarray(Image.open(sys.argv[3]).convert('RGBA'))
-    shot = np.asarray(Image.open(os.path.join(D, 'lineup.png')).convert('RGBA')).copy(); boxes = json.load(open(os.path.join(D, 'lineup.json')))['boxes']
+    shot = np.asarray(Image.open(os.path.join(D, SHOT + '.png')).convert('RGBA')).copy(); dump = json.load(open(os.path.join(D, SHOT + '.json')))
+    boxes, quads = dump['boxes'], dump['quads']
     if MUT == 'dup':
         b0, b1 = boxes[0], boxes[1]; w, h = int(b0[2] - b0[0]), int(b0[3] - b0[1])
         shot[int(b1[1]):int(b1[1]) + h, int(b1[0]):int(b1[0]) + w] = shot[int(b0[1]):int(b0[1]) + h, int(b0[0]):int(b0[0]) + w]
+    if MUT == 'blur': shot = np.asarray(Image.fromarray(shot).filter(ImageFilter.GaussianBlur(3))).copy()
+    shot_im = Image.fromarray(shot); pre = '' if SHOT == 'lineup' else SHOT + '_'
     fields, masks = [], []
     for i, (nm, acc) in enumerate(SCHOOLS):
-        x0, y0, x1, y1 = [int(round(v)) for v in boxes[i]]; crop = shot[y0:y1, x0:x1]; ch, cw = crop.shape[:2]
-        Image.fromarray(crop).save(os.path.join(D, f'crop_{nm}.png'))
-        x, y, acw, ach = cell_geom(i); cell = atlas[int(round(y)):int(round(y + ach)), int(round(x)):int(round(x + acw))]
+        x0, y0, x1, y1 = [int(round(v)) for v in boxes[i]]
+        Image.fromarray(shot[y0:y1, x0:x1]).save(os.path.join(D, f'{pre}crop_{nm}.png'))
+        q = quads[i]; ch = int(round(np.hypot((q[2][0] + q[3][0] - q[0][0] - q[1][0]) / 2, (q[2][1] + q[3][1] - q[0][1] - q[1][1]) / 2)))
+        x, y, acw, ach = cell_geom(i); cw = int(round(ch * acw / ach))
+        crop = rectify(shot_im, q, cw, ch); Image.fromarray(crop).save(os.path.join(D, f'{pre}rect_{nm}.png'))
+        cell = atlas[int(round(y)):int(round(y + ach)), int(round(x)):int(round(x + acw))]
         ref = np.asarray(Image.fromarray(cell).resize((cw, ch), Image.NEAREST))
         k = ch / ach
         rf, rmask, rsl, fz = analyse(ref, cw, ch, k)
@@ -118,6 +138,8 @@ else:
         fields.append(field); masks.append(np.asarray(Image.fromarray(mask.astype(np.uint8) * 255).resize((40, 40), Image.NEAREST)) > 127)
     worst = min((float(np.linalg.norm(fields[i] - fields[j])), SCHOOLS[i][0], SCHOOLS[j][0]) for i, j in itertools.combinations(range(9), 2))
     nde = sum(float(np.linalg.norm(fields[i] - fields[j])) >= PAIR_DE for i, j in itertools.combinations(range(9), 2))
+    ifa, iza = [k_ for k_, (nm_, _) in enumerate(SCHOOLS) if nm_ in ('fa', 'za')]
+    print(f'INFO {SHOT} fa-za field dE {float(np.linalg.norm(fields[ifa] - fields[iza])):.1f} in play')
     rule(nde == 36, f'play field colours distinct: {nde} of 36 pairs dE >= {PAIR_DE} (closest {worst[1]}-{worst[2]} {worst[0]:.1f})')
     ious = sorted(((iou_shift(masks[i], masks[j], 2, 1), SCHOOLS[i][0], SCHOOLS[j][0]) for i, j in itertools.combinations(range(9), 2)), reverse=True)
     nio = sum(v < IOU_MAX for v, _, _ in ious)

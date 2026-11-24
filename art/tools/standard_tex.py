@@ -7,13 +7,18 @@ One 1024 x 1024 alpha atlas, 5 x 2 cells of 204.8 x 512 px (0.8 x 2.0 m at 256 p
 Each banner: the school's accent as the field (the owner's one school mapping, 25 Nov: the 鼎 accents), a Qin-black
 heading band with bronze ties, black side hems and a hem over three tongues (alpha cut), shallow cloth folds, and an invented sigil in
 black or bone (whichever contrasts with the field). Sigils are pictures and abstract marks drawn as filled shapes (no calligraphy, no
-characters): ru a ritual cauldron, dao a spiral, fa a balance, mo a wall with a gate, yinyang a sun disc over a moon ring, za nine dots,
+characters): ru a ritual cauldron, dao a spiral, fa a balance, mo a wall with a gate, yinyang a sun disc beside a moon ring over a horizon bar, za nine dots,
 ming a diamond holding a point, zongheng two crossed arrows, nong a ripe grain ear with two leaves.
 Usage: python3 standard_tex.py OPSDIR   then  python3 paint_palace.py KLAD OPSDIR SRCDIR OUTDIR STRIPDIR school_standards
 Checked by art/tools/standard_check.py.
 """
 import math, os, sys
 OPS = sys.argv[1]
+# Measurement-only variant for the owner (never shipped unless chosen): STD_VARIANT=zacool writes school_standards_zacool with za's
+# silver laid cooler and darker, to measure how far fa (lead white) and za (silver) part in play (round 1: dE 7.2 in play, 11.1 on the atlas).
+VARIANT = os.environ.get('STD_VARIANT') == 'zacool'
+# The za field in that variant (owner's silver is #c8ccd0).
+ZA_COOL = '#b2bccb'
 sys.argv = [sys.argv[0], OPS, '1024']
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import palace_tex as P
@@ -112,8 +117,8 @@ def sigil(t, kind, cx, cy, s, c):
         gate = [(-0.27, 0.62), (0.27, 0.62), (0.27, 0.22)] + [(math.cos(a) * 0.27, 0.22 - math.sin(a) * 0.27) for a in [k * math.pi / 10 for k in range(11)]] + [(-0.27, 0.22)]
         fill(t, [U(wall), U(gate)], c)
         for a in (-0.92, -0.42, 0.12, 0.62): fill(t, [U([(a, -0.58), (a + 0.3, -0.58), (a + 0.3, -0.18), (a, -0.18)])], c)
-    elif kind == 'yinyang':  # sun disc over a moon ring
-        disc(0, -0.46, 0.46); ring(0, 0.5, 0.4, 0.17)
+    elif kind == 'yinyang':  # sun disc beside a moon ring over a horizon bar (round 1 stacked them and read as a numeral 8 at play size)
+        disc(-0.46, -0.12, 0.4); ring(0.46, -0.12, 0.34, 0.15); line([(-0.86, 0.5), (0.86, 0.5)], 0.14)
     elif kind == 'za':  # nine dots
         for i in (-1, 0, 1):
             for j in (-1, 0, 1): disc(i * 0.62, j * 0.62, 0.19)
@@ -141,9 +146,10 @@ def sigil(t, kind, cx, cy, s, c):
 
 def school_standards():
     """stages run outer and schools inner, so the passes strip has four frames (base, tone, marks, all nine schools each)."""
-    t = P.Tex('school_standards', 'none', False, False, 1201); r = t.r
+    t = P.Tex('school_standards' + ('_zacool' if VARIANT else ''), 'none', False, False, 1201); r = t.r
     cells = []
     for i, (kind, acc) in enumerate(SCHOOLS):
+        if VARIANT and kind == 'za': acc = ZA_COOL
         cx0, cy0 = (i % GRID[0]) * CW, (i // GRID[0]) * CH
         x0, y0, x1, y1 = cx0 + MARGIN, cy0 + MARGIN, cx0 + CW - MARGIN, cy0 + CH - MARGIN
         body, tongues, yt = banner_outline(x0, y0, x1, y1)

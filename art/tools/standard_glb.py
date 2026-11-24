@@ -3,7 +3,7 @@
 PASS/FAIL per rule: LOD0 skinned on 4 joints, LOD1/LOD2 static; triangles per LOD; banner material alpha-tested (alphaMode MASK, cutoff
 0.5, double sided, no BLEND anywhere); height in the hall range (glTF y up); banner UVs inside atlas cell 0; skin weights sum 1 on every
 vertex; clip 'idle' 2.0 s, only cloth joints animated (the pole channel, if written, is constant); extras: nine schools in CONFIG order.
-Usage: python3 standard_glb.py FILE.glb [--mut blend|skin|clip|uv|schools]   (--mut breaks the parsed file on purpose: must FAIL)
+Usage: python3 standard_glb.py FILE.glb [--mut blend|skin|clip|late|uv|schools]   (--mut breaks the parsed file on purpose: must FAIL)
 """
 import json, struct, sys
 
@@ -32,6 +32,7 @@ def read(i):
 if MUT == 'blend': [m.update(alphaMode='BLEND') for m in g['materials'] if m.get('name') == 'palBanner']
 if MUT == 'skin': [n.pop('skin', None) for n in g['nodes']]
 if MUT == 'clip': g['animations'] = []
+if MUT == 'late': [g['accessors'][sm['input']].update(min=[1 / 24]) for an_ in g.get('animations', []) for sm in an_['samplers']]  # round-1 bug: keys from frame 1
 if MUT == 'schools': [n['extras'].update(schools='ru,dao') for n in g['nodes'] if n.get('extras', {}).get('schools')]
 fails = n_ = 0
 def rule(ok, line):
@@ -67,12 +68,12 @@ for p in g['meshes'][l0['mesh']]['primitives']:
 rule(wbad == 0 and nv > 0, f'lod0 skin weights sum 1 on {nv - wbad} of {nv} vertices (4 per vertex max by format)')
 an = {a['name']: a for a in g.get('animations', [])}; idle = an.get('idle')
 if idle:
-    dur = max(A[s['input']]['max'][0] for s in idle['samplers']); jn = {j: g['nodes'][j]['name'] for j in skin['joints']} if skin else {}
+    t0 = min(A[s['input']]['min'][0] for s in idle['samplers']); dur = max(A[s['input']]['max'][0] for s in idle['samplers']); jn = {j: g['nodes'][j]['name'] for j in skin['joints']} if skin else {}
     moving = set()
     for ch in idle['channels']:
         out = read(idle['samplers'][ch['sampler']]['output'])
         if max(max(abs(a - b) for a, b in zip(o, out[0])) for o in out) > 1e-5: moving.add(g['nodes'][ch['target']['node']]['name'])
-    rule(abs(dur - LOOP) <= 0.04 and moving and all(m.startswith('cloth_') for m in moving), f'clip idle {dur:.2f} s (loop {LOOP}), animated joints {sorted(moving)} (pole still)')
+    rule(abs(t0) <= 1e-3 and abs(dur - LOOP) <= 0.04 and moving and all(m.startswith('cloth_') for m in moving), f'clip idle {t0:.2f}-{dur:.2f} s (from 0, loop {LOOP}), animated joints {sorted(moving)} (pole still)')
 else:
     rule(False, f'clip idle missing (clips {sorted(an)})')
 ex = [n.get('extras', {}) for n in g['nodes'] if n.get('extras', {}).get('schools')]

@@ -9,17 +9,22 @@ echo "== klad atlas"
 python3 art/tools/standard_tex.py /tmp/ops
 python3 art/tools/paint_palace.py "$KLAD" /tmp/ops "$OUT/src" assets/tex "$OUT/passes" school_standards
 cp assets/tex/school_standards.png "$OUT/"
+# measurement-only variant for the owner (za silver laid cooler): painted for the lineup_zacool shot, never committed unless chosen
+STD_VARIANT=zacool python3 art/tools/standard_tex.py /tmp/ops
+python3 art/tools/paint_palace.py "$KLAD" /tmp/ops "$OUT/src" assets/tex "$OUT/passes" school_standards_zacool
+cp assets/tex/school_standards_zacool.png "$OUT/"
 echo "== tex check"; python3 art/tools/standard_check.py tex assets/tex/school_standards.png | tee "$OUT/tex_check.txt"
 for m in dup blend flat bleed tongue; do echo "tex mutation $m: $(python3 art/tools/standard_check.py tex assets/tex/school_standards.png --mut $m | grep -c '^FAIL') FAIL lines (must be > 0)"; done | tee "$OUT/tex_mut.txt"
 echo "== builder"; $BPY art/tools/standard_blender.py "$PWD/assets/models/standard.glb" 2>&1 | grep -E "^(PASS|FAIL)|of [0-9]+ pass|wrote|INFO|Error|Traceback|line [0-9]" | tee "$OUT/build_gates.txt"
 cp assets/models/standard.glb "$OUT/"
-for m in tris weights rigid height loop texel; do echo "build mutation $m: $(STD_MUT=$m $BPY art/tools/standard_blender.py /tmp/mut_$m.glb 2>&1 | grep -c '^FAIL') FAIL lines (must be > 0)"; done | tee "$OUT/build_mut.txt"
+for m in tris weights rigid height loop texel fps; do echo "build mutation $m: $(STD_MUT=$m $BPY art/tools/standard_blender.py /tmp/mut_$m.glb 2>&1 | grep -c '^FAIL') FAIL lines (must be > 0)"; done | tee "$OUT/build_mut.txt"
 echo "== glb re-read"; python3 art/tools/standard_glb.py assets/models/standard.glb | tee "$OUT/glb_check.txt"
-for m in blend skin clip uv schools; do echo "glb mutation $m: $(python3 art/tools/standard_glb.py assets/models/standard.glb --mut $m | grep -c '^FAIL') FAIL lines (must be > 0)"; done | tee "$OUT/glb_mut.txt"
+for m in blend skin clip late uv schools; do echo "glb mutation $m: $(python3 art/tools/standard_glb.py assets/models/standard.glb --mut $m | grep -c '^FAIL') FAIL lines (must be > 0)"; done | tee "$OUT/glb_mut.txt"
 echo "== shots (brass sheet)"; node art/tools/shoot_viewer.mjs "$OUT/shots" standard sheet=brass 2>&1 | tee "$OUT/shots.txt"
 echo "== play-size check"
-echo "play mutation dup: $(python3 art/tools/standard_check.py crops "$OUT/shots" assets/tex/school_standards.png --mut dup | grep -c '^FAIL') FAIL lines (must be > 0)" | tee "$OUT/play_mut.txt"
+for m in dup blur; do echo "play mutation $m: $(python3 art/tools/standard_check.py crops "$OUT/shots" assets/tex/school_standards.png --mut $m | grep -c '^FAIL') FAIL lines (must be > 0)"; done | tee "$OUT/play_mut.txt"
 python3 art/tools/standard_check.py crops "$OUT/shots" assets/tex/school_standards.png | tee "$OUT/play_check.txt"
+echo "== za cool variant (owner option, measurement only)"; python3 art/tools/standard_check.py crops "$OUT/shots" assets/tex/school_standards_zacool.png --shot lineup_zacool | tee "$OUT/play_zacool.txt"
 echo "== sheets"; python3 art/tools/standard_sheet.py "$OUT/shots" "$OUT/sheets"
 # leave the checkout clean (the workflow switches to ci-out after this script)
 git checkout -q -- . && git clean -qfd assets art
