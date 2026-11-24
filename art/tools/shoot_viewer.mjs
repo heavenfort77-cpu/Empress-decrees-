@@ -1,5 +1,5 @@
 // Screenshots of art/viewer/beast.html (art tool). Serves the repo root and saves one PNG per shot.
-// Usage: node art/tools/shoot_viewer.mjs OUTDIR [MODEL] [EXTRA]   (MODEL beast (default) | ding | vat; EXTRA = query added to every shot,
+// Usage: node art/tools/shoot_viewer.mjs OUTDIR [MODEL] [EXTRA] [ONLY]   (MODEL beast (default) | ding | vat; EXTRA = query added to every shot,
 // e.g. metal=0.2; software GL locally: look only, no frame rate)
 import { createServer } from 'node:http';
 import { readFile, mkdir } from 'node:fs/promises';
@@ -24,8 +24,15 @@ const SHOTS = {
     ...[0, 1, 2, 3, 4, 5, 6, 7, 8].map((i) => [`school_${i}`, `view=turn&yaw=20&pitch=30&school=${i}`, 320, 320])],
   vat: [['play_intact', 'view=play&state=intact', 1920, 1080], ['play_cracked', 'view=play&state=cracked', 1920, 1080], ['play_shards', 'view=play&state=shards', 1920, 1080], ['wide', 'view=wide', 1920, 1080],
     ...TURN(''), ['turn_cracked', 'view=turn&yaw=35&state=cracked', 640, 640], ['turn_shards', 'view=turn&yaw=35&pitch=40&state=shards', 640, 640], ...PASSES, ['lods', 'view=lods', 1280, 640]],
+  // W1b props
+  crane: [['play', 'view=play', 1920, 1080], ['wide', 'view=wide', 1920, 1080], ...TURN(''), ...PASSES, ['lods', 'view=lods', 1280, 640]],
+  huabiao: [['play', 'view=play', 1920, 1080], ['play_awake', 'view=play&t=0.5&eye=awake', 1920, 1080], ['wide', 'view=wide', 1920, 1080], ...TURN(''),
+    ['head_asleep', 'view=turn&yaw=0&pitch=20', 640, 640], ['head_awake', 'view=turn&yaw=0&pitch=20&t=0.5&eye=awake', 640, 640], ...PASSES, ['lods', 'view=lods', 1280, 640]],
+  censer: [['play', 'view=play', 1920, 1080], ['wide', 'view=wide', 1920, 1080], ...TURN(''), ...PASSES, ['lods', 'view=lods', 1280, 640]],
 }[MODEL];
-for (const [name, q, w, h] of SHOTS) {
+// ONLY (5th argument): a comma list of shot names to take (e.g. play for the one default-sheet shot)
+const ONLY = process.argv[5] ? process.argv[5].split(',') : null;
+for (const [name, q, w, h] of SHOTS.filter(([n]) => !ONLY || ONLY.includes(n))) {
   const page = await browser.newPage({ viewport: { width: w, height: h } });
   const errs = []; page.on('pageerror', (e) => errs.push(String(e))); page.on('console', (m) => { if (m.type() === 'error') errs.push(m.text()); });
   await page.goto(BASE + '?model=' + MODEL + '&' + q + EXTRA);

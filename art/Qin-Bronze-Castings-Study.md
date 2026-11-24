@@ -184,6 +184,55 @@ art/vat/round1/: vat_round1_sheet.png, play_intact.png, play_cracked.png, play_s
 ### Open
 - Owner: height (1.10 m now), sheet pick. Integration (not tonight): shards thrown on the splash from a pool, body hidden, cracks shown for crackS, all warmed under the loading card.
 
+## W1b props: shared method (25 Nov 2026, overnight worker W1b; owner asleep, nothing approved, nothing in the game)
+- Same route as W1a: ComfyUI concept round (reference only) -> measure -> own Blender script -> klad textures -> gates PASS/FAIL -> viewer shots -> honest verdict. Helpers from beast_blender.py, ding_blender.py and vat_blender.py are gathered in **art/tools/prop_kit.py** (lathe, spheroid, torus, prism, loft, trim-sheet UVs, finish, LODs, gates) plus sweep() (round tube along a curved path with a radius per point and an optional side axis) and card() (0-1 UV quads).
+- ComfyUI round E (run 45441170013, SD 1.5 + LCM, 6 steps, 32 images; branch ci-comfy-w1b): job 0 crane, job 1 censer, job 2 water clock, job 3 huabiao. Picks and two alternates per asset in art/<asset>/concepts/ with the full contact sheet. Measuring: numpy segmentation failed on the gradient backgrounds, so proportions were read by eye off the contact sheets (labelled so below).
+- Cards (new textures, klad): **assets/tex/smoke_card.png** and **flame_card.png**, 256 px RGBA, painted on a 1024 canvas by art/tools/w1b_tex.py (sources art/src/smoke_card.klad, flame_card.klad). Checked by **art/tools/card_check.py** (own rules, not tex_check: soft edge, coverage 15-60%, smoke warm grey luminance 120-200 and saturation <= 0.12, flame core luminance >= 200, body hue 20-50, rim saturation <= 0.75 so not neon): **14 of 14 PASS**. Mutation-tested: the flame copied in as smoke fails 2 rules; a hard-edged square card fails soft edge and coverage. Draft 1 failed 4 rules (smoke too small; flame read as a cone, rim too saturated); the first smoke draft's two mirrored curls read as a pair of eyes (now one curl, off centre).
+- Viewer: art/viewer/beast.html takes the W1b models (crane, censer, huabiao, clock, lamp, bells, tally, merc) with materials palSmoke, palFlame, palCinnabar, palLacquer (approved pillar texture A3), palEye (asleep dark / &eye=awake gold), palGold, palMerc (matcap); cards show only in the textured view. shoot_viewer.mjs takes a 5th argument ONLY (shot names). The beast, ding and vat specs are unchanged.
+- Sheet: every play shot uses &sheet=brass (as W1a's); play_default_sheet.png shows the current sheet. Same owner choice as W1a's.
+
+## 铜鹤 crane (C4), round 1 (W1b; not approved)
+GDD: smoke source; the cloud blocks sight, anyone can hide in it, few small smoke cards (BURNING-PALACE "Palace pieces"; CONFIG.PIECES.smoke r 3 m, opacity 0.55). Box crane: base 0.8 m, body at 2.3 m, neck to 3.5 m; solid 1.2 x 1.2 m.
+- Concept: pick **5103** (slender standing crane, long legs, upright neck, long sweeping wing point); alternates **5102** (wings raised, round plinth), **5106** (round body on long legs). Read by eye on 5103: legs about 0.4 of the height, body 0.25, neck and head 0.35. Built: plinth 0.10, legs 0.37, body 0.19, neck and head 0.34 of 2.91 m. Qin reference: the bronze waterfowl of the First Emperor's tomb (pit K0007), reference only.
+- Build (art/tools/crane_blender.py): standing crane in profile (faces +x so neck and beak read from the play camera), egg body, S-neck sweep, sharp open beak (smoke comes out of it), thin legs with hock joints and sharp toes, upright wing plates sweeping to a long point (round 1b; the draft's lozenge-stamped short wings read as scales or a pineapple, the first draft's were flat shelves), silver inlay collar, wing edges and eyes, a cinnabar crown (decoration), turned plinth with cloud band. Node crane_smoke (3 cards, 0.9 / 1.3 / 1.8 m, tilted 40 deg to the play camera) and empty crane_smoke_src at the beak tip (where the game's cloud starts).
+- Gates (crane_blender.py) **10 of 10**: tris 1362 / 417 / 161 (budget 1500 / 500 / 200); footprint below 1.25 m 1.12 x 1.10 (solid 1.2), overhang above it 0.40 m (max 0.45); height 2.91 m; 3 smoke cards from 2.68 m (above a suit's head); smooth 67%; sharp faces 260; inlay and cinnabar on LOD0, inlay on LOD1.
+- Files: art/crane/round1/ (crane_round1_sheet.png, play, play_default_sheet, wide, turn_*, pass_*, lods, gates.txt), assets/models/crane.glb.
+| Criterion | Round 1 | Result |
+|---|---|---|
+| Reads as a cast-bronze crane at play size | neck, beak, legs and plinth read in play.png; Qin waterfowl proportions | PASS |
+| Smoke source, few small cards | 3 cards rising from the beak; reads as a soft column of puffs, still three separate puffs at play size | PASS (puffs separate) |
+| Round where round, sharp where sharp | body, neck, legs smooth; beak, toes, feather points, plinth lip sharp | PASS |
+| Segmented casting cues | inlay collar, wing-edge inlay, cloud band on the plinth; body plates plain; the neck sweep shows small kinks from the side | PASS (weak: plain body) |
+| Fits the solid, above-head smoke | gates | PASS |
+- Open: the hide cloud itself (r 3 m) is still the game's icosahedra; a cloud made of 4-5 large smoke cards would match the plume (integration decision). Not done: game integration, phone texture, real-GPU shots.
+
+## 香炉 censer (C4), round 1 (W1b; not approved)
+- Concept: pick **5208** (豆-form bowl on stem and foot); alternates **5205** (lidded pot with finial on a stepped stand), **5202** (lidded bowl on a stand). Qin first: Warring States 豆-form incense burner; the Han 博山炉 mountain lid is later, so our lid is our own: two tiers of flame-cloud tongues over a dark dome (reads as pierced openwork), a bird-knob finial.
+- Build (art/tools/censer_blender.py): turned foot (lozenge band), stem with knot, bowl (cloud band), flange lid ring with silver inlay, two 铺首 mask-and-ring handles at 45 deg; censer_smoke (4 cards) and censer_smoke_src. Drafts: spiky flat tongues with round black holes read as a sea mine; the tongues' section was squashed the wrong way (fixed: sweep side axis).
+- Gates (censer_blender.py) **9 of 9**: tris 1234 / 472 / 164; footprint 1.16 x 1.16 (solid 1.2); height 1.76 m (box 1.5); 4 smoke cards; smooth 94%; tongue tips 0.27 m clear of the dome, sharp faces 40 (this gate replaced the draft's "sharp faces >= 80" when the tongues changed on purpose from spikes to rounded cloud tongues: stated here, not hidden); openwork dark dome on LOD0 and LOD1, inlay ring on LOD0.
+- Files: art/censer/round1/ (censer_round1_sheet.png and shots, gates.txt), assets/models/censer.glb.
+| Criterion | Round 1 | Result |
+|---|---|---|
+| Reads as a bronze incense burner at play size | foot, stem, bowl, openwork lid read in play.png | PASS |
+| Smoke source, few small cards | 4 cards from the lid top | PASS |
+| Qin-first look, not Ming/Qing | 豆 form, cloud band, mask-and-ring handles; the lid reads a little like a lotus crown | PASS (lid: owner to judge) |
+| Round where round, sharp where sharp | turned body smooth; tongue tips, finial beak and tail sharp | PASS |
+
+## 华表 pillar with a watching beast (C6), round 1 (W1b; not approved)
+GDD: the beast on top watches its room; passing it marks you (CONFIG.PIECES.huabiao: range 3 m, radius 3.5 m, windup 0.5 s with the red ring and its eyes, markS 5 s). Box: base 1.4 x 0.4 x 1.4 m, column r 0.45 to 5.4 m, crossbar 4.4 m, beast box at 5.7 m, eyes 5.85 m; solid 1.4 x 1.4 m.
+- Concept: pick **5403** (a beast on a black column); alternates **5405** (bronze ring bands on a black column), **5408** (relief panels). SD 1.5 gave mostly plain columns. Read by eye: on 5405 the ring bands are about 1.7 x the column width (built 1.35 x: sleeves r 0.405 on r 0.3); on 5403 the beast is about 2 x the column width long (built 0.65 m body on 0.6 m column, plus mane).
+- Build (art/tools/huabiao_blender.py): turned octagonal stone plinth; black-lacquer timber column with the approved pillar texture (A3, u once around); three cast bronze 釭 sleeves (flange lips, cloud band, 6 cm silver inlay ring); a bronze cloud board through the column with curled ends; a dew disc; a seated bronze beast facing the room (haunches, straight forelegs, sharp claws, mane tongues down the back). The head is its own node (huabiao_head, child of huabiao_lod0; huabiao_head_lod1 on LOD1; LOD2 merged), pivot at the neck; clip **watch** dips it 22 deg and turns it 35 deg in the 0.5 s windup. Eyes are inlay material **palEye**: dark bronze asleep, gold inlay with a low warm emissive awake (viewer &eye=awake) - not neon. Round 1b head: broad skull, short snout, V brows, a collar of flame tongues, short swept horns (the draft's long snout and tall horns read as a jackal).
+- Gates (huabiao_blender.py) **10 of 10**: tris LOD0 + head 1284, LOD1 + head 496, LOD2 168 (budget 1500 / 500 / 200); footprint below 2.2 m 1.36 x 1.36 (solid 1.4), cloud board overhang 0.35 m above heads (max 0.5); height 6.2 m; palEye on LOD0 and LOD1 heads, eyes 13 cm across (min 12); head nodes parented, clip watch 30 frames to the windup at 60 fps; watch moves the eyes 14 cm sideways and 9 cm down; lacquer, bronze, inlay and stone materials; smooth 80%.
+- Files: art/huabiao/round1/ (huabiao_round1_sheet.png, play, play_awake (t 0.5, eyes awake), play_default_sheet, head_asleep, head_awake, wide, turn_*, pass_*, lods, gates.txt), assets/models/huabiao.glb, art/huabiao/concepts/.
+| Criterion | Round 1 | Result |
+|---|---|---|
+| A watching beast that reads at play size | seated maned beast facing the room on top of the column; the head turn reads in play_awake.png | PASS |
+| Eye cue is inlay, not neon | gold inlay awake vs dark asleep; at the fight framing the eyes are about 14 px across, visible but small - the head turn carries most of the tell | PASS (small) |
+| Bronze-banded timber pillar, cloud-scroll trim | lacquer column, three bronze sleeves with inlay, cloud board with curled ends | PASS |
+| Not the guardian beast or the apex tiger | small, seated on a disc, horns and a tongue collar; the mane collar reads a little like a sunburst (same note as the guardian beast's crown) | PASS (owner to judge) |
+| Fits the solid and the box height | gates | PASS |
+- Open: the game's eye colour (CONFIG.PIECES.col.eyeOn 0xff5020 at emissive 2) is the neon the asset list rules out; the asset expects a gold inlay with a low warm glow (integration decision, not changed tonight). The red ring stays the gameplay tell.
+
 ## Open
 - ComfyUI (owner 22:43: use it): CPU job on GitHub runners, branch ci-comfy (ci_comfy/prompts.json, gen.py, .github/workflows/comfy.yml), SD 1.5 emaonly (CreativeML OpenRAIL-M, commercial use allowed), 512 x 768, 28 steps; output to ci-out out/comfy/<run>/. Prompt = this study's values in words (Qin bronze, segmented casting, silver inlay, cloud-scroll bands, brass-gold, fierce face, spiral-curl mane, round masses, sharp claws and fangs, stepped stone plinth) with the avoid list as the negative prompt. Reference only, never shipped or traced.
 - Phone texture set (512) and KTX2 with texture step 3.
