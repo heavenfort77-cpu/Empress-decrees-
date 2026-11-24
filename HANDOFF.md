@@ -1,18 +1,70 @@
-# Handoff (2026-11-24 14:00: Burning Palace build started; Royal Rumble parked). GDD: docs/GDD.md (also Project "empress decrees", claude/GDD.md)
+# Handoff (2026-11-24 17:15: Burning Palace built on boxes and merged; next session: palace textures with klad, dispose, LOD). GDD: docs/GDD.md (also Project "empress decrees", claude/GDD.md)
 
 ## Fresh-session brief (read first)
-- Goal now: The Burning Palace (docs/BURNING-PALACE.md), owner go 24 Nov 13:44. Royal Rumble (today's battle royale) is PARKED: kept, every check green, no new work.
-- Tickets tickets/burning-palace 01-07: 01 menu+rooms+camera (writer on batches-3-5) and 02 皇家 guard (branch bp02-guard, worktree /home/claude/wt-bp02, lane ci-run-bp02, checks 300+) started 24 Nov 13:45 in parallel; lead merges 02 after 01. Then 03 locks+rivals, 04 burning, 05 full palace, 06 close, 07 反贼 rebels (blocked by 02, 03). 01 checks number from 400.
-- Work log: /home/claude/batch16.log (prefixes BP01, BP02, PERF, AUDIT, LEAD, OWNER). If workers died: read the log tail, check branches batches-3-5 and bp02-guard, re-brief from the ticket.
-- Real-GPU fps (macOS runner, Apple M1 virtual, ANGLE Metal), runs 45334698556 / 45334758409, 1080p, 6 s settle + 20 s timed: reference 207/205; heaviest royale fight medium 211/176 (p95 11.6/13.9 ms, worst 65/56 ms); hunt 195/191; heaviest low 194/206. Max 58 calls / ~3k tris; memory flat. PASS vs 45 fps. Open: 36-81 ms spikes (no long JS task; needs a GPU timer query); select screen 17-31 fps matches an empty page on the same runner (control run 45335514114: empty 16, plain div 17), so a runner effect, still to check on a real phone. Probe on branch perf-probe / ci-perf (ci_probe/scenes.txt is set to the menu check). Burning Palace not yet measured (ticket 06).
-- Gap audit (notes/gap-audit.md on session disk, CI run 45334207812): royale idle 26% (4-39%), longest idle 35.5 s, 16 stretches over 10 s; hunt idle max 1 s. Missing for a full jam entry: dull stretches (Burning Palace answers this), no audio, no ending/tutorial/pause menu, phone untested, no cover/screenshots/credits, OpenGame upload untested.
-- Balance talk with the owner after the palace is playable (items under "Known balance items").
+- State (24 Nov 17:15): The Burning Palace is built on boxes and merged on batches-3-5 at 5703a4f: tickets 01-05 and 07-10 plus 09b, all done (tickets/burning-palace). Royal Rumble is parked: kept, all its checks green.
+- Checks: static PASS; CI suite 45360489381 gives 267 of 268 on 5703a4f, the only FAIL is 42 (balance item). Mutation rounds were caught per ticket (runs in the ticket files and the log); integration round 45355984990 caught 10 of 10, BP10M round 45361031301 caught 3 of 3.
+- Built:
+  - The mode menu.
+  - A 29-room 阿房宫-model palace in six wings; only the current room plus the one behind an open door is drawn; you start in your school's hall.
+  - Door previews and door locks; rivals move room to room, with a seeded off-screen simulation and her announcement queue.
+  - The core is sealed until you are the last suit (owner 14:16); the shortest route from any hall to the core is at least 5 rooms.
+  - The burning: a wing every 40 s, 5 s warning, fairness monitor burnState().bad.
+  - 皇家 guard (5 types) and 反贼 rebels (4 types, bootleg moves, F charge), hostile to each other.
+  - Pieces: 石狮, 水银, smoke, 华表, 鼎 (ticket 08); water clocks, vats, twelve giants (ticket 09; giants killable at 400 hp and 50 charge, owner 15:41).
+  - Camera: 120 px character floor at 1080p (owner 15:46), close in at attack distance, step capped at 0.4 m; a room-layout minimap.
+- Pacing (CI 45355174647 on 9b8b39d, 12 seeds, full palace, 8 rivals): idle 11% (5-24%), longest idle 3 s, 0 stretches over 5 s (Royal Rumble: 26%, 35.5 s). The probe player died in all 12 runs (15.5-193.3 s; 5 falls in warned rooms, 4 hits, 3 hazards) and none reached the core: a simple autopilot, so this says nothing yet about difficulty.
+- Open items:
+  - (a) The burn order is fixed per layout (CONFIG.BURN.orderFull): seeds 2, 5 and 8 ended the same at 46.3 s. Proposal, not approved: her wings come from a shuffled bag.
+  - (b) Close zoom changed from 1.0x to 0.75x of the base distance by BP10: owner to confirm.
+  - (c) Palace geometry count grows the first time each room is drawn (check 1207): warm every room under the loading card.
+  - (d) Close-out (owner 15:52): real-GPU fps for the palace, then the phone link. Started 24 Nov 17:15 (perf worker, branch perf-probe / ci-perf, scenes palace_room, palace_heavy, palace_heavy_low and reference, on game commit 6c5642d). If this session ended first: look for the PERF2 lines in /home/claude/batch16.log and out/perf/<run id>/ on ci-out; if neither exists, re-run the probe from the worktree. Then republish the phone link (slug 1688f9ba-a0e5-4f7b-ac2e-3a68d6fc67c3), which still shows ticket 01, before the texture work.
+  - (e) Balance talk (items under "Known balance items").
+  - (f) No bot finishes a palace run yet.
+- Parallel build method (owner 14:29): builders on their own branches and worktrees per docs/BP-INTERFACES.md, one integrator merges, the lead verifies every run on ci-out.
+- Log: /home/claude/batch16.log (prefixes BPxx, INT, LEAD, OWNER). Watchdog via send_later every 30 min while workers run.
+
+### NEXT SESSION: palace textures with klad + dispose + LOD (owner 24 Nov 16:58)
+Owner: "get next session to use klad to do up texture of all asset of palace and prop. reference to historical. geometry.dispose(), material.dispose(), texture.dispose(). THREE.LOD to minimise waste of frame rate". This is the owner's go for textures (art after the loop rule: owner gave it).
+
+Scope: the palace and its props. Characters (suits, guard, rebels, apex) only after their models are decided (owner 24 Nov 17:01: "only when model decided").
+- Palace: floors (rammed earth 夯土, stone paving), walls (black lacquer, red pillars), doors, roof-edge tiles and 瓦当 tile ends, bridges, the black lake edge.
+- Props: 石狮, 水银 channels, 铜鹤 / 香炉, 华表, 鼎, 铜壶滴漏, 门海 vats, 十二金人, the throne and dais.
+
+History reference:
+- Qin first (阿房宫, the Qin tomb, 秦砖汉瓦, Qin black for the water virtue, red accents, bronze).
+- Forbidden-City-era pieces (门海, 铜鹤, 华表, 脊兽) are later; use them as designed, but in Qin materials.
+- Collect references with sources; never copy a photo into a texture.
+
+Steps:
+1. Build klad as the klad-headless-cli skill says: clone github klad-app/klad, run the detached cargo build (about 12 min), binary at target/linux/release/klad.
+   - Licence: ship only the exported PNGs, never klad code; add klad to CREDITS.
+   - Keep every .klad source in the repo under art/src/, so the owner can reach them.
+2. ONE sample first, at play size: one room (floor + wall + pillar + door) and one prop (石狮).
+   - Show the owner screenshots from the exact build; wait for approval.
+   - Compare against the references by measurement and side by side.
+3. After approval, do the rest. Texture rules:
+   - Size: 1024 max on desktop, 512 on phone.
+   - Format: KTX2/Basis. Check that toktx or basisu is available, or use an npm basis encoder; prove the round trip first.
+   - Tileable where repeated.
+   - Very dark surfaces matte; vertex colours are linear.
+   - Anisotropy 4 max.
+   - Load per level, just before use, under the loading card with renderer.initTexture and compile. No big inlined base64: files go in assets/ (static files, as OpenGame allows).
+4. Dispose. Rooms are built once and kept, and kept or shared items are never disposed.
+   - Dispose geometry, material and texture when the palace mode is left (switch to Royal Rumble), when the layout changes, and for any per-run item that is not pooled.
+   - Check: renderer.info.memory stays flat over N palace runs plus mode switches (mutation-tested).
+5. LOD:
+   - THREE.LOD (2-3 levels; distances in CONFIG with a comment line) for single props: 石狮, 华表, 鼎, vats, dormant giants, the throne.
+   - Instanced repeats: one InstancedMesh per level, with counts swapped only when the camera moves (THREE.LOD does not work per instance).
+   - Never frustumCulled = false.
+   - Check: calls and tris in the heaviest room on tier medium, before and after.
+6. Also open from this session: palace geometry count grows the first time each room is drawn (BP10 check 1207). Rooms are not fully warmed at load: warm every room under the loading card.
+7. Perf gate: real-GPU macOS run (branch perf-probe / ci-perf) before and after the textures, heaviest palace room plus the reference scene, tiers medium and low.
 
 ## Session start (every session)
 0. CI (owner rule, reminded 24 Nov 08:47): full suite and mutation rounds run on GitHub runners via ci/ci_mut.sh on branch ci-run (results on branch ci-out, out/<label>/<run id>/summary.txt). If /home/claude/citools/ci_mut.sh is missing, copy it from origin/ci-run:ci/ci_mut.sh and create the worktree: git worktree add /home/claude/ci-wt -b ci-run origin/ci-run. Proof run 45298683619 (26 of 26, matches local). Job file: {"mode":"suite"} or {"mode":"mut","muts":[{name,want,a,b}]}.
 1. Attach both repos: add_repo heavenfort77-cpu/Empress-decrees- (access push) and heavenfort77-cpu/dawnpunk (read; public, anonymous clone works). Dawnpunk = reference for frame-rate rules and bug pitfalls; read only the part needed.
 2. Clone with `--no-single-branch`; check out `batches-3-5` (PR #1 still open, not merged; use main only if it is merged: `gh api repos/heavenfort77-cpu/empress-decrees-/pulls/1 --jq .merged`, GraphQL is blocked).
-3. Read this file, then only the GDD section being changed (docs/SUITS.md for kits). Do not read the whole codebase. NEXT JOB: the Burning Palace tickets (brief at the top).
+3. Read this file, then only the GDD section being changed (docs/SUITS.md for kits). Do not read the whole codebase. NEXT JOB: the brief at the top (NEXT SESSION).
 4. Run the checks before and after any change: `node tests/static-check.mjs && node tests/run.mjs` (`-v` for details, `-vv 56,65` for named checks). Report pass/fail as N of N and failing lines only. `-sims` prints the GDD sim numbers. Expected now: static PASS, runtime 97 of 97 (after batch 15).
 5. Ask the owner the open questions under "Next batch" in ONE AskUserQuestion before building. Open design questions go to the panel (owner, 23 Nov 15:11).
 
@@ -118,6 +170,16 @@ Panel note 16 (lead, 23 Nov 23:30; proposal):
 15 ultimate charge (DONE); 16 法甲 kit + suit stats sample (owner plays and approves); 17 the other eight kits (docs/SUITS.md); 18 hiding (curtains, 道甲 stillness, sight blocked by walls); 19 the ending + WINNER_STATUE; 20 final map size + balancing pass (re-measure, retune the CONFIG timing list once). Hunt sweep re-check with kits (0.15 s bot now loses demon-first).
 
 ## Owner decisions (dated)
+- 24 Nov 17:01: character textures (suits, guard, rebels, apex) only when their models are decided.
+- 24 Nov 16:58: next session uses klad to texture all palace assets and props, with historical references; dispose geometry, material and texture; THREE.LOD to save frame time (brief at the top).
+- 24 Nov 15:52: order = merges, then 12-seed pacing, then handover, then close-out (real-GPU fps and phone link).
+- 24 Nov 15:46: 36 px too small; "reasonable larger character as room can show bit by bit as walk": wide-view floor 120 px at 1080p; big rooms reveal as you walk.
+- 24 Nov 15:43: camera wide = whole room with scale, characters not squashed; close at attack distance; minimap shows the room layout (ticket 10).
+- 24 Nov 15:41: the twelve giants are killable.
+- 24 Nov 14:29: parallel build with one integrator managing the file ("i want it fast").
+- 24 Nov 14:27: palace pieces 水银, 十二金人, 门海, 铜鹤/香炉, 鼎, 铜壶滴漏, 华表 (+ 石狮 14:24); tickets 08 and 09.
+- 24 Nov 14:16: reaching the core in under 5 min was too easy: the core is sealed until the last suit; route at least 5 rooms.
+- 24 Nov 13:47: add the 反贼 (bootleg 甲, out to assassinate); lead picked a 黄巾 base with 死士 assassins inside it; ticket 07.
 - 24 Nov 13:44: build The Burning Palace now ("same asset"); battle royale (Royal Rumble) parked: kept and green, no new work. Tickets: tickets/burning-palace 01-06.
 - 24 Nov 13:18-13:28: map too small; direction = "The Burning Palace" (room-by-room royale in a 阿房宫-style palace, zoom camera, only the current room rendered), more cannon fodder (the 皇家 guard, owner 13:30; not 兵家), door previews (room, decree, reward, "something stirs"), doors lock during a fight, off-screen fights only announced, KEEP the open royale as a second mode "Royal Rumble". Design note docs/BURNING-PALACE.md; waiting for go.
 - 24 Nov 12:29: "update repo"; restarts must not need an owner reminder (self watchdog added).
