@@ -1,0 +1,12 @@
+play ok
+wide ok
+strike_windup ok
+turn_front ok
+turn_34 ok
+turn_side ok
+turn_back ok
+pass_sil ok
+pass_flat ok
+pass_shade ok
+pass_tex ok
+lods ok

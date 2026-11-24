@@ -1,0 +1,6 @@
+rigid: verts 80 tris 120 groups 10 unweighted 0 sum!=1 0
+rigid: GLB 24548 bytes, skinned meshes 1, actions 1, frames [(0.40000003576278687, 24.399999618530273)]
+RESULT rigid PASS
+auto: verts 980 tris 1920 groups 10 unweighted 0 sum!=1 0
+auto: GLB 222596 bytes, skinned meshes 1, actions 1, frames [(0.40000003576278687, 24.399999618530273)]
+RESULT auto PASS
