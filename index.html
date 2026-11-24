@@ -445,7 +445,8 @@ const CONFIG = {
         { key: 'KeyW', label: 'W', nameKey: 'sk_ming_w', type: 'line', range: 8, width: 1.2, hang: 1, touchSlow: 0.3, touchS: 1, dmg: 20, cd: 8, delay: 0 },
         // R 指不至，至不绝 (pointing never arrives): a very long line of range x width m, shown hang s, then a piercing strike runs its whole length
         // and every target it passes takes dmg (a standing wall still stops it, like every line skill). cd = the hunt cooldown (the royale runs on the meter).
-        { key: 'KeyR', label: 'R', nameKey: 'sk_ming_r', type: 'line', range: 30, width: 1.4, hang: 1, dmg: 45, cd: 30, delay: 0 },
+        // tag 'pierce' (ticket 08): a bot also casts it from range at the suit it keeps away from (botReadyUlt), not only in a fight.
+        { key: 'KeyR', label: 'R', nameKey: 'sk_ming_r', type: 'line', range: 30, width: 1.4, hang: 1, dmg: 45, cd: 30, delay: 0, tag: 'pierce' },
       ],
     },
     // 纵横甲 Persuader: control.
@@ -3486,10 +3487,11 @@ function botThink(b, dt) {
     } else if (b.direct) { b.mx = dx / d; b.mz = dz / d; }
     else botFollow(b);
   } else if (b.mode === 'heal' && b.heal) {
+    botReadyUlt(b);
     botFleeWall(b);
     // A sprout is eaten only by walking onto it; an altar heals across its radius.
     if (Math.hypot(b.heal.x - b.x, b.heal.z - b.z) > (b.heal.sprout ? 0.2 : CONFIG.ALTAR.radius * 0.6)) botFollow(b);
-  } else botFollow(b);
+  } else { if (b.mode === 'avoid') botReadyUlt(b); botFollow(b); }
   // Never step into a tell it has seen long enough (unless leaving a warned section).
   if (!warned && (b.mx !== 0 || b.mz !== 0) && botDanger(b, b.x + b.mx * 0.8, b.z + b.mz * 0.8, 0.3)) { b.mx = 0; b.mz = 0; }
 }
@@ -3618,14 +3620,15 @@ function botTarget(b, t, mode) {
 // A marked suit (batch 12) is seen by every bot from anywhere.
 function botSees(b, s, vr) { return !s.dead && !hiddenFrom(s, b.x, b.z) && (seenAnywhere(s) || (Math.abs(s.y - b.y) < 2 && Math.hypot(s.x - b.x, s.z - b.z) <= vr)); }
 // Skills when ready and in range: Q line, W burst, R delayed burst with a ring shown for its whole delay. Aim error from the skill profile.
-function botUseSkills(b, q, d) {
+// ultOnly = only the ultimate is considered (botReadyUlt, outside a fight).
+function botUseSkills(b, q, d, ultOnly) {
   const S = b.kit.skills, B = CONFIG.BOT, err = (1 - b.skill.hit) * B.aimErrM;
   // Decrees: silenced on a bridge; no dash inside the no-dash zone. No cast while dashing.
   if (b.dashLeft > 0 || silenced(b)) return;
   const noDash = (decOn('nodash') && !!b.floor && b.floor.s === DEC.zone) || held(b);
   // A target in 道甲's 不争 stance that the bot has seen for its reaction time: no skill at it now.
   if (stanceHeld(q, false, b)) return;
-  for (let slot = 0; slot < 3; slot++) {
+  for (let slot = ultOnly ? 2 : 0; slot < 3; slot++) {
     const sk = S[slot];
     // 道甲's stances are raised by botStance (against a blow about to land), not at a target.
     if (sk.tag === 'stanceBasic' || sk.tag === 'stanceSkill') continue;
@@ -3667,6 +3670,16 @@ function botUseSkills(b, q, d) {
     } else botSkillHit(b, slot, x, z, dx, dz);
     return;
   }
+}
+// A ready ultimate used outside a fight where its kit says so (batch 16 ticket 08 fix: botUseSkills runs only in a fight, so a bot keeping away from
+// suits or going to heal held a full meter and never cast): 名甲's long line ('pierce') at the suit it keeps away from (the player only while it holds
+// a hunter slot), 农甲's harvest ('harvest') while going to heal with enough sprouts near (its rule "or when low").
+function botReadyUlt(b) {
+  if (b.castT > 0 || b.stunT > 0 || b.tgtT < b.skill.react) return;
+  const sk = b.kit.skills[2];
+  if (sk.tag === 'harvest' && b.mode === 'heal') { botUseSkills(b, b, 0, true); return; }
+  const q = b.tgt;
+  if (sk.tag === 'pierce' && b.mode === 'avoid' && q && q.kind === 'suit' && !q.dead && (q !== P || b.hunter)) botUseSkills(b, q, Math.hypot(q.x - b.x, q.z - b.z), true);
 }
 // 道甲's bot (ticket 08): 不争 (W) when a skill tell it has seen covers it, else 柔 (Q) when a basic attack is about to land on it.
 function botStance(b) {
