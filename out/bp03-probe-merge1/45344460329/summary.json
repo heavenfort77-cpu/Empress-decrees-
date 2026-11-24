@@ -1,0 +1,15 @@
+[
+ {
+  "i": 0,
+  "fails": [
+   "500",
+   "503",
+   "504",
+   "505",
+   "509"
+  ],
+  "tot": [],
+  "s": 9,
+  "tail": "FAIL 500  {\"open\":{\"door\":true,\"st\":\"live\",\"room\":\"court\",\"inScene\":true,\"locked\":\"\"},\"lock\":{\"locked\":\"court\",\"doors\":true,\"n\":3,\"lockN\":1},\"atDoor\":{\"open\":false,\"cur\":\"court\",\"card\":true},\"route\":false,\"hunterOut\":{\"room\":\"corridor\",\"st\":\"sim\"},\"after\":{\"r0\":\"out\",\"locked\":\"court\",\"door0\":true,\"route\":false},\"rumble\":true}\nPASS 501  {\"same\":true,\"differs\":true,\"outA\":6,\"outC\":7,\"killsA\":6,\"farms\":4,\"a\":\"kill|fa|za|court|18.30;kill|dao|mo|corridor|18.82;kill|zongheng|yinyang|garden|19.73;farm|zongheng||garden|22.00;kill|ming|zongheng|garden|32.77;farm|nong||bridge|36.00;kill|nong|dao|corridor|52.03;farm|nong||corridor|67.00;kill|fa|ming|bridge|69.17;farm|fa||court|95.85\"}\nPASS 502  {\"outN\":6,\"shownOut\":6,\"drop\":0,\"qn\":0,\"traces\":6,\"hunt\":true,\"named\":true,\"sample\":[\"Locked in the School hall: break every enemy here to open the doors.\",\"Fa suit broke Za suit in the Courtyard.\",\"Dao suit broke Mo suit in the Corridor.\",\"Zongheng suit broke Yinyang suit in the Garden.\"],\"keys\":true}\nFAIL 503  {\"live\":{\"st\":\"live\",\"hp\":37,\"ch\":55.01,\"room\":\"court\",\"walk\":true},\"parked\":{\"st\":\"sim\",\"hp\":37,\"inScene\":false,\"room\":\"court\"},\"walkIn\":{\"st\":\"sim\",\"room\":\"court\",\"hp\":50,\"atDoor\":8.69,\"s\":20}}\nFAIL 504  {\"route\":false,\"sealed\":{\"open\":false,\"locked\":true,\"cur\":\"bridge\",\"card\":true,\"standing\":8},\"pushed\":{\"cur\":\"bridge\",\"phase\":\"palace\"},\"opened\":{\"open\":true,\"locked\":true,\"door\":false},\"line\":true,\"apex\":{\"phase\":\"palace\",\"on\":true,\"voice\":false}}\nFAIL 505  {\"final\":{\"final\":true,\"hunter\":0,\"line\":true},\"duel\":{\"st\":\"sim\",\"room\":null,\"locked\":\"hall\",\"doors\":true,\"s\":40},\"after\":{\"open\":false,\"locked\":\"hall\",\"core\":true,\"standing\":1,\"alive\":2}}\nPASS 506  {\"off\":0,\"live\":\"live,live\",\"outN\":1,\"s\":53}\nPASS 507  {\"live\":8,\"locked\":\"court\",\"calls\":34,\"tris\":994,\"programs\":[4,4],\"geoms\":[131,131]}\nPASS 508  {\"midOut\":5,\"same\":true,\"locked\":\"\",\"traces\":0,\"hunter\":-1,\"qn\":0,\"outN\":0,\"final\":false,\"open\":false,\"core\":true,\"standing\":8}\nFAIL 509  {\"viol\":[],\"runs\":[{\"seed\":12345,\"s\":260,\"phase\":\"palace\",\"falls\":0,\"out\":7,\"fellLog\":0,\"bad\":0,\"drop\":0},{\"seed\":2,\"s\":260,\"phase\":\"palace\",\"falls\":0,\"out\":7,\"fellLog\":0,\"bad\":0,\"drop\":0},{\"seed\":3,\"s\":260,\"phase\":\"palace\",\"falls\":0,\"out\":7,\"fellLog\":0,\"bad\":0,\"drop\":0}]}\nerrors 0 \nPROBE 5 of 10 pass, 5 s\n"
+ }
+]
