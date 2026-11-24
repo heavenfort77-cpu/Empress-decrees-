@@ -259,53 +259,6 @@ const CONFIG = {
   CUB: { hpK: 0.8, dmgK: 0.6, aggro: 6, leash: 12, heal: 25, homeMaxS: 6, stalkers: 4, howlers: 3 },
   // Plate reward (two slots): buff seconds, bleed dps and seconds on targets (Stalker plate), speed bonus (Howler plate), plate flight seconds. Its ultimate charge is ULT.plate.
   PLATE: { buffS: 45, bleedDps: 4, bleedS: 3, speed: 0.1, flyS: 0.7 },
-  // Feature switch: the 皇家 guard (Burning Palace ticket 02, owner 24 Nov 13:26-13:30). Squads come only from spawnSquad (rooms call it from ticket 03,
-  // the test hook now); the Royal Rumble spawns none.
-  GUARD_ON: true,
-  // 皇家 guard numbers (worker's picks, not tuned: owner "results first"). Every move's windup is its tell (fairness: never under 0.4 s).
-  GUARD: {
-    // Phases in which guards act and can be hit (ticket 03 adds the palace phase here).
-    phases: ['royale'],
-    // Factions (lead note 24 Nov 13:47: the 反贼 rebels join in ticket 07): body colour per unit type; foeSuits = hostile to the suits (bots farm them).
-    // Units of different factions are hostile to each other.
-    factions: { huangjia: { foeSuits: true, zu: 0x1c2733, nu: 0x24506e, dun: 0x0e1318, che: 0x2f6f8f, wz: 0x4aa6c8 } },
-    // Pool size per unit type (two full squads at once); built at load, never grown.
-    pool: { zu: 10, nu: 6, dun: 4, che: 2, wz: 2 },
-    // Most units in one squad (the room cap).
-    squadMax: 12,
-    // Most squads at once.
-    squadsMax: 4,
-    // Seconds a hit flash lasts.
-    flashS: 0.12,
-    // A squad takes a hostile within aggro m of its leader (a broken unit: of itself) on about its layer, and drops it past leash m.
-    aggro: 12, leash: 18,
-    // 方阵: the 伍长 stops keep m from its target (alone, it closes in); slot per unit type: [m ahead of the 伍长, m apart across, 1 = flanks only (no centre slot)];
-    // a unit in its slot steps out at a hostile within stepOut m of the slot.
-    keep: 3, stepOut: 3, rows: { dun: [2, 1.4, 0], zu: [0.8, 1.2, 0], nu: [-1.6, 1.4, 0], che: [0, 4.5, 1], wz: [0, 0, 0] },
-    // 伍长 buff on squad units within r m of a live 伍长: damage dealt x (1 + dmg), damage taken x (1 - def).
-    buff: { r: 8, dmg: 0.25, def: 0.25 },
-    // 盾 block: a basic blow from within arc degrees of its front deals x k (skills break through; go around it).
-    block: { arc: 60, k: 0.2 },
-    // Unit types: health, walk speed (m/s), body radius (m), scale, move = its one attack; on a kill by a suit: ult = ultimate charge, heal = health.
-    types: {
-      zu: { hp: 20, speed: 3.6, r: 0.45, scale: 1, move: 'thrust', ult: 5, heal: 2 },
-      nu: { hp: 16, speed: 3.4, r: 0.45, scale: 1, move: 'volley', ult: 6, heal: 2 },
-      dun: { hp: 40, speed: 3.0, r: 0.6, scale: 1, move: 'shove', ult: 8, heal: 4 },
-      che: { hp: 60, speed: 5.0, r: 0.9, scale: 1, move: 'charge', ult: 12, heal: 6 },
-      wz: { hp: 45, speed: 3.4, r: 0.5, scale: 1, move: 'cut', ult: 15, heal: 6 },
-    },
-    // Short boon for breaking the 伍长: boon slot (0 power, 3 speed), value, seconds.
-    leaderBoon: { i: 0, v: 0.1, s: 12 },
-    // Moves (fields as MOVES). line = strip from the unit; mark = ground marker on the target; circle = around the unit.
-    // stay = no dash after the hit; shove = metres a hit suit is pushed away (knockback speed shove x KB_DECAY).
-    moves: {
-      thrust: { shape: 'line', range: 2.6, width: 0.8, windup: 0.5, cd: 1.6, dmg: 4, min: 0, max: 2.4, stay: true },
-      volley: { shape: 'mark', radius: 1.6, windup: 0.8, cd: 3.2, dmg: 5, min: 2.5, max: 10, stay: true },
-      shove: { shape: 'circle', radius: 1.8, windup: 0.5, cd: 2.6, dmg: 3, min: 0, max: 1.6, shove: 2.5 },
-      charge: { shape: 'line', range: 10, width: 1.8, windup: 0.9, cd: 6, dmg: 10, min: 3, max: 10, dashS: 0.45 },
-      cut: { shape: 'line', range: 2.4, width: 1.0, windup: 0.5, cd: 2.0, dmg: 5, min: 0, max: 2.2, stay: true },
-    },
-  },
   // Feature switch: buff creatures (crab and wanderer), drawn from marble bags.
   NEUTRALS: true,
   // Marble bags (draw without putting back; refill and reshuffle when empty). times = seconds until a creature appears (from the run start, then from its death);
@@ -600,6 +553,16 @@ const CONFIG = {
   // reach metres (in sight), close = one is; easeS = seconds to ease between them; phone = multiplier on phones (they start closer); type = per
   // room type (corridors closer, courtyards wider). Z cycles auto, wide, close (manual override). Royal Rumble keeps 1.
   PAL_CAM: { wide: 1.6, close: 1.0, reach: 10, easeS: 0.4, phone: 0.85, type: { hall: 1, court: 1.15, corridor: 0.85, garden: 1, bridge: 1, core: 1.15 } },
+  // Palace pieces (BP08; owner picks 24 Nov 14:24-14:27: 石狮 lions, 水银 mercury, 铜鹤/香炉 smoke, 华表 beasts, 鼎 cauldrons). on = feature switch (palace
+  // runs only; Royal Rumble never has them). Lions use CONFIG.LION and the 鼎 heal by CONFIG.ALTAR (the Royal Rumble rules, reused).
+  // mercury: period = seconds per cycle; warn = seconds the channel shimmers before it burns (the tell, >= 0.4); on = seconds it burns; dps = damage per
+  // second to anyone standing in it while it burns. smoke: revealM = two points this close see each other through smoke (m); opacity of the clouds.
+  // huabiao: range = a suit this close wakes the beast (m); radius = suits this close when it looks are marked (m); windup = the tell (s: red ring,
+  // glowing eyes); cooldown = seconds before it wakes again; markS = seconds marked (seen by all, as a decree break). col = colours: mercury idle,
+  // shimmering, burning; smoke; the beast's eyes asleep and awake.
+  PIECES: { on: true, mercury: { period: 4, warn: 0.6, on: 1.2, dps: 12 }, smoke: { revealM: 2.5, opacity: 0.55 },
+    huabiao: { range: 3, radius: 3.5, windup: 0.5, cooldown: 6, markS: 5 },
+    col: { merc: 0xa9b4bc, mercWarn: 0xd8e4ee, mercHot: 0xf2f8ff, smoke: 0x8c8a86, eyeOff: 0x5a4a30, eyeOn: 0xff5020 } },
   // Unseen state (batch 16, minimal; full hiding with curtains and walls is batch 18): an unseen suit is not drawn for others and cannot be
   // targeted, except within shimmerM metres (drawn as a shimmer) or while marked; attacking or being hit ends it.
   UNSEEN: { shimmerM: 3 },
@@ -736,9 +699,6 @@ const TEXT = {
   bn_power: 'Power', bn_regen: 'Regen', bn_vision: 'Vision', bn_speed: 'Speed',
   voice_kennel: 'Our kennels stand open. Take what falleth, if thou canst.',
   rule_kennel: 'Cubs appear in {s} s at: {zones}. Kill one to take its plate.',
-  // 皇家 guard (Burning Palace ticket 02): the player broke a squad's 伍长.
-  voice_guard_break: 'Our 伍长 falls, and his square with him. Our household hath more men than thou hast breath.',
-  rule_guard_break: '伍长 down: the 方阵 breaks (no more buff). +{v}% damage for {s} s.',
   voice_plate_take: 'It is thine. For now.',
   suit_0: 'You',
   school_ru: 'Ru suit', school_dao: 'Dao suit', school_fa: 'Fa suit', school_mo: 'Mo suit', school_yinyang: 'Yinyang suit', school_za: 'Za suit',
@@ -764,6 +724,8 @@ const TEXT = {
   pal_rule_lost: 'Broken in the {room}. {retry}',
   help_pal_desktop: 'Right-click move / attack · Q W R aim at cursor (release to cast) · Z zoom: auto, wide, close · S stop · N new run',
   help_pal_touch: 'Left stick: move · tap or drag skills · New run',
+  piece_voice_hb: 'The beast upon the pillar hath seen thee.',
+  piece_rule_hb: 'Marked by the 华表 for {s} s: everyone sees you.',
   sel_key: '{n}. {who}',
   hud_leader: 'Leader: {who}',
   hud_leader_bounty: 'Leader: {who}  (bounty {s} s)',
@@ -1259,47 +1221,6 @@ const crabGeo = mergeGeoms([box(1.8, 0.7, 1.1, 0, 0.55, 0), box(0.5, 0.5, 0.5, -
 const wanderGeo = mergeGeoms([box(0.7, 1.9, 0.7, 0, 0.95, 0), box(1.1, 0.25, 1.1, 0, 2.0, 0)]);
 const NEUTRALS = [makeUnit('crab', CONFIG.CRAB, M.crab, M.tellD, '', [], null, crabGeo), makeUnit('wanderer', CONFIG.WANDERER, M.wander, M.tellD, '', [], null, wanderGeo)];
 NEUTRALS.forEach((u, i) => { u.hunt = false; u.neutral = true; u.idx = i; });
-// ===================== 皇家 guard (Burning Palace ticket 02): fixed pools per unit type, one InstancedMesh per type, squads in a 方阵 =====================
-// Bronze soldiers on treads (front = local -z). Boxes only until the art stage; distinct from the cubs' four-legged machines.
-const GC = CONFIG.GUARD, GMV = GC.moves, GUARD_TYPES = Object.keys(GC.types);
-const tread = () => box(0.8, 0.3, 0.9, 0, 0.15, 0);
-const GUARD_GEO = {
-  zu: mergeGeoms([tread(), box(0.55, 1.1, 0.45, 0, 0.85, 0), box(0.4, 0.35, 0.4, 0, 1.6, 0), box(0.08, 0.08, 1.9, 0.3, 1.0, -0.6)]),
-  nu: mergeGeoms([tread(), box(0.55, 1.0, 0.45, 0, 0.8, 0), box(0.4, 0.35, 0.4, 0, 1.5, 0), box(1.0, 0.1, 0.12, 0, 1.15, -0.45), box(0.12, 0.12, 0.7, 0, 1.15, -0.3)]),
-  dun: mergeGeoms([tread(), box(0.6, 1.1, 0.5, 0, 0.85, 0), box(0.42, 0.35, 0.42, 0, 1.6, 0), box(1.3, 1.4, 0.14, 0, 0.95, -0.45)]),
-  che: mergeGeoms([box(1.7, 0.7, 2.4, 0, 0.6, 0.2), box(0.2, 0.9, 0.9, -0.95, 0.45, 0.4), box(0.2, 0.9, 0.9, 0.95, 0.45, 0.4), box(0.9, 0.8, 0.9, 0, 0.75, -1.5), box(0.5, 1.0, 0.4, 0, 1.4, 0.4)]),
-  wz: mergeGeoms([tread(), box(0.65, 1.3, 0.5, 0, 0.95, 0), box(0.45, 0.4, 0.45, 0, 1.8, 0), box(0.07, 2.4, 0.07, -0.4, 1.4, 0.2), box(0.6, 0.5, 0.04, -0.7, 2.3, 0.2)]),
-};
-// One matte material for every guard; the per-instance colour carries the faction and type colour (and the hit flash).
-const guardMat = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.85, metalness: 0.15 });
-const GUARD_COL = {};
-for (const f in GC.factions) { GUARD_COL[f] = {}; for (const t of GUARD_TYPES) GUARD_COL[f][t] = new THREE.Color(GC.factions[f][t]); }
-// Hit flash colour (brighter than white: instance colour multiplies the material colour).
-const GUARD_FLASH = new THREE.Color(2.5, 2.5, 2.5);
-// GDRAW[type] = its InstancedMesh (count = units drawn this frame; in the scene only while it draws any); GPOOL[type] = its pooled units; GUARDS = all of them.
-const GDRAW = {}, GPOOL = {}, GUARDS = [], GM4 = new THREE.Matrix4();
-for (const t of GUARD_TYPES) {
-  const n = GC.pool[t], im = new THREE.InstancedMesh(GUARD_GEO[t], guardMat, n);
-  im.count = 0; im.matrixAutoUpdate = false; im.castShadow = false; im.receiveShadow = false;
-  // Units walk anywhere on the map: one sphere around the whole map, so culling never drops a drawn unit (never frustumCulled = false).
-  im.boundingSphere = new THREE.Sphere(new THREE.Vector3(0, 0, 0), 400);
-  im.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
-  for (let i = 0; i < n; i++) im.setColorAt(i, GUARD_FLASH);
-  im.instanceColor.setUsage(THREE.DynamicDrawUsage);
-  GDRAW[t] = im; GPOOL[t] = [];
-  for (let i = 0; i < n; i++) {
-    const c = GC.types[t], u = makeUnit(t, c, guardMat, M.tellD, c.move, [], null, GUARD_GEO[t]);
-    // guard = 皇家 guard unit; gtype = its type; faction; sq = its squad; gcd = its move's cooldown; slotF / slotL = its 方阵 slot (ahead / across);
-    // defK = damage taken multiplier (伍长 buff); col = its colour (faction and type); form = in a formed 方阵 now.
-    Object.assign(u, { hunt: false, guard: true, gtype: t, faction: '', sq: null, gcd: 0, slotF: 0, slotL: 0, defK: 1, col: GUARD_FLASH, form: false, tgt: null });
-    GPOOL[t].push(u); GUARDS.push(u);
-  }
-}
-// Squads (fixed): on, faction, leader (the 伍长 or null), n = units alive, facing, anchor, target, broken (no live 伍长), open = chariots allowed.
-const SQUADS = [];
-for (let i = 0; i < GC.squadsMax; i++) SQUADS.push({ on: false, id: i, faction: '', leader: null, n: 0, fx: 0, fz: 1, x: 0, z: 0, y: 0, tgt: null, broken: false, open: false });
-// Slot counter per type while a squad is placed; cosine of the 盾's block arc.
-const GSLOT = {}, GBLOCK_COS = Math.cos(GC.block.arc * Math.PI / 180);
 const SPOTS = CONFIG.BAGS.spots.map(([x, z, sec]) => [x * K, z * K, sec]);
 // Seeded random numbers (mulberry32) so a run can be replayed; marble bags draw without putting back.
 const RNG = { s: 1 };
@@ -1373,8 +1294,8 @@ const wallGeo = new THREE.BoxGeometry(1, 1, 1);
 const halfDiskGeo = new THREE.CircleGeometry(1, 40, 0, Math.PI); halfDiskGeo.rotateX(-Math.PI / 2);
 // Places in 农甲's sprout pool (ticket 07): one pool per suit, built once at load (the pool size is the skill's, read here once).
 const NONG_POOL = CONFIG.KITS.nong.skills[0].pool;
-// Most targets one hit can reach (dummies, hunt units, cubs, buff creatures, bots, 皇家 guards and the player): the size of 名甲's per-pass hit list (ticket 05).
-const TARGET_MAX = DUMMY_LIST.length + ENEMIES.length + CUBS.length + NEUTRALS.length + BOTLIST.length + GUARDS.length + 1;
+// Most targets one hit can reach (dummies, hunt units, cubs, buff creatures, bots and the player): the size of 名甲's per-pass hit list (ticket 05).
+const TARGET_MAX = DUMMY_LIST.length + ENEMIES.length + CUBS.length + NEUTRALS.length + BOTLIST.length + 1;
 for (let k = 0; k < SUITS.length; k++) {
   const s = SUITS[k], m = new THREE.Mesh(markGeo, M.ring);
   m.position.y = DD.markY; m.visible = false; m.castShadow = false;
@@ -1450,7 +1371,7 @@ Object.assign(P, { campK: -1, cd: [0, 0, 0], navWant: false, gx: 0, gz: 0, gy: 0
   heal: null, skip: null, castT: 0, lastBy: null, lastByT: -99, declined: null, declinedT: -99, flee: false, fleeGo: false, pathGen: 0, why: '', hunter: false, huntLostT: 0, mx: 0, mz: 0,
   pend: false, pendT: 0, pendS: 2, pendX: 0, pendZ: 0, pendDx: 0, pendDz: 0, pendAge: 0, ring: new THREE.Mesh(fxTele.geometry, M.ring) });
 // Everything the player can target: training dummies, hunt units, cubs, buff creatures and bot suits share x, z, r, hp, seen.
-const TARGETS = DUMMY_LIST.concat(ENEMIES, CUBS, NEUTRALS, BOTLIST, GUARDS);
+const TARGETS = DUMMY_LIST.concat(ENEMIES, CUBS, NEUTRALS, BOTLIST);
 // Gate seal shown during the hunt.
 const sealMesh = new THREE.Mesh(new THREE.BoxGeometry((GATE.x1 - GATE.x0), 2.6, 0.3).translate(0, 1.3, CH.z1 - 0.5), M.tellD);
 sealMesh.matrixAutoUpdate = false; sealMesh.updateMatrix();
@@ -1692,8 +1613,6 @@ function hitTarget(by, d, n, basic, sk) {
   if (by.kit && by.kit.passive === 'halving') chainHit(by, d);
   if (!d.kind) { hitDummy(d, n); return true; }
   if (d.kind === 'suit') { hurtSuit(d, n, 'hit', by); return true; }
-  // 皇家 guard (Burning Palace ticket 02): the 伍长 buff and the 盾's front block cut the blow.
-  if (d.guard) n *= guardTakenK(d, by, !!basic);
   hitEnemy(d, n, by);
   if (d.alive && hasPlate(by, 'stalker')) { d.bleedT = CONFIG.PLATE.bleedS; d.bleedBy = by; }
   return true;
@@ -2111,6 +2030,230 @@ function palSolid(r, x0, x1, z0, z1) { const b = { s: r, x0, x1, z0, z1 }; PAL.s
   const n = PAL.rooms.length;
   PAL.q = new Int16Array(n); PAL.from = new Int16Array(n); PAL.stk = new Int16Array(n);
 }
+// ===================== Palace pieces (BP08): stone lions, mercury channels, smoke, 华表 beasts, 鼎 cauldrons =====================
+// Owner picks 24 Nov 14:24-14:27. A room's pieces come from its data (PAL_ROOMS[i].pieces, placed by the full palace, BP05) or, until then, from
+// PIECES_01 (the BP01 test rooms). x, z in metres from the palace origin; lions face fz (-1 north, 1 south). Built once into the room's group.
+// Every piece acts on every side: the suits, and each list in PIECE_SIDES (the 皇家 guard and the 反贼 join with one push each:
+// { list, hurt(u, n, kx, kz), heal(u, n) -> health given }; their units have alive, x, y, z).
+const PIECES_01 = {
+  hall: [{ type: 'ding', x: 5, z: 41.5 }],
+  court: [{ type: 'smoke', src: 'burner', x: -12, z: 16, r: 3 }, { type: 'huabiao', x: 6, z: 14 }],
+  garden: [{ type: 'smoke', src: 'crane', x: 24, z: -2, r: 3 }, { type: 'smoke', src: 'burner', x: 34, z: -14, r: 3 },
+    { type: 'mercury', x0: 20, x1: 40, z0: -20, z1: -18, ph: 0 }, { type: 'lion', x: 26.8, z: -21.8, fz: -1 }, { type: 'lion', x: 33.2, z: -21.8, fz: -1 }],
+  bridge: [{ type: 'mercury', x0: 12, x1: 14, z0: -32, z1: -24, ph: 1.5 }, { type: 'mercury', x0: 22, x1: 24, z0: -32, z1: -24, ph: 3 }],
+};
+const PIECE_SIDES = [], PIECE_HAZ = [], PIECE_MERC = [], PIECE_SMOKE = [], PIECE_DING = [];
+const PIECE_VARS = { s: CONFIG.PIECES.huabiao.markS };
+// Checks only (__game.pieceProbe): a stand-in unit of another side, so the checks prove every piece acts on other sides before the guard is merged.
+const PIECE_PROBE = { list: [],
+  hurt(u, n, kx, kz) { u.hp -= n; u.hits++; u.kx += kx; u.kz += kz; },
+  heal(u, n) { const h = Math.min(n, u.max - u.hp); u.hp += h; return h; } };
+PIECE_SIDES.push(PIECE_PROBE);
+{
+  const PP = CONFIG.PIECES, col = PP.col;
+  mat('merc', col.merc, { metalness: 0.8, roughness: 0.3 });
+  mat('mercWarn', col.mercWarn, { emissive: col.mercWarn, emissiveIntensity: 0.6, metalness: 0.8, roughness: 0.3 });
+  mat('mercHot', col.mercHot, { emissive: col.mercHot, emissiveIntensity: 1.4, metalness: 0.8, roughness: 0.3 });
+  mat('hbEyeOff', col.eyeOff, { emissive: col.eyeOff, emissiveIntensity: 0.3 });
+  mat('hbEyeOn', col.eyeOn, { emissive: col.eyeOn, emissiveIntensity: 2 });
+  for (const k of ['merc', 'mercWarn', 'mercHot', 'hbEyeOff', 'hbEyeOn']) addFow(M[k]);
+  M.smoke = new THREE.MeshStandardMaterial({ color: col.smoke, roughness: 1, transparent: true, opacity: PP.smoke.opacity, depthWrite: false });
+  const still = (r, mesh, shadow) => { mesh.castShadow = shadow; mesh.receiveShadow = true; mesh.matrixAutoUpdate = false; mesh.updateMatrix(); r.group.add(mesh); return mesh; };
+  for (const r of PAL.rooms) {
+    const list = PAL_ROOMS[r.idx].pieces || PIECES_01[r.id] || [], parts = {}, puffs = [];
+    const add = (m, g) => (parts[m] || (parts[m] = [])).push(g);
+    for (const p of list) {
+      if (p.type === 'mercury') {
+        const x0 = POX + p.x0, x1 = POX + p.x1, z0 = POZ + p.z0, z1 = POZ + p.z1;
+        const mesh = still(r, new THREE.Mesh(box(x1 - x0, 0.06, z1 - z0, (x0 + x1) / 2, 0.03, (z0 + z1) / 2), M.merc), false);
+        PIECE_MERC.push({ s: r, x0, x1, z0, z1, ph: p.ph || 0, t: 0, state: 0, stT: 0, mesh });
+        continue;
+      }
+      const x = POX + p.x, z = POZ + p.z;
+      if (p.type === 'lion') {
+        const f = p.fz || 1;
+        add('stone', box(1.6, 0.6, 2.2, x, 0.3, z)); add('stone', box(1.2, 1.2, 1.6, x, 1.2, z)); add('stone', box(1.0, 1.0, 0.8, x, 2.1, z + 0.6 * f));
+        palSolid(r, x - 0.9, x + 0.9, z - 1.1, z + 1.1);
+        const ring = addStatic(r.group, ringMesh(CONFIG.LION.radius, x, 0, z)); ring.visible = false;
+        PIECE_HAZ.push({ kind: 'lion', cfg: CONFIG.LION, x, z, y: 0, s: r, ring, state: 0, t: 0, statue: false, mark: false, eyes: null });
+      } else if (p.type === 'huabiao') {
+        add('stone', box(1.4, 0.4, 1.4, x, 0.2, z)); add('stone', cyl(0.45, 5, x, 2.9, z)); add('stone', box(1.6, 0.25, 0.4, x, 4.4, z));
+        add('stone', box(0.9, 0.6, 1.1, x, 5.7, z));
+        palSolid(r, x - 0.7, x + 0.7, z - 0.7, z + 0.7);
+        const eyes = still(r, new THREE.Mesh(box(0.7, 0.15, 0.1, x, 5.85, z + 0.56), M.hbEyeOff), false);
+        const ring = addStatic(r.group, ringMesh(PP.huabiao.radius, x, 0, z)); ring.visible = false;
+        PIECE_HAZ.push({ kind: 'huabiao', cfg: PP.huabiao, x, z, y: 0, s: r, ring, state: 0, t: 0, statue: false, mark: true, eyes });
+      } else if (p.type === 'ding') {
+        add('bronze', cyl(0.85, 1.0, x, 0.75, z, 16)); add('bronze', cyl(0.95, 0.12, x, 1.3, z, 16));
+        for (const [lx, lz] of [[0.5, 0.4], [-0.5, 0.4], [0, -0.6]]) add('bronze', cyl(0.12, 0.5, x + lx, 0.25, z + lz, 6));
+        palSolid(r, x - 0.9, x + 0.9, z - 0.9, z + 0.9);
+        const A = CONFIG.ALTAR, disc = still(r, new THREE.Mesh(new THREE.CylinderGeometry(A.radius, A.radius, 0.06, 28).translate(x, 0.03, z), M.altarOn), false);
+        PIECE_DING.push({ x, z, y: 0, s: r, mesh: disc, charge: A.charge, emptyT: 0 });
+      } else if (p.type === 'smoke') {
+        if (p.src === 'crane') {
+          add('bronze', box(0.8, 0.8, 0.8, x, 0.4, z)); add('bronze', cyl(0.1, 1.2, x - 0.15, 1.4, z, 6)); add('bronze', cyl(0.1, 1.2, x + 0.15, 1.4, z, 6));
+          add('bronze', box(0.6, 0.6, 1.2, x, 2.3, z)); add('bronze', cyl(0.08, 1.0, x, 3.0, z - 0.5, 6));
+        } else { add('bronze', box(1.2, 1.0, 1.2, x, 0.5, z)); add('bronze', box(0.8, 0.5, 0.8, x, 1.25, z)); }
+        palSolid(r, x - 0.6, x + 0.6, z - 0.6, z + 0.6);
+        const rr = p.r;
+        for (const [ox, oy, oz] of [[-0.35, 1.5, 0], [0.35, 1.9, 0.2], [0, 2.3, -0.3]]) {
+          const g = new THREE.IcosahedronGeometry(rr * 0.62, 1); g.scale(1, 0.55, 1); g.translate(x + ox * rr, oy, z + oz * rr); puffs.push(g);
+        }
+        PIECE_SMOKE.push({ s: r, x, z, r: rr });
+      }
+    }
+    for (const k in parts) still(r, new THREE.Mesh(mergeGeoms(parts[k]), M[k]), true);
+    if (puffs.length) { const sm = still(r, new THREE.Mesh(mergeGeoms(puffs), M.smoke), false); sm.receiveShadow = false; sm.renderOrder = 2; }
+  }
+}
+// New run: pieces back to rest (rings off, eyes asleep, mercury at its phase, cauldrons full); the probe unit gone.
+function resetPieces() {
+  for (const h of PIECE_HAZ) { h.state = 0; h.t = 0; h.ring.visible = false; if (h.eyes) h.eyes.material = M.hbEyeOff; }
+  for (const m of PIECE_MERC) { m.t = m.ph % CONFIG.PIECES.mercury.period; m.state = 0; m.stT = 0; m.mesh.material = M.merc; }
+  for (const a of PIECE_DING) { a.charge = CONFIG.ALTAR.charge; a.emptyT = 0; a.mesh.material = M.altarOn; }
+  PIECE_PROBE.list.length = 0;
+}
+// Load warm-up (one palace draw): every piece look drawn once (rings, the awake eyes, the three mercury looks, an empty cauldron).
+function warmPieces(on) {
+  PIECE_HAZ.forEach((h) => { h.ring.visible = on; if (h.eyes) h.eyes.material = on ? M.hbEyeOn : M.hbEyeOff; });
+  const looks = [M.merc, M.mercWarn, M.mercHot];
+  PIECE_MERC.forEach((m, i) => { m.mesh.material = on ? looks[i % 3] : M.merc; });
+  PIECE_DING.forEach((a) => { a.mesh.material = on ? M.altarOff : M.altarOn; });
+}
+// PERFRAME-BEGIN
+// A hazard's cycle (the Royal Rumble statue and lions, the palace lions and 华表): idle -> tell (red ring; the statue's or beast's eyes glow) ->
+// strike or look -> cooldown. Anyone close by starts the tell (the 华表 only suits); the strike hits every suit and every side inside.
+function hazardStep(h, dt) {
+  const c = h.cfg;
+  if (h.state === 0) {
+    if (hazardWakes(h)) { h.state = 1; h.t = 0; h.ring.visible = true; if (h.statue) M.eyes.emissiveIntensity = 3; if (h.eyes) h.eyes.material = M.hbEyeOn; }
+  } else if (h.state === 1) {
+    h.t += dt;
+    if (h.t >= c.windup) {
+      h.state = 2; h.t = 0; h.ring.visible = false; if (h.statue) M.eyes.emissiveIntensity = 0.4; if (h.eyes) h.eyes.material = M.hbEyeOff;
+      if (h.mark) hazardMark(h); else hazardStrike(h);
+    }
+  } else if (h.state === 2) { h.t += dt; if (h.t >= c.cooldown) h.state = 0; }
+}
+function hazardWakes(h) {
+  const r = h.cfg.range;
+  for (let k = 0; k < SUITS.length; k++) { const s = SUITS[k]; if (!s.dead && Math.abs(s.y - h.y) < 3 && Math.hypot(s.x - h.x, s.z - h.z) < r) return true; }
+  if (h.mark) return false;
+  for (let j = 0; j < PIECE_SIDES.length; j++) {
+    const L = PIECE_SIDES[j].list;
+    for (let k = 0; k < L.length; k++) { const u = L[k]; if (u.alive && Math.abs(u.y - h.y) < 3 && Math.hypot(u.x - h.x, u.z - h.z) < r) return true; }
+  }
+  return false;
+}
+function hazardStrike(h) {
+  const c = h.cfg;
+  for (let k = 0; k < SUITS.length; k++) {
+    const s = SUITS[k];
+    if (s.dead || Math.abs(s.y - h.y) >= 3) continue;
+    const hx = s.x - h.x, hz = s.z - h.z, d = Math.hypot(hx, hz);
+    if (d >= c.radius) continue;
+    hurtSuit(s, c.dmg, 'hazard', null);
+    if (d > 0.01) { s.kx += hx / d * c.kb; s.kz += hz / d * c.kb; } else s.kz += c.kb;
+  }
+  for (let j = 0; j < PIECE_SIDES.length; j++) {
+    const side = PIECE_SIDES[j], L = side.list;
+    for (let k = 0; k < L.length; k++) {
+      const u = L[k]; if (!u.alive || Math.abs(u.y - h.y) >= 3) continue;
+      const hx = u.x - h.x, hz = u.z - h.z, d = Math.hypot(hx, hz);
+      if (d >= c.radius) continue;
+      if (d > 0.01) side.hurt(u, c.dmg, hx / d * c.kb, hz / d * c.kb); else side.hurt(u, c.dmg, 0, c.kb);
+    }
+  }
+}
+// The 华表 beast looks: every suit within its radius is marked (seen by all, as after a decree break); the player sees her line.
+function hazardMark(h) {
+  const sec = h.cfg.markS;
+  for (let k = 0; k < SUITS.length; k++) {
+    const s = SUITS[k];
+    if (s.dead || Math.abs(s.y - h.y) >= 3 || Math.hypot(s.x - h.x, s.z - h.z) >= h.cfg.radius) continue;
+    s.markT = Math.max(s.markT, sec); s.marker.visible = true;
+    if (s === P) showNote('piece_voice_hb', 'piece_rule_hb', PIECE_VARS);
+  }
+}
+// An altar or a 鼎 heals whoever stands on it (suits, then other sides); a hit pauses a suit's healing; emptied, it refills later; none while dry.
+function altarStep(a, dt, A, dry) {
+  if (a.charge <= 0) { a.emptyT -= dt; if (a.emptyT <= 0) { a.charge = A.charge; a.mesh.material = dry ? M.altarOff : M.altarOn; } return; }
+  // "Our altars are dry." (decree): no healing while it is in force; charge is kept.
+  if (dry) return;
+  for (let k = 0; k < SUITS.length && a.charge > 0; k++) {
+    const s = SUITS[k];
+    if (s.dead || s.air || s.noHealT > 0 || s.hp >= CONFIG.MAX_HP) continue;
+    if (Math.hypot(s.x - a.x, s.z - a.z) > A.radius || Math.abs(s.y - a.y) > 1) continue;
+    const heal = Math.min(A.rate * dt, a.charge, CONFIG.MAX_HP - s.hp);
+    s.hp += heal; a.charge -= heal;
+    if (a.charge <= 1e-6) { a.charge = 0; a.emptyT = A.emptyS; a.mesh.material = M.altarOff; }
+  }
+  for (let j = 0; j < PIECE_SIDES.length && a.charge > 0; j++) {
+    const side = PIECE_SIDES[j], L = side.list;
+    for (let k = 0; k < L.length && a.charge > 0; k++) {
+      const u = L[k]; if (!u.alive || Math.hypot(u.x - a.x, u.z - a.z) > A.radius || Math.abs(u.y - a.y) > 1) continue;
+      a.charge -= side.heal(u, Math.min(A.rate * dt, a.charge));
+      if (a.charge <= 1e-6) { a.charge = 0; a.emptyT = A.emptyS; a.mesh.material = M.altarOff; }
+    }
+  }
+}
+function mercIn(m, x, z, pad) { return x >= m.x0 - pad && x <= m.x1 + pad && z >= m.z0 - pad && z <= m.z1 + pad; }
+// A mercury channel: rest, shimmer (the tell), burn; while it burns, anyone standing in it (not in the air) loses health every step.
+function mercStep(m, dt) {
+  const C = CONFIG.PIECES.mercury;
+  m.t += dt; if (m.t >= C.period) m.t -= C.period;
+  const st = m.t < C.period - C.warn - C.on ? 0 : m.t < C.period - C.on ? 1 : 2;
+  if (st !== m.state) { m.state = st; m.stT = 0; m.mesh.material = st === 0 ? M.merc : st === 1 ? M.mercWarn : M.mercHot; } else m.stT += dt;
+  if (st !== 2) return;
+  const n = C.dps * dt;
+  for (let k = 0; k < SUITS.length; k++) { const s = SUITS[k]; if (!s.dead && !s.air && s.y < 1 && mercIn(m, s.x, s.z, 0)) hurtSuit(s, n, 'hazard', null); }
+  for (let j = 0; j < PIECE_SIDES.length; j++) {
+    const side = PIECE_SIDES[j], L = side.list;
+    for (let k = 0; k < L.length; k++) { const u = L[k]; if (u.alive && u.y < 1 && mercIn(m, u.x, u.z, 0)) side.hurt(u, n, 0, 0); }
+  }
+}
+// Palace step for the pieces (fallen rooms skipped).
+function stepPieces(dt) {
+  for (let i = 0; i < PIECE_HAZ.length; i++) {
+    const h = PIECE_HAZ[i];
+    if (h.s.state >= 2 || h.s.fallen) { if (h.ring.visible) h.ring.visible = false; continue; }
+    hazardStep(h, dt);
+  }
+  for (let i = 0; i < PIECE_MERC.length; i++) { const m = PIECE_MERC[i]; if (m.s.state < 2 && !m.s.fallen) mercStep(m, dt); }
+  const A = CONFIG.ALTAR, dry = decOn('dry');
+  for (let i = 0; i < PIECE_DING.length; i++) { const a = PIECE_DING[i]; if (a.s.state < 2 && !a.s.fallen) altarStep(a, dt, A, dry); }
+}
+// Smoke blocks sight: the segment a-b passes through a cloud, unless the two points are within revealM of each other.
+function smokeBlocks(ax, az, bx, bz) {
+  if (!CONFIG.PIECES.on || PIECE_SMOKE.length === 0) return false;
+  const dx = bx - ax, dz = bz - az, L2 = dx * dx + dz * dz, rv = CONFIG.PIECES.smoke.revealM;
+  if (L2 <= rv * rv) return false;
+  for (let i = 0; i < PIECE_SMOKE.length; i++) {
+    const c = PIECE_SMOKE[i]; if (c.s.fallen) continue;
+    let t = ((c.x - ax) * dx + (c.z - az) * dz) / L2; t = t < 0 ? 0 : t > 1 ? 1 : t;
+    if (Math.hypot(ax + dx * t - c.x, az + dz * t - c.z) < c.r) return true;
+  }
+  return false;
+}
+// A bot's danger from the palace pieces (called by botDanger): a lion's tell or a shimmering or burning mercury channel seen for its reaction
+// time. Leaves the way out in DNG (away from the lion; across the channel's short side).
+function pieceDanger(b, x, z, margin) {
+  const react = b.skill.react;
+  for (let i = 0; i < PIECE_HAZ.length; i++) {
+    const h = PIECE_HAZ[i];
+    if (h.mark || h.state !== 1 || h.t < react || Math.abs(h.y - b.y) >= 3) continue;
+    if (Math.hypot(x - h.x, z - h.z) < h.cfg.radius + margin) { DNG.ex = b.x - h.x; DNG.ez = b.z - h.z; if (DNG.ex === 0 && DNG.ez === 0) DNG.ez = 1; return true; }
+  }
+  for (let i = 0; i < PIECE_MERC.length; i++) {
+    const m = PIECE_MERC[i];
+    if (m.state === 0 || (m.state === 1 && m.stT < react) || !mercIn(m, x, z, margin)) continue;
+    const cx = (m.x0 + m.x1) / 2, cz = (m.z0 + m.z1) / 2;
+    if (m.x1 - m.x0 <= m.z1 - m.z0) { DNG.ex = b.x >= cx ? 1 : -1; DNG.ez = 0; } else { DNG.ex = 0; DNG.ez = b.z >= cz ? 1 : -1; }
+    return true;
+  }
+  return false;
+}
+// PERFRAME-END
 const SUN_POS = sun.position.clone(), SUN_TGT = sun.target.position.clone();
 // Fog radius: the vision radius in Royal Rumble; inside the palace the walls block sight instead.
 function fowR() { return PAL.on ? PC.fowR : G.visR; }
@@ -2204,8 +2347,8 @@ function palDoorSight(d, ax, az, bx, bz) {
 function palSight(ax, az, bx, bz) {
   const ra = palRoomAt(ax, az), rb = palRoomAt(bx, bz);
   if (!ra || !rb) return false;
-  if (ra === rb) return true;
-  for (let i = 0; i < ra.doors.length; i++) { const d = ra.doors[i]; if (d.open && (d.ra === rb || d.rb === rb) && palDoorSight(d, ax, az, bx, bz)) return true; }
+  if (ra === rb) return !smokeBlocks(ax, az, bx, bz);
+  for (let i = 0; i < ra.doors.length; i++) { const d = ra.doors[i]; if (d.open && (d.ra === rb || d.rb === rb) && palDoorSight(d, ax, az, bx, bz)) return !smokeBlocks(ax, az, bx, bz); }
   return false;
 }
 // An enemy within the camera's reach that the player can see (rival suits, apex units; BP02 adds the guard).
@@ -2333,45 +2476,13 @@ function step(dt) {
   if (G.fellT > 0) { G.fellT -= dt; if (G.fellT <= 0 && G.bannerWave < 0) setShow(el.banner, false); }
   // Hazards: idle -> tell (red ring, statue eyes glow) -> strike -> cooldown. Any suit close by starts the tell; the strike hits every suit inside.
   for (let i = 0; i < HAZARDS.length; i++) {
-    const h = HAZARDS[i], c = h.cfg;
+    const h = HAZARDS[i];
     if (h.s.state >= 2 || (h.statue && !roy)) { if (h.ring.visible) h.ring.visible = false; continue; }
-    if (h.state === 0) {
-      for (let k = 0; k < SUITS.length; k++) {
-        const s = SUITS[k];
-        if (!s.dead && Math.abs(s.y - h.y) < 3 && Math.hypot(s.x - h.x, s.z - h.z) < c.range) { h.state = 1; h.t = 0; h.ring.visible = true; if (h.kind === 'statue') M.eyes.emissiveIntensity = 3; break; }
-      }
-    } else if (h.state === 1) {
-      h.t += dt;
-      if (h.t >= c.windup) {
-        h.state = 2; h.t = 0; h.ring.visible = false; if (h.kind === 'statue') M.eyes.emissiveIntensity = 0.4;
-        for (let k = 0; k < SUITS.length; k++) {
-          const s = SUITS[k];
-          if (s.dead || Math.abs(s.y - h.y) >= 3) continue;
-          const hx = s.x - h.x, hz = s.z - h.z, d = Math.hypot(hx, hz);
-          if (d >= c.radius) continue;
-          hurtSuit(s, c.dmg, 'hazard', null);
-          if (d > 0.01) { s.kx += hx / d * c.kb; s.kz += hz / d * c.kb; } else s.kz += c.kb;
-        }
-      }
-    } else if (h.state === 2) { h.t += dt; if (h.t >= c.cooldown) h.state = 0; }
+    hazardStep(h, dt);
   }
   // Altars heal a standing suit; a hit pauses healing; an emptied altar refills later.
   const A = CONFIG.ALTAR, dry = decOn('dry');
-  for (let i = 0; i < ALTAR_LIST.length; i++) {
-    const a = ALTAR_LIST[i];
-    if (a.s.state >= 2) continue;
-    if (a.charge <= 0) { a.emptyT -= dt; if (a.emptyT <= 0) { a.charge = A.charge; a.mesh.material = dry ? M.altarOff : M.altarOn; } continue; }
-    // "Our altars are dry." (decree): no healing while it is in force; charge is kept.
-    if (dry) continue;
-    for (let k = 0; k < SUITS.length && a.charge > 0; k++) {
-      const s = SUITS[k];
-      if (s.dead || s.air || s.noHealT > 0 || s.hp >= CONFIG.MAX_HP) continue;
-      if (Math.hypot(s.x - a.x, s.z - a.z) > A.radius || Math.abs(s.y - a.y) > 1) continue;
-      const heal = Math.min(A.rate * dt, a.charge, CONFIG.MAX_HP - s.hp);
-      s.hp += heal; a.charge -= heal;
-      if (a.charge <= 1e-6) { a.charge = 0; a.emptyT = A.emptyS; a.mesh.material = M.altarOff; }
-    }
-  }
+  for (let i = 0; i < ALTAR_LIST.length; i++) { const a = ALTAR_LIST[i]; if (a.s.state < 2) altarStep(a, dt, A, dry); }
   // Timers on every suit still in the match: heal pause, slow, stun, bleed, plates, boons.
   for (let k = 0; k < SUITS.length; k++) if (!SUITS[k].bot || !SUITS[k].dead) tickSuit(SUITS[k], dt);
   stepAuras(dt);
@@ -2390,8 +2501,6 @@ function step(dt) {
   if (vr !== G.visR) { G.visR = vr; if (G.view === 'follow') FOW.uFowR.value = fowR(); }
   if (roy && CONFIG.ROYALE_MINIONS) stepKennel(dt);
   if (roy && CONFIG.NEUTRALS) stepNeutrals(dt);
-  // 皇家 guard (Burning Palace ticket 02): only squads spawned through spawnSquad; none in the Royal Rumble.
-  if (CONFIG.GUARD_ON && G.guardN > 0) stepGuards(dt);
   if (roy && G.botN > 0) {
     stepBots(dt);
     // The last suit standing wakes the demon (batch 9d): the hunt starts by itself.
@@ -2400,6 +2509,7 @@ function step(dt) {
   if (roy && G.botN > 0 && CONFIG.LEADER.on) stepLeader(dt);
   if (G.phase === 'wake' || G.phase === 'hunt') stepHunt(dt);
   if (G.phase === 'palace') stepPalace(dt);
+  if (G.phase === 'palace' && CONFIG.PIECES.on) stepPieces(dt);
   if (G.phase === 'won' || G.phase === 'lost' || G.phase === 'palend') { updateHp(); updateStatus(); return; }
   // Player.
   P.px = P.x; P.pz = P.z; P.py = P.y;
@@ -3342,7 +3452,7 @@ function wallCuts(ax, az, bx, bz) {
 function shoveUnit(u, x, z, dist) {
   let dx = u.x - x, dz = u.z - z; const l = Math.hypot(dx, dz) || 1; dx /= l; dz /= l;
   for (let m = 0; m < dist; m += 0.25) { const nx = u.x + dx * 0.25, nz = u.z + dz * 0.25; if (!unitOk(u, nx, nz)) break; u.x = u.px = nx; u.z = u.pz = nz; }
-  if (u.cub || u.guard) u.y = topYUnder(u.x, u.z, u.y);
+  if (u.cub) u.y = topYUnder(u.x, u.z, u.y);
 }
 // 九距之 turns a blow on s back: no damage, one defence spent, the attacker pushed away (a suit by knockback, a cub or hunt unit by a shove).
 function turnBack(s, by, src) {
@@ -3850,7 +3960,7 @@ function moveUnit(u, mx, mz, sp, dt) {
     if (ex !== 0 && unitOk(u, u.x + ex, u.z)) u.x += ex;
     if (ez !== 0 && unitOk(u, u.x, u.z + ez)) u.z += ez;
   }
-  if (u.cub || u.guard) u.y = topYUnder(u.x, u.z, u.y);
+  if (u.cub) u.y = topYUnder(u.x, u.z, u.y);
 }
 // Longest free dash from x, z along dx, dz, in half-metre steps.
 function dashLen(u, dx, dz, range) {
@@ -4023,10 +4133,10 @@ function stepHunt(dt) {
 }
 // by = the suit that hit; the last hitter of a cub or buff creature takes its plate or boon.
 function hitEnemy(u, n, by) {
-  if (!u.alive || (u.guard ? !guardPhaseOk() : G.phase !== (u.hunt ? 'hunt' : 'royale'))) return;
+  if (!u.alive || G.phase !== (u.hunt ? 'hunt' : 'royale')) return;
   u.by = by;
   const lost = Math.min(n, u.hp);
-  u.hp = Math.max(0, u.hp - n); u.flashT = u.guard ? GC.flashS : 0.12; u.body.material = M.hit;
+  u.hp = Math.max(0, u.hp - n); u.flashT = 0.12; u.body.material = M.hit;
   u.bar.scale.x = Math.max(0.001, u.hp / u.maxHp);
   if (u.hp <= 0) killUnit(u);
   // 纵横甲's 合纵 (ticket 09): a share of what the unit lost goes to the enemy tied to it.
@@ -4035,7 +4145,6 @@ function hitEnemy(u, n, by) {
 function killUnit(u) {
   u.alive = false; u.seen = false; u.st = 0; hideTell(u); scene.remove(u.group);
   if (ORD.attack === u) ORD.attack = null;
-  if (u.guard) { guardDown(u, true); return; }
   if (u === DEMON) { endHunt(true); return; }
   if (u.neutral) { G.nT[u.idx] = G.time + draw(BAGS.times); grantBoon(u); return; }
   if (u.cub) { scene.remove(u.ring, u.line); if (!u.by) return; }
@@ -4440,14 +4549,13 @@ function botDecide(b) {
       return;
     }
   }
-  // A cub, buff creature or 皇家 guard hostile to the suits (bot target tag: its faction's foeSuits) in sight (weighted by the bot's aggro, drawn once per sighting).
+  // A cub or buff creature in sight (weighted by the bot's aggro, drawn once per sighting).
   let c = b.mode === 'creature' && b.tgt && b.tgt.alive && Math.hypot(b.tgt.x - b.x, b.tgt.z - b.z) <= vr ? b.tgt : null;
   if (!c) {
     let bd = vr;
-    const nc = CUBS.length + NEUTRALS.length, ng = G.guardN > 0 ? GUARDS.length : 0;
-    for (let i = 0; i < nc + ng; i++) {
-      const u = i < CUBS.length ? CUBS[i] : i < nc ? NEUTRALS[i - CUBS.length] : GUARDS[i - nc];
-      if (!u.alive || (u.guard && !GC.factions[u.faction].foeSuits) || u === b.skip || Math.abs(u.y - b.y) > 1.5 || (G.hiAvoid && u.y >= CONFIG.DECREES.heightY - 0.5)) continue;
+    for (let i = 0; i < CUBS.length + NEUTRALS.length; i++) {
+      const u = i < CUBS.length ? CUBS[i] : NEUTRALS[i - CUBS.length];
+      if (!u.alive || u === b.skip || Math.abs(u.y - b.y) > 1.5 || (G.hiAvoid && u.y >= CONFIG.DECREES.heightY - 0.5)) continue;
       const d = Math.hypot(u.x - b.x, u.z - b.z); if (d < bd) { bd = d; c = u; }
     }
     if (c && brnd() > b.skill.aggro) { b.skip = c; c = null; }
@@ -4494,7 +4602,7 @@ function botTarget(b, t, mode) {
 }
 // A bot sees a suit inside its own vision radius, on about its own layer.
 // A marked suit (batch 12) is seen by every bot from anywhere.
-function botSees(b, s, vr) { return !s.dead && !hiddenFrom(s, b.x, b.z) && (seenAnywhere(s) || (Math.abs(s.y - b.y) < 2 && Math.hypot(s.x - b.x, s.z - b.z) <= vr)) && (!PAL.on || palSight(b.x, b.z, s.x, s.z)); }
+function botSees(b, s, vr) { return !s.dead && !hiddenFrom(s, b.x, b.z) && (seenAnywhere(s) || (Math.abs(s.y - b.y) < 2 && Math.hypot(s.x - b.x, s.z - b.z) <= vr)) && (!PAL.on || seenAnywhere(s) || palSight(b.x, b.z, s.x, s.z)); }
 // Skills when ready and in range: Q line, W burst, R delayed burst with a ring shown for its whole delay. Aim error from the skill profile.
 // ultOnly = only the ultimate is considered (botReadyUlt, outside a fight).
 function botUseSkills(b, q, d, ultOnly) {
@@ -4688,6 +4796,7 @@ function stepBotPend(b, dt) {
 const DNG = { ex: 0, ez: 0 };
 function botDanger(b, x, z, margin) {
   const react = b.skill.react;
+  if (PAL.on && CONFIG.PIECES.on && pieceDanger(b, x, z, margin)) return true;
   for (let i = 0; i < HAZARDS.length; i++) {
     const h = HAZARDS[i];
     if (h.state !== 1 || h.t < react || Math.abs(h.y - b.y) >= 3) continue;
@@ -4702,8 +4811,6 @@ function botDanger(b, x, z, margin) {
       if (along >= -margin && along <= u.tl + margin && Math.abs(side) <= m.width / 2 + margin) { const sg = side >= 0 ? 1 : -1; DNG.ex = u.fz * sg; DNG.ez = -u.fx * sg; return true; }
     } else if (Math.hypot(x - u.tx, z - u.tz) < m.radius + margin) { DNG.ex = b.x - u.tx; DNG.ez = b.z - u.tz; if (DNG.ex === 0 && DNG.ez === 0) DNG.ez = 1; return true; }
   }
-  // 皇家 guard tells (Burning Palace ticket 02).
-  if (G.guardN > 0 && guardDanger(b, x, z, margin)) return true;
   for (let i = 0; i < BOTLIST.length; i++) {
     const o = BOTLIST[i];
     if (o === b || !o.pend || o.pendAge < react) continue;
@@ -4787,272 +4894,6 @@ function botRoamGoal(b) {
 }
 function spotTaken(k) { for (let i = 0; i < NEUTRALS.length; i++) if (NEUTRALS[i].alive && NEUTRALS[i].spot === k) return true; return false; }
 // PERFRAME-END
-// ===================== 皇家 guard (Burning Palace ticket 02): spawn API, squads in a 方阵, moves, rewards and instanced drawing =====================
-// guardN = guards alive; guardDrawn = an instanced guard mesh is in the scene; guardKills / guardBreaks / guardBlocks = guards broken by suits,
-// 伍长 lost, blows the 盾 blocked; guardHits / guardMinTell = guard hits on the player and the shortest tell before one (checks).
-Object.assign(G, { guardN: 0, guardDrawn: false, guardKills: 0, guardBreaks: 0, guardBlocks: 0, guardHits: 0, guardMinTell: 99 });
-// The player's note when the 伍长 falls to him: the boon in percent and seconds.
-const GBREAK_VARS = { v: Math.round(GC.leaderBoon.v * 100), s: GC.leaderBoon.s };
-// PERFRAME-BEGIN
-// Guards act and can be hit only in the phases CONFIG lists.
-function guardPhaseOk() { const ph = GC.phases; for (let i = 0; i < ph.length; i++) if (ph[i] === G.phase) return true; return false; }
-function freeGuard(t) { const p = GPOOL[t]; for (let i = 0; i < p.length; i++) if (!p[i].alive) return p[i]; return null; }
-// Spawn API (ticket 03 calls it when a door opens; ticket 07 adds the 反贼 faction): a squad of faction f from the unit types in list
-// ('zu' 卒, 'nu' 弩手, 'dun' 盾, 'che' 车, 'wz' 伍长), around x, z. opts: fx, fz = facing (default +z); open = chariots allowed (open rooms only).
-// The first 'wz' leads the 方阵 (others in the list are skipped); a squad without one starts broken. At most GUARD.squadMax units, pool permitting.
-// Returns the squad id, or -1 (switched off, not a guard phase, unknown faction, no floor at x, z, no free squad, no free unit).
-function spawnSquad(f, list, x, z, opts) {
-  if (!CONFIG.GUARD_ON || !GUARD_COL[f] || !list || !guardPhaseOk()) return -1;
-  let sq = null;
-  for (let i = 0; i < SQUADS.length; i++) if (!SQUADS[i].on) { sq = SQUADS[i]; break; }
-  if (!sq) return -1;
-  let fx = opts && opts.fx !== undefined ? opts.fx : 0, fz = opts && opts.fz !== undefined ? opts.fz : 1;
-  const fl = Math.hypot(fx, fz) || 1; fx /= fl; fz /= fl;
-  // No floor at the anchor (the void): no squad.
-  const y0 = topY(x, z); if (y0 < -1e8) return -1;
-  sq.faction = f; sq.leader = null; sq.n = 0; sq.fx = fx; sq.fz = fz; sq.x = x; sq.z = z; sq.y = y0; sq.tgt = null; sq.broken = true; sq.open = !!(opts && opts.open);
-  for (let k = 0; k < GUARD_TYPES.length; k++) GSLOT[GUARD_TYPES[k]] = 0;
-  // Pass 0 places the 伍长 (the slots hang on it), pass 1 the others in list order.
-  for (let pass = 0; pass < 2; pass++) for (let i = 0; i < list.length && sq.n < GC.squadMax; i++) {
-    const t = list[i];
-    if (!GC.types[t] || (pass === 0) !== (t === 'wz') || (t === 'wz' && sq.leader) || (t === 'che' && !sq.open)) continue;
-    const u = freeGuard(t); if (!u) continue;
-    const row = GC.rows[t], k = GSLOT[t]++;
-    // Across the row: centre, right, left, ... (flank rows skip the centre).
-    const l = row[2] ? row[1] * ((k + 2) >> 1) * (k % 2 ? -1 : 1) : row[1] * ((k + 1) >> 1) * (k % 2 ? 1 : -1);
-    let sx = x + fx * row[0] - fz * l, sz = z + fz * row[0] + fx * l;
-    u.y = sq.y;
-    if (!unitOk(u, sx, sz)) { sx = x; sz = z; }
-    u.faction = f; u.col = GUARD_COL[f][t]; u.sq = sq; u.slotF = row[0]; u.slotL = l;
-    u.x = u.px = sx; u.z = u.pz = sz; u.y = topYUnder(sx, sz, sq.y + 0.5); u.fx = fx; u.fz = fz;
-    u.hp = u.maxHp; u.alive = true; u.seen = false; u.st = 0; u.t = 0; u.cur = ''; u.tellT = 0; u.gcd = 0; u.flashT = 0; u.bleedT = 0; u.slowT = 0; u.sealT = 0;
-    u.atkAt = -99; u.by = null; u.bleedBy = null; u.tgt = null; u.dmgK = 1; u.defK = 1; u.form = false;
-    if (t === 'wz') { sq.leader = u; sq.broken = false; }
-    sq.n++; G.guardN++;
-  }
-  if (sq.n === 0) return -1;
-  sq.on = true;
-  return sq.id;
-}
-// A hostile of faction f on layer y: a live suit on the ground (when the faction fights suits), or a live guard of another faction.
-function guardFoe(f, o, y) {
-  if (o.kind === 'suit') return GC.factions[f].foeSuits && !o.dead && !o.air && Math.abs(o.y - y) < 1.5;
-  return !!o.guard && o.alive && o.faction !== f && Math.abs(o.y - y) < 1.5;
-}
-// ...and seen from x, z (an unseen suit is hidden, as from the bots).
-function foeSeen(f, o, x, z, y) { return guardFoe(f, o, y) && !(o.kind === 'suit' && hiddenFrom(o, x, z)); }
-function nearestFoe(f, x, z, y, r) {
-  let best = null, bd = r;
-  for (let i = 0; i < SUITS.length; i++) {
-    const s = SUITS[i]; if (!foeSeen(f, s, x, z, y)) continue;
-    const d = Math.hypot(s.x - x, s.z - z); if (d <= bd) { bd = d; best = s; }
-  }
-  for (let i = 0; i < GUARDS.length; i++) {
-    const o = GUARDS[i]; if (!o.alive || o.faction === f || !guardFoe(f, o, y)) continue;
-    const d = Math.hypot(o.x - x, o.z - z); if (d <= bd) { bd = d; best = o; }
-  }
-  return best;
-}
-// A formed squad follows its 伍长 and takes one target for all; it faces that target.
-function squadThink(sq) {
-  const L = sq.leader;
-  if (L && L.alive) { sq.x = L.x; sq.z = L.z; sq.y = L.y; }
-  let q = sq.tgt;
-  if (q && (!foeSeen(sq.faction, q, sq.x, sq.z, sq.y) || Math.hypot(q.x - sq.x, q.z - sq.z) > GC.leash)) q = null;
-  if (!q) q = nearestFoe(sq.faction, sq.x, sq.z, sq.y, GC.aggro);
-  sq.tgt = q;
-  if (q) { const dx = q.x - sq.x, dz = q.z - sq.z, l = Math.hypot(dx, dz); if (l > 0.3) { sq.fx = dx / l; sq.fz = dz / l; } }
-}
-function stepGuards(dt) {
-  if (!guardPhaseOk()) return;
-  for (let i = 0; i < SQUADS.length; i++) if (SQUADS[i].on) squadThink(SQUADS[i]);
-  const VR = G.visR;
-  for (let i = 0; i < GUARDS.length; i++) {
-    const u = GUARDS[i]; if (!u.alive) continue;
-    // A guard with no floor under it (its section fell) is lost: no reward.
-    if (!floorAt(u.x, u.z, u.y + 0.1)) guardDown(u, false); else stepGuard(u, dt);
-    u.seen = u.alive && Math.hypot(u.x - P.x, u.z - P.z) <= VR;
-  }
-}
-// How near a guard walks to a target it fights out of a 方阵: crossbows to the middle of their band, others to 0.8 of their reach.
-function guardReach(m) { return m.shape === 'mark' ? (m.min + m.max) / 2 : m.max * 0.8; }
-function stepGuard(u, dt) {
-  u.px = u.x; u.pz = u.z;
-  // Bleed from a suit's Stalker plate.
-  if (u.bleedT > 0) {
-    u.bleedT -= dt; u.hp -= CONFIG.PLATE.bleedDps * dt;
-    if (u.hp <= 0) { u.hp = 0; u.by = u.bleedBy; killUnit(u); return; }
-  }
-  if (u.gcd > 0) u.gcd -= dt;
-  if (u.slowT > 0) u.slowT -= dt;
-  if (u.sealT > 0) u.sealT -= dt;
-  if (u.flashT > 0) u.flashT -= dt;
-  // The 伍长's buff: on the other units of a formed 方阵 within buff.r of the live 伍长 (not on the 伍长 itself).
-  const sq = u.sq, L = sq.leader;
-  u.form = !sq.broken && !!L && L.alive;
-  const buffed = u.form && u !== L && Math.hypot(L.x - u.x, L.z - u.z) <= GC.buff.r;
-  u.dmgK = buffed ? 1 + GC.buff.dmg : 1; u.defK = buffed ? 1 - GC.buff.def : 1;
-  if (u.st === 1) { u.t -= dt; u.tellT += dt; if (u.t <= 0) guardResolve(u); return; }
-  if (u.st === 2) {
-    u.t += dt; const k = Math.min(1, u.t / u.dashS);
-    u.x = u.ax + (u.bx - u.ax) * k; u.z = u.az + (u.bz - u.az) * k;
-    if (k >= 1) { u.st = 3; u.t = CONFIG.APEX.recoverS; u.y = topYUnder(u.x, u.z, u.y); }
-    return;
-  }
-  if (u.st === 3) { u.t -= dt; if (u.t <= 0) u.st = 0; return; }
-  // In a 方阵 the squad's target; broken, its own nearest hostile.
-  let q = null;
-  if (u.form) q = sq.tgt;
-  else {
-    q = u.tgt;
-    if (q && (!foeSeen(u.faction, q, u.x, u.z, u.y) || Math.hypot(q.x - u.x, q.z - u.z) > GC.leash)) q = null;
-    if (!q) q = nearestFoe(u.faction, u.x, u.z, u.y, GC.aggro);
-  }
-  u.tgt = q;
-  const m = GMV[u.atk], hs = unitHeld(u), sp = u.cfg.speed * (hs ? 1 - hs.slow : 1) * (u.slowT > 0 ? 1 - u.slowK : 1);
-  if (q) {
-    const px = q.x - u.x, pz = q.z - u.z, dist = Math.hypot(px, pz) || 1e-6, dx = px / dist, dz = pz / dist;
-    // Its one move when ready and in its band (sealed by 杂甲: none; held in a 势 ring: no dash move).
-    if (u.gcd <= 0 && u.sealT <= 0 && dist >= m.min && dist <= m.max && !(hs && m.dashS) && guardBegin(u, q, dx, dz)) return;
-    u.fx = dx; u.fz = dz;
-  }
-  let gx = u.x, gz = u.z, stop = 0.3;
-  if (u.form && u !== L) {
-    // Its slot: ahead along the squad's facing, across to its right (+) or left (-); it steps out at a hostile near the slot.
-    gx = L.x + sq.fx * u.slotF - sq.fz * u.slotL; gz = L.z + sq.fz * u.slotF + sq.fx * u.slotL;
-    if (q && Math.hypot(q.x - gx, q.z - gz) <= GC.stepOut) { gx = q.x; gz = q.z; stop = guardReach(m); }
-    if (!q) { u.fx = sq.fx; u.fz = sq.fz; }
-  } else if (q) { gx = q.x; gz = q.z; stop = u.form && sq.n > 1 ? GC.keep : guardReach(m); }
-  const tx = gx - u.x, tz = gz - u.z, td = Math.hypot(tx, tz);
-  if (td > stop) moveUnit(u, tx / td, tz / td, sp, dt);
-}
-// Start its move: lock the shape now and show the tell (red, the unit tell colour) for the whole windup. False when a line has no room.
-function guardBegin(u, q, dx, dz) {
-  const m = GMV[u.atk];
-  if (m.shape === 'line') {
-    const len = dashLen(u, dx, dz, m.range);
-    if (len < 1) { u.gcd = 0.5; return false; }
-    u.tl = len; u.ty = u.y; u.line.position.set(u.x, u.y + 0.07, u.z); u.line.rotation.y = Math.atan2(-dx, -dz); u.line.scale.set(m.width, 1, len);
-    u.line.visible = true; scene.add(u.line);
-  } else {
-    // mark: a ground marker on the target (crossbow volley); circle: around the unit.
-    if (m.shape === 'mark') { u.tx = q.x; u.tz = q.z; u.ty = q.y; } else { u.tx = u.x; u.tz = u.z; u.ty = u.y; }
-    u.ring.position.set(u.tx, u.ty + 0.07, u.tz); u.ring.scale.setScalar(m.radius); u.ring.visible = true; scene.add(u.ring);
-  }
-  u.fx = dx; u.fz = dz; u.st = 1; u.cur = u.atk; u.t = m.windup; u.tellT = 0; u.gcd = m.cd;
-  return true;
-}
-function guardHideTell(u) {
-  if (u.ring.parent) scene.remove(u.ring);
-  if (u.line.parent) scene.remove(u.line);
-  u.ring.visible = false; u.line.visible = false;
-}
-// The shown shape covers o (as the hit tests it).
-function guardCovers(u, m, o) {
-  if (m.shape === 'line') { const qx = o.x - u.x, qz = o.z - u.z, along = qx * u.fx + qz * u.fz; return along >= 0 && along <= u.tl && Math.abs(qx * u.fz - qz * u.fx) <= m.width / 2; }
-  return Math.hypot(o.x - u.tx, o.z - u.tz) <= m.radius;
-}
-// Windup over: the hit lands on every hostile still inside the shape shown (suits, guards of another faction); a charge then drives along its line.
-function guardResolve(u) {
-  const m = GMV[u.cur], dmg = m.dmg * u.dmgK;
-  guardHideTell(u);
-  // A wall raised during the windup (墨甲's 距云梯) shortens a line: it stops there and hits only up to it.
-  if (m.shape === 'line' && G.wallN > 0) u.tl = Math.min(u.tl, dashLen(u, u.fx, u.fz, u.tl));
-  if (GC.factions[u.faction].foeSuits) for (let i = 0; i < SUITS.length; i++) {
-    const s = SUITS[i];
-    if (s.dead || Math.abs(s.y - u.ty) >= 1.5 || !guardCovers(u, m, s)) continue;
-    // 道甲's stances: a guard's move is its basic attack; a countered move lands nothing.
-    if (counterHit(s, true, null, u, dmg)) { if (!u.alive) return; continue; }
-    if (s === P) { G.guardHits++; if (u.tellT < G.guardMinTell) G.guardMinTell = u.tellT; }
-    if (m.shove) {
-      let dx = s.x - u.x, dz = s.z - u.z; const l = Math.hypot(dx, dz);
-      if (l < 1e-3) { dx = u.fx; dz = u.fz; } else { dx /= l; dz /= l; }
-      s.kx += dx * m.shove * CONFIG.KB_DECAY; s.kz += dz * m.shove * CONFIG.KB_DECAY;
-    }
-    if (dmg > 0) { u.atkAt = G.time; hurtSuit(s, dmg, 'hit', null, u); }
-    if (!u.alive) return;
-  }
-  for (let i = 0; i < GUARDS.length; i++) {
-    const o = GUARDS[i];
-    if (!o.alive || o.faction === u.faction || Math.abs(o.y - u.ty) >= 1.5 || !guardCovers(u, m, o)) continue;
-    hitEnemy(o, dmg * o.defK, null);
-  }
-  if (m.shape !== 'line' || m.stay) { u.st = 3; u.t = CONFIG.APEX.recoverS; return; }
-  u.ax = u.x; u.az = u.z; u.dashS = m.dashS; u.st = 2; u.t = 0; u.bx = u.x + u.fx * u.tl; u.bz = u.z + u.fz * u.tl;
-}
-// Damage multiplier on a blow from suit by: the 伍长's buff, and the 盾's block of a basic blow from its front (skills break through).
-function guardTakenK(u, by, basic) {
-  let k = u.defK;
-  if (basic && u.gtype === 'dun' && by && u.alive) {
-    const dx = by.x - u.x, dz = by.z - u.z, l = Math.hypot(dx, dz);
-    if (l > 1e-3 && (dx * u.fx + dz * u.fz) / l >= GBLOCK_COS) { k *= GC.block.k; G.guardBlocks++; }
-  }
-  return k;
-}
-// A guard is out. rewarded = broken by a blow (the suit that broke it takes charge and health; the 伍长 also a short boon); else lost to a fall.
-// Its squad: one fewer; the 伍长 out breaks the 方阵 (no buff, each unit fights alone); the last one out frees the squad.
-function guardDown(u, rewarded) {
-  u.alive = false; u.seen = false; u.hp = 0; u.st = 0; u.bleedT = 0; u.tgt = null; guardHideTell(u);
-  if (ORD.attack === u) ORD.attack = null;
-  G.guardN--;
-  const sq = u.sq, lead = sq.leader === u;
-  sq.n--;
-  if (lead) { sq.broken = true; G.guardBreaks++; }
-  if (sq.n <= 0) { sq.on = false; sq.leader = null; sq.tgt = null; }
-  const s = u.by;
-  if (!rewarded || !s || s.kind !== 'suit' || s.dead) return;
-  G.guardKills++;
-  gainCharge(s, u.cfg.ult);
-  s.hp = Math.min(CONFIG.MAX_HP, s.hp + u.cfg.heal);
-  if (lead) {
-    const B = GC.leaderBoon; s.bT[B.i] = Math.max(s.bT[B.i], B.s); s.bV[B.i] = Math.max(s.bV[B.i], B.v);
-    if (s === P) showNote('voice_guard_break', 'rule_guard_break', GBREAK_VARS);
-  }
-}
-// Scene change (new run, the wake): every guard back in its pool, squads freed, nothing drawn.
-function clearGuards() {
-  for (let i = 0; i < GUARDS.length; i++) {
-    const u = GUARDS[i];
-    u.alive = false; u.seen = false; u.hp = 0; u.st = 0; u.bleedT = 0; u.slowT = 0; u.sealT = 0; u.flashT = 0; u.tgt = null; u.by = null; u.bleedBy = null; u.sq = null;
-    guardHideTell(u);
-    if (ORD.attack === u) ORD.attack = null;
-  }
-  for (let i = 0; i < SQUADS.length; i++) { const sq = SQUADS[i]; sq.on = false; sq.leader = null; sq.tgt = null; sq.n = 0; sq.broken = false; }
-  for (let k = 0; k < GUARD_TYPES.length; k++) { const im = GDRAW[GUARD_TYPES[k]]; im.count = 0; if (im.parent) scene.remove(im); }
-  G.guardN = 0; G.guardDrawn = false; G.guardKills = 0; G.guardBreaks = 0; G.guardBlocks = 0; G.guardHits = 0; G.guardMinTell = 99;
-}
-// A guard tell this bot has seen for its reaction time covers x, z (radius + margin): leaves the escape direction in DNG.
-function guardDanger(b, x, z, margin) {
-  const react = b.skill.react;
-  for (let i = 0; i < GUARDS.length; i++) {
-    const u = GUARDS[i];
-    if (!u.alive || u.st !== 1 || u.tellT < react || Math.abs(u.ty - b.y) >= 1.5 || !GC.factions[u.faction].foeSuits) continue;
-    const m = GMV[u.cur];
-    if (m.shape === 'line') {
-      const qx = x - u.x, qz = z - u.z, along = qx * u.fx + qz * u.fz, side = qx * u.fz - qz * u.fx;
-      if (along >= -margin && along <= u.tl + margin && Math.abs(side) <= m.width / 2 + margin) { const sg = side >= 0 ? 1 : -1; DNG.ex = u.fz * sg; DNG.ez = -u.fx * sg; return true; }
-    } else if (Math.hypot(x - u.tx, z - u.tz) < m.radius + margin) { DNG.ex = b.x - u.tx; DNG.ez = b.z - u.tz; if (DNG.ex === 0 && DNG.ez === 0) DNG.ez = 1; return true; }
-  }
-  return false;
-}
-// Instanced bodies: per type, the guards seen are packed into the first count instances (interpolated like the cubs); a type with none leaves the scene.
-function drawGuards(alpha) {
-  let any = false;
-  for (let k = 0; k < GUARD_TYPES.length; k++) {
-    const t = GUARD_TYPES[k], im = GDRAW[t], pool = GPOOL[t];
-    let n = 0;
-    for (let i = 0; i < pool.length; i++) {
-      const u = pool[i]; if (!u.seen) continue;
-      GM4.makeRotationY(Math.atan2(-u.fx, -u.fz)); GM4.setPosition(u.px + (u.x - u.px) * alpha, u.y, u.pz + (u.z - u.pz) * alpha);
-      im.setMatrixAt(n, GM4); im.setColorAt(n, u.flashT > 0 ? GUARD_FLASH : u.col); n++;
-    }
-    if (im.count !== n) im.count = n;
-    if (n > 0) { im.instanceMatrix.needsUpdate = true; im.instanceColor.needsUpdate = true; if (!im.parent) scene.add(im); any = true; }
-    else if (im.parent) scene.remove(im);
-  }
-  G.guardDrawn = any;
-}
-// PERFRAME-END
 const ZONE_VARS = { zone: '' }, BOON_VARS = { v: 0, s: 0 }, BOON_TXT = [T('bn_power'), T('bn_regen'), T('bn_vision'), T('bn_speed')];
 // Buff creatures out of the scene and their first appearance drawn from the time bag (new run), or simply cleared (the wake).
 function resetNeutrals(redraw) {
@@ -5123,7 +4964,7 @@ function startHunt() {
   G.bannerWave = -1; G.fellT = 0; G.miniDirty = true;
   for (const u of CUBS) u.fuseOn = u.alive;
   clearLeader('wake');
-  resetCubs(); resetNeutrals(false); clearBots(); clearGuards();
+  resetCubs(); resetNeutrals(false); clearBots();
   for (const u of CUBS) if (u.fuseOn) { u.sx = u.x; u.sz = u.z; u.sy = u.y; u.plate.position.set(u.x, u.y + 1, u.z); scene.add(u.plate); }
   G.phase = 'wake'; G.phaseT = 0; G.huntT = 0; G.plates = 0; G.bossDirty = true; G.bossHp = -1;
   G.hits = 0; G.minTell = 99; G.hitDmg = 0; G.bleedDmg = 0;
@@ -5321,11 +5162,6 @@ function drawMini() {
     const u = NEUTRALS[i]; if (!u.seen) continue;
     c.beginPath(); c.arc((u.x - MINI.x0) * px, (u.z - MINI.z0) * py, 2.5, 0, 6.2832); c.fill();
   }
-  // 皇家 guard dots (Burning Palace ticket 02), seen ones only.
-  if (G.guardN > 0) {
-    c.fillStyle = '#4aa6c8';
-    for (let i = 0; i < GUARDS.length; i++) { const u = GUARDS[i]; if (!u.seen) continue; c.beginPath(); c.arc((u.x - MINI.x0) * px, (u.z - MINI.z0) * py, 2, 0, 6.2832); c.fill(); }
-  }
   if (G.kWarned) {
     const w = CONFIG.KENNEL.waves[G.kWave]; c.strokeStyle = '#ff8a2a'; c.lineWidth = 2;
     for (let i = 0; i < w.length; i++) {
@@ -5395,7 +5231,7 @@ function reset() {
   for (const k in DBAGS) DBAGS[k].i = DBAGS[k].a.length;
   for (let i = 0; i < 4; i++) { P.bT[i] = 0; P.bV[i] = 0; }
   P.statusTick = -1; G.boons = 0; G.visR = CONFIG.VISION_R; if (G.view === 'follow') FOW.uFowR.value = G.visR;
-  resetCubs(); resetNeutrals(true); clearGuards();
+  resetCubs(); resetNeutrals(true);
   G.lostIn = '';
   clearHunt();
   G.time = 0; G.bannerWave = -1; G.fellT = 0; G.nextWave = -2;
@@ -5409,6 +5245,7 @@ function reset() {
   for (const h of HAZARDS) { h.state = 0; h.t = 0; h.ring.visible = false; }
   M.eyes.emissiveIntensity = 0.4;
   for (const a of ALTAR_LIST) { a.charge = CONFIG.ALTAR.charge; a.emptyT = 0; a.mesh.material = M.altarOn; }
+  resetPieces();
   for (const d of DUMMY_LIST) { d.hp = CONFIG.DUMMY_HP; d.deadT = 0; d.flashT = 0; d.body.material = M.dummy; d.bar.scale.x = 1; }
   for (const st of SK) { st.cdT = 0; st.shown = -1; }
   ORD.attack = null; ORD.atkHeld = false; ORD.rightHeld = false; ORD.attackMove = false; cancelAim(); PATH.n = 0; PATH.i = 0;
@@ -5505,8 +5342,6 @@ function placeView(alpha) {
     u.group.position.set(u.px + (u.x - u.px) * alpha, u.y, u.pz + (u.z - u.pz) * alpha);
     u.body.rotation.y = Math.atan2(-u.fx, -u.fz);
   }
-  // 皇家 guard (Burning Palace ticket 02): instanced bodies, written while any guard lives or any instanced mesh still draws.
-  if (G.guardN > 0 || G.guardDrawn) drawGuards(alpha);
   if (G.phase === 'royale') for (let i = 0; i < NEUTRALS.length; i++) {
     const u = NEUTRALS[i]; if (!u.alive) continue;
     u.group.position.set(u.px + (u.x - u.px) * alpha, u.y, u.pz + (u.z - u.pz) * alpha);
@@ -5593,8 +5428,6 @@ for (const u of ENEMIES.concat(NEUTRALS)) {
   warmHunt.push(u.group, u.ring, u.line, u.plate); u.group.visible = u.ring.visible = u.line.visible = true;
   for (const o of [u.group, u.ring, u.line, u.plate]) o.position.set(P.x, P.y, P.z);
 }
-// 皇家 guard (Burning Palace ticket 02): each type's instanced mesh draws one unit at the player here, so its buffers upload and its program compiles at load.
-for (const t of GUARD_TYPES) { const im = GDRAW[t]; GM4.makeTranslation(P.x, P.y, P.z); im.setMatrixAt(0, GM4); im.count = 1; im.instanceMatrix.needsUpdate = true; warmHunt.push(im); }
 for (const o of warmHunt) scene.add(o);
 for (const h of HAZARDS) h.ring.visible = true;
 for (const b of BOTLIST) if (b.group.parent) b.group.visible = true;
@@ -5605,9 +5438,11 @@ renderer.render(scene, camera);
 setView('overview'); placeView(1); renderer.render(scene, camera);
 // The palace rooms, doors and lake (BP01) are drawn once too, from above the palace, so their buffers upload at load.
 for (const r of PAL.rooms) scene.add(r.group);
+warmPieces(true);
 for (const d of PAL.doors) scene.add(d.group);
 scene.add(PAL.lake);
 camera.position.set(PAL.cx, 90, PAL.cz + 60); camera.lookAt(PAL.cx, 0, PAL.cz); camera.updateMatrixWorld(); renderer.render(scene, camera);
+warmPieces(false);
 for (const r of PAL.rooms) scene.remove(r.group);
 for (const d of PAL.doors) scene.remove(d.group);
 scene.remove(PAL.lake);
@@ -5615,7 +5450,6 @@ setView('follow');
 for (const h of HAZARDS) h.ring.visible = false;
 for (const b of BOTLIST) b.group.visible = false;
 for (const o of warmHunt) scene.remove(o);
-for (const t of GUARD_TYPES) GDRAW[t].count = 0;
 for (const u of ENEMIES.concat(NEUTRALS)) hideTell(u);
 for (const m of INDICATORS) m.visible = false;
 scene.remove(warm, warmZone); warm.geometry.dispose(); P.marker.visible = false;
@@ -5757,26 +5591,6 @@ window.__game = {
   royale: () => ({ phase: G.phase, lostIn: G.lostIn, alive: G.alive, decidedAt: G.decidedAt, t: G.time, voice: el.voice.textContent, rule: el.rule.textContent, banner: el.banner.style.display, btn: el.btnHunt.style.display, btnText: el.btnHunt.textContent }), setBotCd(i, slot, v) { BOTLIST[i].cd[slot] = v; }, setTime(t) { G.time = t; },
   hitBy(i, j, n) { const a = i < 0 ? P : BOTLIST[i], b = j < 0 ? P : BOTLIST[j]; hurtSuit(b, n, 'hit', a); },
   hitCubBy(i, j, n) { hitEnemy(CUBS[i], n, j < 0 ? P : BOTLIST[j]); }, hitNeutralBy(i, j, n) { hitEnemy(NEUTRALS[i], n, j < 0 ? P : BOTLIST[j]); },
-  // 皇家 guard (Burning Palace ticket 02, checks 300+): guardSpawn = the spawn API (spawnSquad); guards (read); guardStrike = a blow from suit i (-1 = player)
-  // on guard g through hitTarget (basic or a skill); guardSet = fields on guard g (checks only); guardFaction = rename a squad's faction (hostility checks only).
-  guardSpawn(f, list, x, z, opts) { return spawnSquad(f, list, x, z, opts); },
-  guards() {
-    const id = (o) => (!o ? '' : o === P ? 'P' : o.bot ? 'b' + BOTLIST.indexOf(o) : o.guard ? 'g' + GUARDS.indexOf(o) : '?');
-    return { n: G.guardN, drawn: G.guardDrawn, kills: G.guardKills, breaks: G.guardBreaks, blocks: G.guardBlocks, hits: G.guardHits, minTell: G.guardMinTell,
-      player: { bT: P.bT.slice(), bV: P.bV.slice(), plates: P.plates, pk: P.pk.slice(), kx: P.kx, kz: P.kz },
-      pool: Object.fromEntries(GUARD_TYPES.map((t) => [t, GPOOL[t].length])),
-      draw: Object.fromEntries(GUARD_TYPES.map((t) => [t, { count: GDRAW[t].count, staged: onStage(GDRAW[t]) }])),
-      list: GUARDS.map((u) => ({ type: u.gtype, faction: u.faction, x: u.x, z: u.z, y: u.y, hp: u.hp, max: u.maxHp, alive: u.alive, seen: u.seen, st: u.st, cur: u.cur,
-        sq: u.sq ? u.sq.id : -1, form: u.form, dmgK: u.dmgK, defK: u.defK, fx: u.fx, fz: u.fz, tgt: id(u.tgt), slotF: u.slotF, slotL: u.slotL, gcd: u.gcd,
-        tellStaged: onStage(u.ring) || onStage(u.line) })),
-      squads: SQUADS.map((s) => ({ on: s.on, n: s.n, broken: s.broken, lead: s.leader ? GUARDS.indexOf(s.leader) : -1, fx: s.fx, fz: s.fz, tgt: id(s.tgt), faction: s.faction })),
-      tells: GUARDS.map((u, i) => [u, i]).filter(([u]) => u.alive && u.st === 1).map(([u, i]) => { const m = GMV[u.cur], mesh = m.shape === 'line' ? u.line : u.ring;
-        return { i, type: u.gtype, move: u.cur, shape: m.shape, x: m.shape === 'line' ? u.x : u.tx, z: m.shape === 'line' ? u.z : u.tz, y: u.ty, r: m.radius || 0, len: u.tl, w: m.width || 0,
-          age: u.tellT, left: u.t, windup: m.windup, shown: mesh.visible && onStage(mesh), red: mesh.material === M.tellD }; }) };
-  },
-  guardStrike(i, g, n, basic) { return hitTarget(i < 0 ? P : BOTLIST[i], GUARDS[g], n, !!basic); },
-  guardSet(g, o) { Object.assign(GUARDS[g], o); },
-  guardFaction(q, f) { const s = SQUADS[q]; s.faction = f; for (const u of GUARDS) if (u.sq === s && u.alive) u.faction = f; },
   player: () => ({ mode: P.mode, tgt: P.tgt ? (P.tgt.kind === 'suit' ? P.tgt.id : -2) : -1, dead: P.dead, cause: P.cause, diedAt: P.diedAt, plates: P.plates, boons: P.boons, x: P.x, y: P.y, z: P.z, kills: P.kills }),
   bots: () => ({ n: G.botN, alive: G.alive, navRuns: G.navRuns, navPeak: G.navPeak, huntN: G.huntN, huntClaims: G.huntClaims, huntFrees: G.huntFrees, list: BOTLIST.slice(0, G.botN).map((b) => ({ id: b.id, x: b.x, y: b.y, z: b.z, hp: b.hp, dead: b.dead, cause: b.cause, diedAt: b.diedAt,
     killer: b.killer ? b.killer.id : -1, stuck: b.stuckMax, zone: b.zone ? b.zone.id : null, seen: b.seen, vis: b.group.visible, inScene: !!b.group.parent, plates: b.plates, boons: b.boons,
@@ -5914,6 +5728,21 @@ Object.assign(window.__game, {
     b.group.position.set(b.x, b.y, b.z); b.group.visible = true; if (!b.group.parent) scene.add(b.group);
   },
   botSeesP: (k) => botSees(BOTLIST[k], P, CONFIG.VISION_R),
+});
+// The Burning Palace pieces hooks (BP08): pieces (read: lions and 华表 with state, ring and eyes; mercury with state and look; smoke clouds; 鼎 charge;
+// the player's mark and health), pieceBot (read: bot k's health, mark and knockback), pieceProbe (checks only: one stand-in unit of another side
+// at x, z), probe (read), pieceDanger (bot k's danger at x, z and the way out), smokeBlocks.
+Object.assign(window.__game, {
+  pieces: () => ({ on: CONFIG.PIECES.on, sides: PIECE_SIDES.length, pMark: P.markT, pHp: P.hp, pMarker: P.marker.visible,
+    haz: PIECE_HAZ.map((h) => ({ kind: h.kind, room: h.s.id, x: h.x, z: h.z, state: h.state, t: h.t, ring: h.ring.visible, eyes: h.eyes ? h.eyes.material === M.hbEyeOn : null, inScene: !!h.s.group.parent })),
+    merc: PIECE_MERC.map((m) => ({ room: m.s.id, ph: m.ph, x0: m.x0, x1: m.x1, z0: m.z0, z1: m.z1, state: m.state, stT: m.stT, t: m.t, look: [M.merc, M.mercWarn, M.mercHot].indexOf(m.mesh.material) })),
+    smoke: PIECE_SMOKE.map((c) => ({ room: c.s.id, x: c.x, z: c.z, r: c.r })),
+    ding: PIECE_DING.map((a) => ({ room: a.s.id, x: a.x, z: a.z, charge: a.charge, on: a.mesh.material === M.altarOn })) }),
+  pieceBot: (k) => { const b = BOTLIST[k]; return { hp: b.hp, dead: b.dead, markT: b.markT, marker: b.marker.visible, kx: b.kx, kz: b.kz }; },
+  pieceProbe(x, z, hp) { PIECE_PROBE.list.length = 0; PIECE_PROBE.list.push({ alive: true, x, z, y: 0, hp, max: 100, hits: 0, kx: 0, kz: 0 }); },
+  probe: () => { const u = PIECE_PROBE.list[0]; return u ? { hp: u.hp, hits: u.hits, kx: u.kx, kz: u.kz } : null; },
+  pieceDanger(k, x, z) { const hit = pieceDanger(BOTLIST[k], x, z, 0.5); return { hit, ex: DNG.ex, ez: DNG.ez }; },
+  smokeBlocks,
 });
 window.__ready = true;
 requestAnimationFrame(frame);
