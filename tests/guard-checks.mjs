@@ -9,6 +9,7 @@ export async function guardChecks(g, check, base) {
   await g(SETUP);
 
   // 300 Spawn API and pools: fixed pool sizes; the squad cap; chariots only in open rooms; one 伍长 leads; unknown faction, full pools and the hunt refuse.
+  // (Ticket 07: the pool table also holds the 反贼 types; this check reads the 皇家 ones, check 900 the rest.)
   const d300 = await g(() => {
     const G = __game, C = G.config, o = {}; const { S } = __gs(0);
     o.pool = G.guards().pool;
@@ -33,7 +34,7 @@ export async function guardChecks(g, check, base) {
     return o;
   });
   check('300 guard spawn API: pools fixed (zu 10, nu 6, dun 4, che 2, wz 2); one 伍长 leads; no 车 unless open; cap 12 per squad; unknown faction, full pools and the hunt refuse',
-    !!d300 && JSON.stringify(d300.pool) === JSON.stringify({ zu: 10, nu: 6, dun: 4, che: 2, wz: 2 }) && d300.closed.id >= 0 && d300.closed.n === 11 && d300.closed.che === 0
+    !!d300 && JSON.stringify(['zu', 'nu', 'dun', 'che', 'wz'].map((t) => d300.pool[t])) === JSON.stringify([10, 6, 4, 2, 2]) && d300.closed.id >= 0 && d300.closed.n === 11 && d300.closed.che === 0
     && d300.closed.wz === 1 && d300.closed.leadType === 'wz' && !d300.closed.broken && d300.open.id >= 0 && d300.open.n === d300.squadMax && d300.open.che === 2
     && d300.badFaction === -1 && d300.maxSquad <= d300.squadMax && d300.over.length === 0 && d300.more.includes(-1) && d300.hunt.id === -1 && d300.hunt.n === 0 && !d300.hunt.staged,
     JSON.stringify(d300));

@@ -1,1 +1,1 @@
-{"mode": "suite", "label": "int-02"}
+{"mode": "cmd", "cmd": "node tests/run.mjs -vv 907,306 2>&1 | grep -E \"^(907|306) \" | cut -c1-1500", "label": "bp07-budget-2"}
