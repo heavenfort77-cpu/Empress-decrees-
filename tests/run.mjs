@@ -3913,7 +3913,8 @@ try {
     sp(1); const q = G.pieces();
     o.oneS = { hp: q.pHp, bot: G.pieceBot(0).hp, probe: G.probe().hp, charge: q.ding[0].charge };
     sp(A.charge / A.rate + 1); o.empty = G.pieces().ding[0];
-    G.teleport(d.x + 8, d.z - 8); G.palPlaceBot(0, d.x - 8, d.z - 8); G.pieceProbe(d.x - 8, d.z - 10, 50);
+    // Away from the cauldron but on the hall floor (integration 24 Nov: since the burning (BP04) a step off the platform is a fall into the lake).
+    G.teleport(d.x + 4, d.z - 8); G.palPlaceBot(0, d.x - 8, d.z - 8); G.pieceProbe(d.x - 8, d.z - 10, 50);
     sp(A.emptyS + 0.2); o.refill = G.pieces().ding[0];
     G.setMode('rumble'); G.reset(); o.altars = G.altars().every((a) => a.on && a.charge === A.charge);
     return o;
