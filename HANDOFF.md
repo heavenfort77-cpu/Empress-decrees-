@@ -110,6 +110,7 @@ Panel note 16 (lead, 23 Nov 23:30; proposal):
 15 ultimate charge (DONE); 16 法甲 kit + suit stats sample (owner plays and approves); 17 the other eight kits (docs/SUITS.md); 18 hiding (curtains, 道甲 stillness, sight blocked by walls); 19 the ending + WINNER_STATUE; 20 final map size + balancing pass (re-measure, retune the CONFIG timing list once). Hunt sweep re-check with kits (0.15 s bot now loses demon-first).
 
 ## Owner decisions (dated)
+- 24 Nov 13:44: build The Burning Palace now ("same asset"); battle royale (Royal Rumble) parked: kept and green, no new work. Tickets: tickets/burning-palace 01-06.
 - 24 Nov 13:18-13:28: map too small; direction = "The Burning Palace" (room-by-room royale in a 阿房宫-style palace, zoom camera, only the current room rendered), more cannon fodder (the 皇家 guard, owner 13:30; not 兵家), door previews (room, decree, reward, "something stirs"), doors lock during a fight, off-screen fights only announced, KEEP the open royale as a second mode "Royal Rumble". Design note docs/BURNING-PALACE.md; waiting for go.
 - 24 Nov 12:29: "update repo"; restarts must not need an owner reminder (self watchdog added).
 - 24 Nov 10:27: more workers in parallel where safe ("having more can be faster?").
