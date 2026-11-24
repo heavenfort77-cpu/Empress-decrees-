@@ -625,6 +625,17 @@ const CONFIG = {
   // door = door marks; you = the player's dot; pad = pixels of margin around the plan.
   PAL_MINI: { hall: '#a8784a', court: '#8c8a80', corridor: '#56524c', garden: '#3f6a3a', bridge: '#9a6a3a', core: '#8a3a2a',
     cur: '#ffd060', warned: '#b33a2a', fallen: '#2a2430', door: '#cfcabd', you: '#40c0ff', pad: 6 },
+  // Palace pieces (BP08; owner picks 24 Nov 14:24-14:27: 石狮 lions, 水银 mercury, 铜鹤/香炉 smoke, 华表 beasts, 鼎 cauldrons). on = feature switch (palace
+  // runs only; Royal Rumble never has them). Lions use CONFIG.LION and the 鼎 heal by CONFIG.ALTAR (the Royal Rumble rules, reused).
+  // mercury: period = seconds per cycle; warn = seconds the channel shimmers before it burns (the tell, >= 0.4); on = seconds it burns; dps = damage per
+  // second to anyone standing in it while it burns. smoke: revealM = two points this close see each other through smoke (m); opacity of the clouds;
+  // r = cloud radius in metres for the full palace's smoke pieces (the six-room box gives its own r per piece).
+  // huabiao: range = a suit this close wakes the beast (m); radius = suits this close when it looks are marked (m); windup = the tell (s: red ring,
+  // glowing eyes); cooldown = seconds before it wakes again; markS = seconds marked (seen by all, as a decree break). col = colours: mercury idle,
+  // shimmering, burning; smoke; the beast's eyes asleep and awake.
+  PIECES: { on: true, mercury: { period: 4, warn: 0.6, on: 1.2, dps: 12 }, smoke: { revealM: 2.5, opacity: 0.55, r: 3 },
+    huabiao: { range: 3, radius: 3.5, windup: 0.5, cooldown: 6, markS: 5 },
+    col: { merc: 0xa9b4bc, mercWarn: 0xd8e4ee, mercHot: 0xf2f8ff, smoke: 0x8c8a86, eyeOff: 0x5a4a30, eyeOn: 0xff5020 } },
   // Unseen state (batch 16, minimal; full hiding with curtains and walls is batch 18): an unseen suit is not drawn for others and cannot be
   // targeted, except within shimmerM metres (drawn as a shimmer) or while marked; attacking or being hit ends it.
   UNSEEN: { shimmerM: 3 },
@@ -805,6 +816,8 @@ const TEXT = {
   door_fallen: '{room}\nFallen into the black lake.',
   help_pal_desktop: 'Right-click move / attack · Q W R aim at cursor (release to cast) · Z zoom: auto, wide, close · S stop · N new run',
   help_pal_touch: 'Left stick: move · tap or drag skills · New run',
+  piece_voice_hb: 'The beast upon the pillar hath seen thee.',
+  piece_rule_hb: 'Marked by the 华表 for {s} s: everyone sees you.',
   sel_key: '{n}. {who}',
   hud_leader: 'Leader: {who}',
   hud_leader_bounty: 'Leader: {who}  (bounty {s} s)',
@@ -2241,6 +2254,256 @@ for (const LK in PAL_LAYOUTS) {
   PAL.sets[LK] = { rooms: PAL.rooms, doors: PAL.doors, byId: PAL.byId, start: PAL.start, floors: PAL.floors, solids: PAL.solids, lake: PAL.lake,
     q: PAL.q, from: PAL.from, stk: PAL.stk, cx: PAL.cx, cz: PAL.cz, bx0, bx1, bz0, bz1 };
 }
+// ===================== Palace pieces (BP08): stone lions, mercury channels, smoke, 华表 beasts, 鼎 cauldrons =====================
+// Owner picks 24 Nov 14:24-14:27. A room's pieces come from its data (PAL_ROOMS[i].pieces, placed by the full palace, BP05) or, until then, from
+// PIECES_01 (the BP01 test rooms). x, z in metres from the palace origin; lions face fz (-1 north, 1 south). Built once into the room's group.
+// Every piece acts on every side: the suits, and each list in PIECE_SIDES (the 皇家 guard and the 反贼 join with one push each:
+// { list, hurt(u, n, kx, kz), heal(u, n) -> health given }; their units have alive, x, y, z).
+const PIECES_01 = {
+  hall: [{ type: 'ding', x: 5, z: 41.5 }],
+  court: [{ type: 'smoke', src: 'burner', x: -12, z: 16, r: 3 }, { type: 'huabiao', x: 6, z: 14 }],
+  garden: [{ type: 'smoke', src: 'crane', x: 24, z: -2, r: 3 }, { type: 'smoke', src: 'burner', x: 34, z: -14, r: 3 },
+    { type: 'mercury', x0: 20, x1: 40, z0: -20, z1: -18, ph: 0 }, { type: 'lion', x: 26.8, z: -21.8, fz: -1 }, { type: 'lion', x: 33.2, z: -21.8, fz: -1 }],
+  bridge: [{ type: 'mercury', x0: 12, x1: 14, z0: -32, z1: -24, ph: 1.5 }, { type: 'mercury', x0: 22, x1: 24, z0: -32, z1: -24, ph: 3 }],
+};
+const PIECE_SIDES = [], PIECE_HAZ = [], PIECE_MERC = [], PIECE_SMOKE = [], PIECE_DING = [];
+// A room's pieces in this reader's format (integration, 24 Nov): the six-room box uses PIECES_01; the full palace's PAL_FULL_PIECES (BP05:
+// mercury as centre x, z and size sx, sz; smoke kind 'crane' or 'censer') is converted here. Clocks, vats and giants are ticket 09's.
+// Lions in the full palace face south (fz 1; looks only: the strike ring is round).
+function pieceList(LK, id) {
+  const src = (PAL_LAYOUTS[LK].pieces || {})[id];
+  if (!src) return LK === 'proto' ? PIECES_01[id] || [] : [];
+  const out = []; let mi = 0;
+  for (const q of src) {
+    if (q.type === 'mercury') out.push({ type: 'mercury', x0: q.x - q.sx / 2, x1: q.x + q.sx / 2, z0: q.z - q.sz / 2, z1: q.z + q.sz / 2, ph: (mi++ % 3) * CONFIG.PIECES.mercury.period / 3 });
+    else if (q.type === 'smoke') out.push({ type: 'smoke', src: q.kind === 'crane' ? 'crane' : 'burner', x: q.x, z: q.z, r: CONFIG.PIECES.smoke.r });
+    else if (q.type === 'lion' || q.type === 'huabiao' || q.type === 'ding') out.push(q);
+  }
+  return out;
+}
+const PIECE_VARS = { s: CONFIG.PIECES.huabiao.markS };
+// Checks only (__game.pieceProbe): a stand-in unit of another side, so the checks prove every piece acts on other sides before the guard is merged.
+const PIECE_PROBE = { list: [],
+  hurt(u, n, kx, kz) { u.hp -= n; u.hits++; u.kx += kx; u.kz += kz; },
+  heal(u, n) { const h = Math.min(n, u.max - u.hp); u.hp += h; return h; } };
+PIECE_SIDES.push(PIECE_PROBE);
+// The 皇家 guard is a side too (integration, 24 Nov): pieces hurt guards like a blow without a suit (no reward) and the 鼎 heals them;
+// guards have no knockback field, so the piece's push is not applied to them.
+PIECE_SIDES.push({ list: GUARDS,
+  hurt(u, n) { hitEnemy(u, n, null); },
+  heal(u, n) { const h = Math.min(n, u.maxHp - u.hp); u.hp += h; u.bar.scale.x = Math.max(0.001, u.hp / u.maxHp); return h; } });
+{
+  const PP = CONFIG.PIECES, col = PP.col;
+  mat('merc', col.merc, { metalness: 0.8, roughness: 0.3 });
+  mat('mercWarn', col.mercWarn, { emissive: col.mercWarn, emissiveIntensity: 0.6, metalness: 0.8, roughness: 0.3 });
+  mat('mercHot', col.mercHot, { emissive: col.mercHot, emissiveIntensity: 1.4, metalness: 0.8, roughness: 0.3 });
+  mat('hbEyeOff', col.eyeOff, { emissive: col.eyeOff, emissiveIntensity: 0.3 });
+  mat('hbEyeOn', col.eyeOn, { emissive: col.eyeOn, emissiveIntensity: 2 });
+  for (const k of ['merc', 'mercWarn', 'mercHot', 'hbEyeOff', 'hbEyeOn']) addFow(M[k]);
+  M.smoke = new THREE.MeshStandardMaterial({ color: col.smoke, roughness: 1, transparent: true, opacity: PP.smoke.opacity, depthWrite: false });
+  const still = (r, mesh, shadow) => { mesh.castShadow = shadow; mesh.receiveShadow = true; mesh.matrixAutoUpdate = false; mesh.updateMatrix(); r.group.add(mesh); return mesh; };
+  for (const LK in PAL.sets) {
+  palUseLayout(LK);
+  for (const r of PAL.rooms) {
+    r.lay = LK;
+    const list = pieceList(LK, r.id), parts = {}, puffs = [];
+    const add = (m, g) => (parts[m] || (parts[m] = [])).push(g);
+    for (const p of list) {
+      if (p.type === 'mercury') {
+        const x0 = POX + p.x0, x1 = POX + p.x1, z0 = POZ + p.z0, z1 = POZ + p.z1;
+        const mesh = still(r, new THREE.Mesh(box(x1 - x0, 0.06, z1 - z0, (x0 + x1) / 2, 0.03, (z0 + z1) / 2), M.merc), false);
+        PIECE_MERC.push({ s: r, x0, x1, z0, z1, ph: p.ph || 0, t: 0, state: 0, stT: 0, mesh });
+        continue;
+      }
+      const x = POX + p.x, z = POZ + p.z;
+      if (p.type === 'lion') {
+        const f = p.fz || 1;
+        add('stone', box(1.6, 0.6, 2.2, x, 0.3, z)); add('stone', box(1.2, 1.2, 1.6, x, 1.2, z)); add('stone', box(1.0, 1.0, 0.8, x, 2.1, z + 0.6 * f));
+        palSolid(r, x - 0.9, x + 0.9, z - 1.1, z + 1.1);
+        const ring = addStatic(r.group, ringMesh(CONFIG.LION.radius, x, 0, z)); ring.visible = false;
+        PIECE_HAZ.push({ kind: 'lion', cfg: CONFIG.LION, x, z, y: 0, s: r, ring, state: 0, t: 0, statue: false, mark: false, eyes: null });
+      } else if (p.type === 'huabiao') {
+        add('stone', box(1.4, 0.4, 1.4, x, 0.2, z)); add('stone', cyl(0.45, 5, x, 2.9, z)); add('stone', box(1.6, 0.25, 0.4, x, 4.4, z));
+        add('stone', box(0.9, 0.6, 1.1, x, 5.7, z));
+        palSolid(r, x - 0.7, x + 0.7, z - 0.7, z + 0.7);
+        const eyes = still(r, new THREE.Mesh(box(0.7, 0.15, 0.1, x, 5.85, z + 0.56), M.hbEyeOff), false);
+        const ring = addStatic(r.group, ringMesh(PP.huabiao.radius, x, 0, z)); ring.visible = false;
+        PIECE_HAZ.push({ kind: 'huabiao', cfg: PP.huabiao, x, z, y: 0, s: r, ring, state: 0, t: 0, statue: false, mark: true, eyes });
+      } else if (p.type === 'ding') {
+        add('bronze', cyl(0.85, 1.0, x, 0.75, z, 16)); add('bronze', cyl(0.95, 0.12, x, 1.3, z, 16));
+        for (const [lx, lz] of [[0.5, 0.4], [-0.5, 0.4], [0, -0.6]]) add('bronze', cyl(0.12, 0.5, x + lx, 0.25, z + lz, 6));
+        palSolid(r, x - 0.9, x + 0.9, z - 0.9, z + 0.9);
+        const A = CONFIG.ALTAR, disc = still(r, new THREE.Mesh(new THREE.CylinderGeometry(A.radius, A.radius, 0.06, 28).translate(x, 0.03, z), M.altarOn), false);
+        PIECE_DING.push({ x, z, y: 0, s: r, mesh: disc, charge: A.charge, emptyT: 0 });
+      } else if (p.type === 'smoke') {
+        if (p.src === 'crane') {
+          add('bronze', box(0.8, 0.8, 0.8, x, 0.4, z)); add('bronze', cyl(0.1, 1.2, x - 0.15, 1.4, z, 6)); add('bronze', cyl(0.1, 1.2, x + 0.15, 1.4, z, 6));
+          add('bronze', box(0.6, 0.6, 1.2, x, 2.3, z)); add('bronze', cyl(0.08, 1.0, x, 3.0, z - 0.5, 6));
+        } else { add('bronze', box(1.2, 1.0, 1.2, x, 0.5, z)); add('bronze', box(0.8, 0.5, 0.8, x, 1.25, z)); }
+        palSolid(r, x - 0.6, x + 0.6, z - 0.6, z + 0.6);
+        const rr = p.r;
+        for (const [ox, oy, oz] of [[-0.35, 1.5, 0], [0.35, 1.9, 0.2], [0, 2.3, -0.3]]) {
+          const g = new THREE.IcosahedronGeometry(rr * 0.62, 1); g.scale(1, 0.55, 1); g.translate(x + ox * rr, oy, z + oz * rr); puffs.push(g);
+        }
+        PIECE_SMOKE.push({ s: r, x, z, r: rr });
+      }
+    }
+    for (const k in parts) still(r, new THREE.Mesh(mergeGeoms(parts[k]), M[k]), true);
+    if (puffs.length) { const sm = still(r, new THREE.Mesh(mergeGeoms(puffs), M.smoke), false); sm.receiveShadow = false; sm.renderOrder = 2; }
+  }
+  }
+}
+// New run: pieces back to rest (rings off, eyes asleep, mercury at its phase, cauldrons full); the probe unit gone.
+function resetPieces() {
+  for (const h of PIECE_HAZ) { h.state = 0; h.t = 0; h.ring.visible = false; if (h.eyes) h.eyes.material = M.hbEyeOff; }
+  for (const m of PIECE_MERC) { m.t = m.ph % CONFIG.PIECES.mercury.period; m.state = 0; m.stT = 0; m.mesh.material = M.merc; }
+  for (const a of PIECE_DING) { a.charge = CONFIG.ALTAR.charge; a.emptyT = 0; a.mesh.material = M.altarOn; }
+  PIECE_PROBE.list.length = 0;
+}
+// Load warm-up (one palace draw): every piece look drawn once (rings, the awake eyes, the three mercury looks, an empty cauldron).
+function warmPieces(on) {
+  PIECE_HAZ.forEach((h) => { h.ring.visible = on; if (h.eyes) h.eyes.material = on ? M.hbEyeOn : M.hbEyeOff; });
+  const looks = [M.merc, M.mercWarn, M.mercHot];
+  PIECE_MERC.forEach((m, i) => { m.mesh.material = on ? looks[i % 3] : M.merc; });
+  PIECE_DING.forEach((a) => { a.mesh.material = on ? M.altarOff : M.altarOn; });
+}
+// PERFRAME-BEGIN
+// A hazard's cycle (the Royal Rumble statue and lions, the palace lions and 华表): idle -> tell (red ring; the statue's or beast's eyes glow) ->
+// strike or look -> cooldown. Anyone close by starts the tell (the 华表 only suits); the strike hits every suit and every side inside.
+function hazardStep(h, dt) {
+  const c = h.cfg;
+  if (h.state === 0) {
+    if (hazardWakes(h)) { h.state = 1; h.t = 0; h.ring.visible = true; if (h.statue) M.eyes.emissiveIntensity = 3; if (h.eyes) h.eyes.material = M.hbEyeOn; }
+  } else if (h.state === 1) {
+    h.t += dt;
+    if (h.t >= c.windup) {
+      h.state = 2; h.t = 0; h.ring.visible = false; if (h.statue) M.eyes.emissiveIntensity = 0.4; if (h.eyes) h.eyes.material = M.hbEyeOff;
+      if (h.mark) hazardMark(h); else hazardStrike(h);
+    }
+  } else if (h.state === 2) { h.t += dt; if (h.t >= c.cooldown) h.state = 0; }
+}
+function hazardWakes(h) {
+  const r = h.cfg.range;
+  for (let k = 0; k < SUITS.length; k++) { const s = SUITS[k]; if (!s.dead && Math.abs(s.y - h.y) < 3 && Math.hypot(s.x - h.x, s.z - h.z) < r) return true; }
+  if (h.mark) return false;
+  for (let j = 0; j < PIECE_SIDES.length; j++) {
+    const L = PIECE_SIDES[j].list;
+    for (let k = 0; k < L.length; k++) { const u = L[k]; if (u.alive && Math.abs(u.y - h.y) < 3 && Math.hypot(u.x - h.x, u.z - h.z) < r) return true; }
+  }
+  return false;
+}
+function hazardStrike(h) {
+  const c = h.cfg;
+  for (let k = 0; k < SUITS.length; k++) {
+    const s = SUITS[k];
+    if (s.dead || Math.abs(s.y - h.y) >= 3) continue;
+    const hx = s.x - h.x, hz = s.z - h.z, d = Math.hypot(hx, hz);
+    if (d >= c.radius) continue;
+    hurtSuit(s, c.dmg, 'hazard', null);
+    if (d > 0.01) { s.kx += hx / d * c.kb; s.kz += hz / d * c.kb; } else s.kz += c.kb;
+  }
+  for (let j = 0; j < PIECE_SIDES.length; j++) {
+    const side = PIECE_SIDES[j], L = side.list;
+    for (let k = 0; k < L.length; k++) {
+      const u = L[k]; if (!u.alive || Math.abs(u.y - h.y) >= 3) continue;
+      const hx = u.x - h.x, hz = u.z - h.z, d = Math.hypot(hx, hz);
+      if (d >= c.radius) continue;
+      if (d > 0.01) side.hurt(u, c.dmg, hx / d * c.kb, hz / d * c.kb); else side.hurt(u, c.dmg, 0, c.kb);
+    }
+  }
+}
+// The 华表 beast looks: every suit within its radius is marked (seen by all, as after a decree break); the player sees her line.
+function hazardMark(h) {
+  const sec = h.cfg.markS;
+  for (let k = 0; k < SUITS.length; k++) {
+    const s = SUITS[k];
+    if (s.dead || Math.abs(s.y - h.y) >= 3 || Math.hypot(s.x - h.x, s.z - h.z) >= h.cfg.radius) continue;
+    s.markT = Math.max(s.markT, sec); s.marker.visible = true;
+    if (s === P) showNote('piece_voice_hb', 'piece_rule_hb', PIECE_VARS);
+  }
+}
+// An altar or a 鼎 heals whoever stands on it (suits, then other sides); a hit pauses a suit's healing; emptied, it refills later; none while dry.
+function altarStep(a, dt, A, dry) {
+  if (a.charge <= 0) { a.emptyT -= dt; if (a.emptyT <= 0) { a.charge = A.charge; a.mesh.material = dry ? M.altarOff : M.altarOn; } return; }
+  // "Our altars are dry." (decree): no healing while it is in force; charge is kept.
+  if (dry) return;
+  for (let k = 0; k < SUITS.length && a.charge > 0; k++) {
+    const s = SUITS[k];
+    if (s.dead || s.air || s.noHealT > 0 || s.hp >= CONFIG.MAX_HP) continue;
+    if (Math.hypot(s.x - a.x, s.z - a.z) > A.radius || Math.abs(s.y - a.y) > 1) continue;
+    const heal = Math.min(A.rate * dt, a.charge, CONFIG.MAX_HP - s.hp);
+    s.hp += heal; a.charge -= heal;
+    if (a.charge <= 1e-6) { a.charge = 0; a.emptyT = A.emptyS; a.mesh.material = M.altarOff; }
+  }
+  for (let j = 0; j < PIECE_SIDES.length && a.charge > 0; j++) {
+    const side = PIECE_SIDES[j], L = side.list;
+    for (let k = 0; k < L.length && a.charge > 0; k++) {
+      const u = L[k]; if (!u.alive || Math.hypot(u.x - a.x, u.z - a.z) > A.radius || Math.abs(u.y - a.y) > 1) continue;
+      a.charge -= side.heal(u, Math.min(A.rate * dt, a.charge));
+      if (a.charge <= 1e-6) { a.charge = 0; a.emptyT = A.emptyS; a.mesh.material = M.altarOff; }
+    }
+  }
+}
+function mercIn(m, x, z, pad) { return x >= m.x0 - pad && x <= m.x1 + pad && z >= m.z0 - pad && z <= m.z1 + pad; }
+// A mercury channel: rest, shimmer (the tell), burn; while it burns, anyone standing in it (not in the air) loses health every step.
+function mercStep(m, dt) {
+  const C = CONFIG.PIECES.mercury;
+  m.t += dt; if (m.t >= C.period) m.t -= C.period;
+  const st = m.t < C.period - C.warn - C.on ? 0 : m.t < C.period - C.on ? 1 : 2;
+  if (st !== m.state) { m.state = st; m.stT = 0; m.mesh.material = st === 0 ? M.merc : st === 1 ? M.mercWarn : M.mercHot; } else m.stT += dt;
+  if (st !== 2) return;
+  const n = C.dps * dt;
+  for (let k = 0; k < SUITS.length; k++) { const s = SUITS[k]; if (!s.dead && !s.air && s.y < 1 && mercIn(m, s.x, s.z, 0)) hurtSuit(s, n, 'hazard', null); }
+  for (let j = 0; j < PIECE_SIDES.length; j++) {
+    const side = PIECE_SIDES[j], L = side.list;
+    for (let k = 0; k < L.length; k++) { const u = L[k]; if (u.alive && u.y < 1 && mercIn(m, u.x, u.z, 0)) side.hurt(u, n, 0, 0); }
+  }
+}
+// Palace step for the pieces (fallen rooms skipped).
+// Only the plan in use acts (both plans are built at load and share the palace origin).
+function stepPieces(dt) {
+  const L = PAL.layout;
+  for (let i = 0; i < PIECE_HAZ.length; i++) {
+    const h = PIECE_HAZ[i];
+    if (h.s.lay !== L) continue;
+    if (h.s.state >= 2 || h.s.fallen) { if (h.ring.visible) h.ring.visible = false; continue; }
+    hazardStep(h, dt);
+  }
+  for (let i = 0; i < PIECE_MERC.length; i++) { const m = PIECE_MERC[i]; if (m.s.lay === L && m.s.state < 2 && !m.s.fallen) mercStep(m, dt); }
+  const A = CONFIG.ALTAR, dry = decOn('dry');
+  for (let i = 0; i < PIECE_DING.length; i++) { const a = PIECE_DING[i]; if (a.s.lay === L && a.s.state < 2 && !a.s.fallen) altarStep(a, dt, A, dry); }
+}
+// Smoke blocks sight: the segment a-b passes through a cloud, unless the two points are within revealM of each other.
+function smokeBlocks(ax, az, bx, bz) {
+  if (!CONFIG.PIECES.on || PIECE_SMOKE.length === 0) return false;
+  const dx = bx - ax, dz = bz - az, L2 = dx * dx + dz * dz, rv = CONFIG.PIECES.smoke.revealM;
+  if (L2 <= rv * rv) return false;
+  for (let i = 0; i < PIECE_SMOKE.length; i++) {
+    const c = PIECE_SMOKE[i]; if (c.s.fallen || c.s.lay !== PAL.layout) continue;
+    let t = ((c.x - ax) * dx + (c.z - az) * dz) / L2; t = t < 0 ? 0 : t > 1 ? 1 : t;
+    if (Math.hypot(ax + dx * t - c.x, az + dz * t - c.z) < c.r) return true;
+  }
+  return false;
+}
+// A bot's danger from the palace pieces (called by botDanger): a lion's tell or a shimmering or burning mercury channel seen for its reaction
+// time. Leaves the way out in DNG (away from the lion; across the channel's short side).
+function pieceDanger(b, x, z, margin) {
+  const react = b.skill.react;
+  for (let i = 0; i < PIECE_HAZ.length; i++) {
+    const h = PIECE_HAZ[i];
+    if (h.mark || h.state !== 1 || h.t < react || Math.abs(h.y - b.y) >= 3) continue;
+    if (Math.hypot(x - h.x, z - h.z) < h.cfg.radius + margin) { DNG.ex = b.x - h.x; DNG.ez = b.z - h.z; if (DNG.ex === 0 && DNG.ez === 0) DNG.ez = 1; return true; }
+  }
+  for (let i = 0; i < PIECE_MERC.length; i++) {
+    const m = PIECE_MERC[i];
+    if (m.state === 0 || (m.state === 1 && m.stT < react) || !mercIn(m, x, z, margin)) continue;
+    const cx = (m.x0 + m.x1) / 2, cz = (m.z0 + m.z1) / 2;
+    if (m.x1 - m.x0 <= m.z1 - m.z0) { DNG.ex = b.x >= cx ? 1 : -1; DNG.ez = 0; } else { DNG.ex = 0; DNG.ez = b.z >= cz ? 1 : -1; }
+    return true;
+  }
+  return false;
+}
+// PERFRAME-END
 palUseLayout(PAL.want || CONFIG.PAL_PLAN.layout);
 const SUN_POS = sun.position.clone(), SUN_TGT = sun.target.position.clone();
 // Rooms from the core (BP05): room.depth = doors between it and the core hall (breadth-first; the guard escalation reads it).
@@ -2397,8 +2660,8 @@ function palDoorSight(d, ax, az, bx, bz) {
 function palSight(ax, az, bx, bz) {
   const ra = palRoomAt(ax, az), rb = palRoomAt(bx, bz);
   if (!ra || !rb) return false;
-  if (ra === rb) return true;
-  for (let i = 0; i < ra.doors.length; i++) { const d = ra.doors[i]; if (d.open && (d.ra === rb || d.rb === rb) && palDoorSight(d, ax, az, bx, bz)) return true; }
+  if (ra === rb) return !smokeBlocks(ax, az, bx, bz);
+  for (let i = 0; i < ra.doors.length; i++) { const d = ra.doors[i]; if (d.open && (d.ra === rb || d.rb === rb) && palDoorSight(d, ax, az, bx, bz)) return !smokeBlocks(ax, az, bx, bz); }
   return false;
 }
 // An enemy within the camera's reach that the player can see (rival suits, apex units; BP02 adds the guard).
@@ -2641,45 +2904,13 @@ function step(dt) {
   if (G.fellT > 0) { G.fellT -= dt; if (G.fellT <= 0 && G.bannerWave < 0) setShow(el.banner, false); }
   // Hazards: idle -> tell (red ring, statue eyes glow) -> strike -> cooldown. Any suit close by starts the tell; the strike hits every suit inside.
   for (let i = 0; i < HAZARDS.length; i++) {
-    const h = HAZARDS[i], c = h.cfg;
+    const h = HAZARDS[i];
     if (h.s.state >= 2 || (h.statue && !roy)) { if (h.ring.visible) h.ring.visible = false; continue; }
-    if (h.state === 0) {
-      for (let k = 0; k < SUITS.length; k++) {
-        const s = SUITS[k];
-        if (!s.dead && Math.abs(s.y - h.y) < 3 && Math.hypot(s.x - h.x, s.z - h.z) < c.range) { h.state = 1; h.t = 0; h.ring.visible = true; if (h.kind === 'statue') M.eyes.emissiveIntensity = 3; break; }
-      }
-    } else if (h.state === 1) {
-      h.t += dt;
-      if (h.t >= c.windup) {
-        h.state = 2; h.t = 0; h.ring.visible = false; if (h.kind === 'statue') M.eyes.emissiveIntensity = 0.4;
-        for (let k = 0; k < SUITS.length; k++) {
-          const s = SUITS[k];
-          if (s.dead || Math.abs(s.y - h.y) >= 3) continue;
-          const hx = s.x - h.x, hz = s.z - h.z, d = Math.hypot(hx, hz);
-          if (d >= c.radius) continue;
-          hurtSuit(s, c.dmg, 'hazard', null);
-          if (d > 0.01) { s.kx += hx / d * c.kb; s.kz += hz / d * c.kb; } else s.kz += c.kb;
-        }
-      }
-    } else if (h.state === 2) { h.t += dt; if (h.t >= c.cooldown) h.state = 0; }
+    hazardStep(h, dt);
   }
   // Altars heal a standing suit; a hit pauses healing; an emptied altar refills later.
   const A = CONFIG.ALTAR, dry = decOn('dry');
-  for (let i = 0; i < ALTAR_LIST.length; i++) {
-    const a = ALTAR_LIST[i];
-    if (a.s.state >= 2) continue;
-    if (a.charge <= 0) { a.emptyT -= dt; if (a.emptyT <= 0) { a.charge = A.charge; a.mesh.material = dry ? M.altarOff : M.altarOn; } continue; }
-    // "Our altars are dry." (decree): no healing while it is in force; charge is kept.
-    if (dry) continue;
-    for (let k = 0; k < SUITS.length && a.charge > 0; k++) {
-      const s = SUITS[k];
-      if (s.dead || s.air || s.noHealT > 0 || s.hp >= CONFIG.MAX_HP) continue;
-      if (Math.hypot(s.x - a.x, s.z - a.z) > A.radius || Math.abs(s.y - a.y) > 1) continue;
-      const heal = Math.min(A.rate * dt, a.charge, CONFIG.MAX_HP - s.hp);
-      s.hp += heal; a.charge -= heal;
-      if (a.charge <= 1e-6) { a.charge = 0; a.emptyT = A.emptyS; a.mesh.material = M.altarOff; }
-    }
-  }
+  for (let i = 0; i < ALTAR_LIST.length; i++) { const a = ALTAR_LIST[i]; if (a.s.state < 2) altarStep(a, dt, A, dry); }
   // Timers on every suit still in the match: heal pause, slow, stun, bleed, plates, boons.
   for (let k = 0; k < SUITS.length; k++) if (!SUITS[k].bot || !SUITS[k].dead) tickSuit(SUITS[k], dt);
   stepAuras(dt);
@@ -2709,6 +2940,7 @@ function step(dt) {
   if (G.phase === 'wake' || G.phase === 'hunt') stepHunt(dt);
   if (G.phase === 'palace') stepPalace(dt);
   if (G.phase === 'palace' && CONFIG.BURN.on) stepBurn(dt);
+  if (G.phase === 'palace' && CONFIG.PIECES.on) stepPieces(dt);
   if (G.phase === 'won' || G.phase === 'lost' || G.phase === 'palend') { updateHp(); updateStatus(); return; }
   // Player.
   P.px = P.x; P.pz = P.z; P.py = P.y;
@@ -4803,7 +5035,7 @@ function botTarget(b, t, mode) {
 }
 // A bot sees a suit inside its own vision radius, on about its own layer.
 // A marked suit (batch 12) is seen by every bot from anywhere.
-function botSees(b, s, vr) { return !s.dead && !hiddenFrom(s, b.x, b.z) && (seenAnywhere(s) || (Math.abs(s.y - b.y) < 2 && Math.hypot(s.x - b.x, s.z - b.z) <= vr)) && (!PAL.on || palSight(b.x, b.z, s.x, s.z)); }
+function botSees(b, s, vr) { return !s.dead && !hiddenFrom(s, b.x, b.z) && (seenAnywhere(s) || (Math.abs(s.y - b.y) < 2 && Math.hypot(s.x - b.x, s.z - b.z) <= vr)) && (!PAL.on || seenAnywhere(s) || palSight(b.x, b.z, s.x, s.z)); }
 // Skills when ready and in range: Q line, W burst, R delayed burst with a ring shown for its whole delay. Aim error from the skill profile.
 // ultOnly = only the ultimate is considered (botReadyUlt, outside a fight).
 function botUseSkills(b, q, d, ultOnly) {
@@ -4997,6 +5229,7 @@ function stepBotPend(b, dt) {
 const DNG = { ex: 0, ez: 0 };
 function botDanger(b, x, z, margin) {
   const react = b.skill.react;
+  if (PAL.on && CONFIG.PIECES.on && pieceDanger(b, x, z, margin)) return true;
   for (let i = 0; i < HAZARDS.length; i++) {
     const h = HAZARDS[i];
     if (h.state !== 1 || h.t < react || Math.abs(h.y - b.y) >= 3) continue;
@@ -5728,6 +5961,7 @@ function reset() {
   for (const h of HAZARDS) { h.state = 0; h.t = 0; h.ring.visible = false; }
   M.eyes.emissiveIntensity = 0.4;
   for (const a of ALTAR_LIST) { a.charge = CONFIG.ALTAR.charge; a.emptyT = 0; a.mesh.material = M.altarOn; }
+  resetPieces();
   for (const d of DUMMY_LIST) { d.hp = CONFIG.DUMMY_HP; d.deadT = 0; d.flashT = 0; d.body.material = M.dummy; d.bar.scale.x = 1; }
   for (const st of SK) { st.cdT = 0; st.shown = -1; }
   ORD.attack = null; ORD.atkHeld = false; ORD.rightHeld = false; ORD.attackMove = false; cancelAim(); PATH.n = 0; PATH.i = 0;
@@ -5925,9 +6159,11 @@ renderer.render(scene, camera);
 setView('overview'); placeView(1); renderer.render(scene, camera);
 // The palace rooms, doors and lake (BP01) are drawn once too, from above the palace, so their buffers upload at load.
 for (const r of PAL.rooms) scene.add(r.group);
+warmPieces(true);
 for (const d of PAL.doors) scene.add(d.group);
 scene.add(PAL.lake);
 camera.position.set(PAL.cx, 90, PAL.cz + 60); camera.lookAt(PAL.cx, 0, PAL.cz); camera.updateMatrixWorld(); renderer.render(scene, camera);
+warmPieces(false);
 for (const r of PAL.rooms) scene.remove(r.group);
 for (const d of PAL.doors) scene.remove(d.group);
 scene.remove(PAL.lake);
@@ -6261,6 +6497,21 @@ Object.assign(window.__game, {
   // Checks only: stand in for the burning (ticket 04 owns room.warned and room.fallen) to test the minimap.
   palTestRoomState(id, warned, fallen) { const r = PAL.byId[id]; r.warned = warned; r.fallen = fallen; },
   palMiniPx(x, z) { palMini(); const d = MINI.ctx.getImageData(Math.round(PAL.mOx + (x - PAL.bx0) * PAL.mS), Math.round(PAL.mOy + (z - PAL.bz0) * PAL.mS), 1, 1).data; return [d[0], d[1], d[2]]; },
+});
+// The Burning Palace pieces hooks (BP08): pieces (read: lions and 华表 with state, ring and eyes; mercury with state and look; smoke clouds; 鼎 charge;
+// the player's mark and health), pieceBot (read: bot k's health, mark and knockback), pieceProbe (checks only: one stand-in unit of another side
+// at x, z), probe (read), pieceDanger (bot k's danger at x, z and the way out), smokeBlocks.
+Object.assign(window.__game, {
+  pieces: () => ({ on: CONFIG.PIECES.on, sides: PIECE_SIDES.length, pMark: P.markT, pHp: P.hp, pMarker: P.marker.visible,
+    haz: PIECE_HAZ.filter((h) => h.s.lay === PAL.layout).map((h) => ({ kind: h.kind, room: h.s.id, x: h.x, z: h.z, state: h.state, t: h.t, ring: h.ring.visible, eyes: h.eyes ? h.eyes.material === M.hbEyeOn : null, inScene: !!h.s.group.parent })),
+    merc: PIECE_MERC.filter((m) => m.s.lay === PAL.layout).map((m) => ({ room: m.s.id, ph: m.ph, x0: m.x0, x1: m.x1, z0: m.z0, z1: m.z1, state: m.state, stT: m.stT, t: m.t, look: [M.merc, M.mercWarn, M.mercHot].indexOf(m.mesh.material) })),
+    smoke: PIECE_SMOKE.filter((c) => c.s.lay === PAL.layout).map((c) => ({ room: c.s.id, x: c.x, z: c.z, r: c.r })),
+    ding: PIECE_DING.filter((a) => a.s.lay === PAL.layout).map((a) => ({ room: a.s.id, x: a.x, z: a.z, charge: a.charge, on: a.mesh.material === M.altarOn })) }),
+  pieceBot: (k) => { const b = BOTLIST[k]; return { hp: b.hp, dead: b.dead, markT: b.markT, marker: b.marker.visible, kx: b.kx, kz: b.kz }; },
+  pieceProbe(x, z, hp) { PIECE_PROBE.list.length = 0; PIECE_PROBE.list.push({ alive: true, x, z, y: 0, hp, max: 100, hits: 0, kx: 0, kz: 0 }); },
+  probe: () => { const u = PIECE_PROBE.list[0]; return u ? { hp: u.hp, hits: u.hits, kx: u.kx, kz: u.kz } : null; },
+  pieceDanger(k, x, z) { const hit = pieceDanger(BOTLIST[k], x, z, 0.5); return { hit, ex: DNG.ex, ez: DNG.ez }; },
+  smokeBlocks,
 });
 window.__ready = true;
 requestAnimationFrame(frame);
