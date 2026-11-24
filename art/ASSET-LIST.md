@@ -33,37 +33,37 @@ APPROVED = owner approved. SAMPLE NEXT = the next one to make. TODO = needed, no
 | A3 | Black lacquer pillar, vermilion bands, cloud scrolls | halls | APPROVED (round 2) |
 | A4 | Black lacquer door, bronze bands, 铺首 masks | every door | APPROVED (round 2) |
 | A5 | Grey stone lion | lions | RETIRE (owner 21:03: bronze beasts); file kept |
-| A6 | Rammed earth 夯土 with 5-10 cm layer lines | terrace sides, court walls, core walls (5-6 cm layers) | TODO |
-| A7 | Stone paving | courts, forecourt | TODO |
-| A8 | Floor tiles, lozenge / 米 / square grid | corridors | TODO |
-| A9 | Hollow-brick parapet with dragon pattern (own design) | corridor edges, stair treads | TODO |
-| A10 | Mural band on white plaster (chariots, guards, attendants, strange animals; own drawing) | corridor walls | TODO |
-| A11 | Grey roof tile and round cloud-pattern 瓦当 tile ends | eave edges seen from the camera | TODO |
-| A12 | Timber (beams, trestle, posts) | bridges, eaves, gardens | TODO |
+| A6 | Rammed earth 夯土 with 5-10 cm layer lines | terrace sides, court walls, core walls (5-6 cm layers) | SAMPLE round 1-2 (25 Nov, W2 overnight; klad, 1024 px, 256 px/m; tex_check 173 of 173, run 45452899575); shots art/arch/round1-2/; waiting for approval; not in the game; rammed earth round 2b: 10-30 cm uneven lifts, grey-ochre (round 1 read as planks); still horizontal bands |
+| A7 | Stone paving | courts, forecourt | SAMPLE round 1-2 (25 Nov, W2 overnight; klad, 1024 px, 256 px/m; tex_check 173 of 173, run 45452899575); shots art/arch/round1-2/; waiting for approval; not in the game; round 2: narrow slab ramp, block sd 1.8 (round 1 showed a 4 m grid); new 'repeat' gate |
+| A8 | Floor tiles, lozenge / 米 / square grid | corridors | SAMPLE round 1-2 (25 Nov, W2 overnight; klad, 1024 px, 256 px/m; tex_check 173 of 173, run 45452899575); shots art/arch/round1-2/; waiting for approval; not in the game |
+| A9 | Hollow-brick parapet with dragon pattern (own design) | corridor edges, stair treads | SAMPLE round 1-2 (25 Nov, W2 overnight; klad, 1024 px, 256 px/m; tex_check 173 of 173, run 45452899575); shots art/arch/round1-2/; waiting for approval; not in the game |
+| A10 | Mural band on white plaster (chariots, guards, attendants, strange animals; own drawing) | corridor walls | SAMPLE round 1-2 (25 Nov, W2 overnight; klad, 1024 px, 256 px/m; tex_check 173 of 173, run 45452899575); shots art/arch/round1-2/; waiting for approval; not in the game |
+| A11 | Grey roof tile and round cloud-pattern 瓦当 tile ends | eave edges seen from the camera | SAMPLE round 1-2 (25 Nov, W2 overnight; klad, 1024 px, 256 px/m; tex_check 173 of 173, run 45452899575); shots art/arch/round1-2/; waiting for approval; not in the game |
+| A12 | Timber (beams, trestle, posts) | bridges, eaves, gardens | SAMPLE round 1-2 (25 Nov, W2 overnight; klad, 1024 px, 256 px/m; tex_check 173 of 173, run 45452899575); shots art/arch/round1-2/; waiting for approval; not in the game |
 | A13 | Bronze trim sheet: stamp bands, inlay lines, workshop marks; fresh brass-gold and verdigris variants | every bronze prop | SAMPLE round 2 (24 Nov 22:5x): darker base (value 104), 6 cm inlay; tex_check 25 of 25; waiting for approval; brass variant bronze_trim_brass.png (25 Nov, W1a: mean lum 137, hue 41; on screen hue 32 lum 79 vs 29 / 65) for the owner to pick |
-| A14 | Mercury: the only bright cool reflective surface (matcap) | mercury channels | TODO (today a flat colour) |
-| A15 | Black lake, blue-green near-black | under the platform | TODO |
-| A16 | Garden ground and sparse alpha-tested planting (wheat-ear motif) | 3 gardens | TODO |
-| A17 | Star-map ceiling | core hall | TODO |
-| A18 | Burnt variants: charred timber, reddened earth (material swap, no new meshes) | wings that burn | TODO |
-| A19 | Signal flags (school accents) | courts, gates | TODO |
-| A20 | Bamboo-slip (竹简) bundles and racks, own design, no readable text; burnt variant | each school hall (G1: the burning of the books) | TODO |
+| A14 | Mercury: the only bright cool reflective surface (matcap) | mercury channels | SAMPLE round 1-2 (25 Nov, W2 overnight; klad, 1024 px, 256 px/m; tex_check 173 of 173, run 45452899575); shots art/arch/round1-2/; waiting for approval; not in the game; matcap reads as liquid silver after 3 rounds |
+| A15 | Black lake, blue-green near-black | under the platform | SAMPLE round 1-2 (25 Nov, W2 overnight; klad, 1024 px, 256 px/m; tex_check 173 of 173, run 45452899575); shots art/arch/round1-2/; waiting for approval; not in the game |
+| A16 | Garden ground and sparse alpha-tested planting (wheat-ear motif) | 3 gardens | SAMPLE round 1-2 (25 Nov, W2 overnight; klad, 1024 px, 256 px/m; tex_check 173 of 173, run 45452899575); shots art/arch/round1-2/; waiting for approval; not in the game; planting sparse, pond reads as a dark hole at the wide camera |
+| A17 | Star-map ceiling | core hall | SAMPLE round 1-2 (25 Nov, W2 overnight; klad, 1024 px, 256 px/m; tex_check 173 of 173, run 45452899575); shots art/arch/round1-2/; waiting for approval; not in the game; never seen at the game camera (no ceilings): placement is an owner question |
+| A18 | Burnt variants: charred timber, reddened earth (material swap, no new meshes) | wings that burn | SAMPLE round 1-2 (25 Nov, W2 overnight; klad, 1024 px, 256 px/m; tex_check 173 of 173, run 45452899575); shots art/arch/round1-2/; waiting for approval; not in the game |
+| A19 | Signal flags (school accents) | courts, gates | SAMPLE round 1-2 (25 Nov, W2 overnight; klad, 1024 px, 256 px/m; tex_check 173 of 173, run 45452899575); shots art/arch/round1-2/; waiting for approval; not in the game; school colour mapping is a proposal |
+| A20 | Bamboo-slip (竹简) bundles and racks, own design, no readable text; burnt variant | each school hall (G1: the burning of the books) | SAMPLE round 1-2 (25 Nov, W2 overnight; klad, 1024 px, 256 px/m; tex_check 173 of 173, run 45452899575); shots art/arch/round1-2/; waiting for approval; not in the game; racks too small to read as the burning of the books at the wide camera |
 
 ## B. Architecture meshes (box geometry today; replace per room type)
 Room types in the plan: hall, court, corridor, garden, bridge, core. Walls 4 m high and 0.5 m thick, doors 4 x 3.5 m (CONFIG.PALACE).
 | # | Piece | Where | Notes | Status |
 |---|---|---|---|---|
-| B1 | Stepped terrace edge (rammed earth, river-stone footing) | rim of every room over the lake | instanced segments | TODO |
-| B2 | Wall segment with dado and frieze; low wall | all rooms | merged per room per material | box + approved textures |
-| B3 | Door frame and leaf (opens, locks) | all doors | locked state needs a visible bar | box + approved texture |
-| B4 | Pillar with stone base and bronze 釭 sleeve | halls | instanced | box + approved texture; base and sleeve TODO |
-| B5 | Eave edge with tile ends (the camera sees no full roofs) | hall and corridor walls | instanced tile ends | TODO |
-| B6 | 阙 gate towers, paired | forecourt / outer gate | single prop with LOD | TODO |
-| B7 | Crenellated wall-walk | courts | instanced | TODO |
-| B8 | Corridor parapet and covered walkway posts | 8 corridors | instanced | TODO |
-| B9 | Timber trestle bridge (the "Milky Way" crossing), no drawbridge | 7 bridges | instanced bents | TODO |
-| B10 | Throne and dais | core hall | single, LOD | TODO |
-| B11 | Lake edge and fallen-room debris | lake | burnt wings sink into the lake | TODO |
+| B1 | Stepped terrace edge (rammed earth, river-stone footing) | rim of every room over the lake | instanced segments | SAMPLE round 1 (25 Nov, W2 overnight; Blender, 45 GLBs in assets/models/arch/; mesh gates 100 of 100; room sheets art/arch/round1/, heaviest room 68 calls / 28.3k tris); waiting for approval; not in the game |
+| B2 | Wall segment with dado and frieze; low wall | all rooms | merged per room per material | SAMPLE round 1 (25 Nov, W2 overnight; Blender, 45 GLBs in assets/models/arch/; mesh gates 100 of 100; room sheets art/arch/round1/, heaviest room 68 calls / 28.3k tris); waiting for approval; not in the game |
+| B3 | Door frame and leaf (opens, locks) | all doors | locked state needs a visible bar | SAMPLE round 1 (25 Nov, W2 overnight; Blender, 45 GLBs in assets/models/arch/; mesh gates 100 of 100; room sheets art/arch/round1/, heaviest room 68 calls / 28.3k tris); waiting for approval; not in the game; locked state: separate bronze bar node |
+| B4 | Pillar with stone base and bronze 釭 sleeve | halls | instanced | SAMPLE round 1 (25 Nov, W2 overnight; Blender, 45 GLBs in assets/models/arch/; mesh gates 100 of 100; room sheets art/arch/round1/, heaviest room 68 calls / 28.3k tris); waiting for approval; not in the game |
+| B5 | Eave edge with tile ends (the camera sees no full roofs) | hall and corridor walls | instanced tile ends | SAMPLE round 1 (25 Nov, W2 overnight; Blender, 45 GLBs in assets/models/arch/; mesh gates 100 of 100; room sheets art/arch/round1/, heaviest room 68 calls / 28.3k tris); waiting for approval; not in the game |
+| B6 | 阙 gate towers, paired | forecourt / outer gate | single prop with LOD | SAMPLE round 1 (25 Nov, W2 overnight; Blender, 45 GLBs in assets/models/arch/; mesh gates 100 of 100; room sheets art/arch/round1/, heaviest room 68 calls / 28.3k tris); waiting for approval; not in the game; pair 1852 / 412 / 100; placed north for now (owner: outer gate on the camera side would block the view) |
+| B7 | Crenellated wall-walk | courts | instanced | SAMPLE round 1 (25 Nov, W2 overnight; Blender, 45 GLBs in assets/models/arch/; mesh gates 100 of 100; room sheets art/arch/round1/, heaviest room 68 calls / 28.3k tris); waiting for approval; not in the game |
+| B8 | Corridor parapet and covered walkway posts | 8 corridors | instanced | SAMPLE round 1 (25 Nov, W2 overnight; Blender, 45 GLBs in assets/models/arch/; mesh gates 100 of 100; room sheets art/arch/round1/, heaviest room 68 calls / 28.3k tris); waiting for approval; not in the game |
+| B9 | Timber trestle bridge (the "Milky Way" crossing), no drawbridge | 7 bridges | instanced bents | SAMPLE round 1 (25 Nov, W2 overnight; Blender, 45 GLBs in assets/models/arch/; mesh gates 100 of 100; room sheets art/arch/round1/, heaviest room 68 calls / 28.3k tris); waiting for approval; not in the game |
+| B10 | Throne and dais | core hall | single, LOD | SAMPLE round 1 (25 Nov, W2 overnight; Blender, 45 GLBs in assets/models/arch/; mesh gates 100 of 100; room sheets art/arch/round1/, heaviest room 68 calls / 28.3k tris); waiting for approval; not in the game; throne 434 tris, small at the wide camera; dais 2.8 m vs game block 1.5 m (owner) |
+| B11 | Lake edge and fallen-room debris | lake | burnt wings sink into the lake | SAMPLE round 1 (25 Nov, W2 overnight; Blender, 45 GLBs in assets/models/arch/; mesh gates 100 of 100; room sheets art/arch/round1/, heaviest room 68 calls / 28.3k tris); waiting for approval; not in the game; debris 484 tris |
 
 ## C. Props (gameplay pieces already built in code, box shapes today)
 | # | Prop | In game | Look (research rule list) | Mesh budget, LOD | Status |
@@ -75,11 +75,18 @@ Room types in the plan: hall, court, corridor, garden, bridge, core. Walls 4 m h
 | C5 | 铜壶滴漏 water clock, one per wing | water level counts to the next burning | stacked bronze pots; animated water level | 1.5k / 500 | SAMPLE round 1 (25 Nov, W1b overnight): concept 5305 (alt 5301, 5308); Qin/Han outflow clepsydra on a two-step stand: slotted pot (sight slot = invention, shows the water), sinking rod with gold graduations, dragon spout, catch basin; moving nodes clock_water / clock_arrow / clock_catch, clips countdown_*; 1412 (with nodes) / 438 / 153 tris, gates 11 of 11; shots art/clock/round1/; waiting for approval; not in the game |
 | C6 | 华表 pillar with a watching beast | marks a passer for 5 s | bronze-banded timber or earth pillar, cloud-scroll trim; eye cue not neon | 1.5k / 500 | SAMPLE round 1 (25 Nov, W1b overnight): concept 5403 (alt 5405, 5408); lacquer column (A3 texture), three bronze 釭 sleeves with 6 cm inlay, cloud board, dew disc, seated maned beast; head node turns (clip watch: 22 deg dip, 35 deg turn in 0.5 s); eyes inlay material palEye (dark asleep, gold awake, no neon); 1284 / 428 / 144 tris, gates 10 of 10; shots art/huabiao/round1/; waiting for approval; not in the game |
 | C7 | Mercury channel | damage between pulses, shimmer tell | channel lip in bronze, matcap mercury | flat, instanced | SAMPLE round 1 (25 Nov, W1b overnight): 1 m bronze lip with 6 cm inlay, end, post, 1 m mercury tiles (W2's matcap A14, shading normals tilted 38 deg to the camera: the matcap's top band is dark); 2 x 6 m demo 592 tris from 4 shared meshes, gates 9 of 9; warn tell weak in a still (needs motion in the game); shots art/merc/round1/; waiting for approval; not in the game |
-| C8 | 十二金人 twelve bronze giants | killable mini-bosses, wake one per burnt wing | one shared body cast, 12 distinct heads, shoulder beams and weapon motifs; patina dormant, brass awake; needs a rig (movement-2d-3d skill) | about 15-20k with a low LOD | TODO (largest job) |
+| C8 | 十二金人 twelve bronze giants | killable mini-bosses, wake one per burnt wing | one shared body cast, 12 distinct heads, shoulder beams and weapon motifs; patina dormant, brass awake; needs a rig (movement-2d-3d skill) | about 15-20k with a low LOD | SAMPLE round 3 (25 Nov, W1c overnight): shared body and rig, 12 heads / beams / melted-weapon motifs; 6.6-7.8k / 2.8-3.0k / ~990 tris; gates 119 of 119 (run 45452564180); clips dormant, wake (12 flakes fall), carry, walk, slam, sweep, hit, fall; 4.6-5.1 m (game box, not the 11.5 m source); klad patina sheet bronze_trim_patina.png; all twelve share one squat body (owner to judge); motifs 02, 05, 07, 08 weak at play size; shots art/giants/round3/; waiting for approval; not in the game |
 | C9 | Bronze lamps with mercury reflectors | halls, core | lights faked with emissive cards (2-3 real lights max) | 500 | SAMPLE round 1 (25 Nov, W1b overnight): Warring States tree lamp, five dishes, mercury reflectors (invention), 10 flame and halo cards (klad flame_card.png), no lights; 462 / 170 / 78 tris, gates 8 of 8; concept 6103 (alt 6107, 6102); shots art/lamp/round1/; waiting for approval; not in the game |
 | C10 | Bell stand (编钟) | core approach, gives the giants context | bronze, instanced bells | 2k / 600 | SAMPLE round 1 (25 Nov, W1b overnight): lacquer frame on bronze beast feet, dragon-head caps, 11 bells on one shared mesh per LOD; drawn 1840 / 548 / 180 tris, gates 7 of 7; shots art/bells/round1/; waiting for approval; not in the game |
 | C11 | Split tiger tally 虎符 | lore prop, core | inlaid lines, echoes the apex | 500 | NEEDS OWNER (25 Nov, W1b overnight): 2 rounds, gates 7 of 7 but the look fails: at 500 tris the two halves read as a faceted cat, not a tiger; raise the budget (about 1.5k, one core prop) or drop it; round 2 in art/tally/round2/, assets/models/tally.glb |
-| C12 | School emblem standard, one per hall (school accent colour, own sigil, no readable calligraphy) | each school hall: tells which school's hall it is (G1) | lacquer pole, bronze finial, cloth alpha-tested | 300 + cloth card | TODO |
+| C12 | School emblem standard, one per hall (school accent colour, own sigil, no readable calligraphy) | each school hall: tells which school's hall it is (G1) | lacquer pole, bronze finial, cloth alpha-tested | 300 + cloth card | RUNNING (25 Nov, W6, branch ci-art-w6; missed from the first overnight queue) |
+
+## G. Characters (overnight 25 Nov; models only, none in the game)
+| Set | Worker / branch | Status |
+|---|---|---|
+| Nine school suits 甲 | W3, ci-art-w3 a7e0b36 (merged) | 17 of 18 gates each; all fail floor contrast (red floor too dark: even black reaches 2.2:1 of 3:1); 6.4 heads tall vs concepts 7.5-8.5; suit_bronze brush 3.9 cm; waiting for the owner |
+| Apex Tiger Demon, cubs Stalker and Howler | W4, ci-art-w4 4c45ba7 (merged) | tiger 15 of 15, cubs 21 of 21, tex 11 of 11, shots 43 of 43 (run 45447534120); tiger reads heavy and bear-like; Howler reads as a box on legs; bronze material and glow colour for the owner |
+| 皇家 guard (卒, 弩手, 盾, 车, 伍长) and 反贼 rebels | W5/W5b, ci-art-w5 16618bd (merged) | guard round 5 gates 11/11/11/10/12, rebels 10/10/11/11 (run 45451027192); treads fixed; still compact and dark at the game camera; chariot canopy round |
 
 ## D. Effects that change assets (no new meshes)
 Burning wing (char swap A18, steady fire cards, smoke), room falling into the lake, vat flood, mercury pulse shimmer, giant waking (patina cracks to brass). All pooled and warmed under the loading card.

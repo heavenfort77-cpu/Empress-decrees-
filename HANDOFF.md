@@ -1,7 +1,7 @@
 # Handoff (2026-11-24 21:05: owner answered the three look questions (round 2 textures approved; lions become segmented bronze guardian beasts; 0.75x close zoom OK); next session: (g), then KTX2/per-level load/dispose/LOD). GDD: docs/GDD.md (also Project "empress decrees", claude/GDD.md)
 
 ## Fresh-session brief (read first)
-- OVERNIGHT RUN (25 Nov from 00:15, owner asleep): art/OVERNIGHT.md holds the readings, rules and the worker queue (W1a beast/ding/vat, W2 surfaces+architecture, W3 nine suits, W1b small props, W1c giants); log /home/claude/overnight.log (session disk). Assets are not in the game yet. Morning: report per asset + the Needs owner list.
+- OVERNIGHT RUN (25 Nov from 00:15, owner asleep) DONE except C12: every worker's deliverables merged into batches-3-5 at 1e26a11 (CI files stay on ci-art-* branches). art/OVERNIGHT.md = queue with run numbers + the full Needs owner list; art/ASSET-LIST.md = per-asset status (sections A, B, C, G). Worker reports: art/W1c-REPORT.md, W2-REPORT.md, W4-REPORT.md, W5-REPORT.md, the W3 suits study. Log /home/claude/overnight.log (session disk). C12 school standards running as W6 on ci-art-w6 (missed from the first queue). NOTHING IS IN THE GAME: integration waits for the owner's picks (bronze sheet first: it changes every bronze asset).
 - State (24 Nov 21:00): batches-3-5 at 828692d (CI 45397493782: 272 of 273, only 42 = balance item; static PASS). Royal Rumble parked, green.
 - Done this session (session 015w2gCC):
   - Palace camera = dynamic combat framing (owner 19:33; docs/BURNING-PALACE.md "Camera"; CONFIG.PAL_FRAME; checks 1204, 1209-1213; mutations 6 of 6). Room card and announcement stacked in #msgs.
