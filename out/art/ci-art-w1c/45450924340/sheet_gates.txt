@@ -1,0 +1,6 @@
+PASS whole silhouette most alike pair 00-08 IoU 0.904 (max 0.92); mean 0.847
+PASS top region (head, beam, motif) most alike pair 05-11 IoU 0.790 (max 0.8); mean 0.683
+PASS wide LOD2 top region most alike pair 05-07 IoU 0.841 (max 0.85)
+PASS LOD2 keeps the LOD0 silhouette at the wide framing: lowest IoU 0.880 (giant 10; min 0.8)
+draw info (three.js, one giant + floor + boxes): {'g00_play_awake': {'tris': 6782, 'calls': 12}, 'g01_play_awake': {'tris': 7194, 'calls': 12}, 'g02_play_awake': {'tris': 6516, 'calls': 12}, 'g03_play_awake': {'tris': 7050, 'calls': 12}, 'g04_play_awake': {'tris': 6222, 'calls': 12}, 'g05_play_awake': {'tris': 6454, 'calls': 12}, 'g06_play_awake': {'tris': 6498, 'calls': 12}, 'g07_play_awake': {'tris': 6972, 'calls': 12}, 'g08_play_awake': {'tris': 7188, 'calls': 12}, 'g09_play_awake': {'tris': 7530, 'calls': 12}, 'g10_play_awake': {'tris': 5808, 'calls': 12}, 'g11_play_awake': {'tris': 6518, 'calls': 12}}
+4 of 4 pass

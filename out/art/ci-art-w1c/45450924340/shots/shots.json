@@ -1,0 +1,554 @@
+{
+ "g00_play_awake": {
+  "tris": 6782,
+  "calls": 12
+ },
+ "g00_play_dormant": {
+  "tris": 6782,
+  "calls": 12
+ },
+ "g00_turn_34": {
+  "tris": 6698,
+  "calls": 5
+ },
+ "g00_turn_back": {
+  "tris": 6698,
+  "calls": 5
+ },
+ "g00_slam_windup": {
+  "tris": 6782,
+  "calls": 12
+ },
+ "g00_sil": {
+  "tris": 6696,
+  "calls": 4
+ },
+ "g00_sil_wide_lod2": {
+  "tris": 985,
+  "calls": 3
+ },
+ "g00_sil_wide": {
+  "tris": 6696,
+  "calls": 4
+ },
+ "g00_wide_lod2": {
+  "tris": 1071,
+  "calls": 11
+ },
+ "g01_play_awake": {
+  "tris": 7194,
+  "calls": 12
+ },
+ "g01_play_dormant": {
+  "tris": 7194,
+  "calls": 12
+ },
+ "g01_turn_34": {
+  "tris": 7110,
+  "calls": 5
+ },
+ "g01_turn_back": {
+  "tris": 7110,
+  "calls": 5
+ },
+ "g01_slam_windup": {
+  "tris": 7194,
+  "calls": 12
+ },
+ "g01_sil": {
+  "tris": 7108,
+  "calls": 4
+ },
+ "g01_sil_wide_lod2": {
+  "tris": 992,
+  "calls": 3
+ },
+ "g01_sil_wide": {
+  "tris": 7108,
+  "calls": 4
+ },
+ "g01_wide_lod2": {
+  "tris": 1078,
+  "calls": 11
+ },
+ "g02_play_awake": {
+  "tris": 6516,
+  "calls": 12
+ },
+ "g02_play_dormant": {
+  "tris": 6516,
+  "calls": 12
+ },
+ "g02_turn_34": {
+  "tris": 6432,
+  "calls": 5
+ },
+ "g02_turn_back": {
+  "tris": 6432,
+  "calls": 5
+ },
+ "g02_slam_windup": {
+  "tris": 6516,
+  "calls": 12
+ },
+ "g02_sil": {
+  "tris": 6430,
+  "calls": 4
+ },
+ "g02_sil_wide_lod2": {
+  "tris": 992,
+  "calls": 3
+ },
+ "g02_sil_wide": {
+  "tris": 6430,
+  "calls": 4
+ },
+ "g02_wide_lod2": {
+  "tris": 1078,
+  "calls": 11
+ },
+ "g03_play_awake": {
+  "tris": 7050,
+  "calls": 12
+ },
+ "g03_play_dormant": {
+  "tris": 7050,
+  "calls": 12
+ },
+ "g03_turn_34": {
+  "tris": 6966,
+  "calls": 5
+ },
+ "g03_turn_back": {
+  "tris": 6966,
+  "calls": 5
+ },
+ "g03_slam_windup": {
+  "tris": 7050,
+  "calls": 12
+ },
+ "g03_sil": {
+  "tris": 6964,
+  "calls": 4
+ },
+ "g03_sil_wide_lod2": {
+  "tris": 992,
+  "calls": 3
+ },
+ "g03_sil_wide": {
+  "tris": 6964,
+  "calls": 4
+ },
+ "g03_wide_lod2": {
+  "tris": 1078,
+  "calls": 11
+ },
+ "g04_play_awake": {
+  "tris": 6222,
+  "calls": 12
+ },
+ "g04_play_dormant": {
+  "tris": 6222,
+  "calls": 12
+ },
+ "g04_turn_34": {
+  "tris": 6138,
+  "calls": 5
+ },
+ "g04_turn_back": {
+  "tris": 6138,
+  "calls": 5
+ },
+ "g04_slam_windup": {
+  "tris": 6222,
+  "calls": 12
+ },
+ "g04_sil": {
+  "tris": 6136,
+  "calls": 4
+ },
+ "g04_sil_wide_lod2": {
+  "tris": 992,
+  "calls": 3
+ },
+ "g04_sil_wide": {
+  "tris": 6136,
+  "calls": 4
+ },
+ "g04_wide_lod2": {
+  "tris": 1078,
+  "calls": 11
+ },
+ "g05_play_awake": {
+  "tris": 6454,
+  "calls": 12
+ },
+ "g05_play_dormant": {
+  "tris": 6454,
+  "calls": 12
+ },
+ "g05_turn_34": {
+  "tris": 6370,
+  "calls": 5
+ },
+ "g05_turn_back": {
+  "tris": 6370,
+  "calls": 5
+ },
+ "g05_slam_windup": {
+  "tris": 6454,
+  "calls": 12
+ },
+ "g05_sil": {
+  "tris": 6368,
+  "calls": 4
+ },
+ "g05_sil_wide_lod2": {
+  "tris": 992,
+  "calls": 3
+ },
+ "g05_sil_wide": {
+  "tris": 6368,
+  "calls": 4
+ },
+ "g05_wide_lod2": {
+  "tris": 1078,
+  "calls": 11
+ },
+ "g06_play_awake": {
+  "tris": 6498,
+  "calls": 12
+ },
+ "g06_play_dormant": {
+  "tris": 6498,
+  "calls": 12
+ },
+ "g06_turn_34": {
+  "tris": 6414,
+  "calls": 5
+ },
+ "g06_turn_back": {
+  "tris": 6414,
+  "calls": 5
+ },
+ "g06_slam_windup": {
+  "tris": 6498,
+  "calls": 12
+ },
+ "g06_sil": {
+  "tris": 6412,
+  "calls": 4
+ },
+ "g06_sil_wide_lod2": {
+  "tris": 992,
+  "calls": 3
+ },
+ "g06_sil_wide": {
+  "tris": 6412,
+  "calls": 4
+ },
+ "g06_wide_lod2": {
+  "tris": 1078,
+  "calls": 11
+ },
+ "g07_play_awake": {
+  "tris": 6972,
+  "calls": 12
+ },
+ "g07_play_dormant": {
+  "tris": 6972,
+  "calls": 12
+ },
+ "g07_turn_34": {
+  "tris": 6888,
+  "calls": 5
+ },
+ "g07_turn_back": {
+  "tris": 6888,
+  "calls": 5
+ },
+ "g07_slam_windup": {
+  "tris": 6972,
+  "calls": 12
+ },
+ "g07_sil": {
+  "tris": 6886,
+  "calls": 4
+ },
+ "g07_sil_wide_lod2": {
+  "tris": 988,
+  "calls": 3
+ },
+ "g07_sil_wide": {
+  "tris": 6886,
+  "calls": 4
+ },
+ "g07_wide_lod2": {
+  "tris": 1074,
+  "calls": 11
+ },
+ "g08_play_awake": {
+  "tris": 7188,
+  "calls": 12
+ },
+ "g08_play_dormant": {
+  "tris": 7188,
+  "calls": 12
+ },
+ "g08_turn_34": {
+  "tris": 7104,
+  "calls": 5
+ },
+ "g08_turn_back": {
+  "tris": 7104,
+  "calls": 5
+ },
+ "g08_slam_windup": {
+  "tris": 7188,
+  "calls": 12
+ },
+ "g08_sil": {
+  "tris": 7102,
+  "calls": 4
+ },
+ "g08_sil_wide_lod2": {
+  "tris": 991,
+  "calls": 3
+ },
+ "g08_sil_wide": {
+  "tris": 7102,
+  "calls": 4
+ },
+ "g08_wide_lod2": {
+  "tris": 1077,
+  "calls": 11
+ },
+ "g09_play_awake": {
+  "tris": 7530,
+  "calls": 12
+ },
+ "g09_play_dormant": {
+  "tris": 7530,
+  "calls": 12
+ },
+ "g09_turn_34": {
+  "tris": 7446,
+  "calls": 5
+ },
+ "g09_turn_back": {
+  "tris": 7446,
+  "calls": 5
+ },
+ "g09_slam_windup": {
+  "tris": 7530,
+  "calls": 12
+ },
+ "g09_sil": {
+  "tris": 7444,
+  "calls": 4
+ },
+ "g09_sil_wide_lod2": {
+  "tris": 981,
+  "calls": 3
+ },
+ "g09_sil_wide": {
+  "tris": 7444,
+  "calls": 4
+ },
+ "g09_wide_lod2": {
+  "tris": 1067,
+  "calls": 11
+ },
+ "g10_play_awake": {
+  "tris": 5808,
+  "calls": 12
+ },
+ "g10_play_dormant": {
+  "tris": 5808,
+  "calls": 12
+ },
+ "g10_turn_34": {
+  "tris": 5724,
+  "calls": 5
+ },
+ "g10_turn_back": {
+  "tris": 5724,
+  "calls": 5
+ },
+ "g10_slam_windup": {
+  "tris": 5808,
+  "calls": 12
+ },
+ "g10_sil": {
+  "tris": 5722,
+  "calls": 4
+ },
+ "g10_sil_wide_lod2": {
+  "tris": 991,
+  "calls": 3
+ },
+ "g10_sil_wide": {
+  "tris": 5722,
+  "calls": 4
+ },
+ "g10_wide_lod2": {
+  "tris": 1077,
+  "calls": 11
+ },
+ "g11_play_awake": {
+  "tris": 6518,
+  "calls": 12
+ },
+ "g11_play_dormant": {
+  "tris": 6518,
+  "calls": 12
+ },
+ "g11_turn_34": {
+  "tris": 6434,
+  "calls": 5
+ },
+ "g11_turn_back": {
+  "tris": 6434,
+  "calls": 5
+ },
+ "g11_slam_windup": {
+  "tris": 6518,
+  "calls": 12
+ },
+ "g11_sil": {
+  "tris": 6432,
+  "calls": 4
+ },
+ "g11_sil_wide_lod2": {
+  "tris": 992,
+  "calls": 3
+ },
+ "g11_sil_wide": {
+  "tris": 6432,
+  "calls": 4
+ },
+ "g11_wide_lod2": {
+  "tris": 1078,
+  "calls": 11
+ },
+ "g00_clip_wake_0.4": {
+  "tris": 7070,
+  "calls": 13
+ },
+ "g00_clip_wake_0.9": {
+  "tris": 7070,
+  "calls": 13
+ },
+ "g00_clip_wake_1.2": {
+  "tris": 7070,
+  "calls": 13
+ },
+ "g00_clip_wake_1.6": {
+  "tris": 7070,
+  "calls": 13
+ },
+ "g00_clip_wake_2": {
+  "tris": 7070,
+  "calls": 13
+ },
+ "g00_clip_walk_0": {
+  "tris": 6782,
+  "calls": 12
+ },
+ "g00_clip_walk_0.25": {
+  "tris": 6782,
+  "calls": 12
+ },
+ "g00_clip_walk_0.5": {
+  "tris": 6782,
+  "calls": 12
+ },
+ "g00_clip_walk_0.75": {
+  "tris": 6782,
+  "calls": 12
+ },
+ "g00_clip_slam_0.4": {
+  "tris": 6782,
+  "calls": 12
+ },
+ "g00_clip_slam_1.12": {
+  "tris": 6782,
+  "calls": 12
+ },
+ "g00_clip_slam_1.3": {
+  "tris": 6782,
+  "calls": 12
+ },
+ "g00_clip_sweep_0.4": {
+  "tris": 6782,
+  "calls": 12
+ },
+ "g00_clip_sweep_1.2": {
+  "tris": 6782,
+  "calls": 12
+ },
+ "g00_clip_sweep_1.36": {
+  "tris": 6782,
+  "calls": 12
+ },
+ "g00_clip_sweep_1.5": {
+  "tris": 6782,
+  "calls": 12
+ },
+ "g00_clip_hit_0.1": {
+  "tris": 6782,
+  "calls": 12
+ },
+ "g00_clip_fall_0.3": {
+  "tris": 6698,
+  "calls": 5
+ },
+ "g00_clip_fall_0.55": {
+  "tris": 6698,
+  "calls": 5
+ },
+ "g00_clip_fall_0.8": {
+  "tris": 6698,
+  "calls": 5
+ },
+ "g00_lod0": {
+  "tris": 6698,
+  "calls": 5
+ },
+ "g00_lod1": {
+  "tris": 2838,
+  "calls": 5
+ },
+ "g00_lod2": {
+  "tris": 987,
+  "calls": 4
+ },
+ "g00_pass_sil": {
+  "tris": 6696,
+  "calls": 4
+ },
+ "g00_pass_flat": {
+  "tris": 6696,
+  "calls": 4
+ },
+ "g00_pass_shade": {
+  "tris": 6698,
+  "calls": 5
+ },
+ "g00_pass_tex": {
+  "tris": 6698,
+  "calls": 5
+ },
+ "g00_play_default_sheet": {
+  "tris": 6782,
+  "calls": 12
+ },
+ "g00_turn_front": {
+  "tris": 6698,
+  "calls": 5
+ },
+ "g00_turn_side": {
+  "tris": 6698,
+  "calls": 5
+ }
+}
