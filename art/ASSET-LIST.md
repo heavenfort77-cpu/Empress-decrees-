@@ -7,7 +7,7 @@ Style: "Qin Palace Painted" (art/Qin-Palace-Painted-Study.md); round 2 textures 
 - Look: Qin first. Black lacquer, cinnabar accents, red 丹 floors, lime plaster, rammed earth, grey unglazed tile, fresh brass-gold bronze on live pieces, verdigris only on dormant or sunk ones, gold or silver inlay as panel lines. No glazed roofs, roof beasts, brick walls, neon or readable calligraphy.
 - Bronze pieces are segmented castings: mould seams, flanges, stamp bands from one trim sheet, a workshop mark per plate.
 - Textures: klad-painted albedo, 256 px per metre on desktop and 128 on phone, brush runs 4-15 cm, luminance sd 8-30, saturation cap 0.55 (0.6 accents), 1024 max (512 phone), KTX2 when step 3 lands, anisotropy 4 max. Checked by art/tools/tex_check.py.
-- Meshes: own designs. Shipped models only from our own scripts or CC0 / CC BY sources, credited when added. Never a CC BY-NC model (the DailyArt lion is NOT usable).
+- Meshes and textures: own designs only. Every model, scan, photo and texture found in research is a reference (proportion, silhouette, ornament layout, material colour), never copied 1:1 or shipped (owner 24 Nov 22:00). References with non-commercial licences are still only looked at, never traced (the DailyArt lion).
 - Budget: heaviest room on tier medium under 500 draw calls and 0.5M triangles (today 24-30 calls, about 2k triangles); repeats instanced, static props merged per material, single props get THREE.LOD (2-3 levels, distances in CONFIG), dispose on leaving the palace. Very dark surfaces matte; vertex colours linear.
 - One sample at play size per new asset, screenshot from the exact build, wait for the owner's approval. Never replace an approved asset without telling the owner; sources (.klad, .blend, scripts) kept in art/.
 
@@ -74,7 +74,7 @@ Burning wing (char swap A18, steady fire cards, smoke), room falling into the la
 ## E. Routes for making a mesh (pick per asset, say which in the sample hand-back)
 1. Own Blender script (bpy venv, recreate: python3 -m venv /home/claude/bpyenv && /home/claude/bpyenv/bin/pip install bpy==5.3.0) with hard carved planes, then klad texture: works in this session (the lion-sample-01 dog-like lion showed the method needs hard planes).
 2. Tripo: SKIPPED (owner 24 Nov 21:58: the API account has no credit).
-3. CC0 / CC BY model (Sketchfab or a museum scan) re-materialled in Qin materials and decimated: see reports/Sketchfab Qin palace assets.md (session disk; copy to docs/research/ when delivered).
+3. References (Sketchfab models, museum scans and photos): looked at and measured for proportions, silhouette and ornament, then modelled our own way (route 1). Never copied 1:1, decimated or shipped (owner 24 Nov 22:00). List: reports/Sketchfab Qin palace assets.md (session disk; copied to docs/research/ when delivered).
 4. Rigging without a GPU (owner 21:58: UniRig needs an NVIDIA card, find another way). Proven 24 Nov 22:1x in headless Blender, CPU only, art/tools/rig_test.py:
    - rigid segments: each cast bronze segment bound 100% to one bone, then joined into one mesh per material: 80 verts, 0 unweighted, GLB with a 1 s clip re-imported as 1 skinned mesh + 1 action: PASS. Fits every bronze piece (beasts, giants, water clock, vat lids), since the art direction makes them segmented castings.
    - Blender automatic weights (bone heat) on one smooth mesh: 980 verts, 0 unweighted, weights normalised, GLB re-imported: PASS. For cloth or soft parts.

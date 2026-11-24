@@ -204,6 +204,9 @@ Panel note 16 (lead, 23 Nov 23:30; proposal):
 15 ultimate charge (DONE); 16 法甲 kit + suit stats sample (owner plays and approves); 17 the other eight kits (docs/SUITS.md); 18 hiding (curtains, 道甲 stillness, sight blocked by walls); 19 the ending + WINNER_STATUE; 20 final map size + balancing pass (re-measure, retune the CONFIG timing list once). Hunt sweep re-check with kits (0.15 s bot now loses demon-first).
 
 ## Owner decisions (dated)
+- 24 Nov 22:00: all research (Sketchfab, museum scans, photos, textures) is reference only, never copied 1:1; every asset is our own design.
+- 24 Nov 21:58: Tripo skipped (no credit); UniRig replaced by CPU rigging in headless Blender (rigid segments for bronze castings, automatic weights for soft parts; art/tools/rig_test.py both PASS).
+- 24 Nov 21:52: start building assets: asset list art/ASSET-LIST.md (cocolito) and a Sketchfab search for references.
 - 24 Nov 21:03: (1) klad texture round 2 look approved; (2) lions become segmented bronze guardian beasts with silver inlay (stone lions are post-Qin), replacing the grey stone lion; (3) close zoom 0.75x confirmed as the fight framing's nearest distance.
 - 24 Nov 19:33: palace camera = dynamic combat framing (wide while exploring, two-shot in a fight, damped spring, hysteresis, 70/30 focus, zoom capped by spread, off-screen markers); fix the room card / announcement overlap in the same batch.
 - 24 Nov 20:11: camera batch first; texture round 2 after the research report; use the cocolito method to generate assets.
