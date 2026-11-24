@@ -52,4 +52,45 @@ for n, (du, dv, (y0, y1), scap) in T.items():
         if not ok:
             fails += 1
         print(f"{'PASS' if ok else 'FAIL'} {n} {rule}: {val}")
+# Suit trim sheets (art/Qin-Lamellar-Suits-Study.md, W3 25 Nov; proposals until the owner approves): run when they are in TEXDIR.
+# name: (native px, metres across); fields: (rows y0..y1 at native px, brush run cm range, lum sd range, saturation cap, mean lum range)
+SUIT = {
+    'suit_lamellar': (1024, 4.0, {'plate_black': ((4, 148), (4, 25), (2, 15), 0.6, (20, 60)), 'plate_brown': ((156, 300), (4, 25), (4, 20), 0.6, (45, 100)),
+                                  'plate_cinnabar': ((308, 404), (4, 25), (4, 22), 0.8, (60, 120)), 'plate_white': ((412, 508), (4, 25), (4, 20), 0.2, (170, 230))}),
+    'suit_bronze': (512, 2.0, {'plain': ((4, 188), (4, 15), (6, 30), 0.6, (85, 135))}),
+    'suit_cloth': (512, 2.0, {'cloth': ((0, 512), (2, 30), (3, 25), 0.12, (180, 240))}),
+}
+# school binding colours (cord rows of suit_lamellar, 32 px each from y 736, school order) and the largest RGB distance of the row median
+CORD = [('fa', '#b0402c'), ('ru', '#c9a54a'), ('dao', '#e4ded0'), ('mo', '#b8862e'), ('yy', '#1e1b1a'), ('za', '#2e5a9c'), ('ming', '#bfc3c6'), ('zh', '#5b3f8c'), ('nong', '#2f8a5c')]
+CORD_DIST = 50
+# lamella width (the plate pitch across a lamellar row), cm
+LAM_CM = (7, 9)
+for n, (npx, metres, fields) in SUIT.items():
+    if not os.path.exists(f'{D}/{n}.png'):
+        continue
+    im = Image.open(f'{D}/{n}.png').convert('RGB'); s = npx / im.width; A = np.asarray(im).astype(float)
+    dens = im.width / metres * s
+    res = [('density', 0.8 * 256 <= dens <= 1.25 * 256, f'{dens:.0f} px/m')]
+    for fn, ((y0, y1), runr, sdr, scap, lumr) in fields.items():
+        a = A[int(y0 / s):int(y1 / s)]
+        lum = 0.2126 * a[..., 0] + 0.7152 * a[..., 1] + 0.0722 * a[..., 2]
+        mx, mn = a.max(2), a.min(2); sat = np.where(mx > 0, (mx - mn) / np.maximum(mx, 1), 0).mean()
+        eq = (np.abs(np.diff(lum, axis=1)) < 6).mean(); run_cm = (1 / (1 - eq) if eq < 1 else 1e9) / (256 / s) * 100
+        res += [(f'{fn} brush scale', runr[0] <= run_cm <= runr[1], f'{run_cm:.1f} cm'), (f'{fn} contrast', sdr[0] <= lum.std() <= sdr[1], f'lum sd {lum.std():.1f}'),
+                (f'{fn} saturation', sat <= scap, f'{sat:.2f} (cap {scap})'), (f'{fn} value', lumr[0] <= lum.mean() <= lumr[1], f'mean lum {lum.mean():.0f}')]
+    if n == 'suit_lamellar':
+        for i, (sid, hx) in enumerate(CORD):
+            y = (736 + 32 * i) / s; a = A[int(y + 10 / s):int(y + 22 / s)].reshape(-1, 3)
+            med = np.median(a, 0); want = np.array([int(hx[j:j + 2], 16) for j in (1, 3, 5)]); dist = np.linalg.norm(med - want)
+            res.append((f'cord {sid} colour', dist <= CORD_DIST, f'median #{int(med[0]):02x}{int(med[1]):02x}{int(med[2]):02x} vs {hx}, distance {dist:.0f}'))
+        for k, y in enumerate((512, 544, 576, 608)):
+            row = A[int((y + 16) / s)]; lum = row @ [0.2126, 0.7152, 0.0722]; lum = lum - lum.mean()
+            ac = np.array([np.dot(lum, np.roll(lum, d)) for d in range(1, int(40 / s))]); pitch = (np.argmax(ac[int(10 / s):]) + 1 + int(10 / s)) * s
+            cm = pitch / 256 * 100
+            res.append((f'lamella row {k} width', LAM_CM[0] <= cm <= LAM_CM[1], f'{cm:.1f} cm'))
+    checks += len(res)
+    for rule, ok, val in res:
+        if not ok:
+            fails += 1
+        print(f"{'PASS' if ok else 'FAIL'} {n} {rule}: {val}")
 print(f'{checks - fails} of {checks} pass')

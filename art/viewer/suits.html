@@ -1,0 +1,60 @@
+<!doctype html>
+<!-- Review viewer for the nine school suits (art tool, not shipped). Same camera FOV (50) and pitch (40), the same two lights and the
+     approved hall floor as the game (index.html: hemi 1.1, sun 2.2 from (-30, 60, 25)); a player-size box beside the suit for scale.
+     ?id=fa (one suit) | ids=fa,ru,... (lineup, 1.7 m apart)
+     &view=play (fight framing 10.5 m, 110 px/m) | wide (22 m, 52 px/m) | turn (close turntable, &yaw=deg) | lods (LOD0, LOD1, LOD2)
+     &mode=tex | shade | flat | sil   &clip=attack|idle &t=seconds (omit = rest pose)
+     glTF UVs: sheets load with flipY false. Cloth materials keep the GLB colour (school tint) over the neutral cloth sheet. -->
+<html><head><meta charset="utf-8"><style>html,body{margin:0;background:#120d16;overflow:hidden}</style>
+<script type="importmap">{"imports":{"three":"../../lib/three.module.min.js"}}</script></head><body>
+<script type="module">
+import * as THREE from 'three';
+import { GLTFLoader } from './vendor/loaders/GLTFLoader.js';
+const Q = new URLSearchParams(location.search), VIEW = Q.get('view') || 'play', MODE = Q.get('mode') || 'tex', T = Q.get('t'), CLIP = Q.get('clip') || 'attack';
+const IDS = (Q.get('ids') || Q.get('id') || 'fa').split(',');
+const W = innerWidth, H = innerHeight;
+const r = new THREE.WebGLRenderer({ antialias: MODE !== 'sil' }); r.setPixelRatio(1); r.setSize(W, H); r.shadowMap.enabled = MODE === 'tex' || MODE === 'shade'; document.body.appendChild(r.domElement);
+const scene = new THREE.Scene(); scene.background = new THREE.Color(MODE === 'sil' ? 0xffffff : 0x120d16);
+const cam = new THREE.PerspectiveCamera(50, W / H, 0.5, 200);
+scene.add(new THREE.HemisphereLight(0xd9c9ff, 0x3a2a22, 1.1));
+const sun = new THREE.DirectionalLight(0xffe2b8, 2.2); sun.position.set(-30, 60, 25); sun.target.position.set(0, 0, -12); sun.castShadow = true;
+Object.assign(sun.shadow.camera, { left: -12, right: 12, top: 12, bottom: -12, near: 10, far: 150 }); sun.shadow.mapSize.set(2048, 2048);
+scene.add(sun, sun.target);
+const tl = new THREE.TextureLoader();
+const tex = (f, rep, flip = true) => { const t = tl.load(f); t.colorSpace = THREE.SRGBColorSpace; t.wrapS = t.wrapT = THREE.RepeatWrapping; t.anisotropy = 4; t.flipY = flip; if (rep) t.repeat.set(rep, rep); return t; };
+const floor = new THREE.Mesh(new THREE.PlaneGeometry(30, 30), new THREE.MeshStandardMaterial({ map: tex('../../assets/tex/hall_floor.png', 7), roughness: 0.9 }));
+floor.rotation.x = -Math.PI / 2; floor.receiveShadow = true; if (MODE === 'tex' || MODE === 'shade') scene.add(floor);
+const SHEET = { sLam: ['suit_lamellar', 0x2a2524, 0.0, 0.5], sBronze: ['suit_bronze', 0x8a6a3c, 0.5, 0.45], sCloth: ['suit_cloth', 0xe6e2da, 0.0, 0.85] };
+const cache = {};
+function mat(m) {
+  const key = m.name + MODE; if (cache[key]) return cache[key];
+  const base = m.name.startsWith('sCloth') ? 'sCloth' : m.name; const [file, flat, metal, rough] = SHEET[base] || SHEET.sLam;
+  const tint = base === 'sCloth' ? m.color.clone() : new THREE.Color(1, 1, 1);
+  let out;
+  if (MODE === 'sil') out = new THREE.MeshBasicMaterial({ color: 0x000000 });
+  else if (MODE === 'flat') out = new THREE.MeshBasicMaterial({ color: base === 'sCloth' ? tint : new THREE.Color(flat) });
+  else if (MODE === 'shade') out = new THREE.MeshStandardMaterial({ color: base === 'sCloth' ? tint : new THREE.Color(flat), metalness: metal, roughness: rough });
+  else out = new THREE.MeshStandardMaterial({ map: tex(`../../assets/tex/${file}.png`, 0, false), color: tint, metalness: metal, roughness: rough });
+  return (cache[key] = out);
+}
+const loader = new GLTFLoader(); let pending = 0; const mixers = [];
+function place(id, x, lodShow) {
+  pending++;
+  loader.load(`../../assets/models/suits/${id}.glb`, (g) => {
+    const root = g.scene; root.position.x = x;
+    root.traverse((o) => { if (o.isMesh) { o.material = mat(o.material); o.castShadow = o.receiveShadow = true; o.frustumCulled = true;
+      const m = /_lod(\d)$/.exec(o.name); if (m) o.visible = +m[1] === lodShow; } });
+    scene.add(root);
+    if (T !== null) { const mix = new THREE.AnimationMixer(root), clip = g.animations.find((a) => a.name === CLIP); if (clip) { mix.clipAction(clip).play(); mix.setTime(+T); } }
+    if (--pending === 0) shoot();
+  });
+}
+if (VIEW === 'lods') { place(IDS[0], -1.8, 0); place(IDS[0], 0, 1); place(IDS[0], 1.8, 2); }
+else IDS.forEach((id, i) => place(id, (i - (IDS.length - 1) / 2) * 1.7, 0));
+const player = new THREE.Mesh(new THREE.BoxGeometry(0.9, 2.05, 0.9), new THREE.MeshStandardMaterial({ color: 0x3a7bd5, roughness: 0.6 })); player.position.set(1.6, 1.025, -1.2); player.castShadow = true;
+if ((VIEW === 'play' || VIEW === 'wide') && IDS.length === 1 && (MODE === 'tex' || MODE === 'shade')) scene.add(player);
+const pitch = (VIEW === 'turn' ? 15 : 40) * Math.PI / 180, look = new THREE.Vector3(0, VIEW === 'turn' ? 1.05 : 1.0, 0);
+const dist = VIEW === 'play' ? 10.5 : VIEW === 'wide' ? 22 : VIEW === 'lods' ? 7 : 4.6, yaw = (+(Q.get('yaw') || 0)) * Math.PI / 180;
+cam.position.set(look.x + Math.sin(yaw) * Math.cos(pitch) * dist, look.y + Math.sin(pitch) * dist, look.z + Math.cos(yaw) * Math.cos(pitch) * dist); cam.lookAt(look);
+function shoot() { setTimeout(() => { r.render(scene, cam); window.__ready = true; }, 900); }
+</script></body></html>
