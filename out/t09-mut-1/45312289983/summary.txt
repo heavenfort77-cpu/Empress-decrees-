@@ -1,0 +1,28 @@
+jobs 27; caught by named check 24 of 27
+{"i": 0, "fails": ["96", "144", "154", "155", "156", "157", "158", "159", "160", "161"], "tot": ["RUNTIME 156 of 166 pass"], "s": 147, "name": "built-off", "want": "96", "applied": true, "caught_named": true}
+{"i": 1, "fails": ["154"], "tot": ["RUNTIME 165 of 166 pass"], "s": 153, "name": "steer-never", "want": "154", "applied": true, "caught_named": true}
+{"i": 2, "fails": ["154"], "tot": ["RUNTIME 165 of 166 pass"], "s": 76, "name": "steer-no-rate", "want": "154", "applied": true, "caught_named": true}
+{"i": 3, "fails": ["67", "72", "83", "110", "119", "136", "144", "154"], "tot": ["RUNTIME 158 of 166 pass"], "s": 81, "name": "steer-cap-ignored", "want": "154", "applied": true, "caught_named": true}
+{"i": 4, "fails": ["56", "155"], "tot": ["RUNTIME 164 of 166 pass"], "s": 152, "name": "attack-short", "want": "155", "applied": true, "caught_named": true}
+{"i": 5, "fails": ["83", "156", "159"], "tot": ["RUNTIME 163 of 166 pass"], "s": 106, "name": "share-off", "want": "156", "applied": true, "caught_named": true}
+{"i": 6, "fails": ["156", "159"], "tot": ["RUNTIME 164 of 166 pass"], "s": 148, "name": "share-bounces", "want": "156", "applied": true, "caught_named": true}
+{"i": 7, "fails": ["56", "156", "160"], "tot": ["RUNTIME 163 of 166 pass"], "s": 150, "name": "no-snap", "want": "156", "applied": true, "caught_named": true}
+{"i": 8, "fails": ["156"], "tot": ["RUNTIME 165 of 166 pass"], "s": 145, "name": "snap-no-slow", "want": "156", "applied": true, "caught_named": true}
+{"i": 9, "fails": ["156"], "tot": ["RUNTIME 165 of 166 pass"], "s": 154, "name": "cord-forever", "want": "156", "applied": true, "caught_named": true}
+{"i": 10, "fails": ["runner"], "tot": ["RUNTIME 153 of 154 pass"], "s": 88, "name": "link-no-precheck", "want": "156", "applied": true, "caught_named": false}
+{"i": 11, "fails": ["102", "119", "157", "159"], "tot": ["RUNTIME 162 of 166 pass"], "s": 151, "name": "swap-nothing", "want": "157", "applied": true, "caught_named": true}
+{"i": 12, "fails": ["157"], "tot": ["RUNTIME 165 of 166 pass"], "s": 86, "name": "dao-no-counter", "want": "157", "applied": true, "caught_named": true}
+{"i": 13, "fails": ["157"], "tot": ["RUNTIME 165 of 166 pass"], "s": 125, "name": "bot-swap-into-warned", "want": "157", "applied": true, "caught_named": true}
+{"i": 14, "fails": ["157"], "tot": ["RUNTIME 165 of 166 pass"], "s": 147, "name": "bot-swap-player-noslot", "want": "157", "applied": true, "caught_named": true}
+{"i": 15, "fails": ["runner"], "tot": ["RUNTIME 63 of 64 pass"], "s": 24, "name": "bot-never-swaps", "want": "157", "applied": true, "caught_named": false}
+{"i": 16, "fails": ["72", "158"], "tot": ["RUNTIME 164 of 166 pass"], "s": 108, "name": "circle-no-steer", "want": "158", "applied": true, "caught_named": true}
+{"i": 17, "fails": ["runner"], "tot": ["RUNTIME 0 of 1 pass"], "s": 61, "name": "circle-no-bonus", "want": "158", "applied": true, "caught_named": false}
+{"i": 18, "fails": ["158"], "tot": ["RUNTIME 165 of 166 pass"], "s": 79, "name": "circle-no-hud", "want": "158", "applied": true, "caught_named": true}
+{"i": 19, "fails": ["56", "158"], "tot": ["RUNTIME 164 of 166 pass"], "s": 89, "name": "circle-early-end", "want": "158", "applied": true, "caught_named": true}
+{"i": 20, "fails": ["158", "161"], "tot": ["RUNTIME 164 of 166 pass"], "s": 146, "name": "circle-not-drawn", "want": "158", "applied": true, "caught_named": true}
+{"i": 21, "fails": ["159"], "tot": ["RUNTIME 165 of 166 pass"], "s": 144, "name": "minion-no-wait", "want": "159", "applied": true, "caught_named": true}
+{"i": 22, "fails": ["159"], "tot": ["RUNTIME 165 of 166 pass"], "s": 151, "name": "demon-waits", "want": "159", "applied": true, "caught_named": true}
+{"i": 23, "fails": ["159"], "tot": ["RUNTIME 165 of 166 pass"], "s": 152, "name": "units-no-turn", "want": "159", "applied": true, "caught_named": true}
+{"i": 24, "fails": ["159"], "tot": ["RUNTIME 165 of 166 pass"], "s": 142, "name": "units-no-hit-units", "want": "159", "applied": true, "caught_named": true}
+{"i": 25, "fails": ["160"], "tot": ["RUNTIME 165 of 166 pass"], "s": 154, "name": "bot-no-R", "want": "160", "applied": true, "caught_named": true}
+{"i": 26, "fails": ["161"], "tot": ["RUNTIME 165 of 166 pass"], "s": 78, "name": "cord-new-geo", "want": "161", "applied": true, "caught_named": true}

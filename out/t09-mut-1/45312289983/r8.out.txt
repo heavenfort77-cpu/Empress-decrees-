@@ -1,0 +1,2 @@
+FAIL 156 纵横甲 Q 合纵: no second enemy = no cast, no cooldown; a cord for dur s, cooldown; half of the loss dealt to the other end (its armor), both ways, not passed back; snaps past snapM (both slowed) :: {"none":[false,0,0],"cast":true,"cord":{"t":5,"a":1,"b":2,"inScene":true,"len":2,"cd":10,"cordN":1,"linkN":1},"share1":[20,10,1],"share2":[5,10,1],"on":[true,true,true],"ended":[-1,false,0],"snap":{"t":-1,"cordN":0,"slow0":[0,0],"slow1":[0,0]}}
+RUNTIME 165 of 166 pass

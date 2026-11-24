@@ -1,0 +1,3 @@
+FAIL 56 bots: 8 at the other spawns, roam 230 s: on a floor every tick, never stuck > 3 s, <= 1 path search per step, seen only in vision, every out has a cause :: {"n":8,"distinct":true,"inScene":true,"navPeak":1,"navPerStep":0.0436,"stuck":3.7,"out":["hit","hit","hit","hit","hit","hit","hit"],"noCause":0,"navMs":{"median":0,"max":11.6},"viol":[]}
+FAIL 155 纵横甲 attack 符节 and stats: Mid armor and speed; a token shot hits 5 m away for dmg :: {"armorK":1,"spd":6,"ultMode":"zongheng","dummy":0,"dist":2.6}
+RUNTIME 164 of 166 pass

@@ -1,0 +1,2 @@
+FAIL 158 纵横甲 R 不攻自破: circle drawn for its whole dur s; bots inside turn on another suit (not him); damage between suits inside x (1 + bonus); HUD line; removed at the end :: {"cast":true,"circle":{"t":4.983333333333333,"r":6,"inScene":true,"vis":true,"status":false},"turned":[2,"persuade",1],"inside":26,"outside":20,"k1":1,"late":[true,true],"ended":[-1,false,0,false]}
+RUNTIME 165 of 166 pass

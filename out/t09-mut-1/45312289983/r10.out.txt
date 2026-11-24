@@ -1,0 +1,11 @@
+FAIL runner :: page.evaluate: TypeError: Cannot read properties of null (reading 'x')
+    at placeCord (http://127.0.0.1:46171/?lock&tier=medium&bots=0&pkit=placeholder:2551:34)
+    at tieCord (http://127.0.0.1:46171/?lock&tier=medium&bots=0&pkit=placeholder:2547:3)
+    at castSkill (http://127.0.0.1:46171/?lock&tier=medium&bots=0&pkit=placeholder:1430:21)
+    at Object.cast (http://127.0.0.1:46171/?lock&tier=medium&bots=0&pkit=placeholder:4822:29)
+    at eval (eval at evaluate (:311:30), <anonymous>:5:17)
+    at UtilityScript.evaluate (<anonymous>:313:16)
+    at UtilityScript.<anonymous> (<anonymous>:1:44)
+    at g (/home/runner/work/Empress-decrees-/Empress-decrees-/tests/run.mjs:29:29)
+    at /home/runner/work/Empress-decrees-/Empress-decrees-/tests/run.mjs:2803:22
+RUNTIME 153 of 154 pass

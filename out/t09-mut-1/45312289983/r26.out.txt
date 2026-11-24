@@ -1,0 +1,2 @@
+FAIL 161 budget with 纵横甲 effects: every suit + cubs + tells + cord + circle (calls<500, tris<500k), no shader compile, geometry flat :: {"tells":3,"cord":true,"circle":true,"calls":45,"tris":2754,"programs":3,"geoms":100}
+RUNTIME 165 of 166 pass

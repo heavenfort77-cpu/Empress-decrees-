@@ -1,0 +1,12 @@
+FAIL runner :: page.evaluate: TypeError: Cannot read properties of null (reading 'type')
+    at inSkillShape (http://127.0.0.1:36013/?lock&tier=medium&bots=0&pkit=placeholder:1447:10)
+    at strikeHang (http://127.0.0.1:36013/?lock&tier=medium&bots=0&pkit=placeholder:2874:39)
+    at stepHangs (http://127.0.0.1:36013/?lock&tier=medium&bots=0&pkit=placeholder:2857:7)
+    at step (http://127.0.0.1:36013/?lock&tier=medium&bots=0&pkit=placeholder:1923:3)
+    at Object.step (http://127.0.0.1:36013/?lock&tier=medium&bots=0&pkit=placeholder:4671:41)
+    at eval (eval at evaluate (:311:30), <anonymous>:28:11)
+    at UtilityScript.evaluate (<anonymous>:313:16)
+    at UtilityScript.<anonymous> (<anonymous>:1:44)
+    at g (/home/runner/work/Empress-decrees-/Empress-decrees-/tests/run.mjs:29:29)
+    at /home/runner/work/Empress-decrees-/Empress-decrees-/tests/run.mjs:874:20
+RUNTIME 63 of 64 pass

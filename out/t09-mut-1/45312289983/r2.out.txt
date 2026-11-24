@@ -1,0 +1,2 @@
+FAIL 154 纵横甲 passive 事一强: a bot turns from him to the nearest other suit in reach (once per bot every everyS s); never the player without a hunter slot; with a slot, claimed within the cap; the player never steered :: {"noSlot":{"tgt":2,"why":"persuade","persN":1,"capOk":true},"back":7,"early":2,"late":[2,true],"slot":{"tgt":0,"hunter":true,"capOk":true},"player":[0,true]}
+RUNTIME 165 of 166 pass

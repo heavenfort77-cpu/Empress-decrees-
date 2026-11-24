@@ -1,0 +1,2 @@
+FAIL 160 纵横甲 in whole matches: on a floor, nobody stuck > 3 s, hunter cap every tick, no cord past snapM, counts never below 0; the 纵横甲 bot casts R (links, swaps, steers and the player autopilot reported) :: {"viol":[],"bot":{"q":2,"w":6,"r":0,"pers":3},"player":{"q":1,"w":3,"r":0},"decided":[196.7,207.3,201.2,181.2],"clean":true}
+RUNTIME 165 of 166 pass

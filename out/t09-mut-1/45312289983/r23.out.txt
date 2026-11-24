@@ -1,0 +1,2 @@
+FAIL 159 纵横甲 in the hunt: a minion that sees him waits huntWaitS s (once per everyS s; not the demon); 合纵 ties the demon and a minion; 连横 swaps with a minion; in the circle the demon breaks the minion, whose plate still flies home :: {"wait":{"gap":1,"at":0,"demon":-99},"within":true,"after":true,"link":true,"share":["demon","stalker",20,10],"swap":true,"swapAt":[0,0,0,-50],"circle":true,"fight":{"tgtD":0,"pers":0,"stalker":true,"plate":false,"hunt":"hunt"},"plate":0}
+RUNTIME 165 of 166 pass

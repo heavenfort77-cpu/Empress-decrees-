@@ -1,0 +1,3 @@
+FAIL runner :: page.waitForFunction: Timeout 60000ms exceeded.
+    at /home/runner/work/Empress-decrees-/Empress-decrees-/tests/run.mjs:33:14
+RUNTIME 0 of 1 pass

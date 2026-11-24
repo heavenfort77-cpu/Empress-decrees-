@@ -1,0 +1,2 @@
+FAIL 157 纵横甲 W 连横: the player swaps into a warned section (positions traded, cooldown); 不争 counters it; the 纵横甲 bot swaps out of a warned section only with an enemy clear of it, never the player without a slot :: {"cast":true,"swap":{"p":[6,-8,"C2",1],"b":[6,-15],"cd":12,"n":1},"dao":{"cast":true,"p":[6,-15],"n":0,"cd":12,"daoN":1},"stay":{"n":1,"hunter":false},"bot":{"n":1,"z":-4,"zone":"C1","b0z":-2.93,"cd":11.02}}
+RUNTIME 165 of 166 pass
