@@ -1,0 +1,106 @@
+== klad patina sheet
+apex_patina 3566 ops
+apex_patina passes base > tone > marks > detail
+== tex_check
+PASS bronze_trim density: 256 x 256 px/m
+PASS bronze_trim brush scale: 10.1 cm
+PASS bronze_trim contrast: lum sd 9.6
+PASS bronze_trim saturation: 0.54 (cap 0.6)
+PASS bronze_trim value: mean lum 104
+PASS apex_patina density: 256 x 256 px/m
+PASS apex_patina brush scale: 4.8 cm
+PASS apex_patina contrast: lum sd 11.8
+PASS apex_patina saturation: 0.29 (cap 0.6)
+PASS apex_patina patina hue: mean G - R 21.6 (min 4)
+PASS apex_patina patina value: mean lum 89 (55-105)
+11 of 11 pass
+== tiger
+PASS tiger LOD0 tris 14218 (body 11146 + plates/organs 3072; budget 15000)
+PASS tiger LOD1 tris 2806 (body 2054 + plates/organs 752; budget 3000)
+PASS tiger LOD2 tris 957 (body 685 + plates/organs 272; budget 1000)
+PASS every vertex on one bone (3 skinned LOD bodies rigid 100%; 30 plate/organ nodes bone-parented)
+PASS sheddable plates: [6, 6, 6] per LOD, each on its own plate bone, 6 workshop marks
+PASS three organs: throat (neck bone, roar), eye (head, sight), haunches L+R (hips, legs), each in a gold inlay ring
+PASS standing height 2.52 m (over the 2.05 m suit box, at most the 2.55 m box statue + 0.15: band 2.2-2.7), length 6.07 m incl. tail, width 1.45 m
+PASS dormant crouch 1.51 x 4.86 m, 1.94 m tall (statue solid 3.2 x 5.0, box 2.55 m)
+PASS feet on the floor: standing lowest +0.000 m, dormant lowest -0.040 m
+PASS wake 3.0 s (CONFIG.APEX.wakeS 3); plates (0, 1) peel 0.80 m (min 0.4)
+PASS pounce tell 0.5 s (min 0.4): hips drop 0.37 m (min 0.25), tail tip rise 0.49 m (min 0.3)
+PASS roar tell 0.5 s: jaw open 42 deg (min 25), throat core up 0.75 m (min 0.15)
+PASS smooth-shaded share 93% of surface area (round forms, min 50%)
+PASS material slots ['apexBronze', 'apexCrack', 'apexDark', 'apexInlay']; crack inlay faces 2009, line width 6.5 cm (min 6)
+wrote assets/models/apex/tiger.glb 1948668 bytes
+PASS GLB: clips ['dormant', 'idle', 'pounce', 'roar', 'wake']; plate and organ nodes present; materials ['apexBronze', 'apexCrack', 'apexDark', 'apexInlay', 'apexOrgan']
+tiger: 15 of 15 pass
+== cubs
+PASS stalker LOD0 tris 3566 (budget 4000)
+PASS stalker LOD1 tris 1208 (budget 1500)
+PASS stalker LOD2 tris 450 (budget 500)
+PASS stalker every vertex on one bone (3 skinned LODs, 21 bones)
+PASS stalker attack tell 0.5 s (min 0.4): head tip moved 0.24 m (min 0.15), jaw 34 deg (min 25)
+PASS stalker move: 8 wheel bones roll 360 deg per 1.0 s (quarter clip turn 90 deg)
+PASS stalker size 1.18 w x 1.93 l x 0.98 h m (width <= hit circle 1.0 + 0.25; under the 2.05 m suit), lowest +0.000 m
+PASS stalker shares the tiger casting language: materials ['apexBronze', 'apexCrack', 'apexInlay'] (bronze trim, crack inlay, gold inlay), mark and flanges
+PASS stalker smooth-shaded share 93% of surface area (round forms, min 50%)
+wrote assets/models/apex/stalker.glb 590136 bytes
+PASS stalker GLB clips ['attack', 'idle', 'move']
+PASS howler LOD0 tris 3474 (budget 4000)
+PASS howler LOD1 tris 1384 (budget 1500)
+PASS howler LOD2 tris 438 (budget 500)
+PASS howler every vertex on one bone (3 skinned LODs, 21 bones)
+PASS howler attack tell 0.5 s (min 0.4): head tip moved 0.36 m (min 0.15), jaw 42 deg (min 25)
+PASS howler move: 4 wheel bones roll 360 deg per 1.0 s (quarter clip turn 90 deg)
+PASS howler size 1.23 w x 1.44 l x 1.68 h m (width <= hit circle 1.0 + 0.25; under the 2.05 m suit), lowest -0.002 m
+PASS howler shares the tiger casting language: materials ['apexBronze', 'apexCrack', 'apexDark', 'apexInlay'] (bronze trim, crack inlay, gold inlay), mark and flanges
+PASS howler smooth-shaded share 95% of surface area (round forms, min 50%)
+wrote assets/models/apex/howler.glb 590004 bytes
+PASS howler GLB clips ['attack', 'idle', 'move']
+PASS distinct silhouettes: height Howler/Stalker 1.72 (min 1.4); Stalker L/H 1.97 (min 1.5); Howler L/H 0.86 (max 1.0)
+cubs: 21 of 21 pass
+== shots
+tiger_front ok
+tiger_34 ok
+tiger_side ok
+tiger_back ok
+stalker_front ok
+stalker_34 ok
+stalker_side ok
+stalker_back ok
+howler_front ok
+howler_34 ok
+howler_side ok
+howler_back ok
+tiger_dormant_34 ok
+tiger_awake_34 ok
+tiger_wake_0 ok
+tiger_wake_1.4 ok
+tiger_wake_2.1 ok
+tiger_wake_2.6 ok
+tiger_wake_3 ok
+tiger_pounce_rest ok
+tiger_pounce_windup ok
+tiger_pounce_leap ok
+tiger_roar_windup ok
+stalker_attack_rest ok
+stalker_attack_windup ok
+stalker_move ok
+howler_attack_rest ok
+howler_attack_windup ok
+howler_move ok
+tiger_lods ok
+tiger_sil ok
+stalker_lods ok
+stalker_sil ok
+howler_lods ok
+howler_sil ok
+play ok
+statue ok
+schools_awake ok
+schools_dormant ok
+shots 39 of 39 ok
+== sheets
+sheet tiger_sheet.png (1816, 1452)
+sheet cubs_sheet.png (1924, 1452)
+sheet play_sheet.png (960, 1084)
+sheet schools_sheet.png (1284, 480)
+RESULT done
