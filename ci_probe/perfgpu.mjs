@@ -37,6 +37,13 @@ const ARGS = SOFT ? ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsa
   : process.env.VSYNC === '1' ? ['--ignore-gpu-blocklist', '--enable-gpu', '--enable-webgl', '--use-angle=metal']
   : ['--ignore-gpu-blocklist', '--enable-gpu', '--enable-webgl', '--use-angle=metal', '--disable-gpu-vsync', '--disable-frame-rate-limit'];
 console.log('MODE ' + (process.env.VSYNC === '1' ? 'vsync on (frame limit kept)' : 'vsync off, frame limit off'));
+// Item (g) control, out of the browser: a separate Node process on the same machine ticks every 2 ms and logs every gap over 30 ms in epoch
+// ms. If each long browser frame lines up with a gap here, the whole machine (VM) stalled, not the page. Lines: "GAP <start> <end>".
+const { spawn } = await import('node:child_process');
+const STALL_SRC = "const {performance:P}=require('perf_hooks');let l=P.timeOrigin+P.now();setInterval(()=>{const n=P.timeOrigin+P.now();if(n-l>30)process.stdout.write('GAP '+l.toFixed(1)+' '+n.toFixed(1)+'\\n');l=n;},2);";
+const stallProc = spawn(process.execPath, ['-e', STALL_SRC], { stdio: ['ignore', 'pipe', 'inherit'] });
+const nodeGaps = []; let stallBuf = '';
+stallProc.stdout.on('data', (b) => { stallBuf += b; let k; while ((k = stallBuf.indexOf('\n')) >= 0) { const l = stallBuf.slice(0, k); stallBuf = stallBuf.slice(k + 1); const m = l.split(' '); if (m[0] === 'GAP') nodeGaps.push([+m[1], +m[2]]); } });
 const browser = await chromium.launch({ args: ARGS });
 // Measurement only (item (g), 24 Nov): every page gets an init script that times WebGL calls that can block (shader compile/link and their status
 // reads, texture and buffer uploads) into window.__glog [t, ms, name, arg], counts them in window.__glc, and keeps the game's GL context in
@@ -70,7 +77,8 @@ function perFrame(prof, markT, frames) {
   const off = markT - mark;
   return frames.map(([a, b]) => { const m = new Map(); let n = 0;
     for (let i = 0; i < ts.length; i++) { const x = ts[i] + off; if (x < a || x > b) continue; n++; const k = path(prof.samples[i]); m.set(k, (m.get(k) || 0) + 1); }
-    return { ms: Math.round(b - a), samples: n, top: [...m].sort((p, q) => q[1] - p[1]).slice(0, 6).map(([k, v]) => v + ' ' + k) }; });
+    let gmax = 0, prev = -1; for (let i = 0; i < ts.length; i++) { const x = ts[i] + off; if (x < a - 50 || x > b) continue; if (prev >= 0) gmax = Math.max(gmax, x - prev); prev = x; }
+    return { ms: Math.round(b - a), samples: n, profGapMax: Math.round(gmax), top: [...m].sort((p, q) => q[1] - p[1]).slice(0, 6).map(([k, v]) => v + ' ' + k) }; });
 }
 function stretches(prof, minMs) {
   const nodes = new Map(prof.nodes.map((n) => [n.id, n])), parent = new Map();
@@ -226,16 +234,18 @@ for (const name of LIST) {
   await cdp.send('Profiler.enable'); await cdp.send('Profiler.setSamplingInterval', { interval: 500 }); await cdp.send('Profiler.start');
   const r = await page.evaluate(async ({ drv, SETTLE, TIMED }) => {
     const driver = eval('(' + drv + ')');
-    const drvLog = [], stLog = [], loaf = []; let loafN = 0, loafN100 = 0; const mut = [];
+    const drvLog = [], stLog = [], loaf = [], loafT = [];
+    const wk = new Worker(URL.createObjectURL(new Blob(['let l=performance.timeOrigin+performance.now();const g=[];setInterval(()=>{const n=performance.timeOrigin+performance.now();if(n-l>30)g.push([+l.toFixed(1),+n.toFixed(1)]);l=n;},2);onmessage=()=>postMessage(g);'], { type: 'text/javascript' }))); let loafN = 0, loafN100 = 0; const mut = [];
     const mo = new MutationObserver((l) => { const t = performance.now(); for (const m of l) { mut.push([t, (m.target.id || (m.target.parentNode && m.target.parentNode.id) || m.target.nodeName)]); if (mut.length > 5000) mut.splice(0, 2500); } });
     mo.observe(document.body, { subtree: true, childList: true, characterData: true, attributes: true });
     const id = setInterval(() => { const t0 = performance.now(); try { driver(); } catch (e) { window.__drvErr = String(e); } const d = performance.now() - t0; if (d > 5) drvLog.push([Math.round(t0), +d.toFixed(1)]); }, 250);
-    const stId = setInterval(() => { try { const G = __game, b = G.burnState(), p2 = G.pieces2State(); stLog.push([Math.round(performance.now()), 'room ' + G.palace().cur + ' burn ' + b.wing + '/' + b.st + ' falls ' + b.falls + ' awake ' + p2.awake + ' guards ' + G.guards().n]); if (stLog.length > 400) stLog.shift(); } catch (e) { /* not palace */ } }, 100);
-    let lo = null; try { lo = new PerformanceObserver((l) => { for (const e of l.getEntries()) { if (e.duration > 50) loafN++; if (e.duration > 100) loafN100++; if (e.duration > 60 && loaf.length < 30) loaf.push({ at_s: +((e.startTime - tStart) / 1000).toFixed(2), ms: Math.round(e.duration), block: Math.round(e.blockingDuration),
+    const stId = setInterval(() => { try { const G = __game, b = G.burnState(), p2 = G.pieces2State(); const sv = 'room ' + G.palace().cur + ' burn ' + b.wing + '/' + b.st + ' falls ' + b.falls + ' awake ' + p2.awake; if (!stLog.length || stLog[stLog.length - 1][1] !== sv) stLog.push([Math.round(performance.now()), sv]); if (stLog.length > 2000) stLog.shift(); } catch (e) { /* not palace */ } }, 100);
+    let lo = null; try { lo = new PerformanceObserver((l) => { for (const e of l.getEntries()) { if (e.duration > 50) loafN++; if (e.duration > 100) loafN100++; if (e.duration > 90 && e.startTime >= tStart && tStart > markT0 && loafT.length < 40) loafT.push({ t0: e.startTime, ms: Math.round(e.duration), preRender: Math.round(e.renderStart ? e.renderStart - e.startTime : e.duration), styleLayoutPaint: Math.round(e.styleAndLayoutStart ? e.startTime + e.duration - e.styleAndLayoutStart : 0), scripts: e.scripts.map((x) => Math.round(x.duration) + 'ms ' + x.invokerType + ' ' + x.sourceFunctionName) });
+      if (e.duration > 60 && loaf.length < 30) loaf.push({ at_s: +((e.startTime - tStart) / 1000).toFixed(2), ms: Math.round(e.duration), block: Math.round(e.blockingDuration),
       preRender: Math.round(e.renderStart ? e.renderStart - e.startTime : e.duration), scriptsInRender: Math.round(e.styleAndLayoutStart && e.renderStart ? e.styleAndLayoutStart - e.renderStart : 0), styleLayoutPaint: Math.round(e.styleAndLayoutStart ? e.startTime + e.duration - e.styleAndLayoutStart : 0),
       scripts: e.scripts.map((x) => Math.round(x.duration) + 'ms ' + x.invokerType + ' ' + x.invoker + ' ' + x.sourceFunctionName + ' @' + x.sourceCharPosition + (x.forcedStyleAndLayoutDuration > 1 ? ' layout ' + Math.round(x.forcedStyleAndLayoutDuration) : '')) }); } }); lo.observe({ type: 'long-animation-frame' }); } catch (e) { loaf.push({ none: String(e).slice(0, 60) }); }
     const gl = window.__gl, ext = gl && gl.getExtension('EXT_disjoint_timer_query_webgl2'), caps = 'timerQuery ' + !!ext + ' parallelCompile ' + !!(gl && gl.getExtension('KHR_parallel_shader_compile'));
-    let q = null; const pend = [], gpu = [], disj = []; let tStart = performance.now();
+    let q = null; const pend = [], gpu = [], disj = []; let tStart = performance.now(); const markT0 = tStart;
     const gpuTick = (t) => {
       if (!ext) return;
       if (q) { gl.endQuery(ext.TIME_ELAPSED_EXT); pend.push([q, t]); q = null; }
@@ -252,6 +262,8 @@ for (const name of LIST) {
     // Profile clock mark: a named 20 ms spin at a known performance.now(), found again in the CPU profile to line the two clocks up.
     const markT = performance.now(); (function __probeMark() { const e = performance.now() + 20; while (performance.now() < e) { /* spin */ } })();
     await new Promise((res) => { const f = (t) => { gpuTick(t); if (last) { d.push(t - last); if (t - last > 100) longF.push([last, t]); } last = t; if (run) requestAnimationFrame(f); else res(); }; requestAnimationFrame(f); setTimeout(() => { run = false; }, TIMED * 1000); });
+    const wGaps = await new Promise((res) => { wk.onmessage = (e) => res(e.data); wk.postMessage(0); setTimeout(() => res([]), 2000); }); wk.terminate();
+    const TO = performance.timeOrigin, tEnd = performance.now();
     clearInterval(id); clearInterval(stId); mo.disconnect(); if (ob) ob.disconnect(); if (lo) lo.disconnect(); if (q) { gl.endQuery(ext.TIME_ELAPSED_EXT); q = null; }
     // For each frame over 100 ms: the GL calls that can block from 200 ms before the frame to its end, the driver calls and the state samples around it.
     const G0 = window.__glog || [];
@@ -260,10 +272,15 @@ for (const name of LIST) {
       drv: drvLog.filter((x) => x[0] >= a - 300 && x[0] <= b).map((x) => Math.round(x[0] - a) + ' ' + x[1] + 'ms'),
       dom: mut.filter((x) => x[0] >= a - 200 && x[0] <= b).slice(-12).map((x) => Math.round(x[0] - a) + ' ' + x[1]),
       st: stLog.filter((x) => x[0] >= a - 300 && x[0] <= b + 200).map((x) => Math.round(x[0] - a) + ' ' + x[1]),
-      gpu: gpu.filter((x) => x[0] >= a && x[0] <= b + 40).map((x) => x[1].toFixed(1)) }));
+      gpu: gpu.filter((x) => x[0] >= a && x[0] <= b + 40).map((x) => x[1].toFixed(1)),
+      ea: +(TO + a).toFixed(1), eb: +(TO + b).toFixed(1),
+      wGap: wGaps.filter((g) => g[1] > TO + a && g[0] < TO + b).map((g) => Math.round(Math.min(g[1], TO + b) - Math.max(g[0], TO + a))),
+      loaf: loafT.filter((x) => x.t0 < b && x.t0 + x.ms > a).map((x) => ({ ms: x.ms, preRender: x.preRender, slp: x.styleLayoutPaint, scripts: x.scripts.slice(0, 4) })),
+      stNear: stLog.filter((x) => x[0] >= a - 2000 && x[0] <= b + 500).map((x) => Math.round(x[0] - a) + ' ' + x[1]) }));
     const gs = gpu.map((x) => x[1]).sort((x, y) => x - y), gq = (k) => gs.length ? +gs[Math.min(gs.length - 1, Math.floor(gs.length * k))].toFixed(2) : -1;
     const glc1 = window.__glc || {}, glDelta = Object.keys(glc1).map((k) => k + ' ' + ((glc1[k] || 0) - (glc0[k] || 0))).join(', ');
-    window.__diag = { loafN, loafN100, domWrites: mut.filter((x) => x[0] >= tStart).length, markT, tStart, longRaw: longF, disj: disj.slice(0, 40), disjN: disj.length, caps, gpuN: gs.length, gpuP50: gq(0.5), gpuP95: gq(0.95), gpuMax: gq(1), longs, loaf: loaf.slice(0, 12), glDelta, drvSlow: drvLog.length };
+    const evts = stLog.filter((x) => x[0] >= tStart).map((x) => +((x[0] - tStart) / 1000).toFixed(2) + 's ' + x[1]);
+    window.__diag = { e0: +(TO + tStart).toFixed(1), e1: +(TO + tEnd).toFixed(1), wGapN: wGaps.filter((g) => g[0] > TO + tStart).length, wGap50: wGaps.filter((g) => g[0] > TO + tStart && g[1] - g[0] > 50).length, evts: evts.slice(0, 40), loafN, loafN100, domWrites: mut.filter((x) => x[0] >= tStart).length, markT, tStart, longRaw: longF, disj: disj.slice(0, 40), disjN: disj.length, caps, gpuN: gs.length, gpuP50: gq(0.5), gpuP95: gq(0.95), gpuMax: gq(1), longs, loaf: loaf.slice(0, 12), glDelta, drvSlow: drvLog.length };
     const m1 = mem(), info = __game.render(false);
     d.sort((a, b) => a - b);
     const sum = d.reduce((a, b) => a + b, 0), n = d.length;
@@ -277,13 +294,23 @@ for (const name of LIST) {
   const { profile } = await cdp.send('Profiler.stop'); await cdp.detach();
   const diag = r.diag; delete r.diag;
   rows.push({ scene: name, setupMs, errs: errs.length, err0: errs[0] || '', ...r });
+  if (diag) {
+    const inWin = nodeGaps.filter((g) => g[0] >= diag.e0 && g[0] <= diag.e1);
+    diag.nodeGapN = inWin.length; diag.nodeGap50 = inWin.filter((g) => g[1] - g[0] > 50).length; diag.nodeGapMax = Math.round(Math.max(0, ...inWin.map((g) => g[1] - g[0])));
+    for (const L of diag.longs) L.nGap = nodeGaps.filter((g) => g[1] > L.ea && g[0] < L.eb).map((g) => Math.round(Math.min(g[1], L.eb) - Math.max(g[0], L.ea)));
+    const pf = perFrame(profile, diag.markT, diag.longRaw);
+    diag.longs.forEach((L, i) => { L.prof = pf[i]; });
+    // One line per long frame: when it was, how long, and the share of it that each detector saw stalled.
+    for (const L of diag.longs) console.log('LONG ' + name + ' at ' + L.at_s + 's ' + L.ms + 'ms nodeStall ' + (L.nGap.reduce((x, y) => x + y, 0)) + 'ms workerStall ' + (L.wGap.reduce((x, y) => x + y, 0)) + 'ms profSamples ' + (L.prof && L.prof.samples) + ' profGapMax ' + (L.prof && L.prof.profGapMax) + 'ms gl ' + L.gl.length + ' dom ' + L.dom.length + ' gpu ' + L.gpu.join('/') + ' loaf ' + JSON.stringify(L.loaf) + ' top ' + JSON.stringify(L.prof && L.prof.top) + ' st ' + JSON.stringify(L.stNear.slice(-4)));
+    console.log('STALLS ' + name + ' timed ' + ((diag.e1 - diag.e0) / 1000).toFixed(0) + 's: node gaps >30ms ' + diag.nodeGapN + ' (>50ms ' + diag.nodeGap50 + ', max ' + diag.nodeGapMax + 'ms), worker gaps >30ms ' + diag.wGapN + ' (>50ms ' + diag.wGap50 + '), frames >100ms ' + diag.longs.length);
+  }
   console.log('DIAG ' + name + ' ' + JSON.stringify(diag));
-  console.log('FRAMEPROF ' + name + ' ' + JSON.stringify(diag ? perFrame(profile, diag.markT, diag.longRaw) : []));
-  console.log('ROW ' + JSON.stringify(rows[rows.length - 1]));
+    console.log('ROW ' + JSON.stringify(rows[rows.length - 1]));
   await page.close();
 }
 console.log('RENDERER ' + gpu + (/swiftshader|llvmpipe|software/i.test(gpu) ? '  (NOT a real GPU)' : ''));
 console.log('scene       fps    p50   p95   worst  >20ms%  >33ms  calls  tris    prog geo  heap MB  geo/tex start-end  live');
 for (const r of rows) console.log([r.scene.padEnd(10), String(r.fps).padStart(6), String(r.p50).padStart(5), String(r.p95).padStart(5), String(r.worst).padStart(6), String(r.over20).padStart(6), String(r.over33).padStart(6),
   String(r.calls).padStart(6), String(r.tris).padStart(7), String(r.programs).padStart(4), String(r.geoms).padStart(4), (r.heap0 + '-' + r.heap1).padStart(9), (r.geo0 + '-' + r.geoms + '/' + r.tex0 + '-' + r.texs).padStart(13), ' ' + (r.bots !== undefined ? 'bots ' + r.bots + ' cubs ' + r.cubs : '') + (r.hunt || '') + ' long ' + r.longN + '/' + r.longMax + 'ms/' + r.longSum + 'ms' + (r.errs ? ' ERR ' + r.err0 : '') + (r.drvErr ? ' DRV ' + r.drvErr.slice(0, 80) : '')].join(' '));
-await browser.close(); server.close();
+console.log('NODEGAPS total ' + nodeGaps.length + ' over 50ms ' + nodeGaps.filter((g) => g[1] - g[0] > 50).length + ' max ' + Math.round(Math.max(0, ...nodeGaps.map((g) => g[1] - g[0]))) + 'ms');
+stallProc.kill(); await browser.close(); server.close();
