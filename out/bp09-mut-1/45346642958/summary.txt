@@ -1,0 +1,23 @@
+jobs 22; caught by named check 22 of 22
+{"i": 0, "fails": ["42", "1000", "1006"], "tot": ["RUNTIME 201 of 204 pass"], "s": 116, "name": "clock-level-half", "want": "1000", "applied": true, "caught_named": true}
+{"i": 1, "fails": ["42", "1000"], "tot": ["RUNTIME 202 of 204 pass"], "s": 192, "name": "clock-write-every-step", "want": "1000", "applied": true, "caught_named": true}
+{"i": 2, "fails": ["42", "1000", "1006"], "tot": ["RUNTIME 201 of 204 pass"], "s": 99, "name": "eta-ignores-later-wings", "want": "1000", "applied": true, "caught_named": true}
+{"i": 3, "fails": ["42", "1001"], "tot": ["RUNTIME 202 of 204 pass"], "s": 192, "name": "vat-no-douse", "want": "1001", "applied": true, "caught_named": true}
+{"i": 4, "fails": ["42", "1002"], "tot": ["RUNTIME 202 of 204 pass"], "s": 194, "name": "vat-douse-any-wing", "want": "1002", "applied": true, "caught_named": true}
+{"i": 5, "fails": ["42", "1001"], "tot": ["RUNTIME 202 of 204 pass"], "s": 194, "name": "vat-no-tell", "want": "1001", "applied": true, "caught_named": true}
+{"i": 6, "fails": ["42", "1001"], "tot": ["RUNTIME 202 of 204 pass"], "s": 158, "name": "vat-no-knock", "want": "1001", "applied": true, "caught_named": true}
+{"i": 7, "fails": ["42", "1002"], "tot": ["RUNTIME 202 of 204 pass"], "s": 136, "name": "vat-reset-keeps-hp", "want": "1002", "applied": true, "caught_named": true}
+{"i": 8, "fails": ["42", "1002"], "tot": ["RUNTIME 202 of 204 pass"], "s": 109, "name": "vat-flood-stays", "want": "1002", "applied": true, "caught_named": true}
+{"i": 9, "fails": ["42", "1003"], "tot": ["RUNTIME 202 of 204 pass"], "s": 137, "name": "giant-no-wake", "want": "1003", "applied": true, "caught_named": true}
+{"i": 10, "fails": ["42", "1003"], "tot": ["RUNTIME 202 of 204 pass"], "s": 177, "name": "giant-cap-ignored", "want": "1003", "applied": true, "caught_named": true}
+{"i": 11, "fails": ["42", "1003"], "tot": ["RUNTIME 202 of 204 pass"], "s": 195, "name": "giant-wake-tell-short", "want": "1003", "applied": true, "caught_named": true}
+{"i": 12, "fails": ["42", "1003", "1004"], "tot": ["RUNTIME 201 of 204 pass"], "s": 188, "name": "giant-wake-farthest", "want": "1003", "applied": true, "caught_named": true}
+{"i": 13, "fails": ["42", "1004"], "tot": ["RUNTIME 202 of 204 pass"], "s": 98, "name": "giant-tell-short", "want": "1004", "applied": true, "caught_named": true}
+{"i": 14, "fails": ["42", "1004"], "tot": ["RUNTIME 202 of 204 pass"], "s": 110, "name": "giant-hits-outside", "want": "1004", "applied": true, "caught_named": true}
+{"i": 15, "fails": ["42", "1004"], "tot": ["RUNTIME 202 of 204 pass"], "s": 185, "name": "giant-no-door", "want": "1004", "applied": true, "caught_named": true}
+{"i": 16, "fails": ["42", "1004"], "tot": ["RUNTIME 202 of 204 pass"], "s": 179, "name": "giant-no-vat-break", "want": "1004", "applied": true, "caught_named": true}
+{"i": 17, "fails": ["42", "1005"], "tot": ["RUNTIME 202 of 204 pass"], "s": 186, "name": "inst-write-every-frame", "want": "1005", "applied": true, "caught_named": true}
+{"i": 18, "fails": ["42", "1005"], "tot": ["RUNTIME 202 of 204 pass"], "s": 155, "name": "giants-in-rumble", "want": "1005", "applied": true, "caught_named": true}
+{"i": 19, "fails": ["42", "1005", "1006"], "tot": ["RUNTIME 201 of 204 pass"], "s": 155, "name": "reset-keeps-giants", "want": "1006", "applied": true, "caught_named": true}
+{"i": 20, "fails": ["42", "603"], "tot": ["RUNTIME 202 of 204 pass"], "s": 178, "name": "monitor-locked-off", "want": "603", "applied": true, "caught_named": true}
+{"i": 21, "fails": ["42", "602"], "tot": ["RUNTIME 202 of 204 pass"], "s": 137, "name": "warn-locked-room", "want": "602", "applied": true, "caught_named": true}
