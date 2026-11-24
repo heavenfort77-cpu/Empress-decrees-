@@ -2925,6 +2925,21 @@ try {
   });
   check('160 纵横甲 in whole matches: on a floor, nobody stuck > 3 s, hunter cap every tick, no cord past snapM, counts never below 0; the 纵横甲 bot casts R (links, swaps, steers and the player autopilot reported)',
     d160.viol.length === 0 && d160.clean && d160.bot.r > 0, JSON.stringify(d160));
+  // 162 A 名甲 bot broken mid-strike by his own hanging line (its first target is tied to him by 合纵's cord; the share breaks him): no error, the line
+  // still hits the next target in it, and the line is cleared (batch 16 ticket 09 fix in strikeHang).
+  const d162 = await g(() => {
+    const G = __game, C = G.config, Z = window.__zh, W = C.KITS.ming.skills[1], o = {};
+    try {
+      Z.start(7, [6]); G.setHp(1e9); G.teleport(3, -16); o.kit = G.kitState(6).kit;
+      const at = { 0: [0, -18], 1: [0, -22], 2: [-14, -40], 3: [-10, -40], 4: [10, -40], 5: [14, -40], 6: [0, -15] }, park = () => { for (const k in at) G.placeBot(+k, at[k][0], at[k][1]); };
+      park(); G.step(2); G.botCast(6, 1, 0, -25); o.cast = G.cast(0, 0, -18); const c = G.zhState(-1).cord; o.tie = [c.a, c.b];
+      G.setBotHp(6, 1); Z.hold(W.hang + 0.1, park);
+      const L = G.bots().list; o.after = { mingDead: L[6].dead, b0: 100 - L[0].hp, b1: 100 - L[1].hp };
+    } catch (e) { o.err = String(e).slice(0, 200); }
+    Z.end(); return o;
+  });
+  check('162 a 名甲 bot broken mid-strike by his own hanging line (share through the cord): no error, the next target in the line is still hit',
+    !d162.err && d162.kit === 'ming' && d162.cast && d162.tie.join() === '1,7' && d162.after.mingDead && d162.after.b0 > 0 && d162.after.b1 >= C0.KITS.ming.skills[1].dmg * 0.99, JSON.stringify(d162));
   // 161 Budget with 纵横甲's effects: the heaviest royale (every suit, 7 cubs, tells) with his cord and circle drawn; calls < 500, tris < 500k, no shader
   // compile, geometry flat.
   const d161 = await g(() => {

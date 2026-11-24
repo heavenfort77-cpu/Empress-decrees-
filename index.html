@@ -2868,10 +2868,13 @@ function hangTouch(s, h) {
     o.slowK = Math.max(o.slowT > 0 ? o.slowK : 0, sk.touchSlow); o.slowT = Math.max(o.slowT, sk.touchS);
   }
 }
+// The line's skill and shape are read once: a hit can break the 名甲 himself mid-strike (a share through 纵横甲's cord, 墨甲's turned blow), and his
+// botOut clears the line (batch 16 ticket 09 fix: h.sk read as null on the next target).
 function strikeHang(s, h) {
+  const sk = h.sk, ox = h.ox, oz = h.oz, dx = h.dx, dz = h.dz, ord = h.ord;
   for (let i = -1; i < TARGETS.length; i++) {
     const d = i < 0 ? P : TARGETS[i];
-    if (skillTargetOk(s, d, h.ord) && inSkillShape(h.sk, d, h.ox, h.oz, 0, 0, h.dx, h.dz)) skillHit(s, h.sk, d, h.dx, h.dz);
+    if (skillTargetOk(s, d, ord) && inSkillShape(sk, d, ox, oz, 0, 0, dx, dz)) skillHit(s, sk, d, dx, dz);
   }
 }
 // Everything of 名甲's that is out (a new run, the wake, out of the match).
