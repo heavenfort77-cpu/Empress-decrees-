@@ -18,6 +18,7 @@ const server = createServer(async (req, res) => {
 // the map and match checks were written for; the 儒甲 checks switch it off with __game.setPkitP(false).
 const URL0 = `http://127.0.0.1:${server.address().port}/?lock&tier=medium&bots=0&pkit=placeholder`;
 
+import { guardChecks } from './guard-checks.mjs';
 const results = [], SIMS = [];
 function check(name, ok, detail) { results.push({ name, ok: !!ok, detail }); }
 
@@ -3246,6 +3247,8 @@ try {
   });
   check('171 budget with 杂甲 effects: every suit + cubs + tells + a copied move tell (calls<500, tris<500k), no shader compile, geometry flat',
     !!d171 && d171.calls < 500 && d171.tris < 500000 && d171.programs === base.programs && d171.geoms === base.geoms, JSON.stringify(d171));
+  // 300-308 皇家 guard (Burning Palace ticket 02): tests/guard-checks.mjs.
+  await guardChecks(g, check, base);
   // 66 Idle player: standing at the spawn doing nothing loses the royale (frozen loss with a cause) before the last collapse is over.
   const idle = await g(() => {
     const G = __game, C = G.config; G.setSeed(12345); G.setBots(G.config.BOTS.count); G.reset(); let t = 0;
