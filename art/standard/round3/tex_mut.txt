@@ -1,0 +1,5 @@
+tex mutation dup: 3 FAIL lines (must be > 0)
+tex mutation blend: 4 FAIL lines (must be > 0)
+tex mutation flat: 1 FAIL lines (must be > 0)
+tex mutation bleed: 1 FAIL lines (must be > 0)
+tex mutation tongue: 1 FAIL lines (must be > 0)
