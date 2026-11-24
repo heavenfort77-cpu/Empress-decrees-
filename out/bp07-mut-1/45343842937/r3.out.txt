@@ -1,0 +1,3 @@
+FAIL 42 bot sweep 9 runs: 0 broken invariants, every run ends, never-dodge always loses, 0.3 s and 0.15 s reaction each win at least once :: 99/012:lost 7s hp0 demon905 | 99/120:lost 8s hp0 demon915 | 99/210:lost 8s hp0 demon915 | 0.3/012:lost 16s hp0 demon745 | 0.3/120:lost 19s hp0 demon845 | 0.3/210:lost 50s hp0 demon245 | 0.15/012:lost 24s hp0 demon570 | 0.15/120:won 68s hp65 demon0 | 0.15/210:won 64s hp100 demon0
+FAIL 902 bootleg 甲 stalls: after stallN moves the next waits cd + stallS (others about cd); a stall counted :: {"starts":[0,3.417,6.833,10.25,13.667],"gaps":[3.417,3.416,3.417,3.417],"stalls":0,"cd":3.4,"stallS":4,"N":3}
+RUNTIME 197 of 199 pass

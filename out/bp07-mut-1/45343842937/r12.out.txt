@@ -1,0 +1,3 @@
+FAIL 42 bot sweep 9 runs: 0 broken invariants, every run ends, never-dodge always loses, 0.3 s and 0.15 s reaction each win at least once :: 99/012:lost 7s hp0 demon905 | 99/120:lost 8s hp0 demon915 | 99/210:lost 8s hp0 demon915 | 0.3/012:lost 16s hp0 demon745 | 0.3/120:lost 19s hp0 demon845 | 0.3/210:lost 50s hp0 demon245 | 0.15/012:lost 24s hp0 demon570 | 0.15/120:won 68s hp65 demon0 | 0.15/210:won 64s hp100 demon0
+FAIL 906 three sides: 反贼 and 皇家 squads hurt each other; a bot with a bootleg charge uses it in a fight :: {"hurtA":4,"hurtB":4,"kills":0,"playerHp":100,"bot":{"casts":0,"n":1,"copy":"","t":5}}
+RUNTIME 197 of 199 pass

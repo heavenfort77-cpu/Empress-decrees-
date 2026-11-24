@@ -1,0 +1,278 @@
+[
+ {
+  "i": 0,
+  "fails": [
+   "42",
+   "900"
+  ],
+  "tot": [
+   "RUNTIME 197 of 199 pass"
+  ],
+  "s": 178,
+  "name": "faction-types-any",
+  "want": "900",
+  "applied": true,
+  "caught_named": true
+ },
+ {
+  "i": 1,
+  "fails": [
+   "42",
+   "901"
+  ],
+  "tot": [
+   "RUNTIME 197 of 199 pass"
+  ],
+  "s": 89,
+  "name": "bootleg-short",
+  "want": "901",
+  "applied": true,
+  "caught_named": true
+ },
+ {
+  "i": 2,
+  "fails": [
+   "42",
+   "900",
+   "901",
+   "902"
+  ],
+  "tot": [
+   "RUNTIME 195 of 199 pass"
+  ],
+  "s": 90,
+  "name": "school-ignored",
+  "want": "900",
+  "applied": true,
+  "caught_named": true
+ },
+ {
+  "i": 3,
+  "fails": [
+   "42",
+   "902"
+  ],
+  "tot": [
+   "RUNTIME 197 of 199 pass"
+  ],
+  "s": 127,
+  "name": "no-stall",
+  "want": "902",
+  "applied": true,
+  "caught_named": true
+ },
+ {
+  "i": 4,
+  "fails": [
+   "42",
+   "903"
+  ],
+  "tot": [
+   "RUNTIME 197 of 199 pass"
+  ],
+  "s": 180,
+  "name": "heal-any-faction",
+  "want": "903",
+  "applied": true,
+  "caught_named": true
+ },
+ {
+  "i": 5,
+  "fails": [
+   "42",
+   "903"
+  ],
+  "tot": [
+   "RUNTIME 197 of 199 pass"
+  ],
+  "s": 105,
+  "name": "heal-none",
+  "want": "903",
+  "applied": true,
+  "caught_named": true
+ },
+ {
+  "i": 6,
+  "fails": [
+   "42",
+   "900",
+   "904"
+  ],
+  "tot": [
+   "RUNTIME 196 of 199 pass"
+  ],
+  "s": 131,
+  "name": "no-lurk",
+  "want": "904",
+  "applied": true,
+  "caught_named": true
+ },
+ {
+  "i": 7,
+  "fails": [
+   "42",
+   "904"
+  ],
+  "tot": [
+   "RUNTIME 197 of 199 pass"
+  ],
+  "s": 91,
+  "name": "prey-ignores-leader",
+  "want": "904",
+  "applied": true,
+  "caught_named": true
+ },
+ {
+  "i": 8,
+  "fails": [
+   "42",
+   "904"
+  ],
+  "tot": [
+   "RUNTIME 197 of 199 pass"
+  ],
+  "s": 102,
+  "name": "lurk-seen",
+  "want": "904",
+  "applied": true,
+  "caught_named": true
+ },
+ {
+  "i": 9,
+  "fails": [
+   "42",
+   "905"
+  ],
+  "tot": [
+   "RUNTIME 197 of 199 pass"
+  ],
+  "s": 94,
+  "name": "no-charge",
+  "want": "905",
+  "applied": true,
+  "caught_named": true
+ },
+ {
+  "i": 10,
+  "fails": [
+   "42",
+   "905",
+   "906"
+  ],
+  "tot": [
+   "RUNTIME 196 of 199 pass"
+  ],
+  "s": 134,
+  "name": "charge-forever",
+  "want": "905",
+  "applied": true,
+  "caught_named": true
+ },
+ {
+  "i": 11,
+  "fails": [
+   "42",
+   "905"
+  ],
+  "tot": [
+   "RUNTIME 197 of 199 pass"
+  ],
+  "s": 128,
+  "name": "charge-weak",
+  "want": "905",
+  "applied": true,
+  "caught_named": true
+ },
+ {
+  "i": 12,
+  "fails": [
+   "42",
+   "906"
+  ],
+  "tot": [
+   "RUNTIME 197 of 199 pass"
+  ],
+  "s": 163,
+  "name": "bot-no-charge",
+  "want": "906",
+  "applied": true,
+  "caught_named": true
+ },
+ {
+  "i": 13,
+  "fails": [
+   "42",
+   "906"
+  ],
+  "tot": [
+   "RUNTIME 197 of 199 pass"
+  ],
+  "s": 128,
+  "name": "rebels-blind-to-guard",
+  "want": "906",
+  "applied": true,
+  "caught_named": true
+ },
+ {
+  "i": 14,
+  "fails": [
+   "42",
+   "908"
+  ],
+  "tot": [
+   "RUNTIME 197 of 199 pass"
+  ],
+  "s": 102,
+  "name": "reset-keeps-charge",
+  "want": "908",
+  "applied": true,
+  "caught_named": true
+ },
+ {
+  "i": 15,
+  "fails": [
+   "42",
+   "905",
+   "908"
+  ],
+  "tot": [
+   "RUNTIME 196 of 199 pass"
+  ],
+  "s": 90,
+  "name": "button-never",
+  "want": "905",
+  "applied": true,
+  "caught_named": true
+ },
+ {
+  "i": 16,
+  "fails": [
+   "42",
+   "900"
+  ],
+  "tot": [
+   "RUNTIME 197 of 199 pass"
+  ],
+  "s": 126,
+  "name": "switch-ignored",
+  "want": "900",
+  "applied": true,
+  "caught_named": true
+ },
+ {
+  "i": 17,
+  "fails": [
+   "42",
+   "900",
+   "904"
+  ],
+  "tot": [
+   "RUNTIME 196 of 199 pass"
+  ],
+  "s": 147,
+  "name": "glint-red",
+  "want": "904",
+  "applied": true,
+  "caught_named": true
+ }
+]
