@@ -1,0 +1,69 @@
+{
+  "_about": "W4 apex concepts (25 Nov, owner asleep; art/OVERNIGHT.md). Reference only, never shipped or traced. Jobs 0-1: the apex Tiger Demon, a crouching bronze tiger statue (the tiger tally made beast; GDD Lore, research: chariot-grade segmented casting, inlaid lines). Jobs 2-3: the cubs, four-legged bronze tread machines (research: chariot running gear, ox or tortoise movement, ding or lei hull). Lion and mane in the negative prompt (the door guardians are lions, the apex is a tiger). Same model and LCM settings as rounds B-D.",
+  "checkpoint": "v1-5-pruned-emaonly.safetensors",
+  "checkpoint_url": "https://huggingface.co/stable-diffusion-v1-5/stable-diffusion-v1-5/resolve/main/v1-5-pruned-emaonly.safetensors",
+  "width": 512,
+  "height": 512,
+  "steps": 6,
+  "cfg": 1.5,
+  "sampler": "lcm",
+  "scheduler": "sgm_uniform",
+  "positive": "{view}, brass-gold cast bronze with inlaid gold lines and cloud scroll relief bands, museum photograph, plain grey background",
+  "negative": "text, watermark, people, hands, blurry, cartoon, toy, porcelain, ceramic, wood, modern, green, patina, rust, silver, lion, mane, fur, robot, sci-fi, neon",
+  "jobs": [
+    {
+      "view": "side view of an ancient chinese bronze tiger statue crouching low ready to pounce, warring states casting, long body, striped inlay",
+      "seeds": [
+        5101,
+        5102,
+        5103,
+        5104,
+        5105,
+        5106,
+        5107,
+        5108
+      ]
+    },
+    {
+      "view": "three quarter front view of a crouching ancient chinese bronze tiger statue, warring states, heavy head, segmented body plates, long tail",
+      "seeds": [
+        5111,
+        5112,
+        5113,
+        5114,
+        5115,
+        5116,
+        5117,
+        5118
+      ]
+    },
+    {
+      "view": "side view of an ancient chinese bronze four-legged war machine like a tortoise, round cauldron body, wheels and treads under each leg",
+      "seeds": [
+        5201,
+        5202,
+        5203,
+        5204,
+        5205,
+        5206,
+        5207,
+        5208
+      ]
+    },
+    {
+      "view": "three quarter view of an ancient chinese bronze four-legged machine like an ox, jar shaped body, chariot wheels on its feet, lowered horned head",
+      "seeds": [
+        5211,
+        5212,
+        5213,
+        5214,
+        5215,
+        5216,
+        5217,
+        5218
+      ]
+    }
+  ],
+  "lora": "lcm-lora-sdv1-5.safetensors",
+  "lora_url": "https://huggingface.co/latent-consistency/lcm-lora-sdv1-5/resolve/main/pytorch_lora_weights.safetensors"
+}
