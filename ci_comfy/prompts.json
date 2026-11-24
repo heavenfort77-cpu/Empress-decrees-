@@ -1,5 +1,5 @@
 {
-  "_about": "Concept references for the bronze guardian beast (asset list C1). Prompt built with the cocolito method from art/Qin-Bronze-Castings-Study.md, art/Qin-Palace-Painted-Study.md, docs/research/Qin-palace-medieval-tech-fusion.md and the owner's notes (21:03 segmented bronze with silver inlay; 22:30 round where round, sharp where sharp; 22:43 figure still bad, fierce guardian). Reference only: never shipped, never traced; the model is built in Blender from what is measured on the chosen image. Model: SD 1.5 (stable-diffusion-v1-5, CreativeML OpenRAIL-M, commercial use allowed). Round B (24 Nov 23:2x): round A's long prompt (over the 77-token CLIP limit) gave silver horses, griffins and trophies; round B is a short prompt with the study's core (seated Qin bronze guardian lion, fierce, curl mane, round masses, sharp claws, brass-gold, cloud bands, stone plinth) and the LCM LoRA (latent-consistency/lcm-lora-sdv1-5, openrail++) for 6-step sampling on CPU. Round C (25 Nov 00:0x): owner said round 3 (built to concept 2130) looks like a fluffy cat; face concepts only, fierce guardian cues, cat cues in the negative prompt.",
+  "_about": "Concept references for the bronze guardian beast (asset list C1). Prompt built with the cocolito method from art/Qin-Bronze-Castings-Study.md, art/Qin-Palace-Painted-Study.md, docs/research/Qin-palace-medieval-tech-fusion.md and the owner's notes (21:03 segmented bronze with silver inlay; 22:30 round where round, sharp where sharp; 22:43 figure still bad, fierce guardian). Reference only: never shipped, never traced; the model is built in Blender from what is measured on the chosen image. Model: SD 1.5 (stable-diffusion-v1-5, CreativeML OpenRAIL-M, commercial use allowed). Round B (24 Nov 23:2x): round A's long prompt (over the 77-token CLIP limit) gave silver horses, griffins and trophies; round B is a short prompt with the study's core (seated Qin bronze guardian lion, fierce, curl mane, round masses, sharp claws, brass-gold, cloud bands, stone plinth) and the LCM LoRA (latent-consistency/lcm-lora-sdv1-5, openrail++) for 6-step sampling on CPU. Round C (25 Nov 00:0x): owner said round 3 (built to concept 2130) looks like a fluffy cat; face concepts only, fierce guardian cues, cat cues in the negative prompt. Round D (25 Nov, worker W1a): props C2 ding (jobs 0-1) and C3 water vat (jobs 2-3); the view field carries the whole subject, reference only.",
   "checkpoint": "v1-5-pruned-emaonly.safetensors",
   "checkpoint_url": "https://huggingface.co/stable-diffusion-v1-5/stable-diffusion-v1-5/resolve/main/v1-5-pruned-emaonly.safetensors",
   "width": 512,
@@ -8,59 +8,59 @@
   "cfg": 1.5,
   "sampler": "lcm",
   "scheduler": "sgm_uniform",
-  "positive": "front view close-up of a fierce ancient chinese bronze guardian lion head, roaring open mouth, sharp fangs, heavy angular brows, bulging eyes, flared nostrils, mane of crisp spiral curls, cast bronze with engraved cloud patterns, museum photograph, plain grey background",
-  "negative": "cat, kitten, cute, fluffy, fur, whiskers, cartoon, toy, smiling, closed mouth, stone, wood, clay, text, watermark, people, blurry",
+  "positive": "{view}, brass-gold cast bronze with raised bands of mask and cloud scroll relief, museum photograph, plain grey background",
+  "negative": "text, watermark, people, hands, blurry, cartoon, toy, porcelain, glazed, ceramic, wood, modern, green, patina, rust, silver",
   "jobs": [
     {
-      "view": "front view",
+      "view": "front view of an ancient chinese bronze ding cauldron, warring states, deep round bowl on three thick legs, two upright loop handles on the rim",
       "seeds": [
-        3101,
-        3102,
-        3103,
-        3104,
-        3105,
-        3106,
-        3107,
-        3108
+        4101,
+        4102,
+        4103,
+        4104,
+        4105,
+        4106,
+        4107,
+        4108
       ]
     },
     {
-      "view": "front view",
+      "view": "three quarter view from above of an ancient chinese bronze ding cauldron, warring states, deep round bowl on three thick legs, two upright handles",
       "seeds": [
-        3109,
-        3110,
-        3111,
-        3112,
-        3113,
-        3114,
-        3115,
-        3116
+        4109,
+        4110,
+        4111,
+        4112,
+        4113,
+        4114,
+        4115,
+        4116
       ]
     },
     {
-      "view": "front view",
+      "view": "front view of a large ancient chinese bronze water basin vessel, wide deep round tub with thick flat rim, four ring handles, low foot",
       "seeds": [
-        3117,
-        3118,
-        3119,
-        3120,
-        3121,
-        3122,
-        3123,
-        3124
+        4201,
+        4202,
+        4203,
+        4204,
+        4205,
+        4206,
+        4207,
+        4208
       ]
     },
     {
-      "view": "front view",
+      "view": "three quarter view from above of a large ancient chinese bronze water basin full of dark water, wide round tub, thick rim, ring handles",
       "seeds": [
-        3125,
-        3126,
-        3127,
-        3128,
-        3129,
-        3130,
-        3131,
-        3132
+        4209,
+        4210,
+        4211,
+        4212,
+        4213,
+        4214,
+        4215,
+        4216
       ]
     }
   ],
