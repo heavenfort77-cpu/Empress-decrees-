@@ -238,12 +238,17 @@ const LIST = (process.env.SCENES || FILE || 'reference,heavy,hunt,select,heavy_l
 for (const name of LIST) {
   const sc = SCENES[name];
   // A fresh browser per scene (item (g)): font and shader caches start cold in every scene, as for a new player.
-  if (browser) await browser.close(); browser = await chromium.launch({ args: ARGS });
+  if (browser) await browser.close();
+  // PURGE=1 (item (g)): the macOS file cache is flushed before each scene, so files the OS keeps after first use (fonts) start cold in every scene.
+  if (process.env.PURGE === '1') { try { (await import('node:child_process')).execSync('sudo purge'); } catch (e) { console.log('PURGE failed ' + String(e).slice(0, 80)); } }
+  browser = await chromium.launch({ args: ARGS });
   const page = await browser.newPage({ viewport: { width: 1920, height: 1080 }, deviceScaleFactor: 1 });
   const errs = []; page.on('pageerror', (e) => errs.push(String(e).slice(0, 160)));
   await page.addInitScript(INIT);
+  const tLoad = Date.now();
   await page.goto(BASE + (sc.path || '') + '?' + sc.q);
   await page.waitForFunction(() => window.__ready === true, null, { timeout: 90000 });
+  const loadMs = Date.now() - tLoad;
   if (!gpu) gpu = await renderer(page);
   if (sc.custom) {
     const r = await page.evaluate(FIRST_DRAW);
@@ -321,7 +326,7 @@ for (const name of LIST) {
   }, { drv, SETTLE, TIMED: sc.timed || TIMED });
   const { profile } = await cdp.send('Profiler.stop'); await cdp.detach();
   const diag = r.diag; delete r.diag;
-  rows.push({ scene: name, setupMs, errs: errs.length, err0: errs[0] || '', ...r });
+  rows.push({ scene: name, loadMs, setupMs, errs: errs.length, err0: errs[0] || '', ...r });
   if (diag) {
     const inWin = nodeGaps.filter((g) => g[0] >= diag.e0 && g[0] <= diag.e1);
     diag.nodeGapN = inWin.length; diag.nodeGap50 = inWin.filter((g) => g[1] - g[0] > 50).length; diag.nodeGapMax = Math.round(Math.max(0, ...inWin.map((g) => g[1] - g[0])));
