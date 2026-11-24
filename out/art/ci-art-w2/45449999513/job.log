@@ -1,0 +1,93 @@
+== textures: rammed_earth,rammed_earth_core,earth_burnt,river_stone,stone_paving,floor_tiles,hollow_brick,mural_wall,wall_burnt,roof_tile,tile_ends,timber,timber_burnt,mercury_matcap,black_lake,garden_ground,garden_plants,star_ceiling,signal_flags,slips,slips_burnt
+rammed_earth 7719 ops
+rammed_earth_core 9276 ops
+earth_burnt 7981 ops
+river_stone 1344 ops
+stone_paving 2669 ops
+floor_tiles 1588 ops
+hollow_brick 2445 ops
+mural_wall 1074 ops
+wall_burnt 3278 ops
+roof_tile 1290 ops
+tile_ends 682 ops
+timber 980 ops
+timber_burnt 3505 ops
+mercury_matcap 153 ops
+black_lake 3170 ops
+garden_ground 3666 ops
+garden_plants 1932 ops
+star_ceiling 2331 ops
+signal_flags 493 ops
+slips 3676 ops
+slips_burnt 3721 ops
+rammed_earth passes tone > marks > detail
+rammed_earth_core passes tone > marks > detail
+earth_burnt passes tone > marks > detail
+river_stone passes tone > marks > detail
+stone_paving passes tone > marks > detail
+floor_tiles passes tone > marks > detail
+hollow_brick passes tone > marks > detail
+mural_wall passes tone > marks > detail
+wall_burnt passes tone > detail
+roof_tile passes tone > marks > detail
+tile_ends passes tone > marks
+timber passes tone > marks > detail
+timber_burnt passes tone > marks > detail
+mercury_matcap passes base > tone > marks > detail
+black_lake passes tone > marks > detail
+garden_ground passes tone > marks > detail
+garden_plants passes marks
+star_ceiling passes tone > marks
+signal_flags passes base > tone > marks > base > tone > marks > base > tone > marks > base > tone > marks > base > tone > marks > base > tone > marks > base > tone > marks > base > tone > marks > base > tone > marks
+slips passes tone > marks
+slips_burnt passes tone > marks > detail
+black_lake.png mean abs diff vs committed 0.0
+bronze_trim.png mean abs diff vs committed 0.0
+door.png mean abs diff vs committed 0.0
+earth_burnt.png mean abs diff vs committed 0.119
+floor_tiles.png mean abs diff vs committed 0.0
+garden_ground.png mean abs diff vs committed 0.0
+garden_plants.png mean abs diff vs committed 0.0
+hall_floor.png mean abs diff vs committed 0.0
+hall_wall.png mean abs diff vs committed 0.0
+hollow_brick.png mean abs diff vs committed 0.0
+lion_stone.png mean abs diff vs committed 0.0
+mercury_matcap.png mean abs diff vs committed 0.0
+mural_wall.png mean abs diff vs committed 0.0
+pillar.png mean abs diff vs committed 0.0
+rammed_earth.png mean abs diff vs committed 0.0
+rammed_earth_core.png mean abs diff vs committed 0.107
+river_stone.png mean abs diff vs committed 0.0
+roof_tile.png mean abs diff vs committed 0.0
+signal_flags.png mean abs diff vs committed 0.0
+slips.png mean abs diff vs committed 0.0
+slips_burnt.png mean abs diff vs committed 0.0
+star_ceiling.png mean abs diff vs committed 0.0
+stone_paving.png mean abs diff vs committed 0.0
+tile_ends.png mean abs diff vs committed 0.0
+timber.png mean abs diff vs committed 0.0
+timber_burnt.png mean abs diff vs committed 0.0
+wall_burnt.png mean abs diff vs committed 0.0
+== tex_check
+165 of 165 pass
+== tex_check mutation
+12 of 12 caught
+== meshes
+100 of 100 pass
+mesh gate mutation uv: 28 FAIL lines (must be > 0)
+mesh gate mutation budget: 27 FAIL lines (must be > 0)
+mesh gate mutation dims: 3 FAIL lines (must be > 0)
+== shots
+piece_lake_rubble {"calls":3,"tris":154,"shadowCalls":2,"shadowTris":152,"totalCalls":5,"totalTris":306,"lights":2,"programs":3,"textures":3} ok
+piece_debris {"calls":8,"tris":498,"shadowCalls":15,"shadowTris":672,"totalCalls":23,"totalTris":1170,"lights":2,"programs":3,"textures":7} ok
+piece_slip_rack {"calls":3,"tris":102,"shadowCalls":2,"shadowTris":100,"totalCalls":5,"totalTris":202,"lights":2,"programs":3,"textures":3} ok
+hall max calls 60 max tris 27822
+hall_burnt max calls 60 max tris 27822
+hall_locked max calls 62 max tris 28302
+court max calls 68 max tris 9898
+corridor max calls 55 max tris 9396
+garden max calls 41 max tris 2968
+bridge max calls 29 max tris 4994
+core max calls 61 max tris 6732
+35
+RESULT done
