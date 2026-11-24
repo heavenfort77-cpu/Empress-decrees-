@@ -25,10 +25,7 @@ jobs:
       - name: Machine
         run: (sysctl -n machdep.cpu.brand_string; system_profiler SPDisplaysDataType | grep -E "Chipset|Metal|Resolution" || true) | tee machine.txt
       - name: Probe (real GPU, vsync off)
-        run: node ci_probe/perfgpu.mjs 2>&1 | tee perf.txt
-      - name: Probe (real GPU, vsync on)
-        if: always()
-        run: VSYNC=1 node ci_probe/perfgpu.mjs 2>&1 | tee perf_vsync.txt
+        run: TIMED_S=${TIMED_S:-60} node ci_probe/perfgpu.mjs 2>&1 | tee perf.txt
       - name: Commit to ci-out
         if: always()
         run: |

@@ -226,11 +226,14 @@ for (const name of LIST) {
   await cdp.send('Profiler.enable'); await cdp.send('Profiler.setSamplingInterval', { interval: 500 }); await cdp.send('Profiler.start');
   const r = await page.evaluate(async ({ drv, SETTLE, TIMED }) => {
     const driver = eval('(' + drv + ')');
-    const drvLog = [], stLog = [], loaf = [];
+    const drvLog = [], stLog = [], loaf = []; let loafN = 0, loafN100 = 0; const mut = [];
+    const mo = new MutationObserver((l) => { const t = performance.now(); for (const m of l) { mut.push([t, (m.target.id || (m.target.parentNode && m.target.parentNode.id) || m.target.nodeName)]); if (mut.length > 5000) mut.splice(0, 2500); } });
+    mo.observe(document.body, { subtree: true, childList: true, characterData: true, attributes: true });
     const id = setInterval(() => { const t0 = performance.now(); try { driver(); } catch (e) { window.__drvErr = String(e); } const d = performance.now() - t0; if (d > 5) drvLog.push([Math.round(t0), +d.toFixed(1)]); }, 250);
     const stId = setInterval(() => { try { const G = __game, b = G.burnState(), p2 = G.pieces2State(); stLog.push([Math.round(performance.now()), 'room ' + G.palace().cur + ' burn ' + b.wing + '/' + b.st + ' falls ' + b.falls + ' awake ' + p2.awake + ' guards ' + G.guards().n]); if (stLog.length > 400) stLog.shift(); } catch (e) { /* not palace */ } }, 100);
-    let lo = null; try { lo = new PerformanceObserver((l) => { for (const e of l.getEntries()) if (e.duration > 60) loaf.push({ t: Math.round(e.startTime), ms: Math.round(e.duration), block: Math.round(e.blockingDuration), render: Math.round(e.renderStart ? e.startTime + e.duration - e.renderStart : 0),
-      scripts: e.scripts.map((x) => Math.round(x.duration) + 'ms ' + x.invokerType + ' ' + x.invoker + ' ' + x.sourceFunctionName + ' @' + x.sourceCharPosition + (x.forcedStyleAndLayoutDuration > 1 ? ' layout ' + Math.round(x.forcedStyleAndLayoutDuration) : '')) }); }); lo.observe({ type: 'long-animation-frame' }); } catch (e) { loaf.push({ none: String(e).slice(0, 60) }); }
+    let lo = null; try { lo = new PerformanceObserver((l) => { for (const e of l.getEntries()) { if (e.duration > 50) loafN++; if (e.duration > 100) loafN100++; if (e.duration > 60 && loaf.length < 30) loaf.push({ at_s: +((e.startTime - tStart) / 1000).toFixed(2), ms: Math.round(e.duration), block: Math.round(e.blockingDuration),
+      preRender: Math.round(e.renderStart ? e.renderStart - e.startTime : e.duration), scriptsInRender: Math.round(e.styleAndLayoutStart && e.renderStart ? e.styleAndLayoutStart - e.renderStart : 0), styleLayoutPaint: Math.round(e.styleAndLayoutStart ? e.startTime + e.duration - e.styleAndLayoutStart : 0),
+      scripts: e.scripts.map((x) => Math.round(x.duration) + 'ms ' + x.invokerType + ' ' + x.invoker + ' ' + x.sourceFunctionName + ' @' + x.sourceCharPosition + (x.forcedStyleAndLayoutDuration > 1 ? ' layout ' + Math.round(x.forcedStyleAndLayoutDuration) : '')) }); } }); lo.observe({ type: 'long-animation-frame' }); } catch (e) { loaf.push({ none: String(e).slice(0, 60) }); }
     const gl = window.__gl, ext = gl && gl.getExtension('EXT_disjoint_timer_query_webgl2'), caps = 'timerQuery ' + !!ext + ' parallelCompile ' + !!(gl && gl.getExtension('KHR_parallel_shader_compile'));
     let q = null; const pend = [], gpu = [], disj = []; let tStart = performance.now();
     const gpuTick = (t) => {
@@ -249,17 +252,18 @@ for (const name of LIST) {
     // Profile clock mark: a named 20 ms spin at a known performance.now(), found again in the CPU profile to line the two clocks up.
     const markT = performance.now(); (function __probeMark() { const e = performance.now() + 20; while (performance.now() < e) { /* spin */ } })();
     await new Promise((res) => { const f = (t) => { gpuTick(t); if (last) { d.push(t - last); if (t - last > 100) longF.push([last, t]); } last = t; if (run) requestAnimationFrame(f); else res(); }; requestAnimationFrame(f); setTimeout(() => { run = false; }, TIMED * 1000); });
-    clearInterval(id); clearInterval(stId); if (ob) ob.disconnect(); if (lo) lo.disconnect(); if (q) { gl.endQuery(ext.TIME_ELAPSED_EXT); q = null; }
+    clearInterval(id); clearInterval(stId); mo.disconnect(); if (ob) ob.disconnect(); if (lo) lo.disconnect(); if (q) { gl.endQuery(ext.TIME_ELAPSED_EXT); q = null; }
     // For each frame over 100 ms: the GL calls that can block from 200 ms before the frame to its end, the driver calls and the state samples around it.
     const G0 = window.__glog || [];
     const longs = longF.map(([a, b]) => ({ at_s: +((b - tStart) / 1000).toFixed(2), ms: Math.round(b - a),
       gl: G0.filter((e) => e[0] >= a - 200 && e[0] <= b && (e[1] > 0.5 || e[2] !== 'bufferData')).slice(-40).map((e) => Math.round(e[0] - a) + ' ' + e[2] + ' ' + e[1].toFixed(1) + 'ms #' + e[3]),
       drv: drvLog.filter((x) => x[0] >= a - 300 && x[0] <= b).map((x) => Math.round(x[0] - a) + ' ' + x[1] + 'ms'),
+      dom: mut.filter((x) => x[0] >= a - 200 && x[0] <= b).slice(-12).map((x) => Math.round(x[0] - a) + ' ' + x[1]),
       st: stLog.filter((x) => x[0] >= a - 300 && x[0] <= b + 200).map((x) => Math.round(x[0] - a) + ' ' + x[1]),
       gpu: gpu.filter((x) => x[0] >= a && x[0] <= b + 40).map((x) => x[1].toFixed(1)) }));
     const gs = gpu.map((x) => x[1]).sort((x, y) => x - y), gq = (k) => gs.length ? +gs[Math.min(gs.length - 1, Math.floor(gs.length * k))].toFixed(2) : -1;
     const glc1 = window.__glc || {}, glDelta = Object.keys(glc1).map((k) => k + ' ' + ((glc1[k] || 0) - (glc0[k] || 0))).join(', ');
-    window.__diag = { markT, tStart, longRaw: longF, disj: disj.slice(0, 40), disjN: disj.length, caps, gpuN: gs.length, gpuP50: gq(0.5), gpuP95: gq(0.95), gpuMax: gq(1), longs, loaf: loaf.slice(0, 12), glDelta, drvSlow: drvLog.length };
+    window.__diag = { loafN, loafN100, domWrites: mut.filter((x) => x[0] >= tStart).length, markT, tStart, longRaw: longF, disj: disj.slice(0, 40), disjN: disj.length, caps, gpuN: gs.length, gpuP50: gq(0.5), gpuP95: gq(0.95), gpuMax: gq(1), longs, loaf: loaf.slice(0, 12), glDelta, drvSlow: drvLog.length };
     const m1 = mem(), info = __game.render(false);
     d.sort((a, b) => a - b);
     const sum = d.reduce((a, b) => a + b, 0), n = d.length;
