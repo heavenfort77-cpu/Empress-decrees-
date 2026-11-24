@@ -1,0 +1,92 @@
+== paint mercury_matcap,signal_flags,pond_water,star_inlay
+mercury_matcap 153 ops
+signal_flags 498 ops
+pond_water 3060 ops
+star_inlay 114 ops
+mercury_matcap passes base > tone > marks > detail
+signal_flags passes base > tone > marks > base > tone > marks > base > tone > marks > base > tone > marks > base > tone > marks > base > tone > marks > base > tone > marks > base > tone > marks > base > tone > marks
+pond_water passes tone > marks > detail
+star_inlay passes marks
+== repaint check: approved hall_wall with PLASTER_K unset is unchanged
+hall_wall repaint (PLASTER_K unset) mean abs diff vs committed 0.0
+hall_wall approved: plaster mean lum 169.1 (rows 170-750)
+mural_wall approved-matched: plaster mean lum 168.1 (rows 450-750)
+== tex_check
+FAIL signal_flags contrast: lum sd 30.5
+FAIL suit_bronze plain brush scale: 3.9 cm
+258 of 260 pass
+== tex_check mutation
+23 of 23 caught
+== meshes
+PASS throne_dais_lod0 tris 434 (budget 7000)
+PASS throne_dais_lod0 texel density 100% of surface in 205-320 px/m (min 95%); range 256-256
+PASS throne_dais_lod1 tris 182 (budget 2500)
+PASS throne_dais_lod1 texel density 100% of surface in 205-320 px/m (min 95%); range 256-256
+PASS throne_dais_lod2 tris 182 (budget 800)
+PASS throne_dais_lod2 texel density 100% of surface in 205-320 px/m (min 95%); range 256-256
+PASS throne_dais dais top 1.50 m on a 12.0 x 6.0 m base (game block 12 x 6 x 1.5 m)
+PASS throne screen top 3.67 m over the dais (2.62 x THRONE_S 1.4), whole prop 12.0 x 6.0 x 5.2 m
+PASS slip_rack tris 100 (budget 300)
+PASS slip_rack texel density 100% of surface in 205-320 px/m (min 95%); range 256-256
+PASS slip_rack 2.50 x 0.80 x 2.80 m, 5 shelves at 0.50 m (min 2.3 wide, 2.6 tall: reads at the wide camera)
+102 of 102 pass
+mesh gate mutation uv: 28 FAIL lines (must be > 0)
+mesh gate mutation budget: 27 FAIL lines (must be > 0)
+mesh gate mutation dims: 3 FAIL lines (must be > 0)
+mesh gate mutation dais: 1 FAIL lines (must be > 0)
+mesh gate mutation rack: 1 FAIL lines (must be > 0)
+PASS tally_lod0 tris 1468 (budget 1500)
+PASS tally_lod1 tris 592 (budget 600)
+PASS tally_lod2 tris 236 (budget 260)
+PASS tally_lod0 uses the raised budget: 1468 tris (min 900; rounds 1-2 had 456)
+PASS split reads: halves 0.24 m apart and offset 0.30 m along the body (min 0.15 each)
+PASS 9 inlaid stripes per half, 6.5 cm wide, on LOD0 and LOD1 (min 8 stripes, 6 cm; no script)
+PASS tiger 0.92 m tall on a 0.55 m stand (min 0.6), footprint 2.84 x 1.07 m (2.0-2.9)
+PASS bronze halves (brass sheet in the viewer) on a lacquer stand at LOD1
+8 of 8 pass
+tally gate mutation budget: 3 FAIL lines (must be > 0)
+tally gate mutation stripes: 1 FAIL lines (must be > 0)
+PASS merc_lip tris 28 (piece budget 60, instanced)
+PASS merc_end tris 28 (piece budget 60, instanced)
+PASS merc_post tris 12 (piece budget 60, instanced)
+PASS merc_surface tris 8 (piece budget 60, instanced)
+PASS 2 x 6 m demo channel drawn tris 592 from 32 instances of 4 meshes (budget 600)
+PASS demo uses only the 4 shared meshes, none scaled (tilted normals survive) (['merc_end', 'merc_lip', 'merc_post', 'merc_surface'])
+PASS mercury shading normals tilted 38 deg toward the camera on average (25-50: samples the matcap centre from the 40 deg pitch)
+PASS mercury surface at 0.04 m under the lip top 0.07 m, faces up: True, material palMerc (matcap)
+PASS silver inlay line 6 cm on the bronze lip (min 6)
+9 of 9 pass
+== shots
+70
+== on-screen gates
+PASS brass only: 69 shots, none loads bronze_trim.png/bronze_trim_patina.png
+PASS shots clean: 70 shots without page errors
+PASS budget: heaviest court_wide 68 calls, 7382 tris (under 500 / 500000)
+PASS garden calls: garden_wide calls 41 -> 41 (no more), tris 3734 -> 8934
+PASS planting fuller: plant cards cover 0.071 -> 0.174 of the wide shot (x2.43, min x1.8)
+PASS racks bigger: racks and bundles cover 0.0037 -> 0.0206 of hall_wide (x5.53, min x1.8)
+PASS throne larger: throne above the dais at core_wide 180 x 86 px -> 186 x 115 px (height x1.34, min x1.25)
+PASS pond not a hole: pond mean lum 99 vs ground 93 at garden_wide (max 25 under)
+PASS pond pale edge: pond margin lum 105 vs open water 97 (min +8)
+PASS inlay keeps floor (wide): core_wide floor colour dE 0.12 (max 4.0), lum +0.2 (max 5.0) with the inlay
+PASS tells kept (wide): hazard ring vs floor dE 67.5 -> 67.5 with the inlay (min x0.9)
+PASS inlay keeps floor (play): core_play floor colour dE 0.26 (max 4.0), lum +0.4 (max 5.0) with the inlay
+PASS tells kept (play): hazard ring vs floor dE 71.0 -> 70.9 with the inlay (min x0.9)
+PASS inlay seen at play: inlay pixels differ by mean lum 28.9 from the bare floor (min 8.0; subtle, still there)
+PASS mercury warn brighter: mercury mean lum idle 140, warn 211 (+71, min +40), hot 236 (+26 over warn, min +8)
+PASS mercury shimmer: warn still t 0.40 vs 0.55 differs by 30.9 lum (min 4.0); idle 2.1 (calmer)
+16 of 16 pass
+INFO mercury round 1 (same camera and mesh): idle 139, warn 161, hot 196
+== on-screen gate mutations
+12 of 12 caught
+== sheets
+core_inlay (1920, 1698)
+core_throne (1920, 1878)
+hall_racks (1920, 1878)
+garden (1920, 1132)
+flags_court (1920, 1312)
+brass_pieces (1920, 1312)
+tally_round3 (1600, 5082)
+merc_round2 (1600, 3062)
+textures (1024, 1076)
+RESULT done

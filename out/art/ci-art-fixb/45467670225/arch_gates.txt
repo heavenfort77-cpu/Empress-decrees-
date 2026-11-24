@@ -1,0 +1,103 @@
+PASS terrace_edge tris 12 (budget 300)
+PASS terrace_edge texel density 100% of surface in 205-320 px/m (min 95%); range 247-256
+PASS terrace_edge 4.00 m long, foot at -6.50 m (lake -6.0: footing goes under water)
+PASS wall_seg tris 22 (budget 300)
+PASS wall_seg texel density 100% of surface in 205-320 px/m (min 95%); range 256-256
+PASS wall_seg height 4.00 m (CONFIG wallH 4.0), length 4.00, body thickness 0.5
+PASS wall_mural_seg tris 22 (budget 300)
+PASS wall_mural_seg texel density 100% of surface in 205-320 px/m (min 95%); range 256-256
+PASS wall_earth_seg tris 12 (budget 300)
+PASS wall_earth_seg texel density 100% of surface in 205-320 px/m (min 95%); range 256-256
+PASS wall_low tris 16 (budget 300)
+PASS wall_low texel density 100% of surface in 205-320 px/m (min 95%); range 230-256
+PASS wall_low height 0.96 m (CONFIG lowH 0.8 + tile cap 0.16)
+PASS door_frame tris 52 (budget 400)
+PASS door_frame texel density 100% of surface in 205-320 px/m (min 95%); range 256-256
+PASS door_leaf_L tris 12 (budget 300)
+PASS door_leaf_L texel density 100% of surface in 205-320 px/m (min 95%); range 256-293
+PASS door_leaf_R tris 12 (budget 300)
+PASS door_leaf_R texel density 100% of surface in 205-320 px/m (min 95%); range 256-293
+PASS door_bar tris 120 (budget 300)
+PASS door_bar texel density 100% of surface in 205-320 px/m (min 95%); range 256-256
+PASS door total tris 196 (one door, 5 materials)
+PASS door leaves 4.00 x 3.50 m (CONFIG doorW 4.0 x doorH 3.5)
+PASS pillar tris 282 (budget 300)
+PASS pillar texel density 100% of surface in 205-320 px/m (min 95%); range 237-298
+PASS pillar footprint 1.50 m, height 4.00 m (game pillar: 1.2 m solid, 4.0 m)
+PASS eave_seg tris 222 (budget 300)
+PASS eave_seg texel density 100% of surface in 205-320 px/m (min 95%); range 256-274
+PASS tile_end tris 28 (budget 60)
+PASS tile_end texel density 95% of surface in 205-320 px/m (min 95%); range 256-2342
+PASS que_pair_lod0 tris 1852 (budget 7000)
+PASS que_pair_lod0 texel density 100% of surface in 205-320 px/m (min 95%); range 217-302
+PASS que_pair_lod1 tris 412 (budget 2500)
+PASS que_pair_lod1 texel density 100% of surface in 205-320 px/m (min 95%); range 255-310
+PASS que_pair_lod2 tris 100 (budget 800)
+PASS que_pair_lod2 texel density 100% of surface in 205-320 px/m (min 95%); range 255-256
+PASS que_pair height 14.2 m (towers read above the 4 m walls), width 27.5 m, passage 8.0 m
+PASS wall_walk_seg tris 108 (budget 300)
+PASS wall_walk_seg texel density 100% of surface in 205-320 px/m (min 95%); range 256-284
+PASS wall_walk_seg wall 4.0 m + merlons 0.7 m, walk at 3.0 m (1.0 m to the merlon tops: cover)
+PASS parapet_seg tris 18 (budget 300)
+PASS parapet_seg texel density 100% of surface in 205-320 px/m (min 95%); range 256-256
+PASS walk_post tris 72 (budget 300)
+PASS walk_post texel density 100% of surface in 205-320 px/m (min 95%); range 253-273
+PASS walk_beam tris 12 (budget 300)
+PASS walk_beam texel density 100% of surface in 205-320 px/m (min 95%); range 243-256
+PASS bridge_bay_8 tris 194 (budget 300)
+PASS bridge_bay_8 texel density 100% of surface in 205-320 px/m (min 95%); range 256-284
+PASS bridge_bay_8 deck 8.0 m wide, posts from -6.6 m (into the lake), rails 0.8 m
+PASS bridge_bay_12 tris 208 (budget 300)
+PASS bridge_bay_12 texel density 100% of surface in 205-320 px/m (min 95%); range 256-284
+PASS bridge_bay_12 deck 12.0 m wide, posts from -6.6 m (into the lake), rails 0.8 m
+PASS throne_dais_lod0 tris 434 (budget 7000)
+PASS throne_dais_lod0 texel density 100% of surface in 205-320 px/m (min 95%); range 256-256
+PASS throne_dais_lod1 tris 182 (budget 2500)
+PASS throne_dais_lod1 texel density 100% of surface in 205-320 px/m (min 95%); range 256-256
+PASS throne_dais_lod2 tris 182 (budget 800)
+PASS throne_dais_lod2 texel density 100% of surface in 205-320 px/m (min 95%); range 256-256
+PASS throne_dais dais top 1.50 m on a 12.0 x 6.0 m base (game block 12 x 6 x 1.5 m)
+PASS throne screen top 3.67 m over the dais (2.62 x THRONE_S 1.4), whole prop 12.0 x 6.0 x 5.2 m
+PASS lake_rubble tris 140 (budget 300)
+PASS lake_rubble texel density 100% of surface in 205-320 px/m (min 95%); range 246-256
+PASS debris_lod0 tris 484 (budget 7000)
+PASS debris_lod0 texel density 100% of surface in 205-320 px/m (min 95%); range 246-300
+PASS debris_lod1 tris 88 (budget 2500)
+PASS debris_lod1 texel density 100% of surface in 205-320 px/m (min 95%); range 256-310
+PASS debris_lod2 tris 88 (budget 800)
+PASS debris_lod2 texel density 100% of surface in 205-320 px/m (min 95%); range 256-310
+PASS debris spans -7.4 to -3.9 m (lake -6.0: half sunk)
+PASS slip_rack tris 100 (budget 300)
+PASS slip_rack texel density 100% of surface in 205-320 px/m (min 95%); range 256-256
+PASS slip_rack 2.50 x 0.80 x 2.80 m, 5 shelves at 0.50 m (min 2.3 wide, 2.6 tall: reads at the wide camera)
+PASS slip_bundle tris 28 (budget 60)
+PASS slip_bundle texel density 100% of surface in 205-320 px/m (min 95%); range 256-263
+PASS flag_pole tris 16 (budget 60)
+PASS flag_pole texel density 100% of surface in 205-320 px/m (min 95%); range 241-302
+PASS flag_0 tris 8 (budget 60)
+PASS flag_0 texel density 100% of surface in 205-320 px/m (min 95%); range 259-271
+PASS flag_1 tris 8 (budget 60)
+PASS flag_1 texel density 100% of surface in 205-320 px/m (min 95%); range 259-271
+PASS flag_2 tris 8 (budget 60)
+PASS flag_2 texel density 100% of surface in 205-320 px/m (min 95%); range 259-271
+PASS flag_3 tris 8 (budget 60)
+PASS flag_3 texel density 100% of surface in 205-320 px/m (min 95%); range 259-271
+PASS flag_4 tris 8 (budget 60)
+PASS flag_4 texel density 100% of surface in 205-320 px/m (min 95%); range 259-271
+PASS flag_5 tris 8 (budget 60)
+PASS flag_5 texel density 100% of surface in 205-320 px/m (min 95%); range 259-271
+PASS flag_6 tris 8 (budget 60)
+PASS flag_6 texel density 100% of surface in 205-320 px/m (min 95%); range 259-271
+PASS flag_7 tris 8 (budget 60)
+PASS flag_7 texel density 100% of surface in 205-320 px/m (min 95%); range 259-271
+PASS flag_8 tris 8 (budget 60)
+PASS flag_8 texel density 100% of surface in 205-320 px/m (min 95%); range 259-271
+PASS plant_wheat tris 8 (budget 60)
+PASS plant_wheat texel density 100% of surface in 205-320 px/m (min 95%); range 256-256
+PASS plant_millet tris 8 (budget 60)
+PASS plant_millet texel density 100% of surface in 205-320 px/m (min 95%); range 256-256
+PASS plant_shrub tris 8 (budget 60)
+PASS plant_shrub texel density 100% of surface in 205-320 px/m (min 95%); range 256-256
+PASS plant_grass tris 8 (budget 60)
+PASS plant_grass texel density 100% of surface in 205-320 px/m (min 95%); range 256-256
+102 of 102 pass

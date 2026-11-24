@@ -1,0 +1,18 @@
+PASS brass only: 69 shots, none loads bronze_trim.png/bronze_trim_patina.png
+PASS shots clean: 70 shots without page errors
+PASS budget: heaviest court_wide 68 calls, 7382 tris (under 500 / 500000)
+PASS garden calls: garden_wide calls 41 -> 41 (no more), tris 3734 -> 8934
+PASS planting fuller: plant cards cover 0.071 -> 0.174 of the wide shot (x2.43, min x1.8)
+PASS racks bigger: racks and bundles cover 0.0037 -> 0.0206 of hall_wide (x5.53, min x1.8)
+PASS throne larger: throne above the dais at core_wide 180 x 86 px -> 186 x 115 px (height x1.34, min x1.25)
+PASS pond not a hole: pond mean lum 99 vs ground 93 at garden_wide (max 25 under)
+PASS pond pale edge: pond margin lum 105 vs open water 97 (min +8)
+PASS inlay keeps floor (wide): core_wide floor colour dE 0.12 (max 4.0), lum +0.2 (max 5.0) with the inlay
+PASS tells kept (wide): hazard ring vs floor dE 67.5 -> 67.5 with the inlay (min x0.9)
+PASS inlay keeps floor (play): core_play floor colour dE 0.26 (max 4.0), lum +0.4 (max 5.0) with the inlay
+PASS tells kept (play): hazard ring vs floor dE 71.0 -> 70.9 with the inlay (min x0.9)
+PASS inlay seen at play: inlay pixels differ by mean lum 28.9 from the bare floor (min 8.0; subtle, still there)
+PASS mercury warn brighter: mercury mean lum idle 140, warn 211 (+71, min +40), hot 236 (+26 over warn, min +8)
+PASS mercury shimmer: warn still t 0.40 vs 0.55 differs by 30.9 lum (min 4.0); idle 2.1 (calmer)
+16 of 16 pass
+INFO mercury round 1 (same camera and mesh): idle 139, warn 161, hot 196
