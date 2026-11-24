@@ -117,3 +117,17 @@ Shared tools changed (lead, please check when merging):
 4. Study value plan against the approved wall: A2 plaster measures mean lum 169, while the study says 120-150. Should the study be updated to the approved value?
 5. B10 dais height: 2.8 m here, while the game's dais block is 1.5 m. Which height should the game use?
 6. A16 pond: keep the black-lake water, or give garden ponds a lighter reflective water?
+
+## Round 2 (lead review 25 Nov: two visible fails), commit c454ab9, runner run 45452899575 (green)
+The lead's review found two visible fails. Before and after crops from the exact builds (before 613e1a0, after c454ab9) are in `art/arch/round2/` (crop_paving_court_play, crop_terrace_court_wide, crop_terrace_hall_wide, earth_vs_timber_same_scale), with new sheets beside them. Round 1 sheets are kept.
+1. **Stone paving repeated as a grid.**
+   - Cause: the slab tones came from the full stone ramp (luminance spread about 45). A few very light and very dark slabs formed the same blocks in every 4 m tile. Measured as the sd of 50 cm block means: 6.1, against 3.3 for the approved hall floor, which shows no grid.
+   - Fix: slab tones from a narrow ramp (spread about 10). Detail is carried by chisel strokes, pits and joints. Block sd is now 1.8; luminance sd is 9.1 and brush run 6.2 cm (texel density unchanged at 256 px/m).
+   - New gate `repeat`: 50 cm block sd at most 3.5, on 8 ground and earth textures. Two block-pattern mutations are caught (stone paving and rammed earth); mutation test now 14 of 14.
+   - Tried and dropped: an autocorrelation measure on the screenshot. Neighbouring-pixel correlation dominated it: hall_play, which has no grid, scored 0.79, above court_play's 0.53.
+2. **Rammed earth read as planks.**
+   - Cause: even 5-10 cm lifts in alternating tones, continuous bed strokes and a timber-like orange-brown. At the wide camera these became fine, regular, straight lines.
+   - Fix: lifts 10-30 cm of uneven thickness, each one continuous tone stroke along a slightly wavy bed (whole sine cycles per tile, so it still tiles). No seam line: only sparse short dashes. Sponge mottling, tamping pits in rows, crumbled patches and runnels across the beds. Grey-ochre earth (#9b8b6f) instead of the timber-like brown.
+   - The core keeps its 5-6 cm layers (asset list). The vertical wrap of the lift strokes is fixed (it had caused a seam).
+   - Verdict: no straight seams and no fine lines at court_wide and hall_wide; it reads as a banded earth bank. It is still horizontally stratified, which is true of rammed earth. The lead judges.
+- Gates on the runner: tex_check 173 of 173, texture mutation 14 of 14, mesh gates 100 of 100, mesh mutations 28 / 27 / 3. Room counts are unchanged (heaviest room 68 calls, 28.3k triangles).
