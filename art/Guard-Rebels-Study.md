@@ -96,3 +96,6 @@ every pair of types differs (IoU < 0.75 after aligning feet); 11 leader banner t
 | 2 | guard | PASS with notes: one cast figure in a bell lamellar coat on a bronze tread sled (concept 5103/5115), Qin black plates with water-blue lacing, stamp-band treads, a mask plate on the hull front. Close up the masks are plain and the build is simple; at play size the five roles separate | |
 | 2 | rebels | PASS with notes: knee tunic, rag mantle, wrapped shins, broader headband (8 cm), school weapon + patch | |
 | 3 | 弩手 only | silhouette vs 卒 IoU 0.75 (at the limit) -> 0.70 by a lower torso and a 1.2 m prod | |
+| 3 (lead review) | guard | FAIL look: treads read as log rafts, chariot canopy as a blue parasol, bodies squat at the fight framing | rollers; parasol 1.56 m wide, blue; 4.9 heads |
+| 4 (W5b) | guard | better, not yet: track units with links and spoked wheels, but from the front the fender and mudguards made a bronze block; chariot box beige | |
+| 5 (W5b) | guard | PASS with notes: link loops show at both ends, black lacquer war chariot with ribbed small canopy, 6.2-6.5 heads | run 45451027192; W5-REPORT round 4-5 |
