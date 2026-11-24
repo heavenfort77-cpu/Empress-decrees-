@@ -24,6 +24,7 @@ T = {
     'door': (1024 / 4, 1024 / 3.5, (80, 470), 0.6),
     'lion_stone': (1024 / LT, 1024 / LT, (0, 1024), 0.55),
     'bronze_trim': (1024 / 4, 1024 / 4, (0, 384), 0.6),
+    'apex_patina': (1024 / 4, 1024 / 4, (0, 384), 0.6),
 }
 fails = 0
 checks = 0
@@ -47,6 +48,10 @@ for n, (du, dv, (y0, y1), scap) in T.items():
     ]
     if n == 'bronze_trim':  # bronze value plan (palace study): mean luminance 70-110 on the plain plate
         res.append(('value', 70 <= lum.mean() <= 110, f'mean lum {lum.mean():.0f}'))
+    if n == 'apex_patina':  # W4: dormant apex sheet reads as patina (green over red on the plain plate), darker than the live bronze
+        g_r = a[..., 1].mean() - a[..., 0].mean()
+        res.append(('patina hue', g_r > 4, f'mean G - R {g_r:.1f} (min 4)'))
+        res.append(('patina value', 55 <= lum.mean() <= 105, f'mean lum {lum.mean():.0f} (55-105)'))
     checks += len(res)
     for rule, ok, val in res:
         if not ok:
