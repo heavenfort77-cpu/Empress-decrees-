@@ -60,6 +60,7 @@ body.touch #school{left:auto;right:12px;top:124px}
 .sel__btn{min-width:44px;min-height:44px;padding:10px;font:15px system-ui,sans-serif;color:#fff;background:#2a2030;border:2px solid #6a5a7a;border-radius:8px}
 .sel__btn.is-last{border-color:#c9a040}
 .sel__btn--random{grid-column:1/-1;background:#3a2a1a}
+body.palace #mini{display:none !important}
 #mode{position:fixed;inset:0;display:none;background:#120d16;z-index:9;overflow:auto}
 .sel__btn--mode{margin-top:14px;background:#1a2a3a}
 #door{position:fixed;left:50%;top:22%;transform:translateX(-50%);display:none;pointer-events:none;white-space:pre-line;text-align:center;font:15px system-ui,sans-serif;color:#fff;background:#120d16cc;border:2px solid #c9a040;border-radius:8px;padding:10px 16px;max-width:80vw}
@@ -258,53 +259,6 @@ const CONFIG = {
   CUB: { hpK: 0.8, dmgK: 0.6, aggro: 6, leash: 12, heal: 25, homeMaxS: 6, stalkers: 4, howlers: 3 },
   // Plate reward (two slots): buff seconds, bleed dps and seconds on targets (Stalker plate), speed bonus (Howler plate), plate flight seconds. Its ultimate charge is ULT.plate.
   PLATE: { buffS: 45, bleedDps: 4, bleedS: 3, speed: 0.1, flyS: 0.7 },
-  // Feature switch: the 皇家 guard (Burning Palace ticket 02, owner 24 Nov 13:26-13:30). Squads come only from spawnSquad (rooms call it from ticket 03,
-  // the test hook now); the Royal Rumble spawns none.
-  GUARD_ON: true,
-  // 皇家 guard numbers (worker's picks, not tuned: owner "results first"). Every move's windup is its tell (fairness: never under 0.4 s).
-  GUARD: {
-    // Phases in which guards act and can be hit (ticket 03 adds the palace phase here).
-    phases: ['royale'],
-    // Factions (lead note 24 Nov 13:47: the 反贼 rebels join in ticket 07): body colour per unit type; foeSuits = hostile to the suits (bots farm them).
-    // Units of different factions are hostile to each other.
-    factions: { huangjia: { foeSuits: true, zu: 0x1c2733, nu: 0x24506e, dun: 0x0e1318, che: 0x2f6f8f, wz: 0x4aa6c8 } },
-    // Pool size per unit type (two full squads at once); built at load, never grown.
-    pool: { zu: 10, nu: 6, dun: 4, che: 2, wz: 2 },
-    // Most units in one squad (the room cap).
-    squadMax: 12,
-    // Most squads at once.
-    squadsMax: 4,
-    // Seconds a hit flash lasts.
-    flashS: 0.12,
-    // A squad takes a hostile within aggro m of its leader (a broken unit: of itself) on about its layer, and drops it past leash m.
-    aggro: 12, leash: 18,
-    // 方阵: the 伍长 stops keep m from its target (alone, it closes in); slot per unit type: [m ahead of the 伍长, m apart across, 1 = flanks only (no centre slot)];
-    // a unit in its slot steps out at a hostile within stepOut m of the slot.
-    keep: 3, stepOut: 3, rows: { dun: [2, 1.4, 0], zu: [0.8, 1.2, 0], nu: [-1.6, 1.4, 0], che: [0, 4.5, 1], wz: [0, 0, 0] },
-    // 伍长 buff on squad units within r m of a live 伍长: damage dealt x (1 + dmg), damage taken x (1 - def).
-    buff: { r: 8, dmg: 0.25, def: 0.25 },
-    // 盾 block: a basic blow from within arc degrees of its front deals x k (skills break through; go around it).
-    block: { arc: 60, k: 0.2 },
-    // Unit types: health, walk speed (m/s), body radius (m), scale, move = its one attack; on a kill by a suit: ult = ultimate charge, heal = health.
-    types: {
-      zu: { hp: 20, speed: 3.6, r: 0.45, scale: 1, move: 'thrust', ult: 5, heal: 2 },
-      nu: { hp: 16, speed: 3.4, r: 0.45, scale: 1, move: 'volley', ult: 6, heal: 2 },
-      dun: { hp: 40, speed: 3.0, r: 0.6, scale: 1, move: 'shove', ult: 8, heal: 4 },
-      che: { hp: 60, speed: 5.0, r: 0.9, scale: 1, move: 'charge', ult: 12, heal: 6 },
-      wz: { hp: 45, speed: 3.4, r: 0.5, scale: 1, move: 'cut', ult: 15, heal: 6 },
-    },
-    // Short boon for breaking the 伍长: boon slot (0 power, 3 speed), value, seconds.
-    leaderBoon: { i: 0, v: 0.1, s: 12 },
-    // Moves (fields as MOVES). line = strip from the unit; mark = ground marker on the target; circle = around the unit.
-    // stay = no dash after the hit; shove = metres a hit suit is pushed away (knockback speed shove x KB_DECAY).
-    moves: {
-      thrust: { shape: 'line', range: 2.6, width: 0.8, windup: 0.5, cd: 1.6, dmg: 4, min: 0, max: 2.4, stay: true },
-      volley: { shape: 'mark', radius: 1.6, windup: 0.8, cd: 3.2, dmg: 5, min: 2.5, max: 10, stay: true },
-      shove: { shape: 'circle', radius: 1.8, windup: 0.5, cd: 2.6, dmg: 3, min: 0, max: 1.6, shove: 2.5 },
-      charge: { shape: 'line', range: 10, width: 1.8, windup: 0.9, cd: 6, dmg: 10, min: 3, max: 10, dashS: 0.45 },
-      cut: { shape: 'line', range: 2.4, width: 1.0, windup: 0.5, cd: 2.0, dmg: 5, min: 0, max: 2.2, stay: true },
-    },
-  },
   // Feature switch: buff creatures (crab and wanderer), drawn from marble bags.
   NEUTRALS: true,
   // Marble bags (draw without putting back; refill and reshuffle when empty). times = seconds until a creature appears (from the run start, then from its death);
@@ -605,37 +559,19 @@ const CONFIG = {
   // that waited on a locked room does not bunch the next one); warnS = warning seconds before the wing falls (fairness tell, >= 0.4; owner
   // 5 s); fallS = seconds its rooms take to drop out of sight; noteS = seconds her "has fallen" line stays up; order = wings in burning
   // order (until BP05's layout: the BP01 rooms' wings in BURN_WINGS below). Numbers are the design's, not tuned (owner: results first).
-  BURN: { on: true, firstS: 40, everyS: 40, warnS: 5, fallS: 1.2, noteS: 2.5, order: ['outer', 'court', 'west', 'east'],
-    // orderFull = burning order of the full palace's five outer wings (integration, 24 Nov; the centre wing, forecourt to core, never burns,
-    // like the bridge and core of the six-room box; order not tuned). order above is the six-room box (layout=proto).
-    orderFull: ['southwest', 'southeast', 'west', 'east', 'south'] },
-  // Palace plan (BP05, owner 24 Nov 13:18 阿房宫 model and 14:16 "less than 5 min reach too easy"). layout = which plan a palace run uses:
-  // 'full' = the 29-room palace (nine school halls on the rim, courtyards, corridors, gardens, bridges, the forecourt and the core),
-  // 'proto' = the six-room BP01 box (kept as the fixture of the ticket 01 checks; ?layout=proto picks it); lakeMargin = metres of black lake
-  // beyond the plan on every side; minRoute = the fewest rooms between any school hall and the core (owner 14:16: at least 5).
-  PAL_PLAN: { layout: 'full', lakeMargin: 60, minRoute: 5 },
-  // Guard escalation per room for tickets 02/03 (squads of the 皇家 guard when a door opens). depth = rooms from the core (core 0, its bridge 1,
-  // forecourt 2, ... rim halls 6-8); squads[i] = squads in a room at depth i (the last value for deeper rooms; the core holds the apex, so 0);
-  // lateAt = run times in seconds after which one more squad joins each room; cap = most squads in one room; mix = unit types per squad
-  // ('zu' 卒, 'nu' 弩手, 'dun' 盾, 'che' 车 (open rooms only), 'wz' 伍长) by depth band: inner = depth <= innerD, mid = depth <= midD, else rim.
-  PAL_ESC: { squads: [0, 2, 3, 2, 2, 1, 1], lateAt: [90, 180], cap: 3, innerD: 2, midD: 4,
-    mix: { rim: ['zu', 'zu', 'zu'], mid: ['dun', 'zu', 'zu', 'nu', 'nu', 'wz'], inner: ['dun', 'dun', 'zu', 'zu', 'nu', 'nu', 'che', 'wz'] } },
-  // Room minimap in the palace (owner 13:26: off-screen fights only by announcement, so it shows rooms and the player, no rivals). Colours per
-  // room type; cur = outline of the room you stand in; warned = a room named for the burning; fallen = outline left where a room fell;
-  // door = door marks; you = the player's dot; pad = pixels of margin around the plan.
-  PAL_MINI: { hall: '#a8784a', court: '#8c8a80', corridor: '#56524c', garden: '#3f6a3a', bridge: '#9a6a3a', core: '#8a3a2a',
-    cur: '#ffd060', warned: '#b33a2a', fallen: '#2a2430', door: '#cfcabd', you: '#40c0ff', pad: 6 },
-  // Palace pieces (BP08; owner picks 24 Nov 14:24-14:27: 石狮 lions, 水银 mercury, 铜鹤/香炉 smoke, 华表 beasts, 鼎 cauldrons). on = feature switch (palace
-  // runs only; Royal Rumble never has them). Lions use CONFIG.LION and the 鼎 heal by CONFIG.ALTAR (the Royal Rumble rules, reused).
-  // mercury: period = seconds per cycle; warn = seconds the channel shimmers before it burns (the tell, >= 0.4); on = seconds it burns; dps = damage per
-  // second to anyone standing in it while it burns. smoke: revealM = two points this close see each other through smoke (m); opacity of the clouds;
-  // r = cloud radius in metres for the full palace's smoke pieces (the six-room box gives its own r per piece).
-  // huabiao: range = a suit this close wakes the beast (m); radius = suits this close when it looks are marked (m); windup = the tell (s: red ring,
-  // glowing eyes); cooldown = seconds before it wakes again; markS = seconds marked (seen by all, as a decree break). col = colours: mercury idle,
-  // shimmering, burning; smoke; the beast's eyes asleep and awake.
-  PIECES: { on: true, mercury: { period: 4, warn: 0.6, on: 1.2, dps: 12 }, smoke: { revealM: 2.5, opacity: 0.55, r: 3 },
-    huabiao: { range: 3, radius: 3.5, windup: 0.5, cooldown: 6, markS: 5 },
-    col: { merc: 0xa9b4bc, mercWarn: 0xd8e4ee, mercHot: 0xf2f8ff, smoke: 0x8c8a86, eyeOff: 0x5a4a30, eyeOn: 0xff5020 } },
+  BURN: { on: true, firstS: 40, everyS: 40, warnS: 5, fallS: 1.2, noteS: 2.5, order: ['outer', 'court', 'west', 'east'] },
+  // Palace pieces II (BP09; owner picks 24 Nov 14:27): on = switch (palace runs only; Royal Rumble has none). Numbers are first picks, not tuned (owner: results first).
+  // clock = 铜壶滴漏 water clocks, one per wing: steps = water-level steps (the water is written only when its step changes).
+  // vat = 门海 bronze water vats: hp = damage that breaks one; crackS = tell seconds (ring) before the splash (>= 0.4); radius = splash metres;
+  // kb = knockback m/s; floodS = seconds the flood shows; douseS = seconds a splash inside the burning wing holds that wing's fall; perWave = douses per wave.
+  // giant = 十二金人 bronze giants on the core approach: n = how many stand there; cap = most awake at once; wakeS = wake tell seconds before it moves;
+  // speed = m/s (slow: suits walk 5.6-6.4); r = body radius m; thinkS = seconds between route choices; gapS = seconds between its moves; recoverS = rest
+  // after a move; slam = ring around itself, sweep = line ahead: windup s (tell, >= 0.4), radius / len + width m, dmg hp, kb m/s, range m to start it, cd s.
+  // colors = water, the awake giant's glow (linear vertex-free picks; art later).
+  PIECES2: { on: true, clock: { steps: 48 }, vat: { hp: 30, crackS: 0.5, radius: 3.5, kb: 12, floodS: 3, douseS: 4, perWave: 1 },
+    giant: { n: 12, cap: 4, wakeS: 2, speed: 3.2, r: 1.1, thinkS: 0.5, gapS: 0.6, recoverS: 1,
+      slam: { windup: 1, radius: 4, dmg: 30, kb: 10, range: 3.2, cd: 3 }, sweep: { windup: 1.2, len: 7, width: 3, dmg: 24, kb: 8, range: 6, cd: 4 } },
+    colors: { water: 0x2a6a9a, glow: 0xff6a20 } },
   // Unseen state (batch 16, minimal; full hiding with curtains and walls is batch 18): an unseen suit is not drawn for others and cannot be
   // targeted, except within shimmerM metres (drawn as a shimmer) or while marked; attacking or being hit ends it.
   UNSEEN: { shimmerM: 3 },
@@ -772,9 +708,6 @@ const TEXT = {
   bn_power: 'Power', bn_regen: 'Regen', bn_vision: 'Vision', bn_speed: 'Speed',
   voice_kennel: 'Our kennels stand open. Take what falleth, if thou canst.',
   rule_kennel: 'Cubs appear in {s} s at: {zones}. Kill one to take its plate.',
-  // 皇家 guard (Burning Palace ticket 02): the player broke a squad's 伍长.
-  voice_guard_break: 'Our 伍长 falls, and his square with him. Our household hath more men than thou hast breath.',
-  rule_guard_break: '伍长 down: the 方阵 breaks (no more buff). +{v}% damage for {s} s.',
   voice_plate_take: 'It is thine. For now.',
   suit_0: 'You',
   school_ru: 'Ru suit', school_dao: 'Dao suit', school_fa: 'Fa suit', school_mo: 'Mo suit', school_yinyang: 'Yinyang suit', school_za: 'Za suit',
@@ -789,11 +722,6 @@ const TEXT = {
   mode_key: '{n}. {mode}',
   mode_palace: 'The Burning Palace',
   mode_rumble: 'Royal Rumble',
-  pal5_hall_ru: 'Hall of the Ru', pal5_hall_dao: 'Hall of the Dao', pal5_hall_fa: 'Hall of the Fa', pal5_hall_mo: 'Hall of the Mo', pal5_hall_yinyang: 'Hall of the Yinyang',
-  pal5_hall_za: 'Hall of the Za', pal5_hall_ming: 'Hall of the Ming', pal5_hall_zongheng: 'Hall of the Zongheng', pal5_hall_nong: 'Hall of the Nong',
-  pal5_room_fore: 'Forecourt of the Twelve', pal5_room_approach: 'Bridge to the throne',
-  pal5_wing_west: 'the west wing', pal5_wing_southwest: 'the south-west wing', pal5_wing_south: 'the south wing', pal5_wing_southeast: 'the south-east wing',
-  pal5_wing_east: 'the east wing', pal5_wing_centre: 'the centre',
   room_hall: 'School hall', room_court: 'Courtyard', room_corridor: 'Corridor', room_garden: 'Garden', room_bridge: 'Bridge over the black lake', room_core: 'Core hall',
   door_card: '{room}\nDecree: {decree}\nReward: {reward}\n{stir}',
   door_dec_none: 'none', door_dec_dry: 'altars do not heal', door_dec_nodash: 'no dashing', door_dec_silence: 'no skills', door_dec_heights: 'stay low', door_dec_ult2x: 'ultimate charge 2x',
@@ -804,7 +732,6 @@ const TEXT = {
   pal_voice_lost: 'The palace keeps you.',
   pal_rule_lost: 'Broken in the {room}. {retry}',
   burn_wing_outer: 'the outer hall', burn_wing_court: 'the courtyard', burn_wing_west: 'the west wing', burn_wing_east: 'the east wing',
-  burn_wing_southwest: 'the south-west wing', burn_wing_southeast: 'the south-east wing', burn_wing_south: 'the south wing',
   burn_voice: 'Let {wing} burn.',
   burn_rule: '{wing} falls into the lake in {s} s. Get out.',
   burn_fell: '{wing} is ash upon the black water.',
@@ -812,12 +739,11 @@ const TEXT = {
   burn_wait: 'Next to burn: {wing}, when the fight there ends',
   burn_now: 'Burning: {wing}',
   burn_none: 'Nothing more shall burn.',
+  piece2_giant_voice: 'One of Our twelve wakes. Bronze does not tire.',
   door_card_burn: '{room}\nBURNING: it falls within seconds.\nDecree: {decree}\nReward: {reward}\n{stir}',
   door_fallen: '{room}\nFallen into the black lake.',
   help_pal_desktop: 'Right-click move / attack · Q W R aim at cursor (release to cast) · Z zoom: auto, wide, close · S stop · N new run',
   help_pal_touch: 'Left stick: move · tap or drag skills · New run',
-  piece_voice_hb: 'The beast upon the pillar hath seen thee.',
-  piece_rule_hb: 'Marked by the 华表 for {s} s: everyone sees you.',
   sel_key: '{n}. {who}',
   hud_leader: 'Leader: {who}',
   hud_leader_bounty: 'Leader: {who}  (bounty {s} s)',
@@ -947,82 +873,15 @@ const PAL_DOORS = [
 // BP04: each BP01 room's wing for the burning ('' = never burns: the bridge to the core and the core hall). BP05's layout gives every room
 // its own wing in the room data; a room that already has one keeps it.
 const BURN_WINGS = { hall: 'outer', court: 'court', corridor: 'west', garden: 'east', bridge: '', core: '' };
-// The full palace (BP05, the 阿房宫 model, owner 24 Nov 13:18-14:27): a platform over the black lake, the nine school halls on the rim, each
-// wing's corridors, a courtyard or garden, bridges to the forecourt of the twelve bronze giants, the bridge to the throne and the core hall.
-// wing = what the burning names (ticket 04); school = whose hall it is (a suit starts in its own hall); nameKey = a TEXT key for the name.
-// The shortest way from any school hall to the core passes 5 rooms (7 from the south-west and south-east halls); one wing burnt never cuts
-// another wing's halls off from the core. Decree, reward and stir are placeholders until ticket 03 fills the rooms.
-const PAL_FULL_ROOMS = [
-  { id: 'core', type: 'core', wing: 'centre', x0: -16, x1: 16, z0: -100, z1: -70, decree: 'none', reward: 'none', stir: true },
-  { id: 'approach', type: 'bridge', wing: 'centre', x0: -6, x1: 6, z0: -70, z1: -52, decree: 'silence', reward: 'none', stir: false, nameKey: 'pal5_room_approach' },
-  { id: 'fore', type: 'court', wing: 'centre', x0: -24, x1: 24, z0: -52, z1: -22, decree: 'none', reward: 'boon', stir: true, nameKey: 'pal5_room_fore' },
-  { id: 'bridge_wf', type: 'bridge', wing: 'west', x0: -50, x1: -24, z0: -42, z1: -34, decree: 'silence', reward: 'none', stir: false },
-  { id: 'court_w', type: 'court', wing: 'west', x0: -80, x1: -50, z0: -60, z1: -30, decree: 'none', reward: 'boon', stir: true },
-  { id: 'corr_w', type: 'corridor', wing: 'west', x0: -92, x1: -80, z0: -70, z1: -20, decree: 'nodash', reward: 'meter', stir: false },
-  { id: 'hall_ru', type: 'hall', wing: 'west', x0: -124, x1: -92, z0: -70, z1: -46, decree: 'none', reward: 'none', stir: false, school: 'ru', spawn: [-108, -58], start: true },
-  { id: 'hall_dao', type: 'hall', wing: 'west', x0: -124, x1: -92, z0: -44, z1: -20, decree: 'none', reward: 'none', stir: false, school: 'dao', spawn: [-108, -32] },
-  { id: 'corr_wsw', type: 'corridor', wing: 'southwest', x0: -70, x1: -62, z0: -30, z1: 0, decree: 'nodash', reward: 'meter', stir: false },
-  { id: 'garden_sw', type: 'garden', wing: 'southwest', x0: -80, x1: -50, z0: 0, z1: 30, decree: 'none', reward: 'heal', stir: true },
-  { id: 'bridge_sws', type: 'bridge', wing: 'southwest', x0: -50, x1: -18, z0: 10, z1: 18, decree: 'silence', reward: 'none', stir: false },
-  { id: 'corr_sw', type: 'corridor', wing: 'southwest', x0: -100, x1: -40, z0: 30, z1: 42, decree: 'nodash', reward: 'meter', stir: false },
-  { id: 'hall_yinyang', type: 'hall', wing: 'southwest', x0: -100, x1: -72, z0: 42, z1: 72, decree: 'none', reward: 'none', stir: false, school: 'yinyang', spawn: [-86, 57] },
-  { id: 'hall_fa', type: 'hall', wing: 'southwest', x0: -68, x1: -40, z0: 42, z1: 72, decree: 'none', reward: 'none', stir: false, school: 'fa', spawn: [-54, 57] },
-  { id: 'court_s', type: 'court', wing: 'south', x0: -18, x1: 18, z0: 0, z1: 30, decree: 'none', reward: 'boon', stir: true },
-  { id: 'bridge_sf', type: 'bridge', wing: 'south', x0: -5, x1: 5, z0: -22, z1: 0, decree: 'silence', reward: 'none', stir: false },
-  { id: 'corr_s', type: 'corridor', wing: 'south', x0: -6, x1: 6, z0: 30, z1: 44, decree: 'nodash', reward: 'meter', stir: false },
-  { id: 'hall_ming', type: 'hall', wing: 'south', x0: -16, x1: 16, z0: 44, z1: 72, decree: 'none', reward: 'none', stir: false, school: 'ming', spawn: [0, 58] },
-  { id: 'bridge_ef', type: 'bridge', wing: 'east', x0: 24, x1: 50, z0: -42, z1: -34, decree: 'silence', reward: 'none', stir: false },
-  { id: 'court_e', type: 'court', wing: 'east', x0: 50, x1: 80, z0: -60, z1: -30, decree: 'none', reward: 'boon', stir: true },
-  { id: 'corr_e', type: 'corridor', wing: 'east', x0: 80, x1: 92, z0: -70, z1: -20, decree: 'nodash', reward: 'meter', stir: false },
-  { id: 'hall_za', type: 'hall', wing: 'east', x0: 92, x1: 124, z0: -70, z1: -46, decree: 'none', reward: 'none', stir: false, school: 'za', spawn: [108, -58] },
-  { id: 'hall_nong', type: 'hall', wing: 'east', x0: 92, x1: 124, z0: -44, z1: -20, decree: 'none', reward: 'none', stir: false, school: 'nong', spawn: [108, -32] },
-  { id: 'corr_ese', type: 'corridor', wing: 'southeast', x0: 62, x1: 70, z0: -30, z1: 0, decree: 'nodash', reward: 'meter', stir: false },
-  { id: 'garden_se', type: 'garden', wing: 'southeast', x0: 50, x1: 80, z0: 0, z1: 30, decree: 'none', reward: 'heal', stir: true },
-  { id: 'bridge_sse', type: 'bridge', wing: 'southeast', x0: 18, x1: 50, z0: 10, z1: 18, decree: 'silence', reward: 'none', stir: false },
-  { id: 'corr_se', type: 'corridor', wing: 'southeast', x0: 40, x1: 100, z0: 30, z1: 42, decree: 'nodash', reward: 'meter', stir: false },
-  { id: 'hall_zongheng', type: 'hall', wing: 'southeast', x0: 72, x1: 100, z0: 42, z1: 72, decree: 'none', reward: 'none', stir: false, school: 'zongheng', spawn: [86, 57] },
-  { id: 'hall_mo', type: 'hall', wing: 'southeast', x0: 40, x1: 68, z0: 42, z1: 72, decree: 'none', reward: 'none', stir: false, school: 'mo', spawn: [54, 57] },
-];
-const PAL_FULL_DOORS = [
-  { a: 'approach', b: 'core', at: 0 }, { a: 'fore', b: 'approach', at: 0 }, { a: 'bridge_wf', b: 'fore', at: -38 },
-  { a: 'bridge_ef', b: 'fore', at: -38 }, { a: 'court_w', b: 'bridge_wf', at: -38 }, { a: 'court_e', b: 'bridge_ef', at: -38 },
-  { a: 'corr_w', b: 'court_w', at: -45 }, { a: 'corr_e', b: 'court_e', at: -45 }, { a: 'hall_ru', b: 'corr_w', at: -58 },
-  { a: 'hall_za', b: 'corr_e', at: -58 }, { a: 'hall_dao', b: 'corr_w', at: -32 }, { a: 'hall_nong', b: 'corr_e', at: -32 },
-  { a: 'court_w', b: 'corr_wsw', at: -66 }, { a: 'court_e', b: 'corr_ese', at: 66 }, { a: 'corr_wsw', b: 'garden_sw', at: -66 },
-  { a: 'corr_ese', b: 'garden_se', at: 66 }, { a: 'garden_sw', b: 'bridge_sws', at: 14 }, { a: 'garden_se', b: 'bridge_sse', at: 14 },
-  { a: 'bridge_sws', b: 'court_s', at: 14 }, { a: 'bridge_sse', b: 'court_s', at: 14 }, { a: 'garden_sw', b: 'corr_sw', at: -65 },
-  { a: 'garden_se', b: 'corr_se', at: 65 }, { a: 'corr_sw', b: 'hall_yinyang', at: -86 }, { a: 'corr_se', b: 'hall_zongheng', at: 86 },
-  { a: 'corr_sw', b: 'hall_fa', at: -54 }, { a: 'corr_se', b: 'hall_mo', at: 54 }, { a: 'court_s', b: 'bridge_sf', at: 0 },
-  { a: 'bridge_sf', b: 'fore', at: 0 }, { a: 'court_s', b: 'corr_s', at: 0 }, { a: 'corr_s', b: 'hall_ming', at: 0 },
-];
-// Pieces placed for tickets 08 and 09 (owner picks 24 Nov 14:24-14:27), metres from the origin like the rooms: lion = 石狮 pair at a hall or
-// gate door; mercury = 水银 channel (sx by sz metres); smoke = 铜鹤 crane or 香炉 censer; huabiao = 华表; ding = 鼎 (one per school hall);
-// clock = 铜壶滴漏 (one per burning wing); vat = 门海 water vat; giant = one of the 十二金人 (i = 0-11) along the core approach.
-const PAL_FULL_PIECES = {
-  approach: [{ type: 'giant', i: 6, x: -4.6, z: -56 }, { type: 'giant', i: 7, x: 4.6, z: -56 }, { type: 'giant', i: 8, x: -4.6, z: -61 }, { type: 'giant', i: 9, x: 4.6, z: -61 }, { type: 'giant', i: 10, x: -4.6, z: -66 }, { type: 'giant', i: 11, x: 4.6, z: -66 }],
-  fore: [{ type: 'lion', x: -3.5, z: -50 }, { type: 'lion', x: 3.5, z: -50 }, { type: 'mercury', x: -12, z: -37, sx: 2, sz: 28 }, { type: 'mercury', x: 12, z: -37, sx: 2, sz: 28 }, { type: 'huabiao', x: -20, z: -26 }, { type: 'huabiao', x: 20, z: -26 }, { type: 'vat', x: -21, z: -46 }, { type: 'vat', x: 21, z: -46 }, { type: 'giant', i: 0, x: -17, z: -49.5 }, { type: 'giant', i: 1, x: -12, z: -49.5 }, { type: 'giant', i: 2, x: -7, z: -49.5 }, { type: 'giant', i: 3, x: 7, z: -49.5 }, { type: 'giant', i: 4, x: 12, z: -49.5 }, { type: 'giant', i: 5, x: 17, z: -49.5 }],
-  bridge_wf: [{ type: 'mercury', x: -37, z: -38, sx: 2, sz: 8 }],
-  court_w: [{ type: 'huabiao', x: -57, z: -55 }, { type: 'clock', x: -76, z: -34 }, { type: 'vat', x: -74, z: -55 }],
-  hall_ru: [{ type: 'lion', x: -94, z: -61.5 }, { type: 'lion', x: -94, z: -54.5 }, { type: 'ding', x: -102, z: -54 }],
-  hall_dao: [{ type: 'lion', x: -94, z: -35.5 }, { type: 'lion', x: -94, z: -28.5 }, { type: 'ding', x: -102, z: -28 }],
-  garden_sw: [{ type: 'smoke', kind: 'crane', x: -75, z: 9 }, { type: 'smoke', kind: 'censer', x: -75, z: 23 }, { type: 'smoke', kind: 'censer', x: -57, z: 4 }, { type: 'clock', x: -76, z: 16 }, { type: 'vat', x: -56, z: 26 }],
-  bridge_sws: [{ type: 'mercury', x: -34, z: 14, sx: 2, sz: 8 }],
-  hall_yinyang: [{ type: 'lion', x: -89.5, z: 44 }, { type: 'lion', x: -82.5, z: 44 }, { type: 'ding', x: -80, z: 61 }],
-  hall_fa: [{ type: 'lion', x: -57.5, z: 44 }, { type: 'lion', x: -50.5, z: 44 }, { type: 'ding', x: -48, z: 61 }],
-  court_s: [{ type: 'huabiao', x: -12, z: 4 }, { type: 'huabiao', x: 12, z: 4 }, { type: 'clock', x: -12, z: 26 }, { type: 'vat', x: 12, z: 26 }],
-  bridge_sf: [{ type: 'mercury', x: 0, z: -11, sx: 10, sz: 2 }],
-  hall_ming: [{ type: 'lion', x: -3.5, z: 46 }, { type: 'lion', x: 3.5, z: 46 }, { type: 'ding', x: 6, z: 62 }],
-  bridge_ef: [{ type: 'mercury', x: 37, z: -38, sx: 2, sz: 8 }],
-  court_e: [{ type: 'huabiao', x: 57, z: -55 }, { type: 'clock', x: 76, z: -34 }, { type: 'vat', x: 74, z: -55 }],
-  hall_za: [{ type: 'lion', x: 94, z: -61.5 }, { type: 'lion', x: 94, z: -54.5 }, { type: 'ding', x: 102, z: -54 }],
-  hall_nong: [{ type: 'lion', x: 94, z: -35.5 }, { type: 'lion', x: 94, z: -28.5 }, { type: 'ding', x: 102, z: -28 }],
-  garden_se: [{ type: 'smoke', kind: 'crane', x: 75, z: 9 }, { type: 'smoke', kind: 'censer', x: 75, z: 23 }, { type: 'smoke', kind: 'censer', x: 57, z: 4 }, { type: 'clock', x: 76, z: 16 }, { type: 'vat', x: 56, z: 26 }],
-  bridge_sse: [{ type: 'mercury', x: 34, z: 14, sx: 2, sz: 8 }],
-  hall_zongheng: [{ type: 'lion', x: 89.5, z: 44 }, { type: 'lion', x: 82.5, z: 44 }, { type: 'ding', x: 80, z: 61 }],
-  hall_mo: [{ type: 'lion', x: 57.5, z: 44 }, { type: 'lion', x: 50.5, z: 44 }, { type: 'ding', x: 48, z: 61 }],
-};
-// Plans a palace run can use (CONFIG.PAL_PLAN.layout; ?layout= in the address; the setLayout hook). Each is built once at load.
-const PAL_LAYOUTS = { full: { rooms: PAL_FULL_ROOMS, doors: PAL_FULL_DOORS, pieces: PAL_FULL_PIECES }, proto: { rooms: PAL_ROOMS, doors: PAL_DOORS, pieces: {} } };
+// BP09 test placement on the BP01 rooms (metres from the palace origin) until BP05's room.pieces arrive (the integrator swaps to those):
+// one water clock per wing (in that wing's room), four bronze vats (clear of the door-to-door walking lines), the twelve giants along the
+// bridge to the core hall (its north wall; dormant giants are statues you can pass, so they never block a route).
+const P2_CLOCKS = [{ room: 'hall', x: 6, z: 33 }, { room: 'court', x: -14, z: 18 }, { room: 'corridor', x: -26.3, z: 0 }, { room: 'garden', x: 37.5, z: -9 }];
+const P2_VAT_AT = [{ room: 'hall', x: -3, z: 29 }, { room: 'court', x: 14, z: 16 }, { room: 'corridor', x: -26.4, z: -8 }, { room: 'garden', x: 25.5, z: 2 }];
+const P2_GIANT_AT = [-19, -14, -9, -4, 4, 9, 14, 19, 24, 29, 34, 38].map((x) => ({ room: 'bridge', x, z: -30.3 }));
+// The vats are targets like the training dummies (no kind): the player's attack order and blows reach them; hitDummy hands them to hitVat.
+const P2_VATS = P2_VAT_AT.map((v, i) => ({ vat: true, idx: i, room: v.room, x: CONFIG.PALACE.origin[0] + v.x, z: CONFIG.PALACE.origin[1] + v.z, y: 0, r: 0.8,
+  hp: CONFIG.PIECES2.vat.hp, seen: false, st: 0, t: 0, r0: null, solid: null, body: null, ring: null, flood: null, flashT: 0, deadT: 0 }));
 
 // ===================== DOM helpers (writes only on change) =====================
 const $ = (id) => document.getElementById(id);
@@ -1392,47 +1251,6 @@ const crabGeo = mergeGeoms([box(1.8, 0.7, 1.1, 0, 0.55, 0), box(0.5, 0.5, 0.5, -
 const wanderGeo = mergeGeoms([box(0.7, 1.9, 0.7, 0, 0.95, 0), box(1.1, 0.25, 1.1, 0, 2.0, 0)]);
 const NEUTRALS = [makeUnit('crab', CONFIG.CRAB, M.crab, M.tellD, '', [], null, crabGeo), makeUnit('wanderer', CONFIG.WANDERER, M.wander, M.tellD, '', [], null, wanderGeo)];
 NEUTRALS.forEach((u, i) => { u.hunt = false; u.neutral = true; u.idx = i; });
-// ===================== 皇家 guard (Burning Palace ticket 02): fixed pools per unit type, one InstancedMesh per type, squads in a 方阵 =====================
-// Bronze soldiers on treads (front = local -z). Boxes only until the art stage; distinct from the cubs' four-legged machines.
-const GC = CONFIG.GUARD, GMV = GC.moves, GUARD_TYPES = Object.keys(GC.types);
-const tread = () => box(0.8, 0.3, 0.9, 0, 0.15, 0);
-const GUARD_GEO = {
-  zu: mergeGeoms([tread(), box(0.55, 1.1, 0.45, 0, 0.85, 0), box(0.4, 0.35, 0.4, 0, 1.6, 0), box(0.08, 0.08, 1.9, 0.3, 1.0, -0.6)]),
-  nu: mergeGeoms([tread(), box(0.55, 1.0, 0.45, 0, 0.8, 0), box(0.4, 0.35, 0.4, 0, 1.5, 0), box(1.0, 0.1, 0.12, 0, 1.15, -0.45), box(0.12, 0.12, 0.7, 0, 1.15, -0.3)]),
-  dun: mergeGeoms([tread(), box(0.6, 1.1, 0.5, 0, 0.85, 0), box(0.42, 0.35, 0.42, 0, 1.6, 0), box(1.3, 1.4, 0.14, 0, 0.95, -0.45)]),
-  che: mergeGeoms([box(1.7, 0.7, 2.4, 0, 0.6, 0.2), box(0.2, 0.9, 0.9, -0.95, 0.45, 0.4), box(0.2, 0.9, 0.9, 0.95, 0.45, 0.4), box(0.9, 0.8, 0.9, 0, 0.75, -1.5), box(0.5, 1.0, 0.4, 0, 1.4, 0.4)]),
-  wz: mergeGeoms([tread(), box(0.65, 1.3, 0.5, 0, 0.95, 0), box(0.45, 0.4, 0.45, 0, 1.8, 0), box(0.07, 2.4, 0.07, -0.4, 1.4, 0.2), box(0.6, 0.5, 0.04, -0.7, 2.3, 0.2)]),
-};
-// One matte material for every guard; the per-instance colour carries the faction and type colour (and the hit flash).
-const guardMat = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.85, metalness: 0.15 });
-const GUARD_COL = {};
-for (const f in GC.factions) { GUARD_COL[f] = {}; for (const t of GUARD_TYPES) GUARD_COL[f][t] = new THREE.Color(GC.factions[f][t]); }
-// Hit flash colour (brighter than white: instance colour multiplies the material colour).
-const GUARD_FLASH = new THREE.Color(2.5, 2.5, 2.5);
-// GDRAW[type] = its InstancedMesh (count = units drawn this frame; in the scene only while it draws any); GPOOL[type] = its pooled units; GUARDS = all of them.
-const GDRAW = {}, GPOOL = {}, GUARDS = [], GM4 = new THREE.Matrix4();
-for (const t of GUARD_TYPES) {
-  const n = GC.pool[t], im = new THREE.InstancedMesh(GUARD_GEO[t], guardMat, n);
-  im.count = 0; im.matrixAutoUpdate = false; im.castShadow = false; im.receiveShadow = false;
-  // Units walk anywhere on the map: one sphere around the whole map, so culling never drops a drawn unit (never frustumCulled = false).
-  im.boundingSphere = new THREE.Sphere(new THREE.Vector3(0, 0, 0), 400);
-  im.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
-  for (let i = 0; i < n; i++) im.setColorAt(i, GUARD_FLASH);
-  im.instanceColor.setUsage(THREE.DynamicDrawUsage);
-  GDRAW[t] = im; GPOOL[t] = [];
-  for (let i = 0; i < n; i++) {
-    const c = GC.types[t], u = makeUnit(t, c, guardMat, M.tellD, c.move, [], null, GUARD_GEO[t]);
-    // guard = 皇家 guard unit; gtype = its type; faction; sq = its squad; gcd = its move's cooldown; slotF / slotL = its 方阵 slot (ahead / across);
-    // defK = damage taken multiplier (伍长 buff); col = its colour (faction and type); form = in a formed 方阵 now.
-    Object.assign(u, { hunt: false, guard: true, gtype: t, faction: '', sq: null, gcd: 0, slotF: 0, slotL: 0, defK: 1, col: GUARD_FLASH, form: false, tgt: null });
-    GPOOL[t].push(u); GUARDS.push(u);
-  }
-}
-// Squads (fixed): on, faction, leader (the 伍长 or null), n = units alive, facing, anchor, target, broken (no live 伍长), open = chariots allowed.
-const SQUADS = [];
-for (let i = 0; i < GC.squadsMax; i++) SQUADS.push({ on: false, id: i, faction: '', leader: null, n: 0, fx: 0, fz: 1, x: 0, z: 0, y: 0, tgt: null, broken: false, open: false });
-// Slot counter per type while a squad is placed; cosine of the 盾's block arc.
-const GSLOT = {}, GBLOCK_COS = Math.cos(GC.block.arc * Math.PI / 180);
 const SPOTS = CONFIG.BAGS.spots.map(([x, z, sec]) => [x * K, z * K, sec]);
 // Seeded random numbers (mulberry32) so a run can be replayed; marble bags draw without putting back.
 const RNG = { s: 1 };
@@ -1506,8 +1324,8 @@ const wallGeo = new THREE.BoxGeometry(1, 1, 1);
 const halfDiskGeo = new THREE.CircleGeometry(1, 40, 0, Math.PI); halfDiskGeo.rotateX(-Math.PI / 2);
 // Places in 农甲's sprout pool (ticket 07): one pool per suit, built once at load (the pool size is the skill's, read here once).
 const NONG_POOL = CONFIG.KITS.nong.skills[0].pool;
-// Most targets one hit can reach (dummies, hunt units, cubs, buff creatures, bots, 皇家 guards and the player): the size of 名甲's per-pass hit list (ticket 05).
-const TARGET_MAX = DUMMY_LIST.length + ENEMIES.length + CUBS.length + NEUTRALS.length + BOTLIST.length + GUARDS.length + 1;
+// Most targets one hit can reach (dummies, hunt units, cubs, buff creatures, bots and the player): the size of 名甲's per-pass hit list (ticket 05).
+const TARGET_MAX = DUMMY_LIST.length + ENEMIES.length + CUBS.length + NEUTRALS.length + BOTLIST.length + P2_VATS.length + 1;
 for (let k = 0; k < SUITS.length; k++) {
   const s = SUITS[k], m = new THREE.Mesh(markGeo, M.ring);
   m.position.y = DD.markY; m.visible = false; m.castShadow = false;
@@ -1583,7 +1401,7 @@ Object.assign(P, { campK: -1, cd: [0, 0, 0], navWant: false, gx: 0, gz: 0, gy: 0
   heal: null, skip: null, castT: 0, lastBy: null, lastByT: -99, declined: null, declinedT: -99, flee: false, fleeGo: false, pathGen: 0, why: '', hunter: false, huntLostT: 0, mx: 0, mz: 0,
   pend: false, pendT: 0, pendS: 2, pendX: 0, pendZ: 0, pendDx: 0, pendDz: 0, pendAge: 0, ring: new THREE.Mesh(fxTele.geometry, M.ring) });
 // Everything the player can target: training dummies, hunt units, cubs, buff creatures and bot suits share x, z, r, hp, seen.
-const TARGETS = DUMMY_LIST.concat(ENEMIES, CUBS, NEUTRALS, BOTLIST, GUARDS);
+const TARGETS = DUMMY_LIST.concat(ENEMIES, CUBS, NEUTRALS, BOTLIST, P2_VATS);
 // Gate seal shown during the hunt.
 const sealMesh = new THREE.Mesh(new THREE.BoxGeometry((GATE.x1 - GATE.x0), 2.6, 0.3).translate(0, 1.3, CH.z1 - 0.5), M.tellD);
 sealMesh.matrixAutoUpdate = false; sealMesh.updateMatrix();
@@ -1650,7 +1468,6 @@ addEventListener('pointerup', endPtr); addEventListener('pointercancel', endPtr)
 function setCursor(e) { ORD.cursorOn = true; ORD.nx = (e.clientX / innerWidth) * 2 - 1; ORD.ny = -(e.clientY / innerHeight) * 2 + 1; }
 el.mini.addEventListener('pointerdown', (e) => {
   if (e.button !== 2 && e.pointerType === 'mouse') return;
-  if (PAL.on) { palMiniWalk(e); return; }
   const r = el.mini.getBoundingClientRect();
   const x = MINI.x0 + (e.clientX - r.left) / r.width * MINI.w, z = MINI.z0 + (e.clientY - r.top) / r.height * MINI.h;
   ORD.attack = null; navSearch(P.x, P.z, P.y, x, z, topY(x, z), PATH, true);
@@ -1826,8 +1643,6 @@ function hitTarget(by, d, n, basic, sk) {
   if (by.kit && by.kit.passive === 'halving') chainHit(by, d);
   if (!d.kind) { hitDummy(d, n); return true; }
   if (d.kind === 'suit') { hurtSuit(d, n, 'hit', by); return true; }
-  // 皇家 guard (Burning Palace ticket 02): the 伍长 buff and the 盾's front block cut the blow.
-  if (d.guard) n *= guardTakenK(d, by, !!basic);
   hitEnemy(d, n, by);
   if (d.alive && hasPlate(by, 'stalker')) { d.bleedT = CONFIG.PLATE.bleedS; d.bleedBy = by; }
   return true;
@@ -1853,6 +1668,8 @@ function gainCharge(s, v) {
   s.ch = Math.min(CONFIG.ULT.full, s.ch + v * (decOn('ult2x') ? CONFIG.DECREES.ultK : 1));
 }
 function hitDummy(d, n) {
+  // BP09: a bronze vat takes the blow (it cracks, then splashes).
+  if (d.vat) { hitVat(d, n); return; }
   d.hp = Math.max(0, d.hp - n); d.flashT = 0.12; d.body.material = M.hit;
   d.bar.scale.x = Math.max(0.001, d.hp / CONFIG.DUMMY_HP);
   if (d.hp <= 0) { d.deadT = CONFIG.DUMMY_RESPAWN_S; if (ORD.attack === d) ORD.attack = null; }
@@ -2154,23 +1971,18 @@ function heapPop(hs) {
 // A palace run: FLOORS gains the palace floors and SOLIDS its walls and doors (removed again for Royal Rumble, which is unchanged).
 const PC = CONFIG.PALACE, POX = PC.origin[0], POZ = PC.origin[1];
 const PAL = { on: false, rooms: [], doors: [], byId: {}, cur: null, start: null, pv: null, man: 0, n: 0, camT: 1, cx: 0, cz: 0,
-  floors: [], solids: [], lake: null, q: null, from: null, stk: null, sets: {}, layout: '', want: PAL_LAYOUTS[params.get('layout')] ? params.get('layout') : '', bx0: 0, bx1: 0, bz0: 0, bz1: 0, miniSig: -1 };
+  floors: [], solids: [], lake: null, q: null, from: null, stk: null };
 // Modes on the mode menu, in key order.
 const MODES = ['palace', 'rumble'];
 const DOOR_VARS = { room: '', decree: '', reward: '', stir: '' }, PAL_END = { s: 0, n: 0, room: '', retry: '' }, MODE_VARS = { mode: '' };
 function palPart(r, m, g) { const p = r.parts; (p[m] || (p[m] = [])).push(g); }
 function palSolid(r, x0, x1, z0, z1) { const b = { s: r, x0, x1, z0, z1 }; PAL.solids.push(b); return b; }
-// Every plan in PAL_LAYOUTS is built here once (BP05); palUseLayout points PAL at the one a run uses.
-for (const LK in PAL_LAYOUTS) {
-  const LAY = PAL_LAYOUTS[LK];
-  PAL.rooms = []; PAL.doors = []; PAL.byId = {}; PAL.floors = []; PAL.solids = []; PAL.start = null;
+{
   let bx0 = 1e9, bx1 = -1e9, bz0 = 1e9, bz1 = -1e9;
-  for (const d of LAY.rooms) {
-    const r = { id: d.id, type: d.type, name: T(d.school ? 'pal5_hall_' + d.school : d.nameKey || 'room_' + d.type), decree: d.decree, reward: d.reward, stir: d.stir,
+  for (const d of PAL_ROOMS) {
+    const r = { id: d.id, type: d.type, name: T('room_' + d.type), decree: d.decree, reward: d.reward, stir: d.stir,
       x0: POX + d.x0, x1: POX + d.x1, z0: POZ + d.z0, z1: POZ + d.z1, cx: 0, cz: 0, idx: PAL.rooms.length,
-      group: new THREE.Group(), parts: {}, floorMeshes: [], floorMats: [], state: 0, fallT: 0, doors: [], spawn: null,
-      wing: d.wing || null, school: d.school || null, depth: -1, pieces: [] };
-    for (const q of LAY.pieces[d.id] || []) r.pieces.push(Object.assign({}, q, { x: POX + q.x, z: POZ + q.z }));
+      group: new THREE.Group(), parts: {}, floorMeshes: [], floorMats: [], state: 0, fallT: 0, doors: [], spawn: null };
     r.cx = (r.x0 + r.x1) / 2; r.cz = (r.z0 + r.z1) / 2;
     if (d.spawn) r.spawn = [POX + d.spawn[0], POZ + d.spawn[1]];
     if (d.start) PAL.start = r;
@@ -2180,7 +1992,7 @@ for (const LK in PAL_LAYOUTS) {
   PAL.cx = (bx0 + bx1) / 2; PAL.cz = (bz0 + bz1) / 2;
   const t = PC.wallT, w = PC.doorW;
   // Doors: the shared edge of their two rooms; a bronze panel (its own group, drawn with either room) and a solid while shut.
-  for (const dd of LAY.doors) {
+  for (const dd of PAL_DOORS) {
     const A = PAL.byId[dd.a], B = PAL.byId[dd.b];
     let vert, e;
     if (A.x1 === B.x0) { vert = true; e = A.x1; } else if (A.x0 === B.x1) { vert = true; e = A.x0; }
@@ -2222,7 +2034,7 @@ for (const LK in PAL_LAYOUTS) {
     const curtain = (x, z) => { palPart(r, 'silk', box(4, 3.5, 0.15, x, 1.75 + 0.3, z)); palPart(r, 'wall', box(4.4, 0.25, 0.25, x, 3.9, z)); };
     if (r.type === 'hall') {
       pillar(r.x0 + 3, r.z0 + 3); pillar(r.x1 - 3, r.z0 + 3); pillar(r.x0 + 3, r.z1 - 5); pillar(r.x1 - 3, r.z1 - 5);
-      block('stone', 3, 1, 8, r.doors.some((d) => d.vert && d.e === r.x0) ? r.x1 - 2.5 : r.x0 + 2.5, r.cz);
+      block('stone', 3, 1, 8, r.x0 + 2.5, r.cz);
       palPart(r, 'spawn', cyl(0.5, 0.06, r.spawn[0], 0.03, r.spawn[1], 12));
     } else if (r.type === 'court') {
       block('stone', 2, 1.2, 2, r.cx - 8, r.cz - 4); block('stone', 2, 1.2, 2, r.cx + 8, r.cz - 4);
@@ -2245,327 +2057,12 @@ for (const LK in PAL_LAYOUTS) {
     r.group.matrixAutoUpdate = false; r.group.updateMatrix();
   }
   // The black lake under the platform (the Qin water virtue): one plane, in the scene for the whole palace run.
-  const lakeW = Math.max(bx1 - bx0, bz1 - bz0) + CONFIG.PAL_PLAN.lakeMargin * 2;
-  PAL.lake = new THREE.Mesh(new THREE.PlaneGeometry(lakeW, lakeW), M.abyss);
+  PAL.lake = new THREE.Mesh(new THREE.PlaneGeometry(240, 240), M.abyss);
   PAL.lake.rotation.x = -Math.PI / 2; PAL.lake.position.set(PAL.cx, PC.lakeY, PAL.cz); PAL.lake.matrixAutoUpdate = false; PAL.lake.updateMatrix();
   const n = PAL.rooms.length;
   PAL.q = new Int16Array(n); PAL.from = new Int16Array(n); PAL.stk = new Int16Array(n);
-  palDepths();
-  PAL.sets[LK] = { rooms: PAL.rooms, doors: PAL.doors, byId: PAL.byId, start: PAL.start, floors: PAL.floors, solids: PAL.solids, lake: PAL.lake,
-    q: PAL.q, from: PAL.from, stk: PAL.stk, cx: PAL.cx, cz: PAL.cz, bx0, bx1, bz0, bz1 };
 }
-// ===================== Palace pieces (BP08): stone lions, mercury channels, smoke, 华表 beasts, 鼎 cauldrons =====================
-// Owner picks 24 Nov 14:24-14:27. A room's pieces come from its data (PAL_ROOMS[i].pieces, placed by the full palace, BP05) or, until then, from
-// PIECES_01 (the BP01 test rooms). x, z in metres from the palace origin; lions face fz (-1 north, 1 south). Built once into the room's group.
-// Every piece acts on every side: the suits, and each list in PIECE_SIDES (the 皇家 guard and the 反贼 join with one push each:
-// { list, hurt(u, n, kx, kz), heal(u, n) -> health given }; their units have alive, x, y, z).
-const PIECES_01 = {
-  hall: [{ type: 'ding', x: 5, z: 41.5 }],
-  court: [{ type: 'smoke', src: 'burner', x: -12, z: 16, r: 3 }, { type: 'huabiao', x: 6, z: 14 }],
-  garden: [{ type: 'smoke', src: 'crane', x: 24, z: -2, r: 3 }, { type: 'smoke', src: 'burner', x: 34, z: -14, r: 3 },
-    { type: 'mercury', x0: 20, x1: 40, z0: -20, z1: -18, ph: 0 }, { type: 'lion', x: 26.8, z: -21.8, fz: -1 }, { type: 'lion', x: 33.2, z: -21.8, fz: -1 }],
-  bridge: [{ type: 'mercury', x0: 12, x1: 14, z0: -32, z1: -24, ph: 1.5 }, { type: 'mercury', x0: 22, x1: 24, z0: -32, z1: -24, ph: 3 }],
-};
-const PIECE_SIDES = [], PIECE_HAZ = [], PIECE_MERC = [], PIECE_SMOKE = [], PIECE_DING = [];
-// A room's pieces in this reader's format (integration, 24 Nov): the six-room box uses PIECES_01; the full palace's PAL_FULL_PIECES (BP05:
-// mercury as centre x, z and size sx, sz; smoke kind 'crane' or 'censer') is converted here. Clocks, vats and giants are ticket 09's.
-// Lions in the full palace face south (fz 1; looks only: the strike ring is round).
-function pieceList(LK, id) {
-  const src = (PAL_LAYOUTS[LK].pieces || {})[id];
-  if (!src) return LK === 'proto' ? PIECES_01[id] || [] : [];
-  const out = []; let mi = 0;
-  for (const q of src) {
-    if (q.type === 'mercury') out.push({ type: 'mercury', x0: q.x - q.sx / 2, x1: q.x + q.sx / 2, z0: q.z - q.sz / 2, z1: q.z + q.sz / 2, ph: (mi++ % 3) * CONFIG.PIECES.mercury.period / 3 });
-    else if (q.type === 'smoke') out.push({ type: 'smoke', src: q.kind === 'crane' ? 'crane' : 'burner', x: q.x, z: q.z, r: CONFIG.PIECES.smoke.r });
-    else if (q.type === 'lion' || q.type === 'huabiao' || q.type === 'ding') out.push(q);
-  }
-  return out;
-}
-const PIECE_VARS = { s: CONFIG.PIECES.huabiao.markS };
-// Checks only (__game.pieceProbe): a stand-in unit of another side, so the checks prove every piece acts on other sides before the guard is merged.
-const PIECE_PROBE = { list: [],
-  hurt(u, n, kx, kz) { u.hp -= n; u.hits++; u.kx += kx; u.kz += kz; },
-  heal(u, n) { const h = Math.min(n, u.max - u.hp); u.hp += h; return h; } };
-PIECE_SIDES.push(PIECE_PROBE);
-// The 皇家 guard is a side too (integration, 24 Nov): pieces hurt guards like a blow without a suit (no reward) and the 鼎 heals them;
-// guards have no knockback field, so the piece's push is not applied to them.
-PIECE_SIDES.push({ list: GUARDS,
-  hurt(u, n) { hitEnemy(u, n, null); },
-  heal(u, n) { const h = Math.min(n, u.maxHp - u.hp); u.hp += h; u.bar.scale.x = Math.max(0.001, u.hp / u.maxHp); return h; } });
-{
-  const PP = CONFIG.PIECES, col = PP.col;
-  mat('merc', col.merc, { metalness: 0.8, roughness: 0.3 });
-  mat('mercWarn', col.mercWarn, { emissive: col.mercWarn, emissiveIntensity: 0.6, metalness: 0.8, roughness: 0.3 });
-  mat('mercHot', col.mercHot, { emissive: col.mercHot, emissiveIntensity: 1.4, metalness: 0.8, roughness: 0.3 });
-  mat('hbEyeOff', col.eyeOff, { emissive: col.eyeOff, emissiveIntensity: 0.3 });
-  mat('hbEyeOn', col.eyeOn, { emissive: col.eyeOn, emissiveIntensity: 2 });
-  for (const k of ['merc', 'mercWarn', 'mercHot', 'hbEyeOff', 'hbEyeOn']) addFow(M[k]);
-  M.smoke = new THREE.MeshStandardMaterial({ color: col.smoke, roughness: 1, transparent: true, opacity: PP.smoke.opacity, depthWrite: false });
-  const still = (r, mesh, shadow) => { mesh.castShadow = shadow; mesh.receiveShadow = true; mesh.matrixAutoUpdate = false; mesh.updateMatrix(); r.group.add(mesh); return mesh; };
-  for (const LK in PAL.sets) {
-  palUseLayout(LK);
-  for (const r of PAL.rooms) {
-    r.lay = LK;
-    const list = pieceList(LK, r.id), parts = {}, puffs = [];
-    const add = (m, g) => (parts[m] || (parts[m] = [])).push(g);
-    for (const p of list) {
-      if (p.type === 'mercury') {
-        const x0 = POX + p.x0, x1 = POX + p.x1, z0 = POZ + p.z0, z1 = POZ + p.z1;
-        const mesh = still(r, new THREE.Mesh(box(x1 - x0, 0.06, z1 - z0, (x0 + x1) / 2, 0.03, (z0 + z1) / 2), M.merc), false);
-        PIECE_MERC.push({ s: r, x0, x1, z0, z1, ph: p.ph || 0, t: 0, state: 0, stT: 0, mesh });
-        continue;
-      }
-      const x = POX + p.x, z = POZ + p.z;
-      if (p.type === 'lion') {
-        const f = p.fz || 1;
-        add('stone', box(1.6, 0.6, 2.2, x, 0.3, z)); add('stone', box(1.2, 1.2, 1.6, x, 1.2, z)); add('stone', box(1.0, 1.0, 0.8, x, 2.1, z + 0.6 * f));
-        palSolid(r, x - 0.9, x + 0.9, z - 1.1, z + 1.1);
-        const ring = addStatic(r.group, ringMesh(CONFIG.LION.radius, x, 0, z)); ring.visible = false;
-        PIECE_HAZ.push({ kind: 'lion', cfg: CONFIG.LION, x, z, y: 0, s: r, ring, state: 0, t: 0, statue: false, mark: false, eyes: null });
-      } else if (p.type === 'huabiao') {
-        add('stone', box(1.4, 0.4, 1.4, x, 0.2, z)); add('stone', cyl(0.45, 5, x, 2.9, z)); add('stone', box(1.6, 0.25, 0.4, x, 4.4, z));
-        add('stone', box(0.9, 0.6, 1.1, x, 5.7, z));
-        palSolid(r, x - 0.7, x + 0.7, z - 0.7, z + 0.7);
-        const eyes = still(r, new THREE.Mesh(box(0.7, 0.15, 0.1, x, 5.85, z + 0.56), M.hbEyeOff), false);
-        const ring = addStatic(r.group, ringMesh(PP.huabiao.radius, x, 0, z)); ring.visible = false;
-        PIECE_HAZ.push({ kind: 'huabiao', cfg: PP.huabiao, x, z, y: 0, s: r, ring, state: 0, t: 0, statue: false, mark: true, eyes });
-      } else if (p.type === 'ding') {
-        add('bronze', cyl(0.85, 1.0, x, 0.75, z, 16)); add('bronze', cyl(0.95, 0.12, x, 1.3, z, 16));
-        for (const [lx, lz] of [[0.5, 0.4], [-0.5, 0.4], [0, -0.6]]) add('bronze', cyl(0.12, 0.5, x + lx, 0.25, z + lz, 6));
-        palSolid(r, x - 0.9, x + 0.9, z - 0.9, z + 0.9);
-        const A = CONFIG.ALTAR, disc = still(r, new THREE.Mesh(new THREE.CylinderGeometry(A.radius, A.radius, 0.06, 28).translate(x, 0.03, z), M.altarOn), false);
-        PIECE_DING.push({ x, z, y: 0, s: r, mesh: disc, charge: A.charge, emptyT: 0 });
-      } else if (p.type === 'smoke') {
-        if (p.src === 'crane') {
-          add('bronze', box(0.8, 0.8, 0.8, x, 0.4, z)); add('bronze', cyl(0.1, 1.2, x - 0.15, 1.4, z, 6)); add('bronze', cyl(0.1, 1.2, x + 0.15, 1.4, z, 6));
-          add('bronze', box(0.6, 0.6, 1.2, x, 2.3, z)); add('bronze', cyl(0.08, 1.0, x, 3.0, z - 0.5, 6));
-        } else { add('bronze', box(1.2, 1.0, 1.2, x, 0.5, z)); add('bronze', box(0.8, 0.5, 0.8, x, 1.25, z)); }
-        palSolid(r, x - 0.6, x + 0.6, z - 0.6, z + 0.6);
-        const rr = p.r;
-        for (const [ox, oy, oz] of [[-0.35, 1.5, 0], [0.35, 1.9, 0.2], [0, 2.3, -0.3]]) {
-          const g = new THREE.IcosahedronGeometry(rr * 0.62, 1); g.scale(1, 0.55, 1); g.translate(x + ox * rr, oy, z + oz * rr); puffs.push(g);
-        }
-        PIECE_SMOKE.push({ s: r, x, z, r: rr });
-      }
-    }
-    for (const k in parts) still(r, new THREE.Mesh(mergeGeoms(parts[k]), M[k]), true);
-    if (puffs.length) { const sm = still(r, new THREE.Mesh(mergeGeoms(puffs), M.smoke), false); sm.receiveShadow = false; sm.renderOrder = 2; }
-  }
-  }
-}
-// New run: pieces back to rest (rings off, eyes asleep, mercury at its phase, cauldrons full); the probe unit gone.
-function resetPieces() {
-  for (const h of PIECE_HAZ) { h.state = 0; h.t = 0; h.ring.visible = false; if (h.eyes) h.eyes.material = M.hbEyeOff; }
-  for (const m of PIECE_MERC) { m.t = m.ph % CONFIG.PIECES.mercury.period; m.state = 0; m.stT = 0; m.mesh.material = M.merc; }
-  for (const a of PIECE_DING) { a.charge = CONFIG.ALTAR.charge; a.emptyT = 0; a.mesh.material = M.altarOn; }
-  PIECE_PROBE.list.length = 0;
-}
-// Load warm-up (one palace draw): every piece look drawn once (rings, the awake eyes, the three mercury looks, an empty cauldron).
-function warmPieces(on) {
-  PIECE_HAZ.forEach((h) => { h.ring.visible = on; if (h.eyes) h.eyes.material = on ? M.hbEyeOn : M.hbEyeOff; });
-  const looks = [M.merc, M.mercWarn, M.mercHot];
-  PIECE_MERC.forEach((m, i) => { m.mesh.material = on ? looks[i % 3] : M.merc; });
-  PIECE_DING.forEach((a) => { a.mesh.material = on ? M.altarOff : M.altarOn; });
-}
-// PERFRAME-BEGIN
-// A hazard's cycle (the Royal Rumble statue and lions, the palace lions and 华表): idle -> tell (red ring; the statue's or beast's eyes glow) ->
-// strike or look -> cooldown. Anyone close by starts the tell (the 华表 only suits); the strike hits every suit and every side inside.
-function hazardStep(h, dt) {
-  const c = h.cfg;
-  if (h.state === 0) {
-    if (hazardWakes(h)) { h.state = 1; h.t = 0; h.ring.visible = true; if (h.statue) M.eyes.emissiveIntensity = 3; if (h.eyes) h.eyes.material = M.hbEyeOn; }
-  } else if (h.state === 1) {
-    h.t += dt;
-    if (h.t >= c.windup) {
-      h.state = 2; h.t = 0; h.ring.visible = false; if (h.statue) M.eyes.emissiveIntensity = 0.4; if (h.eyes) h.eyes.material = M.hbEyeOff;
-      if (h.mark) hazardMark(h); else hazardStrike(h);
-    }
-  } else if (h.state === 2) { h.t += dt; if (h.t >= c.cooldown) h.state = 0; }
-}
-function hazardWakes(h) {
-  const r = h.cfg.range;
-  for (let k = 0; k < SUITS.length; k++) { const s = SUITS[k]; if (!s.dead && Math.abs(s.y - h.y) < 3 && Math.hypot(s.x - h.x, s.z - h.z) < r) return true; }
-  if (h.mark) return false;
-  for (let j = 0; j < PIECE_SIDES.length; j++) {
-    const L = PIECE_SIDES[j].list;
-    for (let k = 0; k < L.length; k++) { const u = L[k]; if (u.alive && Math.abs(u.y - h.y) < 3 && Math.hypot(u.x - h.x, u.z - h.z) < r) return true; }
-  }
-  return false;
-}
-function hazardStrike(h) {
-  const c = h.cfg;
-  for (let k = 0; k < SUITS.length; k++) {
-    const s = SUITS[k];
-    if (s.dead || Math.abs(s.y - h.y) >= 3) continue;
-    const hx = s.x - h.x, hz = s.z - h.z, d = Math.hypot(hx, hz);
-    if (d >= c.radius) continue;
-    hurtSuit(s, c.dmg, 'hazard', null);
-    if (d > 0.01) { s.kx += hx / d * c.kb; s.kz += hz / d * c.kb; } else s.kz += c.kb;
-  }
-  for (let j = 0; j < PIECE_SIDES.length; j++) {
-    const side = PIECE_SIDES[j], L = side.list;
-    for (let k = 0; k < L.length; k++) {
-      const u = L[k]; if (!u.alive || Math.abs(u.y - h.y) >= 3) continue;
-      const hx = u.x - h.x, hz = u.z - h.z, d = Math.hypot(hx, hz);
-      if (d >= c.radius) continue;
-      if (d > 0.01) side.hurt(u, c.dmg, hx / d * c.kb, hz / d * c.kb); else side.hurt(u, c.dmg, 0, c.kb);
-    }
-  }
-}
-// The 华表 beast looks: every suit within its radius is marked (seen by all, as after a decree break); the player sees her line.
-function hazardMark(h) {
-  const sec = h.cfg.markS;
-  for (let k = 0; k < SUITS.length; k++) {
-    const s = SUITS[k];
-    if (s.dead || Math.abs(s.y - h.y) >= 3 || Math.hypot(s.x - h.x, s.z - h.z) >= h.cfg.radius) continue;
-    s.markT = Math.max(s.markT, sec); s.marker.visible = true;
-    if (s === P) showNote('piece_voice_hb', 'piece_rule_hb', PIECE_VARS);
-  }
-}
-// An altar or a 鼎 heals whoever stands on it (suits, then other sides); a hit pauses a suit's healing; emptied, it refills later; none while dry.
-function altarStep(a, dt, A, dry) {
-  if (a.charge <= 0) { a.emptyT -= dt; if (a.emptyT <= 0) { a.charge = A.charge; a.mesh.material = dry ? M.altarOff : M.altarOn; } return; }
-  // "Our altars are dry." (decree): no healing while it is in force; charge is kept.
-  if (dry) return;
-  for (let k = 0; k < SUITS.length && a.charge > 0; k++) {
-    const s = SUITS[k];
-    if (s.dead || s.air || s.noHealT > 0 || s.hp >= CONFIG.MAX_HP) continue;
-    if (Math.hypot(s.x - a.x, s.z - a.z) > A.radius || Math.abs(s.y - a.y) > 1) continue;
-    const heal = Math.min(A.rate * dt, a.charge, CONFIG.MAX_HP - s.hp);
-    s.hp += heal; a.charge -= heal;
-    if (a.charge <= 1e-6) { a.charge = 0; a.emptyT = A.emptyS; a.mesh.material = M.altarOff; }
-  }
-  for (let j = 0; j < PIECE_SIDES.length && a.charge > 0; j++) {
-    const side = PIECE_SIDES[j], L = side.list;
-    for (let k = 0; k < L.length && a.charge > 0; k++) {
-      const u = L[k]; if (!u.alive || Math.hypot(u.x - a.x, u.z - a.z) > A.radius || Math.abs(u.y - a.y) > 1) continue;
-      a.charge -= side.heal(u, Math.min(A.rate * dt, a.charge));
-      if (a.charge <= 1e-6) { a.charge = 0; a.emptyT = A.emptyS; a.mesh.material = M.altarOff; }
-    }
-  }
-}
-function mercIn(m, x, z, pad) { return x >= m.x0 - pad && x <= m.x1 + pad && z >= m.z0 - pad && z <= m.z1 + pad; }
-// A mercury channel: rest, shimmer (the tell), burn; while it burns, anyone standing in it (not in the air) loses health every step.
-function mercStep(m, dt) {
-  const C = CONFIG.PIECES.mercury;
-  m.t += dt; if (m.t >= C.period) m.t -= C.period;
-  const st = m.t < C.period - C.warn - C.on ? 0 : m.t < C.period - C.on ? 1 : 2;
-  if (st !== m.state) { m.state = st; m.stT = 0; m.mesh.material = st === 0 ? M.merc : st === 1 ? M.mercWarn : M.mercHot; } else m.stT += dt;
-  if (st !== 2) return;
-  const n = C.dps * dt;
-  for (let k = 0; k < SUITS.length; k++) { const s = SUITS[k]; if (!s.dead && !s.air && s.y < 1 && mercIn(m, s.x, s.z, 0)) hurtSuit(s, n, 'hazard', null); }
-  for (let j = 0; j < PIECE_SIDES.length; j++) {
-    const side = PIECE_SIDES[j], L = side.list;
-    for (let k = 0; k < L.length; k++) { const u = L[k]; if (u.alive && u.y < 1 && mercIn(m, u.x, u.z, 0)) side.hurt(u, n, 0, 0); }
-  }
-}
-// Palace step for the pieces (fallen rooms skipped).
-// Only the plan in use acts (both plans are built at load and share the palace origin).
-function stepPieces(dt) {
-  const L = PAL.layout;
-  for (let i = 0; i < PIECE_HAZ.length; i++) {
-    const h = PIECE_HAZ[i];
-    if (h.s.lay !== L) continue;
-    if (h.s.state >= 2 || h.s.fallen) { if (h.ring.visible) h.ring.visible = false; continue; }
-    hazardStep(h, dt);
-  }
-  for (let i = 0; i < PIECE_MERC.length; i++) { const m = PIECE_MERC[i]; if (m.s.lay === L && m.s.state < 2 && !m.s.fallen) mercStep(m, dt); }
-  const A = CONFIG.ALTAR, dry = decOn('dry');
-  for (let i = 0; i < PIECE_DING.length; i++) { const a = PIECE_DING[i]; if (a.s.lay === L && a.s.state < 2 && !a.s.fallen) altarStep(a, dt, A, dry); }
-}
-// Smoke blocks sight: the segment a-b passes through a cloud, unless the two points are within revealM of each other.
-function smokeBlocks(ax, az, bx, bz) {
-  if (!CONFIG.PIECES.on || PIECE_SMOKE.length === 0) return false;
-  const dx = bx - ax, dz = bz - az, L2 = dx * dx + dz * dz, rv = CONFIG.PIECES.smoke.revealM;
-  if (L2 <= rv * rv) return false;
-  for (let i = 0; i < PIECE_SMOKE.length; i++) {
-    const c = PIECE_SMOKE[i]; if (c.s.fallen || c.s.lay !== PAL.layout) continue;
-    let t = ((c.x - ax) * dx + (c.z - az) * dz) / L2; t = t < 0 ? 0 : t > 1 ? 1 : t;
-    if (Math.hypot(ax + dx * t - c.x, az + dz * t - c.z) < c.r) return true;
-  }
-  return false;
-}
-// A bot's danger from the palace pieces (called by botDanger): a lion's tell or a shimmering or burning mercury channel seen for its reaction
-// time. Leaves the way out in DNG (away from the lion; across the channel's short side).
-function pieceDanger(b, x, z, margin) {
-  const react = b.skill.react;
-  for (let i = 0; i < PIECE_HAZ.length; i++) {
-    const h = PIECE_HAZ[i];
-    if (h.mark || h.state !== 1 || h.t < react || Math.abs(h.y - b.y) >= 3) continue;
-    if (Math.hypot(x - h.x, z - h.z) < h.cfg.radius + margin) { DNG.ex = b.x - h.x; DNG.ez = b.z - h.z; if (DNG.ex === 0 && DNG.ez === 0) DNG.ez = 1; return true; }
-  }
-  for (let i = 0; i < PIECE_MERC.length; i++) {
-    const m = PIECE_MERC[i];
-    if (m.state === 0 || (m.state === 1 && m.stT < react) || !mercIn(m, x, z, margin)) continue;
-    const cx = (m.x0 + m.x1) / 2, cz = (m.z0 + m.z1) / 2;
-    if (m.x1 - m.x0 <= m.z1 - m.z0) { DNG.ex = b.x >= cx ? 1 : -1; DNG.ez = 0; } else { DNG.ex = 0; DNG.ez = b.z >= cz ? 1 : -1; }
-    return true;
-  }
-  return false;
-}
-// PERFRAME-END
-palUseLayout(PAL.want || CONFIG.PAL_PLAN.layout);
 const SUN_POS = sun.position.clone(), SUN_TGT = sun.target.position.clone();
-// Rooms from the core (BP05): room.depth = doors between it and the core hall (breadth-first; the guard escalation reads it).
-function palDepths() {
-  const q = PAL.q;
-  let qt = 0;
-  for (const r of PAL.rooms) { r.depth = -1; if (r.type === 'core') { r.depth = 0; q[qt++] = r.idx; } }
-  for (let qh = 0; qh < qt; qh++) {
-    const r = PAL.rooms[q[qh]];
-    for (const d of r.doors) { const o = d.ra === r ? d.rb : d.ra; if (o.depth < 0) { o.depth = r.depth + 1; q[qt++] = o.idx; } }
-  }
-}
-// Point PAL at a built plan (BP05; 'full' or 'proto'). Only between runs: enterPalace leaves the old plan first.
-function palUseLayout(k) {
-  const S = PAL.sets[k] || PAL.sets.full;
-  PAL.layout = PAL.sets[k] ? k : 'full';
-  PAL.rooms = S.rooms; PAL.doors = S.doors; PAL.byId = S.byId; PAL.start = S.start; PAL.floors = S.floors; PAL.solids = S.solids; PAL.lake = S.lake;
-  PAL.q = S.q; PAL.from = S.from; PAL.stk = S.stk; PAL.cx = S.cx; PAL.cz = S.cz; PAL.bx0 = S.bx0; PAL.bx1 = S.bx1; PAL.bz0 = S.bz0; PAL.bz1 = S.bz1;
-}
-// A suit starts in its own school's hall (owner 24 Nov 13:18); a plan without school halls starts in its start room.
-function palStartRoom() {
-  const k = CONFIG.SCHOOLS[G.school];
-  for (const r of PAL.rooms) if (r.school === k) return r;
-  return PAL.sets[PAL.layout].start;
-}
-// The sun follows the room you enter, so its tight shadow box covers the room and the one behind an open door (rule 39); shadows re-render once.
-function palSunAt(r) {
-  sun.position.set(SUN_POS.x + r.cx - SUN_TGT.x, SUN_POS.y, SUN_POS.z + r.cz - SUN_TGT.z);
-  sun.target.position.set(r.cx, SUN_TGT.y, r.cz); sun.target.updateMatrixWorld(); renderer.shadowMap.needsUpdate = true;
-}
-// Guard escalation (BP05 data for tickets 02/03): squads for room r at run time t seconds, and the unit list of each squad.
-function palEscSquads(r, t) {
-  const E = CONFIG.PAL_ESC;
-  let n = E.squads[Math.min(Math.max(r.depth, 0), E.squads.length - 1)];
-  if (n > 0) for (let i = 0; i < E.lateAt.length; i++) if (t >= E.lateAt[i]) n++;
-  return Math.min(n, E.cap);
-}
-function palEscMix(r) { const E = CONFIG.PAL_ESC; return r.depth <= E.innerD ? E.mix.inner : r.depth <= E.midD ? E.mix.mid : E.mix.rim; }
-// Room minimap (BP05): the plan fitted into the corner map; rooms by type, warned rooms red, fallen rooms only an outline, the current room
-// outlined, doors marked. No rivals (owner 13:26: off-screen fights only by announcement). The static layer is redrawn only when it changes.
-function palMiniBase() {
-  const c = MINI.bctx, C = CONFIG.PAL_MINI, sc = Math.min((MINI.W - C.pad * 2) / (PAL.bx1 - PAL.bx0), (MINI.H - C.pad * 2) / (PAL.bz1 - PAL.bz0));
-  PAL.mS = sc; PAL.mOx = (MINI.W - (PAL.bx1 - PAL.bx0) * sc) / 2; PAL.mOy = (MINI.H - (PAL.bz1 - PAL.bz0) * sc) / 2;
-  c.fillStyle = '#0c0a10'; c.fillRect(0, 0, MINI.W, MINI.H);
-  for (const r of PAL.rooms) {
-    const x = PAL.mOx + (r.x0 - PAL.bx0) * sc, y = PAL.mOy + (r.z0 - PAL.bz0) * sc, w = (r.x1 - r.x0) * sc, h = (r.z1 - r.z0) * sc;
-    if (r.fallen || r.state >= 2) { c.strokeStyle = C.fallen; c.lineWidth = 1; c.strokeRect(x + 0.5, y + 0.5, w - 1, h - 1); continue; }
-    c.fillStyle = r.warned || r.state === 1 ? C.warned : C[r.type]; c.fillRect(x, y, w, h);
-  }
-  c.fillStyle = C.door;
-  for (const d of PAL.doors) c.fillRect(PAL.mOx + (d.x - PAL.bx0) * sc - 1.5, PAL.mOy + (d.z - PAL.bz0) * sc - 1.5, 3, 3);
-  if (PAL.cur) {
-    const r = PAL.cur; c.strokeStyle = C.cur; c.lineWidth = 2;
-    c.strokeRect(PAL.mOx + (r.x0 - PAL.bx0) * sc + 1, PAL.mOy + (r.z0 - PAL.bz0) * sc + 1, (r.x1 - r.x0) * sc - 2, (r.z1 - r.z0) * sc - 2);
-  }
-}
-// A right-click or tap on the palace minimap walks there through the doors.
-function palMiniWalk(e) {
-  const b = el.mini.getBoundingClientRect(), k = MINI.W / b.width;
-  const x = PAL.bx0 + ((e.clientX - b.left) * k - PAL.mOx) / PAL.mS, z = PAL.bz0 + ((e.clientY - b.top) * k - PAL.mOy) / PAL.mS;
-  ORD.attack = null; palRoute(x, z, PATH);
-}
 // Fog radius: the vision radius in Royal Rumble; inside the palace the walls block sight instead.
 function fowR() { return PAL.on ? PC.fowR : G.visR; }
 // Rooms in the scene: the current one, and any whose door to it stands open; door panels with either of their rooms. Writes only on change.
@@ -2584,7 +2081,7 @@ function palDoor(d, open) {
   d.open = open; d.solid.off = open; d.panel.visible = !open; renderer.shadowMap.needsUpdate = true; palSync();
 }
 function palEnter(r) {
-  PAL.cur = r; PAL.n++; palSync(); palSunAt(r);
+  PAL.cur = r; PAL.n++; palSync();
   if (r.type === 'core') endPalace(true);
 }
 // The door card: the room behind the nearest door of the current room (type, decree, reward, something stirs). Written on change only.
@@ -2598,8 +2095,7 @@ function palCard() {
 }
 // A palace run starts (called by reset): royale map out of the scene, palace floors and walls in, doors shut, the player in the start hall.
 function enterPalace() {
-  const CC = CONFIG.PAL_CAM, LK = PAL.want || CONFIG.PAL_PLAN.layout;
-  if (PAL.layout !== LK) { if (PAL.on || PAL.lake.parent) leavePalace(); palUseLayout(LK); }
+  const CC = CONFIG.PAL_CAM;
   PAL.on = true; G.phase = 'palace';
   clearBots(); G.alive = 1;
   for (const s of SECLIST) if (s.group.parent) scene.remove(s.group);
@@ -2608,13 +2104,13 @@ function enterPalace() {
   if (FLOORS.length === NAV.NF) for (const f of PAL.floors) FLOORS.push(f);
   if (SOLIDS.indexOf(PAL.solids[0]) < 0) for (const b of PAL.solids) SOLIDS.push(b);
   for (const d of PAL.doors) { d.open = false; d.locked = false; d.solid.off = false; d.panel.visible = true; }
-  PAL.start = palStartRoom(); PAL.miniSig = -1;
   PAL.cur = PAL.start; PAL.pv = null; PAL.man = 0; PAL.n = 1;
   palSync();
   const sp = PAL.start.spawn;
   P.x = P.px = sp[0]; P.z = P.pz = sp[1]; P.y = P.py = topY(sp[0], sp[1]); P.floor = null; P.zone = null; PATH.n = 0; PATH.i = 0;
   G.camK = PAL.camT = (TOUCH ? CC.phone : 1) * CC.wide * CC.type[PAL.start.type];
-  palSunAt(PAL.start);
+  const dx = PAL.cx - SUN_TGT.x, dz = PAL.cz - SUN_TGT.z;
+  sun.position.set(SUN_POS.x + dx, SUN_POS.y, SUN_POS.z + dz); sun.target.position.set(SUN_TGT.x + dx, SUN_TGT.y, SUN_TGT.z + dz);
   document.body.classList.add('palace'); setShow(el.door, false);
   setText(el.help, T(TOUCH ? 'help_pal_touch' : 'help_pal_desktop'));
   if (G.view === 'follow') FOW.uFowR.value = fowR();
@@ -2632,7 +2128,7 @@ function leavePalace() {
   for (const d of PAL.doors) d.solid.off = false;
   G.camK = 1;
   if (!was) return;
-  sun.position.copy(SUN_POS); sun.target.position.copy(SUN_TGT); sun.target.updateMatrixWorld(); G.miniDirty = true;
+  sun.position.copy(SUN_POS); sun.target.position.copy(SUN_TGT);
   document.body.classList.remove('palace'); setShow(el.door, false);
   setText(el.help, T(TOUCH ? 'help_touch' : 'help_desktop'));
   if (G.view === 'follow') FOW.uFowR.value = fowR();
@@ -2660,8 +2156,8 @@ function palDoorSight(d, ax, az, bx, bz) {
 function palSight(ax, az, bx, bz) {
   const ra = palRoomAt(ax, az), rb = palRoomAt(bx, bz);
   if (!ra || !rb) return false;
-  if (ra === rb) return !smokeBlocks(ax, az, bx, bz);
-  for (let i = 0; i < ra.doors.length; i++) { const d = ra.doors[i]; if (d.open && (d.ra === rb || d.rb === rb) && palDoorSight(d, ax, az, bx, bz)) return !smokeBlocks(ax, az, bx, bz); }
+  if (ra === rb) return true;
+  for (let i = 0; i < ra.doors.length; i++) { const d = ra.doors[i]; if (d.open && (d.ra === rb || d.rb === rb) && palDoorSight(d, ax, az, bx, bz)) return true; }
   return false;
 }
 // An enemy within the camera's reach that the player can see (rival suits, apex units; BP02 adds the guard).
@@ -2678,7 +2174,7 @@ function stepPalace(dt) {
   for (let i = 0; i < PAL.doors.length; i++) {
     const d = PAL.doors[i], dd = Math.hypot(P.x - d.x, P.z - d.z), mine = d.ra === PAL.cur || d.rb === PAL.cur;
     if (!d.open && mine && !d.locked && d.ra.state < 2 && d.rb.state < 2 && !P.dead && dd <= PC.openR) palDoor(d, true);
-    else if (d.open && (dd > PC.closeR || !mine)) palDoor(d, false);
+    else if (d.open && (dd > PC.closeR || !mine) && !p2Holds(d)) palDoor(d, false);
     if (mine && dd < pd) { pd = dd; pv = d; }
   }
   if (pv !== PAL.pv) { PAL.pv = pv; palCard(); }
@@ -2724,22 +2220,15 @@ function palRoute(gx, gz, path) {
 // room.wing (owner BP05; BURN_WINGS until then). Entry points for BP09 and BP03: onWingWarn(wing), onWingFall(wing). Fairness monitor every tick:
 // no warned room is locked; every room falls >= warnS after its warning; every fall death comes from such a room (bad counts any break).
 const BURN = { i: 0, wing: '', st: 0, nextAt: 0, warnAt: -1, fallAt: -1, waiting: false, waits: 0, shownS: -1, nk: '', ns: -1,
-  bad: 0, badWhy: '', badRoom: '', checks: 0, falls: 0, fellN: 0, names: {}, rooms: {}, writes: 0, order: CONFIG.BURN.order };
+  bad: 0, badWhy: '', badRoom: '', checks: 0, falls: 0, fellN: 0, names: {}, rooms: {}, writes: 0 };
 const BURN_VARS = { wing: '', s: 0 };
 // Sentinel for G.bannerWave while her burning warning holds the banner (the fell-note timer then leaves it alone).
 const BURN_BANNER = 90;
-// Every built plan (BP05: 'full' and 'proto'): the six-room box takes its wings from BURN_WINGS (its room data has none).
-for (const k in PAL.sets) for (const r of PAL.sets[k].rooms) {
-  if (r.wing == null) r.wing = BURN_WINGS[r.id] !== undefined ? BURN_WINGS[r.id] : '';
+for (const r of PAL.rooms) {
+  if (r.wing === undefined) r.wing = BURN_WINGS[r.id] !== undefined ? BURN_WINGS[r.id] : '';
   r.warned = false; r.fallen = false; r.warnAt = -1; r.fallAt = -1;
 }
-for (const w of CONFIG.BURN.order.concat(CONFIG.BURN.orderFull)) BURN.names[w] = T('burn_wing_' + w);
-// The plan a run uses decides the wing order and each wing's rooms (called by burnReset, before enterPalace picks the same plan).
-function burnBind() {
-  const LK = PAL.want || CONFIG.PAL_PLAN.layout, S = PAL.sets[LK] || PAL.sets.full;
-  BURN.order = S === PAL.sets.proto ? CONFIG.BURN.order : CONFIG.BURN.orderFull;
-  for (const w of BURN.order) BURN.rooms[w] = S.rooms.filter((r) => r.wing === w);
-}
+for (const w of CONFIG.BURN.order) { BURN.names[w] = T('burn_wing_' + w); BURN.rooms[w] = PAL.rooms.filter((r) => r.wing === w); }
 // Her announcements through the banner slot (BP03 owns the queue; this thin version shows one line and lets the fell-note timer hide it).
 function palAnnounce(key, vars) {
   if (G.bannerWave >= 0) return;
@@ -2773,6 +2262,8 @@ function onWingFall(w) {
   }
   if (G.bannerWave === BURN_BANNER) { G.bannerWave = -1; setShow(el.banner, false); }
   BURN_VARS.wing = BURN.names[w]; palAnnounce('burn_fell', BURN_VARS); palCard();
+  // BP09: each fall wakes one bronze giant.
+  p2WingFall(w);
 }
 // The fallen rooms leave the scene; the next wing is due everyS after this one was named.
 function burnGone() {
@@ -2788,13 +2279,12 @@ function burnFallCheck(s) {
 }
 // New run (called by reset, both modes): every room standing, floors back, groups level, materials back, the clock from the start.
 function burnReset() {
-  burnBind();
-  for (const k in PAL.sets) for (const r of PAL.sets[k].rooms) {
+  for (const r of PAL.rooms) {
     r.warned = false; r.fallen = false; r.warnAt = -1; r.fallAt = -1; r.state = 0; r.fallT = 0;
     r.group.position.y = 0; r.group.updateMatrix();
     for (let k = 0; k < r.floorMeshes.length; k++) r.floorMeshes[k].material = r.floorMats[k];
   }
-  for (const k in PAL.sets) for (const f of PAL.sets[k].floors) f.active = true;
+  for (const f of PAL.floors) f.active = true;
   BURN.i = 0; BURN.wing = ''; BURN.st = 0; BURN.nextAt = CONFIG.BURN.firstS; BURN.warnAt = -1; BURN.fallAt = -1; BURN.waiting = false; BURN.waits = 0;
   BURN.shownS = -1; BURN.nk = ''; BURN.ns = -1; BURN.bad = 0; BURN.badWhy = ''; BURN.badRoom = ''; BURN.checks = 0; BURN.falls = 0; BURN.fellN = 0; BURN.writes = 0;
 }
@@ -2803,7 +2293,7 @@ function burnReset() {
 function burnHud(key, s) {
   if (key === BURN.nk && s === BURN.ns) return;
   BURN.nk = key; BURN.ns = s; BURN.writes++; BURN_VARS.s = s;
-  if (key !== 'burn_none') BURN_VARS.wing = BURN.names[BURN.order[BURN.i]];
+  if (key !== 'burn_none') BURN_VARS.wing = BURN.names[CONFIG.BURN.order[BURN.i]];
   setText(el.next, T(key, BURN_VARS));
 }
 // Burning step (palace runs): monitor, then the wave states (waiting -> warned -> falling -> gone), the falling rooms, the banner countdown.
@@ -2811,8 +2301,8 @@ function stepBurn(dt) {
   const B = CONFIG.BURN, rs = PAL.rooms;
   BURN.checks++;
   for (let i = 0; i < rs.length; i++) if (rs[i].warned && rs[i].locked) { BURN.bad++; BURN.badWhy = 'locked'; BURN.badRoom = rs[i].id; }
-  if (BURN.st === 0 && BURN.i < BURN.order.length && G.time >= BURN.nextAt) {
-    const w = BURN.order[BURN.i];
+  if (BURN.st === 0 && BURN.i < B.order.length && G.time >= BURN.nextAt) {
+    const w = B.order[BURN.i];
     if (!burnWingLocked(w)) onWingWarn(w);
     else if (!BURN.waiting) { BURN.waiting = true; BURN.waits++; }
   } else if (BURN.st === 1 && G.time >= BURN.warnAt + B.warnS) onWingFall(BURN.wing);
@@ -2827,10 +2317,275 @@ function stepBurn(dt) {
     const c = Math.ceil(BURN.warnAt + B.warnS - G.time);
     if (c !== BURN.shownS) { BURN.shownS = c; BURN_VARS.wing = BURN.names[BURN.wing]; BURN_VARS.s = c; setText(el.rule, T('burn_rule', BURN_VARS)); }
   }
-  if (BURN.i >= BURN.order.length) burnHud('burn_none', 0);
+  if (BURN.i >= B.order.length) burnHud('burn_none', 0);
   else if (BURN.st !== 0) burnHud('burn_now', 0);
   else if (BURN.waiting) burnHud('burn_wait', 0);
   else burnHud('burn_next', Math.max(0, Math.ceil(BURN.nextAt - G.time)));
+}
+// PERFRAME-END
+
+// ===================== Palace pieces II (BP09): 铜壶滴漏 water clocks, 门海 water vats, 十二金人 bronze giants =====================
+// Hooked into the burning only through onWingFall (a fall wakes a giant) and read-only BURN state (the clocks, the vat's douse).
+// Placement: P2_CLOCKS / P2_VAT_AT / P2_GIANT_AT (BP01 rooms) until BP05's room.pieces. Every side is hit alike (suits now; BP02's guard by tag at the merge).
+const C2 = CONFIG.PIECES2, G2 = C2.giant;
+const P2 = { on: C2.on, giantsOn: true, clocks: [], giants: [], awake: 0, wakes: 0, lost: 0, douses: 0, douseWave: -1, note: false, notes: 0,
+  instWrites: 0, dirty: true, nDorm: 0, nAwake: 0, wingIdx: {} };
+const p2WaterMat = new THREE.MeshStandardMaterial({ color: C2.colors.water, roughness: 0.3, metalness: 0.1 });
+const p2GlowMat = new THREE.MeshStandardMaterial({ color: COL.bronze, emissive: C2.colors.glow, emissiveIntensity: 0.6, metalness: 0.4, roughness: 0.6 });
+const p2Mat4 = new THREE.Matrix4();
+for (let i = 0; i < CONFIG.BURN.order.length; i++) P2.wingIdx[CONFIG.BURN.order[i]] = i;
+function p2Room(id) { return PAL.byId[id]; }
+function p2Static(r, geo, m) { const mesh = new THREE.Mesh(geo, m); mesh.castShadow = true; mesh.receiveShadow = true; mesh.matrixAutoUpdate = false; mesh.updateMatrix(); r.group.add(mesh); return mesh; }
+{
+  const ox = PC.origin[0], oz = PC.origin[1];
+  // Water clocks: a bronze plinth and two posts (static, in the room's group), and a water column scaled to the time left.
+  for (const c of P2_CLOCKS) {
+    const r = p2Room(c.room), x = ox + c.x, z = oz + c.z;
+    p2Static(r, mergeGeoms([box(1.4, 0.3, 1.4, x, 0.15, z), box(0.2, 2.4, 0.2, x - 0.6, 1.2, z - 0.6), box(0.2, 2.4, 0.2, x + 0.6, 1.2, z - 0.6), box(1.4, 0.2, 0.2, x, 2.4, z - 0.6)]), M.bronze);
+    const water = new THREE.Mesh(new THREE.BoxGeometry(0.9, 2, 0.9).translate(0, 1, 0), p2WaterMat);
+    water.position.set(x, 0.3, z); water.matrixAutoUpdate = false; water.updateMatrix(); r.group.add(water);
+    palSolid(r, x - 0.7, x + 0.7, z - 0.7, z + 0.7);
+    P2.clocks.push({ room: r, wing: r.wing, water, step: -1, level: 1, eta: 0, full: 1, writes: 0 });
+  }
+  // Vats: bronze body (static until broken), its crack ring and the flood disk (hidden until used), a solid while whole.
+  const vatGeo = cyl(0.8, 1.4, 0, 0.7, 0, 16), floodGeo = new THREE.CircleGeometry(C2.vat.radius, 32).rotateX(-Math.PI / 2);
+  for (const v of P2_VATS) {
+    const r = p2Room(v.room);
+    v.r0 = r; v.body = new THREE.Mesh(vatGeo, M.bronze); v.body.position.set(v.x, 0, v.z); v.body.castShadow = true; v.body.matrixAutoUpdate = false; v.body.updateMatrix(); r.group.add(v.body);
+    v.ring = new THREE.Mesh(tellRingGeo, M.tellD); v.ring.position.set(v.x, 0.08, v.z); v.ring.scale.setScalar(C2.vat.radius); v.ring.matrixAutoUpdate = false; v.ring.updateMatrix();
+    v.flood = new THREE.Mesh(floodGeo, p2WaterMat); v.flood.position.set(v.x, 0.05, v.z); v.flood.matrixAutoUpdate = false; v.flood.updateMatrix();
+    v.solid = palSolid(r, v.x - 0.8, v.x + 0.8, v.z - 0.8, v.z + 0.8);
+  }
+  // Giants: two instanced meshes (dormant bronze, awake glowing), one draw each; per giant a pooled tell ring and line (in the scene only while shown).
+  const gGeo = mergeGeoms([box(0.7, 2, 0.8, -0.5, 1, 0), box(0.7, 2, 0.8, 0.5, 1, 0), box(2.2, 2, 1.2, 0, 3, 0), box(0.9, 0.9, 0.9, 0, 4.45, 0),
+    box(0.6, 2, 0.6, -1.45, 3, 0), box(0.6, 2, 0.6, 1.45, 3, 0)]);
+  P2.dorm = new THREE.InstancedMesh(gGeo, M.bronze, G2.n); P2.wake = new THREE.InstancedMesh(gGeo, p2GlowMat, G2.n);
+  for (const im of [P2.dorm, P2.wake]) {
+    // No shadow from giants (they move; the shadow map is redrawn only on change); count 0 and hidden until one stands in a drawn room.
+    im.castShadow = false; im.receiveShadow = true; im.count = 0; im.visible = false; im.matrixAutoUpdate = false;
+    // Culling stays on: one sphere around the whole palace (instances move between rooms).
+    im.boundingSphere = new THREE.Sphere(new THREE.Vector3(PAL.cx, 3, PAL.cz), 120);
+  }
+  const core = PAL.rooms.find((r) => r.type === 'core');
+  for (let i = 0; i < Math.min(G2.n, P2_GIANT_AT.length); i++) {
+    const a = P2_GIANT_AT[i], r = p2Room(a.room), x = ox + a.x, z = oz + a.z;
+    const ring = new THREE.Mesh(tellRingGeo, M.tellD), line = new THREE.Mesh(tellLineGeo, M.tellD);
+    P2.giants.push({ i, hx: x, hz: z, x, z, px: x, pz: z, ry: Math.PI, fx: 0, fz: 1, st: 0, t: 0, tellT: 0, cur: '', thinkT: 0, gapT: 0, cdS: 0, cdW: 0,
+      tgt: null, wx: x, wz: z, door: null, tl: 0, tx: 0, tz: 0, ring, line, home: r, order: Math.hypot(x - core.cx, z - core.z1),
+      hits: 0, minTell: 99, vis: false });
+  }
+  // Wake order: nearest the core hall's door first.
+  P2.byWake = P2.giants.slice().sort((a, b) => a.order - b.order);
+  P2.rq = new Int16Array(PAL.rooms.length); P2.rfrom = new Int16Array(PAL.rooms.length);
+}
+// Time (s) until wing w burns, from the burning's own clock (the HUD line counts the same nextAt); 0 once named, burning or fallen.
+function p2Eta(w) {
+  const k = P2.wingIdx[w], B = CONFIG.BURN, t = G.time;
+  if (k === undefined || k < BURN.i || BURN.i >= B.order.length) return 0;
+  if (BURN.st !== 0) return k === BURN.i ? 0 : Math.max(0, BURN.warnAt + B.everyS - t) + (k - BURN.i - 1) * B.everyS;
+  if (BURN.waiting) return k === BURN.i ? 0 : (k - BURN.i) * B.everyS;
+  return Math.max(0, BURN.nextAt - t) + (k - BURN.i) * B.everyS;
+}
+// A fall wakes the next dormant giant (nearest the core first), up to the cap awake at once; her line waits for the banner.
+function p2WingFall() { if (P2.on && P2.giantsOn) p2Wake(); }
+function p2Wake() {
+  if (P2.awake >= G2.cap) return false;
+  for (let i = 0; i < P2.byWake.length; i++) {
+    const g = P2.byWake[i];
+    if (g.st !== 0 || g.home.state >= 2) continue;
+    g.st = 1; g.t = G2.wakeS; P2.awake++; P2.wakes++; P2.note = true; P2.dirty = true;
+    return true;
+  }
+  return false;
+}
+// The vat takes a blow; at zero it cracks (ring tell), then splashes.
+function hitVat(v, n) {
+  if (v.st !== 0 || !PAL.on) return;
+  v.hp = Math.max(0, v.hp - n);
+  if (v.hp > 0) return;
+  v.st = 1; v.t = C2.vat.crackS; if (ORD.attack === v) ORD.attack = null;
+  scene.add(v.ring);
+}
+// The splash: knockback for every suit inside; inside the wing that is burning now it holds the fall douseS seconds (once per wave).
+function p2Splash(v) {
+  v.st = 2; v.t = C2.vat.floodS; v.seen = false; v.solid.off = true; v.body.visible = false; scene.remove(v.ring); v.r0.group.add(v.flood);
+  for (let k = 0; k < SUITS.length; k++) {
+    const s = SUITS[k];
+    if (s.dead || Math.abs(s.y - v.y) >= 3) continue;
+    const hx = s.x - v.x, hz = s.z - v.z, d = Math.hypot(hx, hz);
+    if (d >= C2.vat.radius) continue;
+    if (d > 0.01) { s.kx += hx / d * C2.vat.kb; s.kz += hz / d * C2.vat.kb; } else s.kz += C2.vat.kb;
+  }
+  const r = v.r0;
+  if (BURN.st === 1 && r.warned && !r.fallen && r.wing === BURN.wing && P2.douseWave !== BURN.i) {
+    BURN.warnAt += C2.vat.douseS; BURN.shownS = -1; P2.douses++; P2.douseWave = BURN.i;
+  }
+}
+// May this door close? Not while an awake giant stands in or next to its opening (it pushed it open on its way; shut on it, it would be stuck in the panel).
+function p2Holds(d) {
+  for (let i = 0; i < P2.giants.length; i++) { const g = P2.giants[i]; if (g.st >= 2 && g.st <= 4 && Math.hypot(g.x - d.x, g.z - d.z) <= G2.r + 2) return true; }
+  return false;
+}
+// Awake giants standing in room r (BP03's off-screen simulation reads this: to wire at the merge).
+function giantsInRoom(r) { let n = 0; for (let i = 0; i < P2.giants.length; i++) { const g = P2.giants[i]; if (g.st >= 2 && palRoomAt(g.x, g.z) === r) n++; } return n; }
+// New run (called by reset, both modes): giants dormant at home, vats whole, clocks full; the instanced meshes in the scene for palace runs only.
+function p2Reset() {
+  for (const g of P2.giants) {
+    g.x = g.hx; g.z = g.hz; g.px = g.x; g.pz = g.z; g.ry = Math.PI; g.st = 0; g.t = 0; g.tellT = 0; g.cur = ''; g.thinkT = 0; g.gapT = 0; g.cdS = 0; g.cdW = 0;
+    g.tgt = null; g.door = null; g.hits = 0; g.minTell = 99; g.vis = false;
+    if (g.ring.parent) scene.remove(g.ring); if (g.line.parent) scene.remove(g.line);
+  }
+  for (const v of P2_VATS) {
+    v.hp = C2.vat.hp; v.st = 0; v.t = 0; v.seen = false; v.solid.off = false; v.body.visible = true;
+    if (v.ring.parent) scene.remove(v.ring); if (v.flood.parent) v.flood.parent.remove(v.flood);
+  }
+  for (const c of P2.clocks) { c.step = -1; c.writes = 0; }
+  P2.awake = 0; P2.wakes = 0; P2.lost = 0; P2.douses = 0; P2.douseWave = -1; P2.note = false; P2.notes = 0; P2.instWrites = 0; P2.dirty = true;
+  const on = G.mode === 'palace' && CONFIG.PALACE_ON && P2.on;
+  for (const im of [P2.dorm, P2.wake]) { im.count = 0; im.visible = false; if (on && !im.parent) scene.add(im); else if (!on && im.parent) scene.remove(im); }
+}
+// Load warm-up (palace draw): giant meshes, tells, a vat ring and flood are drawn once so their programs and buffers exist before play.
+function p2Warm(on) {
+  const g = P2.giants[0], v = P2_VATS[0];
+  if (on) {
+    for (const im of [P2.dorm, P2.wake]) { im.count = 1; im.visible = true; p2Mat4.makeTranslation(g.hx, 0, g.hz); im.setMatrixAt(0, p2Mat4); im.instanceMatrix.needsUpdate = true; scene.add(im); }
+    g.ring.position.set(g.hx, 0.08, g.hz); g.line.position.set(g.hx, 0.08, g.hz); scene.add(g.ring, g.line, v.ring); v.r0.group.add(v.flood);
+  } else {
+    for (const im of [P2.dorm, P2.wake]) { im.count = 0; im.visible = false; scene.remove(im); }
+    scene.remove(g.ring, g.line, v.ring); v.r0.group.remove(v.flood);
+  }
+}
+// PERFRAME-BEGIN
+// Next waypoint for a giant toward its target: the same room = the target; else the first door on the room route (breadth-first, skipping locked
+// doors and fallen rooms), its near side, then its far side once at it. Returns false when no route (it stands).
+function p2Route(g) {
+  const q = g.tgt, ra = palRoomAt(g.x, g.z), rb = palRoomAt(q.x, q.z);
+  g.door = null;
+  if (!ra || !rb) return false;
+  if (ra === rb) { g.wx = q.x; g.wz = q.z; return true; }
+  const from = P2.rfrom, qq = P2.rq;
+  from.fill(-2); from[ra.idx] = -1; qq[0] = ra.idx;
+  let qh = 0, qt = 1;
+  while (qh < qt && from[rb.idx] === -2) {
+    const r = PAL.rooms[qq[qh++]];
+    for (let i = 0; i < r.doors.length; i++) { const d = r.doors[i], o = d.ra === r ? d.rb : d.ra; if (from[o.idx] !== -2 || d.locked || o.state >= 2) continue; from[o.idx] = d.idx; qq[qt++] = o.idx; }
+  }
+  if (from[rb.idx] === -2) return false;
+  let d = null;
+  for (let r = rb; r !== ra;) { d = PAL.doors[from[r.idx]]; r = d.ra === r ? d.rb : d.ra; }
+  const sg = (d.vert ? ra.cx : ra.cz) < d.e ? -1 : 1, at = Math.hypot(g.x - d.x, g.z - d.z) <= G2.r + 1, m = at ? -2.5 : 1.5;
+  g.door = d; g.wx = d.vert ? d.e + sg * m : d.c; g.wz = d.vert ? d.c : d.e + sg * m;
+  return true;
+}
+// Nearest standing suit in the palace (any side).
+function p2Target(g) {
+  let best = null, bd = 1e9;
+  for (let k = 0; k < SUITS.length; k++) {
+    const s = SUITS[k];
+    if (s.dead || !palRoomAt(s.x, s.z)) continue;
+    const d = Math.hypot(s.x - g.x, s.z - g.z); if (d < bd) { bd = d; best = s; }
+  }
+  return best;
+}
+function p2Free(x, z) { return canStand(x, z, 0); }
+function p2Walk(g, dx, dz, dt) {
+  const sp = G2.speed * dt, ox = g.x, oz = g.z;
+  if (p2Free(g.x + dx * sp, g.z)) g.x += dx * sp;
+  if (p2Free(g.x, g.z + dz * sp)) g.z += dz * sp;
+  if (Math.hypot(g.x - ox, g.z - oz) < 0.3 * sp) { const ex = -dz * sp, ez = dx * sp; if (p2Free(g.x + ex, g.z + ez)) { g.x += ex; g.z += ez; } }
+}
+// Start a move: its shape is locked and shown for the whole windup.
+function p2Begin(g, k, dx, dz) {
+  const m = G2[k];
+  g.st = 3; g.cur = k; g.t = m.windup; g.tellT = 0; g.fx = dx; g.fz = dz;
+  if (k === 'slam') { g.tx = g.x; g.tz = g.z; g.ring.position.set(g.x, 0.08, g.z); g.ring.scale.setScalar(m.radius); scene.add(g.ring); g.cdS = m.cd; }
+  else { g.tl = m.len; g.line.position.set(g.x, 0.08, g.z); g.line.rotation.y = Math.atan2(-dx, -dz); g.line.scale.set(m.width, 1, m.len); scene.add(g.line); g.cdW = m.cd; }
+}
+// Windup over: every suit inside the shown shape is hit and knocked back; a vat inside it breaks (lure a giant onto one).
+function p2Resolve(g) {
+  const k = g.cur, m = G2[k];
+  if (k === 'slam') scene.remove(g.ring); else scene.remove(g.line);
+  for (let i = 0; i < SUITS.length; i++) {
+    const s = SUITS[i];
+    if (s.dead || Math.abs(s.y) >= 3 || !p2In(g, k, s.x, s.z)) continue;
+    if (s === P) { g.hits++; if (g.tellT < g.minTell) g.minTell = g.tellT; }
+    hurtSuit(s, m.dmg, 'hazard', null);
+    const hx = s.x - g.x, hz = s.z - g.z, d = Math.hypot(hx, hz) || 1;
+    s.kx += hx / d * m.kb; s.kz += hz / d * m.kb;
+  }
+  for (let i = 0; i < P2_VATS.length; i++) { const v = P2_VATS[i]; if (v.st === 0 && p2In(g, k, v.x, v.z)) hitVat(v, v.hp); }
+  g.st = 4; g.t = G2.recoverS; g.gapT = G2.gapS;
+}
+function p2In(g, k, x, z) {
+  if (k === 'slam') return Math.hypot(x - g.tx, z - g.tz) <= G2.slam.radius;
+  const qx = x - g.x, qz = z - g.z, along = qx * g.fx + qz * g.fz, side = Math.abs(qx * g.fz - qz * g.fx);
+  return along >= 0 && along <= g.tl && side <= G2.sweep.width / 2;
+}
+// One giant: 0 dormant, 1 waking (tell: it glows, stands), 2 hunting, 3 move windup (tell shown), 4 recovering. Its room falling drops it into the lake.
+function p2StepGiant(g, dt) {
+  g.px = g.x; g.pz = g.z;
+  if (g.st === 0 || g.st === 5) return;
+  const here = palRoomAt(g.x, g.z);
+  if (here && here.state >= 2) { if (g.ring.parent) scene.remove(g.ring); if (g.line.parent) scene.remove(g.line); g.st = 5; P2.awake--; P2.lost++; P2.dirty = true; return; }
+  if (g.cdS > 0) g.cdS -= dt; if (g.cdW > 0) g.cdW -= dt; if (g.gapT > 0) g.gapT -= dt;
+  if (g.st === 1) { g.t -= dt; if (g.t <= 0) { g.st = 2; g.thinkT = 0; } return; }
+  if (g.st === 3) { g.t -= dt; g.tellT += dt; if (g.t <= 0) p2Resolve(g); return; }
+  if (g.st === 4) { g.t -= dt; if (g.t <= 0) g.st = 2; return; }
+  g.thinkT -= dt;
+  if (g.thinkT <= 0) { g.thinkT = G2.thinkS; g.tgt = p2Target(g); if (!g.tgt || !p2Route(g)) g.tgt = null; }
+  if (!g.tgt || g.tgt.dead) return;
+  const q = g.tgt, px = q.x - g.x, pz = q.z - g.z, dist = Math.hypot(px, pz) || 1e-6;
+  if (g.gapT <= 0 && palSight(g.x, g.z, q.x, q.z)) {
+    if (g.cdS <= 0 && dist <= G2.slam.range) { p2Begin(g, 'slam', px / dist, pz / dist); return; }
+    if (g.cdW <= 0 && dist <= G2.sweep.range) { p2Begin(g, 'sweep', px / dist, pz / dist); return; }
+  }
+  // A shut door on its way: it pushes it open (never a locked one, never into a fallen room).
+  const d = g.door;
+  if (d && !d.open && !d.locked && d.ra.state < 2 && d.rb.state < 2 && Math.hypot(g.x - d.x, g.z - d.z) <= PC.openR + G2.r) palDoor(d, true);
+  const wx = g.wx - g.x, wz = g.wz - g.z, wd = Math.hypot(wx, wz);
+  if (wd > 0.6 && !(dist <= G2.slam.range * 0.8)) { p2Walk(g, wx / wd, wz / wd, dt); g.ry = Math.atan2(wx, wz); }
+  if (d && Math.hypot(g.x - d.x, g.z - d.z) <= G2.r + 1) p2Route(g);
+}
+// Pieces step (palace runs): clocks (written on a level-step change), vats (crack -> splash -> flood gone), giants, her waiting line, the instances.
+function stepPieces2(dt) {
+  const B = CONFIG.BURN;
+  for (let i = 0; i < P2.clocks.length; i++) {
+    const c = P2.clocks[i], k = P2.wingIdx[c.wing];
+    if (k === undefined) continue;
+    c.full = B.firstS + k * B.everyS; c.eta = p2Eta(c.wing); c.level = Math.min(1, c.eta / c.full);
+    const st = Math.ceil(c.level * C2.clock.steps);
+    if (st !== c.step) { c.step = st; c.water.scale.y = Math.max(0.001, st / C2.clock.steps); c.water.updateMatrix(); c.writes++; }
+  }
+  for (let i = 0; i < P2_VATS.length; i++) {
+    const v = P2_VATS[i];
+    if (v.st === 0) { v.seen = !!v.r0.group.parent && v.r0.state < 2; continue; }
+    v.t -= dt;
+    if (v.st === 1 && v.t <= 0) p2Splash(v);
+    else if (v.st === 2 && v.t <= 0) { v.st = 3; v.r0.group.remove(v.flood); }
+  }
+  if (P2.giantsOn) for (let i = 0; i < P2.giants.length; i++) p2StepGiant(P2.giants[i], dt);
+  if (P2.note && G.bannerWave < 0 && G.fellT <= 0) { P2.note = false; P2.notes++; palAnnounce('piece2_giant_voice'); }
+  p2Draw();
+}
+// Instances: giants standing in a room that is in the scene; matrices written only when one moved or the drawn set changed.
+function p2Draw() {
+  let moved = P2.dirty;
+  for (let i = 0; i < P2.giants.length; i++) {
+    const g = P2.giants[i], r = palRoomAt(g.x, g.z), vis = g.st !== 5 && !!r && !!r.group.parent && r.state < 2;
+    if (vis !== g.vis) { g.vis = vis; moved = true; }
+    if (vis && (g.x !== g.px || g.z !== g.pz)) moved = true;
+  }
+  if (!moved) return;
+  P2.dirty = false;
+  let nd = 0, na = 0;
+  for (let i = 0; i < P2.giants.length; i++) {
+    const g = P2.giants[i];
+    if (!g.vis) continue;
+    p2Mat4.makeRotationY(g.ry); p2Mat4.setPosition(g.x, 0, g.z);
+    if (g.st === 0) P2.dorm.setMatrixAt(nd++, p2Mat4); else P2.wake.setMatrixAt(na++, p2Mat4);
+  }
+  P2.dorm.count = nd; P2.wake.count = na; P2.nDorm = nd; P2.nAwake = na; P2.dorm.visible = nd > 0; P2.wake.visible = na > 0;
+  P2.dorm.instanceMatrix.needsUpdate = true; P2.wake.instanceMatrix.needsUpdate = true; P2.instWrites++;
 }
 // PERFRAME-END
 
@@ -2904,13 +2659,45 @@ function step(dt) {
   if (G.fellT > 0) { G.fellT -= dt; if (G.fellT <= 0 && G.bannerWave < 0) setShow(el.banner, false); }
   // Hazards: idle -> tell (red ring, statue eyes glow) -> strike -> cooldown. Any suit close by starts the tell; the strike hits every suit inside.
   for (let i = 0; i < HAZARDS.length; i++) {
-    const h = HAZARDS[i];
+    const h = HAZARDS[i], c = h.cfg;
     if (h.s.state >= 2 || (h.statue && !roy)) { if (h.ring.visible) h.ring.visible = false; continue; }
-    hazardStep(h, dt);
+    if (h.state === 0) {
+      for (let k = 0; k < SUITS.length; k++) {
+        const s = SUITS[k];
+        if (!s.dead && Math.abs(s.y - h.y) < 3 && Math.hypot(s.x - h.x, s.z - h.z) < c.range) { h.state = 1; h.t = 0; h.ring.visible = true; if (h.kind === 'statue') M.eyes.emissiveIntensity = 3; break; }
+      }
+    } else if (h.state === 1) {
+      h.t += dt;
+      if (h.t >= c.windup) {
+        h.state = 2; h.t = 0; h.ring.visible = false; if (h.kind === 'statue') M.eyes.emissiveIntensity = 0.4;
+        for (let k = 0; k < SUITS.length; k++) {
+          const s = SUITS[k];
+          if (s.dead || Math.abs(s.y - h.y) >= 3) continue;
+          const hx = s.x - h.x, hz = s.z - h.z, d = Math.hypot(hx, hz);
+          if (d >= c.radius) continue;
+          hurtSuit(s, c.dmg, 'hazard', null);
+          if (d > 0.01) { s.kx += hx / d * c.kb; s.kz += hz / d * c.kb; } else s.kz += c.kb;
+        }
+      }
+    } else if (h.state === 2) { h.t += dt; if (h.t >= c.cooldown) h.state = 0; }
   }
   // Altars heal a standing suit; a hit pauses healing; an emptied altar refills later.
   const A = CONFIG.ALTAR, dry = decOn('dry');
-  for (let i = 0; i < ALTAR_LIST.length; i++) { const a = ALTAR_LIST[i]; if (a.s.state < 2) altarStep(a, dt, A, dry); }
+  for (let i = 0; i < ALTAR_LIST.length; i++) {
+    const a = ALTAR_LIST[i];
+    if (a.s.state >= 2) continue;
+    if (a.charge <= 0) { a.emptyT -= dt; if (a.emptyT <= 0) { a.charge = A.charge; a.mesh.material = dry ? M.altarOff : M.altarOn; } continue; }
+    // "Our altars are dry." (decree): no healing while it is in force; charge is kept.
+    if (dry) continue;
+    for (let k = 0; k < SUITS.length && a.charge > 0; k++) {
+      const s = SUITS[k];
+      if (s.dead || s.air || s.noHealT > 0 || s.hp >= CONFIG.MAX_HP) continue;
+      if (Math.hypot(s.x - a.x, s.z - a.z) > A.radius || Math.abs(s.y - a.y) > 1) continue;
+      const heal = Math.min(A.rate * dt, a.charge, CONFIG.MAX_HP - s.hp);
+      s.hp += heal; a.charge -= heal;
+      if (a.charge <= 1e-6) { a.charge = 0; a.emptyT = A.emptyS; a.mesh.material = M.altarOff; }
+    }
+  }
   // Timers on every suit still in the match: heal pause, slow, stun, bleed, plates, boons.
   for (let k = 0; k < SUITS.length; k++) if (!SUITS[k].bot || !SUITS[k].dead) tickSuit(SUITS[k], dt);
   stepAuras(dt);
@@ -2929,8 +2716,6 @@ function step(dt) {
   if (vr !== G.visR) { G.visR = vr; if (G.view === 'follow') FOW.uFowR.value = fowR(); }
   if (roy && CONFIG.ROYALE_MINIONS) stepKennel(dt);
   if (roy && CONFIG.NEUTRALS) stepNeutrals(dt);
-  // 皇家 guard (Burning Palace ticket 02): only squads spawned through spawnSquad; none in the Royal Rumble.
-  if (CONFIG.GUARD_ON && G.guardN > 0) stepGuards(dt);
   if (roy && G.botN > 0) {
     stepBots(dt);
     // The last suit standing wakes the demon (batch 9d): the hunt starts by itself.
@@ -2940,7 +2725,7 @@ function step(dt) {
   if (G.phase === 'wake' || G.phase === 'hunt') stepHunt(dt);
   if (G.phase === 'palace') stepPalace(dt);
   if (G.phase === 'palace' && CONFIG.BURN.on) stepBurn(dt);
-  if (G.phase === 'palace' && CONFIG.PIECES.on) stepPieces(dt);
+  if (G.phase === 'palace' && P2.on) stepPieces2(dt);
   if (G.phase === 'won' || G.phase === 'lost' || G.phase === 'palend') { updateHp(); updateStatus(); return; }
   // Player.
   P.px = P.x; P.pz = P.z; P.py = P.y;
@@ -3883,7 +3668,7 @@ function wallCuts(ax, az, bx, bz) {
 function shoveUnit(u, x, z, dist) {
   let dx = u.x - x, dz = u.z - z; const l = Math.hypot(dx, dz) || 1; dx /= l; dz /= l;
   for (let m = 0; m < dist; m += 0.25) { const nx = u.x + dx * 0.25, nz = u.z + dz * 0.25; if (!unitOk(u, nx, nz)) break; u.x = u.px = nx; u.z = u.pz = nz; }
-  if (u.cub || u.guard) u.y = topYUnder(u.x, u.z, u.y);
+  if (u.cub) u.y = topYUnder(u.x, u.z, u.y);
 }
 // 九距之 turns a blow on s back: no damage, one defence spent, the attacker pushed away (a suit by knockback, a cub or hunt unit by a shove).
 function turnBack(s, by, src) {
@@ -4391,7 +4176,7 @@ function moveUnit(u, mx, mz, sp, dt) {
     if (ex !== 0 && unitOk(u, u.x + ex, u.z)) u.x += ex;
     if (ez !== 0 && unitOk(u, u.x, u.z + ez)) u.z += ez;
   }
-  if (u.cub || u.guard) u.y = topYUnder(u.x, u.z, u.y);
+  if (u.cub) u.y = topYUnder(u.x, u.z, u.y);
 }
 // Longest free dash from x, z along dx, dz, in half-metre steps.
 function dashLen(u, dx, dz, range) {
@@ -4564,10 +4349,10 @@ function stepHunt(dt) {
 }
 // by = the suit that hit; the last hitter of a cub or buff creature takes its plate or boon.
 function hitEnemy(u, n, by) {
-  if (!u.alive || (u.guard ? !guardPhaseOk() : G.phase !== (u.hunt ? 'hunt' : 'royale'))) return;
+  if (!u.alive || G.phase !== (u.hunt ? 'hunt' : 'royale')) return;
   u.by = by;
   const lost = Math.min(n, u.hp);
-  u.hp = Math.max(0, u.hp - n); u.flashT = u.guard ? GC.flashS : 0.12; u.body.material = M.hit;
+  u.hp = Math.max(0, u.hp - n); u.flashT = 0.12; u.body.material = M.hit;
   u.bar.scale.x = Math.max(0.001, u.hp / u.maxHp);
   if (u.hp <= 0) killUnit(u);
   // 纵横甲's 合纵 (ticket 09): a share of what the unit lost goes to the enemy tied to it.
@@ -4576,7 +4361,6 @@ function hitEnemy(u, n, by) {
 function killUnit(u) {
   u.alive = false; u.seen = false; u.st = 0; hideTell(u); scene.remove(u.group);
   if (ORD.attack === u) ORD.attack = null;
-  if (u.guard) { guardDown(u, true); return; }
   if (u === DEMON) { endHunt(true); return; }
   if (u.neutral) { G.nT[u.idx] = G.time + draw(BAGS.times); grantBoon(u); return; }
   if (u.cub) { scene.remove(u.ring, u.line); if (!u.by) return; }
@@ -4981,14 +4765,13 @@ function botDecide(b) {
       return;
     }
   }
-  // A cub, buff creature or 皇家 guard hostile to the suits (bot target tag: its faction's foeSuits) in sight (weighted by the bot's aggro, drawn once per sighting).
+  // A cub or buff creature in sight (weighted by the bot's aggro, drawn once per sighting).
   let c = b.mode === 'creature' && b.tgt && b.tgt.alive && Math.hypot(b.tgt.x - b.x, b.tgt.z - b.z) <= vr ? b.tgt : null;
   if (!c) {
     let bd = vr;
-    const nc = CUBS.length + NEUTRALS.length, ng = G.guardN > 0 ? GUARDS.length : 0;
-    for (let i = 0; i < nc + ng; i++) {
-      const u = i < CUBS.length ? CUBS[i] : i < nc ? NEUTRALS[i - CUBS.length] : GUARDS[i - nc];
-      if (!u.alive || (u.guard && !GC.factions[u.faction].foeSuits) || u === b.skip || Math.abs(u.y - b.y) > 1.5 || (G.hiAvoid && u.y >= CONFIG.DECREES.heightY - 0.5)) continue;
+    for (let i = 0; i < CUBS.length + NEUTRALS.length; i++) {
+      const u = i < CUBS.length ? CUBS[i] : NEUTRALS[i - CUBS.length];
+      if (!u.alive || u === b.skip || Math.abs(u.y - b.y) > 1.5 || (G.hiAvoid && u.y >= CONFIG.DECREES.heightY - 0.5)) continue;
       const d = Math.hypot(u.x - b.x, u.z - b.z); if (d < bd) { bd = d; c = u; }
     }
     if (c && brnd() > b.skill.aggro) { b.skip = c; c = null; }
@@ -5035,7 +4818,7 @@ function botTarget(b, t, mode) {
 }
 // A bot sees a suit inside its own vision radius, on about its own layer.
 // A marked suit (batch 12) is seen by every bot from anywhere.
-function botSees(b, s, vr) { return !s.dead && !hiddenFrom(s, b.x, b.z) && (seenAnywhere(s) || (Math.abs(s.y - b.y) < 2 && Math.hypot(s.x - b.x, s.z - b.z) <= vr)) && (!PAL.on || seenAnywhere(s) || palSight(b.x, b.z, s.x, s.z)); }
+function botSees(b, s, vr) { return !s.dead && !hiddenFrom(s, b.x, b.z) && (seenAnywhere(s) || (Math.abs(s.y - b.y) < 2 && Math.hypot(s.x - b.x, s.z - b.z) <= vr)) && (!PAL.on || palSight(b.x, b.z, s.x, s.z)); }
 // Skills when ready and in range: Q line, W burst, R delayed burst with a ring shown for its whole delay. Aim error from the skill profile.
 // ultOnly = only the ultimate is considered (botReadyUlt, outside a fight).
 function botUseSkills(b, q, d, ultOnly) {
@@ -5229,7 +5012,6 @@ function stepBotPend(b, dt) {
 const DNG = { ex: 0, ez: 0 };
 function botDanger(b, x, z, margin) {
   const react = b.skill.react;
-  if (PAL.on && CONFIG.PIECES.on && pieceDanger(b, x, z, margin)) return true;
   for (let i = 0; i < HAZARDS.length; i++) {
     const h = HAZARDS[i];
     if (h.state !== 1 || h.t < react || Math.abs(h.y - b.y) >= 3) continue;
@@ -5244,8 +5026,6 @@ function botDanger(b, x, z, margin) {
       if (along >= -margin && along <= u.tl + margin && Math.abs(side) <= m.width / 2 + margin) { const sg = side >= 0 ? 1 : -1; DNG.ex = u.fz * sg; DNG.ez = -u.fx * sg; return true; }
     } else if (Math.hypot(x - u.tx, z - u.tz) < m.radius + margin) { DNG.ex = b.x - u.tx; DNG.ez = b.z - u.tz; if (DNG.ex === 0 && DNG.ez === 0) DNG.ez = 1; return true; }
   }
-  // 皇家 guard tells (Burning Palace ticket 02).
-  if (G.guardN > 0 && guardDanger(b, x, z, margin)) return true;
   for (let i = 0; i < BOTLIST.length; i++) {
     const o = BOTLIST[i];
     if (o === b || !o.pend || o.pendAge < react) continue;
@@ -5329,272 +5109,6 @@ function botRoamGoal(b) {
 }
 function spotTaken(k) { for (let i = 0; i < NEUTRALS.length; i++) if (NEUTRALS[i].alive && NEUTRALS[i].spot === k) return true; return false; }
 // PERFRAME-END
-// ===================== 皇家 guard (Burning Palace ticket 02): spawn API, squads in a 方阵, moves, rewards and instanced drawing =====================
-// guardN = guards alive; guardDrawn = an instanced guard mesh is in the scene; guardKills / guardBreaks / guardBlocks = guards broken by suits,
-// 伍长 lost, blows the 盾 blocked; guardHits / guardMinTell = guard hits on the player and the shortest tell before one (checks).
-Object.assign(G, { guardN: 0, guardDrawn: false, guardKills: 0, guardBreaks: 0, guardBlocks: 0, guardHits: 0, guardMinTell: 99 });
-// The player's note when the 伍长 falls to him: the boon in percent and seconds.
-const GBREAK_VARS = { v: Math.round(GC.leaderBoon.v * 100), s: GC.leaderBoon.s };
-// PERFRAME-BEGIN
-// Guards act and can be hit only in the phases CONFIG lists.
-function guardPhaseOk() { const ph = GC.phases; for (let i = 0; i < ph.length; i++) if (ph[i] === G.phase) return true; return false; }
-function freeGuard(t) { const p = GPOOL[t]; for (let i = 0; i < p.length; i++) if (!p[i].alive) return p[i]; return null; }
-// Spawn API (ticket 03 calls it when a door opens; ticket 07 adds the 反贼 faction): a squad of faction f from the unit types in list
-// ('zu' 卒, 'nu' 弩手, 'dun' 盾, 'che' 车, 'wz' 伍长), around x, z. opts: fx, fz = facing (default +z); open = chariots allowed (open rooms only).
-// The first 'wz' leads the 方阵 (others in the list are skipped); a squad without one starts broken. At most GUARD.squadMax units, pool permitting.
-// Returns the squad id, or -1 (switched off, not a guard phase, unknown faction, no floor at x, z, no free squad, no free unit).
-function spawnSquad(f, list, x, z, opts) {
-  if (!CONFIG.GUARD_ON || !GUARD_COL[f] || !list || !guardPhaseOk()) return -1;
-  let sq = null;
-  for (let i = 0; i < SQUADS.length; i++) if (!SQUADS[i].on) { sq = SQUADS[i]; break; }
-  if (!sq) return -1;
-  let fx = opts && opts.fx !== undefined ? opts.fx : 0, fz = opts && opts.fz !== undefined ? opts.fz : 1;
-  const fl = Math.hypot(fx, fz) || 1; fx /= fl; fz /= fl;
-  // No floor at the anchor (the void): no squad.
-  const y0 = topY(x, z); if (y0 < -1e8) return -1;
-  sq.faction = f; sq.leader = null; sq.n = 0; sq.fx = fx; sq.fz = fz; sq.x = x; sq.z = z; sq.y = y0; sq.tgt = null; sq.broken = true; sq.open = !!(opts && opts.open);
-  for (let k = 0; k < GUARD_TYPES.length; k++) GSLOT[GUARD_TYPES[k]] = 0;
-  // Pass 0 places the 伍长 (the slots hang on it), pass 1 the others in list order.
-  for (let pass = 0; pass < 2; pass++) for (let i = 0; i < list.length && sq.n < GC.squadMax; i++) {
-    const t = list[i];
-    if (!GC.types[t] || (pass === 0) !== (t === 'wz') || (t === 'wz' && sq.leader) || (t === 'che' && !sq.open)) continue;
-    const u = freeGuard(t); if (!u) continue;
-    const row = GC.rows[t], k = GSLOT[t]++;
-    // Across the row: centre, right, left, ... (flank rows skip the centre).
-    const l = row[2] ? row[1] * ((k + 2) >> 1) * (k % 2 ? -1 : 1) : row[1] * ((k + 1) >> 1) * (k % 2 ? 1 : -1);
-    let sx = x + fx * row[0] - fz * l, sz = z + fz * row[0] + fx * l;
-    u.y = sq.y;
-    if (!unitOk(u, sx, sz)) { sx = x; sz = z; }
-    u.faction = f; u.col = GUARD_COL[f][t]; u.sq = sq; u.slotF = row[0]; u.slotL = l;
-    u.x = u.px = sx; u.z = u.pz = sz; u.y = topYUnder(sx, sz, sq.y + 0.5); u.fx = fx; u.fz = fz;
-    u.hp = u.maxHp; u.alive = true; u.seen = false; u.st = 0; u.t = 0; u.cur = ''; u.tellT = 0; u.gcd = 0; u.flashT = 0; u.bleedT = 0; u.slowT = 0; u.sealT = 0;
-    u.atkAt = -99; u.by = null; u.bleedBy = null; u.tgt = null; u.dmgK = 1; u.defK = 1; u.form = false;
-    if (t === 'wz') { sq.leader = u; sq.broken = false; }
-    sq.n++; G.guardN++;
-  }
-  if (sq.n === 0) return -1;
-  sq.on = true;
-  return sq.id;
-}
-// A hostile of faction f on layer y: a live suit on the ground (when the faction fights suits), or a live guard of another faction.
-function guardFoe(f, o, y) {
-  if (o.kind === 'suit') return GC.factions[f].foeSuits && !o.dead && !o.air && Math.abs(o.y - y) < 1.5;
-  return !!o.guard && o.alive && o.faction !== f && Math.abs(o.y - y) < 1.5;
-}
-// ...and seen from x, z (an unseen suit is hidden, as from the bots).
-function foeSeen(f, o, x, z, y) { return guardFoe(f, o, y) && !(o.kind === 'suit' && hiddenFrom(o, x, z)); }
-function nearestFoe(f, x, z, y, r) {
-  let best = null, bd = r;
-  for (let i = 0; i < SUITS.length; i++) {
-    const s = SUITS[i]; if (!foeSeen(f, s, x, z, y)) continue;
-    const d = Math.hypot(s.x - x, s.z - z); if (d <= bd) { bd = d; best = s; }
-  }
-  for (let i = 0; i < GUARDS.length; i++) {
-    const o = GUARDS[i]; if (!o.alive || o.faction === f || !guardFoe(f, o, y)) continue;
-    const d = Math.hypot(o.x - x, o.z - z); if (d <= bd) { bd = d; best = o; }
-  }
-  return best;
-}
-// A formed squad follows its 伍长 and takes one target for all; it faces that target.
-function squadThink(sq) {
-  const L = sq.leader;
-  if (L && L.alive) { sq.x = L.x; sq.z = L.z; sq.y = L.y; }
-  let q = sq.tgt;
-  if (q && (!foeSeen(sq.faction, q, sq.x, sq.z, sq.y) || Math.hypot(q.x - sq.x, q.z - sq.z) > GC.leash)) q = null;
-  if (!q) q = nearestFoe(sq.faction, sq.x, sq.z, sq.y, GC.aggro);
-  sq.tgt = q;
-  if (q) { const dx = q.x - sq.x, dz = q.z - sq.z, l = Math.hypot(dx, dz); if (l > 0.3) { sq.fx = dx / l; sq.fz = dz / l; } }
-}
-function stepGuards(dt) {
-  if (!guardPhaseOk()) return;
-  for (let i = 0; i < SQUADS.length; i++) if (SQUADS[i].on) squadThink(SQUADS[i]);
-  const VR = G.visR;
-  for (let i = 0; i < GUARDS.length; i++) {
-    const u = GUARDS[i]; if (!u.alive) continue;
-    // A guard with no floor under it (its section fell) is lost: no reward.
-    if (!floorAt(u.x, u.z, u.y + 0.1)) guardDown(u, false); else stepGuard(u, dt);
-    u.seen = u.alive && Math.hypot(u.x - P.x, u.z - P.z) <= VR;
-  }
-}
-// How near a guard walks to a target it fights out of a 方阵: crossbows to the middle of their band, others to 0.8 of their reach.
-function guardReach(m) { return m.shape === 'mark' ? (m.min + m.max) / 2 : m.max * 0.8; }
-function stepGuard(u, dt) {
-  u.px = u.x; u.pz = u.z;
-  // Bleed from a suit's Stalker plate.
-  if (u.bleedT > 0) {
-    u.bleedT -= dt; u.hp -= CONFIG.PLATE.bleedDps * dt;
-    if (u.hp <= 0) { u.hp = 0; u.by = u.bleedBy; killUnit(u); return; }
-  }
-  if (u.gcd > 0) u.gcd -= dt;
-  if (u.slowT > 0) u.slowT -= dt;
-  if (u.sealT > 0) u.sealT -= dt;
-  if (u.flashT > 0) u.flashT -= dt;
-  // The 伍长's buff: on the other units of a formed 方阵 within buff.r of the live 伍长 (not on the 伍长 itself).
-  const sq = u.sq, L = sq.leader;
-  u.form = !sq.broken && !!L && L.alive;
-  const buffed = u.form && u !== L && Math.hypot(L.x - u.x, L.z - u.z) <= GC.buff.r;
-  u.dmgK = buffed ? 1 + GC.buff.dmg : 1; u.defK = buffed ? 1 - GC.buff.def : 1;
-  if (u.st === 1) { u.t -= dt; u.tellT += dt; if (u.t <= 0) guardResolve(u); return; }
-  if (u.st === 2) {
-    u.t += dt; const k = Math.min(1, u.t / u.dashS);
-    u.x = u.ax + (u.bx - u.ax) * k; u.z = u.az + (u.bz - u.az) * k;
-    if (k >= 1) { u.st = 3; u.t = CONFIG.APEX.recoverS; u.y = topYUnder(u.x, u.z, u.y); }
-    return;
-  }
-  if (u.st === 3) { u.t -= dt; if (u.t <= 0) u.st = 0; return; }
-  // In a 方阵 the squad's target; broken, its own nearest hostile.
-  let q = null;
-  if (u.form) q = sq.tgt;
-  else {
-    q = u.tgt;
-    if (q && (!foeSeen(u.faction, q, u.x, u.z, u.y) || Math.hypot(q.x - u.x, q.z - u.z) > GC.leash)) q = null;
-    if (!q) q = nearestFoe(u.faction, u.x, u.z, u.y, GC.aggro);
-  }
-  u.tgt = q;
-  const m = GMV[u.atk], hs = unitHeld(u), sp = u.cfg.speed * (hs ? 1 - hs.slow : 1) * (u.slowT > 0 ? 1 - u.slowK : 1);
-  if (q) {
-    const px = q.x - u.x, pz = q.z - u.z, dist = Math.hypot(px, pz) || 1e-6, dx = px / dist, dz = pz / dist;
-    // Its one move when ready and in its band (sealed by 杂甲: none; held in a 势 ring: no dash move).
-    if (u.gcd <= 0 && u.sealT <= 0 && dist >= m.min && dist <= m.max && !(hs && m.dashS) && guardBegin(u, q, dx, dz)) return;
-    u.fx = dx; u.fz = dz;
-  }
-  let gx = u.x, gz = u.z, stop = 0.3;
-  if (u.form && u !== L) {
-    // Its slot: ahead along the squad's facing, across to its right (+) or left (-); it steps out at a hostile near the slot.
-    gx = L.x + sq.fx * u.slotF - sq.fz * u.slotL; gz = L.z + sq.fz * u.slotF + sq.fx * u.slotL;
-    if (q && Math.hypot(q.x - gx, q.z - gz) <= GC.stepOut) { gx = q.x; gz = q.z; stop = guardReach(m); }
-    if (!q) { u.fx = sq.fx; u.fz = sq.fz; }
-  } else if (q) { gx = q.x; gz = q.z; stop = u.form && sq.n > 1 ? GC.keep : guardReach(m); }
-  const tx = gx - u.x, tz = gz - u.z, td = Math.hypot(tx, tz);
-  if (td > stop) moveUnit(u, tx / td, tz / td, sp, dt);
-}
-// Start its move: lock the shape now and show the tell (red, the unit tell colour) for the whole windup. False when a line has no room.
-function guardBegin(u, q, dx, dz) {
-  const m = GMV[u.atk];
-  if (m.shape === 'line') {
-    const len = dashLen(u, dx, dz, m.range);
-    if (len < 1) { u.gcd = 0.5; return false; }
-    u.tl = len; u.ty = u.y; u.line.position.set(u.x, u.y + 0.07, u.z); u.line.rotation.y = Math.atan2(-dx, -dz); u.line.scale.set(m.width, 1, len);
-    u.line.visible = true; scene.add(u.line);
-  } else {
-    // mark: a ground marker on the target (crossbow volley); circle: around the unit.
-    if (m.shape === 'mark') { u.tx = q.x; u.tz = q.z; u.ty = q.y; } else { u.tx = u.x; u.tz = u.z; u.ty = u.y; }
-    u.ring.position.set(u.tx, u.ty + 0.07, u.tz); u.ring.scale.setScalar(m.radius); u.ring.visible = true; scene.add(u.ring);
-  }
-  u.fx = dx; u.fz = dz; u.st = 1; u.cur = u.atk; u.t = m.windup; u.tellT = 0; u.gcd = m.cd;
-  return true;
-}
-function guardHideTell(u) {
-  if (u.ring.parent) scene.remove(u.ring);
-  if (u.line.parent) scene.remove(u.line);
-  u.ring.visible = false; u.line.visible = false;
-}
-// The shown shape covers o (as the hit tests it).
-function guardCovers(u, m, o) {
-  if (m.shape === 'line') { const qx = o.x - u.x, qz = o.z - u.z, along = qx * u.fx + qz * u.fz; return along >= 0 && along <= u.tl && Math.abs(qx * u.fz - qz * u.fx) <= m.width / 2; }
-  return Math.hypot(o.x - u.tx, o.z - u.tz) <= m.radius;
-}
-// Windup over: the hit lands on every hostile still inside the shape shown (suits, guards of another faction); a charge then drives along its line.
-function guardResolve(u) {
-  const m = GMV[u.cur], dmg = m.dmg * u.dmgK;
-  guardHideTell(u);
-  // A wall raised during the windup (墨甲's 距云梯) shortens a line: it stops there and hits only up to it.
-  if (m.shape === 'line' && G.wallN > 0) u.tl = Math.min(u.tl, dashLen(u, u.fx, u.fz, u.tl));
-  if (GC.factions[u.faction].foeSuits) for (let i = 0; i < SUITS.length; i++) {
-    const s = SUITS[i];
-    if (s.dead || Math.abs(s.y - u.ty) >= 1.5 || !guardCovers(u, m, s)) continue;
-    // 道甲's stances: a guard's move is its basic attack; a countered move lands nothing.
-    if (counterHit(s, true, null, u, dmg)) { if (!u.alive) return; continue; }
-    if (s === P) { G.guardHits++; if (u.tellT < G.guardMinTell) G.guardMinTell = u.tellT; }
-    if (m.shove) {
-      let dx = s.x - u.x, dz = s.z - u.z; const l = Math.hypot(dx, dz);
-      if (l < 1e-3) { dx = u.fx; dz = u.fz; } else { dx /= l; dz /= l; }
-      s.kx += dx * m.shove * CONFIG.KB_DECAY; s.kz += dz * m.shove * CONFIG.KB_DECAY;
-    }
-    if (dmg > 0) { u.atkAt = G.time; hurtSuit(s, dmg, 'hit', null, u); }
-    if (!u.alive) return;
-  }
-  for (let i = 0; i < GUARDS.length; i++) {
-    const o = GUARDS[i];
-    if (!o.alive || o.faction === u.faction || Math.abs(o.y - u.ty) >= 1.5 || !guardCovers(u, m, o)) continue;
-    hitEnemy(o, dmg * o.defK, null);
-  }
-  if (m.shape !== 'line' || m.stay) { u.st = 3; u.t = CONFIG.APEX.recoverS; return; }
-  u.ax = u.x; u.az = u.z; u.dashS = m.dashS; u.st = 2; u.t = 0; u.bx = u.x + u.fx * u.tl; u.bz = u.z + u.fz * u.tl;
-}
-// Damage multiplier on a blow from suit by: the 伍长's buff, and the 盾's block of a basic blow from its front (skills break through).
-function guardTakenK(u, by, basic) {
-  let k = u.defK;
-  if (basic && u.gtype === 'dun' && by && u.alive) {
-    const dx = by.x - u.x, dz = by.z - u.z, l = Math.hypot(dx, dz);
-    if (l > 1e-3 && (dx * u.fx + dz * u.fz) / l >= GBLOCK_COS) { k *= GC.block.k; G.guardBlocks++; }
-  }
-  return k;
-}
-// A guard is out. rewarded = broken by a blow (the suit that broke it takes charge and health; the 伍长 also a short boon); else lost to a fall.
-// Its squad: one fewer; the 伍长 out breaks the 方阵 (no buff, each unit fights alone); the last one out frees the squad.
-function guardDown(u, rewarded) {
-  u.alive = false; u.seen = false; u.hp = 0; u.st = 0; u.bleedT = 0; u.tgt = null; guardHideTell(u);
-  if (ORD.attack === u) ORD.attack = null;
-  G.guardN--;
-  const sq = u.sq, lead = sq.leader === u;
-  sq.n--;
-  if (lead) { sq.broken = true; G.guardBreaks++; }
-  if (sq.n <= 0) { sq.on = false; sq.leader = null; sq.tgt = null; }
-  const s = u.by;
-  if (!rewarded || !s || s.kind !== 'suit' || s.dead) return;
-  G.guardKills++;
-  gainCharge(s, u.cfg.ult);
-  s.hp = Math.min(CONFIG.MAX_HP, s.hp + u.cfg.heal);
-  if (lead) {
-    const B = GC.leaderBoon; s.bT[B.i] = Math.max(s.bT[B.i], B.s); s.bV[B.i] = Math.max(s.bV[B.i], B.v);
-    if (s === P) showNote('voice_guard_break', 'rule_guard_break', GBREAK_VARS);
-  }
-}
-// Scene change (new run, the wake): every guard back in its pool, squads freed, nothing drawn.
-function clearGuards() {
-  for (let i = 0; i < GUARDS.length; i++) {
-    const u = GUARDS[i];
-    u.alive = false; u.seen = false; u.hp = 0; u.st = 0; u.bleedT = 0; u.slowT = 0; u.sealT = 0; u.flashT = 0; u.tgt = null; u.by = null; u.bleedBy = null; u.sq = null;
-    guardHideTell(u);
-    if (ORD.attack === u) ORD.attack = null;
-  }
-  for (let i = 0; i < SQUADS.length; i++) { const sq = SQUADS[i]; sq.on = false; sq.leader = null; sq.tgt = null; sq.n = 0; sq.broken = false; }
-  for (let k = 0; k < GUARD_TYPES.length; k++) { const im = GDRAW[GUARD_TYPES[k]]; im.count = 0; if (im.parent) scene.remove(im); }
-  G.guardN = 0; G.guardDrawn = false; G.guardKills = 0; G.guardBreaks = 0; G.guardBlocks = 0; G.guardHits = 0; G.guardMinTell = 99;
-}
-// A guard tell this bot has seen for its reaction time covers x, z (radius + margin): leaves the escape direction in DNG.
-function guardDanger(b, x, z, margin) {
-  const react = b.skill.react;
-  for (let i = 0; i < GUARDS.length; i++) {
-    const u = GUARDS[i];
-    if (!u.alive || u.st !== 1 || u.tellT < react || Math.abs(u.ty - b.y) >= 1.5 || !GC.factions[u.faction].foeSuits) continue;
-    const m = GMV[u.cur];
-    if (m.shape === 'line') {
-      const qx = x - u.x, qz = z - u.z, along = qx * u.fx + qz * u.fz, side = qx * u.fz - qz * u.fx;
-      if (along >= -margin && along <= u.tl + margin && Math.abs(side) <= m.width / 2 + margin) { const sg = side >= 0 ? 1 : -1; DNG.ex = u.fz * sg; DNG.ez = -u.fx * sg; return true; }
-    } else if (Math.hypot(x - u.tx, z - u.tz) < m.radius + margin) { DNG.ex = b.x - u.tx; DNG.ez = b.z - u.tz; if (DNG.ex === 0 && DNG.ez === 0) DNG.ez = 1; return true; }
-  }
-  return false;
-}
-// Instanced bodies: per type, the guards seen are packed into the first count instances (interpolated like the cubs); a type with none leaves the scene.
-function drawGuards(alpha) {
-  let any = false;
-  for (let k = 0; k < GUARD_TYPES.length; k++) {
-    const t = GUARD_TYPES[k], im = GDRAW[t], pool = GPOOL[t];
-    let n = 0;
-    for (let i = 0; i < pool.length; i++) {
-      const u = pool[i]; if (!u.seen) continue;
-      GM4.makeRotationY(Math.atan2(-u.fx, -u.fz)); GM4.setPosition(u.px + (u.x - u.px) * alpha, u.y, u.pz + (u.z - u.pz) * alpha);
-      im.setMatrixAt(n, GM4); im.setColorAt(n, u.flashT > 0 ? GUARD_FLASH : u.col); n++;
-    }
-    if (im.count !== n) im.count = n;
-    if (n > 0) { im.instanceMatrix.needsUpdate = true; im.instanceColor.needsUpdate = true; if (!im.parent) scene.add(im); any = true; }
-    else if (im.parent) scene.remove(im);
-  }
-  G.guardDrawn = any;
-}
-// PERFRAME-END
 const ZONE_VARS = { zone: '' }, BOON_VARS = { v: 0, s: 0 }, BOON_TXT = [T('bn_power'), T('bn_regen'), T('bn_vision'), T('bn_speed')];
 // Buff creatures out of the scene and their first appearance drawn from the time bag (new run), or simply cleared (the wake).
 function resetNeutrals(redraw) {
@@ -5665,7 +5179,7 @@ function startHunt() {
   G.bannerWave = -1; G.fellT = 0; G.miniDirty = true;
   for (const u of CUBS) u.fuseOn = u.alive;
   clearLeader('wake');
-  resetCubs(); resetNeutrals(false); clearBots(); clearGuards();
+  resetCubs(); resetNeutrals(false); clearBots();
   for (const u of CUBS) if (u.fuseOn) { u.sx = u.x; u.sz = u.z; u.sy = u.y; u.plate.position.set(u.x, u.y + 1, u.z); scene.add(u.plate); }
   G.phase = 'wake'; G.phaseT = 0; G.huntT = 0; G.plates = 0; G.bossDirty = true; G.bossHp = -1;
   G.hits = 0; G.minTell = 99; G.hitDmg = 0; G.bleedDmg = 0;
@@ -5825,16 +5339,6 @@ function drawMiniBase() {
   }
 }
 // PERFRAME-BEGIN
-// Palace minimap tick (BP05): redraw the static layer only when a room's warned/fallen state or the current room changed; then the player's dot.
-function palMini() {
-  let sig = 0;
-  for (let i = 0; i < PAL.rooms.length; i++) { const r = PAL.rooms[i]; sig = sig * 3 + (r.fallen || r.state >= 2 ? 2 : r.warned || r.state === 1 ? 1 : 0); }
-  sig = sig * 64 + (PAL.cur ? PAL.cur.idx + 1 : 0);
-  if (sig !== PAL.miniSig) { PAL.miniSig = sig; palMiniBase(); }
-  const c = MINI.ctx;
-  c.drawImage(MINI.base, 0, 0);
-  c.fillStyle = CONFIG.PAL_MINI.you; c.beginPath(); c.arc(PAL.mOx + (P.x - PAL.bx0) * PAL.mS, PAL.mOy + (P.z - PAL.bz0) * PAL.mS, 3, 0, 6.2832); c.fill();
-}
 function drawMini() {
   if (G.miniDirty) { G.miniDirty = false; drawMiniBase(); }
   const c = MINI.ctx, px = MINI.px, py = MINI.py;
@@ -5872,11 +5376,6 @@ function drawMini() {
   for (let i = 0; i < NEUTRALS.length; i++) {
     const u = NEUTRALS[i]; if (!u.seen) continue;
     c.beginPath(); c.arc((u.x - MINI.x0) * px, (u.z - MINI.z0) * py, 2.5, 0, 6.2832); c.fill();
-  }
-  // 皇家 guard dots (Burning Palace ticket 02), seen ones only.
-  if (G.guardN > 0) {
-    c.fillStyle = '#4aa6c8';
-    for (let i = 0; i < GUARDS.length; i++) { const u = GUARDS[i]; if (!u.seen) continue; c.beginPath(); c.arc((u.x - MINI.x0) * px, (u.z - MINI.z0) * py, 2, 0, 6.2832); c.fill(); }
   }
   if (G.kWarned) {
     const w = CONFIG.KENNEL.waves[G.kWave]; c.strokeStyle = '#ff8a2a'; c.lineWidth = 2;
@@ -5947,7 +5446,7 @@ function reset() {
   for (const k in DBAGS) DBAGS[k].i = DBAGS[k].a.length;
   for (let i = 0; i < 4; i++) { P.bT[i] = 0; P.bV[i] = 0; }
   P.statusTick = -1; G.boons = 0; G.visR = CONFIG.VISION_R; if (G.view === 'follow') FOW.uFowR.value = G.visR;
-  resetCubs(); resetNeutrals(true); clearGuards();
+  resetCubs(); resetNeutrals(true);
   G.lostIn = '';
   clearHunt();
   G.time = 0; G.bannerWave = -1; G.fellT = 0; G.nextWave = -2;
@@ -5961,7 +5460,6 @@ function reset() {
   for (const h of HAZARDS) { h.state = 0; h.t = 0; h.ring.visible = false; }
   M.eyes.emissiveIntensity = 0.4;
   for (const a of ALTAR_LIST) { a.charge = CONFIG.ALTAR.charge; a.emptyT = 0; a.mesh.material = M.altarOn; }
-  resetPieces();
   for (const d of DUMMY_LIST) { d.hp = CONFIG.DUMMY_HP; d.deadT = 0; d.flashT = 0; d.body.material = M.dummy; d.bar.scale.x = 1; }
   for (const st of SK) { st.cdT = 0; st.shown = -1; }
   ORD.attack = null; ORD.atkHeld = false; ORD.rightHeld = false; ORD.attackMove = false; cancelAim(); PATH.n = 0; PATH.i = 0;
@@ -5988,6 +5486,7 @@ function reset() {
   spawnBots();
   setShow(el.banner, false);
   burnReset();
+  p2Reset();
   // BP01: the mode decides the map (Royal Rumble: the royale map as before; The Burning Palace: the rooms).
   if (G.mode === 'palace' && CONFIG.PALACE_ON) enterPalace(); else leavePalace();
   renderer.shadowMap.needsUpdate = true;
@@ -6059,8 +5558,6 @@ function placeView(alpha) {
     u.group.position.set(u.px + (u.x - u.px) * alpha, u.y, u.pz + (u.z - u.pz) * alpha);
     u.body.rotation.y = Math.atan2(-u.fx, -u.fz);
   }
-  // 皇家 guard (Burning Palace ticket 02): instanced bodies, written while any guard lives or any instanced mesh still draws.
-  if (G.guardN > 0 || G.guardDrawn) drawGuards(alpha);
   if (G.phase === 'royale') for (let i = 0; i < NEUTRALS.length; i++) {
     const u = NEUTRALS[i]; if (!u.alive) continue;
     u.group.position.set(u.px + (u.x - u.px) * alpha, u.y, u.pz + (u.z - u.pz) * alpha);
@@ -6089,7 +5586,7 @@ function frame(now) {
     while (acc >= CONFIG.STEP) { step(CONFIG.STEP); acc -= CONFIG.STEP; }
     placeView(acc / CONFIG.STEP);
     if (ORD.rightHeld) { ORD.repathT -= dt; if (ORD.repathT <= 0) { ORD.repathT = CONFIG.REPATH_S; rightOrder(); } }
-    G.miniT -= dt; if (G.miniT <= 0) { G.miniT = 1 / CONFIG.MINI_HZ; if (PAL.on) palMini(); else drawMini(); }
+    G.miniT -= dt; if (G.miniT <= 0 && !PAL.on) { G.miniT = 1 / CONFIG.MINI_HZ; drawMini(); }
     renderer.render(scene, camera);
     renderer.shadowMap.needsUpdate = false;
     frameMs += (realMs - frameMs) * 0.1;
@@ -6147,8 +5644,6 @@ for (const u of ENEMIES.concat(NEUTRALS)) {
   warmHunt.push(u.group, u.ring, u.line, u.plate); u.group.visible = u.ring.visible = u.line.visible = true;
   for (const o of [u.group, u.ring, u.line, u.plate]) o.position.set(P.x, P.y, P.z);
 }
-// 皇家 guard (Burning Palace ticket 02): each type's instanced mesh draws one unit at the player here, so its buffers upload and its program compiles at load.
-for (const t of GUARD_TYPES) { const im = GDRAW[t]; GM4.makeTranslation(P.x, P.y, P.z); im.setMatrixAt(0, GM4); im.count = 1; im.instanceMatrix.needsUpdate = true; warmHunt.push(im); }
 for (const o of warmHunt) scene.add(o);
 for (const h of HAZARDS) h.ring.visible = true;
 for (const b of BOTLIST) if (b.group.parent) b.group.visible = true;
@@ -6159,19 +5654,19 @@ renderer.render(scene, camera);
 setView('overview'); placeView(1); renderer.render(scene, camera);
 // The palace rooms, doors and lake (BP01) are drawn once too, from above the palace, so their buffers upload at load.
 for (const r of PAL.rooms) scene.add(r.group);
-warmPieces(true);
 for (const d of PAL.doors) scene.add(d.group);
 scene.add(PAL.lake);
+// BP09: giants (both instanced meshes), a giant's tells, a vat ring and flood are drawn once in this palace draw.
+p2Warm(true);
 camera.position.set(PAL.cx, 90, PAL.cz + 60); camera.lookAt(PAL.cx, 0, PAL.cz); camera.updateMatrixWorld(); renderer.render(scene, camera);
-warmPieces(false);
 for (const r of PAL.rooms) scene.remove(r.group);
 for (const d of PAL.doors) scene.remove(d.group);
 scene.remove(PAL.lake);
+p2Warm(false);
 setView('follow');
 for (const h of HAZARDS) h.ring.visible = false;
 for (const b of BOTLIST) b.group.visible = false;
 for (const o of warmHunt) scene.remove(o);
-for (const t of GUARD_TYPES) GDRAW[t].count = 0;
 for (const u of ENEMIES.concat(NEUTRALS)) hideTell(u);
 for (const m of INDICATORS) m.visible = false;
 scene.remove(warm, warmZone); warm.geometry.dispose(); P.marker.visible = false;
@@ -6313,26 +5808,6 @@ window.__game = {
   royale: () => ({ phase: G.phase, lostIn: G.lostIn, alive: G.alive, decidedAt: G.decidedAt, t: G.time, voice: el.voice.textContent, rule: el.rule.textContent, banner: el.banner.style.display, btn: el.btnHunt.style.display, btnText: el.btnHunt.textContent }), setBotCd(i, slot, v) { BOTLIST[i].cd[slot] = v; }, setTime(t) { G.time = t; },
   hitBy(i, j, n) { const a = i < 0 ? P : BOTLIST[i], b = j < 0 ? P : BOTLIST[j]; hurtSuit(b, n, 'hit', a); },
   hitCubBy(i, j, n) { hitEnemy(CUBS[i], n, j < 0 ? P : BOTLIST[j]); }, hitNeutralBy(i, j, n) { hitEnemy(NEUTRALS[i], n, j < 0 ? P : BOTLIST[j]); },
-  // 皇家 guard (Burning Palace ticket 02, checks 300+): guardSpawn = the spawn API (spawnSquad); guards (read); guardStrike = a blow from suit i (-1 = player)
-  // on guard g through hitTarget (basic or a skill); guardSet = fields on guard g (checks only); guardFaction = rename a squad's faction (hostility checks only).
-  guardSpawn(f, list, x, z, opts) { return spawnSquad(f, list, x, z, opts); },
-  guards() {
-    const id = (o) => (!o ? '' : o === P ? 'P' : o.bot ? 'b' + BOTLIST.indexOf(o) : o.guard ? 'g' + GUARDS.indexOf(o) : '?');
-    return { n: G.guardN, drawn: G.guardDrawn, kills: G.guardKills, breaks: G.guardBreaks, blocks: G.guardBlocks, hits: G.guardHits, minTell: G.guardMinTell,
-      player: { bT: P.bT.slice(), bV: P.bV.slice(), plates: P.plates, pk: P.pk.slice(), kx: P.kx, kz: P.kz },
-      pool: Object.fromEntries(GUARD_TYPES.map((t) => [t, GPOOL[t].length])),
-      draw: Object.fromEntries(GUARD_TYPES.map((t) => [t, { count: GDRAW[t].count, staged: onStage(GDRAW[t]) }])),
-      list: GUARDS.map((u) => ({ type: u.gtype, faction: u.faction, x: u.x, z: u.z, y: u.y, hp: u.hp, max: u.maxHp, alive: u.alive, seen: u.seen, st: u.st, cur: u.cur,
-        sq: u.sq ? u.sq.id : -1, form: u.form, dmgK: u.dmgK, defK: u.defK, fx: u.fx, fz: u.fz, tgt: id(u.tgt), slotF: u.slotF, slotL: u.slotL, gcd: u.gcd,
-        tellStaged: onStage(u.ring) || onStage(u.line) })),
-      squads: SQUADS.map((s) => ({ on: s.on, n: s.n, broken: s.broken, lead: s.leader ? GUARDS.indexOf(s.leader) : -1, fx: s.fx, fz: s.fz, tgt: id(s.tgt), faction: s.faction })),
-      tells: GUARDS.map((u, i) => [u, i]).filter(([u]) => u.alive && u.st === 1).map(([u, i]) => { const m = GMV[u.cur], mesh = m.shape === 'line' ? u.line : u.ring;
-        return { i, type: u.gtype, move: u.cur, shape: m.shape, x: m.shape === 'line' ? u.x : u.tx, z: m.shape === 'line' ? u.z : u.tz, y: u.ty, r: m.radius || 0, len: u.tl, w: m.width || 0,
-          age: u.tellT, left: u.t, windup: m.windup, shown: mesh.visible && onStage(mesh), red: mesh.material === M.tellD }; }) };
-  },
-  guardStrike(i, g, n, basic) { return hitTarget(i < 0 ? P : BOTLIST[i], GUARDS[g], n, !!basic); },
-  guardSet(g, o) { Object.assign(GUARDS[g], o); },
-  guardFaction(q, f) { const s = SQUADS[q]; s.faction = f; for (const u of GUARDS) if (u.sq === s && u.alive) u.faction = f; },
   player: () => ({ mode: P.mode, tgt: P.tgt ? (P.tgt.kind === 'suit' ? P.tgt.id : -2) : -1, dead: P.dead, cause: P.cause, diedAt: P.diedAt, plates: P.plates, boons: P.boons, x: P.x, y: P.y, z: P.z, kills: P.kills }),
   bots: () => ({ n: G.botN, alive: G.alive, navRuns: G.navRuns, navPeak: G.navPeak, huntN: G.huntN, huntClaims: G.huntClaims, huntFrees: G.huntFrees, list: BOTLIST.slice(0, G.botN).map((b) => ({ id: b.id, x: b.x, y: b.y, z: b.z, hp: b.hp, dead: b.dead, cause: b.cause, diedAt: b.diedAt,
     killer: b.killer ? b.killer.id : -1, stuck: b.stuckMax, zone: b.zone ? b.zone.id : null, seen: b.seen, vis: b.group.visible, inScene: !!b.group.parent, plates: b.plates, boons: b.boons,
@@ -6475,43 +5950,26 @@ Object.assign(window.__game, {
 Object.assign(window.__game, {
   burnState: () => ({ on: CONFIG.BURN.on, i: BURN.i, wing: BURN.wing, st: BURN.st, nextAt: BURN.nextAt, warnAt: BURN.warnAt, fallAt: BURN.fallAt,
     waiting: BURN.waiting, waits: BURN.waits, bad: BURN.bad, badWhy: BURN.badWhy, badRoom: BURN.badRoom, checks: BURN.checks, falls: BURN.falls, fellN: BURN.fellN,
-    writes: BURN.writes, next: el.next.textContent, nextShown: getComputedStyle(el.next).display, order: BURN.order.slice(), warnS: CONFIG.BURN.warnS,
+    writes: BURN.writes, next: el.next.textContent, nextShown: getComputedStyle(el.next).display, order: CONFIG.BURN.order.slice(), warnS: CONFIG.BURN.warnS,
     rooms: PAL.rooms.map((r) => ({ id: r.id, wing: r.wing, state: r.state, warned: r.warned, fallen: r.fallen, locked: !!r.locked, warnAt: r.warnAt, fallAt: r.fallAt,
       y: r.group.position.y, attached: !!r.group.parent, warnMat: r.floorMeshes.some((m) => m.material === warnMat), floorsOn: PAL.floors.filter((f) => f.s === r && f.active).length })),
     pcause: P.cause, pdead: P.dead, pdiedAt: P.diedAt, phase: G.phase, t: G.time }),
   burnLock(id, on) { PAL.byId[id].locked = on; },
   burnCanLock: (id) => burnCanLock(PAL.byId[id]),
 });
-// The full palace hooks (BP05): setLayout (the next palace run takes it; 'full' or 'proto'), palPlan (read: plan, rooms with wing, school,
-// depth, pieces, doors), palEsc (read: squads and unit list for a room id at time t), palMiniPx (the palace minimap pixel at world x, z),
-// palMiniMap (read: minimap scale and offset), palTestRoomState (checks only: a room's warned/fallen flags).
+// Palace pieces II hooks (BP09): pieces2State (read), pieces2 (switches for checks that isolate other systems: on, giants), giantWake (checks only:
+// wakes the next giant as a fall would), vatAttack (the player's attack order on vat i, as a right-click on it).
 Object.assign(window.__game, {
-  setLayout(k) { PAL.want = k; },
-  palPlan: () => ({ layout: PAL.layout, want: PAL.want, start: PAL.start ? PAL.start.id : null, bounds: [PAL.bx0, PAL.bx1, PAL.bz0, PAL.bz1],
-    lakeW: PAL.lake.geometry.parameters.width, sunX: sun.target.position.x, sunZ: sun.target.position.z, mini: el.mini.style.display || getComputedStyle(el.mini).display,
-    rooms: PAL.rooms.map((r) => ({ id: r.id, type: r.type, name: r.name, wing: r.wing, school: r.school, depth: r.depth, x0: r.x0, x1: r.x1, z0: r.z0, z1: r.z1, cx: r.cx, cz: r.cz,
-      spawn: r.spawn, doors: r.doors.map((d) => d.idx), pieces: r.pieces.map((q) => Object.assign({}, q)) })),
-    doors: PAL.doors.map((d) => ({ a: d.ra.id, b: d.rb.id, x: d.x, z: d.z, vert: d.vert })) }),
-  palEsc: (id, t) => ({ squads: palEscSquads(PAL.byId[id], t), mix: palEscMix(PAL.byId[id]).slice() }),
-  palMiniMap: () => ({ ox: PAL.mOx, oy: PAL.mOy, s: PAL.mS, bx0: PAL.bx0, bz0: PAL.bz0 }),
-  // Checks only: stand in for the burning (ticket 04 owns room.warned and room.fallen) to test the minimap.
-  palTestRoomState(id, warned, fallen) { const r = PAL.byId[id]; r.warned = warned; r.fallen = fallen; },
-  palMiniPx(x, z) { palMini(); const d = MINI.ctx.getImageData(Math.round(PAL.mOx + (x - PAL.bx0) * PAL.mS), Math.round(PAL.mOy + (z - PAL.bz0) * PAL.mS), 1, 1).data; return [d[0], d[1], d[2]]; },
-});
-// The Burning Palace pieces hooks (BP08): pieces (read: lions and 华表 with state, ring and eyes; mercury with state and look; smoke clouds; 鼎 charge;
-// the player's mark and health), pieceBot (read: bot k's health, mark and knockback), pieceProbe (checks only: one stand-in unit of another side
-// at x, z), probe (read), pieceDanger (bot k's danger at x, z and the way out), smokeBlocks.
-Object.assign(window.__game, {
-  pieces: () => ({ on: CONFIG.PIECES.on, sides: PIECE_SIDES.length, pMark: P.markT, pHp: P.hp, pMarker: P.marker.visible,
-    haz: PIECE_HAZ.filter((h) => h.s.lay === PAL.layout).map((h) => ({ kind: h.kind, room: h.s.id, x: h.x, z: h.z, state: h.state, t: h.t, ring: h.ring.visible, eyes: h.eyes ? h.eyes.material === M.hbEyeOn : null, inScene: !!h.s.group.parent })),
-    merc: PIECE_MERC.filter((m) => m.s.lay === PAL.layout).map((m) => ({ room: m.s.id, ph: m.ph, x0: m.x0, x1: m.x1, z0: m.z0, z1: m.z1, state: m.state, stT: m.stT, t: m.t, look: [M.merc, M.mercWarn, M.mercHot].indexOf(m.mesh.material) })),
-    smoke: PIECE_SMOKE.filter((c) => c.s.lay === PAL.layout).map((c) => ({ room: c.s.id, x: c.x, z: c.z, r: c.r })),
-    ding: PIECE_DING.filter((a) => a.s.lay === PAL.layout).map((a) => ({ room: a.s.id, x: a.x, z: a.z, charge: a.charge, on: a.mesh.material === M.altarOn })) }),
-  pieceBot: (k) => { const b = BOTLIST[k]; return { hp: b.hp, dead: b.dead, markT: b.markT, marker: b.marker.visible, kx: b.kx, kz: b.kz }; },
-  pieceProbe(x, z, hp) { PIECE_PROBE.list.length = 0; PIECE_PROBE.list.push({ alive: true, x, z, y: 0, hp, max: 100, hits: 0, kx: 0, kz: 0 }); },
-  probe: () => { const u = PIECE_PROBE.list[0]; return u ? { hp: u.hp, hits: u.hits, kx: u.kx, kz: u.kz } : null; },
-  pieceDanger(k, x, z) { const hit = pieceDanger(BOTLIST[k], x, z, 0.5); return { hit, ex: DNG.ex, ez: DNG.ez }; },
-  smokeBlocks,
+  pieces2State: () => ({ on: P2.on, giantsOn: P2.giantsOn, awake: P2.awake, wakes: P2.wakes, lost: P2.lost, douses: P2.douses, notes: P2.notes, instWrites: P2.instWrites,
+    nDorm: P2.nDorm, nAwake: P2.nAwake, inScene: !!P2.dorm.parent && !!P2.wake.parent, cap: CONFIG.PIECES2.giant.cap,
+    clocks: P2.clocks.map((c) => ({ room: c.room.id, wing: c.wing, level: c.level, eta: c.eta, full: c.full, step: c.step, scale: c.water.scale.y, writes: c.writes, attached: !!c.room.group.parent })),
+    vats: P2_VATS.map((v) => ({ room: v.room, x: v.x, z: v.z, hp: v.hp, st: v.st, seen: v.seen, solidOff: v.solid.off, body: v.body.visible, ring: !!v.ring.parent, flood: !!v.flood.parent })),
+    giants: P2.giants.map((g) => ({ i: g.i, st: g.st, x: g.x, z: g.z, hx: g.hx, hz: g.hz, room: (palRoomAt(g.x, g.z) || { id: '' }).id, cur: g.cur, t: g.t, tellT: g.tellT,
+      ring: !!g.ring.parent, line: !!g.line.parent, hits: g.hits, minTell: g.minTell, tgt: g.tgt === P ? 'P' : g.tgt ? 'suit' : '', vis: g.vis })),
+    burnWarnAt: BURN.warnAt, t: G.time }),
+  pieces2(on, giants) { P2.on = !!on; P2.giantsOn = giants === undefined ? true : !!giants; },
+  giantWake: () => p2Wake(),
+  vatAttack(i) { ORD.attack = P2_VATS[i]; PATH.n = 0; },
 });
 window.__ready = true;
 requestAnimationFrame(frame);
