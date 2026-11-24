@@ -1,0 +1,8 @@
+hall max calls 60 max tris 27822
+hall_burnt max calls 60 max tris 27822
+hall_locked max calls 62 max tris 28302
+court max calls 68 max tris 9898
+corridor max calls 55 max tris 9396
+garden max calls 41 max tris 2968
+bridge max calls 29 max tris 4994
+core max calls 61 max tris 6732

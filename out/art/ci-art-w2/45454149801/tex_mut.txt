@@ -1,0 +1,15 @@
+CAUGHT rammed_earth flat -> brush scale
+CAUGHT rammed_earth flat -> contrast
+CAUGHT rammed_earth shear -> seam x
+CAUGHT stone_paving saturate -> saturation
+CAUGHT stone_paving blocks -> repeat
+CAUGHT rammed_earth blocks -> repeat
+CAUGHT black_lake grey -> teal tint
+CAUGHT garden_plants faint -> alpha test
+CAUGHT mercury_matcap dull -> brightest
+CAUGHT mural_wall blank_band -> mural ink
+CAUGHT tile_ends blank_discs -> contrast
+CAUGHT timber dull -> value
+CAUGHT earth_burnt grey -> reddened
+CAUGHT wall_burnt <lambda> -> darker than unburnt
+14 of 14 caught
