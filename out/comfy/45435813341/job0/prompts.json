@@ -1,0 +1,69 @@
+{
+  "_about": "Concept references for the 皇家 guard and the 反贼 rebels (worker W5, 25 Nov; docs/BURNING-PALACE.md, art/Guard-Rebels-Study.md). Reference only: never shipped, never traced; models are built in Blender from what is measured on the picked images. Model: SD 1.5 + LCM LoRA as before. Jobs: 0 guard foot soldier on a tread base (front), 1 guard shieldbearer and crossbowman (three quarter), 2 rebel mob fighter (yellow headband, patched lamellar), 3 rebel leader and talisman priest.",
+  "checkpoint": "v1-5-pruned-emaonly.safetensors",
+  "checkpoint_url": "https://huggingface.co/stable-diffusion-v1-5/stable-diffusion-v1-5/resolve/main/v1-5-pruned-emaonly.safetensors",
+  "width": 512,
+  "height": 512,
+  "steps": 6,
+  "cfg": 1.5,
+  "sampler": "lcm",
+  "scheduler": "sgm_uniform",
+  "positive": "{view}, game concept art, full figure, plain grey background",
+  "negative": "text, watermark, samurai, japanese, katana, qing dynasty, queue hairstyle, sci-fi, robot face, neon, glowing, gun, modern, blurry, cropped, multiple figures",
+  "jobs": [
+    {
+      "view": "front view of an ancient chinese qin soldier statue cast in dark bronze, black lacquered lamellar armour with blue cord bindings, long spear, lower body is a low tank tread base instead of legs",
+      "seeds": [
+        5101,
+        5102,
+        5103,
+        5104,
+        5105,
+        5106,
+        5107,
+        5108
+      ]
+    },
+    {
+      "view": "three quarter view of a squat ancient chinese bronze shield bearer automaton, big rectangular black lacquered shield, lamellar armour with blue cords, rolling on a low tread base",
+      "seeds": [
+        5109,
+        5110,
+        5111,
+        5112,
+        5113,
+        5114,
+        5115,
+        5116
+      ]
+    },
+    {
+      "view": "three quarter view of a han dynasty peasant rebel warrior, yellow headband, crude patched lamellar armour of mismatched plates tied with rope, one painted red shoulder patch, holding a spear, dusty",
+      "seeds": [
+        5201,
+        5202,
+        5203,
+        5204,
+        5205,
+        5206,
+        5207,
+        5208
+      ]
+    },
+    {
+      "view": "three quarter view of a yellow turban rebel leader, han dynasty, yellow headband and yellow sash, tall banner pole on his back, patched lamellar armour, big dao sabre, fierce",
+      "seeds": [
+        5209,
+        5210,
+        5211,
+        5212,
+        5213,
+        5214,
+        5215,
+        5216
+      ]
+    }
+  ],
+  "lora": "lcm-lora-sdv1-5.safetensors",
+  "lora_url": "https://huggingface.co/latent-consistency/lcm-lora-sdv1-5/resolve/main/pytorch_lora_weights.safetensors"
+}
