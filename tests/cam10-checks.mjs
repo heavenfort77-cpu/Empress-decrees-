@@ -172,7 +172,7 @@ export async function cam10Checks(g, check, browser, URL0) {
     }, () => { const p = P0(), R = p.rooms.find((q) => q.id === 'hall'); G.teleport(R.cx, R.cz); });
     // Look point: one rival 6 m north of the player, settled: 30% of the way to it.
     G.setSeed(12345); G.setMode('palace'); G.pieces2(true); G.reset(); G.step(10);
-    { const p = P0(); G.palPlaceBot(0, p.x, p.z - 6); G.step(120); const c = lens(), q = P0(), bt = G.bots().list[0]; o.focus = { fn: c.fn, dx: +(c.ftx - (q.x + (bt.x - q.x) * F.focus)).toFixed(3), dz: +(c.ftz - (q.z + (bt.z - q.z) * F.focus)).toFixed(3) }; }
+    { const p = P0(), bx = p.x, bz = p.z - 6; G.palPlaceBot(0, bx, bz); G.step(120); const c = lens(), q = P0(); o.focus = { fn: c.fn, dx: +(c.ftx - (q.x + (bx - q.x) * F.focus)).toFixed(3), dz: +(c.ftz - (q.z + (bz - q.z) * F.focus)).toFixed(3) }; }
     // Negatives: a rival between enterR and exitR in the court (40 m wide), and a lurking 死士 at 6 m (fresh run each).
     G.setSeed(12345); G.setMode('palace'); G.pieces2(true); G.reset(); G.step(10);
     const ct = P0().rooms.find((q) => q.id === 'court'), far = (F.enterR + F.exitR) / 2;
