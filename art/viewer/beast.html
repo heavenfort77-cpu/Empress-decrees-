@@ -10,6 +10,8 @@
      &level=0-1 water clock level (1 full, 0 empty: the countdown; clock nodes carry extras full/empty heights) &look=0-1 huabiao head turn
      (0 rest, 1 turned to the passer) &state= for W1b props: merc idle | warn | hot; lamp lit | out; &eye=awake (huabiao eyes; with &t= in the
      watch clip, e.g. t=0.5 = the end of the windup)
+     C12 school standard: ?model=standard&school=0-8 (banner atlas cell, CONFIG.SCHOOLS order) &lineup=1 (all nine in a row at the play or
+     wide camera; window.__dump = banner boxes on screen + banner material flags) &t= seconds into its 'idle' sway clip.
      glTF UVs: the trim sheet loads with flipY false (glTF convention; the round 1 shots showed patina on fresh plates without it). -->
 <html><head><meta charset="utf-8"><style>html,body{margin:0;background:#120d16;overflow:hidden}</style>
 <script type="importmap">{"imports":{"three":"../../lib/three.module.min.js"}}</script></head><body>
@@ -36,6 +38,17 @@ floor.rotation.x = -Math.PI / 2; floor.receiveShadow = true; if (MODE === 'tex' 
 // ding accents in CONFIG.SCHOOLS order (ru dao fa mo yinyang za ming zongheng nong); the GLB's extras.accents overrides this list
 let ACCENTS = ['#a8321e', '#2f8a5c', '#1a1614', '#c8ccd0', '#d9d2c3', '#b8862e', '#e2b84a', '#2e5a9c', '#5b3f8c'];
 const SCHOOL = +(Q.get('school') || 0);
+// C12 standard banner: one atlas (assets/tex/school_standards.png, 5 x 2 cells), school = UV offset; alpha-tested cloth, never blended
+const LINEUP = Q.get('lineup') !== null;
+const BANNER_TEX = MODEL === 'standard' ? await tl.loadAsync('../../assets/tex/school_standards.png') : null;
+function bannerMat(i, mode) {
+  const t = BANNER_TEX.clone(); t.colorSpace = THREE.SRGBColorSpace; t.flipY = false; t.wrapS = t.wrapT = THREE.ClampToEdgeWrapping; t.anisotropy = 4;
+  t.offset.set((i % 5) * 0.2, Math.floor(i / 5) * 0.5); t.needsUpdate = true;
+  const p = { map: t, alphaTest: 0.5, side: THREE.DoubleSide };
+  if (mode === 'sil') return new THREE.MeshBasicMaterial({ ...p, color: 0x000000 });
+  if (mode === 'flat') return new THREE.MeshBasicMaterial(p);
+  return new THREE.MeshStandardMaterial({ ...p, roughness: 0.9 });
+}
 let ACC_METAL = [];  // from the GLB extras accentMetal (metal inlays shine, pigments matte)
 function glowTex() {  // soft radial ember glow for the lit card (additive; no neon: warm, low saturation at the edge)
   const c = document.createElement('canvas'); c.width = c.height = 128; const g = c.getContext('2d'), gr = g.createRadialGradient(64, 64, 4, 64, 64, 62);
@@ -67,10 +80,11 @@ const MATS = {
     palMercRef: () => new THREE.MeshMatcapMaterial({ matcap: tex('../../assets/tex/mercury_matcap.png'), side: THREE.DoubleSide }),
     palMerc: () => { const t = tex('../../assets/tex/mercury_matcap.png'); const m = new THREE.MeshMatcapMaterial({ matcap: t });
       // idle held down (0.72) so the shimmer tell (warn: full matcap) and the burn (hot: over-bright white) step up from it
-      m.color = STATE === 'warn' ? new THREE.Color(1.0, 1.02, 1.06) : STATE === 'hot' ? new THREE.Color(1.6, 1.6, 1.65) : new THREE.Color(0.72, 0.74, 0.78); return m; } },
-  shade: { palBronze: () => new THREE.MeshStandardMaterial({ color: 0x9a7a48, metalness: METAL, roughness: ROUGH }), palInlay: () => new THREE.MeshStandardMaterial({ color: 0xc8ccd0, metalness: 0.6, roughness: 0.35 }), palStone: () => new THREE.MeshStandardMaterial({ color: 0x9a968c, roughness: 0.9 }) },
-  flat: { palBronze: () => new THREE.MeshBasicMaterial({ color: 0x9a7a48 }), palInlay: () => new THREE.MeshBasicMaterial({ color: 0xc8ccd0 }), palStone: () => new THREE.MeshBasicMaterial({ color: 0x9a968c }) },
-  sil: { palBronze: () => new THREE.MeshBasicMaterial({ color: 0x000000 }), palInlay: () => new THREE.MeshBasicMaterial({ color: 0x000000 }), palStone: () => new THREE.MeshBasicMaterial({ color: 0x000000 }) },
+      m.color = STATE === 'warn' ? new THREE.Color(1.0, 1.02, 1.06) : STATE === 'hot' ? new THREE.Color(1.6, 1.6, 1.65) : new THREE.Color(0.72, 0.74, 0.78); return m; },
+    palBanner: () => bannerMat(SCHOOL, 'tex') },
+  shade: { palBronze: () => new THREE.MeshStandardMaterial({ color: 0x9a7a48, metalness: METAL, roughness: ROUGH }), palInlay: () => new THREE.MeshStandardMaterial({ color: 0xc8ccd0, metalness: 0.6, roughness: 0.35 }), palStone: () => new THREE.MeshStandardMaterial({ color: 0x9a968c, roughness: 0.9 }), palBanner: () => bannerMat(SCHOOL, 'shade') },
+  flat: { palBronze: () => new THREE.MeshBasicMaterial({ color: 0x9a7a48 }), palInlay: () => new THREE.MeshBasicMaterial({ color: 0xc8ccd0 }), palStone: () => new THREE.MeshBasicMaterial({ color: 0x9a968c }), palBanner: () => bannerMat(SCHOOL, 'flat') },
+  sil: { palBronze: () => new THREE.MeshBasicMaterial({ color: 0x000000 }), palInlay: () => new THREE.MeshBasicMaterial({ color: 0x000000 }), palStone: () => new THREE.MeshBasicMaterial({ color: 0x000000 }), palBanner: () => bannerMat(SCHOOL, 'sil') },
 };
 const made = {}; const matFor = (n) => { const k = MODE === 'tex' || MATS[MODE][n] ? n : (n === 'palGlow' ? 'palGlow' : 'palBronze'); return made[k] || (made[k] = (MATS[MODE][k] || MATS.tex[k] || MATS[MODE].palBronze)()); };
 const boxMat = () => new THREE.MeshStandardMaterial({ color: 0x9a968c, roughness: 0.9 });
@@ -99,10 +113,12 @@ const SPEC = {
   merc: { clip: null, box: (x) => boxes(x, [[2, 0.06, 6, 0.03, 0]], (w, h, d) => new THREE.BoxGeometry(w, h, d)), states: { idle: [], warn: [], hot: [] }, def: 'idle', lookY: 0.2, turnY: 0.3, turnD: 6.5, boxX: -3.4 },
   censer: { clip: null, box: (x) => boxes(x, [[1.2, 1.0, 1.2, 0.5, 0], [0.8, 0.5, 0.8, 1.25, 0]], (w, h, d) => new THREE.BoxGeometry(w, h, d)),
     states: null, lookY: 0.9, turnY: 0.9, turnD: 4.0, boxX: -3.0 },
+  // C12 school standard (W6): no box version in index.html
+  standard: { clip: 'idle', box: () => new THREE.Group(), states: null, lookY: 1.6, turnY: 2.2, turnD: 6.5, boxX: 0, lodGap: 2.5, lodD: 11 },
 }[MODEL];
 const STATE = SPEC.states ? (Q.get('state') || SPEC.def) : null;
 const player = new THREE.Mesh(new THREE.BoxGeometry(0.9, 2.05, 0.9), new THREE.MeshStandardMaterial({ color: 0x3a7bd5, roughness: 0.6 })); player.position.set(2.2, 1.025, 2.6); player.castShadow = true;
-new GLTFLoader().load(`../../assets/models/${MODEL}.glb`, (g) => {
+if (LINEUP) lineup(); else new GLTFLoader().load(`../../assets/models/${MODEL}.glb`, (g) => {
   const root = g.scene;
   root.traverse((o) => { if (o.userData && o.userData.accents) { ACCENTS = o.userData.accents; ACC_METAL = o.userData.accentMetal || []; } });
   root.traverse((o) => { if (o.isMesh) { const n0 = o.material.name; o.material = matFor(n0); o.castShadow = o.material.name !== 'palGlow' && !o.material.transparent; o.receiveShadow = true;
@@ -132,4 +148,30 @@ new GLTFLoader().load(`../../assets/models/${MODEL}.glb`, (g) => {
   const go = () => { r.render(scene, cam); window.__ready = true; };
   setTimeout(go, 800);
 });
+// C12 lineup: the nine school standards in a row (one shared mesh, banner material per school), player box at the right end for scale
+async function lineup() {
+  const ld = new GLTFLoader(), GAP = 1.7, gs = await Promise.all([0, 1, 2, 3, 4, 5, 6, 7, 8].map(() => ld.loadAsync(`../../assets/models/${MODEL}.glb`)));
+  gs.forEach((g, i) => {
+    const root = g.scene;
+    root.traverse((o) => { if (o.isMesh) { const n0 = o.material.name; o.material = n0 === 'palBanner' ? bannerMat(i, MODE) : matFor(n0); o.castShadow = true; o.receiveShadow = true; } });
+    for (const o of root.children) if (/_lod[12]$/.test(o.name)) o.visible = false;
+    root.position.x = (i - 4) * GAP; scene.add(root);
+    if (T !== null) { const mix = new THREE.AnimationMixer(root); for (const c of g.animations) mix.clipAction(c).play(); mix.setTime(+T + i * 0.13); }
+  });
+  player.position.x = 7.9; scene.add(player);
+  const pitch = 40 * Math.PI / 180, look = new THREE.Vector3(-0.4, SPEC.lookY, 0.6), dist = VIEW === 'wide' ? 22 : 10.5;
+  cam.position.set(look.x, look.y + Math.sin(pitch) * dist, look.z + Math.cos(pitch) * dist); cam.lookAt(look); cam.updateMatrixWorld();
+  const boxes = [];
+  for (let i = 0; i < 9; i++) {
+    let a = [1e9, 1e9, -1e9, -1e9];
+    for (const [dx, y] of [[-0.4, 1.3], [0.4, 1.3], [-0.4, 3.3], [0.4, 3.3]]) {
+      const v = new THREE.Vector3((i - 4) * GAP + dx, y, 0.075).project(cam), px = (v.x + 1) / 2 * W, py = (1 - v.y) / 2 * H;
+      a = [Math.min(a[0], px), Math.min(a[1], py), Math.max(a[2], px), Math.max(a[3], py)];
+    }
+    boxes.push(a);
+  }
+  const bm = bannerMat(0, MODE);
+  window.__dump = { boxes, banner: { alphaTest: bm.alphaTest, transparent: bm.transparent, blending: bm.blending, depthWrite: bm.depthWrite, side: bm.side } };
+  setTimeout(() => { r.render(scene, cam); window.__ready = true; }, 800);
+}
 </script></body></html>
