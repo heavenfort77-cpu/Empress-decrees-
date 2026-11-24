@@ -2842,13 +2842,14 @@ try {
     G.placeBot(6, 6, -4); park2(); G.setBotCd(6, 1, 0); G.zhWarn('C2'); G.step(1);
     Z.hold(1, park2); const z0 = G.zhState(6); o.stay = { n: z0.swapN, hunter: z0.hunter };
     G.placeBot(6, 6, -4); bt[0] = [5, -11]; Z.until(() => G.zhState(6).swapN > 0, 120, park2); const z1 = G.zhState(6);
-    o.bot = { n: z1.swapN, z: +z1.z.toFixed(2), b0z: +G.zhState(0).z.toFixed(2), cd: +z1.cd[1].toFixed(2) };
+    // bot0 may step before the 纵横甲 bot thinks in the same tick: he lands where bot0 stood then (in C1), bot0 exactly where he stood.
+    o.bot = { n: z1.swapN, z: +z1.z.toFixed(2), zone: z1.zone, b0z: +G.zhState(0).z.toFixed(2), cd: +z1.cd[1].toFixed(2) };
     Z.end(); return o;
   });
   check('157 纵横甲 W 连横: the player swaps into a warned section (positions traded, cooldown); 不争 counters it; the 纵横甲 bot swaps out of a warned section only with an enemy clear of it, never the player without a slot',
     d157.cast && d157.swap.p.join() === '6,-8,C2,1' && d157.swap.b.join() === '6,-15' && d157.swap.cd === C0.KITS.zongheng.skills[1].cd && d157.swap.n === 1
     && d157.dao.cast && d157.dao.p.join() === '6,-15' && d157.dao.n === 0 && d157.dao.cd === C0.KITS.zongheng.skills[1].cd && d157.dao.daoN === 1
-    && d157.stay.n === 0 && !d157.stay.hunter && d157.bot.n === 1 && d157.bot.z === -11 && d157.bot.b0z === -4, JSON.stringify(d157));
+    && d157.stay.n === 0 && !d157.stay.hunter && d157.bot.n === 1 && d157.bot.zone === 'C1' && Math.abs(d157.bot.z + 11) < 0.3 && d157.bot.b0z === -4, JSON.stringify(d157));
   // 158 R 不攻自破: a circle (radius m) shown for its whole dur s; bots inside turn on the nearest other suit (not him); damage between suits inside is x (1 + bonus),
   // outside plain; the HUD line names it; the ring is removed at the end and the line goes.
   const d158 = await g(() => {

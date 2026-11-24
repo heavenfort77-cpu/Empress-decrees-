@@ -2542,7 +2542,7 @@ function zhPick(s, sk, x, z, ord) {
 }
 // 合纵: ties ZH.a and ZH.b for dur s (one cord per 纵横甲; a new one replaces his old one).
 function tieCord(s, sk) {
-  const c = s.cord; if (c.t < 0) G.cordN++;
+  const c = s.cord; if (!c.sk) G.cordN++;
   c.t = sk.dur; c.a = ZH.a; c.b = ZH.b; c.sk = sk; s.linkN++;
   placeCord(c); if (!c.mesh.parent) scene.add(c.mesh);
 }
@@ -2551,12 +2551,12 @@ function placeCord(c) {
   const a = c.a, b = c.b, dx = b.x - a.x, dz = b.z - a.z;
   c.mesh.position.set(a.x, Math.max(a.y, b.y) + 1, a.z); c.mesh.rotation.y = Math.atan2(-dx, -dz); c.mesh.scale.set(0.15, 1, Math.max(0.01, Math.hypot(dx, dz)));
 }
-function endCord(s) { const c = s.cord; if (c.t < 0) return; c.t = -1; c.a = null; c.b = null; c.sk = null; if (c.mesh.parent) scene.remove(c.mesh); G.cordN--; }
+function endCord(s) { const c = s.cord; if (!c.sk) return; c.t = -1; c.a = null; c.b = null; c.sk = null; if (c.mesh.parent) scene.remove(c.mesh); G.cordN--; }
 // Damage lost by d (suit, cub or hunt unit) is also dealt, by share, to the enemy tied to it (its armor applies; the share itself is not passed on again).
 function linkShare(d, lost, by) {
   if (G.linkBusy || lost <= 0) return;
   for (let i = 0; i < SUITS.length; i++) {
-    const c = SUITS[i].cord; if (c.t < 0) continue;
+    const c = SUITS[i].cord; if (!c.sk) continue;
     const o = c.a === d ? c.b : c.b === d ? c.a : null; if (!o) continue;
     G.linkBusy = true;
     if (o.kind === 'suit') hurtSuit(o, lost * c.sk.share, 'hit', by); else hitEnemy(o, lost * c.sk.share, by);
@@ -2564,7 +2564,7 @@ function linkShare(d, lost, by) {
   }
 }
 // Suit o is tied by a cord.
-function linkedNow(o) { if (G.cordN <= 0) return false; for (let i = 0; i < SUITS.length; i++) { const c = SUITS[i].cord; if (c.t >= 0 && (c.a === o || c.b === o)) return true; } return false; }
+function linkedNow(o) { if (G.cordN <= 0) return false; for (let i = 0; i < SUITS.length; i++) { const c = SUITS[i].cord; if (c.sk && (c.a === o || c.b === o)) return true; } return false; }
 // The snap: a tied suit is slowed (cubs and hunt units are not).
 function snapSlow(o, sk) { if (o.kind !== 'suit' || o.dead) return; o.slowK = Math.max(o.slowT > 0 ? o.slowK : 0, sk.slow); o.slowT = Math.max(o.slowT, sk.slowS); }
 // 连横: s and d trade places at once. False = not now (either in the air or mid-move, or no room for one of them at the other's place).
@@ -2588,11 +2588,11 @@ function zhReplan(q) {
 }
 // 不攻自破: a circle of radius at x, z for dur s (one per 纵横甲; a new one replaces his old one).
 function castCircle(s, sk, x, z) {
-  const r = s.circle; if (r.t < 0) G.circleN++;
+  const r = s.circle; if (!r.sk) G.circleN++;
   r.t = sk.dur; r.sk = sk; r.x = x; r.z = z; r.y = topYUnder(x, z, s.y + 1);
   r.mesh.scale.setScalar(sk.radius); r.mesh.position.set(x, r.y + 0.07, z); if (!r.mesh.parent) scene.add(r.mesh);
 }
-function endCircle(s) { const r = s.circle; if (r.t < 0) return; r.t = -1; r.sk = null; if (r.mesh.parent) scene.remove(r.mesh); G.circleN--; }
+function endCircle(s) { const r = s.circle; if (!r.sk) return; r.t = -1; r.sk = null; if (r.mesh.parent) scene.remove(r.mesh); G.circleN--; }
 // o (suit or unit) stands inside suit s's circle.
 function inCircleOf(s, o) { const r = s.circle; return r.t > 0 && Math.abs(o.y - r.y) < 2 && Math.hypot(o.x - r.x, o.z - r.z) <= r.sk.radius; }
 // The 纵横甲 whose circle holds o (null = none).
@@ -2608,14 +2608,14 @@ function stepZongheng(dt) {
   if (G.cordN <= 0 && G.circleN <= 0) return;
   for (let i = 0; i < SUITS.length; i++) {
     const s = SUITS[i], c = s.cord, r = s.circle;
-    if (c.t >= 0) {
+    if (c.sk) {
       c.t -= dt;
       const a = c.a, b = c.b;
       if (c.t <= 0 || zhGone(a) || zhGone(b)) endCord(s);
       else if (Math.hypot(a.x - b.x, a.z - b.z) > c.sk.snapM) { snapSlow(a, c.sk); snapSlow(b, c.sk); endCord(s); }
       else { placeCord(c); c.mesh.visible = s === P || a === P || b === P || !!a.seen || !!b.seen; }
     }
-    if (r.t >= 0) { r.t -= dt; if (r.t <= 0) endCircle(s); else r.mesh.visible = s === P || s.seen || inCircleOf(s, P); }
+    if (r.sk) { r.t -= dt; if (r.t <= 0) endCircle(s); else r.mesh.visible = s === P || s.seen || inCircleOf(s, P); }
   }
 }
 function zhGone(o) { return o.kind === 'suit' ? o.dead : !o.alive; }
