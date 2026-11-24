@@ -21,6 +21,7 @@ const shots = [];
 const add = (name, q, [w, h]) => shots.push([name, q, w, h]);
 for (const g of GS) {
   const p = `g${String(g).padStart(2, '0')}`;
+  if (SET === 'sil') { add(`${p}_sil`, `g=${g}&view=play&mode=sil&nobox=1`, PLAY); add(`${p}_sil_wide_lod2`, `g=${g}&view=wide&mode=sil&nobox=1&lod=2`, PLAY); add(`${p}_sil_wide`, `g=${g}&view=wide&mode=sil&nobox=1`, PLAY); continue; }
   add(`${p}_play_awake`, `g=${g}&view=play`, PLAY);
   if (SET === 'quick') { add(`${p}_play_dormant`, `g=${g}&view=play&state=dormant`, PLAY); add(`${p}_turn_34`, `g=${g}&view=turn&yaw=35`, SQ); add(`${p}_turn_back`, `g=${g}&view=turn&yaw=160`, SQ); add(`${p}_slam`, `g=${g}&view=play&clip=slam&t=1.0`, PLAY); continue; }
   add(`${p}_play_dormant`, `g=${g}&view=play&state=dormant`, PLAY);
@@ -35,7 +36,7 @@ for (const g of GS) {
 if (SET === 'full') {
   const g = GS[0], p = `g${String(g).padStart(2, '0')}`;
   for (const [c, ts] of [['wake', [0.4, 0.9, 1.2, 1.6, 2.0]], ['walk', [0, 0.25, 0.5, 0.75]], ['slam', [0.4, 1.12, 1.3]], ['sweep', [0.4, 1.2, 1.36, 1.5]], ['hit', [0.1]], ['fall', [0.3, 0.55, 0.8]]])
-    for (const t of ts) add(`${p}_clip_${c}_${t}`, `g=${g}&view=play&clip=${c}&t=${t}`, PLAY);
+    for (const t of ts) add(`${p}_clip_${c}_${t}`, c === 'fall' ? `g=${g}&view=turn&yaw=90&pitch=25&clip=${c}&t=${t}` : `g=${g}&view=play&clip=${c}&t=${t}`, c === 'fall' ? SQ : PLAY);
   for (const l of [0, 1, 2]) add(`${p}_lod${l}`, `g=${g}&view=turn&yaw=35&lod=${l}`, SQ);
   for (const m of ['sil', 'flat', 'shade', 'tex']) add(`${p}_pass_${m}`, `g=${g}&view=turn&yaw=35&mode=${m}`, SQ);
   add(`${p}_play_default_sheet`, `g=${g}&view=play&sheet=default`, PLAY);

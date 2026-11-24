@@ -17,7 +17,7 @@ os.makedirs(O, exist_ok=True)
 # wide LOD2 top region max IoU; LOD2 vs LOD0 wide silhouette min IoU.
 IOU_FULL, IOU_TOP, IOU_TOP_WIDE, IOU_LOD = 0.92, 0.8, 0.85, 0.8
 NAMES = ['Han a', 'Han b', 'Zhao a', 'Zhao b', 'Wei a', 'Wei b', 'Chu a', 'Chu b', 'Yan a', 'Yan b', 'Qi a', 'Qi b']
-G = [i for i in range(12) if os.path.exists(f'{D}/g{i:02d}_play_awake.png')]
+G = [i for i in range(12) if os.path.exists(f'{D}/g{i:02d}_sil.png')]
 
 def mask(f): return np.asarray(Image.open(f).convert('L')) < 128
 
@@ -32,9 +32,10 @@ def tiles(files, labels, box, tw, cols, out, pad=8):
     sheet = Image.new('RGB', (cols * (tw + pad) + pad, rows * (th + 24 + pad) + pad), (24, 20, 28)); d = ImageDraw.Draw(sheet)
     for k, (f, lab) in enumerate(zip(files, labels)):
         if not os.path.exists(f): continue
-        im = Image.open(f).convert('RGB').crop(box).resize((tw, th), Image.LANCZOS)
-        x, y = pad + (k % cols) * (tw + pad), pad + (k // cols) * (th + 24 + pad)
-        sheet.paste(im, (x, y + 24)); d.text((x + 4, y + 6), lab, fill=(235, 225, 200))
+        im = Image.open(f).convert('RGB'); x, y = pad + (k % cols) * (tw + pad), pad + (k // cols) * (th + 24 + pad)
+        if im.width < box[2]: im = im.resize((min(tw, int(th * im.width / im.height)), th), Image.LANCZOS); sheet.paste(im, (x + (tw - im.width) // 2, y + 24))
+        else: sheet.paste(im.crop(box).resize((tw, th), Image.LANCZOS), (x, y + 24))
+        d.text((x + 4, y + 6), lab, fill=(235, 225, 200))
     sheet.save(f'{O}/{out}')
 
 fails = checks = 0

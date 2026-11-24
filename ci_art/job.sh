@@ -16,4 +16,11 @@ for f in sorted(os.listdir('.')):
     if keep: Image.open(f).convert('RGB').save(f[:-4] + '.jpg', quality=82)
     os.remove(f)
 PY
+# sheets: silhouettes stay PNG, colour sheets as JPEG
+cd "$OUT/sheets" && $BPY -c "
+import os
+from PIL import Image
+for f in os.listdir('.'):
+    if f.endswith('.png') and not f.startswith('sil_'): Image.open(f).convert('RGB').save(f[:-4] + '.jpg', quality=85); os.remove(f)
+"
 cd "$R"; du -sh "$OUT"

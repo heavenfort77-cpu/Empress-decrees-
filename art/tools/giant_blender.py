@@ -175,9 +175,9 @@ def band(name, secs, z, bone, lip=0.03, n_exp=2.6, M=24, row='flange'):
 # Body layout (design coords, m). Rest pose = the carried pose: beam across the shoulders behind the neck, hands gripping it.
 TORSO_LO = [(2.12, 0.0, 0.6, 0.46, 0), (2.4, 0.02, 0.58, 0.44, 0), (2.66, 0.04, 0.66, 0.48, 0)]
 TORSO_HI = [(2.56, 0.04, 0.64, 0.47, 0), (2.8, 0.05, 0.74, 0.51, 0), (3.02, 0.06, 0.8, 0.53, 0), (3.24, 0.03, 0.78, 0.48, 0), (3.42, -0.02, 0.62, 0.38, 0), (3.56, -0.04, 0.3, 0.27, 0)]
-SKIRT = [[(2.34, 0.0, 0.64, 0.5, 0), (2.14, 0.02, 0.72, 0.58, 0), (1.96, 0.03, 0.8, 0.66, 0)],
-         [(2.02, 0.03, 0.78, 0.64, 0), (1.84, 0.04, 0.85, 0.71, 0), (1.68, 0.05, 0.9, 0.76, 0)],
-         [(1.74, 0.05, 0.88, 0.74, 0), (1.56, 0.06, 0.94, 0.8, 0), (1.42, 0.06, 0.98, 0.84, 0)]]
+SKIRT = [[(2.34, 0.0, 0.64, 0.5, 0), (2.14, 0.02, 0.7, 0.56, 0), (1.96, 0.03, 0.76, 0.62, 0)],
+         [(2.02, 0.03, 0.74, 0.6, 0), (1.84, 0.04, 0.79, 0.65, 0), (1.68, 0.05, 0.83, 0.69, 0)],
+         [(1.74, 0.05, 0.81, 0.67, 0), (1.56, 0.06, 0.86, 0.72, 0), (1.42, 0.06, 0.89, 0.75, 0)]]
 SHOULDER = {s: V(s * 0.86, -0.02, 3.32) for s in (-1, 1)}
 BC = V(0, -0.36, 3.66)  # beam centre, behind the neck on the trapezius
 BEAM_R = 0.17
@@ -208,6 +208,14 @@ def build_body(lod):
     loft('chest', TORSO_HI, 'palBronze', 'chest', 'plain', n_exp=2.4, M=24)
     band('chest_flange', TORSO_HI, 2.62, 'chest', lip=0.035, n_exp=2.4)
     if d1:
+        # mould seams down both flanks (piece-mould casting) and a workshop mark plate on the back (research: a mark on every plate)
+        for s in (-1, 1):
+            ridge(f'seam_hi_{s}', [tuple(surf(TORSO_HI, z, 90 - s * 90, 0.005, 2.4)[0]) for z in (2.66, 2.9, 3.15, 3.38)], 0.05, 0.035, (s * 0.6, 0, 0), 'chest')
+            for k, tier in enumerate(SKIRT):
+                ridge(f'seam_sk{k}_{s}', [tuple(surf(tier, z, 90 - s * 90, 0.005, 2.2)[0]) for z in (tier[0][0] - 0.04, (tier[0][0] + tier[-1][0]) / 2, tier[-1][0] + 0.04)], 0.05, 0.035, (s * 0.6, 0, 0), 'pelvis')
+        p_, n_ = surf(TORSO_HI, 2.95, 270, 0.012, 2.4)
+        plate('mark_back', rect(0.36, 0.36), tuple(p_), (1, 0, 0), (0, 0, 1), 0.03, 'palBronze', 'chest', 'mark')
+    if d1:
         for s in (-1, 1):  # crossed robe collar (交领), left over right, sharp cast edge
             pts = [tuple(surf(TORSO_HI, z, 90 + s * a, 0.01, 2.4)[0]) for z, a in ((3.46, 55), (3.3, 40), (3.12, 22), (2.94, 6 if s > 0 else 2))]
             ridge(f'collar_{s}', pts, 0.12, 0.05, (0, 0.5, 0), 'chest')
@@ -224,7 +232,7 @@ def build_body(lod):
         side = 'L' if s > 0 else 'R'
         # legs as fluted columns (concept 6105: a pleated column under the tunic), so the standing giant reads columnar and still walks
         tube(f'thigh_{side}', tuple(HIP[s]), tuple(KNEE[s]), 0.29, 0.26, 'palBronze', f'thigh_{side}', n=10)
-        spheroid(f'knee_{side}', tuple(KNEE[s] + V(0, 0.08, 0.02)), (0.22, 0.17, 0.2), 'palBronze', f'shin_{side}', 'flange', segs=(10, 6))
+        if d1: spheroid(f'knee_{side}', tuple(KNEE[s] + V(0, 0.08, 0.02)), (0.22, 0.17, 0.2), 'palBronze', f'shin_{side}', 'flange', segs=(10, 6))
         nf = sides(16) // 2 * 2
         sweep(f'shin_{side}', [tuple(KNEE[s]), tuple(ANKLE[s] + V(0, 0, 0.05))], [flutes(0.27, nf), flutes(0.23, nf)], 'palBronze', f'shin_{side}', 'plain')
         if d1: tube(f'boot_top_{side}', tuple(ANKLE[s] + V(0, 0, 0.3)), tuple(ANKLE[s] + V(0, 0, 0.38)), 0.27, 0.27, 'palBronze', f'shin_{side}', 'flange', n=12)
@@ -235,12 +243,12 @@ def build_body(lod):
     for s in (-1, 1):
         side = 'L' if s > 0 else 'R'; S, E, G = SHOULDER[s], ELBOW[s], GRIP[s]
         # cast pauldron: a domed plate over the shoulder with a flange rim (not a ball)
-        spheroid(f'shoulder_{side}', tuple(S + V(s * 0.02, 0, -0.02)), (0.24, 0.24, 0.22), 'palBronze', f'upper_{side}', segs=(10, 7))
+        if d1: spheroid(f'shoulder_{side}', tuple(S + V(s * 0.02, 0, -0.02)), (0.24, 0.24, 0.22), 'palBronze', f'upper_{side}', segs=(10, 7))
         loft(f'pauldron_{side}', [(S.z - 0.2, S.y, 0.3, 0.33, S.x + s * 0.1), (S.z + 0.02, S.y, 0.3, 0.32, S.x + s * 0.06), (S.z + 0.18, S.y, 0.2, 0.24, S.x + s * 0.02), (S.z + 0.25, S.y, 0.06, 0.08, S.x)],
              'palBronze', f'upper_{side}', 'plain', n_exp=2.4, M=18, cap=True)
         if d1: loft(f'pauldron_rim_{side}', [(S.z - 0.24, S.y, 0.33, 0.36, S.x + s * 0.11), (S.z - 0.18, S.y, 0.33, 0.36, S.x + s * 0.1)], 'palBronze', f'upper_{side}', 'flange', n_exp=2.4, M=18, cap=False)
         tube(f'upper_{side}', tuple(S), tuple(E), 0.2, 0.17, 'palBronze', f'upper_{side}', n=10)
-        spheroid(f'elbow_{side}', tuple(E), (0.17, 0.17, 0.17), 'palBronze', f'fore_{side}', segs=(8, 6))
+        if d1: spheroid(f'elbow_{side}', tuple(E), (0.17, 0.17, 0.17), 'palBronze', f'fore_{side}', segs=(8, 6))
         dirv = (G - E).normalized(); W = G - dirv * 0.14
         tube(f'fore_{side}', tuple(E), tuple(W), 0.17, 0.13, 'palBronze', f'fore_{side}', n=10)
         if d1:
@@ -336,7 +344,8 @@ def head(i, g, lod):
         if d1: spheroid(f'{g}_knob', (0, -0.02, 4.62), (0.07, 0.07, 0.07), 'palTin', 'head', segs=(8, 5))
     elif kind == 'bald':
         spheroid(f'{g}_dome', (0, -0.02, 4.25), (0.32, 0.34, 0.3), 'palBronze', 'head', 'plain', segs=(14, 8))
-        for s in (-1, 1): torus(f'{g}_earring_{s}', (s * 0.35, 0.0, 3.86), (1, 0, 0), 0.08, 0.025, 'palTin', 'head', n=10, m=4)
+        ridge(f'{g}_scalp', [(0, 0.28, 4.4), (0, 0.05, 4.56), (0, -0.25, 4.45)], 0.08, 0.12, (0, 0, 0), 'head')
+        for s in (-1, 1): torus(f'{g}_earring_{s}', (s * 0.4, 0.0, 3.74), (1, 0, 0), 0.19, 0.04, 'palTin', 'head', n=14, m=5)
     elif kind == 'spikes':
         cap_shell(g, 4.2, 0.02, 'lozenge')
         loft(f'{g}_crownband', [(4.2, 0.0, 0.34, 0.36, 0), (4.34, 0.0, 0.33, 0.35, 0)], 'palBronze', 'head', 'flange', n_exp=2.3, M=20, cap=False)
@@ -347,6 +356,9 @@ def head(i, g, lod):
         secs = [(3.82, -0.02, 0.38, 0.38, 0), (4.0, -0.03, 0.38, 0.39, 0), (4.2, -0.04, 0.36, 0.38, 0), (4.38, -0.06, 0.28, 0.32, 0), (4.52, -0.1, 0.12, 0.16, 0), (4.58, -0.14, 0.03, 0.05, 0)]
         loft(f'{g}_hood', secs, 'palBronze', 'head', 'clouds', n_exp=2.3, M=20)
         loft(f'{g}_hoodrim', [(4.24, 0.27, 0.27, 0.05, 0), (4.2, 0.32, 0.25, 0.06, 0)], 'palBronze', 'head', 'flange', n_exp=3, M=12)
+        # crescent crest across the hood (round 2: the round 1 hood read as a plain dome)
+        o = [(-0.55 + 1.1 * k / 10, 0.12 + 0.42 * (abs(-1 + 2 * k / 10) ** 1.6)) for k in range(11)] + [(0.55 - 1.1 * k / 10, 0.12 + 0.2 * (abs(1 - 2 * k / 10) ** 2.2) - 0.02) for k in range(11)]
+        plate(f'{g}_crescent', o, (0, -0.06, 4.4), (1, 0, 0), (0, 0, 1), 0.06, 'palBronze', 'head', 'clouds')
         for s in (-1, 1): plate(f'{g}_lappet_{s}', [(-0.12, 0), (0.12, 0), (0.1, -0.55), (0, -0.62), (-0.1, -0.55)], (s * 0.36, 0.14, 3.88), (0, 1, 0), (0, 0, 1), 0.05, 'palBronze', 'head', 'lozenge')
     elif kind == 'helmet':
         spheroid(f'{g}_dome', (0, -0.02, 4.2), (0.37, 0.39, 0.3), 'palBronze', 'head', 'lozenge', segs=(14, 8))
@@ -360,14 +372,14 @@ def head(i, g, lod):
             sweep(f'{g}_horn_{s}', pts, [ngon(r, sides(10)) for r in (0.11, 0.09, 0.07, 0.045, 0.012)], 'palBronze', 'head', 'flange')
     elif kind == 'tallcap':
         cap_shell(g, 4.15, 0.02, 'plain')
-        loft(f'{g}_tall', [(4.3, -0.02, 0.15, 0.27, 0), (4.6, 0.0, 0.13, 0.26, 0), (4.88, 0.05, 0.11, 0.24, 0), (5.02, 0.08, 0.1, 0.2, 0)], 'palBronze', 'head', 'clouds', n_exp=3.2, M=16)
+        loft(f'{g}_tall', [(4.3, -0.02, 0.15, 0.27, 0), (4.55, 0.0, 0.14, 0.25, 0), (4.85, 0.04, 0.28, 0.24, 0), (5.05, 0.07, 0.42, 0.22, 0), (5.12, 0.07, 0.4, 0.2, 0)], 'palBronze', 'head', 'clouds', n_exp=3.2, M=16)
         if d1: ridge(f'{g}_tallrib', [(0, 0.26, 4.32), (0, 0.27, 4.66), (0, 0.29, 4.98)], 0.05, 0.05, (0, 0.6, 0), 'head')
         for s in (-1, 1): plate(f'{g}_ribbon_{s}', [(-0.04, 0), (0.04, 0), (0.03, -0.5), (-0.03, -0.5)], (s * 0.3, -0.12, 4.2), (0, 1, 0), (0, 0, 1), 0.03, 'palBronze', 'head', 'flange')
     elif kind == 'twinbuns':
         cap_shell(g, 4.1, 0.025, 'lozenge')
         for s in (-1, 1):
-            spheroid(f'{g}_bun_{s}', (s * 0.33, -0.04, 4.3), (0.14, 0.15, 0.15), 'palBronze', 'head', 'clouds', segs=(10, 7))
-            if d1: torus(f'{g}_bunring_{s}', (s * 0.27, -0.04, 4.3), (1, 0, 0), 0.12, 0.03, 'palTin', 'head', n=12, m=4)
+            spheroid(f'{g}_bun_{s}', (s * 0.36, -0.04, 4.46), (0.2, 0.2, 0.2), 'palBronze', 'head', 'clouds', segs=(10, 7))
+            if d1: torus(f'{g}_bunring_{s}', (s * 0.27, -0.04, 4.4), (s * 0.7, 0, 0.7), 0.15, 0.035, 'palTin', 'head', n=12, m=4)
         torus(f'{g}_toploop', (0, -0.04, 4.55), (1, 0, 0), 0.12, 0.04, 'palBronze', 'head', n=12, m=5)
 
 def prism_disc(g, n, c, r, th, k):
@@ -404,13 +416,13 @@ def beam(i, g, lod):
                         (x, BC.y, z0 - 0.12), (1, 0, 0), (0, 0, 1), 0.05, 'palBronze', 'beam', 'clouds')
     crest = B.get('crest')
     if crest == 'fin':
-        o = [(-1.3, 0.0)] + [(-1.3 + 2.6 * k / 12, 0.1 + 0.07 * math.sin(k * 1.6)) for k in range(13)] + [(1.3, 0.0)]
+        o = [(-1.1, 0.0)] + [(-1.1 + 2.2 * k / 12, 0.2 + 0.1 * math.sin(k * 1.6)) for k in range(13)] + [(1.1, 0.0)]
         plate(f'{g}_fin', o, (0, BC.y, BC.z + r - 0.02), (1, 0, 0), (0, 0, 1), 0.05, 'palBronze', 'beam', 'clouds')
     elif crest == 'teeth':
         for k in range(9 if d1 else 5):
             x = -1.6 + 3.2 * k / ((9 if d1 else 5) - 1)
             if abs(x) < 0.45: continue
-            tongue(f'{g}_tooth_{k}', (x, BC.y, BC.z + r - 0.03), (0, 0, 1), (1, 0, 0), 0.24, 0.14, 0.07, (0, 0, 0), 'beam', 'palTin', 'plain')
+            tongue(f'{g}_tooth_{k}', (x, BC.y, BC.z + r - 0.03), (0, 0, 1), (1, 0, 0), 0.34, 0.18, 0.08, (0, 0, 0), 'beam', 'palTin', 'plain')
 
 def bell(name, top, h, lod):
     """a cast bell (yongzhong type, almond section) hanging under the beam; mask band row."""
@@ -434,7 +446,7 @@ def finial(g, kind, s, E, arch, lod):
         sweep(f'{g}_cap_{s}', [(x, y, z), (x + s * 0.08, y, z)], ngon(BEAM_R + 0.05, sides(12)), 'palBronze', 'beam', 'flange')
         torus(f'{g}_ring_{s}', (x + s * 0.22, y, z), (0, 1, 0), 0.15, 0.05, 'palBronze', 'beam', n=14, m=6)
     elif kind == 'spade':
-        plate(f'{g}_spade_{s}', [(0, -0.14), (0.3, -0.32), (0.36, -0.3), (0.36, 0.3), (0.3, 0.32), (0, 0.14)], (x, y, z), (s, 0, 0), (0, 0, 1), 0.07, 'palBronze', 'beam', 'mask')
+        plate(f'{g}_spade_{s}', [(0, -0.14), (0.26, -0.4), (0.34, -0.38), (0.34, 0.38), (0.26, 0.4), (0, 0.14)], (x, y, z), (s, 0, 0), (0, 0, 1), 0.07, 'palBronze', 'beam', 'mask')
     elif kind == 'scroll':
         pts = [(x + s * (0.12 + 0.18 * math.sin(a)), y, z + 0.18 - 0.18 * math.cos(a) * (1 - a / 9)) for a in [k * 0.6 for k in range(11 if d1 else 6)]]
         sweep(f'{g}_scroll_{s}', [(x, y, z)] + pts, ngon(0.08, sides(8)), 'palBronze', 'beam', 'flange')
@@ -514,9 +526,9 @@ def motif(i, g, lod):
         nn = 12 if d1 else 8
         for k in range(nn):
             a = 90 + 360 * k / nn
-            p, nrm = surf(TORSO_HI, 3.4, a, -0.02, 2.4); d = nrm * 0.9 + V(0, 0, -0.45)
+            p, nrm = surf(TORSO_HI, 3.38, a, -0.02, 2.4); d = nrm + V(0, 0, -0.15)
             if abs(math.sin(math.radians(a)) + 1) < 0.2: continue  # straight back: the beam rests there
-            spearhead(f'{g}_ruff{k}', tuple(p), tuple(d), (0, 0, 1), 'chest', L=0.55)
+            spearhead(f'{g}_ruff{k}', tuple(p), tuple(d), (0, 0, 1), 'chest', L=0.62)
     elif m == 'spear_bundle':
         for k in range(4 if d1 else 2):
             o = V(0.12 * k - 0.18, 0, 0)
@@ -533,7 +545,9 @@ def motif(i, g, lod):
     elif m == 'ji_apron':
         for k, a in enumerate((-30, -15, 0, 15, 30) if d1 else (-20, 0, 20)):
             t = math.radians(a); p, nrm = surf(SKIRT[0], 2.1, 90 + a * 1.2, 0.02, 2.2)
-            ji(f'{g}_ap{k}', tuple(p), (math.sin(t) * 0.5, 0.3, -1), (1, 0, 0), 'pelvis', L=0.7)
+            ji(f'{g}_ap{k}', tuple(p), (math.sin(t) * 0.5, 0.3, -1), (1, 0, 0), 'pelvis', L=0.85)
+        for s in (-1, 1):
+            p, nrm = surf(TORSO_LO, 2.32, 90 - s * 90, 0.0, 2.4); ji(f'{g}_hip{s}', tuple(p), (s * 0.45, 0, 1), (0, 1, 0), 'pelvis', L=0.75)
     elif m == 'sword_fan':
         c = V(0, -0.46, 3.25)
         for k in range(7 if d1 else 5):
@@ -590,10 +604,10 @@ HEADS = [dict(kind='topknot', brow='v', beard='mous', jaw=1.05), dict(kind='poin
          dict(kind='board', brow='arch', beard='chin', jaw=0.95, nose=1.1), dict(kind='twinbuns', brow='flat', beard='forked', jaw=1.1)]
 BEAMS = [dict(prof='square', arch=0.22, ends='dragon', row='clouds'), dict(prof='round', ends='ring', hang='chimes', hang_x=(-1.68, 1.68)),
          dict(prof='double', ends='scroll'), dict(prof='round', ends='knob', hang='bells', hang_x=(-1.8, 1.8), bell=0.5),
-         dict(prof='oct', arch=0.3, ends='spade', row='lozenge'), dict(prof='square', ends='flare', crest='teeth', row='flange'),
+         dict(prof='oct', arch=0.0, ends='spade', row='lozenge'), dict(prof='square', ends='flare', crest='teeth', row='flange'),
          dict(prof='round', arch=-0.32, ends='knob', row='clouds', bands=(-1.2, -0.6, 0.6, 1.2)), dict(prof='square', ends='tiger', row='mask'),
          dict(prof='oct', arch=0.12, ends='bird', row='clouds'), dict(prof='twist', ends='ring', hang='bells', hang_x=(-1.7, -1.94, 1.7, 1.94), bell=0.26, L=1.76),
-         dict(prof='round', ends='flare', crest='fin', row='lozenge'), dict(prof='square', arch=-0.12, ends='mask', row='clouds', L=1.7)]
+         dict(prof='round', arch=0.34, ends='flare', crest='fin', row='lozenge'), dict(prof='square', arch=-0.12, ends='mask', row='clouds', L=1.7)]
 MOTIFS = ['prods_chest', 'prods_shoulder', 'spear_ruff', 'spear_bundle', 'ji_shoulder', 'ji_apron', 'sword_fan', 'sword_hem',
           'arrow_scales', 'quiver', 'ge_bracers', 'ge_chest']
 MOTIF_WORDS = {'prods_chest': 'crossbow prods crossed on the chest, trigger locks on the belt', 'prods_shoulder': 'crossbow prods arched over the shoulders, trigger locks down the chest',
@@ -669,6 +683,7 @@ for lod in (0, 1, 2):
 Q['seg'], Q['lod'] = 1.0, 0
 build_flakes(); MESHES['giant_flakes'] = finish('giant_flakes', False)
 # LOD2 cap: the shared body takes 62% of the budget, a giant's own parts the rest (decimated only if over)
+print('pre-decimation tris lod1/lod2: body', tris(MESHES['giant_body_lod1']), tris(MESHES['giant_body_lod2']), 'giants', [(tris(MESHES[f'giant_g{i:02d}_lod1']), tris(MESHES[f'giant_g{i:02d}_lod2'])) for i in ONLY])
 decimate_to(MESHES['giant_body_lod2'], int(BUDGET[2] * 0.62))
 for i in ONLY: decimate_to(MESHES[f'giant_g{i:02d}_lod2'], BUDGET[2] - tris(MESHES['giant_body_lod2']))
 decimate_to(MESHES['giant_body_lod1'], int(BUDGET[1] * 0.62))
