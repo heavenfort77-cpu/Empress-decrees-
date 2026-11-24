@@ -1,0 +1,3 @@
+suit_lamellar 6776 ops
+suit_bronze 900 ops
+suit_cloth 635 ops

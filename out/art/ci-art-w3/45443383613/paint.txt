@@ -1,0 +1,3 @@
+suit_lamellar 1024 passes base > tone > marks > detail
+suit_bronze 512 passes base > tone > marks > detail
+suit_cloth 512 passes base > tone > marks > detail
