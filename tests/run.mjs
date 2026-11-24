@@ -3713,6 +3713,7 @@ try {
     && b5Pc.smoke && b5Pc.count.smoke >= 2 && b5Pc.huabiao && b5Pc.count.huabiao >= 3 && b5Pc.mercury && b5Pc.count.mercury >= 5 && b5Pc.giants && b5Pc.vats >= 5, JSON.stringify(b5Pc));
   // 704 Walking the full palace: a move order from the Ru hall to the core walks room to room through the doors (hall, corridor, courtyard, bridge,
   // forecourt, bridge, core: 5 rooms between), only the current room and rooms behind its open doors are ever drawn, and the core hall ends the run.
+  // Integration 24 Nov: since BP03 (on purpose) the core hall wakes the 兵家 apex (phase 'wake', the palace leaves the scene, cur empty), not an end banner.
   const b5Wk = await g(() => {
     const G = __game, o = { bad: 0, maxAtt: 0 };
     G.setLayout('full'); G.setSeed(12345); G.setMode('palace'); G.pickSchool(0);
@@ -3727,8 +3728,8 @@ try {
     const p = G.palace(); o.route = seen.join('>'); o.phase = p.phase; o.n = p.n;
     G.pickSchool(0); G.setLayout('proto'); G.setMode('rumble'); G.reset(); return o;
   });
-  check('704 full palace walk: Ru hall > corridor > courtyard > bridge > forecourt > bridge > core (5 rooms between), only the current room + rooms behind its open doors drawn, the core ends the run',
-    b5Wk.ok && b5Wk.route === 'hall_ru>corr_w>court_w>bridge_wf>fore>approach>core' && b5Wk.phase === 'palend' && b5Wk.n === 7 && b5Wk.bad === 0 && b5Wk.maxAtt <= 3, JSON.stringify(b5Wk));
+  check('704 full palace walk: Ru hall > corridor > courtyard > bridge > forecourt > bridge > core (5 rooms between), only the current room + rooms behind its open doors drawn, the core wakes the apex',
+    b5Wk.ok && b5Wk.route === 'hall_ru>corr_w>court_w>bridge_wf>fore>approach>' && b5Wk.phase === 'wake' && b5Wk.n === 7 && b5Wk.bad === 0 && b5Wk.maxAtt <= 3, JSON.stringify(b5Wk));
   // 705 Budget on tier medium in every room of the full palace, with each of its doors open in turn (heaviest = the worst room plus the room behind a door).
   const b5Bg = await g(() => {
     const G = __game, o = { maxCalls: 0, maxTris: 0, worst: '', maxAtt: 0 };
@@ -3814,7 +3815,8 @@ try {
     G.palMoveTo(core.cx, core.cz); let last = '';
     for (let i = 0; i < 8000 && G.palace().phase === 'palace'; i++) {
       G.step(1); const p = G.palace();
-      if (p.cur !== last) { last = p.cur; const q = G.palPlan(), r = q.rooms.find((x) => x.id === p.cur); if (Math.abs(q.sunX - r.cx) > 1e-6 || Math.abs(q.sunZ - r.cz) > 1e-6) o.bad.push(p.cur); }
+      // (Since BP03 the core hall wakes the apex: the palace leaves the scene and cur is empty then; integration 24 Nov.)
+      if (p.cur && p.cur !== last) { last = p.cur; const q = G.palPlan(), r = q.rooms.find((x) => x.id === p.cur); if (Math.abs(q.sunX - r.cx) > 1e-6 || Math.abs(q.sunZ - r.cz) > 1e-6) o.bad.push(p.cur); }
     }
     o.fit = pl.rooms.every((r) => (r.x1 - r.x0) / 2 <= 58 * K && (r.z1 - r.z0) / 2 <= 48 * K);
     G.pickSchool(0); G.setLayout('proto'); G.setMode('rumble'); G.reset(); return o;
