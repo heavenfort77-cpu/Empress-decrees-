@@ -1,0 +1,15 @@
+jobs 14; caught by named check 13 of 14
+{"i": 0, "fails": ["42", "602"], "tot": ["RUNTIME 195 of 197 pass"], "s": 188, "name": "warn-locked-room", "want": "602", "applied": true, "caught_named": true}
+{"i": 1, "fails": ["42", "600", "601", "602"], "tot": ["RUNTIME 193 of 197 pass"], "s": 187, "name": "fall-early", "want": "600", "applied": true, "caught_named": true}
+{"i": 2, "fails": ["42", "603"], "tot": ["RUNTIME 195 of 197 pass"], "s": 102, "name": "monitor-locked-off", "want": "603", "applied": true, "caught_named": true}
+{"i": 3, "fails": ["42", "601"], "tot": ["RUNTIME 195 of 197 pass"], "s": 187, "name": "fall-monitor-strict", "want": "601", "applied": true, "caught_named": true}
+{"i": 4, "fails": ["42", "600"], "tot": ["RUNTIME 195 of 197 pass"], "s": 154, "name": "door-opens-to-fallen", "want": "600", "applied": true, "caught_named": true}
+{"i": 5, "fails": ["42", "604"], "tot": ["RUNTIME 195 of 197 pass"], "s": 187, "name": "reset-keeps-drop", "want": "604", "applied": true, "caught_named": true}
+{"i": 6, "fails": ["42", "600", "601"], "tot": ["RUNTIME 194 of 197 pass"], "s": 101, "name": "floors-stay-on", "want": "601", "applied": true, "caught_named": true}
+{"i": 7, "fails": ["42", "600"], "tot": ["RUNTIME 195 of 197 pass"], "s": 135, "name": "next-line-every-tick", "want": "600", "applied": true, "caught_named": true}
+{"i": 8, "fails": ["42"], "tot": ["RUNTIME 196 of 197 pass"], "s": 94, "name": "gone-stays-drawn", "want": "600", "applied": true, "caught_named": false}
+{"i": 9, "fails": ["42", "600", "602", "604"], "tot": ["RUNTIME 193 of 197 pass"], "s": 187, "name": "spacing-from-fall", "want": "600", "applied": true, "caught_named": true}
+{"i": 10, "fails": ["42", "78", "83", "604"], "tot": ["RUNTIME 193 of 197 pass"], "s": 131, "name": "rumble-burns", "want": "604", "applied": true, "caught_named": true}
+{"i": 11, "fails": ["42", "601"], "tot": ["RUNTIME 195 of 197 pass"], "s": 185, "name": "countdown-stops", "want": "601", "applied": true, "caught_named": true}
+{"i": 12, "fails": ["42", "604"], "tot": ["RUNTIME 195 of 197 pass"], "s": 187, "name": "material-not-restored", "want": "604", "applied": true, "caught_named": true}
+{"i": 13, "fails": ["42", "600"], "tot": ["RUNTIME 195 of 197 pass"], "s": 187, "name": "card-ignores-burning", "want": "600", "applied": true, "caught_named": true}
