@@ -44,13 +44,17 @@ const STALL_SRC = "const {performance:P}=require('perf_hooks');let l=P.timeOrigi
 const stallProc = spawn(process.execPath, ['-e', STALL_SRC], { stdio: ['ignore', 'pipe', 'inherit'] });
 const nodeGaps = []; let stallBuf = '';
 stallProc.stdout.on('data', (b) => { stallBuf += b; let k; while ((k = stallBuf.indexOf('\n')) >= 0) { const l = stallBuf.slice(0, k); stallBuf = stallBuf.slice(k + 1); const m = l.split(' '); if (m[0] === 'GAP') nodeGaps.push([+m[1], +m[2]]); } });
-const browser = await chromium.launch({ args: ARGS });
+let browser = null;
 // Measurement only (item (g), 24 Nov): every page gets an init script that times WebGL calls that can block (shader compile/link and their status
 // reads, texture and buffer uploads) into window.__glog [t, ms, name, arg], counts them in window.__glc, and keeps the game's GL context in
 // window.__gl for a GPU timer query per frame. No game code changes.
 const INIT = `(() => {
   const now = () => performance.now(), LOG = window.__glog = [], C = window.__glc = { link: 0, compile: 0, buf: 0, bufBytes: 0, tex: 0 };
   const push = (e) => { LOG.push(e); if (LOG.length > 40000) LOG.splice(0, 20000); };
+  // Item (g): every text change in the page that holds CJK characters, from page start: window.__cjkLog [t, element, text].
+  const CJ = window.__cjkLog = [];
+  document.addEventListener('DOMContentLoaded', () => { new MutationObserver((l) => { const t = now(); for (const m of l) { const e = m.target.nodeType === 3 ? m.target.parentNode : m.target; if (!e || CJ.length > 300) continue;
+    const tx = e.textContent || ''; if (/[\u3000-\u9fff]/.test(tx)) CJ.push([t, e.id || (e.parentNode && e.parentNode.id) || e.className || e.nodeName, tx.slice(0, 50)]); } }).observe(document.body, { subtree: true, childList: true, characterData: true }); });
   const og = HTMLCanvasElement.prototype.getContext;
   HTMLCanvasElement.prototype.getContext = function (type, ...a) { const c = og.call(this, type, ...a); if (c && /webgl/.test(type) && !window.__gl) window.__gl = c; return c; };
   const wrap = (P, name, f) => { const o = P[name]; if (!o) return; P[name] = function (...a) { const t0 = now(), r = o.apply(this, a), d = now() - t0; f(t0, d, a); return r; }; };
@@ -186,6 +190,19 @@ const SCENES = {
       + ' units ' + s.unitsGR + ' spawns ' + s.spawns + ' deaths ' + s.deaths + ' despawn ' + s.despawn + ' shots ' + s.shots + ' step avg ' + (s.stepMs / s.steps).toFixed(3) + 'ms max ' + s.stepMax.toFixed(1) + 'ms checks/step ' + Math.round(s.checks / s.steps) + ' shadowRe ' + s.shadowRe + ' warmCalls ' + s.warmCalls + (window.__err ? ' ERR ' + window.__err.slice(0, 80) : '');
   } },
 };
+// Item (g) A/B (fresh browser each): base = index.html as shipped, fix = index_fontwarm.html (the same game plus CONFIG.FONT_WARM, the only
+// difference). heavy_* = the palace_heavy fight with its own banners; cjk_* / latin_* = the same fight plus one banner line written by the probe
+// 3 s into the timed window, with CJK characters (as TEXT.voice_guard_break / rule_guard_break) or the same line in Latin letters only.
+const INJ = (cjk) => `() => { const G = __game; G.setHp(1e9); const t = performance.now(); if (!window.__inj0) window.__inj0 = t;
+  if (!window.__injDone && t - window.__inj0 > ${(SETTLE + 3) * 1000}) { window.__injDone = true; const v = document.querySelector('#banner .voice'), r = document.querySelector('#banner .rule');
+    v.textContent = ${cjk ? "'Our 伍长 falls, and his square with him.'" : "'Our Wuzhang falls, and his square with him.'"}; r.textContent = ${cjk ? "'伍长 down: the 方阵 breaks. 反贼 华表 渠帅 奇正相生'" : "'Wuzhang down: the Fangzhen breaks. Fanzei Huabiao Qushuai Qizheng'"};
+    document.getElementById('banner').style.display = 'block'; } }`;
+SCENES.heavy_base = { ...SCENES.palace_heavy };
+SCENES.heavy_fix = { ...SCENES.palace_heavy, path: 'index_fontwarm.html' };
+SCENES.cjk_base = { ...SCENES.palace_heavy, timed: 15, driver: INJ(true) };
+SCENES.cjk_fix = { ...SCENES.cjk_base, path: 'index_fontwarm.html' };
+SCENES.latin_base = { ...SCENES.palace_heavy, timed: 15, driver: INJ(false) };
+SCENES.reference30 = { ...SCENES.reference, timed: 30 };
 SCENES.scale_med_scan = { ...SCENES.scale_med, q: 'tier=medium&coll=scan' };
 SCENES.scale_low = { ...SCENES.scale_med, q: 'tier=low' };
 SCENES.heavy_low = { ...SCENES.heavy, q: 'lock&tier=low&bots=8' };
@@ -220,6 +237,8 @@ let FILE = ''; try { FILE = (await readFile(new URL('scenes.txt', import.meta.ur
 const LIST = (process.env.SCENES || FILE || 'reference,heavy,hunt,select,heavy_low').split(',');
 for (const name of LIST) {
   const sc = SCENES[name];
+  // A fresh browser per scene (item (g)): font and shader caches start cold in every scene, as for a new player.
+  if (browser) await browser.close(); browser = await chromium.launch({ args: ARGS });
   const page = await browser.newPage({ viewport: { width: 1920, height: 1080 }, deviceScaleFactor: 1 });
   const errs = []; page.on('pageerror', (e) => errs.push(String(e).slice(0, 160)));
   await page.addInitScript(INIT);
@@ -281,14 +300,15 @@ for (const name of LIST) {
       dom: mut.filter((x) => x[0] >= a - 200 && x[0] <= b).slice(-12).map((x) => Math.round(x[0] - a) + ' ' + x[1]),
       st: stLog.filter((x) => x[0] >= a - 300 && x[0] <= b + 200).map((x) => Math.round(x[0] - a) + ' ' + x[1]),
       gpu: gpu.filter((x) => x[0] >= a && x[0] <= b + 40).map((x) => x[1].toFixed(1)),
-      ea: +(TO + a).toFixed(1), eb: +(TO + b).toFixed(1),
+      ea: +(TO + a).toFixed(1), eb: +(TO + b).toFixed(1), cjk: (window.__cjkLog || []).filter((x) => x[0] >= a - 300 && x[0] <= b).map((x) => Math.round(x[0] - a) + ' ' + x[1] + ' ' + x[2]),
       wGap: wGaps.filter((g) => g[1] > TO + a && g[0] < TO + b).map((g) => Math.round(Math.min(g[1], TO + b) - Math.max(g[0], TO + a))),
       loaf: loafT.filter((x) => x.t0 < b && x.t0 + x.ms > a).map((x) => ({ ms: x.ms, preRender: x.preRender, slp: x.styleLayoutPaint, scripts: x.scripts.slice(0, 4) })),
       stNear: stLog.filter((x) => x[0] >= a - 2000 && x[0] <= b + 500).map((x) => Math.round(x[0] - a) + ' ' + x[1]) }));
     const gs = gpu.map((x) => x[1]).sort((x, y) => x - y), gq = (k) => gs.length ? +gs[Math.min(gs.length - 1, Math.floor(gs.length * k))].toFixed(2) : -1;
     const glc1 = window.__glc || {}, glDelta = Object.keys(glc1).map((k) => k + ' ' + ((glc1[k] || 0) - (glc0[k] || 0))).join(', ');
     const evts = stLog.filter((x) => x[0] >= tStart).map((x) => +((x[0] - tStart) / 1000).toFixed(2) + 's ' + x[1]);
-    window.__diag = { e0: +(TO + tStart).toFixed(1), e1: +(TO + tEnd).toFixed(1), wGapN: wGaps.filter((g) => g[0] > TO + tStart).length, wGap50: wGaps.filter((g) => g[0] > TO + tStart && g[1] - g[0] > 50).length, evts: evts.slice(0, 40), loafN, loafN100, domWrites: mut.filter((x) => x[0] >= tStart).length, markT, tStart, longRaw: longF, disj: disj.slice(0, 40), disjN: disj.length, caps, gpuN: gs.length, gpuP50: gq(0.5), gpuP95: gq(0.95), gpuMax: gq(1), longs, loaf: loaf.slice(0, 12), glDelta, drvSlow: drvLog.length };
+    const CJL = window.__cjkLog || [];
+    window.__diag = { cjkFirst: CJL.length ? +((CJL[0][0] - tStart) / 1000).toFixed(2) + 's ' + CJL[0][1] + ' ' + CJL[0][2] : 'none', cjkN: CJL.length, fontWarm: (() => { const e = document.getElementById('fontWarm'); return e ? e.textContent.length : 0; })(), e0: +(TO + tStart).toFixed(1), e1: +(TO + tEnd).toFixed(1), wGapN: wGaps.filter((g) => g[0] > TO + tStart).length, wGap50: wGaps.filter((g) => g[0] > TO + tStart && g[1] - g[0] > 50).length, evts: evts.slice(0, 40), loafN, loafN100, domWrites: mut.filter((x) => x[0] >= tStart).length, markT, tStart, longRaw: longF, disj: disj.slice(0, 40), disjN: disj.length, caps, gpuN: gs.length, gpuP50: gq(0.5), gpuP95: gq(0.95), gpuMax: gq(1), longs, loaf: loaf.slice(0, 12), glDelta, drvSlow: drvLog.length };
     const m1 = mem(), info = __game.render(false);
     d.sort((a, b) => a - b);
     const sum = d.reduce((a, b) => a + b, 0), n = d.length;
@@ -298,7 +318,7 @@ for (const name of LIST) {
     return { frames: n, fps: +(n / (sum / 1000)).toFixed(1), p50: +d[Math.floor(n * 0.5)].toFixed(1), p95: +d[Math.floor(n * 0.95)].toFixed(1), worst: +d[n - 1].toFixed(1),
       over20: +(100 * d.filter((x) => x > 20).length / n).toFixed(1), over33: d.filter((x) => x > 33.4).length,
       calls: info.calls, tris: info.tris, programs: info.programs, geoms: info.geoms, texs: info.texs, heap0: m0.heap, heap1: m1.heap, longN: lt.length, longMax: Math.round(Math.max(0, ...lt)), longSum: Math.round(lt.reduce((a, b) => a + b, 0)), geo0: g0.geoms, tex0: g0.texs, drvErr: window.__drvErr || '', info: window.__info || '', info2: window.__info2 || '', diag: window.__diag, ...extra };
-  }, { drv, SETTLE, TIMED });
+  }, { drv, SETTLE, TIMED: sc.timed || TIMED });
   const { profile } = await cdp.send('Profiler.stop'); await cdp.detach();
   const diag = r.diag; delete r.diag;
   rows.push({ scene: name, setupMs, errs: errs.length, err0: errs[0] || '', ...r });
@@ -309,8 +329,8 @@ for (const name of LIST) {
     const pf = perFrame(profile, diag.markT, diag.longRaw);
     diag.longs.forEach((L, i) => { L.prof = pf[i]; });
     // One line per long frame: when it was, how long, and the share of it that each detector saw stalled.
-    for (const L of diag.longs) console.log('LONG ' + name + ' at ' + L.at_s + 's ' + L.ms + 'ms nodeStall ' + (L.nGap.reduce((x, y) => x + y, 0)) + 'ms workerStall ' + (L.wGap.reduce((x, y) => x + y, 0)) + 'ms profSamples ' + (L.prof && L.prof.samples) + ' profGapMax ' + (L.prof && L.prof.profGapMax) + 'ms gl ' + L.gl.length + ' dom ' + L.dom.length + ' gpu ' + L.gpu.join('/') + ' loaf ' + JSON.stringify(L.loaf) + ' top ' + JSON.stringify(L.prof && L.prof.top) + ' st ' + JSON.stringify(L.stNear.slice(-4)));
-    console.log('STALLS ' + name + ' timed ' + ((diag.e1 - diag.e0) / 1000).toFixed(0) + 's: node gaps >30ms ' + diag.nodeGapN + ' (>50ms ' + diag.nodeGap50 + ', max ' + diag.nodeGapMax + 'ms), worker gaps >30ms ' + diag.wGapN + ' (>50ms ' + diag.wGap50 + '), frames >100ms ' + diag.longs.length);
+    for (const L of diag.longs) console.log('LONG ' + name + ' at ' + L.at_s + 's ' + L.ms + 'ms nodeStall ' + (L.nGap.reduce((x, y) => x + y, 0)) + 'ms workerStall ' + (L.wGap.reduce((x, y) => x + y, 0)) + 'ms profSamples ' + (L.prof && L.prof.samples) + ' profGapMax ' + (L.prof && L.prof.profGapMax) + 'ms cjk ' + JSON.stringify(L.cjk) + ' gl ' + L.gl.length + ' dom ' + L.dom.length + ' gpu ' + L.gpu.join('/') + ' loaf ' + JSON.stringify(L.loaf) + ' top ' + JSON.stringify(L.prof && L.prof.top) + ' st ' + JSON.stringify(L.stNear.slice(-4)));
+    console.log('STALLS ' + name + ' timed ' + ((diag.e1 - diag.e0) / 1000).toFixed(0) + 's: node gaps >30ms ' + diag.nodeGapN + ' (>50ms ' + diag.nodeGap50 + ', max ' + diag.nodeGapMax + 'ms), worker gaps >30ms ' + diag.wGapN + ' (>50ms ' + diag.wGap50 + '), frames >100ms ' + diag.longs.length + ', first CJK text ' + diag.cjkFirst + ' (' + diag.cjkN + '), fontWarm chars ' + diag.fontWarm);
   }
   console.log('DIAG ' + name + ' ' + JSON.stringify(diag));
     console.log('ROW ' + JSON.stringify(rows[rows.length - 1]));
