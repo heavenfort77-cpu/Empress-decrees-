@@ -1,0 +1,56 @@
+# ComfyUI on CPU GitHub runners: concept reference images for palace assets (reference only, never shipped). Triggered by a push to ci-comfy.
+# Each matrix job renders the seeds of one entry in ci_comfy/prompts.json; images are committed to ci-out under out/comfy/<run id>/job<N>/.
+name: comfy-run
+on:
+  push:
+    branches: [ci-comfy]
+permissions:
+  contents: write
+jobs:
+  gen:
+    runs-on: ubuntu-latest
+    timeout-minutes: 150
+    strategy:
+      fail-fast: false
+      matrix:
+        job: [0, 1, 2, 3]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Model cache
+        uses: actions/cache@v4
+        with:
+          path: ckpt
+          key: sd15-emaonly-v1
+      - name: Install ComfyUI (CPU torch)
+        run: |
+          python -m pip install --quiet torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cpu
+          git clone --depth 1 https://github.com/comfyanonymous/ComfyUI comfy
+          git -C comfy rev-parse --short HEAD | tee comfy_sha.txt
+          python -m pip install --quiet -r comfy/requirements.txt
+      - name: Checkpoint
+        run: |
+          mkdir -p ckpt
+          F=$(python -c "import json;print(json.load(open('ci_comfy/prompts.json'))['checkpoint'])")
+          U=$(python -c "import json;print(json.load(open('ci_comfy/prompts.json'))['checkpoint_url'])")
+          [ -f ckpt/$F ] || curl -sL -o ckpt/$F "$U"
+          ls -la ckpt
+          ln -s $PWD/ckpt/$F comfy/models/checkpoints/$F
+      - name: Generate
+        run: |
+          (cd comfy && nohup python main.py --cpu --listen 127.0.0.1 --port 8188 > ../server.log 2>&1 &)
+          python ci_comfy/gen.py ci_comfy/prompts.json ${{ matrix.job }} out_img
+          tail -5 server.log
+      - name: Commit to ci-out
+        if: always()
+        run: |
+          D=out/comfy/${GITHUB_RUN_ID}/job${{ matrix.job }}
+          mkdir -p /tmp/o && cp -r out_img/. /tmp/o/ 2>/dev/null || true
+          cp server.log comfy_sha.txt ci_comfy/prompts.json /tmp/o/ 2>/dev/null || true
+          git config user.name Claude && git config user.email noreply@anthropic.com
+          git fetch origin ci-out && git checkout -B ci-out origin/ci-out
+          mkdir -p $D && cp -r /tmp/o/. $D/
+          git add out && git commit -qm "comfy ${GITHUB_RUN_ID} job${{ matrix.job }}"
+          for k in 1 2 3 4 5; do git push origin ci-out && break; git pull --rebase origin ci-out; done
