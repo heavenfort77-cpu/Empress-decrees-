@@ -657,7 +657,8 @@ const CONFIG = {
   // leadMove = metres the wide framing leans ahead along the walking direction; leadOpen = share of the way toward the room's centre (its open
   // space) it leans; leadMax = the most the lean moves the framing from the player, m (both in big rooms only).
   // phone = on phones the floor is minPx / phone (characters larger on small screens, so phones sit closer) and close is x phone.
-  PAL_CAM: { close: 0.75, minPx: 120, refH: 1080, margin: 0.04, easeS: 0.4, backS: 1.5, panS: 0.15, pad: 0.6, lagM: 1, leadMove: 3, leadOpen: 0.25, leadMax: 4, phone: 0.85 },
+  // stepMax = the most the camera itself moves in one fixed step, m (ease and pan together; BP10M: they added to 0.511 m on a room change into a fight).
+  PAL_CAM: { close: 0.75, minPx: 120, refH: 1080, margin: 0.04, easeS: 0.4, backS: 1.5, panS: 0.15, pad: 0.6, lagM: 1, leadMove: 3, leadOpen: 0.25, leadMax: 4, phone: 0.85, stepMax: 0.4 },
   // The burning (BP04; design owner 24 Nov 13:18-13:44: about every 40 s she names a wing, 5 s warning, its rooms fall into the black lake;
   // a locked room is never warned, the wave waits until its fight is over). on = switch (palace runs only; Royal Rumble never burns);
   // firstS = game seconds when the first wing is named; everyS = seconds from one naming to the next (counted from the naming, so a wave
@@ -2344,7 +2345,7 @@ const PAL = { on: false, rooms: [], doors: [], byId: {}, cur: null, start: null,
 // tx/tz/td = the wanted wide framing this step; lpx/lpz = the player's position at the last framing update; vx/vz = the player's smoothed walking velocity, lx/lz = the player's position one step ago; fit* = the current room's fit, cached until the
 // room, the screen shape or the touch mode changes; lead = wide distance when the room is too big to show whole; atk = the kit's attack distance.
 const PCAM = { b: 0, pb: 0, hold: 0, wx: 0, wz: 0, wd: 1, pwx: 0, pwz: 0, pwd: 1, vx: 0, vz: 0, lx: 0, lz: 0, lpx: 0, lpz: 0, fitR: null, fitA: 0, fitT: false,
-  fit: false, fx: 0, fz: 0, fd: 1, tx: 0, tz: 0, td: 1, lead: 1, atk: 0, atkKit: null, fits: 0, cam: new THREE.PerspectiveCamera(CONFIG.CAM_FOV, 1, 0.5, 1000),
+  fit: false, fx: 0, fz: 0, fd: 1, tx: 0, tz: 0, td: 1, qx: 0, qy: 0, qz: 0, qd: 1, pqx: 0, pqy: 0, pqz: 0, pqd: 1, lead: 1, atk: 0, atkKit: null, fits: 0, cam: new THREE.PerspectiveCamera(CONFIG.CAM_FOV, 1, 0.5, 1000),
   v: new THREE.Vector3(), sp: Math.sin(THREE.MathUtils.degToRad(CONFIG.CAM_PITCH_DEG)), cp: Math.cos(THREE.MathUtils.degToRad(CONFIG.CAM_PITCH_DEG)) };
 // The measuring camera looks at ground point (tx, tz) from distance d, at the game's fixed pitch (same rule as the view).
 function palCamAt(tx, tz, d) { const c = PCAM.cam; c.position.set(tx, PCAM.sp * d, tz + PCAM.cp * d); c.lookAt(tx, 0, tz); c.updateMatrixWorld(); }
@@ -2401,6 +2402,7 @@ function palCamSnap() {
   palCamTarget(PAL.cur);
   PCAM.wx = PCAM.pwx = PCAM.tx; PCAM.wz = PCAM.pwz = PCAM.tz; PCAM.wd = PCAM.pwd = PCAM.td;
   G.camK = PAL.camT = PCAM.wd / CONFIG.CAM_DIST;
+  PCAM.qx = PCAM.pqx = PCAM.wx - P.x; PCAM.qy = PCAM.pqy = -P.y; PCAM.qz = PCAM.pqz = PCAM.wz - P.z; PCAM.qd = PCAM.pqd = PCAM.wd;
 }
 // Modes on the mode menu, in key order.
 const MODES = ['palace', 'rumble'];
@@ -2985,6 +2987,19 @@ function palCamStep(dt) {
   PCAM.b = want > PCAM.b ? Math.min(want, PCAM.b + mv) : Math.max(want, PCAM.b - mv);
   const e = PCAM.b * PCAM.b * (3 - 2 * PCAM.b), dc = palCloseD();
   G.camK = (PCAM.wd + (dc - PCAM.wd) * e) / CONFIG.CAM_DIST; PAL.camT = (want ? dc : PCAM.td) / CONFIG.CAM_DIST;
+  palCamView(e, dc);
+}
+// The view itself per fixed step: the look point relative to the player (q) and the distance (qd), between the wide framing and the player by
+// the eased b. The camera's own move (relative to the player) per step is capped at stepMax: cause (BP10M, CI 45358068047): the ease and the
+// room-change pan each stayed under 0.5 m but added to 0.511 m in one step when a room's squad closed the camera during the pan. The camera
+// position is linear in (q, qd), so scaling both deltas scales its move; the player's own moves are followed as before (no lag after a jump).
+function palCamView(e, dc) {
+  const u = 1 - e, fx = (PCAM.wx - P.x) * u, fz = (PCAM.wz - P.z) * u, fy = -P.y * u, d = PCAM.wd + (dc - PCAM.wd) * e;
+  PCAM.pqx = PCAM.qx; PCAM.pqy = PCAM.qy; PCAM.pqz = PCAM.qz; PCAM.pqd = PCAM.qd;
+  let dx = fx - PCAM.qx, dy = fy - PCAM.qy, dz = fz - PCAM.qz, dd = d - PCAM.qd;
+  const m = Math.hypot(dx, dy + PCAM.sp * dd, dz + PCAM.cp * dd), lim = CONFIG.PAL_CAM.stepMax;
+  if (m > lim) { const k = lim / m; dx *= k; dy *= k; dz *= k; dd *= k; }
+  PCAM.qx += dx; PCAM.qy += dy; PCAM.qz += dz; PCAM.qd += dd;
 }
 // The wanted wide framing (tx, tz, td): the room fit when the room shows whole, else a point a little ahead of the player along his walking
 // direction and toward the room's open space (its centre), at most leadMax away, at the lead distance.
@@ -7176,12 +7191,11 @@ cv.addEventListener('webglcontextrestored', () => { G.ctxLost = false; renderer.
 
 let acc = 0, last = 0, slowT = 0, dbgT = 0, frameMs = 0, errShown = false;
 // PERFRAME-BEGIN
-// Palace view (ticket 10): between the wide framing (room fit or lead point, on the floor) and the close one (on the player), by the eased b;
-// the pan and b are interpolated between fixed steps, so 30 and 60 fps draw the same path. Lens and tilt never change.
+// Palace view (ticket 10): the per-step view (look point q relative to the player, distance qd; palCamView, capped per step) interpolated
+// between fixed steps and added to the drawn player position, so 30 and 60 fps draw the same path. Lens and tilt never change.
 function palView(x, y, z, a) {
-  const b0 = PCAM.pb + (PCAM.b - PCAM.pb) * a, e = b0 * b0 * (3 - 2 * b0);
-  const wx = PCAM.pwx + (PCAM.wx - PCAM.pwx) * a, wz = PCAM.pwz + (PCAM.wz - PCAM.pwz) * a, wd = PCAM.pwd + (PCAM.wd - PCAM.pwd) * a;
-  const fx = wx + (x - wx) * e, fz = wz + (z - wz) * e, fy = y * e, d = wd + (palCloseD() - wd) * e;
+  const fx = x + PCAM.pqx + (PCAM.qx - PCAM.pqx) * a, fy = y + PCAM.pqy + (PCAM.qy - PCAM.pqy) * a, fz = z + PCAM.pqz + (PCAM.qz - PCAM.pqz) * a;
+  const d = PCAM.pqd + (PCAM.qd - PCAM.pqd) * a;
   camera.position.set(fx, fy + PCAM.sp * d, fz + PCAM.cp * d); camera.lookAt(fx, fy, fz);
 }
 function placeView(alpha) {

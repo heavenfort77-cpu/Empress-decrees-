@@ -60,7 +60,11 @@ export async function cam10Checks(g, check, browser, URL0) {
       if (r.type === 'core' || !fits.find((f) => f.id === r.id).fit) continue;
       o.fitN++; G.reset();
       for (const [x, z] of [[r.cx, r.cz], [r.x0 + 1.5, r.z0 + 1.5], [r.x1 - 1.5, r.z0 + 1.5], [r.x0 + 1.5, r.z1 - 1.5], [r.x1 - 1.5, r.z1 - 1.5]]) {
-        G.teleport(x, z); G.step(90); const c = G.palCam();
+        // BP10M (24 Nov): the camera's own move is capped per step, so after a test teleport across a fit room it takes more steps to settle;
+        // wait until it stops (a condition, at most 300 more steps). The assertions are unchanged.
+        G.teleport(x, z); G.step(90);
+        for (let k = 0, q = G.palCam(), m = 1; k < 300 && m > 0.01; k++) { G.step(1); const q2 = G.palCam(); m = Math.hypot(q2.camX - q.camX, q2.camY - q.camY, q2.camZ - q.camZ); q = q2; }
+        const c = G.palCam();
         if (c.room !== r.id) continue;
         if (!c.allIn && o.bad.length < 5) o.bad.push([r.id, x, z]);
         if (c.px < 36 - 0.5 && o.low.length < 5) o.low.push([r.id, x, z, +c.px.toFixed(1)]);
