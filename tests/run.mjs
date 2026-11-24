@@ -3173,9 +3173,10 @@ try {
       G.setPkitP(false); G.setSchool(5); H.start(); for (let i = 0; i < 3; i++) H.mute(i); G.setHp(1e9); G.teleport(0, -50);
       G.placeUnit(0, 0, -56); G.placeUnit(1, 14, -60); G.placeUnit(2, -14, -60); H.mute(0, 'pounce'); G.step(1);
       o.pounce = H.until(() => G.zaState(-1).store !== '', 300) < 300 ? G.zaState(-1).store : 'none';
-      H.mute(0, 'claw'); const hp0 = G.player().hp; const u0 = G.zaUnit('demon'); G.teleport(u0.x, u0.z + 1.5); H.until(() => G.player().hp < hp0, 240); o.claw = [+(hp0 - G.player().hp).toFixed(2), G.zaState(-1).store];
+      H.mute(0, 'claw'); const hp0 = G.state().hp; const u0 = G.zaUnit('demon'); G.teleport(u0.x, u0.z + 1.5); H.until(() => G.state().hp < hp0, 240); o.claw = [+(hp0 - G.state().hp).toFixed(2), G.zaState(-1).store];
       H.mute(0); G.teleport(0, -50); G.placeUnit(0, 0, -56); G.step(1); G.zhReady(); const dh = G.zaUnit('demon').hp; o.castP = G.cast(2, 0, -56); const z = G.zaState(-1);
       o.tell = { on: z.zm.on, mat: z.zm.mat, t: z.zm.t }; H.until(() => !G.zaState(-1).zm.on, 120); G.step(1); o.back = { lost: +(dh - G.zaUnit('demon').hp).toFixed(3), cdR: +G.skills()[2].toFixed(2) };
+      // The player's health is read from state() (player() has none: the first version read NaN; check fix, ticket 10 resume).
       // The copied Pounce dashes him its length and no skill casts while dashing: Roar waits for the dash to end (check fix, ticket 10 resume).
       H.until(() => G.suits()[0].dash <= 0, 120); G.zhReady(); G.teleport(0, -50); G.placeUnit(0, 0, -55); G.step(1); G.setStore(-1, 'move', 'roar'); G.cast(2, 0, -55); H.until(() => !G.zaState(-1).zm.on, 120); const ur = G.zaUnit('demon'); o.roar = [+ur.slowT.toFixed(2), ur.slowK];
       // 正名 on the demon after the stalker's plate came home (its stolen lunge and rend sealed, Pounce not), and in its frenzy (no slow).
