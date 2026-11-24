@@ -465,7 +465,8 @@ const CONFIG = {
       skills: [
         // Q 播百谷 (sow the hundred grains): seeds seeds at a point up to range m away, spread spread m around it; each grows into a sprout in growS s
         // and the sprout stands lastS s. A fixed pool of pool per 农甲: a new seed takes a free place, else the oldest. A seed needs a standing floor.
-        // Bots sow botAhead m in front of them when a target is within botR m.
+        // Bots sow botAhead m in front of them when a target is within botR m, and out of a fight at their feet while fewer than seeds of their
+        // planted sprouts stand within tiller.seekM (a field ahead of time, ticket 08 fix: botFieldAhead).
         { key: 'KeyQ', label: 'Q', nameKey: 'sk_nong_q', type: 'circle', sow: true, range: 6, radius: 1.2, seeds: 3, spread: 1, growS: 4, lastS: 20, pool: 9, dmg: 0, cd: 6, delay: 0, tag: 'sow', botR: 8, botAhead: 1.5 },
         // W 并耕 (the plough charge, the dash): range m by the walking rule (dashS s), leaving a furrow width m wide along its path for furrowS s:
         // other suits on it are slowed by slow; his seeds on it grow growK times as fast. No hit (the doc gives the charge no damage).
@@ -3491,7 +3492,7 @@ function botThink(b, dt) {
     botFleeWall(b);
     // A sprout is eaten only by walking onto it; an altar heals across its radius.
     if (Math.hypot(b.heal.x - b.x, b.heal.z - b.z) > (b.heal.sprout ? 0.2 : CONFIG.ALTAR.radius * 0.6)) botFollow(b);
-  } else { if (b.mode === 'avoid') botReadyUlt(b); botFollow(b); }
+  } else { if (b.mode === 'avoid') botReadyUlt(b); if (b.mode === 'avoid' || b.mode === 'roam') botFieldAhead(b); botFollow(b); }
   // Never step into a tell it has seen long enough (unless leaving a warned section).
   if (!warned && (b.mx !== 0 || b.mz !== 0) && botDanger(b, b.x + b.mx * 0.8, b.z + b.mz * 0.8, 0.3)) { b.mx = 0; b.mz = 0; }
 }
@@ -3680,6 +3681,15 @@ function botReadyUlt(b) {
   if (sk.tag === 'harvest' && b.mode === 'heal') { botUseSkills(b, b, 0, true); return; }
   const q = b.tgt;
   if (sk.tag === 'pierce' && b.mode === 'avoid' && q && q.kind === 'suit' && !q.dead && (q !== P || b.hunter)) botUseSkills(b, q, Math.hypot(q.x - b.x, q.z - b.z), true);
+}
+// 农甲's bot out of a fight (batch 16 ticket 08 fix: it sowed only with a target in reach, fights start after the peace and it fell in its first fight
+// with every seed still growing, so it never had a grown sprout to eat): Q at its feet while fewer than seeds of its planted sprouts stand within seekM.
+function botFieldAhead(b) {
+  const sk = b.kit.skills[0];
+  if (sk.tag !== 'sow' || b.cd[0] > 0 || b.castT > 0 || b.stunT > 0 || b.dashLeft > 0 || silenced(b)) return;
+  if (sproutsNear(b, CONFIG.KITS.nong.tiller.seekM) >= sk.seeds) return;
+  b.cd[0] = sk.cd; b.castT = CONFIG.BOT.castGapS; breakUnseen(b); b.castAt = G.time;
+  sowSeeds(b, sk, b.x, b.z);
 }
 // 道甲's bot (ticket 08): 不争 (W) when a skill tell it has seen covers it, else 柔 (Q) when a basic attack is about to land on it.
 function botStance(b) {
