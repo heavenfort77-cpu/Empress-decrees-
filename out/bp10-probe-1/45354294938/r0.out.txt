@@ -1,0 +1,16 @@
+node:internal/modules/run_main:123
+    triggerUncaughtException(
+    ^
+
+page.goto: Download is starting
+Call log:
+  - navigating to "http://127.0.0.1:36791/?lock&tier=medium&bots=0&pkit=placeholder", waiting until "load"
+
+    at /home/runner/work/Empress-decrees-/Empress-decrees-/ci_probe/cam10.mjs:13:12 {
+  log: [
+    '  - navigating to "http://127.0.0.1:36791/?lock&tier=medium&bots=0&pkit=placeholder", waiting until "load"'
+  ],
+  name: 'Error'
+}
+
+Node.js v22.23.5

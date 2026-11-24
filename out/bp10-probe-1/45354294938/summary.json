@@ -1,0 +1,9 @@
+[
+ {
+  "i": 0,
+  "fails": [],
+  "tot": [],
+  "s": 2,
+  "tail": "node:internal/modules/run_main:123\n    triggerUncaughtException(\n    ^\n\npage.goto: Download is starting\nCall log:\n  - navigating to \"http://127.0.0.1:36791/?lock&tier=medium&bots=0&pkit=placeholder\", waiting until \"load\"\n\n    at /home/runner/work/Empress-decrees-/Empress-decrees-/ci_probe/cam10.mjs:13:12 {\n  log: [\n    '  - navigating to \"http://127.0.0.1:36791/?lock&tier=medium&bots=0&pkit=placeholder\", waiting until \"load\"'\n  ],\n  name: 'Error'\n}\n\nNode.js v22.23.5\n"
+ }
+]
