@@ -18,56 +18,70 @@ import palace_tex as P  # reads OUTDIR and SIZE from argv
 CM = 2.56  # px per cm at 256 px/m
 
 # Ramps (study ramps; research palette where the study has none)
-EARTH = dict(base='#9e8a68', lines='#7a664a', dark='#746248', light='#b4a280', mid='#8e7b5c')           # loess, research #A88A5E / #8C6F48 (round 2: greyer; round 1 read as plywood)
-CORE = dict(base='#8e7553', lines='#735c3e', dark='#665139', light='#a08763', mid='#836b4b')            # core chamber earth: darker, smoke-dulled
+EARTH = dict(base='#9b8b6f', lines='#7a6b55', dark='#786953', light='#b2a487', mid='#8f7f63')           # loess, research #A88A5E / #8C6F48 (round 3: earth grey-ochre, away from timber's orange-brown; rounds 1-2 read as wood)
+CORE = dict(base='#8e7553', lines='#735c3e', dark='#5f4b35', light='#a88f6a', mid='#836b4b')            # core chamber earth: darker, smoke-dulled
 BURNT = dict(base='#8e5a45', lines='#6a3d2e', dark='#5c3629', light='#a26c55', mid='#83503e')           # reddened by fire (Xianyang finds)
 STONE = ['#7b786f', '#88857d', '#939087', '#a9a59b', '#8e8a80']
+SLAB = ['#8b877e', '#908c83', '#868279', '#8e8a80', '#928e85']  # paving slab tones: narrow on purpose (repeat)
 LACQ = ['#15100d', '#1d1612', '#231a15', '#2c2320']
 VERM = ['#742d1e', '#86281a', '#9a4a34']
 PLASTER = ['#b0a48b', '#b8ac94', '#d2c8b2']
 
 
 def layered_earth(name, R, seed, lmin, lmax, soot=False, pocks=3200):
-    """Rammed earth 夯土: horizontal tamped layers lmin-lmax cm, a darker line at each layer bed, rammer pocks, put-log holes, erosion."""
+    """Rammed earth 夯土. Round 3 (lead review 25 Nov: the terrace sides read as wooden planks: even stripes, straight dark seams): tamped
+    lifts of uneven thickness (lmin-lmax cm, now and then a thick lift of 15-25 cm), slightly wavy beds (whole sine cycles per tile, so it
+    wraps), each lift its own earth tone drawn along its wave, beds marked by a soft change of tone (no dark seam line), tamping pits in
+    rows along each lift, crumbled patches and runnels that cross the beds."""
     t = P.Tex(name, R['base'], True, True, seed)
     r = t.r
     t.stage = 1
     for _ in range(70):
-        t.blot(r.uniform(0, 1024), r.uniform(0, 1024), r.uniform(60, 150), 'sponge', r.uniform(60, 120), r.choice([R['dark'], R['light'], R['mid']]), r.uniform(0.25, 0.4), 3)
-    # layers: heights in cm, scaled so they sum to exactly 4 m (the texture wraps in y)
+        t.blot(r.uniform(0, 1024), r.uniform(0, 1024), r.uniform(60, 150), 'sponge', r.uniform(60, 120), r.choice([R['dark'], R['light'], R['mid']]), r.uniform(0.2, 0.35), 3)
     hs = []
-    while sum(hs) < 400: hs.append(r.uniform(lmin, lmax))
+    while sum(hs) < 400: hs.append(r.uniform(15, 25) if r.random() < 0.18 else r.uniform(lmin, lmax))
     k = 400 / sum(hs); hs = [h * k * CM for h in hs]
-    y = 0.0
+    waves = [(r.choice([1, 2, 3]), r.uniform(0, math.tau), r.uniform(2, 6), r.choice([4, 5, 7]), r.uniform(0, math.tau), r.uniform(0.6, 1.6)) for _ in hs]
+    def bed(i, x):  # y offset of bed i at x: two whole-cycle sines (wrap-safe)
+        k1, p1, a1, k2, p2, a2 = waves[i % len(waves)]
+        return a1 * math.sin(math.tau * k1 * x / 1024 + p1) + a2 * math.sin(math.tau * k2 * x / 1024 + p2)
+    def along(i, y, x0, x1):
+        return [(x, y + bed(i, x)) for x in [x0 + (x1 - x0) * j / 8 for j in range(9)]]
     t.stage = 2
-    for li, h in enumerate(hs):
-        # each layer one tone (alternately lighter and darker, as tamped lifts dry differently), laid in round sponge dabs, not streaks
-        tone = r.choice([R['base'], R['mid']]) if li % 2 else r.choice([R['light'], R['base']])   # round 2: softer alternation (round 1 read as boards)
-        x = r.uniform(0, 40)
-        while x < 1024 + 20:
-            L = r.uniform(5, 14) * CM
-            t.stroke([(x, y + h * 0.5), (x + L, y + h * 0.5 + r.uniform(-1, 1))], 'oil', h * 1.05, tone, r.uniform(0.25, 0.45), taper=[0, 0])
-            x += L * r.uniform(0.6, 1.0)
-        x0 = r.uniform(0, 1024)  # the bed line: darker, broken into 20-60 cm runs, slightly wavy
-        x = x0
-        while x < x0 + 1024:
-            L = r.uniform(20, 60) * CM
-            t.stroke(t.wobble(x, y + h, x + L, y + h, 4, 1.2), 'chalk', r.uniform(2.5, 4), R['lines'], r.uniform(0.45, 0.7), taper=[0, 0])
-            x += L + r.uniform(2, 8) * CM
+    y = 0.0
+    tones = [R['base'], R['mid'], R['light'], R['base'], R['dark']]
+    for i, h in enumerate(hs):
+        tone = r.choice(tones)
+        # the lift's own tone: one continuous stroke along its wave, sampled on a fixed 32 px grid past both edges so the wrap matches
+        # (stroke ends read as wood grain)
+        t.stroke([(x, y + h * 0.5 + bed(i, x)) for x in range(-64, 1089, 32)], 'marker', h * 0.95, tone, 0.55, taper=[0, 0], wrap=False)
+        for _ in range(int(14 * h / 25)):  # mottling inside the lift: round sponge dabs, not streaks
+            px = r.uniform(0, 1024); py = y + h * r.uniform(0.2, 0.8) + bed(i, px)
+            t.stroke([(px, py), (px + r.uniform(8, 30), py + r.uniform(-1, 1))], 'sponge', h * r.uniform(0.5, 0.9), r.choice(tones), r.uniform(0.25, 0.4), taper=[0, 0])
+        x = r.uniform(0, 1024)  # the bed: a soft, broken change of tone (no dark seam)
+        while x < 1024 + 200:
+            L = r.uniform(30, 90) * CM
+            t.stroke(along(i, y + h, x, x + L), 'oil', r.uniform(4, 7), r.choice([R['mid'], R['dark']]), r.uniform(0.18, 0.32), taper=[0, 0])
+            x += L + r.uniform(10, 40) * CM
+        for _ in range(int(h * 1.1)):  # tamping pits in the lift: round dents in loose rows
+            px = r.uniform(0, 1024); py = y + h * r.uniform(0.25, 0.8) + bed(i, px)
+            s = r.uniform(5, 11)
+            t.stroke([(px, py), (px + 0.6, py + 0.4)], 'ink', s * 0.6, r.choice([R['dark'], R['lines']]), r.uniform(0.3, 0.5), taper=[0, 0])
+            t.stroke([(px - s * 0.25, py - s * 0.3), (px + s * 0.25, py - s * 0.3)], 'pencil', 1.5, R['light'], 0.35, taper=[0, 0])
         y += h
-    for _ in range(pocks):  # rammer pocks: small round dents, darker
-        x, y = r.uniform(0, 1024), r.uniform(0, 1024); s = r.uniform(5, 12)
-        t.stroke([(x, y), (x + 0.6, y + 0.4)], 'ink', s * 0.6, r.choice([R['dark'], R['lines'], R['light']]), r.uniform(0.35, 0.55), taper=[0, 0])
+    for _ in range(int(pocks * 1.6)):  # grit and small pits (the earth's grain at 1-3 cm)
+        x, y = r.uniform(0, 1024), r.uniform(0, 1024)
+        t.stroke([(x, y), (x + 0.6, y + 0.4)], 'ink', r.uniform(3, 6), r.choice([R['dark'], R['light'], R['lines']]), r.uniform(0.35, 0.55), taper=[0, 0])
     t.stage = 3
+    for _ in range(45):  # crumbled patches that break the beds
+        t.blot(r.uniform(0, 1024), r.uniform(0, 1024), r.uniform(20, 55), 'oil', r.uniform(18, 36), r.choice([R['dark'], R['light']]), r.uniform(0.25, 0.4), 3)
     for _ in range(5):  # put-log holes in a loose row (formwork poles), dark
         x, y = r.uniform(0, 1024), r.choice([256, 640, 896]) + r.uniform(-20, 20)
         t.stroke([(x, y), (x + 1, y + 1)], 'ink', r.uniform(14, 20), '#3e3020' if not soot else '#1c1512', 0.85, taper=[0, 0])
-    for _ in range(50):  # weathered patches that break the strata (loess crumbling at the face)
-        t.blot(r.uniform(0, 1024), r.uniform(0, 1024), r.uniform(20, 60), 'oil', r.uniform(20, 40), r.choice([R['dark'], R['light']]), r.uniform(0.25, 0.4), 3)
-    for _ in range(40):  # erosion runs and hairline cracks down the face
+    for _ in range(40):  # runnels down the face, crossing the beds
         x, y = r.uniform(0, 1024), r.uniform(0, 1024)
-        t.stroke(t.wobble(x, y, x + r.uniform(-8, 8), y + r.uniform(40, 140), 5, 2), 'pencil', 2.2, R['lines'], r.uniform(0.35, 0.6))
-    if soot:  # smoke and soot (core chamber: lamp smoke; burnt: fire): soft vertical stains rising up the face, not blobs
+        t.stroke(t.wobble(x, y, x + r.uniform(-8, 8), y + r.uniform(60, 180), 5, 2), 'oil', r.uniform(4, 8), r.choice([R['dark'], R['mid']]), r.uniform(0.2, 0.35))
+    if soot:  # smoke and soot: soft vertical stains rising up the face
         for _ in range(45):
             x, y = r.uniform(0, 1024), r.uniform(0, 1024)
             t.stroke(t.wobble(x, y, x + r.uniform(-20, 20), y - r.uniform(120, 300), 5, 8), 'soft', r.uniform(30, 70), r.choice(['#2a2220', '#3a2e28']), r.uniform(0.15, 0.3), pressure=[1, 0.6, 0.15])
@@ -125,24 +139,29 @@ def stone_paving():
         y += h
     t.stage = 1
     for x, y, w, h in slabs:  # each slab its own tone, filled with horizontal strokes
-        c = r.choice(STONE); yy = y + 6
+        # round 2 (lead review: the 4 m repeat read as a grid across the court): slab tones from a narrow ramp (lum spread ~10, was ~45:
+        # a few very light and very dark slabs made the same blocks show every 4 m); the slab's life is in the chisel work, not its tone
+        c = r.choice(SLAB); yy = y + 6
         while yy < y + h - 4:
             t.stroke(t.wobble(x + 4, yy, x + w - 4, yy, 4, 1.2), 'flat-bristle', 16, c, 0.9, taper=[0, 0]); yy += 11
     t.stage = 2
     for x, y, w, h in slabs:  # chisel dressing: short parallel strokes in patches, a different angle per slab
         a = r.uniform(-0.6, 0.6) + r.choice([0, math.pi / 2])
-        for _ in range(int(w * h / 900)):
+        for _ in range(int(w * h / 550)):
             cx, cy = r.uniform(x + 8, x + w - 8), r.uniform(y + 8, y + h - 8); L = r.uniform(4, 12) * CM
-            t.stroke([(cx, cy), (cx + math.cos(a) * L, cy + math.sin(a) * L)], 'chalk', r.uniform(3, 6), r.choice(['#6d6a62', '#a9a59b', '#7b786f']), r.uniform(0.3, 0.55))
+            t.stroke([(cx, cy), (cx + math.cos(a) * L, cy + math.sin(a) * L)], 'chalk', r.uniform(3, 6), r.choice(['#67645c', '#aeaaa0', '#77746b']), r.uniform(0.35, 0.6))
     t.stage = 3
     for x, y, w, h in slabs:  # joints: dark mortar line on the top and left edge of each slab (tiles cover every edge once)
-        t.stroke(t.wobble(x, y, x + w, y, 5, 0.8), 'marker', 4, '#4b4740', 0.9, taper=[0, 0])
-        t.stroke(t.wobble(x, y, x, y + h, 4, 0.8), 'marker', 4, '#4b4740', 0.9, taper=[0, 0])
+        t.stroke(t.wobble(x, y, x + w, y, 5, 0.8), 'marker', 5, '#47433c', 0.9, taper=[0, 0])
+        t.stroke(t.wobble(x, y, x, y + h, 4, 0.8), 'marker', 5, '#47433c', 0.9, taper=[0, 0])
         for _ in range(2):  # chipped arrises
             ex = r.uniform(x, x + w)
             t.stroke([(ex, y + 3), (ex + r.uniform(6, 16), y + 4)], 'chalk', 4, '#5e5a52', 0.5)
-    for _ in range(40):  # wear and stains
-        t.blot(r.uniform(0, 1024), r.uniform(0, 1024), r.uniform(20, 60), 'sponge', 40, r.choice(['#7a766c', '#a19d92']), 0.25, 2)
+    for _ in range(260):  # pitting in the stone, spread evenly (fine detail does not show a repeat)
+        x, y = r.uniform(0, 1024), r.uniform(0, 1024)
+        t.stroke([(x, y), (x + 1, y + 1)], 'ink', r.uniform(3, 6), '#5f5b53', r.uniform(0.5, 0.8), taper=[0, 0])
+    for _ in range(40):  # wear and stains (faint: broad marks are what a repeat shows)
+        t.blot(r.uniform(0, 1024), r.uniform(0, 1024), r.uniform(20, 60), 'sponge', 40, r.choice(['#7a766c', '#a19d92']), 0.12, 2)
     return t
 
 

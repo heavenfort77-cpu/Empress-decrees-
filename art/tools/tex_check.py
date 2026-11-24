@@ -50,13 +50,13 @@ T = {
 # Extra rules per W2 texture: value = mean luminance range of the broad region (study value plan; research palette), wrap = edges that
 # must tile (edge step <= 1.5x the inside step), alpha = opaque share range per atlas cell (alpha cards), plus named checks below.
 X = {
-    'rammed_earth': dict(value=(105, 145), wrap='xy'), 'rammed_earth_core': dict(value=(80, 120), wrap='xy'),
-    'earth_burnt': dict(value=(60, 105), wrap='xy', redder='rammed_earth'), 'river_stone': dict(value=(90, 140), wrap='xy'),
-    'stone_paving': dict(value=(115, 150), wrap='xy'), 'floor_tiles': dict(value=(95, 130), wrap='xy'), 'hollow_brick': dict(value=(100, 135), wrap='xy'),
+    'rammed_earth': dict(repeat=True, value=(105, 145), wrap='xy'), 'rammed_earth_core': dict(repeat=True, value=(80, 120), wrap='xy'),
+    'earth_burnt': dict(repeat=True, value=(60, 105), wrap='xy', redder='rammed_earth'), 'river_stone': dict(repeat=True, value=(90, 140), wrap='xy'),
+    'stone_paving': dict(repeat=True, value=(115, 150), wrap='xy'), 'floor_tiles': dict(repeat=True, value=(95, 130), wrap='xy'), 'hollow_brick': dict(value=(100, 135), wrap='xy'),
     'mural_wall': dict(value=(150, 185), wrap='x', ink=(60, 420)), 'wall_burnt': dict(value=(70, 125), wrap='x', darker='hall_wall'),
     'roof_tile': dict(value=(60, 95), wrap='xy'), 'tile_ends': dict(discs=True), 'timber': dict(value=(65, 100), wrap='xy'), 'timber_burnt': dict(value=(25, 55), wrap='xy'),
-    'mercury_matcap': dict(value=(110, 190), matcap=True), 'black_lake': dict(value=(12, 35), wrap='xy', teal=True),
-    'garden_ground': dict(value=(85, 125), wrap='xy'), 'garden_plants': dict(alpha=(0.06, 0.6), cells=4),
+    'mercury_matcap': dict(value=(110, 190), matcap=True), 'black_lake': dict(repeat=True, value=(12, 35), wrap='xy', teal=True),
+    'garden_ground': dict(repeat=True, value=(85, 125), wrap='xy'), 'garden_plants': dict(alpha=(0.06, 0.6), cells=4),
     'star_ceiling': dict(value=(22, 50), wrap='xy'), 'signal_flags': dict(alpha=(0.25, 0.7), cells=3), 'slips': dict(value=(120, 165), wrap='x'),
     'slips_burnt': dict(value=(28, 70), wrap='x'),
 }
@@ -121,6 +121,10 @@ for n, (du, dv, (y0, y1), scap) in T.items():
         res.append(('coverage', all(lo <= v <= hi for v in shares), f'opaque share per cell {min(shares):.2f}-{max(shares):.2f} ({lo}-{hi})'))
         lost = ((rgba[..., 3] > 0) & (rgba[..., 3] < 128)).sum() / max(1, (rgba[..., 3] > 0).sum())
         res.append(('alpha test', lost <= 0.2, f'{lost:.2f} of drawn pixels fall under the 0.5 alpha test (max 0.2)'))
+    if x.get('repeat'):  # repeat visibility: sd of 50 cm block means (what still shows at the wide camera, where a 4 m repeat becomes a
+        # grid); the approved hall floor measures 3.3 and shows no grid, stone paving round 1 measured 6.1 and did (lead review 25 Nov)
+        B = lum_of(full); blk = B.reshape(8, B.shape[0] // 8, 8, B.shape[1] // 8).mean((1, 3)).std()
+        res.append(('repeat', blk <= 3.5, f'50 cm block sd {blk:.1f} (max 3.5)'))
     if x.get('matcap'):
         b_r = (a[..., 2] - a[..., 0])[op].mean()
         res.append(('cool', b_r >= 4, f'blue minus red {b_r:.1f} (min 4)'))

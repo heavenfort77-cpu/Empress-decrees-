@@ -14,10 +14,11 @@ def faint(a): b = a.copy(); b[..., 3] = np.where(a[..., 3] > 0, 100, 0); return 
 def dull(a): b = a.copy(); b[..., :3] = a[..., :3] * 0.6; return b
 def blank_band(a): b = a.copy(); b[60:420, :, :3] = np.array([214, 204, 182]); return b
 def blank_discs(a): b = a.copy(); b[..., :3] = np.array([87, 86, 84]); return b
+def blocks(a): b = a.copy(); yy, xx = np.mgrid[0:a.shape[0], 0:a.shape[1]]; b[..., :3] += (16 * (((xx // 256) + (yy // 128)) % 2) - 8)[..., None]; return b
 def saturate(a): b = a.copy(); b[..., 0] = np.clip(a[..., 0] * 1.6, 0, 255); b[..., 2] = a[..., 2] * 0.4; return b
 M = [  # (texture, mutation, rule that must fail)
     ('rammed_earth', flat, 'brush scale'), ('rammed_earth', flat, 'contrast'), ('rammed_earth', shear, 'seam x'),
-    ('stone_paving', saturate, 'saturation'), ('black_lake', grey, 'teal tint'), ('garden_plants', faint, 'alpha test'),
+    ('stone_paving', saturate, 'saturation'), ('stone_paving', blocks, 'repeat'), ('rammed_earth', blocks, 'repeat'), ('black_lake', grey, 'teal tint'), ('garden_plants', faint, 'alpha test'),
     ('mercury_matcap', dull, 'brightest'), ('mural_wall', blank_band, 'mural ink'), ('tile_ends', blank_discs, 'contrast'),
     ('timber', dull, 'value'), ('earth_burnt', grey, 'reddened'), ('wall_burnt', lambda a: load('hall_wall'), 'darker than unburnt'),
 ]
