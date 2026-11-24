@@ -1,0 +1,33 @@
+[
+ {
+  "i": 0,
+  "fails": [
+   "42",
+   "300"
+  ],
+  "tot": [
+   "RUNTIME 188 of 190 pass"
+  ],
+  "s": 175,
+  "name": "cap-off",
+  "want": "300",
+  "applied": true,
+  "caught_named": true
+ },
+ {
+  "i": 1,
+  "fails": [
+   "42",
+   "303",
+   "308"
+  ],
+  "tot": [
+   "RUNTIME 187 of 190 pass"
+  ],
+  "s": 179,
+  "name": "faction-same",
+  "want": "308",
+  "applied": true,
+  "caught_named": true
+ }
+]
