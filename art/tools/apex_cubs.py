@@ -147,10 +147,11 @@ def build_howler(lod):
     det = lod == 0; K.S['seg'] = SEGS[lod]; K.S['detail'] = det; sub = 2 if lod == 0 else 1
     # FIX-A round 4: a round-bellied cauldron beast. Oval belly (no flat top, no square corners), a lipped rim and a domed lid with a
     # gold knob (from above: an egg, not a box), a cloud band under the rim, two upright ding handles on the rim
-    _, H = vloft('hull', HOWL_BELLY, 'apexBronze', 'hull', 'plain', M=24, sub=sub)
-    vloft('rim', [(1.08, 0.35, 0.43), (1.11, 0.4, 0.48), (1.15, 0.4, 0.48), (1.165, 0.35, 0.43)], 'apexBronze', 'hull', 'flange', M=24)
-    vloft('lid', HOWL_LID, 'apexBronze', 'hull', 'plain', M=24)
-    vloft('band', [(0.96, 0.442, 0.522), (0.985, 0.448, 0.528), (1.02, 0.43, 0.51)], 'apexBronze', 'hull', 'clouds', M=24, cap=False)
+    # round A3: rings 24 -> 20 and no in-between rings on the belly (A2 LOD0 4516 tris over the 4000 budget)
+    _, H = vloft('hull', HOWL_BELLY, 'apexBronze', 'hull', 'plain', M=20)
+    vloft('rim', [(1.08, 0.35, 0.43), (1.11, 0.4, 0.48), (1.15, 0.4, 0.48), (1.165, 0.35, 0.43)], 'apexBronze', 'hull', 'flange', M=20)
+    vloft('lid', HOWL_LID, 'apexBronze', 'hull', 'plain', M=20)
+    vloft('band', [(0.96, 0.442, 0.522), (0.985, 0.448, 0.528), (1.02, 0.43, 0.51)], 'apexBronze', 'hull', 'clouds', M=20, cap=False)
     K.spheroid('knob', (0, HOWL_F - 0.04, 1.37), (0.06, 0.06, 0.05), 'apexInlay', 'hull', segs=(8, 5))
     for s in (-1, 1):  # ding handles (耳) standing on the rim
         for e in (-1, 1): tube(f'hpost{s}{e}', (s * 0.37, HOWL_F + e * 0.1, 1.14), (s * 0.38, HOWL_F + e * 0.1, 1.3), 0.03, 0.028, 'apexBronze', 'hull', 'flange', sides=6)
@@ -167,7 +168,7 @@ def build_howler(lod):
     tube('neck', (0, 0.3, 1.02), (0, 0.5, 1.27), 0.17, 0.14, 'apexBronze', 'head', 'plain', sides=12)
     ring('collar', (0, 0.34, 1.08), (0, 0.6, 0.8), 0.19, 0.04, 'apexBronze', 'head', sides=12)
     floft('skull', [(0.42, 1.33, .15, .15), (0.54, 1.36, .19, .17), (0.66, 1.35, .18, .15), (0.78, 1.32, .14, .11), (0.86, 1.31, .11, .085)],
-          'apexBronze', 'head', 'plain', n_exp=2.2, M=18, sub=sub)
+          'apexBronze', 'head', 'plain', n_exp=2.2, M=18)
     cup('bell', [(0.83, 1.31, .11, .085), (0.93, 1.35, .16, .125), (1.0, 1.39, .2, .16)], 0.025, 'apexBronze', 'head', 'flange', throat_mat='apexDark')
     K.spheroid('core', (0, 0.92, 1.35), (0.085, 0.04, 0.075), 'apexOrgan', 'head', segs=(10, 6))
     floft('jaw', [(0.6, 1.2, .11, .045), (0.78, 1.2, .13, .05), (0.94, 1.24, .15, .045)], 'apexBronze', 'jaw', 'lozenge', M=14, cap=True)
@@ -182,10 +183,10 @@ def build_howler(lod):
     # legs under the belly: upper and lower with a knee flange, short bogie with one big spoked chariot wheel (scrolling tread belt)
     for nm, sx, sf in (('FL', 1, 1), ('FR', -1, 1), ('BL', 1, -1), ('BR', -1, -1)):
         hip, knee, foot = HOWL_LEG(sx, sf)
-        tube(f'up{nm}', hip, knee, 0.13, 0.11, 'apexBronze', f'leg_{nm}', 'plain', sides=10)
-        ring(f'knee{nm}', knee, (0, 0, 1), 0.125, 0.045, 'apexBronze', f'low_{nm}', sides=10)
-        tube(f'lo{nm}', knee, foot, 0.1, 0.09, 'apexBronze', f'low_{nm}', 'flange', sides=10)
-        ring(f'ank{nm}', foot, (0, 0, 1), 0.105, 0.04, 'apexBronze', f'bogie_{nm}', sides=10)
+        tube(f'up{nm}', hip, knee, 0.13, 0.11, 'apexBronze', f'leg_{nm}', 'plain', sides=8)
+        ring(f'knee{nm}', knee, (0, 0, 1), 0.125, 0.045, 'apexBronze', f'low_{nm}', sides=8)
+        tube(f'lo{nm}', knee, foot, 0.1, 0.09, 'apexBronze', f'low_{nm}', 'flange', sides=8)
+        ring(f'ank{nm}', foot, (0, 0, 1), 0.105, 0.04, 'apexBronze', f'bogie_{nm}', sides=8)
         bogie(f'bg{nm}', sx * 0.36, sf * 0.27, 0.13, 0.34, 0.1, 1, f'bogie_{nm}', [f'wheel_{nm}0'], det, spoked=True)
     tube('tail', (0, -0.5, 0.92), (0, -0.64, 0.74), 0.045, 0.025, 'apexBronze', 'tail', 'flange', sides=8)
     prism('tailtip', blade(0.08, 0.04), (0, -0.64, 0.74), (0, -0.68, 0.6), 'apexInlay', 'tail', scale_b=0.15)

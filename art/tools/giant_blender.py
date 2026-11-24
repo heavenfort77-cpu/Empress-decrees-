@@ -814,7 +814,8 @@ CARRY = {}
 DORM = {'beam_off': (0, 0.11, 1.02), 'chest_pitch': -3, 'head_pitch': -4}
 # slam: windup = beam high overhead, leaning back, up on the chest; hit = folded forward, knees bent, beam crashing down in front
 SLAM_UP = {'beam_off': (0, 0.3, 1.1), 'chest_pitch': -8, 'spine_pitch': -4, 'head_pitch': -10}
-SLAM_HIT = {'beam_off': (0, 1.6, -0.7), 'beam_pitch': 0, 'chest_pitch': 34, 'spine_pitch': 18, 'pelvis_pitch': 12, 'pelvis_drop': 0.42, 'pelvis_f': -0.1, 'head_pitch': -20}
+# FIX-A round A3: pelvis_f -0.1 -> -0.05 (the raised hip pivots of the longer legs left the beam 0.77 m in front, gate min 0.8)
+SLAM_HIT = {'beam_off': (0, 1.6, -0.7), 'beam_pitch': 0, 'chest_pitch': 34, 'spine_pitch': 18, 'pelvis_pitch': 12, 'pelvis_drop': 0.42, 'pelvis_f': -0.05, 'head_pitch': -20}
 # sweep: windup = turned 80 deg to the right, beam low on that side; hit = swung across to the left, leaning in
 SWEEP_UP = {'pelvis_yaw': -20, 'spine_yaw': -25, 'chest_yaw': -35, 'beam_roll': -14, 'beam_off': (0, 0.0, -0.1), 'chest_roll': 6, 'pelvis_drop': 0.18, 'head_yaw': 25}
 SWEEP_HIT = {'pelvis_yaw': 25, 'spine_yaw': 30, 'chest_yaw': 40, 'beam_roll': 12, 'beam_off': (0, 0.05, -0.2), 'chest_pitch': 14, 'chest_roll': -6, 'pelvis_drop': 0.25, 'head_yaw': -20}
