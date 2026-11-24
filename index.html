@@ -60,7 +60,6 @@ body.touch #school{left:auto;right:12px;top:124px}
 .sel__btn{min-width:44px;min-height:44px;padding:10px;font:15px system-ui,sans-serif;color:#fff;background:#2a2030;border:2px solid #6a5a7a;border-radius:8px}
 .sel__btn.is-last{border-color:#c9a040}
 .sel__btn--random{grid-column:1/-1;background:#3a2a1a}
-body.palace #mini{display:none !important}
 #mode{position:fixed;inset:0;display:none;background:#120d16;z-index:9;overflow:auto}
 .sel__btn--mode{margin-top:14px;background:#1a2a3a}
 #door{position:fixed;left:50%;top:22%;transform:translateX(-50%);display:none;pointer-events:none;white-space:pre-line;text-align:center;font:15px system-ui,sans-serif;color:#fff;background:#120d16cc;border:2px solid #c9a040;border-radius:8px;padding:10px 16px;max-width:80vw}
@@ -606,7 +605,26 @@ const CONFIG = {
   // that waited on a locked room does not bunch the next one); warnS = warning seconds before the wing falls (fairness tell, >= 0.4; owner
   // 5 s); fallS = seconds its rooms take to drop out of sight; noteS = seconds her "has fallen" line stays up; order = wings in burning
   // order (until BP05's layout: the BP01 rooms' wings in BURN_WINGS below). Numbers are the design's, not tuned (owner: results first).
-  BURN: { on: true, firstS: 40, everyS: 40, warnS: 5, fallS: 1.2, noteS: 2.5, order: ['outer', 'court', 'west', 'east'] },
+  BURN: { on: true, firstS: 40, everyS: 40, warnS: 5, fallS: 1.2, noteS: 2.5, order: ['outer', 'court', 'west', 'east'],
+    // orderFull = burning order of the full palace's five outer wings (integration, 24 Nov; the centre wing, forecourt to core, never burns,
+    // like the bridge and core of the six-room box; order not tuned). order above is the six-room box (layout=proto).
+    orderFull: ['southwest', 'southeast', 'west', 'east', 'south'] },
+  // Palace plan (BP05, owner 24 Nov 13:18 阿房宫 model and 14:16 "less than 5 min reach too easy"). layout = which plan a palace run uses:
+  // 'full' = the 29-room palace (nine school halls on the rim, courtyards, corridors, gardens, bridges, the forecourt and the core),
+  // 'proto' = the six-room BP01 box (kept as the fixture of the ticket 01 checks; ?layout=proto picks it); lakeMargin = metres of black lake
+  // beyond the plan on every side; minRoute = the fewest rooms between any school hall and the core (owner 14:16: at least 5).
+  PAL_PLAN: { layout: 'full', lakeMargin: 60, minRoute: 5 },
+  // Guard escalation per room for tickets 02/03 (squads of the 皇家 guard when a door opens). depth = rooms from the core (core 0, its bridge 1,
+  // forecourt 2, ... rim halls 6-8); squads[i] = squads in a room at depth i (the last value for deeper rooms; the core holds the apex, so 0);
+  // lateAt = run times in seconds after which one more squad joins each room; cap = most squads in one room; mix = unit types per squad
+  // ('zu' 卒, 'nu' 弩手, 'dun' 盾, 'che' 车 (open rooms only), 'wz' 伍长) by depth band: inner = depth <= innerD, mid = depth <= midD, else rim.
+  PAL_ESC: { squads: [0, 2, 3, 2, 2, 1, 1], lateAt: [90, 180], cap: 3, innerD: 2, midD: 4,
+    mix: { rim: ['zu', 'zu', 'zu'], mid: ['dun', 'zu', 'zu', 'nu', 'nu', 'wz'], inner: ['dun', 'dun', 'zu', 'zu', 'nu', 'nu', 'che', 'wz'] } },
+  // Room minimap in the palace (owner 13:26: off-screen fights only by announcement, so it shows rooms and the player, no rivals). Colours per
+  // room type; cur = outline of the room you stand in; warned = a room named for the burning; fallen = outline left where a room fell;
+  // door = door marks; you = the player's dot; pad = pixels of margin around the plan.
+  PAL_MINI: { hall: '#a8784a', court: '#8c8a80', corridor: '#56524c', garden: '#3f6a3a', bridge: '#9a6a3a', core: '#8a3a2a',
+    cur: '#ffd060', warned: '#b33a2a', fallen: '#2a2430', door: '#cfcabd', you: '#40c0ff', pad: 6 },
   // Unseen state (batch 16, minimal; full hiding with curtains and walls is batch 18): an unseen suit is not drawn for others and cannot be
   // targeted, except within shimmerM metres (drawn as a shimmer) or while marked; attacking or being hit ends it.
   UNSEEN: { shimmerM: 3 },
@@ -760,6 +778,11 @@ const TEXT = {
   mode_key: '{n}. {mode}',
   mode_palace: 'The Burning Palace',
   mode_rumble: 'Royal Rumble',
+  pal5_hall_ru: 'Hall of the Ru', pal5_hall_dao: 'Hall of the Dao', pal5_hall_fa: 'Hall of the Fa', pal5_hall_mo: 'Hall of the Mo', pal5_hall_yinyang: 'Hall of the Yinyang',
+  pal5_hall_za: 'Hall of the Za', pal5_hall_ming: 'Hall of the Ming', pal5_hall_zongheng: 'Hall of the Zongheng', pal5_hall_nong: 'Hall of the Nong',
+  pal5_room_fore: 'Forecourt of the Twelve', pal5_room_approach: 'Bridge to the throne',
+  pal5_wing_west: 'the west wing', pal5_wing_southwest: 'the south-west wing', pal5_wing_south: 'the south wing', pal5_wing_southeast: 'the south-east wing',
+  pal5_wing_east: 'the east wing', pal5_wing_centre: 'the centre',
   room_hall: 'School hall', room_court: 'Courtyard', room_corridor: 'Corridor', room_garden: 'Garden', room_bridge: 'Bridge over the black lake', room_core: 'Core hall',
   door_card: '{room}\nDecree: {decree}\nReward: {reward}\n{stir}',
   door_dec_none: 'none', door_dec_dry: 'altars do not heal', door_dec_nodash: 'no dashing', door_dec_silence: 'no skills', door_dec_heights: 'stay low', door_dec_ult2x: 'ultimate charge 2x',
@@ -770,6 +793,7 @@ const TEXT = {
   pal_voice_lost: 'The palace keeps you.',
   pal_rule_lost: 'Broken in the {room}. {retry}',
   burn_wing_outer: 'the outer hall', burn_wing_court: 'the courtyard', burn_wing_west: 'the west wing', burn_wing_east: 'the east wing',
+  burn_wing_southwest: 'the south-west wing', burn_wing_southeast: 'the south-east wing', burn_wing_south: 'the south wing',
   burn_voice: 'Let {wing} burn.',
   burn_rule: '{wing} falls into the lake in {s} s. Get out.',
   burn_fell: '{wing} is ash upon the black water.',
@@ -910,6 +934,82 @@ const PAL_DOORS = [
 // BP04: each BP01 room's wing for the burning ('' = never burns: the bridge to the core and the core hall). BP05's layout gives every room
 // its own wing in the room data; a room that already has one keeps it.
 const BURN_WINGS = { hall: 'outer', court: 'court', corridor: 'west', garden: 'east', bridge: '', core: '' };
+// The full palace (BP05, the 阿房宫 model, owner 24 Nov 13:18-14:27): a platform over the black lake, the nine school halls on the rim, each
+// wing's corridors, a courtyard or garden, bridges to the forecourt of the twelve bronze giants, the bridge to the throne and the core hall.
+// wing = what the burning names (ticket 04); school = whose hall it is (a suit starts in its own hall); nameKey = a TEXT key for the name.
+// The shortest way from any school hall to the core passes 5 rooms (7 from the south-west and south-east halls); one wing burnt never cuts
+// another wing's halls off from the core. Decree, reward and stir are placeholders until ticket 03 fills the rooms.
+const PAL_FULL_ROOMS = [
+  { id: 'core', type: 'core', wing: 'centre', x0: -16, x1: 16, z0: -100, z1: -70, decree: 'none', reward: 'none', stir: true },
+  { id: 'approach', type: 'bridge', wing: 'centre', x0: -6, x1: 6, z0: -70, z1: -52, decree: 'silence', reward: 'none', stir: false, nameKey: 'pal5_room_approach' },
+  { id: 'fore', type: 'court', wing: 'centre', x0: -24, x1: 24, z0: -52, z1: -22, decree: 'none', reward: 'boon', stir: true, nameKey: 'pal5_room_fore' },
+  { id: 'bridge_wf', type: 'bridge', wing: 'west', x0: -50, x1: -24, z0: -42, z1: -34, decree: 'silence', reward: 'none', stir: false },
+  { id: 'court_w', type: 'court', wing: 'west', x0: -80, x1: -50, z0: -60, z1: -30, decree: 'none', reward: 'boon', stir: true },
+  { id: 'corr_w', type: 'corridor', wing: 'west', x0: -92, x1: -80, z0: -70, z1: -20, decree: 'nodash', reward: 'meter', stir: false },
+  { id: 'hall_ru', type: 'hall', wing: 'west', x0: -124, x1: -92, z0: -70, z1: -46, decree: 'none', reward: 'none', stir: false, school: 'ru', spawn: [-108, -58], start: true },
+  { id: 'hall_dao', type: 'hall', wing: 'west', x0: -124, x1: -92, z0: -44, z1: -20, decree: 'none', reward: 'none', stir: false, school: 'dao', spawn: [-108, -32] },
+  { id: 'corr_wsw', type: 'corridor', wing: 'southwest', x0: -70, x1: -62, z0: -30, z1: 0, decree: 'nodash', reward: 'meter', stir: false },
+  { id: 'garden_sw', type: 'garden', wing: 'southwest', x0: -80, x1: -50, z0: 0, z1: 30, decree: 'none', reward: 'heal', stir: true },
+  { id: 'bridge_sws', type: 'bridge', wing: 'southwest', x0: -50, x1: -18, z0: 10, z1: 18, decree: 'silence', reward: 'none', stir: false },
+  { id: 'corr_sw', type: 'corridor', wing: 'southwest', x0: -100, x1: -40, z0: 30, z1: 42, decree: 'nodash', reward: 'meter', stir: false },
+  { id: 'hall_yinyang', type: 'hall', wing: 'southwest', x0: -100, x1: -72, z0: 42, z1: 72, decree: 'none', reward: 'none', stir: false, school: 'yinyang', spawn: [-86, 57] },
+  { id: 'hall_fa', type: 'hall', wing: 'southwest', x0: -68, x1: -40, z0: 42, z1: 72, decree: 'none', reward: 'none', stir: false, school: 'fa', spawn: [-54, 57] },
+  { id: 'court_s', type: 'court', wing: 'south', x0: -18, x1: 18, z0: 0, z1: 30, decree: 'none', reward: 'boon', stir: true },
+  { id: 'bridge_sf', type: 'bridge', wing: 'south', x0: -5, x1: 5, z0: -22, z1: 0, decree: 'silence', reward: 'none', stir: false },
+  { id: 'corr_s', type: 'corridor', wing: 'south', x0: -6, x1: 6, z0: 30, z1: 44, decree: 'nodash', reward: 'meter', stir: false },
+  { id: 'hall_ming', type: 'hall', wing: 'south', x0: -16, x1: 16, z0: 44, z1: 72, decree: 'none', reward: 'none', stir: false, school: 'ming', spawn: [0, 58] },
+  { id: 'bridge_ef', type: 'bridge', wing: 'east', x0: 24, x1: 50, z0: -42, z1: -34, decree: 'silence', reward: 'none', stir: false },
+  { id: 'court_e', type: 'court', wing: 'east', x0: 50, x1: 80, z0: -60, z1: -30, decree: 'none', reward: 'boon', stir: true },
+  { id: 'corr_e', type: 'corridor', wing: 'east', x0: 80, x1: 92, z0: -70, z1: -20, decree: 'nodash', reward: 'meter', stir: false },
+  { id: 'hall_za', type: 'hall', wing: 'east', x0: 92, x1: 124, z0: -70, z1: -46, decree: 'none', reward: 'none', stir: false, school: 'za', spawn: [108, -58] },
+  { id: 'hall_nong', type: 'hall', wing: 'east', x0: 92, x1: 124, z0: -44, z1: -20, decree: 'none', reward: 'none', stir: false, school: 'nong', spawn: [108, -32] },
+  { id: 'corr_ese', type: 'corridor', wing: 'southeast', x0: 62, x1: 70, z0: -30, z1: 0, decree: 'nodash', reward: 'meter', stir: false },
+  { id: 'garden_se', type: 'garden', wing: 'southeast', x0: 50, x1: 80, z0: 0, z1: 30, decree: 'none', reward: 'heal', stir: true },
+  { id: 'bridge_sse', type: 'bridge', wing: 'southeast', x0: 18, x1: 50, z0: 10, z1: 18, decree: 'silence', reward: 'none', stir: false },
+  { id: 'corr_se', type: 'corridor', wing: 'southeast', x0: 40, x1: 100, z0: 30, z1: 42, decree: 'nodash', reward: 'meter', stir: false },
+  { id: 'hall_zongheng', type: 'hall', wing: 'southeast', x0: 72, x1: 100, z0: 42, z1: 72, decree: 'none', reward: 'none', stir: false, school: 'zongheng', spawn: [86, 57] },
+  { id: 'hall_mo', type: 'hall', wing: 'southeast', x0: 40, x1: 68, z0: 42, z1: 72, decree: 'none', reward: 'none', stir: false, school: 'mo', spawn: [54, 57] },
+];
+const PAL_FULL_DOORS = [
+  { a: 'approach', b: 'core', at: 0 }, { a: 'fore', b: 'approach', at: 0 }, { a: 'bridge_wf', b: 'fore', at: -38 },
+  { a: 'bridge_ef', b: 'fore', at: -38 }, { a: 'court_w', b: 'bridge_wf', at: -38 }, { a: 'court_e', b: 'bridge_ef', at: -38 },
+  { a: 'corr_w', b: 'court_w', at: -45 }, { a: 'corr_e', b: 'court_e', at: -45 }, { a: 'hall_ru', b: 'corr_w', at: -58 },
+  { a: 'hall_za', b: 'corr_e', at: -58 }, { a: 'hall_dao', b: 'corr_w', at: -32 }, { a: 'hall_nong', b: 'corr_e', at: -32 },
+  { a: 'court_w', b: 'corr_wsw', at: -66 }, { a: 'court_e', b: 'corr_ese', at: 66 }, { a: 'corr_wsw', b: 'garden_sw', at: -66 },
+  { a: 'corr_ese', b: 'garden_se', at: 66 }, { a: 'garden_sw', b: 'bridge_sws', at: 14 }, { a: 'garden_se', b: 'bridge_sse', at: 14 },
+  { a: 'bridge_sws', b: 'court_s', at: 14 }, { a: 'bridge_sse', b: 'court_s', at: 14 }, { a: 'garden_sw', b: 'corr_sw', at: -65 },
+  { a: 'garden_se', b: 'corr_se', at: 65 }, { a: 'corr_sw', b: 'hall_yinyang', at: -86 }, { a: 'corr_se', b: 'hall_zongheng', at: 86 },
+  { a: 'corr_sw', b: 'hall_fa', at: -54 }, { a: 'corr_se', b: 'hall_mo', at: 54 }, { a: 'court_s', b: 'bridge_sf', at: 0 },
+  { a: 'bridge_sf', b: 'fore', at: 0 }, { a: 'court_s', b: 'corr_s', at: 0 }, { a: 'corr_s', b: 'hall_ming', at: 0 },
+];
+// Pieces placed for tickets 08 and 09 (owner picks 24 Nov 14:24-14:27), metres from the origin like the rooms: lion = 石狮 pair at a hall or
+// gate door; mercury = 水银 channel (sx by sz metres); smoke = 铜鹤 crane or 香炉 censer; huabiao = 华表; ding = 鼎 (one per school hall);
+// clock = 铜壶滴漏 (one per burning wing); vat = 门海 water vat; giant = one of the 十二金人 (i = 0-11) along the core approach.
+const PAL_FULL_PIECES = {
+  approach: [{ type: 'giant', i: 6, x: -4.6, z: -56 }, { type: 'giant', i: 7, x: 4.6, z: -56 }, { type: 'giant', i: 8, x: -4.6, z: -61 }, { type: 'giant', i: 9, x: 4.6, z: -61 }, { type: 'giant', i: 10, x: -4.6, z: -66 }, { type: 'giant', i: 11, x: 4.6, z: -66 }],
+  fore: [{ type: 'lion', x: -3.5, z: -50 }, { type: 'lion', x: 3.5, z: -50 }, { type: 'mercury', x: -12, z: -37, sx: 2, sz: 28 }, { type: 'mercury', x: 12, z: -37, sx: 2, sz: 28 }, { type: 'huabiao', x: -20, z: -26 }, { type: 'huabiao', x: 20, z: -26 }, { type: 'vat', x: -21, z: -46 }, { type: 'vat', x: 21, z: -46 }, { type: 'giant', i: 0, x: -17, z: -49.5 }, { type: 'giant', i: 1, x: -12, z: -49.5 }, { type: 'giant', i: 2, x: -7, z: -49.5 }, { type: 'giant', i: 3, x: 7, z: -49.5 }, { type: 'giant', i: 4, x: 12, z: -49.5 }, { type: 'giant', i: 5, x: 17, z: -49.5 }],
+  bridge_wf: [{ type: 'mercury', x: -37, z: -38, sx: 2, sz: 8 }],
+  court_w: [{ type: 'huabiao', x: -57, z: -55 }, { type: 'clock', x: -76, z: -34 }, { type: 'vat', x: -74, z: -55 }],
+  hall_ru: [{ type: 'lion', x: -94, z: -61.5 }, { type: 'lion', x: -94, z: -54.5 }, { type: 'ding', x: -102, z: -54 }],
+  hall_dao: [{ type: 'lion', x: -94, z: -35.5 }, { type: 'lion', x: -94, z: -28.5 }, { type: 'ding', x: -102, z: -28 }],
+  garden_sw: [{ type: 'smoke', kind: 'crane', x: -75, z: 9 }, { type: 'smoke', kind: 'censer', x: -75, z: 23 }, { type: 'smoke', kind: 'censer', x: -57, z: 4 }, { type: 'clock', x: -76, z: 16 }, { type: 'vat', x: -56, z: 26 }],
+  bridge_sws: [{ type: 'mercury', x: -34, z: 14, sx: 2, sz: 8 }],
+  hall_yinyang: [{ type: 'lion', x: -89.5, z: 44 }, { type: 'lion', x: -82.5, z: 44 }, { type: 'ding', x: -80, z: 61 }],
+  hall_fa: [{ type: 'lion', x: -57.5, z: 44 }, { type: 'lion', x: -50.5, z: 44 }, { type: 'ding', x: -48, z: 61 }],
+  court_s: [{ type: 'huabiao', x: -12, z: 4 }, { type: 'huabiao', x: 12, z: 4 }, { type: 'clock', x: -12, z: 26 }, { type: 'vat', x: 12, z: 26 }],
+  bridge_sf: [{ type: 'mercury', x: 0, z: -11, sx: 10, sz: 2 }],
+  hall_ming: [{ type: 'lion', x: -3.5, z: 46 }, { type: 'lion', x: 3.5, z: 46 }, { type: 'ding', x: 6, z: 62 }],
+  bridge_ef: [{ type: 'mercury', x: 37, z: -38, sx: 2, sz: 8 }],
+  court_e: [{ type: 'huabiao', x: 57, z: -55 }, { type: 'clock', x: 76, z: -34 }, { type: 'vat', x: 74, z: -55 }],
+  hall_za: [{ type: 'lion', x: 94, z: -61.5 }, { type: 'lion', x: 94, z: -54.5 }, { type: 'ding', x: 102, z: -54 }],
+  hall_nong: [{ type: 'lion', x: 94, z: -35.5 }, { type: 'lion', x: 94, z: -28.5 }, { type: 'ding', x: 102, z: -28 }],
+  garden_se: [{ type: 'smoke', kind: 'crane', x: 75, z: 9 }, { type: 'smoke', kind: 'censer', x: 75, z: 23 }, { type: 'smoke', kind: 'censer', x: 57, z: 4 }, { type: 'clock', x: 76, z: 16 }, { type: 'vat', x: 56, z: 26 }],
+  bridge_sse: [{ type: 'mercury', x: 34, z: 14, sx: 2, sz: 8 }],
+  hall_zongheng: [{ type: 'lion', x: 89.5, z: 44 }, { type: 'lion', x: 82.5, z: 44 }, { type: 'ding', x: 80, z: 61 }],
+  hall_mo: [{ type: 'lion', x: 57.5, z: 44 }, { type: 'lion', x: 50.5, z: 44 }, { type: 'ding', x: 48, z: 61 }],
+};
+// Plans a palace run can use (CONFIG.PAL_PLAN.layout; ?layout= in the address; the setLayout hook). Each is built once at load.
+const PAL_LAYOUTS = { full: { rooms: PAL_FULL_ROOMS, doors: PAL_FULL_DOORS, pieces: PAL_FULL_PIECES }, proto: { rooms: PAL_ROOMS, doors: PAL_DOORS, pieces: {} } };
 
 // ===================== DOM helpers (writes only on change) =====================
 const $ = (id) => document.getElementById(id);
@@ -1537,6 +1637,7 @@ addEventListener('pointerup', endPtr); addEventListener('pointercancel', endPtr)
 function setCursor(e) { ORD.cursorOn = true; ORD.nx = (e.clientX / innerWidth) * 2 - 1; ORD.ny = -(e.clientY / innerHeight) * 2 + 1; }
 el.mini.addEventListener('pointerdown', (e) => {
   if (e.button !== 2 && e.pointerType === 'mouse') return;
+  if (PAL.on) { palMiniWalk(e); return; }
   const r = el.mini.getBoundingClientRect();
   const x = MINI.x0 + (e.clientX - r.left) / r.width * MINI.w, z = MINI.z0 + (e.clientY - r.top) / r.height * MINI.h;
   ORD.attack = null; navSearch(P.x, P.z, P.y, x, z, topY(x, z), PATH, true);
@@ -2040,18 +2141,23 @@ function heapPop(hs) {
 // A palace run: FLOORS gains the palace floors and SOLIDS its walls and doors (removed again for Royal Rumble, which is unchanged).
 const PC = CONFIG.PALACE, POX = PC.origin[0], POZ = PC.origin[1];
 const PAL = { on: false, rooms: [], doors: [], byId: {}, cur: null, start: null, pv: null, man: 0, n: 0, camT: 1, cx: 0, cz: 0,
-  floors: [], solids: [], lake: null, q: null, from: null, stk: null };
+  floors: [], solids: [], lake: null, q: null, from: null, stk: null, sets: {}, layout: '', want: PAL_LAYOUTS[params.get('layout')] ? params.get('layout') : '', bx0: 0, bx1: 0, bz0: 0, bz1: 0, miniSig: -1 };
 // Modes on the mode menu, in key order.
 const MODES = ['palace', 'rumble'];
 const DOOR_VARS = { room: '', decree: '', reward: '', stir: '' }, PAL_END = { s: 0, n: 0, room: '', retry: '' }, MODE_VARS = { mode: '' };
 function palPart(r, m, g) { const p = r.parts; (p[m] || (p[m] = [])).push(g); }
 function palSolid(r, x0, x1, z0, z1) { const b = { s: r, x0, x1, z0, z1 }; PAL.solids.push(b); return b; }
-{
+// Every plan in PAL_LAYOUTS is built here once (BP05); palUseLayout points PAL at the one a run uses.
+for (const LK in PAL_LAYOUTS) {
+  const LAY = PAL_LAYOUTS[LK];
+  PAL.rooms = []; PAL.doors = []; PAL.byId = {}; PAL.floors = []; PAL.solids = []; PAL.start = null;
   let bx0 = 1e9, bx1 = -1e9, bz0 = 1e9, bz1 = -1e9;
-  for (const d of PAL_ROOMS) {
-    const r = { id: d.id, type: d.type, name: T('room_' + d.type), decree: d.decree, reward: d.reward, stir: d.stir,
+  for (const d of LAY.rooms) {
+    const r = { id: d.id, type: d.type, name: T(d.school ? 'pal5_hall_' + d.school : d.nameKey || 'room_' + d.type), decree: d.decree, reward: d.reward, stir: d.stir,
       x0: POX + d.x0, x1: POX + d.x1, z0: POZ + d.z0, z1: POZ + d.z1, cx: 0, cz: 0, idx: PAL.rooms.length,
-      group: new THREE.Group(), parts: {}, floorMeshes: [], floorMats: [], state: 0, fallT: 0, doors: [], spawn: null };
+      group: new THREE.Group(), parts: {}, floorMeshes: [], floorMats: [], state: 0, fallT: 0, doors: [], spawn: null,
+      wing: d.wing || null, school: d.school || null, depth: -1, pieces: [] };
+    for (const q of LAY.pieces[d.id] || []) r.pieces.push(Object.assign({}, q, { x: POX + q.x, z: POZ + q.z }));
     r.cx = (r.x0 + r.x1) / 2; r.cz = (r.z0 + r.z1) / 2;
     if (d.spawn) r.spawn = [POX + d.spawn[0], POZ + d.spawn[1]];
     if (d.start) PAL.start = r;
@@ -2061,7 +2167,7 @@ function palSolid(r, x0, x1, z0, z1) { const b = { s: r, x0, x1, z0, z1 }; PAL.s
   PAL.cx = (bx0 + bx1) / 2; PAL.cz = (bz0 + bz1) / 2;
   const t = PC.wallT, w = PC.doorW;
   // Doors: the shared edge of their two rooms; a bronze panel (its own group, drawn with either room) and a solid while shut.
-  for (const dd of PAL_DOORS) {
+  for (const dd of LAY.doors) {
     const A = PAL.byId[dd.a], B = PAL.byId[dd.b];
     let vert, e;
     if (A.x1 === B.x0) { vert = true; e = A.x1; } else if (A.x0 === B.x1) { vert = true; e = A.x0; }
@@ -2103,7 +2209,7 @@ function palSolid(r, x0, x1, z0, z1) { const b = { s: r, x0, x1, z0, z1 }; PAL.s
     const curtain = (x, z) => { palPart(r, 'silk', box(4, 3.5, 0.15, x, 1.75 + 0.3, z)); palPart(r, 'wall', box(4.4, 0.25, 0.25, x, 3.9, z)); };
     if (r.type === 'hall') {
       pillar(r.x0 + 3, r.z0 + 3); pillar(r.x1 - 3, r.z0 + 3); pillar(r.x0 + 3, r.z1 - 5); pillar(r.x1 - 3, r.z1 - 5);
-      block('stone', 3, 1, 8, r.x0 + 2.5, r.cz);
+      block('stone', 3, 1, 8, r.doors.some((d) => d.vert && d.e === r.x0) ? r.x1 - 2.5 : r.x0 + 2.5, r.cz);
       palPart(r, 'spawn', cyl(0.5, 0.06, r.spawn[0], 0.03, r.spawn[1], 12));
     } else if (r.type === 'court') {
       block('stone', 2, 1.2, 2, r.cx - 8, r.cz - 4); block('stone', 2, 1.2, 2, r.cx + 8, r.cz - 4);
@@ -2126,12 +2232,77 @@ function palSolid(r, x0, x1, z0, z1) { const b = { s: r, x0, x1, z0, z1 }; PAL.s
     r.group.matrixAutoUpdate = false; r.group.updateMatrix();
   }
   // The black lake under the platform (the Qin water virtue): one plane, in the scene for the whole palace run.
-  PAL.lake = new THREE.Mesh(new THREE.PlaneGeometry(240, 240), M.abyss);
+  const lakeW = Math.max(bx1 - bx0, bz1 - bz0) + CONFIG.PAL_PLAN.lakeMargin * 2;
+  PAL.lake = new THREE.Mesh(new THREE.PlaneGeometry(lakeW, lakeW), M.abyss);
   PAL.lake.rotation.x = -Math.PI / 2; PAL.lake.position.set(PAL.cx, PC.lakeY, PAL.cz); PAL.lake.matrixAutoUpdate = false; PAL.lake.updateMatrix();
   const n = PAL.rooms.length;
   PAL.q = new Int16Array(n); PAL.from = new Int16Array(n); PAL.stk = new Int16Array(n);
+  palDepths();
+  PAL.sets[LK] = { rooms: PAL.rooms, doors: PAL.doors, byId: PAL.byId, start: PAL.start, floors: PAL.floors, solids: PAL.solids, lake: PAL.lake,
+    q: PAL.q, from: PAL.from, stk: PAL.stk, cx: PAL.cx, cz: PAL.cz, bx0, bx1, bz0, bz1 };
 }
+palUseLayout(PAL.want || CONFIG.PAL_PLAN.layout);
 const SUN_POS = sun.position.clone(), SUN_TGT = sun.target.position.clone();
+// Rooms from the core (BP05): room.depth = doors between it and the core hall (breadth-first; the guard escalation reads it).
+function palDepths() {
+  const q = PAL.q;
+  let qt = 0;
+  for (const r of PAL.rooms) { r.depth = -1; if (r.type === 'core') { r.depth = 0; q[qt++] = r.idx; } }
+  for (let qh = 0; qh < qt; qh++) {
+    const r = PAL.rooms[q[qh]];
+    for (const d of r.doors) { const o = d.ra === r ? d.rb : d.ra; if (o.depth < 0) { o.depth = r.depth + 1; q[qt++] = o.idx; } }
+  }
+}
+// Point PAL at a built plan (BP05; 'full' or 'proto'). Only between runs: enterPalace leaves the old plan first.
+function palUseLayout(k) {
+  const S = PAL.sets[k] || PAL.sets.full;
+  PAL.layout = PAL.sets[k] ? k : 'full';
+  PAL.rooms = S.rooms; PAL.doors = S.doors; PAL.byId = S.byId; PAL.start = S.start; PAL.floors = S.floors; PAL.solids = S.solids; PAL.lake = S.lake;
+  PAL.q = S.q; PAL.from = S.from; PAL.stk = S.stk; PAL.cx = S.cx; PAL.cz = S.cz; PAL.bx0 = S.bx0; PAL.bx1 = S.bx1; PAL.bz0 = S.bz0; PAL.bz1 = S.bz1;
+}
+// A suit starts in its own school's hall (owner 24 Nov 13:18); a plan without school halls starts in its start room.
+function palStartRoom() {
+  const k = CONFIG.SCHOOLS[G.school];
+  for (const r of PAL.rooms) if (r.school === k) return r;
+  return PAL.sets[PAL.layout].start;
+}
+// The sun follows the room you enter, so its tight shadow box covers the room and the one behind an open door (rule 39); shadows re-render once.
+function palSunAt(r) {
+  sun.position.set(SUN_POS.x + r.cx - SUN_TGT.x, SUN_POS.y, SUN_POS.z + r.cz - SUN_TGT.z);
+  sun.target.position.set(r.cx, SUN_TGT.y, r.cz); sun.target.updateMatrixWorld(); renderer.shadowMap.needsUpdate = true;
+}
+// Guard escalation (BP05 data for tickets 02/03): squads for room r at run time t seconds, and the unit list of each squad.
+function palEscSquads(r, t) {
+  const E = CONFIG.PAL_ESC;
+  let n = E.squads[Math.min(Math.max(r.depth, 0), E.squads.length - 1)];
+  if (n > 0) for (let i = 0; i < E.lateAt.length; i++) if (t >= E.lateAt[i]) n++;
+  return Math.min(n, E.cap);
+}
+function palEscMix(r) { const E = CONFIG.PAL_ESC; return r.depth <= E.innerD ? E.mix.inner : r.depth <= E.midD ? E.mix.mid : E.mix.rim; }
+// Room minimap (BP05): the plan fitted into the corner map; rooms by type, warned rooms red, fallen rooms only an outline, the current room
+// outlined, doors marked. No rivals (owner 13:26: off-screen fights only by announcement). The static layer is redrawn only when it changes.
+function palMiniBase() {
+  const c = MINI.bctx, C = CONFIG.PAL_MINI, sc = Math.min((MINI.W - C.pad * 2) / (PAL.bx1 - PAL.bx0), (MINI.H - C.pad * 2) / (PAL.bz1 - PAL.bz0));
+  PAL.mS = sc; PAL.mOx = (MINI.W - (PAL.bx1 - PAL.bx0) * sc) / 2; PAL.mOy = (MINI.H - (PAL.bz1 - PAL.bz0) * sc) / 2;
+  c.fillStyle = '#0c0a10'; c.fillRect(0, 0, MINI.W, MINI.H);
+  for (const r of PAL.rooms) {
+    const x = PAL.mOx + (r.x0 - PAL.bx0) * sc, y = PAL.mOy + (r.z0 - PAL.bz0) * sc, w = (r.x1 - r.x0) * sc, h = (r.z1 - r.z0) * sc;
+    if (r.fallen || r.state >= 2) { c.strokeStyle = C.fallen; c.lineWidth = 1; c.strokeRect(x + 0.5, y + 0.5, w - 1, h - 1); continue; }
+    c.fillStyle = r.warned || r.state === 1 ? C.warned : C[r.type]; c.fillRect(x, y, w, h);
+  }
+  c.fillStyle = C.door;
+  for (const d of PAL.doors) c.fillRect(PAL.mOx + (d.x - PAL.bx0) * sc - 1.5, PAL.mOy + (d.z - PAL.bz0) * sc - 1.5, 3, 3);
+  if (PAL.cur) {
+    const r = PAL.cur; c.strokeStyle = C.cur; c.lineWidth = 2;
+    c.strokeRect(PAL.mOx + (r.x0 - PAL.bx0) * sc + 1, PAL.mOy + (r.z0 - PAL.bz0) * sc + 1, (r.x1 - r.x0) * sc - 2, (r.z1 - r.z0) * sc - 2);
+  }
+}
+// A right-click or tap on the palace minimap walks there through the doors.
+function palMiniWalk(e) {
+  const b = el.mini.getBoundingClientRect(), k = MINI.W / b.width;
+  const x = PAL.bx0 + ((e.clientX - b.left) * k - PAL.mOx) / PAL.mS, z = PAL.bz0 + ((e.clientY - b.top) * k - PAL.mOy) / PAL.mS;
+  ORD.attack = null; palRoute(x, z, PATH);
+}
 // Fog radius: the vision radius in Royal Rumble; inside the palace the walls block sight instead.
 function fowR() { return PAL.on ? PC.fowR : G.visR; }
 // Rooms in the scene: the current one, and any whose door to it stands open; door panels with either of their rooms. Writes only on change.
@@ -2150,7 +2321,7 @@ function palDoor(d, open) {
   d.open = open; d.solid.off = open; d.panel.visible = !open; renderer.shadowMap.needsUpdate = true; palSync();
 }
 function palEnter(r) {
-  PAL.cur = r; PAL.n++; palSync();
+  PAL.cur = r; PAL.n++; palSync(); palSunAt(r);
   if (r.type === 'core') endPalace(true);
 }
 // The door card: the room behind the nearest door of the current room (type, decree, reward, something stirs). Written on change only.
@@ -2164,7 +2335,8 @@ function palCard() {
 }
 // A palace run starts (called by reset): royale map out of the scene, palace floors and walls in, doors shut, the player in the start hall.
 function enterPalace() {
-  const CC = CONFIG.PAL_CAM;
+  const CC = CONFIG.PAL_CAM, LK = PAL.want || CONFIG.PAL_PLAN.layout;
+  if (PAL.layout !== LK) { if (PAL.on || PAL.lake.parent) leavePalace(); palUseLayout(LK); }
   PAL.on = true; G.phase = 'palace';
   clearBots(); G.alive = 1;
   for (const s of SECLIST) if (s.group.parent) scene.remove(s.group);
@@ -2173,13 +2345,13 @@ function enterPalace() {
   if (FLOORS.length === NAV.NF) for (const f of PAL.floors) FLOORS.push(f);
   if (SOLIDS.indexOf(PAL.solids[0]) < 0) for (const b of PAL.solids) SOLIDS.push(b);
   for (const d of PAL.doors) { d.open = false; d.locked = false; d.solid.off = false; d.panel.visible = true; }
+  PAL.start = palStartRoom(); PAL.miniSig = -1;
   PAL.cur = PAL.start; PAL.pv = null; PAL.man = 0; PAL.n = 1;
   palSync();
   const sp = PAL.start.spawn;
   P.x = P.px = sp[0]; P.z = P.pz = sp[1]; P.y = P.py = topY(sp[0], sp[1]); P.floor = null; P.zone = null; PATH.n = 0; PATH.i = 0;
   G.camK = PAL.camT = (TOUCH ? CC.phone : 1) * CC.wide * CC.type[PAL.start.type];
-  const dx = PAL.cx - SUN_TGT.x, dz = PAL.cz - SUN_TGT.z;
-  sun.position.set(SUN_POS.x + dx, SUN_POS.y, SUN_POS.z + dz); sun.target.position.set(SUN_TGT.x + dx, SUN_TGT.y, SUN_TGT.z + dz);
+  palSunAt(PAL.start);
   document.body.classList.add('palace'); setShow(el.door, false);
   setText(el.help, T(TOUCH ? 'help_pal_touch' : 'help_pal_desktop'));
   if (G.view === 'follow') FOW.uFowR.value = fowR();
@@ -2197,7 +2369,7 @@ function leavePalace() {
   for (const d of PAL.doors) d.solid.off = false;
   G.camK = 1;
   if (!was) return;
-  sun.position.copy(SUN_POS); sun.target.position.copy(SUN_TGT);
+  sun.position.copy(SUN_POS); sun.target.position.copy(SUN_TGT); sun.target.updateMatrixWorld(); G.miniDirty = true;
   document.body.classList.remove('palace'); setShow(el.door, false);
   setText(el.help, T(TOUCH ? 'help_touch' : 'help_desktop'));
   if (G.view === 'follow') FOW.uFowR.value = fowR();
@@ -2289,15 +2461,22 @@ function palRoute(gx, gz, path) {
 // room.wing (owner BP05; BURN_WINGS until then). Entry points for BP09 and BP03: onWingWarn(wing), onWingFall(wing). Fairness monitor every tick:
 // no warned room is locked; every room falls >= warnS after its warning; every fall death comes from such a room (bad counts any break).
 const BURN = { i: 0, wing: '', st: 0, nextAt: 0, warnAt: -1, fallAt: -1, waiting: false, waits: 0, shownS: -1, nk: '', ns: -1,
-  bad: 0, badWhy: '', badRoom: '', checks: 0, falls: 0, fellN: 0, names: {}, rooms: {}, writes: 0 };
+  bad: 0, badWhy: '', badRoom: '', checks: 0, falls: 0, fellN: 0, names: {}, rooms: {}, writes: 0, order: CONFIG.BURN.order };
 const BURN_VARS = { wing: '', s: 0 };
 // Sentinel for G.bannerWave while her burning warning holds the banner (the fell-note timer then leaves it alone).
 const BURN_BANNER = 90;
-for (const r of PAL.rooms) {
-  if (r.wing === undefined) r.wing = BURN_WINGS[r.id] !== undefined ? BURN_WINGS[r.id] : '';
+// Every built plan (BP05: 'full' and 'proto'): the six-room box takes its wings from BURN_WINGS (its room data has none).
+for (const k in PAL.sets) for (const r of PAL.sets[k].rooms) {
+  if (r.wing == null) r.wing = BURN_WINGS[r.id] !== undefined ? BURN_WINGS[r.id] : '';
   r.warned = false; r.fallen = false; r.warnAt = -1; r.fallAt = -1;
 }
-for (const w of CONFIG.BURN.order) { BURN.names[w] = T('burn_wing_' + w); BURN.rooms[w] = PAL.rooms.filter((r) => r.wing === w); }
+for (const w of CONFIG.BURN.order.concat(CONFIG.BURN.orderFull)) BURN.names[w] = T('burn_wing_' + w);
+// The plan a run uses decides the wing order and each wing's rooms (called by burnReset, before enterPalace picks the same plan).
+function burnBind() {
+  const LK = PAL.want || CONFIG.PAL_PLAN.layout, S = PAL.sets[LK] || PAL.sets.full;
+  BURN.order = S === PAL.sets.proto ? CONFIG.BURN.order : CONFIG.BURN.orderFull;
+  for (const w of BURN.order) BURN.rooms[w] = S.rooms.filter((r) => r.wing === w);
+}
 // Her announcements through the banner slot (BP03 owns the queue; this thin version shows one line and lets the fell-note timer hide it).
 function palAnnounce(key, vars) {
   if (G.bannerWave >= 0) return;
@@ -2346,12 +2525,13 @@ function burnFallCheck(s) {
 }
 // New run (called by reset, both modes): every room standing, floors back, groups level, materials back, the clock from the start.
 function burnReset() {
-  for (const r of PAL.rooms) {
+  burnBind();
+  for (const k in PAL.sets) for (const r of PAL.sets[k].rooms) {
     r.warned = false; r.fallen = false; r.warnAt = -1; r.fallAt = -1; r.state = 0; r.fallT = 0;
     r.group.position.y = 0; r.group.updateMatrix();
     for (let k = 0; k < r.floorMeshes.length; k++) r.floorMeshes[k].material = r.floorMats[k];
   }
-  for (const f of PAL.floors) f.active = true;
+  for (const k in PAL.sets) for (const f of PAL.sets[k].floors) f.active = true;
   BURN.i = 0; BURN.wing = ''; BURN.st = 0; BURN.nextAt = CONFIG.BURN.firstS; BURN.warnAt = -1; BURN.fallAt = -1; BURN.waiting = false; BURN.waits = 0;
   BURN.shownS = -1; BURN.nk = ''; BURN.ns = -1; BURN.bad = 0; BURN.badWhy = ''; BURN.badRoom = ''; BURN.checks = 0; BURN.falls = 0; BURN.fellN = 0; BURN.writes = 0;
 }
@@ -2360,7 +2540,7 @@ function burnReset() {
 function burnHud(key, s) {
   if (key === BURN.nk && s === BURN.ns) return;
   BURN.nk = key; BURN.ns = s; BURN.writes++; BURN_VARS.s = s;
-  if (key !== 'burn_none') BURN_VARS.wing = BURN.names[CONFIG.BURN.order[BURN.i]];
+  if (key !== 'burn_none') BURN_VARS.wing = BURN.names[BURN.order[BURN.i]];
   setText(el.next, T(key, BURN_VARS));
 }
 // Burning step (palace runs): monitor, then the wave states (waiting -> warned -> falling -> gone), the falling rooms, the banner countdown.
@@ -2368,8 +2548,8 @@ function stepBurn(dt) {
   const B = CONFIG.BURN, rs = PAL.rooms;
   BURN.checks++;
   for (let i = 0; i < rs.length; i++) if (rs[i].warned && rs[i].locked) { BURN.bad++; BURN.badWhy = 'locked'; BURN.badRoom = rs[i].id; }
-  if (BURN.st === 0 && BURN.i < B.order.length && G.time >= BURN.nextAt) {
-    const w = B.order[BURN.i];
+  if (BURN.st === 0 && BURN.i < BURN.order.length && G.time >= BURN.nextAt) {
+    const w = BURN.order[BURN.i];
     if (!burnWingLocked(w)) onWingWarn(w);
     else if (!BURN.waiting) { BURN.waiting = true; BURN.waits++; }
   } else if (BURN.st === 1 && G.time >= BURN.warnAt + B.warnS) onWingFall(BURN.wing);
@@ -2384,7 +2564,7 @@ function stepBurn(dt) {
     const c = Math.ceil(BURN.warnAt + B.warnS - G.time);
     if (c !== BURN.shownS) { BURN.shownS = c; BURN_VARS.wing = BURN.names[BURN.wing]; BURN_VARS.s = c; setText(el.rule, T('burn_rule', BURN_VARS)); }
   }
-  if (BURN.i >= B.order.length) burnHud('burn_none', 0);
+  if (BURN.i >= BURN.order.length) burnHud('burn_none', 0);
   else if (BURN.st !== 0) burnHud('burn_now', 0);
   else if (BURN.waiting) burnHud('burn_wait', 0);
   else burnHud('burn_next', Math.max(0, Math.ceil(BURN.nextAt - G.time)));
@@ -5412,6 +5592,16 @@ function drawMiniBase() {
   }
 }
 // PERFRAME-BEGIN
+// Palace minimap tick (BP05): redraw the static layer only when a room's warned/fallen state or the current room changed; then the player's dot.
+function palMini() {
+  let sig = 0;
+  for (let i = 0; i < PAL.rooms.length; i++) { const r = PAL.rooms[i]; sig = sig * 3 + (r.fallen || r.state >= 2 ? 2 : r.warned || r.state === 1 ? 1 : 0); }
+  sig = sig * 64 + (PAL.cur ? PAL.cur.idx + 1 : 0);
+  if (sig !== PAL.miniSig) { PAL.miniSig = sig; palMiniBase(); }
+  const c = MINI.ctx;
+  c.drawImage(MINI.base, 0, 0);
+  c.fillStyle = CONFIG.PAL_MINI.you; c.beginPath(); c.arc(PAL.mOx + (P.x - PAL.bx0) * PAL.mS, PAL.mOy + (P.z - PAL.bz0) * PAL.mS, 3, 0, 6.2832); c.fill();
+}
 function drawMini() {
   if (G.miniDirty) { G.miniDirty = false; drawMiniBase(); }
   const c = MINI.ctx, px = MINI.px, py = MINI.py;
@@ -5665,7 +5855,7 @@ function frame(now) {
     while (acc >= CONFIG.STEP) { step(CONFIG.STEP); acc -= CONFIG.STEP; }
     placeView(acc / CONFIG.STEP);
     if (ORD.rightHeld) { ORD.repathT -= dt; if (ORD.repathT <= 0) { ORD.repathT = CONFIG.REPATH_S; rightOrder(); } }
-    G.miniT -= dt; if (G.miniT <= 0 && !PAL.on) { G.miniT = 1 / CONFIG.MINI_HZ; drawMini(); }
+    G.miniT -= dt; if (G.miniT <= 0) { G.miniT = 1 / CONFIG.MINI_HZ; if (PAL.on) palMini(); else drawMini(); }
     renderer.render(scene, camera);
     renderer.shadowMap.needsUpdate = false;
     frameMs += (realMs - frameMs) * 0.1;
@@ -6049,12 +6239,28 @@ Object.assign(window.__game, {
 Object.assign(window.__game, {
   burnState: () => ({ on: CONFIG.BURN.on, i: BURN.i, wing: BURN.wing, st: BURN.st, nextAt: BURN.nextAt, warnAt: BURN.warnAt, fallAt: BURN.fallAt,
     waiting: BURN.waiting, waits: BURN.waits, bad: BURN.bad, badWhy: BURN.badWhy, badRoom: BURN.badRoom, checks: BURN.checks, falls: BURN.falls, fellN: BURN.fellN,
-    writes: BURN.writes, next: el.next.textContent, nextShown: getComputedStyle(el.next).display, order: CONFIG.BURN.order.slice(), warnS: CONFIG.BURN.warnS,
+    writes: BURN.writes, next: el.next.textContent, nextShown: getComputedStyle(el.next).display, order: BURN.order.slice(), warnS: CONFIG.BURN.warnS,
     rooms: PAL.rooms.map((r) => ({ id: r.id, wing: r.wing, state: r.state, warned: r.warned, fallen: r.fallen, locked: !!r.locked, warnAt: r.warnAt, fallAt: r.fallAt,
       y: r.group.position.y, attached: !!r.group.parent, warnMat: r.floorMeshes.some((m) => m.material === warnMat), floorsOn: PAL.floors.filter((f) => f.s === r && f.active).length })),
     pcause: P.cause, pdead: P.dead, pdiedAt: P.diedAt, phase: G.phase, t: G.time }),
   burnLock(id, on) { PAL.byId[id].locked = on; },
   burnCanLock: (id) => burnCanLock(PAL.byId[id]),
+});
+// The full palace hooks (BP05): setLayout (the next palace run takes it; 'full' or 'proto'), palPlan (read: plan, rooms with wing, school,
+// depth, pieces, doors), palEsc (read: squads and unit list for a room id at time t), palMiniPx (the palace minimap pixel at world x, z),
+// palMiniMap (read: minimap scale and offset), palTestRoomState (checks only: a room's warned/fallen flags).
+Object.assign(window.__game, {
+  setLayout(k) { PAL.want = k; },
+  palPlan: () => ({ layout: PAL.layout, want: PAL.want, start: PAL.start ? PAL.start.id : null, bounds: [PAL.bx0, PAL.bx1, PAL.bz0, PAL.bz1],
+    lakeW: PAL.lake.geometry.parameters.width, sunX: sun.target.position.x, sunZ: sun.target.position.z, mini: el.mini.style.display || getComputedStyle(el.mini).display,
+    rooms: PAL.rooms.map((r) => ({ id: r.id, type: r.type, name: r.name, wing: r.wing, school: r.school, depth: r.depth, x0: r.x0, x1: r.x1, z0: r.z0, z1: r.z1, cx: r.cx, cz: r.cz,
+      spawn: r.spawn, doors: r.doors.map((d) => d.idx), pieces: r.pieces.map((q) => Object.assign({}, q)) })),
+    doors: PAL.doors.map((d) => ({ a: d.ra.id, b: d.rb.id, x: d.x, z: d.z, vert: d.vert })) }),
+  palEsc: (id, t) => ({ squads: palEscSquads(PAL.byId[id], t), mix: palEscMix(PAL.byId[id]).slice() }),
+  palMiniMap: () => ({ ox: PAL.mOx, oy: PAL.mOy, s: PAL.mS, bx0: PAL.bx0, bz0: PAL.bz0 }),
+  // Checks only: stand in for the burning (ticket 04 owns room.warned and room.fallen) to test the minimap.
+  palTestRoomState(id, warned, fallen) { const r = PAL.byId[id]; r.warned = warned; r.fallen = fallen; },
+  palMiniPx(x, z) { palMini(); const d = MINI.ctx.getImageData(Math.round(PAL.mOx + (x - PAL.bx0) * PAL.mS), Math.round(PAL.mOy + (z - PAL.bz0) * PAL.mS), 1, 1).data; return [d[0], d[1], d[2]]; },
 });
 window.__ready = true;
 requestAnimationFrame(frame);
