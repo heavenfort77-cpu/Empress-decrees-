@@ -805,7 +805,8 @@ try {
   // 60 Bots take plates and boons (owner, 23 Nov): a cub broken by a bot sends its plate to that bot (buff slot, ultimate charge since batch 15); a buff creature's boon goes to its last hitter; the player gets neither.
   const bp = await g(() => {
     const G = __game, C = G.config, K = window.__k, o = {};
-    G.setSeed(12345); G.setBots(1); G.reset(); G.teleport(0, -50); K.sp(C.KENNEL.firstS + 0.1);
+    // Batch 16 ticket 08 (game changed on purpose): bot 0 now plays 道甲 (R on counters, no meter); the plate's charge is checked on the placeholder.
+    G.setSeed(12345); G.setBots(1); G.reset(); G.placeholderKit(0); G.teleport(0, -50); K.sp(C.KENNEL.firstS + 0.1);
     const ci = G.cubs().list.findIndex((u) => u.alive); G.placeBot(0, G.camps[0][0] + 9, G.camps[0][1]);
     // Game changed on purpose (batch 15): the bot's plate gives ULT.plate charge instead of a cooldown cut; passive charge over the flight is taken out.
     G.setCharge(0, 0); const chBefore = G.chargeOf(0), flyN = Math.round((C.PLATE.flyS + 0.1) / C.STEP); G.hitCubBy(ci, 0, 1e4); K.sp(C.PLATE.flyS + 0.1);
@@ -1171,8 +1172,9 @@ try {
     !!bc && bc.crown && bc.tells >= 3 && bc.calls < 500 && bc.tris < 500000 && bc.programs === base.programs && bc.geoms === base.geoms, JSON.stringify(bc));
   // ===== Batch 12: five bagged decrees, W dash, silence, heights, mark (panel 23 Nov 15:11) =====
   // Scripted decree scenes: one bot kept in the core hall so the match code runs; bagged requests pushed far away (forced decrees only).
+  // Batch 16 ticket 08 (game changed on purpose): bot 0 now plays 道甲, whose R runs on counters, not the meter; these decree and charge checks keep bot 0 on the placeholder.
   await g(() => { const G = __game, C = G.config; window.__d = {
-    start(n) { G.setSeed(12345); G.setBots(n || 1); G.reset(); G.setDecNext(1e9); G.setHp(1e9); for (let i = 0; i < (n || 1); i++) G.setBotHp(i, 1e9); G.placeBot(0, 0, -50); },
+    start(n) { G.setSeed(12345); G.setBots(n || 1); G.reset(); G.placeholderKit(0); G.setDecNext(1e9); G.setHp(1e9); for (let i = 0; i < (n || 1); i++) G.setBotHp(i, 1e9); G.placeBot(0, 0, -50); },
     hold(sec, fn) { for (let k = 0; k < Math.round(sec / C.STEP); k++) { if (fn) fn(); G.step(1); } },
     park() { G.placeBot(0, 0, -50); } }; });
   // 75 Decree bags: every cycle is the whole bag in a new order; same seed = same draws, another seed differs; once the bridges and every high floor have
@@ -2601,8 +2603,8 @@ try {
     G.cast(0, 15.5, -20); const s0 = G.daoState(-1); o.stance = [s0.rouT, s0.ringIn, s0.ringR, s0.stanceN, s0.cd[0]];
     const hp0 = G.state().hp; G.basicAttackBy(0, -1); const s1 = G.daoState(-1), k1 = G.kitState(0);
     o.first = { lost: hp0 - G.state().hp, botLost: 100 - G.bots().list[0].hp, push: +Math.hypot(k1.kx, k1.kz).toFixed(2), daoN: s1.daoN, rouT: s1.rouT, ring: s1.ringIn, cd: +s1.cd[0].toFixed(3) };
-    const hp1 = G.state().hp; G.basicAttackBy(0, -1); o.second = +(hp1 - G.state().hp).toFixed(4);
-    G.castSelfOf(-1, 0); const hp2 = G.state().hp; G.strike(0, -1, 20); const s2 = G.daoState(-1); o.skill = [+(hp2 - G.state().hp).toFixed(4), s2.daoN, s2.rouT > 0];
+    const hp1 = G.state().hp; G.basicAttackBy(0, -1); o.second = hp1 - G.state().hp;
+    G.castSelfOf(-1, 0); const hp2 = G.state().hp; G.strike(0, -1, 20); const s2 = G.daoState(-1); o.skill = [hp2 - G.state().hp, s2.daoN, s2.rouT > 0];
     // The stance lasts stance s, then the shimmer goes.
     G.placeBot(0, 14, -40); G.castSelfOf(-1, 0); D.hold(Q.stance - 0.05); const s3 = G.daoState(-1); D.hold(0.1); const s4 = G.daoState(-1); o.last = [s3.rouT > 0, s3.ringIn, s4.rouT, s4.ringIn];
     D.end(); return o;
@@ -2624,7 +2626,7 @@ try {
     // Far caster (17 m along the court): he flows flowMax m.
     G.teleport(0, -12); G.placeBot(0, 0, -29); G.step(1); G.castSelfOf(-1, 1); G.strike(0, -1, 20); D.hold(W.flowS + 0.1, () => G.placeBot(0, 0, -29)); o.farZ = +G.daoState(-1).z.toFixed(2);
     // A basic attack in 不争 lands; with nothing coming, the stance moves nobody.
-    G.placeBot(0, 1, -12); G.castSelfOf(-1, 1); const hp1 = G.state().hp; G.basicAttackBy(0, -1); o.basic = [+(hp1 - G.state().hp).toFixed(4), G.daoState(-1).zhengT > 0];
+    G.placeBot(0, 1, -12); G.castSelfOf(-1, 1); const hp1 = G.state().hp; G.basicAttackBy(0, -1); o.basic = [hp1 - G.state().hp, G.daoState(-1).zhengT > 0];
     G.placeBot(0, 0, -40); const x0 = G.daoState(-1).x, z0 = G.daoState(-1).z; D.hold(W.stance + 0.2); const s2 = G.daoState(-1); o.quiet = [+Math.hypot(s2.x - x0, s2.z - z0).toFixed(3), s2.daoN];
     D.end(); return o;
   });
