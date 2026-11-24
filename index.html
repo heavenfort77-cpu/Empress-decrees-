@@ -30,6 +30,7 @@ body.touch #next{top:10px;right:12px}
 .sk .cd{position:absolute;inset:0;background:#000a;border-radius:6px;display:none;align-items:center;justify-content:center;font:bold 18px system-ui}
 .sk .ch{position:absolute;inset:-6px;border-radius:inherit;z-index:-1;display:none;pointer-events:none}
 .sk .lb{position:absolute;bottom:-15px;font:11px system-ui;color:#ddd;white-space:nowrap}
+.sk .zs{position:absolute;top:-17px;left:50%;transform:translateX(-50%);font:10px system-ui;color:#9fe8d8;white-space:nowrap;display:none;pointer-events:none}
 body.touch #bar{left:auto;right:18px;bottom:18px;transform:none;width:230px;height:200px;display:block}
 body.touch .sk{position:absolute;width:64px;height:64px;border-radius:50%;pointer-events:auto;touch-action:none}
 body.touch .sk.atk{width:88px;height:88px;right:0;bottom:0;font-size:15px}
@@ -426,8 +427,29 @@ const CONFIG = {
         { key: 'KeyR', label: 'R', nameKey: 'sk_yy_r', type: 'circle', taiji: true, range: 10, radius: 5, tellS: 1, phaseS: 1.5, pull: 4, slow: 0.4, burn: 4, pulseS: 0.25, dmg: 0, cd: 30, delay: 0 },
       ],
     },
-    // 杂甲 Retainer: control mage.
-    za: { built: false, armor: 'Mid', speed: 'Mid', ultMode: 'charge' },
+    // 杂甲 Retainer: control mage (batch 16 ticket 10; docs/SUITS.md, owner 23 Nov 20:32; one number set from the doc's "about" values, balance when all nine are ready).
+    za: {
+      built: true, armor: 'Mid', speed: 'Mid', ultMode: 'charge',
+      // Passive 兼收并蓄: 'store' = he keeps the last enemy skill that touched him (a skill's blow, a 合纵 cord, a 连横 swap, a 势 ring, a furrow, a hanging
+      // line, the dark half of 太极, a cub's or hunt unit's skill move; never a basic attack); its name shows on the R button.
+      passive: 'store',
+      // Attack 议 (the counsellor's word): an orb at speed m/s out to range m (radius m) that lands dmg on the first target it reaches; keep = a bot steps back
+      // from a target nearer than this. Mid range (no doc number: the Mid kits' 6 m).
+      attack: { orb: true, range: 6, speed: 14, radius: 0.5, dmg: 8, interval: 0.8, acquire: 8, keep: 4 },
+      skills: [
+        // Q 兼儒墨 (seal shot): a line of range x width m; a suit it hits has its plates and boons stop working for seal s (儒 正名, shorter than 儒甲's), and is also
+        // slowed by slow for slowS s if it attacked someone in the last aggroS s (墨 非攻). Hunt (confirmed): the demon's stolen skills are sealed for seal s
+        // (a cub or minion: its next skill), and the demon is always slowed except in its frenzy. Bots seal the leader or a suit that attacked within aggroS s.
+        { key: 'KeyQ', label: 'Q', nameKey: 'sk_za_q', type: 'line', range: 8, width: 1.2, dmg: 12, seal: 2, slow: 0.3, slowS: 1.5, aggroS: 4, cd: 8, delay: 0, tag: 'seal' },
+        // W 合名法 (the dash, his own): a blink to the aim point (at most range m, dashS s, by the walking rule; no shadow); the nearest enemy suit within exposeM m
+        // of where he lands is exposed (seen by every suit) for exposeS s. Bots blink in to their attack reach, or away from a target nearer than botNear m.
+        { key: 'KeyW', label: 'W', nameKey: 'sk_za_w', type: 'dash', range: 6, radius: 0, dmg: 0, cd: 8, delay: 0, dash: true, dashS: 0.12, toPoint: true, exposeM: 3, exposeS: 3, tag: 'blinkZa', botNear: 3 },
+        // R 一字千金: casts the stored skill at full strength as his own (its own shape, tell and colour; a unit move keeps its windup tell in the unit's colour)
+        // and resets his Q and W cooldowns. Nothing stored = no cast. cd = the hunt cooldown (the royale runs on the meter). Bots cast it with the target in the
+        // stored skill's reach.
+        { key: 'KeyR', label: 'R', nameKey: 'sk_za_r', type: 'self', copy: true, range: 0, radius: 0, dmg: 0, cd: 30, delay: 0, tag: 'copy' },
+      ],
+    },
     // 名甲 Debater: marksman (batch 16 ticket 05; docs/SUITS.md; owner 23 Nov 23:3x: one number set from the doc's "about" values, balance when all nine are ready).
     ming: {
       built: true, armor: 'Low', speed: 'Mid', ultMode: 'charge',
@@ -697,6 +719,7 @@ const TEXT = {
   sk_dao_q: 'Yield', sk_dao_w: 'Flow', sk_dao_r: 'Return',
   st_dao: 'Counters {n}', st_fan: 'Return x{k}', st_rou: 'Yielding', st_zheng: 'Flowing', dao_n: '{n}',
   sk_zh_q: 'Alliance', sk_zh_w: 'Swap', sk_zh_r: 'Breaks Unattacked',
+  sk_za_q: 'Two-school seal', sk_za_w: 'Names-Law blink', sk_za_r: 'Not one word',
   st_link: 'Linked', st_buong: 'Breaks unattacked: suits here turn on each other',
   st_sealed: 'Sealed: plates and boons off',
   rule_plate_s: 'Stalker plate: your hits cause bleeding for {s} s. +{c} ultimate charge.',
@@ -1075,6 +1098,17 @@ scene.add(playerGroup);
 const MOVES = CONFIG.MOVES, MOVE_KEYS = Object.keys(MOVES);
 // Stolen skills keep the minion's look: tell colour per move (others use the user's own colour).
 const MOVE_LOOK = { lunge: 'tellS', rend: 'tellS', flank: 'tellH', howl: 'tellH' };
+// 杂甲's 兼收并蓄 (ticket 10): each unit skill move as a skill he can store and cast back (built once at load from CONFIG.MOVES): its shape, windup tell,
+// full damage (no cub or frenzy scale), slow, stun, bleed and dash; range = how far the shape reaches from him (a spot: the farthest point); tell = the unit's colour.
+const ZA_MV = {};
+for (const k of MOVE_KEYS) {
+  const m = MOVES[k];
+  ZA_MV[k] = { move: k, nameKey: 'move_' + k, shape: m.shape, type: m.shape === 'line' ? 'line' : 'circle', range: m.shape === 'line' ? m.range : m.shape === 'spot' ? m.max : 0,
+    width: m.width || 0, radius: m.radius || 0, windup: m.windup, dmg: m.dmg, slow: m.slow || 0, slowS: m.slowS || 0, stun: m.stun || 0, bleed: m.bleed || 0,
+    dashS: m.dashS || 0.2, dash: !!m.dashS, delay: 0, cd: 0, tell: MOVE_LOOK[k] ? M[MOVE_LOOK[k]] : M.tellD };
+}
+// 连横's swap is stored by the suit it moves (zhSwap has no skill of its own in hand).
+const ZA_SWAP = CONFIG.KITS.zongheng.skills[1];
 const GATE_Z = CONFIG.APEX.gateZ * K;
 const beastGeo = mergeGeoms([box(1.8, 1.1, 3.0, 0, 1.25, 0), box(1.2, 1.0, 1.1, 0, 1.75, -1.9),
   box(0.5, 0.8, 0.5, -0.65, 0.4, -1.1), box(0.5, 0.8, 0.5, 0.65, 0.4, -1.1), box(0.5, 0.8, 0.5, -0.65, 0.4, 1.1), box(0.5, 0.8, 0.5, 0.65, 0.4, 1.1)]);
@@ -1096,7 +1130,9 @@ function makeUnit(kind, cfg, m, tellMat, atk, skills, gain, geo) {
     maxHp: cfg.hp, dmgK: 1, hunt: true, cub: false, cx: 0, cz: 0, cy: 0, camp: -1, home: false, hot: false, homeT: 0, bleedT: 0,
     fuseOn: false, sy: 0, neutral: false, idx: 0, nb: '', nv: 1, spot: -1, tgt: P, by: null, bleedBy: null,
     // atkAt = game time it last hit a suit (墨甲's 非攻, batch 16).
-    atkAt: -99 };
+    atkAt: -99,
+    // 杂甲's 兼儒墨 (ticket 10): slowT / slowK = seconds and share of its slow; sealT = seconds its sealed skill waits; sealK = that skill ('' = the demon's stolen ones).
+    slowT: 0, slowK: 0, sealT: 0, sealK: '' };
 }
 const DEMON = makeUnit('demon', CONFIG.DEMON, M.demon, M.tellD, 'claw', ['pounce', 'roar'], null);
 const STALKER = makeUnit('stalker', CONFIG.STALKER, M.stalker, M.tellS, 'bite', ['lunge', 'rend'], ['lunge', 'rend']);
@@ -1157,7 +1193,8 @@ function applyKit(s, school, kit) { const k = kit || kitFor(school); s.school = 
 // Stats from tiers: armorK = multiplier on damage from suits and creatures (exactly 1 at the yardstick tier), spd = walk speed.
 function setStats(s, armorTier, speedTier) { const S = CONFIG.STATS; s.armor = S.armor[armorTier]; s.armorK = (S.K + S.armor[S.yard]) / (S.K + s.armor); s.spd = S.speed[speedTier]; }
 // The skill a suit has in a slot (common skill interface: player, bots and later kits all cast through this).
-function skillOf(s, slot) { return s.kit.skills[slot]; }
+// Slot 3 = the skill 杂甲's 一字千金 is casting as his own (ticket 10), so delayed hits, dashes and hanging lines read the copy.
+function skillOf(s, slot) { return slot === 3 ? s.copySk : s.kit.skills[slot]; }
 // Decrees (reusable): text keys and length per decree; the bounty is the first.
 // Batch 12: the five bagged decrees (bag: true); hud = the HUD line while in force; idx = HUD code.
 const DECREES = { bounty: { voice: 'voice_bounty', rule: 'rule_bounty', idx: 0 },
@@ -1252,6 +1289,12 @@ for (let k = 0; k < SUITS.length; k++) {
   const cordMesh = new THREE.Mesh(tellLineGeo, M.fx); cordMesh.castShadow = false;
   const circleMesh = new THREE.Mesh(tellRingGeo, M.gold); circleMesh.castShadow = false;
   Object.assign(s, { cord: { t: -1, a: null, b: null, sk: null, mesh: cordMesh }, circle: { t: -1, sk: null, x: 0, z: 0, y: 0, mesh: circleMesh }, persAt: -99, linkN: 0, swapN: 0, persN: 0 });
+  // 杂甲 state (ticket 10): storeSk = the last enemy skill that touched him (兼收并蓄; null = none); copySk = the skill his last 一字千金 cast (slot 3);
+  // zm = a copied unit move winding up (on; t = seconds of tell left; its ring and line tells built once in the unit colours, in the scene only while shown);
+  // copyN / zaExpN = copies cast and enemies exposed by 合名法 this run (checks and sims).
+  const zmRing = new THREE.Mesh(tellRingGeo, M.tellD), zmLine = new THREE.Mesh(tellLineGeo, M.tellD); zmRing.castShadow = false; zmLine.castShadow = false;
+  Object.assign(s, { storeSk: null, copySk: CONFIG.SKILLS[0], copyN: 0, zaExpN: 0,
+    zm: { on: false, t: -1, age: 0, sk: null, ord: false, x: 0, z: 0, y: 0, dx: 0, dz: 1, ring: zmRing, line: zmLine, mesh: null } });
   applyKit(s, CONFIG.SCHOOLS[0]);
 }
 // Brain fields on the player too, used only by the test autopilot (__game.autoPlayer).
@@ -1353,10 +1396,12 @@ function buildBar() {
     SK[i].btn = x.b; SK[i].cdEl = x.cd;
     // The ultimate's charge ring (batch 15): a gold arc behind the button edge, drawn only on change.
     if (i === 2) { const ring = document.createElement('div'); ring.className = 'ch'; x.b.appendChild(ring); SK[i].ring = ring; }
+    // 杂甲's stored skill (ticket 10): its name above the R button, shown only while he holds one.
+    if (i === 2) { const zs = document.createElement('div'); zs.className = 'zs'; x.b.appendChild(zs); SK[i].zsEl = zs; }
   });
 }
 function dragAim(e) {
-  const d = ORD.drag, sk = skillOf(P, d.slot), dx = e.clientX - d.ox, dy = e.clientY - d.oy, len = Math.hypot(dx, dy);
+  const d = ORD.drag, sk = aimSk(d.slot), dx = e.clientX - d.ox, dy = e.clientY - d.oy, len = Math.hypot(dx, dy);
   if (!d.moved && len < CONFIG.DRAG_MIN_PX) return;
   if (!d.moved) { d.moved = true; startAim(d.slot, 'touch'); }
   if (len > 0) { ORD.dirX = dx / len; ORD.dirZ = dy / len; }
@@ -1408,9 +1453,11 @@ function releaseAim() {
   cancelAim(); castSkill(slot, ORD.aimX, ORD.aimZ);
 }
 function autoCast(slot) {
-  const sk = skillOf(P, slot), t = autoTarget(sk.range + 1);
+  const sk = aimSk(slot), t = autoTarget(sk.range + 1);
   if (t) castSkill(slot, t.x, t.z); else castSkill(slot, P.x + P.faceX * sk.range, P.z + P.faceZ * sk.range);
 }
+// The skill the player aims in a slot: 杂甲's 一字千金 aims as the skill it holds (ticket 10), else the slot's own.
+function aimSk(slot) { const sk = skillOf(P, slot); return sk.copy && P.storeSk ? P.storeSk : sk; }
 // Cast at a world point, clamped to range (MLBB clamps; lines always fly full range).
 function castSkill(slot, tx, tz) {
   const sk = skillOf(P, slot), st = SK[slot];
@@ -1419,6 +1466,8 @@ function castSkill(slot, tx, tz) {
   if (sk.dash && held(P)) return false;
   // "Upon the bridges, your arts are stilled." (decree): no new cast on a bridge; the note says why (a cast already released still lands).
   if (silenced(P)) { showNote('voice_silenced', 'rule_silenced'); return false; }
+  // 杂甲's 一字千金 (ticket 10) casts the stored skill (nothing stored: no cast, no cost).
+  if (sk.copy) return zaCast(P, tx, tz, true);
   let dx = tx - P.x, dz = tz - P.z; const len = Math.hypot(dx, dz);
   if (len > 0.01) { dx /= len; dz /= len; } else { dx = P.faceX; dz = P.faceZ; }
   const dist = sk.type === 'line' ? sk.range : Math.min(len, sk.range), x = P.x + dx * dist, z = P.z + dz * dist;
@@ -1474,8 +1523,8 @@ function hasPlate(s, kind) { return s.sealT <= 0 && ((s.pt[0] > 0 && s.pk[0] ===
 function boonOn(s, i) { return s.bT[i] > 0 && s.sealT <= 0; }
 // A suit (by) hits a target: dummy, hunt unit, cub, buff creature or another suit. Power boon and Stalker plate come from the hitter.
 // basic = a basic attack (道甲's Q counters those; every other blow counts as a skill for his W). Returns false when the blow did not land
-// (a shadow, or countered by 道甲), so callers skip the blow's other effects.
-function hitTarget(by, d, n, basic) {
+// (a shadow, or countered by 道甲), so callers skip the blow's other effects. sk = the skill of a skill blow (杂甲's 兼收并蓄 stores it on a landed hit).
+function hitTarget(by, d, n, basic, sk) {
   // 名甲's shadow (ticket 05) is not a body: a blow on it does nothing.
   if (d.kind === 'shadow') return false;
   // Attacking ends the unseen state (batch 16). 法甲's first hit from 术 (W) exposes a suit it hits.
@@ -1487,6 +1536,7 @@ function hitTarget(by, d, n, basic) {
   if (boonOn(by, 0) || kb !== 1) n *= Math.min(CONFIG.BONUS_CAP, (boonOn(by, 0) ? 1 + by.bV[0] : 1) * kb);
   // 道甲's stances (ticket 08): one counter function for every blow from a suit; a countered blow lands nothing.
   if (d.kind === 'suit' && counterHit(d, !!basic, by, null, n)) return false;
+  if (sk && d.kind === 'suit') zaStore(d, sk);
   if (by.expArmT > 0) { if (d.kind === 'suit') expose(d, by.expS); by.expArmT = 0; }
   if (by.kit && by.kit.passive === 'halving') chainHit(by, d);
   if (!d.kind) { hitDummy(d, n); return true; }
@@ -1819,7 +1869,7 @@ const G = { time: 0, view: 'follow', paused: false, ctxLost: false, frames: 0, b
   huntN: 0, huntClaims: 0, huntFrees: 0,
   leader: null, leadT: 0, leaderChanges: 0, leaderCode: -1, leaderWrites: 0, miniLeader: false,
   bountyN: 0, bountyWarnAt: -1, bountyStartAt: -1, bountyEndAt: -1, bountyEndWhy: '', bountyPaid: 0, bountyPaidTo: -1,
-  auraN: 0, bellN: 0, wallN: 0, wheelN: 0, shadowN: 0, hangN: 0, orbN: 0, taijiN: 0, sproutN: 0, furrowN: 0, harvRingN: 0, stanceN: 0, counterN: 0, cordN: 0, circleN: 0, linkBusy: false, unitPersN: 0, decNext: 0, decN: 0, decCount: { dry: 0, nodash: 0, silence: 0, heights: 0, ult2x: 0 }, decLog: [], brkP: 0, brkB: 0, decCode: -1, decWrites: 0, hiAvoid: false, zoneSec: null, skips: 0, chWrites: 0 , school: 0, selecting: false, selectOn: false, selBtns: [], saveFail: false};
+  auraN: 0, bellN: 0, wallN: 0, wheelN: 0, shadowN: 0, hangN: 0, orbN: 0, taijiN: 0, sproutN: 0, furrowN: 0, harvRingN: 0, stanceN: 0, counterN: 0, cordN: 0, circleN: 0, zmN: 0, zaShown: -1, zaWrites: 0, linkBusy: false, unitPersN: 0, decNext: 0, decN: 0, decCount: { dry: 0, nodash: 0, silence: 0, heights: 0, ult2x: 0 }, decLog: [], brkP: 0, brkB: 0, decCode: -1, decWrites: 0, hiAvoid: false, zoneSec: null, skips: 0, chWrites: 0 , school: 0, selecting: false, selectOn: false, selBtns: [], saveFail: false};
 // The one decree slot (batch 11): st 0 idle, 1 queued, 2 warning (banner), 3 in force. key = decree name, tgt = its suit (bounty), t = seconds left in the state.
 // Decree slot. st: 0 free, 1 queued, 2 warning, 3 in force. len = seconds in force; zone = the no-dash decree's section; warnAt = when its warning began.
 const DEC = { st: 0, key: '', tgt: null, t: 0, count: -1, banner: false, len: 0, zone: null, warnAt: -1 };
@@ -1931,6 +1981,7 @@ function step(dt) {
   stepNong(dt);
   stepDao(dt);
   stepZongheng(dt);
+  stepZa(dt);
   const vr = CONFIG.VISION_R + (boonOn(P, 2) ? P.bV[2] : 0);
   if (vr !== G.visR) { G.visR = vr; if (G.view === 'follow') FOW.uFowR.value = vr; }
   if (roy && CONFIG.ROYALE_MINIONS) stepKennel(dt);
@@ -2080,6 +2131,9 @@ function stepCombat(dt) {
       if (i === 2) G.chWrites++;
     }
   }
+  // 杂甲's 兼收并蓄 (ticket 10): the stored skill's name on the R button, written on change.
+  const zs = P.kit.passive === 'store' ? P.storeSk : null;
+  if (zs !== G.zaShown) { G.zaShown = zs; if (SK[2].zsEl) { if (zs) setText(SK[2].zsEl, T(zs.nameKey)); setShow(SK[2].zsEl, !!zs); } G.zaWrites++; }
   if (PEND.on) { PEND.t -= dt; if (PEND.t <= 0) { PEND.on = false; fxTele.visible = false; applySkill(PEND.slot, PEND.x, PEND.z, PEND.dx, PEND.dz); } }
   if (G.fxT > 0) { G.fxT -= dt; if (G.fxT <= 0) { fxLine.visible = false; fxRing.visible = false; } }
   const VR = G.visR;
@@ -2295,7 +2349,7 @@ function breakDecree(s) {
   if (s === P) showNote('voice_marked', 'rule_marked', MARK_VARS);
 }
 // Marks off every suit (the wake and a new run).
-function clearMarks() { for (let i = 0; i < SUITS.length; i++) { const s = SUITS[i]; s.markT = 0; s.brkT = 0; s.marker.visible = false; s.dashLeft = 0; s.wsT = -99; breakUnseen(s); s.expT = 0; s.expArmT = 0; s.heldT = 0; s.sealT = 0; endAura(s); endBells(s); lowerWall(s); s.jiuT = 0; s.jiuN = 0; s.jiuSk = null; s.stillT = 0; s.atkAt = -99; s.castAt = -99; endMing(s); endYinyang(s); endNong(s); endDao(s); endZongheng(s); s.persAt = -99; } }
+function clearMarks() { for (let i = 0; i < SUITS.length; i++) { const s = SUITS[i]; s.markT = 0; s.brkT = 0; s.marker.visible = false; s.dashLeft = 0; s.wsT = -99; breakUnseen(s); s.expT = 0; s.expArmT = 0; s.heldT = 0; s.sealT = 0; endAura(s); endBells(s); lowerWall(s); s.jiuT = 0; s.jiuN = 0; s.jiuSk = null; s.stillT = 0; s.atkAt = -99; s.castAt = -99; endMing(s); endYinyang(s); endNong(s); endDao(s); endZongheng(s); endZa(s); s.persAt = -99; } }
 // ----- Unseen state (batch 16, minimal; curtains and walls blocking sight come with hiding in batch 18).
 function goUnseen(s, sec) { s.unseenT = sec; setShimmer(s, true); }
 function breakUnseen(s) { if (s.unseenT <= 0) return; s.unseenT = 0; setShimmer(s, false); }
@@ -2317,6 +2371,8 @@ function lawTarget(t) {
 // Dash length for a cast toward tx, tz: a pursuit dash goes to the target nearest the aim point (within 2 m) and stops short of it, or to the aim point;
 // it reaches longRange for a lawTarget. Other dashes always run their full range.
 function suitDashLen(s, sk, tx, tz) {
+  // 杂甲's 合名法 (ticket 10) blinks to the aim point, at most its range.
+  if (sk.toPoint) return Math.max(1, Math.min(sk.range, Math.hypot(tx - s.x, tz - s.z)));
   if (!sk.pursuit) return sk.range;
   let t = null, bd = 2;
   for (let i = -1; i < TARGETS.length; i++) {
@@ -2483,7 +2539,7 @@ function ringBell(s, sk, last) {
   for (let i = -1; i < TARGETS.length; i++) {
     const d = i < 0 ? P : TARGETS[i];
     if (!skillTargetOk(s, d, s.bellOrd) || Math.hypot(d.x - s.x, d.z - s.z) > sk.radius + d.r) continue;
-    if (!hitTarget(s, d, sk.dmg) || d.kind !== 'suit') continue;
+    if (!hitTarget(s, d, sk.dmg, false, sk) || d.kind !== 'suit') continue;
     if (!d.dead) { d.slowK = Math.max(d.slowT > 0 ? d.slowK : 0, sk.slow); d.slowT = Math.max(d.slowT, sk.slowS); if (last) d.stunT = Math.max(d.stunT, sk.stun); }
     if (!s.dead) s.hp = Math.min(CONFIG.MAX_HP, s.hp + sk.heal);
   }
@@ -2500,7 +2556,7 @@ function stepAuras(dt) {
     for (let k = 0; k < SUITS.length; k++) {
       const o = SUITS[k];
       if (o === s || o.dead || Math.abs(o.y - s.y) >= 2 || Math.hypot(o.x - s.x, o.z - s.z) > sk.radius) continue;
-      o.slowK = Math.max(o.slowT > 0 ? o.slowK : 0, sk.slow); o.slowT = Math.max(o.slowT, 0.2); o.heldT = 0.2;
+      o.slowK = Math.max(o.slowT > 0 ? o.slowK : 0, sk.slow); o.slowT = Math.max(o.slowT, 0.2); o.heldT = 0.2; zaStore(o, sk);
     }
   }
 }
@@ -2549,6 +2605,8 @@ function zhPick(s, sk, x, z, ord) {
 function tieCord(s, sk) {
   const c = s.cord; if (!c.sk) G.cordN++;
   c.t = sk.dur; c.a = ZH.a; c.b = ZH.b; c.sk = sk; s.linkN++;
+  if (ZH.a.kind === 'suit') zaStore(ZH.a, sk);
+  if (ZH.b.kind === 'suit') zaStore(ZH.b, sk);
   placeCord(c); if (!c.mesh.parent) scene.add(c.mesh);
 }
 // The cord is drawn from one tied enemy to the other at body height.
@@ -2579,6 +2637,7 @@ function zhSwap(s, d) {
   const sx = s.x, sz = s.z, sy = s.y, tx = d.x, tz = d.z, ty = d.y;
   if (!canStand(tx, tz, ty) || (d.kind === 'suit' ? !canStand(sx, sz, sy) : !unitOk(d, sx, sz))) return false;
   if (d.kind === 'suit' && counterHit(d, false, s, null, 0)) return true;
+  if (d.kind === 'suit') zaStore(d, ZA_SWAP);
   if (decOn('nodash') && s.floor && s.floor.s === DEC.zone) breakDecree(s);
   s.x = s.px = tx; s.z = s.pz = tz; s.y = s.py = ty; s.kx = 0; s.kz = 0;
   d.x = d.px = sx; d.z = d.pz = sz; d.y = sy;
@@ -2624,6 +2683,132 @@ function stepZongheng(dt) {
   }
 }
 function zhGone(o) { return o.kind === 'suit' ? o.dead : !o.alive; }
+// ----- 杂甲 (batch 16 ticket 10): 兼收并蓄 (store), 兼儒墨 on units, 合名法's exposure, 一字千金 (copy) and copied unit moves.
+// Suit d (a 'store' kit, alive) keeps sk, the last enemy skill that touched it.
+function zaStore(d, sk) { if (d.kit.passive === 'store' && !d.dead) d.storeSk = sk; }
+// 一字千金 by suit s toward tx, tz: the stored skill at full strength as his own (slot 3), the ultimate spent and his Q and W cooldowns reset.
+// ord = a player order (its hits follow the player's rule). False = no cast and no cost (nothing stored, held for a dash, no pick for a cord or swap).
+function zaCast(s, tx, tz, ord) {
+  const c = s.storeSk;
+  if (!c || (c.dash && held(s))) return false;
+  let dx = tx - s.x, dz = tz - s.z; const len = Math.hypot(dx, dz);
+  if (len > 0.01) { dx /= len; dz /= len; } else { dx = s.faceX; dz = s.faceZ; }
+  const dist = c.type === 'line' ? c.range : Math.min(len, c.range), x = s.x + dx * dist, z = s.z + dz * dist;
+  if ((c.link || c.swap) && !zhPick(s, c, x, z, ord)) return false;
+  if (c.swap && !zhSwap(s, ZH.a)) return false;
+  s.copySk = c; s.copyN++;
+  breakUnseen(s); s.castAt = G.time; s.faceX = dx; s.faceZ = dz;
+  spendUlt(s, skillOf(s, 2));
+  if (s === P) { SK[0].cdT = 0; SK[1].cdT = 0; }
+  s.cd[0] = 0; s.cd[1] = 0;
+  if (c.move) zaMove(s, c, x, z, dx, dz, ord);
+  else if (c.self) castSelf(s, c, ord);
+  else if (c.link) tieCord(s, c);
+  else if (c.swap) { }
+  else if (c.circle) castCircle(s, c, x, z);
+  else if (c.orb) fireOrb(s, 1, c, dx, dz, ord);
+  else if (c.taiji) startTaiji(s, c, x, z, dx, dz, ord);
+  else if (c.hang) startHang(s, 3, dx, dz, ord);
+  else if (c.dash) startDash(s, 3, dx, dz, ord, suitDashLen(s, c, tx, tz));
+  else if (c.delay > 0 && ord) {
+    PEND.on = true; PEND.slot = 3; PEND.x = x; PEND.z = z; PEND.dx = dx; PEND.dz = dz; PEND.t = c.delay;
+    fxTele.position.set(x, topYUnder(x, z, P.y + 1) + 0.07, z); fxTele.scale.setScalar(c.radius); fxTele.visible = true;
+  } else if (c.delay > 0) {
+    s.pend = true; s.pendT = c.delay; s.pendS = 3; s.pendX = x; s.pendZ = z; s.pendDx = dx; s.pendDz = dz; s.pendAge = 0;
+    s.ring.position.set(x, topYUnder(x, z, s.y + 1) + 0.07, z); s.ring.scale.setScalar(c.radius); if (!s.ring.parent) scene.add(s.ring);
+  } else if (ord) applySkill(3, x, z, dx, dz);
+  else botSkillHit(s, 3, x, z, dx, dz);
+  return true;
+}
+// A copied unit move winds up: its tell (the unit's colour) shows for its whole windup, a circle around him or a line from him (both follow him) or a spot at x, z.
+function zaMove(s, c, x, z, dx, dz, ord) {
+  const m = s.zm, mesh = c.shape === 'line' ? m.line : m.ring;
+  if (m.mesh && m.mesh !== mesh && m.mesh.parent) scene.remove(m.mesh);
+  if (!m.on) { m.on = true; G.zmN++; }
+  m.t = c.windup; m.age = 0; m.sk = c; m.ord = ord; m.x = x; m.z = z; m.y = topYUnder(x, z, s.y + 1); m.dx = dx; m.dz = dz; m.mesh = mesh;
+  mesh.material = c.tell; placeZm(s, m);
+  if (!mesh.parent) scene.add(mesh);
+}
+function placeZm(s, m) {
+  const c = m.sk;
+  if (c.shape === 'line') { m.mesh.position.set(s.x, s.y + 0.07, s.z); m.mesh.rotation.y = Math.atan2(-m.dx, -m.dz); m.mesh.scale.set(c.width, 1, c.range); return; }
+  if (c.shape === 'spot') m.mesh.position.set(m.x, m.y + 0.07, m.z); else m.mesh.position.set(s.x, s.y + 0.07, s.z);
+  m.mesh.scale.setScalar(c.radius);
+}
+function endZm(s) { const m = s.zm; if (!m.on) return; m.on = false; m.t = -1; m.sk = null; if (m.mesh && m.mesh.parent) scene.remove(m.mesh); G.zmN--; }
+// Everything of 杂甲's that is out, and his stored skill (a new run, the wake, out of the match).
+function endZa(s) { endZm(s); s.storeSk = null; }
+// Copied unit moves (fixed step): the tell follows its shape; at the end of the windup the hit lands, then a dash move carries him.
+function stepZa(dt) {
+  if (G.zmN <= 0) return;
+  for (let i = 0; i < SUITS.length; i++) {
+    const s = SUITS[i], m = s.zm; if (!m.on) continue;
+    if (s.dead) { endZm(s); continue; }
+    m.t -= dt; m.age += dt; placeZm(s, m); m.mesh.visible = s === P || s.seen;
+    if (m.t <= 0) zaResolve(s, m);
+  }
+}
+// The windup is over: every target inside the shown shape on about his layer takes the move; a line move then dashes him its length, a spot move to the spot.
+function zaResolve(s, m) {
+  const c = m.sk, ord = m.ord, ox = s.x, oz = s.z, dx = m.dx, dz = m.dz, spot = c.shape === 'spot', cx = spot ? m.x : ox, cz = spot ? m.z : oz;
+  endZm(s);
+  for (let i = -1; i < TARGETS.length; i++) {
+    const d = i < 0 ? P : TARGETS[i];
+    if (!skillTargetOk(s, d, ord) || Math.abs(d.y - s.y) >= 1.5) continue;
+    if (c.shape === 'line') {
+      const qx = d.x - ox, qz = d.z - oz, along = qx * dx + qz * dz;
+      if (along < 0 || along > c.range + d.r || Math.abs(qx * dz - qz * dx) > c.width / 2 + d.r || wallCuts(ox, oz, d.x, d.z)) continue;
+    } else if (Math.hypot(d.x - cx, d.z - cz) > c.radius + d.r) continue;
+    zaMoveHit(s, c, d);
+    if (s.dead) return;
+  }
+  if (c.shape === 'line') startDash(s, 3, dx, dz, ord, c.range);
+  else if (spot) { const ex = cx - s.x, ez = cz - s.z, el = Math.hypot(ex, ez); if (el > 0.3 && !wallCuts(s.x, s.z, cx, cz)) startDash(s, 3, ex / el, ez / el, ord, Math.min(el, c.range)); }
+}
+// A copied unit move lands on d: its damage (a 0-damage move still passes 道甲's counter), then its slow, stun and bleed on a suit, its slow on a unit.
+function zaMoveHit(s, c, d) {
+  if (c.dmg > 0) { if (!hitTarget(s, d, c.dmg, false, c)) return; }
+  else {
+    if (d.kind === 'shadow' || (d.kind === 'suit' && counterHit(d, false, s, null, 0))) return;
+    breakUnseen(s); if (d.kind) s.atkAt = G.time;
+    if (d.kind === 'suit') zaStore(d, c);
+  }
+  if (d.kind === 'suit') {
+    if (d.dead) return;
+    if (c.slow) { d.slowK = Math.max(d.slowT > 0 ? d.slowK : 0, c.slow); d.slowT = Math.max(d.slowT, c.slowS); }
+    if (c.stun) d.stunT = Math.max(d.stunT, c.stun);
+    if (c.bleed) { d.bleedN = Math.min(CONFIG.BLEED.max, d.bleedN + c.bleed); d.bleedT = CONFIG.BLEED.dur; }
+    return;
+  }
+  if (d.kind && d.alive && !d.neutral && c.slow) unitSlow(d, c.slow, c.slowS);
+}
+function unitSlow(u, k, sec) { u.slowK = Math.max(u.slowT > 0 ? u.slowK : 0, k); u.slowT = Math.max(u.slowT, sec); }
+// 兼儒墨 on a cub or hunt unit: 正名 seals the demon's stolen skills (a cub or minion: its next skill in rotation) for seal s; 墨 slows the demon always
+// except in its frenzy (the apex always attacks), any other unit only if it attacked someone in the last aggroS s.
+function zaUnitHit(u, sk) {
+  if (!u.alive || u.neutral) return;
+  u.sealT = sk.seal; u.sealK = u === DEMON ? '' : u.skills.length ? u.skills[u.rot % u.skills.length] : '';
+  if (u === DEMON ? u.frenzyT <= 0 : G.time - u.atkAt < sk.aggroS) unitSlow(u, sk.slow, sk.slowS);
+}
+// Unit u's skill k is sealed now (the demon: a skill it does not start with).
+function unitSealed(u, k) { return u.sealT > 0 && (u.sealK ? k === u.sealK : u.base.indexOf(k) < 0); }
+// 合名法's landing: the nearest live enemy suit within exposeM of him (on about his layer) is exposed for exposeS s.
+function zaExpose(s, sk) {
+  let best = null, bd = sk.exposeM;
+  for (let i = 0; i < SUITS.length; i++) {
+    const o = SUITS[i]; if (o === s || o.dead || Math.abs(o.y - s.y) >= 2) continue;
+    const e = Math.hypot(o.x - s.x, o.z - s.z); if (e <= bd) { bd = e; best = o; }
+  }
+  if (best) { expose(best, sk.exposeS); s.zaExpN++; }
+}
+// A bot's stored skill is worth casting at q (d metres away): q within the skill's reach (a self skill: within its radius; a unit move: its own band);
+// a harvest is not (he has no field), nor a cord with no second enemy or a swap with no room.
+function zaWorth(b, q, d) {
+  const c = b.storeSk;
+  if (!c || c.self === 'harvest') return false;
+  const reach = c.move ? (c.shape === 'circle' ? c.radius : c.range) : c.self ? c.radius * (c.botIn || 1) : c.range + c.radius;
+  return d <= reach + q.r;
+}
 // A bot's target after 纵横甲's persuasion (ticket 09; never the player, b === P): inside a circle of another 纵横甲 it turns on the nearest other suit it sees
 // (not that 纵横甲); a bot about to fight a 纵横甲 takes another suit within its reach instead (事一强, once per bot every everyS s). The player only through
 // the hunter cap (a slot claimed here). Returns t when nothing steers it.
@@ -2841,7 +3026,8 @@ function stepShadows(dt) {
 }
 // 名甲's hanging line (W, R) from suit s along dx, dz: shown for hang s, then it strikes. ord as for the wheel.
 function startHang(s, slot, dx, dz, ord) {
-  const sk = skillOf(s, slot), h = s.hang[slot - 1];
+  // A copied line (杂甲's slot 3) hangs on the line of the slot it came from (one that slows on touch: W's, else R's).
+  const sk = skillOf(s, slot), h = s.hang[slot === 3 ? (sk.touchSlow ? 0 : 1) : slot - 1];
   h.t = sk.hang; h.sk = sk; h.ox = s.x; h.oz = s.z; h.oy = s.y; h.dx = dx; h.dz = dz; h.ord = ord;
   h.mesh.position.set(s.x, s.y + 0.08, s.z); h.mesh.rotation.y = Math.atan2(-dx, -dz); h.mesh.scale.set(sk.width, 1, sk.range);
   if (!h.mesh.parent) { scene.add(h.mesh); G.hangN++; }
@@ -2870,7 +3056,7 @@ function hangTouch(s, h) {
   for (let i = 0; i < SUITS.length; i++) {
     const o = SUITS[i];
     if (o === s || o.dead || Math.abs(o.y - h.oy) > 2 || !inSkillShape(sk, o, h.ox, h.oz, 0, 0, h.dx, h.dz)) continue;
-    o.slowK = Math.max(o.slowT > 0 ? o.slowK : 0, sk.touchSlow); o.slowT = Math.max(o.slowT, sk.touchS);
+    o.slowK = Math.max(o.slowT > 0 ? o.slowK : 0, sk.touchSlow); o.slowT = Math.max(o.slowT, sk.touchS); zaStore(o, sk);
   }
 }
 // The line's skill and shape are read once: a hit can break the 名甲 himself mid-strike (a share through 纵横甲's cord, 墨甲's turned blow), and his
@@ -2980,9 +3166,9 @@ function taijiActs(s, t, sk, burn) {
     if (!skillTargetOk(s, d, t.ord) || Math.abs(d.y - t.y) > 2) continue;
     const ex = t.x - d.x, ez = t.z - d.z, l = Math.hypot(ex, ez);
     if (l > sk.radius + d.r) continue;
-    if (!inDark(t, d.x, d.z)) { if (burn) hitTarget(s, d, sk.burn); continue; }
+    if (!inDark(t, d.x, d.z)) { if (burn) hitTarget(s, d, sk.burn, false, sk); continue; }
     if (d.kind !== 'suit' || d.dead) continue;
-    d.slowK = Math.max(d.slowT > 0 ? d.slowK : 0, sk.slow); d.slowT = Math.max(d.slowT, 0.2);
+    d.slowK = Math.max(d.slowT > 0 ? d.slowK : 0, sk.slow); d.slowT = Math.max(d.slowT, 0.2); zaStore(d, sk);
     if (l > 0.3) { d.kx = ex / l * sk.pull; d.kz = ez / l * sk.pull; }
   }
 }
@@ -3052,7 +3238,7 @@ function harvest(s, sk, ord) {
 function harvestPulse(s, sk, ord) {
   for (let i = -1; i < TARGETS.length; i++) {
     const d = i < 0 ? P : TARGETS[i];
-    if (skillTargetOk(s, d, ord) && Math.abs(d.y - s.y) <= 2 && Math.hypot(d.x - s.x, d.z - s.z) <= sk.pulseR + d.r) hitTarget(s, d, sk.dmg);
+    if (skillTargetOk(s, d, ord) && Math.abs(d.y - s.y) <= 2 && Math.hypot(d.x - s.x, d.z - s.z) <= sk.pulseR + d.r) hitTarget(s, d, sk.dmg, false, sk);
   }
 }
 function endHarvRing(s) { s.harvT = 0; if (s.harvRing.parent) { scene.remove(s.harvRing); G.harvRingN--; } }
@@ -3076,7 +3262,7 @@ function stepFurrow(s, dt) {
   f.mesh.visible = s === P || Math.hypot(f.ox - P.x, f.oz - P.z) <= G.visR + f.len;
   for (let k = 0; k < SUITS.length; k++) {
     const o = SUITS[k]; if (o === s || o.dead || o.air || !onFurrow(s, o.x, o.z, o.y)) continue;
-    o.slowK = Math.max(o.slowT > 0 ? o.slowK : 0, f.sk.slow); o.slowT = Math.max(o.slowT, 0.2);
+    o.slowK = Math.max(o.slowT > 0 ? o.slowK : 0, f.sk.slow); o.slowT = Math.max(o.slowT, 0.2); zaStore(o, f.sk);
   }
 }
 // Seeds grow (growK times as fast on his own furrow), grown sprouts stand lastS s; a falling section takes them; he eats grown ones he walks over;
@@ -3137,6 +3323,9 @@ function dashLand(s) {
   s.dashLeft = 0;
   // A blink (名甲's Q) and 道甲's flow (W) land with no hit.
   if (skillOf(s, s.dashSlot).blink || skillOf(s, s.dashSlot).flow) return;
+  // 杂甲 (ticket 10): 合名法 exposes the nearest enemy suit where he lands; a copied unit move hit before it dashed.
+  if (skillOf(s, s.dashSlot).toPoint) { zaExpose(s, skillOf(s, s.dashSlot)); return; }
+  if (skillOf(s, s.dashSlot).move) return;
   // 农甲's plough (W) lays its furrow; it has no hit.
   if (skillOf(s, s.dashSlot).furrow) { layFurrow(s, skillOf(s, s.dashSlot)); if (!skillOf(s, s.dashSlot).dmg) return; }
   if (s.dashOrd) applySkill(s.dashSlot, s.x, s.z, s.dashX, s.dashZ, s.dashOx, s.dashOz);
@@ -3188,7 +3377,7 @@ function updateLeaderHud() {
 function suitFell(s) { if (s === P && G.botN === 0) respawn('fell'); else suitDown(s, 'fall', null); }
 // A bot leaves the match: body out of the scene, no longer a target.
 function botOut(b) {
-  b.dead = true; b.hp = 0; b.seen = false; b.navWant = false; b.path.n = 0; b.pend = false; endAura(b); endBells(b); endMing(b); endYinyang(b); endZongheng(b);
+  b.dead = true; b.hp = 0; b.seen = false; b.navWant = false; b.path.n = 0; b.pend = false; endAura(b); endBells(b); endMing(b); endYinyang(b); endZongheng(b); endZa(b);
   if (b.group.parent) scene.remove(b.group);
   if (b.ring.parent) scene.remove(b.ring);
   if (ORD.attack === b) ORD.attack = null;
@@ -3269,7 +3458,7 @@ function pickMove(u, dist) {
   const n = u.skills.length, hold = !!unitHeld(u);
   if (u.gapT <= 0) for (let i = 0; i < n; i++) {
     const k = u.skills[(u.rot + i) % n], m = MOVES[k];
-    if (u.cd[k] <= 0 && dist >= m.min && dist <= m.max && !(hold && m.dashS)) { u.rot = (u.rot + i + 1) % n; u.gapT = m.windup + CONFIG.APEX.skillGap; return k; }
+    if (u.cd[k] <= 0 && dist >= m.min && dist <= m.max && !(hold && m.dashS) && !unitSealed(u, k)) { u.rot = (u.rot + i + 1) % n; u.gapT = m.windup + CONFIG.APEX.skillGap; return k; }
   }
   const a = MOVES[u.atk];
   if (u.cd[u.atk] <= 0 && dist <= a.max) return u.atk;
@@ -3322,6 +3511,8 @@ function resolveMove(u) {
     const dmg = m.dmg * u.dmgK * Math.min(CONFIG.BONUS_CAP, (u.frenzyT > 0 ? CONFIG.DEMON_ULT.dmg : 1) * (u.hunt && unprepared(s) ? 1 + CONFIG.BINGJIA.bonus : 1));
     // 道甲's stances (ticket 08): the unit's basic attack (claw, bite) or its skill passes the one counter function; a countered move lands nothing on him.
     if (counterHit(s, k === u.atk, null, u, dmg)) continue;
+    // 杂甲's 兼收并蓄 (ticket 10) keeps a unit's skill move (not its basic attack).
+    if (k !== u.atk) zaStore(s, ZA_MV[k]);
     if (s === P) { G.hits++; if (u.tellT < G.minTell) G.minTell = u.tellT; }
     if (m.slow) { s.slowK = Math.max(s.slowT > 0 ? s.slowK : 0, m.slow); s.slowT = Math.max(s.slowT, m.slowS); }
     if (m.stun) s.stunT = Math.max(s.stunT, m.stun);
@@ -3345,6 +3536,8 @@ function stepUnit(u, dt) {
   for (let i = 0; i < MOVE_KEYS.length; i++) { const k = MOVE_KEYS[i]; if (c[k] > 0) c[k] -= dt; }
   if (u.gapT > 0) u.gapT -= dt;
   if (u.ultCd > 0) u.ultCd -= dt;
+  if (u.slowT > 0) u.slowT -= dt;
+  if (u.sealT > 0) u.sealT -= dt;
   if (u.flashT > 0) { u.flashT -= dt; if (u.flashT <= 0) u.body.material = u.frenzyT > 0 ? M.frenzy : u.mat; }
   if (u.frenzyT > 0) { u.frenzyT -= dt; if (u.frenzyT <= 0 && u.flashT <= 0) u.body.material = u.mat; }
   if (u.st === 1) { u.t -= dt; u.tellT += dt; if (u.t <= 0) resolveMove(u); return; }
@@ -3380,7 +3573,7 @@ function stepUnit(u, dt) {
   const tx = gx - u.x, tz = gz - u.z, td = Math.hypot(tx, tz);
   u.fx = dx; u.fz = dz;
   const hs = unitHeld(u);
-  if (td > u.cfg.keep) moveUnit(u, tx / td, tz / td, u.cfg.speed * (u.frenzyT > 0 ? CONFIG.DEMON_ULT.speed : 1) * (hs ? 1 - hs.slow : 1), dt);
+  if (td > u.cfg.keep) moveUnit(u, tx / td, tz / td, u.cfg.speed * (u.frenzyT > 0 ? CONFIG.DEMON_ULT.speed : 1) * (hs ? 1 - hs.slow : 1) * (u.slowT > 0 ? 1 - u.slowK : 1), dt);
 }
 function stepHunt(dt) {
   const VR = G.visR, hunting = G.phase === 'hunt';
@@ -3524,7 +3717,7 @@ function spawnWave(wave) {
     if (!u) continue;
     const x = cp[0] + (i - (wave.length - 1) / 2) * 2.4, z = cp[1];
     u.cx = x; u.cz = z; u.cy = topY(x, z); u.camp = wave[i][1]; u.x = u.px = x; u.z = u.pz = z; u.y = u.cy; u.fx = 0; u.fz = 1;
-    u.hp = u.maxHp; u.alive = true; u.seen = false; u.st = 0; u.t = 0; u.cur = ''; u.tellT = 0; u.gapT = 0; u.rot = 0; u.flashT = 0; u.bleedT = 0; u.atkAt = -99;
+    u.hp = u.maxHp; u.alive = true; u.seen = false; u.st = 0; u.t = 0; u.cur = ''; u.tellT = 0; u.gapT = 0; u.rot = 0; u.flashT = 0; u.bleedT = 0; u.slowT = 0; u.sealT = 0; u.atkAt = -99;
     u.home = false; u.hot = false; u.homeT = 0;
     for (let k = 0; k < MOVE_KEYS.length; k++) u.cd[MOVE_KEYS[k]] = 0;
     u.body.material = u.mat; u.bar.scale.x = 1; u.group.visible = false; u.group.position.set(x, u.y, z);
@@ -3590,7 +3783,7 @@ function draw(b) {
 function spawnNeutral(u, i, spot, boon, amt) {
   const sp = SPOTS[spot];
   u.spot = spot; u.nb = boon; u.nv = amt; u.cx = sp[0]; u.cz = sp[1]; u.x = u.px = sp[0]; u.z = u.pz = sp[1]; u.y = topY(sp[0], sp[1]); u.t = 0; u.fx = 0; u.fz = 1;
-  u.hp = u.maxHp; u.alive = true; u.seen = false; u.flashT = 0; u.bleedT = 0; u.body.material = u.mat; u.bar.scale.x = 1; u.group.visible = false; u.group.position.set(u.x, u.y, u.z);
+  u.hp = u.maxHp; u.alive = true; u.seen = false; u.flashT = 0; u.bleedT = 0; u.slowT = 0; u.sealT = 0; u.body.material = u.mat; u.bar.scale.x = 1; u.group.visible = false; u.group.position.set(u.x, u.y, u.z);
   scene.add(u.group);
   ZONE_VARS.zone = SEC[sp[2]].name; showNote(i === 0 ? 'voice_crab' : 'voice_wander', i === 0 ? 'rule_crab' : 'rule_wander', ZONE_VARS);
 }
@@ -3927,10 +4120,16 @@ function botUseSkills(b, q, d, ultOnly) {
       : sk.tag === 'fan' ? b.daoN < sk.botMin || d > b.kit.attack.range + 2
       // 'link' (纵横甲 Q) ties its target to the enemy nearest it; 'persuade' (纵横甲 R) on a target with at least botMin other suits within radius of it.
       : sk.tag === 'link' ? d > sk.range || !zhPick(b, sk, q.x, q.z, false) : sk.tag === 'persuade' ? d > sk.range || suitsAround(q, b, sk.radius) < sk.botMin
-      : sk.tag === 'harvest' ? sproutsNear(b, sk.radius) < sk.botMin || (d > sk.pulseR + q.r && b.hp >= B.lowHp) : d > sk.range) continue;
+      : sk.tag === 'harvest' ? sproutsNear(b, sk.radius) < sk.botMin || (d > sk.pulseR + q.r && b.hp >= B.lowHp)
+      // 杂甲 (ticket 10): 'seal' (Q) at the leader or a target that attacked someone within aggroS s; 'blinkZa' (W) away from a target nearer than botNear,
+      // or in when the target is past its attack reach but within the blink plus that reach; 'copy' (R) when the stored skill reaches the target.
+      : sk.tag === 'seal' ? d > sk.range || (q !== G.leader && !(G.time - q.atkAt < sk.aggroS))
+      : sk.tag === 'blinkZa' ? noDash || !(d < sk.botNear || (d > b.kit.attack.range && d <= sk.range + b.kit.attack.range))
+      : sk.tag === 'copy' ? !zaWorth(b, q, d) : d > sk.range) continue;
     const a = brnd() * 6.2832, r = brnd() * err, tx = q.x + Math.cos(a) * r, tz = q.z + Math.sin(a) * r;
     let dx = tx - b.x, dz = tz - b.z; const len = Math.hypot(dx, dz) || 1e-6; dx /= len; dz /= len;
-    if (sk.tag === 'blinkAway') { dx = -dx; dz = -dz; }
+    if (sk.tag === 'blinkAway' || (sk.tag === 'blinkZa' && d < sk.botNear)) { dx = -dx; dz = -dz; }
+    if (sk.copy) { if (!zaCast(b, tx, tz, false)) continue; b.castT = CONFIG.BOT.castGapS; return; }
     const dist = sk.type === 'line' ? sk.range : Math.min(len, sk.range), x = b.x + dx * dist, z = b.z + dz * dist;
     if (sk.wall && !wallFits(b, sk, q.x + dx * sk.botBehind, q.z + dz * sk.botBehind, dx, dz)) continue;
     if (slot === 2) spendUlt(b, sk); else b.cd[slot] = sk.cd;
@@ -3943,6 +4142,8 @@ function botUseSkills(b, q, d, ultOnly) {
     else if (sk.wall) raiseWall(b, sk);
     else if (sk.sow) sowSeeds(b, sk, b.x + dx * sk.botAhead, b.z + dz * sk.botAhead);
     else if (sk.hang) startHang(b, slot, dx, dz, false);
+    // 杂甲's blink in stops at 0.7 of his attack reach from the target; away it runs its full range.
+    else if (sk.tag === 'blinkZa') startDash(b, slot, dx, dz, false, d < sk.botNear ? sk.range : Math.max(1, Math.min(sk.range, len - b.kit.attack.range * 0.7)));
     else if (sk.dash) startDash(b, slot, dx, dz, false, suitDashLen(b, sk, tx, tz));
     else if (sk.delay > 0) {
       b.pend = true; b.pendT = sk.delay; b.pendS = slot; b.pendX = x; b.pendZ = z; b.pendDx = dx; b.pendDz = dz; b.pendAge = 0;
@@ -4047,16 +4248,18 @@ function skillTargetOk(s, d, ord) {
 // A skill lands on d: its damage, then its kit effects on a suit: 正名's seal (儒甲 W) and the chariot's sideways drive (儒甲 Q, away from the path).
 function skillHit(s, sk, d, dx, dz) {
   // A countered blow (道甲's W) lands none of the skill's effects (a blow on 名甲's shadow keeps its old path: nothing lands on it but the caster's own effects).
-  if (!hitTarget(s, d, sk.dmg) && d.kind !== 'shadow') return;
+  if (!hitTarget(s, d, sk.dmg, false, sk) && d.kind !== 'shadow') return;
   // 阴阳甲 (ticket 06): a landed 阴 or 阳 fills its half; 阴 heals him drain.
   if (sk.half) fillHalf(s, sk.half);
   if (sk.drain && !s.dead) s.hp = Math.min(CONFIG.MAX_HP, s.hp + sk.drain);
   // 墨甲's lever (W): flung away from him: a suit by knockback (a broken-rail gap can take it into the void), a cub or minion unitM m, the demon demonM m.
   if (sk.fling && d.kind) flingFrom(s, sk, d);
+  // 杂甲's 兼儒墨 (ticket 10) on a cub or hunt unit: its seal and slow (the hunt rules).
+  if (sk.aggroS && d.kind && d.kind !== 'suit') { zaUnitHit(d, sk); return; }
   if (d.kind !== 'suit' || d.dead) return;
   if (sk.seal) d.sealT = Math.max(d.sealT, sk.seal);
-  // 阴's slow on a suit.
-  if (sk.slow) { d.slowK = Math.max(d.slowT > 0 ? d.slowK : 0, sk.slow); d.slowT = Math.max(d.slowT, sk.slowS); }
+  // 阴's slow on a suit; 杂甲's 墨 (aggroS) slows only a suit that attacked someone in the last aggroS s.
+  if (sk.slow && (!sk.aggroS || G.time - d.atkAt < sk.aggroS)) { d.slowK = Math.max(d.slowT > 0 ? d.slowK : 0, sk.slow); d.slowT = Math.max(d.slowT, sk.slowS); }
   if (sk.side) { const sg = (d.x - s.x) * dz - (d.z - s.z) * dx >= 0 ? 1 : -1; d.kx += dz * sg * sk.side; d.kz -= dx * sg * sk.side; }
 }
 // A target on 墨甲's lever is flung away from suit s (buff creatures keep their walk).
@@ -4177,7 +4380,7 @@ const ZONE_VARS = { zone: '' }, BOON_VARS = { v: 0, s: 0 }, BOON_TXT = [T('bn_po
 // Buff creatures out of the scene and their first appearance drawn from the time bag (new run), or simply cleared (the wake).
 function resetNeutrals(redraw) {
   for (const u of NEUTRALS) {
-    u.alive = false; u.seen = false; u.hp = 0; u.bleedT = 0; u.flashT = 0; u.body.material = u.mat; u.maxHp = u.cfg.hp; u.by = null; u.bleedBy = null;
+    u.alive = false; u.seen = false; u.hp = 0; u.bleedT = 0; u.slowT = 0; u.sealT = 0; u.flashT = 0; u.body.material = u.mat; u.maxHp = u.cfg.hp; u.by = null; u.bleedBy = null;
     if (u.group.parent) scene.remove(u.group);
     if (ORD.attack === u) ORD.attack = null;
     if (redraw) G.nT[u.idx] = draw(BAGS.times);
@@ -4188,7 +4391,7 @@ const KENNEL_VARS = { s: CONFIG.KENNEL.warnS, zones: '' }, TAKE_VARS = { s: CONF
 // Cubs back into the pool (new run, or the wake: live cubs fuse into the statue).
 function resetCubs() {
   for (const u of CUBS) {
-    u.alive = false; u.seen = false; u.hp = 0; u.st = 0; u.plateOn = false; u.home = false; u.hot = false; u.bleedT = 0; u.flashT = 0; u.body.material = u.mat;
+    u.alive = false; u.seen = false; u.hp = 0; u.st = 0; u.plateOn = false; u.home = false; u.hot = false; u.bleedT = 0; u.slowT = 0; u.sealT = 0; u.flashT = 0; u.body.material = u.mat;
     u.tgt = P; u.by = null; u.bleedBy = null;
     hideTell(u);
     if (u.group.parent) scene.remove(u.group); if (u.ring.parent) scene.remove(u.ring, u.line); if (u.plate.parent) scene.remove(u.plate);
@@ -4209,7 +4412,7 @@ function resetUnits(active) {
   for (const u of ENEMIES) {
     u.hx = 0; u.hz = SZ; u.x = u.px = u.hx; u.z = u.pz = u.hz; u.y = topY(0, SZ + 4);
     u.fx = 0; u.fz = 1; u.hp = active ? u.cfg.hp : 0; u.alive = active; u.seen = false; u.st = 0; u.t = 0; u.cur = ''; u.tellT = 0;
-    u.gapT = 0; u.rot = 0; u.flashT = 0; u.frenzyT = 0; u.ultUsed = false; u.ultCd = 0; u.plateOn = false; u.plateT = 0; u.bleedT = 0; u.atkAt = -99;
+    u.gapT = 0; u.rot = 0; u.flashT = 0; u.frenzyT = 0; u.ultUsed = false; u.ultCd = 0; u.plateOn = false; u.plateT = 0; u.bleedT = 0; u.slowT = 0; u.sealT = 0; u.atkAt = -99;
     // 纵横甲 (ticket 09): persAt = game time this minion last waited for 事一强; tgt back on the player (不攻自破 turns it on another unit).
     u.persAt = -99; u.tgt = P;
     for (const k of MOVE_KEYS) u.cd[k] = 0;
@@ -4567,12 +4770,13 @@ function placeView(alpha) {
   FOW.uFowC.value.set(x, y, z);
   // Aim indicators: desktop aims at the cursor; phone aims by the drag direction and length.
   if (ORD.aiming >= 0) {
-    const sk = skillOf(P, ORD.aiming);
+    const sk = aimSk(ORD.aiming);
     if (ORD.src === 'key') {
       const hp = cursorGround();
       if (hp.ok) { const ax = hp.x - x, az = hp.z - z, l = Math.hypot(ax, az); if (l > 0.05) { ORD.dirX = ax / l; ORD.dirZ = az / l; } ORD.dist = Math.min(l, sk.range); }
     }
-    const dist = sk.type === 'line' || sk.dash ? sk.range : ORD.dist;
+    // 杂甲's blink (ticket 10) and a copied flank go to the aimed point, not their full range.
+    const dist = sk.type === 'line' || (sk.dash && !sk.toPoint && !sk.move) ? sk.range : ORD.dist;
     ORD.aimX = x + ORD.dirX * dist; ORD.aimZ = z + ORD.dirZ * dist;
     indRange.position.set(x, y + 0.05, z); indRange.scale.setScalar(sk.range); indRange.visible = true;
     if (sk.type === 'line') {
@@ -4738,7 +4942,10 @@ window.__game = {
   },
   // A bot casts its skill in slot toward x, z at once (checks only): a hanging line, a dash or blink, or a wall.
   botCast(i, slot, x, z) {
-    const b = BOTLIST[i], sk = skillOf(b, slot); let dx = x - b.x, dz = z - b.z; const l = Math.hypot(dx, dz) || 1; dx /= l; dz /= l; b.faceX = dx; b.faceZ = dz; b.cd[slot] = sk.cd;
+    const b = BOTLIST[i], sk = skillOf(b, slot);
+    // 杂甲's 一字千金 (ticket 10): the stored skill toward x, z (false = nothing stored or no target for it).
+    if (sk.copy) return zaCast(b, x, z, false);
+    let dx = x - b.x, dz = z - b.z; const l = Math.hypot(dx, dz) || 1; dx /= l; dz /= l; b.faceX = dx; b.faceZ = dz; b.cd[slot] = sk.cd;
     // 纵横甲 (ticket 09): 合纵 and 连横 on the enemy nearest x, z; 不攻自破 at x, z (no clamp to range: checks only). Returns false when nothing was cast.
     if (sk.link || sk.swap) { if (!zhPick(b, sk, x, z, false)) return false; if (sk.link) tieCord(b, sk); else return zhSwap(b, ZH.a); return true; }
     if (sk.circle) { if (slot === 2) spendUlt(b, sk); castCircle(b, sk, x, z); return true; }
@@ -4772,6 +4979,22 @@ window.__game = {
   zhWarn(id) { warnSection(SEC[id]); },
   // A hunt unit's place, target and skill gap (checks only; k = 'demon', 'stalker' or 'howler').
   zhUnit(k) { const u = ENEMIES.find((e) => e.kind === k); return { x: u.x, z: u.z, hp: u.hp, alive: u.alive, tgt: u.tgt === P ? 0 : u.tgt.kind, gapT: u.gapT, persAt: u.persAt, st: u.st, plateOn: u.plateOn, skills: DEMON.skills.length }; },
+  // 杂甲 (ticket 10, read-only): his stored skill and last copy ('school:slot' or 'move:key'), copied-move tell, counts, R button name and his timers.
+  zaState(i) {
+    const q = i < 0 ? P : BOTLIST[i], m = q.zm, id = (sk) => { if (!sk) return ''; if (sk.move) return 'move:' + sk.move; for (const k in CONFIG.KITS) { const j = (CONFIG.KITS[k].skills || []).indexOf(sk); if (j >= 0) return k + ':' + j; } return '?'; };
+    return { store: id(q.storeSk), copy: id(q.copySk), copyN: q.copyN, expN: q.zaExpN, zm: { on: m.on, t: m.t, age: m.age, shape: m.sk ? m.sk.shape : '', inScene: !!(m.mesh && m.mesh.parent),
+      vis: !!(m.mesh && m.mesh.visible), mat: m.mesh ? (m.mesh.material === M.tellD ? 'D' : m.mesh.material === M.tellS ? 'S' : m.mesh.material === M.tellH ? 'H' : '?') : '', x: m.x, z: m.z },
+      zmN: G.zmN, zs: SK[2].zsEl ? SK[2].zsEl.textContent : '', zsShow: SK[2].zsEl ? SK[2].zsEl.style.display : '', zaWrites: G.zaWrites, cd: q === P && !G.autoP ? SK.map((st) => st.cdT) : q.cd.slice(),
+      bcd: q.cd.slice(), ch: q.ch, ultN: q.ultN, x: q.x, z: q.z, y: q.y, hp: q.hp, dash: q.dashLeft, expT: q.expT, sealT: q.sealT, slowT: q.slowT, stunT: q.stunT, bleedN: q.bleedN, school: q.school, kit: q.kit.id || q.school };
+  },
+  // Give suit i a stored skill without a hit (checks only): a kit's skill (school, slot) or a unit move (school 'move', slot = its key); '' clears it.
+  setStore(i, school, slot) { const q = i < 0 ? P : BOTLIST[i]; q.storeSk = !school ? null : school === 'move' ? ZA_MV[slot] : CONFIG.KITS[school].skills[slot]; },
+  // A unit's seal, slow and skill list (checks only; k = 'demon', 'stalker', 'howler' or 'cub' + index).
+  zaUnit(k) { const u = k.indexOf('cub') === 0 ? CUBS[+k.slice(3)] : ENEMIES.find((e) => e.kind === k); return { sealT: u.sealT, sealK: u.sealK, slowT: u.slowT, slowK: u.slowK, skills: u.skills.slice(), frenzyT: u.frenzyT, hp: u.hp, alive: u.alive, x: u.x, z: u.z, st: u.st, cur: u.cur, atkAt: u.atkAt }; },
+  // The skill a unit would start now at dist m (checks only: it moves the unit's rotation like a real pick).
+  zaPick(k, dist) { const u = k.indexOf('cub') === 0 ? CUBS[+k.slice(3)] : ENEMIES.find((e) => e.kind === k); return pickMove(u, dist); },
+  // Set a unit's fields for a check (frenzy, last attack time, seal, slow; checks only).
+  zaUnitSet(k, o) { const u = k.indexOf('cub') === 0 ? CUBS[+k.slice(3)] : ENEMIES.find((e) => e.kind === k); Object.assign(u, o); },
   // Fill a half of a suit's lock (checks only).
   yyFill(i, yin, yang) { const q = i < 0 ? P : BOTLIST[i]; q.yinF = !!yin; q.yangF = !!yang; },
   // 农甲 (ticket 07): his sprouts, furrow, feeding and harvest (read-only), and a sowing without a cast (checks only).

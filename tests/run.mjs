@@ -808,7 +808,8 @@ try {
       for (const q of b.list) {
         if (!q.standOk) bad(`t${t} bot${q.id} off floor`);
         // Batch 12: a marked suit is seen from anywhere (panel, 23 Nov 15:11); otherwise only inside the player's vision.
-        if (q.seen && q.markT <= 0 && Math.hypot(q.x - s.x, q.z - s.z) > G.neutrals().visR + 1e-6) bad(`t${t} bot${q.id} seen outside vision`);
+        // Batch 16 (game changed on purpose, tickets 02 and 10): an exposed suit (法甲's 术, 杂甲's 合名法) is also seen by every suit.
+        if (q.seen && q.markT <= 0 && G.kitState(q.id - 1).expT <= 0 && Math.hypot(q.x - s.x, q.z - s.z) > G.neutrals().visR + 1e-6) bad(`t${t} bot${q.id} seen outside vision`);
         if (q.dead && q.inScene) bad(`t${t} bot${q.id} out but drawn`);
       }
     }
@@ -1615,7 +1616,8 @@ try {
     // Batch 16 ticket 07 (game changed on purpose): 农甲 built too.
     // Batch 16 ticket 08 (game changed on purpose): 道甲 built too (ultMode 'counters').
     // Batch 16 ticket 09 (game changed on purpose): 纵横甲 built too.
-    o.unbuilt = C.SCHOOLS.filter((k) => C.KITS[k].built).join(',') === 'ru,dao,fa,mo,yinyang,ming,zongheng,nong';
+    // Batch 16 ticket 10 (game changed on purpose): 杂甲 built too, so all nine are.
+    o.unbuilt = C.SCHOOLS.filter((k) => C.KITS[k].built).join(',') === 'ru,dao,fa,mo,yinyang,za,ming,zongheng,nong';
     o.placeholder = sc.suits.every((q) => (C.KITS[q.school].built && q.id !== 0 ? q.kit === q.school && q.ultMode === C.KITS[q.school].ultMode : q.kit === 'placeholder' && q.ultMode === 'charge'));
     o.player = sc.suits[0].school; o.bots = sc.suits.slice(1).map((q) => q.name).join(','); o.tags = C.SKILLS.map((k) => k.tag).join(',');
     o.speedMid = C.STATS.speed.Mid === C.PLAYER_SPEED && C.STATS.yard === 'Mid'; o.keys = C.SCHOOLS.map((k) => 'school_' + k).concat(['hud_school', 'sel_title', 'sel_rule', 'sel_random', 'sel_key']).filter((k) => !T[k]);
@@ -3020,6 +3022,230 @@ try {
   });
   check('161 budget with 纵横甲 effects: every suit + cubs + tells + cord + circle (calls<500, tris<500k), no shader compile, geometry flat',
     !!d161 && d161.calls < 500 && d161.tris < 500000 && d161.programs === base.programs && d161.geoms === base.geoms, JSON.stringify(d161));
+  // ===== Batch 16 ticket 10: 杂甲 kit (docs/SUITS.md; numbers in CONFIG.KITS.za) =====
+  // Page helper: start(n, keep) = the player plays 杂甲 (school 5) against n bots (on the placeholder unless keep lists them; with 杂甲 picked the bots are
+  // ru dao fa mo yinyang ming zongheng nong); park(at) = bots back to their places each tick. Decrees pushed away; bots' skills on long cooldowns, hp 100.
+  await g(() => { const G = __game, C = G.config; window.__za = {
+    start(n, keep) { G.setSeed(12345); G.setPkitP(false); G.setBots(n); G.pickSchool(5); for (let i = 0; i < n; i++) if (!(keep || []).includes(i)) G.placeholderKit(i); G.setDecNext(1e9); G.setHp(1e9); for (let i = 0; i < n; i++) { G.setBotHp(i, 100); for (let k = 0; k < 3; k++) G.setBotCd(i, k, 99); } },
+    park(at) { for (const k in at) { G.placeBot(+k, at[k][0], at[k][1]); for (let s = 0; s < 3; s++) G.setBotCd(+k, s, 99); } },
+    hold(sec, fn) { for (let k = 0; k < Math.round(sec / C.STEP); k++) { if (fn) fn(); G.step(1); } },
+    until(cond, max, fn) { let n = 0; while (n < max && !cond()) { if (fn) fn(); G.step(1); n++; } return n; },
+    lost: (i) => +(100 - G.bots().list[i].hp).toFixed(4),
+    end() { G.setPkitP(true); G.pickSchool(0); G.setBots(0); G.reset(); } }; });
+  // 163 Passive 兼收并蓄: a 阴阳甲 bot's 阴 orb that hits him is stored ('yinyang:0') and its name shows above the R button; a basic attack changes nothing; the
+  // same skill again writes nothing; a 儒甲 bot's chariot then replaces it ('ru:0', a new write); a new run clears it (and hides the name).
+  const d163 = await g(() => {
+    const G = __game, C = G.config, Z = window.__za, X = G.text, o = {};
+    try {
+      Z.start(5, [0, 4]); G.teleport(0, -15); const at = { 0: [-20, -40], 1: [14, -40], 2: [18, -40], 3: [22, -40], 4: [0, -20] }, park = () => Z.park(at);
+      park(); G.step(2); const s0 = G.zaState(-1); o.empty = [s0.store, s0.zsShow];
+      G.botCast(4, 0, 0, -15); Z.until(() => G.zaState(-1).store !== '', 90, park); G.step(1); let s = G.zaState(-1); o.orb = [s.store, s.zs === X.sk_yy_q, s.zsShow]; const w1 = s.zaWrites;
+      G.strikeBasic(4, -1, 5); G.step(1); o.basic = G.zaState(-1).store;
+      G.setBotCd(4, 0, 0); G.botCast(4, 0, 0, -15); Z.hold(1, park); o.again = [G.zaState(-1).store, G.zaState(-1).zaWrites - w1];
+      at[0] = [0, -19]; park(); G.step(1); G.botCast(0, 0, 0, -14); Z.hold(0.5); s = G.zaState(-1); o.ru = [s.store, s.zs === X.sk_ru_q, s.zaWrites - w1];
+      G.reset(); G.step(1); s = G.zaState(-1); o.reset = [s.store, s.zsShow];
+    } catch (e) { o.err = String(e).slice(0, 200); }
+    Z.end(); return o;
+  });
+  check('163 杂甲 passive 兼收并蓄: the skill that hit him is stored and named above R (written on change only); a basic attack changes nothing; a new run clears it',
+    !d163.err && d163.empty.join() === ',none' && d163.orb.join() === 'yinyang:0,true,block' && d163.basic === 'yinyang:0' && d163.again.join() === 'yinyang:0,0'
+    && d163.ru.join() === 'ru:0,true,1' && d163.reset.join() === ',none', JSON.stringify(d163));
+  // 164 Attack 议 and stats: Mid armor (1x), Mid speed, ultMode 'charge'; the orb hits a dummy 5 m away (mid range) for dmg.
+  const d164 = await g(() => {
+    const G = __game, C = G.config, Z = window.__za, K = C.KITS.za, o = {};
+    Z.start(0); const k = G.kitState(-1); o.armorK = k.armorK; o.spd = k.spd; o.kit = k.kit; o.ultMode = C.KITS.za.ultMode;
+    const d = G.dummies()[1]; G.teleport(d.x, d.z - 5); G.step(2); G.attack(1); Z.hold(1.0); o.dummy = 100 - G.dummies()[1].hp; o.dist = +Math.hypot(G.state().x - d.x, G.state().z - d.z).toFixed(2); G.stop();
+    Z.end(); return o;
+  });
+  check('164 杂甲 attack 议 and stats: Mid armor and speed, charge ultimate; the orb hits 5 m away for dmg',
+    Math.abs(d164.armorK - 1) < 1e-9 && d164.spd === C0.STATS.speed.Mid && d164.kit === 'za' && d164.ultMode === 'charge' && d164.dummy === C0.KITS.za.attack.dmg && d164.dist > 4.5, JSON.stringify(d164));
+  // 165 Q 兼儒墨: the line hits a bot for dmg and seals it for seal s (儒 正名; shorter than 儒甲's); a bot that attacked someone within aggroS s is also slowed for
+  // slowS s (墨 非攻), one that attacked aggroS + 0.5 s ago or never is not; the cooldown is cd; the sealed leader keeps the crown (plays with: the leader).
+  const d165 = await g(() => {
+    const G = __game, C = G.config, Z = window.__za, Q = C.KITS.za.skills[0], o = {};
+    try {
+      Z.start(4); G.teleport(0, -15); const at = { 0: [0, -20], 1: [-16, -50], 2: [16, -50], 3: [16, -58] }, park = () => Z.park(at);
+      park(); G.step(2); o.cast = G.cast(0, 0, -20); G.step(1); let k = G.kitState(0); o.plain = { lost: Z.lost(0), seal: +k.sealT.toFixed(3), slow: k.slowT, cd: +G.skills()[0].toFixed(3) };
+      G.zhReady(); at[0] = [-16, -58]; at[1] = [0, -20]; park(); G.strike(1, 2, 1); G.step(1); G.cast(0, 0, -20); G.step(1); k = G.kitState(1); o.aggro = { seal: +k.sealT.toFixed(3), slow: +k.slowT.toFixed(3) };
+      G.zhReady(); at[1] = [-16, -50]; at[2] = [0, -20]; park(); G.strike(2, 3, 1); Z.hold(Q.aggroS + 0.5, park); G.cast(0, 0, -20); G.step(1); k = G.kitState(2); o.old = { seal: +k.sealT.toFixed(3), slow: k.slowT };
+      G.zhReady(); at[2] = [16, -50]; at[3] = [0, -20]; park(); G.plateTo(3, 'stalker'); G.step(1); o.leader0 = G.leader().id; G.cast(0, 0, -20); G.step(1); o.leader = [G.leader().id, +G.kitState(3).sealT.toFixed(3)];
+    } catch (e) { o.err = String(e).slice(0, 200); }
+    Z.end(); return o;
+  });
+  const Q165 = C0.KITS.za.skills[0], st165 = C0.STEP;
+  check('165 杂甲 Q 兼儒墨: dmg and a seal of seal s (< 儒甲 W); 墨 slow only on a bot that attacked within aggroS s; cooldown cd; the sealed leader keeps the crown',
+    !d165.err && d165.cast && d165.plain.lost === Q165.dmg && Math.abs(d165.plain.seal - (Q165.seal - st165)) < 0.02 && d165.plain.slow === 0 && Math.abs(d165.plain.cd - (Q165.cd - st165)) < 0.02
+    && Q165.seal < C0.KITS.ru.skills[1].seal && Math.abs(d165.aggro.slow - (Q165.slowS - st165)) < 0.02 && d165.aggro.seal > 0 && d165.old.slow === 0 && d165.old.seal > 0
+    && d165.leader0 === 4 && d165.leader[0] === 4 && d165.leader[1] > 0, JSON.stringify(d165));
+  // 166 W 合名法: a blink to the aim point (4 m aimed: lands about 4 m away, not its full range; 10 m aimed: its range); the nearest enemy suit within exposeM of
+  // where he lands is exposed for exposeS s (seen by every suit: plays with the mark and fog), one farther than exposeM is not; no shadow; cooldown cd.
+  const d166 = await g(() => {
+    const G = __game, C = G.config, Z = window.__za, W = C.KITS.za.skills[1], o = {};
+    try {
+      Z.start(3); G.teleport(0, -15); const at = { 0: [0.5, -21], 1: [0, -26], 2: [16, -54] }, park = () => Z.park(at);
+      park(); G.step(2); o.cast = G.cast(1, 0, -19); Z.hold(0.4, park); let p = G.state(); o.near = { moved: +Math.hypot(p.x, p.z + 15).toFixed(2), e0: +G.kitState(0).expT.toFixed(2), e1: G.kitState(1).expT, cd: +G.skills()[1].toFixed(2), expN: G.zaState(-1).expN, shadow: G.mingState(-1).shadowT };
+      G.zhReady(); G.teleport(0, -15); at[0] = [16, -58]; at[1] = [-16, -58]; park(); G.step(1); G.cast(1, 0, -5); Z.hold(0.4, park); p = G.state(); o.far = +Math.hypot(p.x, p.z + 15).toFixed(2);
+    } catch (e) { o.err = String(e).slice(0, 200); }
+    Z.end(); return o;
+  });
+  const W166 = C0.KITS.za.skills[1];
+  check('166 杂甲 W 合名法: blinks to the aimed point (at most range m); the nearest enemy within exposeM of the landing is exposed exposeS s, one farther is not; no shadow; cooldown cd',
+    !d166.err && d166.cast && Math.abs(d166.near.moved - 4) < 0.35 && d166.near.e0 > W166.exposeS - 0.5 && d166.near.e1 === 0 && d166.near.expN === 1 && d166.near.shadow <= 0
+    && Math.abs(d166.near.cd - (W166.cd - 0.4)) < 0.05 && Math.abs(d166.far - W166.range) < 0.35, JSON.stringify(d166));
+  // 167 R 一字千金: with nothing stored no cast and no cost (the meter stays full); with 儒甲's seal shot stored it casts it at full strength as his own (儒甲's dmg and
+  // its 4 s seal, not his own Q's), empties the meter (ultimate on the meter in the royale) and resets his Q and W cooldowns.
+  const d167 = await g(() => {
+    const G = __game, C = G.config, Z = window.__za, o = {};
+    try {
+      Z.start(3); G.teleport(0, -15); const at = { 0: [0, -20], 1: [-16, -50], 2: [16, -54] }, park = () => Z.park(at);
+      park(); G.step(2); G.setCharge(-1, C.ULT.full); o.none = [G.cast(2, 0, -20), G.zaState(-1).ch, G.zaState(-1).copyN];
+      G.setStore(-1, 'ru', 1); G.cast(0, 24, -40); G.cast(1, -3, -15); Z.hold(0.3, park); o.cdBefore = G.skills().slice(0, 2).map((v) => v > 0);
+      G.teleport(0, -15); park(); G.step(1); G.setCharge(-1, C.ULT.full); o.cast = G.cast(2, 0, -20); G.step(1);
+      const s = G.zaState(-1), k = G.kitState(0); o.after = { copy: s.copy, copyN: s.copyN, ch: s.ch, cd: G.skills().slice(0, 2), lost: Z.lost(0), seal: +k.sealT.toFixed(3) };
+    } catch (e) { o.err = String(e).slice(0, 200); }
+    Z.end(); return o;
+  });
+  // The meter empties at the cast; the copied seal's hit then charges it by the normal rule (dealt per hp, plus one step of passive): the first version
+  // asserted 0, which the doc does not say (check fix, ticket 10 resume).
+  check('167 杂甲 R 一字千金: nothing stored = no cast, no cost; a stored 儒甲 seal is cast at full strength (its dmg and seal), the meter empties, Q and W cooldowns reset',
+    !d167.err && d167.none[0] === false && d167.none[1] === C0.ULT.full && d167.none[2] === 0 && d167.cdBefore.join() === 'true,true' && d167.cast
+    && d167.after.copy === 'ru:1' && d167.after.copyN === 1 && Math.abs(d167.after.ch - (C0.KITS.ru.skills[1].dmg * C0.ULT.dealt + C0.ULT.passive * C0.STEP)) < 1e-6 && d167.after.cd.join() === '0,0' && d167.after.lost === C0.KITS.ru.skills[1].dmg
+    && Math.abs(d167.after.seal - (C0.KITS.ru.skills[1].seal - C0.STEP)) < 0.02, JSON.stringify(d167));
+  // Scenes of 165-168 park bots inside the core hall and keep the target off training dummy 1 at (0, -18) (first versions parked bots in the void,
+  // where they fell, and on the dummy, which took the orb first: check-scene fixes, ticket 10 resume).
+  // 168 Copy table: every skill of the other kits that can touch an enemy, his own Q (from another 杂甲) and every unit skill move is cast through 一字千金 at a bot
+  // 3 m away (a second bot 2.5 m beside it) and does what its own kit does (damage, seal, slow, ring, cord, swap, furrow, bleed, stun); a unit move shows its tell
+  // in the unit's colour for its whole windup (>= 0.4 s) before it lands. 农甲's harvest casts (its ring) but eats nothing: he has no field.
+  const d168 = await g(() => {
+    const G = __game, C = G.config, Z = window.__za, out = {};
+    const cases = [['ru', 0, 'lost'], ['ru', 1, 'seal'], ['ru', 2, 'lost'], ['fa', 0, 'lost'], ['fa', 2, 'held'], ['mo', 1, 'lost'], ['yinyang', 0, 'slow'], ['yinyang', 1, 'lost'], ['yinyang', 2, 'taiji'],
+      ['ming', 1, 'lost'], ['ming', 2, 'lost'], ['zongheng', 0, 'cord'], ['zongheng', 1, 'swap'], ['nong', 1, 'furrow'], ['nong', 2, 'harvest'], ['za', 0, 'seal'],
+      ['move', 'pounce', 'lost'], ['move', 'roar', 'slow'], ['move', 'lunge', 'lost'], ['move', 'rend', 'bleed'], ['move', 'flank', 'stun'], ['move', 'howl', 'slow']];
+    for (const [sc, sl, want] of cases) {
+      const o = { maxLost: 0, slow: 0, seal: 0, held: 0, bleed: 0, stun: 0, ring: false, taiji: false, furrow: false, harv: false, tell: null, tellOn: 0 };
+      try {
+        const dd = sl === 'rend' ? 1.5 : 3;
+        Z.start(3); G.teleport(-5, -15); const at = { 0: [-5, -15 - dd], 1: [-2.5, -15 - dd], 2: [16, -54] }, park = () => Z.park(at);
+        park(); G.step(2); G.setStore(-1, sc, sl); G.setCharge(-1, C.ULT.full); o.cast = G.cast(2, -5, -15 - dd); const s0 = G.zaState(-1); o.copy = s0.copy;
+        if (s0.zm.on) o.tell = { mat: s0.zm.mat, t: +s0.zm.t.toFixed(3) };
+        for (let n = 0; n < Math.round(4.2 / C.STEP); n++) {
+          if (sl !== 1 || sc !== 'zongheng') park(); G.step(1);
+          const k = G.kitState(0), z = G.zaState(0), m = G.zaState(-1);
+          o.maxLost = Math.max(o.maxLost, Z.lost(0)); o.slow = Math.max(o.slow, k.slowT); o.seal = Math.max(o.seal, k.sealT); o.held = Math.max(o.held, k.heldT); o.bleed = Math.max(o.bleed, z.bleedN); o.stun = Math.max(o.stun, z.stunT);
+          if (m.zm.on) o.tellOn += C.STEP;
+          const me = G.kitState(-1); o.ring = o.ring || me.ringIn || me.bellIn; o.taiji = o.taiji || G.yyState(-1).taiji.inScene; o.furrow = o.furrow || G.nongState(-1).furrow.inScene; o.harv = o.harv || G.nongState(-1).ringIn;
+        }
+        const zs = G.zhState(-1); o.cord = [zs.linkN, zs.cord.a, zs.cord.b]; o.swapN = zs.swapN; o.zmN = G.zaState(-1).zmN;
+      } catch (e) { o.err = String(e).slice(0, 160); }
+      out[sc + ':' + sl] = o; o.want = want;
+    }
+    Z.end(); return out;
+  });
+  const ok168 = (k, o) => {
+    if (o.err || !o.cast || o.zmN !== 0) return false;
+    const id = k.startsWith('move:') ? k : k.replace(/:(\d)$/, ':$1');
+    if (o.copy !== id) return false;
+    if (k.startsWith('move:')) { const m = C0.MOVES[k.slice(5)], L = { lunge: 'S', rend: 'S', flank: 'H', howl: 'H' }[k.slice(5)] || 'D'; if (!o.tell || o.tell.mat !== L || Math.abs(o.tell.t - m.windup) > 1e-6 || m.windup < 0.4 || o.tellOn < m.windup - C0.STEP - 0.005) return false; }
+    switch (o.want) {
+      case 'lost': return o.maxLost > 0;
+      case 'seal': return o.seal > 0 && o.maxLost > 0;
+      case 'held': return o.held > 0 && o.ring;
+      case 'slow': return o.slow > 0;
+      case 'taiji': return o.taiji && (o.maxLost > 0 || o.slow > 0);
+      case 'cord': return o.cord[0] === 1 && [o.cord[1], o.cord[2]].sort().join() === '1,2';
+      case 'swap': return o.swapN === 1;
+      case 'furrow': return o.furrow && o.slow > 0;
+      case 'harvest': return o.harv && o.maxLost === 0;
+      case 'bleed': return o.bleed > 0 && o.maxLost > 0;
+      case 'stun': return o.stun > 0 && o.maxLost > 0;
+    }
+    return false;
+  };
+  const bad168 = Object.keys(d168).filter((k) => !ok168(k, d168[k]));
+  check(`168 杂甲 copy table: ${Object.keys(d168).length} stored skills (8 kits, his own Q, 6 unit moves) cast through 一字千金 do what their own kit does; unit moves keep their tell and colour >= 0.4 s`,
+    bad168.length === 0 && Object.keys(d168).length === 22, bad168.map((k) => k + ' ' + JSON.stringify(d168[k])).join(' | ').slice(0, 1500) || 'all ok');
+  // 169 杂甲 in the hunt: the demon's Pounce that hits him is stored (its claw, a basic attack, is not); 一字千金 casts Pounce back at it (its tell in the demon's
+  // colour, >= 0.4 s, then its full dmg) and Roar (it is slowed); R then waits its hunt cooldown. Hunt rules: 兼儒墨 seals the demon's stolen skills for seal s
+  // (its own Pounce still starts) and always slows it, except in its frenzy; on a minion it seals one skill (its next) and slows it only if it attacked within aggroS s.
+  const d169 = await g(() => {
+    const G = __game, C = G.config, H = window.__h, Q = C.KITS.za.skills[0], o = {};
+    try {
+      G.setPkitP(false); G.setSchool(5); H.start(); for (let i = 0; i < 3; i++) H.mute(i); G.setHp(1e9); G.teleport(0, -50);
+      G.placeUnit(0, 0, -56); G.placeUnit(1, 14, -60); G.placeUnit(2, -14, -60); H.mute(0, 'pounce'); G.step(1);
+      o.pounce = H.until(() => G.zaState(-1).store !== '', 300) < 300 ? G.zaState(-1).store : 'none';
+      H.mute(0, 'claw'); const hp0 = G.state().hp; const u0 = G.zaUnit('demon'); G.teleport(u0.x, u0.z + 1.5); H.until(() => G.state().hp < hp0, 240); o.claw = [+(hp0 - G.state().hp).toFixed(2), G.zaState(-1).store];
+      H.mute(0); G.teleport(0, -50); G.placeUnit(0, 0, -56); G.step(1); G.zhReady(); const dh = G.zaUnit('demon').hp; o.castP = G.cast(2, 0, -56); const z = G.zaState(-1);
+      o.tell = { on: z.zm.on, mat: z.zm.mat, t: z.zm.t }; H.until(() => !G.zaState(-1).zm.on, 120); G.step(1); o.back = { lost: +(dh - G.zaUnit('demon').hp).toFixed(3), cdR: +G.skills()[2].toFixed(2) };
+      // The player's health is read from state() (player() has none: the first version read NaN; check fix, ticket 10 resume).
+      // The copied Pounce dashes him its length and no skill casts while dashing: Roar waits for the dash to end (check fix, ticket 10 resume).
+      H.until(() => G.suits()[0].dash <= 0, 120); G.zhReady(); G.teleport(0, -50); G.placeUnit(0, 0, -55); G.step(1); G.setStore(-1, 'move', 'roar'); G.cast(2, 0, -55); H.until(() => !G.zaState(-1).zm.on, 120); const ur = G.zaUnit('demon'); o.roar = [+ur.slowT.toFixed(2), ur.slowK];
+      // 正名 on the demon after the stalker's plate came home (its stolen lunge and rend sealed, Pounce not), and in its frenzy (no slow).
+      G.hitUnit(1, 1e6); H.until(() => G.zaUnit('demon').skills.length > 2, Math.round((C.APEX.plateS + 1) / C.STEP)); o.skills = G.zaUnit('demon').skills.join();
+      G.zaUnitSet('demon', { slowT: 0, frenzyT: 0 }); G.zhReady(); G.teleport(0, -50); G.placeUnit(0, 0, -55); G.placeUnit(2, -14, -60); G.step(1); G.cast(0, 0, -55); G.step(1);
+      let u = G.zaUnit('demon'); o.demon = { seal: +u.sealT.toFixed(2), key: u.sealK, slow: +u.slowT.toFixed(2) };
+      const pick = (only, dist) => { for (const k of G.moves) G.unitCd(0, k, k === only ? 0 : 9999); G.zaUnitSet('demon', { gapT: 0 }); return G.zaPick('demon', dist); };
+      o.picks = [pick('lunge', 3), pick('rend', 1), pick('pounce', 5)]; G.zaUnitSet('demon', { sealT: 0 }); o.picksAfter = [pick('lunge', 3), pick('rend', 1)];
+      G.zaUnitSet('demon', { slowT: 0, sealT: 0, frenzyT: 5 }); G.zhReady(); G.cast(0, 0, -55); G.step(1); u = G.zaUnit('demon'); o.frenzy = { seal: +u.sealT.toFixed(2), slow: u.slowT }; G.zaUnitSet('demon', { frenzyT: 0.01 }); H.mute(0);
+      // The howler (minion): never attacked = sealed, no slow; just attacked = slowed; its sealed skill is the next in its rotation, the other still starts.
+      G.placeUnit(0, 14, -62); G.zaUnitSet('howler', { atkAt: -99, slowT: 0, rot: 0 }); G.zhReady(); G.placeUnit(2, 0, -55); G.step(1); G.cast(0, 0, -55); G.step(1); u = G.zaUnit('howler'); o.howler = { seal: +u.sealT.toFixed(2), key: u.sealK, slow: u.slowT };
+      G.zaUnitSet('howler', { gapT: 0 }); for (const k of G.moves) G.unitCd(2, k, k === 'flank' || k === 'howl' ? 0 : 9999); o.howlerPick = G.zaPick('howler', 4);
+      G.zaUnitSet('howler', { atkAt: G.state().t, slowT: 0, sealT: 0 }); G.zhReady(); G.cast(0, 0, -55); G.step(1); o.howlerAggro = +G.zaUnit('howler').slowT.toFixed(2);
+    } catch (e) { o.err = String(e).slice(0, 200); }
+    G.setPkitP(true); G.setSchool(0); G.reset(); return o;
+  });
+  check('169 杂甲 in the hunt: stores Pounce (not the claw) and casts it back (demon colour, its windup, full dmg) and Roar (slowed); 正名 seals the demon\'s stolen skills (Pounce still starts), 墨 always slows it except in frenzy; on a minion one skill sealed, slowed only if it attacked',
+    !d169.err && d169.pounce === 'move:pounce' && d169.claw[0] > 0 && d169.claw[1] === 'move:pounce' && d169.castP && d169.tell.on && d169.tell.mat === 'D' && Math.abs(d169.tell.t - C0.MOVES.pounce.windup) < 1e-6
+    && d169.back.lost === C0.MOVES.pounce.dmg && d169.back.cdR > C0.KITS.za.skills[2].cd - 1 && d169.roar[0] > C0.MOVES.roar.slowS - 0.2 && d169.roar[1] === C0.MOVES.roar.slow
+    && d169.skills === 'pounce,roar,lunge,rend' && Math.abs(d169.demon.seal - (Q165.seal - st165 * 2)) < 0.05 && d169.demon.key === '' && d169.demon.slow > Q165.slowS - 0.1
+    && d169.picks.join() === ',,pounce' && d169.picksAfter.join() === 'lunge,rend' && d169.frenzy.seal > 0 && d169.frenzy.slow === 0
+    && d169.howler.seal > 0 && d169.howler.key === 'flank' && d169.howler.slow === 0 && d169.howlerPick === 'howl' && d169.howlerAggro > Q165.slowS - 0.1, JSON.stringify(d169));
+  // 170 杂甲 in whole matches: 3 seeds with the 杂甲 bot (the player on the placeholder, autopilot) and 1 with the player on 杂甲 (autopilot), watched to the end:
+  // on a floor, nobody stuck over 3 s, the hunter cap every tick, copied-move count never below 0, no NaN; the 杂甲 bot casts R (a copy) over the 3 seeds
+  // (stores, copies and exposures reported).
+  const d170 = await g(() => {
+    const G = __game, C = G.config, o = { viol: [], bot: { copies: 0, ult: 0, exp: 0, stored: 0 }, player: { copies: 0, exp: 0 }, decided: [] }, bad = (x) => { if (o.viol.length < 5) o.viol.push(x); };
+    const one = (seed, playerZa) => {
+      G.setSeed(seed); G.setBots(C.BOTS.count); G.setPkitP(!playerZa); G.pickSchool(playerZa ? 5 : 0); G.autoPlayer(true); G.setWatch(true);
+      const zi = playerZa ? -1 : G.schools().suits.findIndex((q) => q.school === 'za') - 1; let ult = 0, last = '';
+      if (!playerZa && G.schools().suits[zi + 1].kit !== 'za') bad('za bot not on its kit');
+      for (let t = 0; t < 300 / C.STEP; t++) {
+        G.step(1); const r = G.royale(); if (r.decidedAt >= 0) { o.decided.push(+r.decidedAt.toFixed(1)); break; }
+        const z = G.zaState(zi); if (z.ultN > ult && !playerZa) o.bot.ult += z.ultN - ult; ult = z.ultN;
+        if (z.store && z.store !== last && !playerZa) o.bot.stored++; last = z.store;
+        if (z.zmN < 0) bad(`s${seed} t${t} zmN ${z.zmN}`);
+        const h = G.hunters(); if (h.capOnP > h.max) bad(`s${seed} t${t} cap ${h.capOnP}>${h.max}`);
+        if (t % 10 === 0 && zi >= 0) { const q = G.bots().list[zi]; if (!q.dead && !q.standOk) bad(`s${seed} t${t} za off floor`); if (!Number.isFinite(q.x + q.z + q.hp)) bad(`s${seed} t${t} NaN`); }
+        if (t % 10 === 0 && zi < 0 && !G.player().dead && !G.state().falling && !G.walkable(G.player().x, G.player().z, G.player().y + 0.05)) bad(`s${seed} t${t} player off floor`);
+      }
+      for (const q of G.bots().list) if (q.stuck > 3) bad(`s${seed} bot${q.id} stuck ${q.stuck}`);
+      const z = G.zaState(zi), cnt = playerZa ? o.player : o.bot; cnt.copies += z.copyN; cnt.exp += z.expN;
+      G.setWatch(false); G.autoPlayer(false);
+    };
+    for (const seed of [12345, 2, 3]) one(seed, false);
+    one(4, true);
+    G.setPkitP(true); G.pickSchool(0); G.setBots(0); G.reset(); o.clean = G.zaState(-1).zmN === 0; return o;
+  });
+  check('170 杂甲 in whole matches: on a floor, nobody stuck > 3 s, hunter cap every tick, counts never below 0; the 杂甲 bot casts R as a copy (stores, copies, exposures and the player autopilot reported)',
+    d170.viol.length === 0 && d170.clean && d170.bot.copies > 0, JSON.stringify(d170));
+  // 171 Budget with 杂甲's effects: the heaviest royale (every suit, 7 cubs, tells) with a copied unit move's tell (Roar, the widest) and his orb drawn;
+  // calls < 500, tris < 500k, no shader compile, geometry flat.
+  const d171 = await g(() => {
+    const G = __game, C = G.config, K = window.__k, waves = C.KENNEL.waves; let best = null;
+    try {
+      C.KENNEL.waves = [[['stalker', 0], ['stalker', 0], ['stalker', 0], ['stalker', 0], ['howler', 0], ['howler', 0], ['howler', 0]]];
+      G.setSeed(12345); G.setBots(C.BOTS.count); G.setPkitP(false); G.pickSchool(5); G.setDecNext(1e9); K.sp(C.KENNEL.firstS + 0.1); G.setHp(1e9);
+      const cx = G.camps[0][0], cz = G.camps[0][1] + 4; G.teleport(cx, cz);
+      const park = () => { for (let i = 0; i < C.BOTS.count; i++) G.placeBot(i, cx - 4 + (i % 3) * 3, cz + 2 + Math.floor(i / 3) * 1.5); };
+      for (let n = 0; n < 300; n++) {
+        park(); if (n % 60 === 0) { G.zhReady(); G.setStore(-1, 'move', 'roar'); G.setCharge(-1, C.ULT.full); G.cast(2, cx, cz); G.cast(0, cx - 4, cz + 2); }
+        G.step(1); const c = G.cubs(), z = G.zaState(-1);
+        if (z.zm.inScene && (!best || c.tells.length >= best.tells)) { const r = G.render(true); best = { tells: c.tells.length, zm: z.zm.inScene, calls: r.calls, tris: r.tris, programs: r.programs, geoms: r.geoms }; }
+      }
+    } finally { C.KENNEL.waves = waves; G.setPkitP(true); G.pickSchool(0); G.setBots(0); G.reset(); }
+    return best;
+  });
+  check('171 budget with 杂甲 effects: every suit + cubs + tells + a copied move tell (calls<500, tris<500k), no shader compile, geometry flat',
+    !!d171 && d171.calls < 500 && d171.tris < 500000 && d171.programs === base.programs && d171.geoms === base.geoms, JSON.stringify(d171));
   // 66 Idle player: standing at the spawn doing nothing loses the royale (frozen loss with a cause) before the last collapse is over.
   const idle = await g(() => {
     const G = __game, C = G.config; G.setSeed(12345); G.setBots(G.config.BOTS.count); G.reset(); let t = 0;
