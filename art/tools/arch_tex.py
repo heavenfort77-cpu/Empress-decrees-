@@ -28,7 +28,7 @@ VERM = ['#742d1e', '#86281a', '#9a4a34']
 PLASTER = ['#b0a48b', '#b8ac94', '#d2c8b2']
 
 
-def layered_earth(name, R, seed, lmin, lmax, soot=False, pocks=3200):
+def layered_earth(name, R, seed, lmin, lmax, soot=False, pocks=3200, thick=0.18):
     """Rammed earth 夯土. Round 3 (lead review 25 Nov: the terrace sides read as wooden planks: even stripes, straight dark seams): tamped
     lifts of uneven thickness (lmin-lmax cm, now and then a thick lift of 15-25 cm), slightly wavy beds (whole sine cycles per tile, so it
     wraps), each lift its own earth tone drawn along its wave, beds marked by a soft change of tone (no dark seam line), tamping pits in
@@ -39,7 +39,7 @@ def layered_earth(name, R, seed, lmin, lmax, soot=False, pocks=3200):
     for _ in range(70):
         t.blot(r.uniform(0, 1024), r.uniform(0, 1024), r.uniform(60, 150), 'sponge', r.uniform(60, 120), r.choice([R['dark'], R['light'], R['mid']]), r.uniform(0.2, 0.35), 3)
     hs = []
-    while sum(hs) < 400: hs.append(r.uniform(15, 25) if r.random() < 0.18 else r.uniform(lmin, lmax))
+    while sum(hs) < 400: hs.append(r.uniform(15, 25) if r.random() < thick else r.uniform(lmin, lmax))
     k = 400 / sum(hs); hs = [h * k * CM for h in hs]
     waves = [(r.choice([1, 2, 3]), r.uniform(0, math.tau), r.uniform(2, 6), r.choice([4, 5, 7]), r.uniform(0, math.tau), r.uniform(0.6, 1.6)) for _ in hs]
     def bed(i, x):  # y offset of bed i at x: two whole-cycle sines (wrap-safe)
@@ -54,15 +54,18 @@ def layered_earth(name, R, seed, lmin, lmax, soot=False, pocks=3200):
         tone = r.choice(tones)
         # the lift's own tone: one continuous stroke along its wave, sampled on a fixed 32 px grid past both edges so the wrap matches
         # (stroke ends read as wood grain)
-        t.stroke([(x, y + h * 0.5 + bed(i, x)) for x in range(-64, 1089, 32)], 'marker', h * 0.95, tone, 0.55, taper=[0, 0], wrap=False)
+        for dy in (0, 1024, -1024):  # the vertical wrap by hand (wrap=False above turns off both directions)
+            if -h - 8 < y + dy + h * 0.5 < 1024 + h + 8:
+                t.stroke([(x, y + dy + h * 0.5 + bed(i, x)) for x in range(-64, 1089, 32)], 'marker', h * 0.95, tone, 0.55, taper=[0, 0], wrap=False)
         for _ in range(int(14 * h / 25)):  # mottling inside the lift: round sponge dabs, not streaks
             px = r.uniform(0, 1024); py = y + h * r.uniform(0.2, 0.8) + bed(i, px)
             t.stroke([(px, py), (px + r.uniform(8, 30), py + r.uniform(-1, 1))], 'sponge', h * r.uniform(0.5, 0.9), r.choice(tones), r.uniform(0.25, 0.4), taper=[0, 0])
-        x = r.uniform(0, 1024)  # the bed: a soft, broken change of tone (no dark seam)
+        x = r.uniform(0, 1024)  # the bed: only sparse short dashes where a tamped layer edge shows (round 2b: continuous bed strokes
+        # still drew fine regular lines at the wide camera, the plank look)
         while x < 1024 + 200:
-            L = r.uniform(30, 90) * CM
-            t.stroke(along(i, y + h, x, x + L), 'oil', r.uniform(4, 7), r.choice([R['mid'], R['dark']]), r.uniform(0.18, 0.32), taper=[0, 0])
-            x += L + r.uniform(10, 40) * CM
+            L = r.uniform(5, 15) * CM
+            t.stroke(along(i, y + h, x, x + L)[:3], 'pencil', 2, R['dark'], 0.25, taper=[0, 0])
+            x += L + r.uniform(40, 120) * CM
         for _ in range(int(h * 1.1)):  # tamping pits in the lift: round dents in loose rows
             px = r.uniform(0, 1024); py = y + h * r.uniform(0.25, 0.8) + bed(i, px)
             s = r.uniform(5, 11)
@@ -88,9 +91,9 @@ def layered_earth(name, R, seed, lmin, lmax, soot=False, pocks=3200):
     return t
 
 
-def rammed_earth(): return layered_earth('rammed_earth', EARTH, 601, 5, 10)
-def rammed_earth_core(): return layered_earth('rammed_earth_core', CORE, 602, 5, 6, soot=True)
-def earth_burnt(): return layered_earth('earth_burnt', BURNT, 603, 5, 10, soot=True)
+def rammed_earth(): return layered_earth('rammed_earth', EARTH, 601, 10, 30)   # round 2b: thick uneven lifts (lead review)
+def rammed_earth_core(): return layered_earth('rammed_earth_core', CORE, 602, 5, 6, soot=True, thick=0.0)   # the core's 5-6 cm layers (asset list), no thick lifts
+def earth_burnt(): return layered_earth('earth_burnt', BURNT, 603, 10, 30, soot=True)
 
 
 def river_stone():
