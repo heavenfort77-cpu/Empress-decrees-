@@ -1,0 +1,64 @@
+[32m[INFO][0m setup plugin alembic.autogenerate.schemas
+[32m[INFO][0m setup plugin alembic.autogenerate.tables
+[32m[INFO][0m setup plugin alembic.autogenerate.types
+[32m[INFO][0m setup plugin alembic.autogenerate.constraints
+[32m[INFO][0m setup plugin alembic.autogenerate.defaults
+[32m[INFO][0m setup plugin alembic.autogenerate.comments
+[32m[INFO][0m setup plugin alembic.ext.checkconstraint_byname
+[32m[INFO][0m Found comfy_kitchen backend triton: {'available': False, 'disabled': True, 'unavailable_reason': "ImportError: No module named 'triton'", 'capabilities': []}
+[32m[INFO][0m Found comfy_kitchen backend ascend: {'available': False, 'disabled': False, 'unavailable_reason': "torch-npu is not installed: No module named 'torch_npu'", 'capabilities': []}
+[32m[INFO][0m Found comfy_kitchen backend cuda: {'available': False, 'disabled': True, 'unavailable_reason': 'CUDA not available on this system', 'capabilities': []}
+[32m[INFO][0m Found comfy_kitchen backend hip: {'available': False, 'disabled': False, 'unavailable_reason': 'PyTorch ROCm/HIP runtime not available', 'capabilities': []}
+[32m[INFO][0m Found comfy_kitchen backend eager: {'available': True, 'disabled': False, 'unavailable_reason': None, 'capabilities': ['adaln', 'apply_rope', 'apply_rope1', 'apply_rope1_', 'apply_rope_', 'apply_rope_split_half', 'apply_rope_split_half1', 'apply_rope_split_half1_', 'apply_rope_split_half_', 'convrot_w4a4_linear', 'dequantize_convrot_w4a4_weight', 'dequantize_int8_convrot_weight', 'dequantize_int8_convrot_weight_dtype', 'dequantize_int8_embedding', 'dequantize_int8_simple', 'dequantize_int8_simple_dtype', 'dequantize_mxfp8', 'dequantize_nvfp4', 'dequantize_per_tensor_fp8', 'dequantize_w4a8_int8_weight', 'fp16_conv3d', 'fp16_conv3d_out', 'fp16_linear', 'gemv_awq_w4a16', 'group_norm_silu_pad3d', 'group_norm_silu_pad3d_out', 'group_norm_stats3d', 'int8_linear', 'int8_linear_modulated', 'int8_linear_rms_modulated', 'na3d', 'prepare_int4_weight_for_int8_linear', 'quantize_and_rotate_rowwise', 'quantize_convrot_w4a4_weight', 'quantize_int8_convrot_weight', 'quantize_int8_rowwise', 'quantize_int8_tensorwise', 'quantize_mxfp8', 'quantize_nvfp4', 'quantize_per_tensor_fp8', 'quantize_svdquant_w4a4', 'quantize_w4a8_int8_weight', 'rms_adaln', 'rms_gated_residual', 'rms_rope', 'rms_rope1', 'rms_rope1_', 'rms_rope_', 'rms_rope_split_half', 'rms_rope_split_half1', 'rms_rope_split_half1_', 'rms_rope_split_half_', 'rotate_int8_convrot_weight', 'scaled_mm_mxfp8', 'scaled_mm_nvfp4', 'scaled_mm_svdquant_w4a4', 'sol_attn', 'stochastic_rounding_fp8', 'w4a8_int8_linear', 'w4a8_packed_linear', 'window_attention']}
+[32m[INFO][0m Checkpoint files will always be loaded safely.
+[32m[INFO][0m Total VRAM 15983 MB, total RAM 15983 MB
+[32m[INFO][0m pytorch version: 2.15.0+cpu
+[32m[INFO][0m Set vram state to: DISABLED
+[32m[INFO][0m Device: cpu
+[32m[INFO][0m Using sub quadratic optimization for attention, if you have memory or speed issues try using: --use-split-cross-attention
+[32m[INFO][0m Python version: 3.11.18 (main, Oct 26 2026, 02:48:29) [GCC 15.2.0]
+[32m[INFO][0m ComfyUI version: 0.46.0
+[32m[INFO][0m comfy-aimdo version: 0.6.0
+[32m[INFO][0m comfy-kitchen version: 0.2.42
+[1m[33m[WARNING][0m ****** User settings have been changed to be stored on the server instead of browser storage. ******
+[1m[33m[WARNING][0m ****** For multi-user setups add the --multi-user CLI argument to enable multiple user profiles. ******
+[32m[INFO][0m comfyui-frontend-package version: 1.59.11
+[32m[INFO][0m comfyui-workflow-templates version: 0.11.118
+[32m[INFO][0m comfyui-embedded-docs version: 0.5.17
+[32m[INFO][0m comfy-aimdo version: 0.6.0
+[32m[INFO][0m comfy-kitchen version: 0.2.42
+[32m[INFO][0m [Prompt Server] web root: /opt/hostedtoolcache/Python/3.11.18/x64/lib/python3.11/site-packages/comfyui_frontend_package/static
+[32m[INFO][0m Asset seeder disabled
+[32m[INFO][0m No OpenGL_accelerate module loaded: No module named 'OpenGL_accelerate'
+[32m[INFO][0m 
+Import times for custom nodes:
+[32m[INFO][0m    0.0 seconds: /home/runner/work/Empress-decrees-/Empress-decrees-/comfy/custom_nodes/websocket_image_save.py
+[32m[INFO][0m 
+[32m[INFO][0m Using RAM pressure cache.
+[32m[INFO][0m Starting server
+
+[32m[INFO][0m To see the GUI go to: http://127.0.0.1:8188
+[32m[INFO][0m got prompt
+[32m[INFO][0m model weight dtype torch.float32, manual cast: None
+[32m[INFO][0m model_type EPS
+[32m[INFO][0m Model storage policy: fast_disk=False paths=['/home/runner/work/Empress-decrees-/Empress-decrees-/ckpt/v1-5-pruned-emaonly.safetensors']
+[32m[INFO][0m Model storage policy: fast_disk=False paths=['/home/runner/work/Empress-decrees-/Empress-decrees-/ckpt/v1-5-pruned-emaonly.safetensors']
+[32m[INFO][0m Using split attention in VAE
+[32m[INFO][0m Using split attention in VAE
+[32m[INFO][0m VAE load device: cpu, offload device: cpu, dtype: torch.float32
+[32m[INFO][0m Model storage policy: fast_disk=False paths=['/home/runner/work/Empress-decrees-/Empress-decrees-/ckpt/v1-5-pruned-emaonly.safetensors']
+[32m[INFO][0m Requested to load SD1ClipModel
+[32m[INFO][0m loaded completely;  235.84 MB loaded, full load: True
+[32m[INFO][0m CLIP/text encoder model load device: cpu, offload device: cpu, current: cpu, dtype: torch.float16
+[32m[INFO][0m Requested to load BaseModel
+[32m[INFO][0m loaded completely;  3278.81 MB loaded, full load: True
+  0%|          | 0/28 [00:00<?, ?it/s]  4%|▎         | 1/28 [00:28<12:46, 28.38s/it]  7%|▋         | 2/28 [00:55<12:03, 27.84s/it] 11%|█         | 3/28 [01:23<11:33, 27.73s/it] 14%|█▍        | 4/28 [01:50<11:03, 27.63s/it] 18%|█▊        | 5/28 [02:18<10:36, 27.68s/it] 21%|██▏       | 6/28 [02:46<10:09, 27.68s/it] 25%|██▌       | 7/28 [03:14<09:41, 27.68s/it] 29%|██▊       | 8/28 [03:41<09:14, 27.72s/it] 32%|███▏      | 9/28 [04:09<08:44, 27.62s/it] 36%|███▌      | 10/28 [04:36<08:16, 27.59s/it] 39%|███▉      | 11/28 [05:04<07:47, 27.52s/it] 43%|████▎     | 12/28 [05:31<07:20, 27.55s/it] 46%|████▋     | 13/28 [05:59<06:52, 27.49s/it] 50%|█████     | 14/28 [06:26<06:26, 27.58s/it] 54%|█████▎    | 15/28 [06:54<05:57, 27.53s/it] 57%|█████▋    | 16/28 [07:22<05:30, 27.58s/it] 61%|██████    | 17/28 [07:49<05:03, 27.57s/it] 64%|██████▍   | 18/28 [08:17<04:36, 27.69s/it] 68%|██████▊   | 19/28 [08:45<04:08, 27.66s/it] 71%|███████▏  | 20/28 [09:12<03:40, 27.58s/it] 75%|███████▌  | 21/28 [09:40<03:13, 27.66s/it] 79%|███████▊  | 22/28 [10:07<02:45, 27.58s/it] 82%|████████▏ | 23/28 [10:35<02:18, 27.68s/it] 86%|████████▌ | 24/28 [11:03<01:50, 27.61s/it] 89%|████████▉ | 25/28 [11:30<01:22, 27.64s/it] 93%|█████████▎| 26/28 [11:58<00:55, 27.66s/it] 96%|█████████▋| 27/28 [12:26<00:27, 27.71s/it]100%|██████████| 28/28 [12:53<00:00, 27.65s/it]100%|██████████| 28/28 [12:53<00:00, 27.64s/it]
+[32m[INFO][0m Requested to load AutoencoderKL
+[32m[INFO][0m loaded completely;  319.11 MB loaded, full load: True
+[32m[INFO][0m [32mPrompt executed in 00:13:22[0m
+[32m[INFO][0m got prompt
+  0%|          | 0/28 [00:00<?, ?it/s]  4%|▎         | 1/28 [00:27<12:26, 27.63s/it]  7%|▋         | 2/28 [00:55<12:02, 27.80s/it] 11%|█         | 3/28 [01:23<11:35, 27.82s/it] 14%|█▍        | 4/28 [01:50<11:05, 27.72s/it] 18%|█▊        | 5/28 [02:19<10:40, 27.86s/it] 21%|██▏       | 6/28 [02:47<10:14, 27.91s/it] 25%|██▌       | 7/28 [03:14<09:45, 27.89s/it] 29%|██▊       | 8/28 [03:42<09:14, 27.75s/it] 32%|███▏      | 9/28 [04:10<08:49, 27.88s/it] 36%|███▌      | 10/28 [04:37<08:18, 27.71s/it] 39%|███▉      | 11/28 [05:06<07:54, 27.89s/it] 43%|████▎     | 12/28 [05:33<07:24, 27.78s/it] 46%|████▋     | 13/28 [06:01<06:56, 27.78s/it] 50%|█████     | 14/28 [06:28<06:26, 27.61s/it] 54%|█████▎    | 15/28 [06:56<06:00, 27.70s/it] 57%|█████▋    | 16/28 [07:24<05:32, 27.68s/it] 61%|██████    | 17/28 [07:51<05:03, 27.58s/it] 64%|██████▍   | 18/28 [08:19<04:35, 27.57s/it] 68%|██████▊   | 19/28 [08:46<04:08, 27.65s/it] 71%|███████▏  | 20/28 [09:14<03:41, 27.74s/it] 75%|███████▌  | 21/28 [09:42<03:14, 27.76s/it] 79%|███████▊  | 22/28 [10:10<02:47, 27.85s/it] 82%|████████▏ | 23/28 [10:38<02:18, 27.70s/it] 86%|████████▌ | 24/28 [11:06<01:51, 27.78s/it] 89%|████████▉ | 25/28 [11:33<01:23, 27.77s/it] 93%|█████████▎| 26/28 [12:01<00:55, 27.77s/it] 96%|█████████▋| 27/28 [12:29<00:27, 27.73s/it]100%|██████████| 28/28 [12:57<00:00, 27.74s/it]100%|██████████| 28/28 [12:57<00:00, 27.75s/it]
+[32m[INFO][0m [32mPrompt executed in 00:13:23[0m
+[32m[INFO][0m got prompt
+  0%|          | 0/28 [00:00<?, ?it/s]  4%|▎         | 1/28 [00:27<12:29, 27.77s/it]  7%|▋         | 2/28 [00:55<12:02, 27.80s/it] 11%|█         | 3/28 [01:23<11:31, 27.65s/it] 14%|█▍        | 4/28 [01:51<11:06, 27.78s/it] 18%|█▊        | 5/28 [02:18<10:39, 27.80s/it] 21%|██▏       | 6/28 [02:47<10:15, 27.97s/it] 25%|██▌       | 7/28 [03:15<09:47, 27.99s/it] 29%|██▊       | 8/28 [03:43<09:19, 27.99s/it] 32%|███▏      | 9/28 [04:10<08:48, 27.83s/it] 36%|███▌      | 10/28 [04:38<08:21, 27.85s/it] 39%|███▉      | 11/28 [05:06<07:52, 27.77s/it] 43%|████▎     | 12/28 [05:33<07:23, 27.72s/it] 46%|████▋     | 13/28 [06:01<06:55, 27.72s/it] 50%|█████     | 14/28 [06:29<06:29, 27.85s/it] 54%|█████▎    | 15/28 [06:56<06:00, 27.70s/it] 57%|█████▋    | 16/28 [07:24<05:32, 27.68s/it] 61%|██████    | 17/28 [07:52<05:05, 27.78s/it] 64%|██████▍   | 18/28 [08:20<04:37, 27.75s/it] 68%|██████▊   | 19/28 [08:48<04:09, 27.74s/it] 71%|███████▏  | 20/28 [09:15<03:41, 27.70s/it] 75%|███████▌  | 21/28 [09:43<03:15, 27.87s/it] 79%|███████▊  | 22/28 [10:11<02:47, 27.85s/it] 82%|████████▏ | 23/28 [10:39<02:18, 27.77s/it] 86%|████████▌ | 24/28 [11:06<01:50, 27.70s/it] 89%|████████▉ | 25/28 [11:34<01:23, 27.73s/it] 93%|█████████▎| 26/28 [12:02<00:55, 27.75s/it] 96%|█████████▋| 27/28 [12:30<00:27, 27.72s/it]100%|██████████| 28/28 [12:57<00:00, 27.63s/it]100%|██████████| 28/28 [12:57<00:00, 27.77s/it]
+[32m[INFO][0m [32mPrompt executed in 00:13:23[0m
