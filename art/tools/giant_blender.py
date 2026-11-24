@@ -244,9 +244,9 @@ def build_body(lod):
         side = 'L' if s > 0 else 'R'; S, E, G = SHOULDER[s], ELBOW[s], GRIP[s]
         # cast pauldron: a domed plate over the shoulder with a flange rim (not a ball)
         if d1: spheroid(f'shoulder_{side}', tuple(S + V(s * 0.02, 0, -0.02)), (0.24, 0.24, 0.22), 'palBronze', f'upper_{side}', segs=(10, 7))
-        loft(f'pauldron_{side}', [(S.z - 0.2, S.y, 0.3, 0.33, S.x + s * 0.1), (S.z + 0.02, S.y, 0.3, 0.32, S.x + s * 0.06), (S.z + 0.18, S.y, 0.2, 0.24, S.x + s * 0.02), (S.z + 0.25, S.y, 0.06, 0.08, S.x)],
+        loft(f'pauldron_{side}', [(S.z - 0.17, S.y, 0.26, 0.29, S.x + s * 0.08), (S.z + 0.02, S.y, 0.26, 0.28, S.x + s * 0.05), (S.z + 0.15, S.y, 0.17, 0.2, S.x + s * 0.02), (S.z + 0.21, S.y, 0.05, 0.07, S.x)],
              'palBronze', f'upper_{side}', 'plain', n_exp=2.4, M=18, cap=True)
-        if d1: loft(f'pauldron_rim_{side}', [(S.z - 0.24, S.y, 0.33, 0.36, S.x + s * 0.11), (S.z - 0.18, S.y, 0.33, 0.36, S.x + s * 0.1)], 'palBronze', f'upper_{side}', 'flange', n_exp=2.4, M=18, cap=False)
+        if d1: loft(f'pauldron_rim_{side}', [(S.z - 0.21, S.y, 0.29, 0.32, S.x + s * 0.09), (S.z - 0.15, S.y, 0.29, 0.32, S.x + s * 0.08)], 'palBronze', f'upper_{side}', 'flange', n_exp=2.4, M=18, cap=False)
         tube(f'upper_{side}', tuple(S), tuple(E), 0.2, 0.17, 'palBronze', f'upper_{side}', n=10)
         if d1: spheroid(f'elbow_{side}', tuple(E), (0.17, 0.17, 0.17), 'palBronze', f'fore_{side}', segs=(8, 6))
         dirv = (G - E).normalized(); W = G - dirv * 0.14
@@ -473,22 +473,35 @@ def finial(g, kind, s, E, arch, lod):
         sweep(f'{g}_flare_{s}', [(x, y, z), (x + s * 0.22, y, z)], [ngon(BEAM_R, sides(12)), ngon(BEAM_R + 0.13, sides(12))], 'palBronze', 'beam', 'flange')
 
 # ---- melted-weapon motifs (high-tin bronze edges, palTin) -------------------------------------------------------------
+# Round 3: the fragments read as melted into the cast (research: cast from the conquered states' melted weapons), not hung on it:
+# a fused pool of bronze where each fragment enters the body, a drip running down from it (LOD0), long blades slightly bent.
+MELT = {'n': 0}
+def melt(n, at, bone, r=0.09):
+    if Q['lod'] > 1: return
+    a = V(*at); MELT['n'] += 1
+    spheroid(f'{n}_melt', tuple(a), (r, r, r * 0.7), 'palBronze', bone, 'plain', segs=(8, 5))
+    if Q['lod'] == 0: tongue(f'{n}_drip', tuple(a + V(0, 0.02, -r * 0.4)), (0, 0.15, -1), (1, 0, 0), r * 2.2, r * 0.9, r * 0.6, (0, 0, 0), bone, 'palBronze', 'plain')
+
 def sword(n, base, d, u, bone, L=1.05, w=0.1):
     d = V(*d).normalized(); b = V(*base)
-    tongue(f'{n}_blade', tuple(b + d * 0.1), tuple(d), u, L, w, 0.035, (0, 0, 0), bone, 'palTin', 'plain')
+    sag = V(0, 0, -0.18) if abs(d.z) < 0.9 else V(0.12, 0, 0)
+    tongue(f'{n}_blade', tuple(b + d * 0.1), tuple(d), u, L, w, 0.035, tuple(sag), bone, 'palTin', 'plain')
+    melt(n, tuple(b), bone, 0.1)
     if Q['lod'] <= 1:
         tube(f'{n}_guard', tuple(b + d * 0.05), tuple(b + d * 0.11), 0.07, 0.07, 'palBronze', bone, 'flange', n=6)
         tube(f'{n}_grip', tuple(b - d * 0.12), tuple(b + d * 0.05), 0.035, 0.03, 'palBronze', bone, n=6)
 
 def spearhead(n, base, d, u, bone, L=0.45):
     d = V(*d).normalized(); b = V(*base)
-    tongue(f'{n}_head', tuple(b + d * 0.08), tuple(d), u, L, 0.15, 0.05, (0, 0, 0), bone, 'palTin', 'plain')
+    tongue(f'{n}_head', tuple(b + d * 0.08), tuple(d), u, L, 0.15, 0.05, (0, 0, -0.06), bone, 'palTin', 'plain')
+    melt(n, tuple(b), bone, 0.075)
     if Q['lod'] <= 1: tube(f'{n}_socket', tuple(b - d * 0.05), tuple(b + d * 0.1), 0.04, 0.035, 'palBronze', bone, n=6)
 
 def ge(n, c, along, up, bone, L=0.6, mat='palTin'):
     """dagger-axe (戈) blade with its hooked lower edge (胡): a flat plate."""
     o = [(0, 0.06), (L * 0.75, 0.055), (L, 0.0), (L * 0.75, -0.05), (0.1, -0.05), (0.1, -0.28), (0.04, -0.32), (0, -0.3)]
     plate(f'{n}_ge', o, c, along, up, 0.04, mat, bone)
+    melt(n, c, bone, 0.09)
 
 def ji(n, base, d, side, bone, L=0.55):
     """halberd (戟) head: spear tip and a side ge blade."""
@@ -501,6 +514,7 @@ def prod(n, c, a0, a1, R, e1, e2, bone, r=0.045):
     pts = [tuple(c + (e1 * math.cos(a0 + (a1 - a0) * j / (k - 1)) + e2 * math.sin(a0 + (a1 - a0) * j / (k - 1))) * R) for j in range(k)]
     rr = [r * (0.6 + 0.4 * math.sin(math.pi * j / (k - 1))) for j in range(k)]
     sweep(n, pts, [ngon(q, sides(8)) for q in rr], 'palTin', bone, 'plain')
+    melt(n, pts[len(pts) // 2], bone, 0.1)
     if Q['lod'] == 0:
         for j, p in enumerate((pts[0], pts[-1])): spheroid(f'{n}_nock{j}', p, (0.05, 0.05, 0.05), 'palBronze', bone, 'flange', segs=(6, 4))
 
@@ -566,6 +580,7 @@ def motif(i, g, lod):
                 a = 90 + (k - (nn - 1) / 2) * 13
                 p, nrm = surf(TORSO_HI, z, a, -0.01, 2.4)
                 tongue(f'{g}_ah{r_i}_{k}', tuple(p + V(0, 0, 0.1)), tuple(nrm * 0.35 + V(0, 0, -1)), tuple(V(-nrm.y, nrm.x, 0)), 0.22, 0.13, 0.05, (0, 0, 0), 'chest', 'palTin', 'plain')
+                if k % 3 == 1: melt(f'{g}_ahm{r_i}_{k}', tuple(p + V(0, 0, 0.1)), 'chest', 0.08)
         for s in (-1, 1):
             side = 'L' if s > 0 else 'R'
             for k in range(4 if d1 else 2):
@@ -574,6 +589,7 @@ def motif(i, g, lod):
     elif m == 'quiver':
         a, b = V(-0.45, -0.52, 2.5), V(0.5, -0.6, 3.6)
         tube(f'{g}_quiver', tuple(a), tuple(b), 0.13, 0.16, 'palBronze', 'chest', 'lozenge', n=10)
+        melt(f'{g}_qm0', tuple(a + (b - a) * 0.15), 'chest', 0.14); melt(f'{g}_qm1', tuple(a + (b - a) * 0.6), 'chest', 0.12)
         for k in range(8 if d1 else 4):
             o = V(math.cos(k * 2.4) * 0.08, math.sin(k * 2.4) * 0.06, 0); d = (b - a).normalized() + V(0.06 * math.cos(k), 0, 0.1 * math.sin(k))
             d = d + V(0.25 * math.cos(k * 2.4), 0, 0); top = b + o + d * (0.85 + 0.08 * (k % 3))

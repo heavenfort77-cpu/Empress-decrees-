@@ -68,7 +68,7 @@ new GLTFLoader().load('../../assets/models/giants/giants.glb', (gl) => {
   root.updateMatrixWorld(true); root.traverse((o) => { if (o.isSkinnedMesh && o.computeBoundingSphere) o.computeBoundingSphere(); });
   if ((VIEW === 'play' || VIEW === 'wide') && !NOBOX) { scene.add(player); if (MODE === 'tex' || MODE === 'shade') scene.add(boxGiant(-5.5)); }
   const pitch = 40 * Math.PI / 180, look = new THREE.Vector3(VIEW === 'play' || VIEW === 'wide' ? -0.4 : 0, 2.2, 0.6);
-  let dist = VIEW === 'play' ? 10.5 : VIEW === 'wide' ? 22 : 10.5, yaw = (+(Q.get('yaw') || (VIEW === 'turn' ? 30 : 0))) * Math.PI / 180;
+  let dist = VIEW === 'play' ? 10.5 : VIEW === 'wide' ? 22 : (+(Q.get('dist') || 8)), yaw = (+(Q.get('yaw') || (VIEW === 'turn' ? 30 : 0))) * Math.PI / 180;
   if (VIEW === 'play' && NOBOX) look.x = 0;
   if (VIEW === 'turn') look.set(0, 2.5, 0.1);
   const p2 = VIEW === 'turn' ? (+(Q.get('pitch') || 12)) * Math.PI / 180 : pitch;
