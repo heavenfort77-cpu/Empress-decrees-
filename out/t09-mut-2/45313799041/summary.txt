@@ -1,0 +1,3 @@
+jobs 2; caught by named check 1 of 2
+{"i": 0, "fails": ["158"], "tot": ["RUNTIME 165 of 166 pass"], "s": 151, "name": "circle-no-bonus", "want": "158", "applied": true, "caught_named": true}
+{"i": 1, "fails": ["runner"], "tot": ["RUNTIME 63 of 64 pass"], "s": 41, "name": "bot-never-swaps", "want": "157", "applied": true, "caught_named": false}
