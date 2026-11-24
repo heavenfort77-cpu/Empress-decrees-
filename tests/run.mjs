@@ -2,6 +2,7 @@
 import { createServer } from 'node:http';
 import { readFile } from 'node:fs/promises';
 import { extname, join, normalize } from 'node:path';
+import { bp09Checks } from './bp09-checks.mjs';
 
 let chromium;
 try { ({ chromium } = await import('playwright')); } catch { ({ chromium } = await import('/opt/npm-tools/node_modules/playwright/index.mjs')); }
@@ -3463,6 +3464,8 @@ try {
     && bpNr.reset.banner === 'none' && bpNr.reset.x && bpNr.ended === 'palend' && bpNr.again.phase === 'palace' && bpNr.again.cur === 'hall' && bpNr.again.banner === 'none' && bpNr.again.attached === 'hall', JSON.stringify(bpNr));
 
   // ===== BP04 the burning (checks 600-605) =====
+  // BP09: the burning's own checks run without the palace pieces II (the giants would hunt the player who waits on the bridge); BP09 checks 1000+ run them.
+  await g(() => __game.pieces2(false));
   // 600 Waves (owner design 24 Nov: about every 40 s she names a wing, 5 s warning, its rooms fall into the black lake): from a room that never burns
   // (the bridge) the wings are named at 40, 80, 120, 160 s in CONFIG order, each falls warnS later and leaves the scene; warned floors glow; her line
   // and the countdown on the banner (TEXT keys); the next-to-burn line shown and written only on change; doors to a fallen room stay shut, its card says so.
@@ -3619,6 +3622,9 @@ try {
   check('605 burning budget (tier medium): warned hall + court, falling room in view under 500 calls / 0.5M tris; programs, geometries, textures flat after a full burn + new run',
     bwF.warned[0] < 500 && bwF.warned[1] < 500000 && bwF.warned[2] === 'hall,court' && bwF.warned[3] === 1 && bwF.fall[0] < 500 && bwF.fall[1] < 500000
     && bwF.prog.every((v) => v === bwF.prog[0]) && bwF.geo[0] === bwF.geo[1] && bwF.tex[0] === bwF.tex[1], JSON.stringify(bwF));
+
+  await g(() => __game.pieces2(true));
+  await bp09Checks(g, check);
 
   // 15 Graphics context lost and restored: no errors, renders again.
   const errBefore = errors.length;
