@@ -3,6 +3,7 @@ import { createServer } from 'node:http';
 import { readFile } from 'node:fs/promises';
 import { extname, join, normalize } from 'node:path';
 import { bp09Checks } from './bp09-checks.mjs';
+import { cam10Checks } from './cam10-checks.mjs';
 
 let chromium;
 try { ({ chromium } = await import('playwright')); } catch { ({ chromium } = await import('/opt/npm-tools/node_modules/playwright/index.mjs')); }
@@ -3398,35 +3399,36 @@ try {
   });
   check('404 walls block sight in the palace: shut door blocks; open door in line sees; off the opening blocked; same room sees; palace fog radius',
     !bpSg.shut.sight && !bpSg.shut.sees && bpSg.open.door && bpSg.open.sight && bpSg.open.sees && !bpSg.off.sight && !bpSg.off.sees && bpSg.same.sight && bpSg.same.sees && bpSg.fow, JSON.stringify(bpSg));
-  // 405 Context camera (owner 24 Nov 13:18): wide with no enemy in reach, close with one in reach and in sight, eased over PAL_CAM.easeS (between at 0.2 s,
-  // there by 0.45 s); Z cycles auto, wide, close; corridor closer; Royal Rumble stays at 1.
+  // 405 Context camera (owner 24 Nov 13:18; changed on purpose by ticket 10, owner 15:43-15:46: the fixed wide/close multipliers became the room fit
+  // with the 120 px floor): wide at the start and idle (b 0, camK = the wide distance), eases to close with an enemy in attack distance (between at
+  // 0.2 s, there by 0.45 s, camK = PAL_CAM.close); Z = auto/wide/close; an enemy far out of reach keeps it wide; wide is farther than close; Rumble at 1.
   const bpCm = await g(() => {
     const G = __game, C = G.config.PAL_CAM, o = {}, key = () => dispatchEvent(new KeyboardEvent('keydown', { code: 'KeyZ' }));
     G.setSeed(12345); G.setMode('palace'); G.reset();
-    const p = G.palace(), R = Object.fromEntries(p.rooms.map((r) => [r.id, r])), sx = p.x, sz = p.z;
-    o.start = G.palace().camK; G.step(30); o.idle = G.palace().camK;
-    G.palPlaceBot(0, sx, sz - 6); G.step(12); o.mid = G.palace().camK; G.step(15); o.close = G.palace().camK;
-    key(); G.step(30); o.manWide = { man: G.palace().man, k: G.palace().camK };
-    key(); G.palPlaceBot(0, R.court.cx, R.court.cz); G.step(30); o.manClose = { man: G.palace().man, k: G.palace().camK };
-    key(); G.step(30); o.auto = { man: G.palace().man, k: G.palace().camK };
-    G.teleport(R.corridor.cx, R.corridor.cz); G.step(60); o.corridor = G.palace().camK;
-    G.palPlaceBot(0, R.corridor.cx, R.corridor.cz - 30); G.step(30); o.outOfReach = G.palace().camK;
+    const p = G.palace(), R = Object.fromEntries(p.rooms.map((r) => [r.id, r])), sx = p.x, sz = p.z, cam = () => ({ b: G.palCam().b, k: G.palace().camK, wd: G.palCam().wd });
+    o.start = cam(); G.step(30); o.idle = cam();
+    G.palPlaceBot(0, sx, sz - 6); G.step(12); o.mid = cam(); G.step(15); o.close = cam();
+    key(); G.step(30); o.manWide = { man: G.palace().man, b: G.palCam().b };
+    key(); G.palPlaceBot(0, R.court.cx, R.court.cz); G.step(30); o.manClose = { man: G.palace().man, b: G.palCam().b };
+    key(); G.step(150); o.auto = { man: G.palace().man, b: G.palCam().b };
+    G.palPlaceBot(0, sx, sz - 30); G.step(30); o.outOfReach = G.palCam().b;
     G.setMode('rumble'); G.reset(); o.rumble = G.palace().camK;
     const near = (a, b) => Math.abs(a - b) < 1e-6;
-    o.ok = near(o.start, C.wide * C.type.hall) && near(o.idle, C.wide * C.type.hall) && o.mid < C.wide - 0.05 && o.mid > C.close + 0.05 && near(o.close, C.close * C.type.hall)
-      && o.manWide.man === 1 && near(o.manWide.k, C.wide) && o.manClose.man === 2 && near(o.manClose.k, C.close) && o.auto.man === 0 && near(o.auto.k, C.wide * C.type.hall)
-      && near(o.corridor, C.wide * C.type.corridor) && near(o.outOfReach, C.wide * C.type.corridor) && o.rumble === 1;
+    o.ok = o.start.b === 0 && near(o.start.k, o.start.wd / G.config.CAM_DIST) && o.idle.b === 0 && o.mid.b > 0.05 && o.mid.b < 0.95 && o.mid.k < o.idle.k - 0.01 && o.mid.k > C.close + 0.01
+      && o.close.b === 1 && near(o.close.k, C.close) && o.idle.k > C.close + 0.1 && o.manWide.man === 1 && o.manWide.b === 0 && o.manClose.man === 2 && o.manClose.b === 1
+      && o.auto.man === 0 && o.auto.b === 0 && o.outOfReach === 0 && o.rumble === 1;
     return o;
   });
-  check('405 context camera: wide idle, eases to close with an enemy in reach (between at 0.2 s, there by 0.45 s), Z = auto/wide/close, corridor closer, Rumble at 1',
+  check('405 context camera: wide idle, eases to close with an enemy in attack distance (between at 0.2 s, there by 0.45 s), Z = auto/wide/close, wide farther than close, Rumble at 1',
     bpCm.ok, JSON.stringify(bpCm));
   {
     const ctx = await browser.newContext({ viewport: { width: 844, height: 390 }, isMobile: true, hasTouch: true });
     const ph = await ctx.newPage(); const perr = []; ph.on('pageerror', (e) => perr.push(String(e)));
     await ph.goto(URL0 + '&mode=palace'); await ph.waitForFunction(() => window.__ready === true, null, { timeout: 60000 });
-    const bpPc = await ph.evaluate(() => { const G = __game, C = G.config.PAL_CAM, p = G.palace(); return { on: p.on, k: p.camK, want: C.wide * C.phone * C.type.hall, help: p.help === G.text.help_pal_touch }; });
+    const bpPc = await ph.evaluate(() => { const G = __game, C = G.config.PAL_CAM, p = G.palace(), c = G.palCam(); return { on: p.on, px: c.px, floor: c.floor, want: C.minPx / C.phone, b: c.b, help: p.help === G.text.help_pal_touch }; });
     await ctx.close();
-    check('405b phone: a palace run starts closer (PAL_CAM.phone), touch help, no page errors', bpPc.on && Math.abs(bpPc.k - bpPc.want) < 1e-6 && bpPc.help && perr.length === 0, JSON.stringify(bpPc) + ' ' + perr.slice(0, 2).join(' | '));
+    // Changed on purpose by ticket 10: phones keep a larger floor (minPx / phone), so they sit closer.
+    check('405b phone: a palace run starts wide with the phone floor (minPx / phone, player at least that), touch help, no page errors', bpPc.on && bpPc.b === 0 && Math.abs(bpPc.floor - bpPc.want) < 1e-9 && bpPc.px >= bpPc.floor - 0.5 && bpPc.help && perr.length === 0, JSON.stringify(bpPc) + ' ' + perr.slice(0, 2).join(' | '));
   }
   // 406 Royal Rumble unchanged after a palace run: floors, solids, sections, abyss, sun, fog, help, camera and the draw counts as before the palace.
   const bpRr = await g((bpPB) => {
@@ -3749,11 +3751,17 @@ try {
     const pl = G.palPlan(), R = Object.fromEntries(pl.rooms.map((r) => [r.id, r]));
     o.shown = pl.mini !== 'none'; const p = G.palace();
     o.you = near(G.palMiniPx(p.x, p.z), hex(C.you));
-    o.garden = near(G.palMiniPx(R.garden_sw.cx + 4, R.garden_sw.cz + 3), hex(C.garden)); o.court = near(G.palMiniPx(R.court_s.cx + 3, R.court_s.cz + 3), hex(C.court));
+    // Changed on purpose by ticket 10 (owner 15:43: the map is centred on and enlarged to the room you stand in): each room is sampled while
+    // the player stands in it, so it is on the map; the current-room outline is sampled one map pixel inside the room's edge.
+    G.teleport(R.garden_sw.cx, R.garden_sw.cz); G.step(2);
+    o.garden = near(G.palMiniPx(R.garden_sw.cx + 4, R.garden_sw.cz + 3), hex(C.garden));
+    G.teleport(R.court_s.cx, R.court_s.cz); G.step(2);
+    o.court = near(G.palMiniPx(R.court_s.cx + 3, R.court_s.cz + 3), hex(C.court));
     G.palTestRoomState('court_s', true, false); o.warned = near(G.palMiniPx(R.court_s.cx + 3, R.court_s.cz + 3), hex(C.warned));
     G.palTestRoomState('court_s', false, true); o.fallen = near(G.palMiniPx(R.court_s.cx + 3, R.court_s.cz + 3), [12, 10, 16]);
     G.palTestRoomState('court_s', false, false); o.back = near(G.palMiniPx(R.court_s.cx + 3, R.court_s.cz + 3), hex(C.court));
-    o.curEdge = near(G.palMiniPx(R.hall_ru.cx, R.hall_ru.z0 + 1.5), hex(C.cur));
+    G.teleport(p.x, p.z); G.step(2); G.palMiniPx(p.x, p.z);
+    o.curEdge = near(G.palMiniPx(R.hall_ru.cx, R.hall_ru.z0 + 1 / G.palMiniMap().s), hex(C.cur));
     const cv = document.getElementById('mini'), b = cv.getBoundingClientRect(), mp = G.palMiniMap(), tgt = R.corr_w;
     const cx = b.left + (mp.ox + (tgt.cx - mp.bx0) * mp.s) * b.width / cv.width, cy = b.top + (mp.oy + (tgt.cz - mp.bz0) * mp.s) * b.height / cv.height;
     cv.dispatchEvent(new PointerEvent('pointerdown', { button: 2, pointerType: 'mouse', clientX: cx, clientY: cy, bubbles: true }));
@@ -3991,6 +3999,8 @@ try {
     JSON.stringify(p8F));
   await g(() => __game.pieces2(true));
   await bp09Checks(g, check);
+  // 1200-1208 Ticket 10: room-fit camera and the room-layout minimap: tests/cam10-checks.mjs.
+  await cam10Checks(g, check, browser, URL0);
   // 1007 (integration 24 Nov) Pieces II in the full palace: one water clock per burning wing (in a room of that wing), the plan's vats and
   // twelve giants built from BP05's placement; only the full plan's vats listed; a wake wakes a full-plan giant; back on the box the box's 4 vats.
   const p9F = await g(() => {
