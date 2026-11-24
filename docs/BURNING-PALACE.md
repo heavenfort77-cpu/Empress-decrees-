@@ -55,7 +55,7 @@ Rebels of the 太平道 in yellow headbands, wearing bootleg 甲: cheap copies o
 Hazards and tools from traditional palaces (Qin first). Every hit shows a tell >= 0.4 s; they hit every side (player, rivals, 皇家 guard, 反贼), so luring enemies into them is a play. Numbers in CONFIG; one on/off switch each.
 - 石狮 stone lions: a pair beside big hall and gate doors; 0.6 s red ring, strike within 3.5 m (reuses the Royal Rumble lion code).
 - 水银 mercury channels (Qin tomb): silver channels across bridges and halls; standing in them hurts over time; crossed between pulses (shimmer before each pulse).
-- 十二金人 twelve bronze giants (Qin): stand along the approach to the core; she wakes one each time a wing burns; a woken giant slowly hunts the nearest suit (slow, big tells, heavy hits); cap on awake giants in CONFIG.
+- 十二金人 twelve bronze giants (Qin): stand along the approach to the core; she wakes one each time a wing burns; a woken giant slowly hunts the nearest suit (slow, big tells, heavy hits); cap on awake giants in CONFIG. Killable mini-bosses (owner 24 Nov 15:41): an awake giant has health and a bar; every side hurts it (suits, 皇家 guard, 反贼, mercury, lions, a vat's splash); the suit that breaks it gains ultimate charge; it collapses and lies there for the run, and her line marks it; a dormant giant cannot be hurt.
 - 门海 bronze water vats: break one to flood a spot: douses the burning there for a few seconds and knocks back anyone in it.
 - 铜鹤 / 香炉 bronze cranes and incense burners: smoke clouds that block sight; anyone can hide in them, the 死士 assassins too. Few, small smoke cards (transparency budget).
 - 鼎 cauldrons: replace the healing altars in the palace, nine, one in each school's hall (lore: the 九鼎 Qin lost). Royal Rumble keeps its altars.
