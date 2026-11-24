@@ -1,0 +1,12 @@
+ROW {"scene":"reference","setupMs":10,"errs":0,"err0":"","frames":4103,"fps":205.1,"p50":4.2,"p95":11.8,"worst":36.4,"over20":0.6,"over33":2,"calls":27,"tris":2842,"programs":3,"geoms":98,"texs":1,"heap0":14,"heap1":14,"geo0":98,"tex0":1,"drvErr":"","bots":0,"cubs":0}
+ROW {"scene":"heavy","setupMs":308,"errs":0,"err0":"","frames":3525,"fps":176.2,"p50":4.6,"p95":13.9,"worst":56.3,"over20":1.7,"over33":13,"calls":48,"tris":3094,"programs":3,"geoms":98,"texs":1,"heap0":14,"heap1":14,"geo0":98,"tex0":1,"drvErr":"","bots":8,"cubs":2}
+ROW {"scene":"hunt","setupMs":25,"errs":0,"err0":"","frames":3809,"fps":190.5,"p50":4.8,"p95":12.7,"worst":37.2,"over20":0.9,"over33":3,"calls":16,"tris":930,"programs":3,"geoms":98,"texs":1,"heap0":14,"heap1":14,"geo0":98,"tex0":1,"drvErr":"","bots":0,"cubs":0,"hunt":"hunt alive 3 hits 58"}
+ROW {"scene":"select","setupMs":4,"errs":0,"err0":"","frames":337,"fps":16.8,"p50":68.5,"p95":83.6,"worst":105.6,"over20":94.1,"over33":270,"calls":27,"tris":2842,"programs":3,"geoms":98,"texs":1,"heap0":10,"heap1":10,"geo0":98,"tex0":1,"drvErr":"","bots":8,"cubs":0}
+ROW {"scene":"heavy_low","setupMs":393,"errs":0,"err0":"","frames":4125,"fps":206.3,"p50":3.5,"p95":12.2,"worst":61.4,"over20":0.9,"over33":5,"calls":39,"tris":2726,"programs":2,"geoms":98,"texs":0,"heap0":14,"heap1":14,"geo0":98,"tex0":0,"drvErr":"","bots":8,"cubs":0}
+RENDERER ANGLE (Apple, ANGLE Metal Renderer: Apple Paravirtual device, Unspecified Version)
+scene       fps    p50   p95   worst  >20ms%  >33ms  calls  tris    prog geo  heap MB  geo/tex start-end  live
+reference   205.1   4.2  11.8   36.4    0.6      2     27    2842    3   98     14-14     98-98/1-1  bots 0 cubs 0
+heavy       176.2   4.6  13.9   56.3    1.7     13     48    3094    3   98     14-14     98-98/1-1  bots 8 cubs 2
+hunt        190.5   4.8  12.7   37.2    0.9      3     16     930    3   98     14-14     98-98/1-1  bots 0 cubs 0hunt alive 3 hits 58
+select       16.8  68.5  83.6  105.6   94.1    270     27    2842    3   98     10-10     98-98/1-1  bots 8 cubs 0
+heavy_low   206.3   3.5  12.2   61.4    0.9      5     39    2726    2   98     14-14     98-98/0-0  bots 8 cubs 0
