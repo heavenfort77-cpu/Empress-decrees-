@@ -1,1 +1,1 @@
-{"mode": "cmd", "cmd": "node ci_probe/t10_dbg.mjs", "label": "t10-dbg-1"}
+{"mode": "suite", "label": "t10-suite-2"}

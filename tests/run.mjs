@@ -808,7 +808,8 @@ try {
       for (const q of b.list) {
         if (!q.standOk) bad(`t${t} bot${q.id} off floor`);
         // Batch 12: a marked suit is seen from anywhere (panel, 23 Nov 15:11); otherwise only inside the player's vision.
-        if (q.seen && q.markT <= 0 && Math.hypot(q.x - s.x, q.z - s.z) > G.neutrals().visR + 1e-6) bad(`t${t} bot${q.id} seen outside vision`);
+        // Batch 16 (game changed on purpose, tickets 02 and 10): an exposed suit (法甲's 术, 杂甲's 合名法) is also seen by every suit.
+        if (q.seen && q.markT <= 0 && G.kitState(q.id - 1).expT <= 0 && Math.hypot(q.x - s.x, q.z - s.z) > G.neutrals().visR + 1e-6) bad(`t${t} bot${q.id} seen outside vision`);
         if (q.dead && q.inScene) bad(`t${t} bot${q.id} out but drawn`);
       }
     }
@@ -3063,11 +3064,11 @@ try {
   const d165 = await g(() => {
     const G = __game, C = G.config, Z = window.__za, Q = C.KITS.za.skills[0], o = {};
     try {
-      Z.start(4); G.teleport(0, -15); const at = { 0: [0, -20], 1: [-20, -40], 2: [20, -40], 3: [24, -44] }, park = () => Z.park(at);
+      Z.start(4); G.teleport(0, -15); const at = { 0: [0, -20], 1: [-16, -50], 2: [16, -50], 3: [16, -58] }, park = () => Z.park(at);
       park(); G.step(2); o.cast = G.cast(0, 0, -20); G.step(1); let k = G.kitState(0); o.plain = { lost: Z.lost(0), seal: +k.sealT.toFixed(3), slow: k.slowT, cd: +G.skills()[0].toFixed(3) };
-      G.zhReady(); at[0] = [-24, -44]; at[1] = [0, -20]; park(); G.strike(1, 2, 1); G.step(1); G.cast(0, 0, -20); G.step(1); k = G.kitState(1); o.aggro = { seal: +k.sealT.toFixed(3), slow: +k.slowT.toFixed(3) };
-      G.zhReady(); at[1] = [-20, -40]; at[2] = [0, -20]; park(); G.strike(2, 3, 1); Z.hold(Q.aggroS + 0.5, park); G.cast(0, 0, -20); G.step(1); k = G.kitState(2); o.old = { seal: +k.sealT.toFixed(3), slow: k.slowT };
-      G.zhReady(); at[2] = [20, -40]; at[3] = [0, -20]; park(); G.plateTo(3, 'stalker'); G.step(1); o.leader0 = G.leader().id; G.cast(0, 0, -20); G.step(1); o.leader = [G.leader().id, +G.kitState(3).sealT.toFixed(3)];
+      G.zhReady(); at[0] = [-16, -58]; at[1] = [0, -20]; park(); G.strike(1, 2, 1); G.step(1); G.cast(0, 0, -20); G.step(1); k = G.kitState(1); o.aggro = { seal: +k.sealT.toFixed(3), slow: +k.slowT.toFixed(3) };
+      G.zhReady(); at[1] = [-16, -50]; at[2] = [0, -20]; park(); G.strike(2, 3, 1); Z.hold(Q.aggroS + 0.5, park); G.cast(0, 0, -20); G.step(1); k = G.kitState(2); o.old = { seal: +k.sealT.toFixed(3), slow: k.slowT };
+      G.zhReady(); at[2] = [16, -50]; at[3] = [0, -20]; park(); G.plateTo(3, 'stalker'); G.step(1); o.leader0 = G.leader().id; G.cast(0, 0, -20); G.step(1); o.leader = [G.leader().id, +G.kitState(3).sealT.toFixed(3)];
     } catch (e) { o.err = String(e).slice(0, 200); }
     Z.end(); return o;
   });
@@ -3081,9 +3082,9 @@ try {
   const d166 = await g(() => {
     const G = __game, C = G.config, Z = window.__za, W = C.KITS.za.skills[1], o = {};
     try {
-      Z.start(3); G.teleport(0, -15); const at = { 0: [0.5, -21], 1: [0, -26], 2: [24, -40] }, park = () => Z.park(at);
+      Z.start(3); G.teleport(0, -15); const at = { 0: [0.5, -21], 1: [0, -26], 2: [16, -54] }, park = () => Z.park(at);
       park(); G.step(2); o.cast = G.cast(1, 0, -19); Z.hold(0.4, park); let p = G.state(); o.near = { moved: +Math.hypot(p.x, p.z + 15).toFixed(2), e0: +G.kitState(0).expT.toFixed(2), e1: G.kitState(1).expT, cd: +G.skills()[1].toFixed(2), expN: G.zaState(-1).expN, shadow: G.mingState(-1).shadowT };
-      G.zhReady(); G.teleport(0, -15); at[0] = [24, -44]; at[1] = [-24, -44]; park(); G.step(1); G.cast(1, 0, -5); Z.hold(0.4, park); p = G.state(); o.far = +Math.hypot(p.x, p.z + 15).toFixed(2);
+      G.zhReady(); G.teleport(0, -15); at[0] = [16, -58]; at[1] = [-16, -58]; park(); G.step(1); G.cast(1, 0, -5); Z.hold(0.4, park); p = G.state(); o.far = +Math.hypot(p.x, p.z + 15).toFixed(2);
     } catch (e) { o.err = String(e).slice(0, 200); }
     Z.end(); return o;
   });
@@ -3096,7 +3097,7 @@ try {
   const d167 = await g(() => {
     const G = __game, C = G.config, Z = window.__za, o = {};
     try {
-      Z.start(3); G.teleport(0, -15); const at = { 0: [0, -20], 1: [-20, -40], 2: [24, -40] }, park = () => Z.park(at);
+      Z.start(3); G.teleport(0, -15); const at = { 0: [0, -20], 1: [-16, -50], 2: [16, -54] }, park = () => Z.park(at);
       park(); G.step(2); G.setCharge(-1, C.ULT.full); o.none = [G.cast(2, 0, -20), G.zaState(-1).ch, G.zaState(-1).copyN];
       G.setStore(-1, 'ru', 1); G.cast(0, 24, -40); G.cast(1, -3, -15); Z.hold(0.3, park); o.cdBefore = G.skills().slice(0, 2).map((v) => v > 0);
       G.teleport(0, -15); park(); G.step(1); G.setCharge(-1, C.ULT.full); o.cast = G.cast(2, 0, -20); G.step(1);
@@ -3104,10 +3105,14 @@ try {
     } catch (e) { o.err = String(e).slice(0, 200); }
     Z.end(); return o;
   });
+  // The meter empties at the cast; the copied seal's hit then charges it by the normal rule (dealt per hp, plus one step of passive): the first version
+  // asserted 0, which the doc does not say (check fix, ticket 10 resume).
   check('167 杂甲 R 一字千金: nothing stored = no cast, no cost; a stored 儒甲 seal is cast at full strength (its dmg and seal), the meter empties, Q and W cooldowns reset',
     !d167.err && d167.none[0] === false && d167.none[1] === C0.ULT.full && d167.none[2] === 0 && d167.cdBefore.join() === 'true,true' && d167.cast
-    && d167.after.copy === 'ru:1' && d167.after.copyN === 1 && d167.after.ch === 0 && d167.after.cd.join() === '0,0' && d167.after.lost === C0.KITS.ru.skills[1].dmg
+    && d167.after.copy === 'ru:1' && d167.after.copyN === 1 && Math.abs(d167.after.ch - (C0.KITS.ru.skills[1].dmg * C0.ULT.dealt + C0.ULT.passive * C0.STEP)) < 1e-6 && d167.after.cd.join() === '0,0' && d167.after.lost === C0.KITS.ru.skills[1].dmg
     && Math.abs(d167.after.seal - (C0.KITS.ru.skills[1].seal - C0.STEP)) < 0.02, JSON.stringify(d167));
+  // Scenes of 165-168 park bots inside the core hall and keep the target off training dummy 1 at (0, -18) (first versions parked bots in the void,
+  // where they fell, and on the dummy, which took the orb first: check-scene fixes, ticket 10 resume).
   // 168 Copy table: every skill of the other kits that can touch an enemy, his own Q (from another 杂甲) and every unit skill move is cast through 一字千金 at a bot
   // 3 m away (a second bot 2.5 m beside it) and does what its own kit does (damage, seal, slow, ring, cord, swap, furrow, bleed, stun); a unit move shows its tell
   // in the unit's colour for its whole windup (>= 0.4 s) before it lands. 农甲's harvest casts (its ring) but eats nothing: he has no field.
@@ -3120,8 +3125,8 @@ try {
       const o = { maxLost: 0, slow: 0, seal: 0, held: 0, bleed: 0, stun: 0, ring: false, taiji: false, furrow: false, harv: false, tell: null, tellOn: 0 };
       try {
         const dd = sl === 'rend' ? 1.5 : 3;
-        Z.start(3); G.teleport(0, -15); const at = { 0: [0, -15 - dd], 1: [2.5, -15 - dd], 2: [24, -40] }, park = () => Z.park(at);
-        park(); G.step(2); G.setStore(-1, sc, sl); G.setCharge(-1, C.ULT.full); o.cast = G.cast(2, 0, -15 - dd); const s0 = G.zaState(-1); o.copy = s0.copy;
+        Z.start(3); G.teleport(-5, -15); const at = { 0: [-5, -15 - dd], 1: [-2.5, -15 - dd], 2: [16, -54] }, park = () => Z.park(at);
+        park(); G.step(2); G.setStore(-1, sc, sl); G.setCharge(-1, C.ULT.full); o.cast = G.cast(2, -5, -15 - dd); const s0 = G.zaState(-1); o.copy = s0.copy;
         if (s0.zm.on) o.tell = { mat: s0.zm.mat, t: +s0.zm.t.toFixed(3) };
         for (let n = 0; n < Math.round(4.2 / C.STEP); n++) {
           if (sl !== 1 || sc !== 'zongheng') park(); G.step(1);
@@ -3171,7 +3176,8 @@ try {
       H.mute(0, 'claw'); const hp0 = G.player().hp; const u0 = G.zaUnit('demon'); G.teleport(u0.x, u0.z + 1.5); H.until(() => G.player().hp < hp0, 240); o.claw = [+(hp0 - G.player().hp).toFixed(2), G.zaState(-1).store];
       H.mute(0); G.teleport(0, -50); G.placeUnit(0, 0, -56); G.step(1); G.zhReady(); const dh = G.zaUnit('demon').hp; o.castP = G.cast(2, 0, -56); const z = G.zaState(-1);
       o.tell = { on: z.zm.on, mat: z.zm.mat, t: z.zm.t }; H.until(() => !G.zaState(-1).zm.on, 120); G.step(1); o.back = { lost: +(dh - G.zaUnit('demon').hp).toFixed(3), cdR: +G.skills()[2].toFixed(2) };
-      G.zhReady(); G.teleport(0, -50); G.placeUnit(0, 0, -55); G.step(1); G.setStore(-1, 'move', 'roar'); G.cast(2, 0, -55); H.until(() => !G.zaState(-1).zm.on, 120); const ur = G.zaUnit('demon'); o.roar = [+ur.slowT.toFixed(2), ur.slowK];
+      // The copied Pounce dashes him its length and no skill casts while dashing: Roar waits for the dash to end (check fix, ticket 10 resume).
+      H.until(() => G.suits()[0].dash <= 0, 120); G.zhReady(); G.teleport(0, -50); G.placeUnit(0, 0, -55); G.step(1); G.setStore(-1, 'move', 'roar'); G.cast(2, 0, -55); H.until(() => !G.zaState(-1).zm.on, 120); const ur = G.zaUnit('demon'); o.roar = [+ur.slowT.toFixed(2), ur.slowK];
       // 正名 on the demon after the stalker's plate came home (its stolen lunge and rend sealed, Pounce not), and in its frenzy (no slow).
       G.hitUnit(1, 1e6); H.until(() => G.zaUnit('demon').skills.length > 2, Math.round((C.APEX.plateS + 1) / C.STEP)); o.skills = G.zaUnit('demon').skills.join();
       G.zaUnitSet('demon', { slowT: 0, frenzyT: 0 }); G.zhReady(); G.teleport(0, -50); G.placeUnit(0, 0, -55); G.placeUnit(2, -14, -60); G.step(1); G.cast(0, 0, -55); G.step(1);
