@@ -71,5 +71,28 @@ not by the black, which is darker than the floor; rebels by the light hemp and y
 CONFIG radius; 9 height in band (guard 1.5-1.85 m, leaders taller than their squad); 10 lineup: flat-black silhouettes at the wide view,
 every pair of types differs (IoU < 0.75 after aligning feet); 11 leader banner top >= 1.15 x the tallest squad member.
 
-## Verdicts
-(filled per round below)
+## Lessons found while building (keep for the merge)
+- Weapons stand upright or lean outward at rest: the game camera looks down 40 deg at units that face the player, so a forward-leaning pike
+  foreshortened into the body (round 1: the 卒's pike vanished from its flat-black silhouette).
+- Same base, different squad roles: the silhouette gate failed on 卒 vs 弩手 (IoU 0.89) until each kept one unique outline feature
+  (卒 the tall pike, 弩手 the 1.2 m prod and a lower torso, 盾 the notched shield, 车 the canopy, 伍长 the banner).
+- Draw calls: guard types use two materials (bronze sheet + fodder sheet) = 2 calls per type; rebels 1 (力士 2: body + patch, +1 for the
+  school weapon mesh; 死士 +1 for the glint). Viewer lineups: guard 5 types 12 calls / 15k tris, rebels 4 types 9 calls / 6k tris
+  (run 45442633307 shots.json; one copy per type, not instanced).
+
+## Concepts (ComfyUI run 45435813341, SD 1.5 + LCM, reference only; art/guard/concepts, art/rebels/concepts)
+- Guard (16): no image gave treads (SD ignored it). Picked 5103 (one smooth cast figure whose coat flares like a bell, a mask-like head),
+  alternates 5115 (ground-length lamellar coat, wide sleeves) and 5112 (black lamellar with blue and bronze trim). Used: the bell coat,
+  the flared sleeves, two-tier shoulder plates, the black/blue/bronze split.
+- Rebels (16): the prompt's "red patch" pulled most images red. Picked 5204 (ragged hemp mantle over a tunic, wrapped shins), alternates
+  5203 (knee tunic, belt, sandals) and 5212 (leader: yellow over-robe on a dark tunic). Used: knee tunic, rag mantle, wrapped shins, the
+  leader's yellow over dark. Avoided: 5208 (striped jacket, reads modern), 5211 (turban).
+
+## Verdicts (honest; shots: art/guard/roundN, art/rebels/roundN; textured viewer shots in round2/viewer from the runner)
+| Round | Unit(s) | Result | Cause / change |
+|---|---|---|---|
+| 1 (built before concepts) | 卒 and the guard set | FAIL look: a toy soldier on a bread-loaf sled; treads read as logs; arms thin; pike invisible in the silhouette | built from the plan only; forward pike foreshortened |
+| 1 | 黄巾力士 and the rebel set | FAIL look: stick limbs, headband tails read as horns from the front | |
+| 2 | guard | PASS with notes: one cast figure in a bell lamellar coat on a bronze tread sled (concept 5103/5115), Qin black plates with water-blue lacing, stamp-band treads, a mask plate on the hull front. Close up the masks are plain and the build is simple; at play size the five roles separate | |
+| 2 | rebels | PASS with notes: knee tunic, rag mantle, wrapped shins, broader headband (8 cm), school weapon + patch | |
+| 3 | 弩手 only | silhouette vs 卒 IoU 0.75 (at the limit) -> 0.70 by a lower torso and a 1.2 m prod | |
