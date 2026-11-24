@@ -1,0 +1,11 @@
+jobs 10; caught by named check 10 of 10
+{"i": 0, "fails": ["42", "1007"], "tot": ["RUNTIME 257 of 259 pass"], "s": 138, "name": "full-burns-box-order", "want": "1007", "applied": true, "caught_named": true}
+{"i": 1, "fails": ["42", "808"], "tot": ["RUNTIME 257 of 259 pass"], "s": 133, "name": "full-lions-dropped", "want": "808", "applied": true, "caught_named": true}
+{"i": 2, "fails": ["42", "800", "801", "804", "806", "807", "runner"], "tot": ["RUNTIME 224 of 231 pass"], "s": 125, "name": "pieces-list-both-plans", "want": "800", "applied": true, "caught_named": true}
+{"i": 3, "fails": ["42", "1007"], "tot": ["RUNTIME 257 of 259 pass"], "s": 137, "name": "p2-clocks-always-box", "want": "1007", "applied": true, "caught_named": true}
+{"i": 4, "fails": ["42", "1007"], "tot": ["RUNTIME 257 of 259 pass"], "s": 135, "name": "full-vats-missing", "want": "1007", "applied": true, "caught_named": true}
+{"i": 5, "fails": ["42", "511"], "tot": ["RUNTIME 257 of 259 pass"], "s": 249, "name": "rivals-not-home", "want": "511", "applied": true, "caught_named": true}
+{"i": 6, "fails": ["42", "511"], "tot": ["RUNTIME 257 of 259 pass"], "s": 246, "name": "full-guard-box-table", "want": "511", "applied": true, "caught_named": true}
+{"i": 7, "fails": ["42", "511"], "tot": ["RUNTIME 257 of 259 pass"], "s": 248, "name": "no-rebels", "want": "511", "applied": true, "caught_named": true}
+{"i": 8, "fails": ["42", "510", "1102"], "tot": ["RUNTIME 256 of 259 pass"], "s": 250, "name": "guard-not-in-palace", "want": "1102", "applied": true, "caught_named": true}
+{"i": 9, "fails": ["42", "1101"], "tot": ["RUNTIME 257 of 259 pass"], "s": 234, "name": "pal-bots-ignore-giants", "want": "1101", "applied": true, "caught_named": true}

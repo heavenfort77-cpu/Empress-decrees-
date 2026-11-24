@@ -1,0 +1,15 @@
+FAIL 42 bot sweep 9 runs: 0 broken invariants, every run ends, never-dodge always loses, 0.3 s and 0.15 s reaction each win at least once :: 99/012:lost 7s hp0 demon905 | 99/120:lost 8s hp0 demon915 | 99/210:lost 8s hp0 demon915 | 0.3/012:lost 16s hp0 demon745 | 0.3/120:lost 19s hp0 demon845 | 0.3/210:lost 50s hp0 demon245 | 0.15/012:lost 24s hp0 demon570 | 0.15/120:won 68s hp65 demon0 | 0.15/210:won 64s hp100 demon0
+FAIL 800 palace pieces built in the BP01 rooms (2 lions, 1 华表, 3 mercury, 3 smoke, 1 鼎, 1 side list), at rest; Royal Rumble: own 5 hazards (4 lions) and 3 altars, pieces never stepped :: {"n":{"lions":22,"hb":7,"merc":3,"smoke":3,"ding":1,"sides":3},"rest":true,"rooms":"bridge,court,court_e,court_s,court_w,fore,garden,hall,hall_dao,hall_fa,hall_ming,hall_mo,hall_nong,hall_ru,hall_yinyang,hall_za,hall_zongheng","rumbleStill":true,"rumbleHaz":5,"rumbleAltars":3,"rumbleLions":4}
+FAIL 801 palace lions: tell (ring) >= 0.4 s with nobody hurt; the strike hits player, bot and another side (damage, knockback out); cooldown :: {"tell":{"state":0,"ring":false},"mid":{"hp":100,"bot":0,"probe":100,"state":0},"after":{"state":0,"ring":false,"hp":100,"bot":{"hp":0,"dead":true,"markT":0,"marker":false,"kx":0,"kz":0},"probe":{"hp":100,"hits":0,"kx":0,"kz":0}},"back":0}
+FAIL 804 华表: suits wake it (tell >= 0.4 s, ring and eyes, nobody marked yet), its look marks suits in reach (her line); marked = seen through a shut door until it ends; other sides never wake it; cooldown :: {"probeOnly":0,"tell":{"state":0,"ring":false,"eyes":false},"mid":{"pMark":0,"bot":0},"look":{"state":0,"eyes":false,"pMark":0,"marker":false,"bot":0,"botMarker":false,"rule":false},"wallSeen":false,"shut":true,"later":{"pMark":0,"seen":false,"state":0},"again":0}
+FAIL 806 bot danger from the pieces after its reaction time: lion tell (out away from the lion), mercury shimmer (out across the channel); none at rest or before reacting :: {"lionEarly":false,"lionLate":false,"lionOut":false,"rest":false,"shimEarly":false,"shimLate":true,"across":true}
+FAIL 807 pieces budget (every room and the busiest, calls<500, tris<500k), all mercury looks drawn with programs flat (warmed at load), new run back to rest :: {"rooms":{"hall":[15,906],"court":[16,738],"corridor":[10,322],"garden":[17,1126],"bridge":[9,234],"core":[14,1218]},"busy":[17,1434],"looks":"0","programs":[7,7],"rest":true,"maxCalls":17,"maxTris":1434}
+FAIL runner :: page.evaluate: TypeError: Cannot read properties of undefined (reading 'id')
+    at eval (eval at evaluate (:311:30), <anonymous>:11:94)
+    at Array.filter (<anonymous>)
+    at eval (eval at evaluate (:311:30), <anonymous>:11:70)
+    at UtilityScript.evaluate (<anonymous>:313:16)
+    at UtilityScript.<anonymous> (<anonymous>:1:44)
+    at g (/home/runner/work/Empress-decrees-/Empress-decrees-/tests/run.mjs:35:29)
+    at /home/runner/work/Empress-decrees-/Empress-decrees-/tests/run.mjs:3979:21
+RUNTIME 224 of 231 pass
