@@ -146,7 +146,7 @@ def cord_row(t, y0, col):
 
 def lamellar():
     t = Tex('suit_lamellar', 1024, '#1d1918', 901)
-    for (y0, y1), k in (((0, 152), 'black'), ((152, 304), 'brown'), ((304, 408), 'cinnabar'), ((408, 512), 'white')): plate_field(t, y0, y1, LAC[k], 0.55 if k == 'white' else 1.0)
+    for (y0, y1), k in (((0, 152), 'black'), ((152, 304), 'brown'), ((304, 408), 'cinnabar'), ((408, 512), 'white')): plate_field(t, y0, y1, LAC[k], {'white': 0.55, 'brown': 1.45}.get(k, 1.0))
     for y0, k in ((512, 'black'), (544, 'brown'), (576, 'cinnabar'), (608, 'white')): lam_row(t, y0, LAC[k])
     # rim: black lacquer with a cinnabar edge line and small cloud scrolls (Qin lacquerware)
     t.stage = 0; t.band(640, 672, LAC['black'][2], brush='marker', size=8)
@@ -176,7 +176,7 @@ def bronze():
     t.stage = 1
     for _ in range(120):   # sand-cast mottling on the plain plate
         x, y = r.uniform(0, 512), r.uniform(8, 184); L = r.uniform(10, 30)
-        t.stroke(t.wob(x, y, x + L, y + r.uniform(-6, 6), 3, 2), 'sponge', r.uniform(12, 26), r.choice([li, sh, '#6e522e', '#a2824e']), r.uniform(0.4, 0.6))
+        t.stroke(t.wob(x, y, x + L, y + r.uniform(-6, 6), 3, 2), 'sponge', r.uniform(20, 34), r.choice([li, sh, '#6e522e', '#a2824e']), r.uniform(0.35, 0.5))
     for _ in range(50):
         x, y = r.uniform(0, 512), r.uniform(420, 508); L = r.uniform(10, 30)
         t.stroke(t.wob(x, y, x + L, y, 3, 2), 'sponge', r.uniform(10, 20), r.choice([li, sh]), r.uniform(0.25, 0.4))

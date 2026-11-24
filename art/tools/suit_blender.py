@@ -612,9 +612,9 @@ def poses(kind, b):
     """returns (windup pose, strike pose); a pose maps bone -> design direction, plus 'hips' (dx, df, dz) offset."""
     if kind == 'thrust':
         return ({'chest': (0, -0.15, 1), 'upper_arm.R': (0.35, -0.75, -0.35), 'forearm.R': (0.1, 0.4, -0.3), 'weapon': (-0.15, 1, 0.05), 'hips': (0, -0.05, -0.04),
-                 'upper_arm.L': (-0.3, 0.5, -0.6)},
+                 'upper_arm.L': (-0.2, 0.35, -0.8)},
                 {'chest': (0, 0.35, 1), 'upper_arm.R': (0.1, 1, -0.05), 'forearm.R': (0.0, 1, 0.0), 'weapon': (0, 1, -0.05), 'hips': (0, 0.18, -0.08),
-                 'upper_arm.L': (-0.4, -0.4, -0.6)})
+                 'upper_arm.L': (-0.25, -0.25, -1)})   # round 3: the off arm swings down and back (round 2 stuck out sideways)
     if kind == 'overhead':
         return ({'chest': (0, -0.2, 1), 'upper_arm.R': (0.2, -0.1, 1), 'forearm.R': (0.05, -0.4, 1), 'weapon': (0, -0.7, 0.5), 'hips': (0, -0.04, -0.03),
                  'upper_arm.L': (-0.1, 0.1, 1), 'forearm.L': (0.2, -0.4, 1)},
