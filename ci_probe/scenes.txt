@@ -1,1 +1,1 @@
-empty,emptydiv,select,select_nocanvas,reference,heavy
+reference,palace_room,palace_heavy,palace_heavy_low,palace_garden,palace_first

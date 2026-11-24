@@ -63,12 +63,75 @@ const SCENES = {
   select_nocanvas: { q: 'lock&tier=medium', setup: () => { document.querySelector('canvas').style.display = 'none'; } },
   // (b) again on the low tier.
   heavy_low: null,
+  // (e) The Burning Palace (PERF2, 24 Nov): the full layout, the player standing in the forecourt (48x30 m, the largest room), nothing spawned.
+  palace_room: { q: 'lock&tier=medium&bots=0&mode=palace', setup: () => {
+    const G = __game, C = G.config; C.PAL_ESC.squads = C.PAL_ESC.squads.map(() => 0);
+    G.setSeed(12345); G.setLayout('full'); G.setMode('palace'); G.reset(); G.step(2); G.setHp(1e9);
+    const R = Object.fromEntries(G.palPlan().rooms.map((r) => [r.id, r])); G.teleport(R.fore.cx, R.fore.cz + 6); G.step(30);
+    window.__pal = G.palace().cur;
+  } },
+  // (f) the heaviest palace room: the forecourt (centre wing, never burns; lions, mercury, 华表, vats, giants) at 76 s game time, so the second
+  // wave's wing is warned in the settle and falls in the timed window; a full 皇家 squad and a full 反贼 squad, 2 awake giants and 3 rivals
+  // placed in the room, 8 rivals in the match, the player on the autopilot. Health topped up so the fight stays full. Smoke is not in this room
+  // (only the two gardens have it): see palace_garden.
+  palace_heavy: { q: 'lock&tier=medium&bots=8&mode=palace', setup: () => {
+    const G = __game, C = G.config;
+    G.setSeed(12345); G.setLayout('full'); G.setMode('palace'); G.reset(); G.setHp(1e9);
+    for (let k = 0; k < (window.__stepN || 760); k++) { G.setHp(1e9); G.step(6); }
+    const R = Object.fromEntries(G.palPlan().rooms.map((r) => [r.id, r])), f = R[window.__room || 'fore'];
+    G.teleport(f.cx, f.cz + 4); G.step(30); G.setHp(1e9);
+    window.__sq = () => {
+      G.guardSpawn('huangjia', ['wz', 'zu', 'zu', 'zu', 'zu', 'dun', 'dun', 'nu', 'nu', 'nu', 'che', 'zu'], f.cx - 6, f.cz - 5, { open: true });
+      G.guardSpawn('fanzei', ['qs', 'ls', 'ls', 'ls', 'ls', 'ls', 'ls', 'fs', 'fs', 'ss', 'ss', 'ls'], f.cx + 6, f.cz - 5, { school: 'mo' });
+    };
+    window.__sq();
+    let w = G.pieces2State().awake; for (let k = w; k < 2; k++) G.giantWake();
+    G.step(Math.ceil(C.PIECES2.giant.wakeS * 60) + 2);
+    const gs = G.pieces2State().giants; let n = 0;
+    for (const g of gs) if (g.st !== 0 && g.alive !== false && n < 2) { G.giantPlace(g.i, f.cx + (n ? 7 : -7), f.cz + 3); n++; }
+    for (let k = 0; k < 3; k++) G.palPlaceBot(k, f.cx - 3 + 3 * k, f.cz + 1);
+    G.autoPlayer(true);
+    const s = G.palace(), b = G.burnState(), p2 = G.pieces2State();
+    window.__info = 'room ' + s.cur + ' t ' + Math.round(s.t) + ' burn ' + b.wing + '/' + b.st + ' falls ' + b.falls + ' giants awake ' + p2.awake + ' guards ' + G.guards().n;
+  }, driver: () => {
+    const G = __game; G.setHp(1e9);
+    const p2 = G.pieces2State(); for (const g of p2.giants) if (g.st !== 0 && g.alive && g.hp < p2.hpMax * 0.5) G.giantSetHp(g.i, p2.hpMax);
+    const b = G.bots().list; for (let i = 0; i < 3 && i < b.length; i++) if (!b[i].dead && b[i].hp < 50) G.setBotHp(i, 100);
+    if (G.guards().n < 12) window.__sq();
+    const s = G.palace(), bs = G.burnState(); window.__info2 = 'end room ' + s.cur + ' t ' + Math.round(s.t) + ' burn ' + bs.wing + '/' + bs.st + ' falls ' + bs.falls + ' guards ' + G.guards().n + ' awake ' + p2.awake;
+  } },
+  // (g) the same fight in the southeast garden (its smoke clouds, a clock and a vat) at 30 s game time: its wing burns second (warned at 80 s),
+  // so it stands through the timed window while the first wing (southwest) falls out of view.
+  palace_garden: null,
+  // (h) first draw of each palace room (check 1207): geometry count and the worst frame in the 1.5 s after entering 5 rooms not drawn yet.
+  palace_first: { q: 'lock&tier=medium&bots=0&mode=palace', custom: true },
 };
 SCENES.heavy_low = { ...SCENES.heavy, q: 'lock&tier=low&bots=8' };
+SCENES.palace_heavy_low = { ...SCENES.palace_heavy, q: 'lock&tier=low&bots=8&mode=palace' };
+SCENES.palace_garden = { ...SCENES.palace_heavy, pre: () => { window.__room = 'garden_se'; window.__stepN = 300; } };
 
 async function renderer(page) {
   return page.evaluate(() => { const c = document.createElement('canvas'), gl = c.getContext('webgl2'); if (!gl) return 'no WebGL2'; const d = gl.getExtension('WEBGL_debug_renderer_info'); return d ? gl.getParameter(d.UNMASKED_RENDERER_WEBGL) : 'unknown'; });
 }
+
+// First draw of palace rooms (check 1207): the player is moved into 5 rooms never drawn in this page, one by one; for each the geometry and texture
+// counts before and 1.5 s after, and the worst and second-worst frame in that 1.5 s (the game runs at real time between moves).
+const FIRST_DRAW = async () => {
+  const G = __game, C = G.config; C.PAL_ESC.squads = C.PAL_ESC.squads.map(() => 0);
+  G.setSeed(12345); G.setLayout('full'); G.setMode('palace'); G.reset(); G.step(2); G.setHp(1e9);
+  const wait = (s) => new Promise((res) => setTimeout(res, s * 1000));
+  const frames = (s) => new Promise((res) => { const d = []; let last = 0, run = true; const f = (t) => { if (last) d.push(t - last); last = t; if (run) requestAnimationFrame(f); else res(d); }; requestAnimationFrame(f); setTimeout(() => { run = false; }, s * 1000); });
+  await wait(3);
+  const R = Object.fromEntries(G.palPlan().rooms.map((r) => [r.id, r])), ids = ['court_w', 'garden_sw', 'fore', 'hall_ming', 'bridge_ef'], out = [];
+  const g00 = G.render(false);
+  for (const id of ids) {
+    const a = G.render(false), r = R[id]; G.teleport(r.cx, r.cz); const d = await frames(1.5), b = G.render(false);
+    d.sort((x, y) => y - x);
+    out.push({ room: id, cur: G.palace().cur, geo: a.geoms + '>' + b.geoms, tex: a.texs + '>' + b.texs, prog: a.programs + '>' + b.programs, worst: +d[0].toFixed(1), second: +(d[1] || 0).toFixed(1), n: d.length });
+  }
+  const back = G.render(false); const R2 = R.court_w; G.teleport(R2.cx, R2.cz); const d2 = await frames(1.5); d2.sort((x, y) => y - x); const back2 = G.render(false);
+  return { start: { geo: g00.geoms, tex: g00.texs, prog: g00.programs }, rooms: out, revisit: { room: 'court_w', geo: back.geoms + '>' + back2.geoms, worst: +d2[0].toFixed(1) } };
+};
 
 const rows = []; let gpu = '';
 let FILE = ''; try { FILE = (await readFile(new URL('scenes.txt', import.meta.url), 'utf8')).trim(); } catch { /* default list */ }
@@ -80,7 +143,15 @@ for (const name of LIST) {
   await page.goto(BASE + (sc.path || '') + '?' + sc.q);
   await page.waitForFunction(() => window.__ready === true, null, { timeout: 90000 });
   if (!gpu) gpu = await renderer(page);
+  if (sc.custom) {
+    const r = await page.evaluate(FIRST_DRAW);
+    rows.push({ scene: name, errs: errs.length, err0: errs[0] || '', ...r });
+    console.log('ROW ' + JSON.stringify(rows[rows.length - 1]));
+    await page.close();
+    continue;
+  }
   const t0 = Date.now();
+  if (sc.pre) await page.evaluate(`(${sc.pre.toString()})()`);
   await page.evaluate(`(${sc.setup.toString()})()`);
   const setupMs = Date.now() - t0;
   const drv = sc.driver ? sc.driver.toString() : '() => {}';
@@ -103,7 +174,7 @@ for (const name of LIST) {
     try { const h = __game.hunt(); if (h.phase === 'hunt') extra.hunt = h.phase + ' alive ' + h.units.filter((u) => u.alive).length + ' hits ' + h.hits; } catch (e) { /* no hunt */ }
     return { frames: n, fps: +(n / (sum / 1000)).toFixed(1), p50: +d[Math.floor(n * 0.5)].toFixed(1), p95: +d[Math.floor(n * 0.95)].toFixed(1), worst: +d[n - 1].toFixed(1),
       over20: +(100 * d.filter((x) => x > 20).length / n).toFixed(1), over33: d.filter((x) => x > 33.4).length,
-      calls: info.calls, tris: info.tris, programs: info.programs, geoms: info.geoms, texs: info.texs, heap0: m0.heap, heap1: m1.heap, longN: lt.length, longMax: Math.round(Math.max(0, ...lt)), longSum: Math.round(lt.reduce((a, b) => a + b, 0)), geo0: g0.geoms, tex0: g0.texs, drvErr: window.__drvErr || '', ...extra };
+      calls: info.calls, tris: info.tris, programs: info.programs, geoms: info.geoms, texs: info.texs, heap0: m0.heap, heap1: m1.heap, longN: lt.length, longMax: Math.round(Math.max(0, ...lt)), longSum: Math.round(lt.reduce((a, b) => a + b, 0)), geo0: g0.geoms, tex0: g0.texs, drvErr: window.__drvErr || '', info: window.__info || '', info2: window.__info2 || '', ...extra };
   }, { drv, SETTLE, TIMED });
   rows.push({ scene: name, setupMs, errs: errs.length, err0: errs[0] || '', ...r });
   console.log('ROW ' + JSON.stringify(rows[rows.length - 1]));
