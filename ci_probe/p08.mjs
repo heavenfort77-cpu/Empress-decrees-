@@ -44,7 +44,7 @@ const res = await page.evaluate(() => {
     }
     G.setWatch(false); G.autoPlayer(false); out.push(o);
   };
-  for (const seed of [12345, 2, 3]) run('ming', seed, ['yinyang', 'nong']);
+  // ming done
   for (const seed of [12345, 2, 3]) run('nong', seed, []);
   return out;
 });
