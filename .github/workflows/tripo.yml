@@ -1,0 +1,36 @@
+# Tripo text-to-model jobs (ci_tripo/jobs.json). Triggered by a push to ci-tripo only. Needs the repo secret TRIPO_API_KEY.
+# Output is committed to the branch ci-out under out/tripo/<run id>/ (artifact downloads may be blocked).
+name: tripo-run
+on:
+  push:
+    branches: [ci-tripo]
+permissions:
+  contents: write
+concurrency:
+  group: tripo-run
+  cancel-in-progress: false
+jobs:
+  tripo:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Tripo jobs
+        env:
+          TRIPO_API_KEY: ${{ secrets.TRIPO_API_KEY }}
+        run: node ci_tripo/tripo.mjs
+      - name: Commit to ci-out
+        if: always()
+        run: |
+          D=out/tripo/${GITHUB_RUN_ID}
+          mkdir -p /tmp/tr && cp -r out/. /tmp/tr/ 2>/dev/null || true
+          git config user.name Claude && git config user.email noreply@anthropic.com
+          git fetch origin ci-out
+          git checkout -B ci-out origin/ci-out
+          mkdir -p $D && cp -r /tmp/tr/. $D/ 2>/dev/null || true
+          echo "sha ${GITHUB_SHA} run ${GITHUB_RUN_ID} attempt ${GITHUB_RUN_ATTEMPT}" > $D/meta.txt
+          git add out && git commit -qm "tripo ${GITHUB_RUN_ID}"
+          for k in 1 2 3; do git push origin ci-out && break; git pull --rebase origin ci-out; done

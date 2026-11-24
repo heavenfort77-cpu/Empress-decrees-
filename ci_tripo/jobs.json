@@ -1,0 +1,9 @@
+[
+ {"name": "lion_a",
+  "note": "ONE sample first (owner rule): the palace stone lion. Bare geometry; klad paints the stone (texture false). Eastern Han tomb-guardian type (stone lions are post-Qin; kept as designed).",
+  "req": {
+   "prompt": "A single Chinese Eastern Han dynasty stone guardian lion statue on a low rectangular plinth, seated upright, chest out, head turned slightly, bold simple carving with large curled mane, carved from one block of grey limestone, game prop, solid closed mesh",
+   "negative_prompt": "text, people, multiple objects, thin spikes, floating parts, modern style, Qing dynasty ball under paw",
+   "face_limit": 8000,
+   "auto_size": true}}
+]
