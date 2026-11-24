@@ -72,4 +72,61 @@ Own compartment for the nine school suits (docs/SUITS.md). The palace surfaces (
 - Materials (draw calls) <= 3 per suit; texel density on every part >= 0.8 of 256 px/m (long thin parts run along the sheet's wrapping axis).
 - Readability: body height 150-260 px at the fight framing.
 - Silhouette test (the nine told apart by outline alone): flat-black silhouettes from the same camera and spot; every pair's intersection over union <= 0.75 in the front, 3/4 and side views. Mutation-tested: a copied suit gives 1.00 and fails; a LOD1 with two thirds of its triangles cut gives 0.68 and fails.
-- Sheets (tex_check.py, suit rules): density 256 px/m +-20%; plate fields brush run 4-25 cm, contrast and value bands per lacquer, saturation cap 0.6 (cinnabar 0.8, white 0.2); bronze plain mean luminance 85-135; cloth mean luminance 180-240 and saturation <= 0.12; each cord row's median within RGB distance 50 of its school colour; lamella width 7-9 cm.
+- Sheets (tex_check.py, suit rules): density 256 px/m +-20%; plate fields brush run 4-25 cm, contrast and value bands per lacquer (brown value band 35-100: lowered from 45 on purpose in round 3 when the brown lacquer was darkened away from the floor value), saturation cap 0.6 (cinnabar 0.8, white 0.2); bronze plain brush run 4-15 cm and mean luminance 85-135; cloth mean luminance 180-240 and saturation <= 0.12; each cord row median within RGB distance 50 of its school colour; lamella width 7-9 cm (dominant period by FFT). Mutation-tested: a wrong cord colour, a flat-filled plate field, lamellae stretched to twice the width and a tinted cloth sheet each fail.
+- Floor contrast (suit_contrast.py, palace study rule): at least 50% of each suit.s outline pixels reach 3:1 against the approved hall floor beside them in the fight-framing lineup.
+
+## Concepts (run 45435893887; reference only; art/suits/concepts/<id>_concepts.jpg shows the pick and two alternates)
+Criteria, in order: the kit's outline cue is present (crest, shoulder mass, weapon); Qin-compatible materials (plates, not Qing collars and buttons); full figure for proportions. Honest read: SD 1.5 at 6 steps gave costumed people for most prompts; no image shows the requested prop except fa_5102 (horn), ming_5162 (round guard) and za_5151 (flap cap).
+| Suit | Pick | Alternates | What was taken |
+|---|---|---|---|
+| 法 | fa_5102 | fa_5103, fa_5101 | horned helmet with full bronze mask, long front apron between split tassets, cheek prongs; upper-body ratios |
+| 儒 | ru_5111 | ru_5112, ru_5113 | lamellar torso over a long skirt (confirms the layered build) |
+| 道 | dao_5122 | dao_5121, dao_5120 | wide sleeves and a long robe with a plated centre panel |
+| 墨 | mo_5133 | mo_5130, mo_5132 | squat heavy build; 5130's massive shoulder plates |
+| 阴阳 | yy_5142 | yy_5141, yy_5143 | narrow white column robe with a black and white split (round 2 narrowed the robe from a bell) |
+| 杂 | za_5151 | za_5153, za_5150 | cap with hanging side flaps, azurite cloth, lamellar skirt |
+| 名 | ming_5162 | ming_5161, ming_5163 | one big round guard on the off side, slim build |
+| 纵横 | zh_5171 | zh_5173, zh_5170 | tall figure in purple; full-figure proportions (about 8.5 heads) |
+| 农 | nong_5182 | nong_5181, nong_5183 | sturdy build, short pleated skirt, rope belt |
+
+## Samples, rounds 1-3 (25 Nov 2026, not approved)
+Rounds are runner rounds with shots (local Blender builds before them were probes): round 1 run 45440123875, round 2 run 45443383613, round 3 run 45444757353 (final code). Review sheets: art/suits/roundN/<id>_sheet.jpg (front, 3/4, side, back, windup, strike, passes, LODs, a 1:1 crop at the fight framing), lineups lineup_play.jpg, lineup_wide.jpg, lineup_play_rim.jpg, the flat-black silhouette lineups sil_lineup_front.png and sil_lineup_34.png (same spot, play size), sil_matrix.txt, gate logs.
+What changed per round: round 1 -> 2: lacquer as blots instead of streaks (round 1 read as wood grain), darker brown lacquer (round 1 brown sat at the floor's value), per-school eyes and brows (round 1 shared one mask), viewer rim option and the floor contrast measure. Round 2 -> 3: brown and bronze sheet contrast, 法's off arm in the strike. Before round 1, local probes fixed: weapon in the left hand (axis flip), twisted lamellar lips and domes (frame flip), a hanging sword that read as a cane, a horn that read as a topknot, ru's hidden back bow (now in hand), 名's edge-on wheel (now face on), 阴阳 and 道 sharing a bell robe.
+
+### Budget (round 3)
+| Suit | LOD0 / LOD1 / LOD2 tris | Materials (calls) | GLB KB | Tell s | Tip travel m | Height with crest m | Height on screen px |
+|---|---|---|---|---|---|---|---|
+| 法 | 12,572 / 2,600 / 899 | 3 | 779 | 0.45 | 1.13 | 2.25 | 219 |
+| 儒 | 13,464 / 2,600 / 900 | 3 | 838 | 0.50 | 2.70 | 2.25 | 224 |
+| 道 | 10,168 / 2,600 / 899 | 3 | 611 | 0.42 | 0.73 (hand) | 1.89 | 191 |
+| 墨 | 11,264 / 2,599 / 899 | 3 | 705 | 0.50 | 0.53 | 1.73 | 161 |
+| 阴阳 | 13,440 / 2,599 / 900 | 3 | 728 | 0.60 | 1.45 | 2.13 | 196 |
+| 杂 | 13,644 / 2,600 / 900 | 3 | 794 | 0.45 | 1.33 | 1.95 | 192 |
+| 名 | 10,680 / 2,600 / 900 | 3 | 702 | 0.50 | 1.53 | 1.99 | 204 |
+| 纵横 | 13,140 / 2,600 / 899 | 3 | 755 | 0.45 | 1.30 | 2.33 | 234 |
+| 农 | 11,444 / 2,600 / 900 | 3 | 728 | 0.50 | 1.36 | 2.28 | 224 |
+All nine at LOD0 on screen at once: 109,816 triangles and 27 draw calls (a royale with nine suits in view stays well inside 500 calls and 0.5M triangles). Sheets: 1024² + 512² + 512² (one set shared by all nine).
+
+### Silhouette test (round 3)
+Most alike pairs: front za-zh 0.73, 3/4 ru-yy 0.71, side ru-za 0.70 (limit 0.75): 30 of 30 silhouette and LOD gates pass. LOD outline IoU at the wide framing: LOD1 0.95-0.99, LOD2 0.92-0.97. Read by eye on sil_lineup_front.png and sil_lineup_34.png: each of the nine is named from its outline alone (horn; board cap and bow; bell robe; brimmed dome and domes; moon horns and orbs; slip fan; wheel; staff tufts and twin plumes; cone hat and hoe). Viewer silhouettes: lineup_sil_front.png; the viewer's 3/4 lineup puts the row on a diagonal and crops 农 at the edge (use sil_lineup_34.png for the test).
+
+### Verdict per suit (round 3; honest)
+Gates per suit: 14 build gates + 3 readability/LOD gates + 1 floor contrast = 18. Shared: silhouette pairs 3 of 3, sheets 39 of 40.
+| Suit | Gates | Verdict | What a person would still see is wrong |
+|---|---|---|---|
+| 法 | 17 of 18 | outline passes; fails floor contrast | black on the cinnabar floor is 1.9:1; arms are plain tubes; the mask's eyes are 2-3 px at play size |
+| 儒 | 17 of 18 | outline passes; fails floor contrast | brown body 1.8:1 on the floor; the bow is thin at the wide framing |
+| 道 | 17 of 18 | outline passes; fails floor contrast (closest: 23% of outline at 3:1, body 2.4:1) | the topknot crown is small; empty hands, so the tell is the arm only (0.73 m) |
+| 墨 | 17 of 18 | outline passes; fails floor contrast | brown 1.6:1; the crossbow is mostly hidden from the front |
+| 阴阳 | 17 of 18 | outline passes; fails floor contrast | black robe 1.7:1 on the floor |
+| 杂 | 17 of 18 | outline passes; fails floor contrast | brown 1.6:1; closest silhouette pair (with 纵横, 0.73) |
+| 名 | 17 of 18 | outline passes; fails floor contrast | brown 1.6:1 |
+| 纵横 | 17 of 18 | outline passes; fails floor contrast | lowest contrast (1.4:1, black and purple) |
+| 农 | 17 of 18 | outline passes; fails floor contrast | brown 1.6:1; the seed basket is hidden from the front |
+Known limits of the method: parts are lofts joined by overlap, not one sculpted surface; hands are mitts; the clips are two-key poses (windup, strike) with no follow-through on cloth beyond the bone-heat weights; no walk or run clip was in scope.
+
+### Open (Needs owner)
+1. Floor contrast. On the approved hall floor (relative luminance 0.06 in the viewer at the fight framing) a dark suit cannot reach the palace study's 3:1: pure black ink tops out at 2.2:1, and 3:1 needs a light edge of luminance 0.28 or more. Measured options: (a) a pale view-facing rim in the suit material (viewer &rim=1): outline pixels at 3:1 rise from 0-23% to 23-48% per suit, but the lamella lips catch it as white specks; (b) a 2 px lead-white outline drawn by the game's renderer (derived: 7:1 against the floor; game code and one mask pass, not done tonight); (c) light plates (ochre plates about 0.27 luminance, near 2.9:1; loses Qin black); (d) accept dark suits below 3:1 (body medians now 1.4-2.4:1).
+2. suit_bronze plain field: brush run 3.9 cm against the 4 cm minimum after three sheet rounds (the sand-cast mottle is finer than the palace rule's lower bound).
+3. 6.4-head proportions are a readability stylisation against the concepts' 7.5-8.5 heads.
+4. School colour mapping (accent per school, lacquer per suit) is the worker's proposal from the research palette.

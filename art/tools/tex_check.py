@@ -84,8 +84,9 @@ for n, (npx, metres, fields) in SUIT.items():
             med = np.median(a, 0); want = np.array([int(hx[j:j + 2], 16) for j in (1, 3, 5)]); dist = np.linalg.norm(med - want)
             res.append((f'cord {sid} colour', dist <= CORD_DIST, f'median #{int(med[0]):02x}{int(med[1]):02x}{int(med[2]):02x} vs {hx}, distance {dist:.0f}'))
         for k, y in enumerate((512, 544, 576, 608)):
-            row = A[int((y + 16) / s)]; lum = row @ [0.2126, 0.7152, 0.0722]; lum = lum - lum.mean()
-            ac = np.array([np.dot(lum, np.roll(lum, d)) for d in range(1, int(40 / s))]); pitch = (np.argmax(ac[int(10 / s):]) + 1 + int(10 / s)) * s
+            lum = (A[int((y + 8) / s):int((y + 24) / s)] @ [0.2126, 0.7152, 0.0722]).mean(0); lum = lum - lum.mean()
+            P = np.abs(np.fft.rfft(lum)) ** 2; fr = np.fft.rfftfreq(len(lum)); per = np.where(fr > 0, 1 / np.maximum(fr, 1e-9), 0)
+            ok_ = (per >= 8 / s) & (per <= 80 / s); pitch = per[ok_][np.argmax(P[ok_])] * s   # dominant plate period in 8-80 px (mutation: doubled width caught)
             cm = pitch / 256 * 100
             res.append((f'lamella row {k} width', LAM_CM[0] <= cm <= LAM_CM[1], f'{cm:.1f} cm'))
     checks += len(res)
