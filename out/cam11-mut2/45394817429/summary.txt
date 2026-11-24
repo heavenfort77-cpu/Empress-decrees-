@@ -1,0 +1,2 @@
+jobs 1; caught by named check 1 of 1
+{"i": 0, "fails": ["42", "1204"], "tot": ["RUNTIME 271 of 273 pass"], "s": 262, "name": "no focus blend", "want": "1204", "applied": true, "caught_named": true}
