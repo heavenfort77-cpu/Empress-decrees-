@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Paint the palace textures in klad from the op files palace_tex.py wrote, pass by pass, and export the final PNGs plus a
 passes strip per texture (each pass at 1/4 size, side by side). Usage:
-  python3 paint_palace.py KLAD OPSDIR SRCDIR OUTDIR STRIPDIR
+  python3 paint_palace.py KLAD OPSDIR SRCDIR OUTDIR STRIPDIR [NAMES]   (NAMES: comma list, default the five round 2 textures)
 KLAD = the klad binary; OPSDIR = palace_tex.py output; SRCDIR = where the .klad bundles go (art/src); OUTDIR = final PNGs
 (assets/tex); STRIPDIR = passes strips. Ships only exported PNGs (klad licence: no klad code in the game).
 """
@@ -11,7 +11,8 @@ from PIL import Image
 K, OPS, SRC, OUT, STRIP = sys.argv[1:6]
 for d in (SRC, OUT, STRIP):
     os.makedirs(d, exist_ok=True)
-for name in ('hall_floor', 'hall_wall', 'pillar', 'door', 'lion_stone'):
+NAMES = sys.argv[6].split(',') if len(sys.argv) > 6 else ['hall_floor', 'hall_wall', 'pillar', 'door', 'lion_stone']
+for name in NAMES:
     bundle = os.path.join(SRC, name + '.klad')
     shutil.rmtree(bundle, ignore_errors=True)
     bg = open(os.path.join(OPS, name + '.bg')).read().strip()

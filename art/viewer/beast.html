@@ -1,0 +1,58 @@
+<!doctype html>
+<!-- Review viewer for the bronze guardian beast sample (art tool, not shipped). Same camera FOV and pitch, the same two lights and the
+     approved hall floor texture as the game; a player-size box and the current box lion beside it for scale.
+     ?view=play (fight framing, 0.75 x 14 m) | wide (22 m) | turn (close turntable, &yaw=deg) | lods (LOD0, LOD1, LOD2 side by side)
+     glTF UVs: the trim sheet loads with flipY false (glTF convention; the round 1 shots showed patina on fresh plates without it).
+     &mode=tex | shade | flat | sil (passes) &t=seconds into the 'strike' clip (omit = rest pose) -->
+<html><head><meta charset="utf-8"><style>html,body{margin:0;background:#120d16;overflow:hidden}</style>
+<script type="importmap">{"imports":{"three":"../../lib/three.module.min.js"}}</script></head><body>
+<script type="module">
+import * as THREE from 'three';
+import { GLTFLoader } from './vendor/loaders/GLTFLoader.js';
+const Q = new URLSearchParams(location.search), VIEW = Q.get('view') || 'play', MODE = Q.get('mode') || 'tex', T = Q.get('t');
+const W = innerWidth, H = innerHeight;
+const r = new THREE.WebGLRenderer({ antialias: true }); r.setPixelRatio(1); r.setSize(W, H); r.shadowMap.enabled = MODE !== 'sil' && MODE !== 'flat'; document.body.appendChild(r.domElement);
+const scene = new THREE.Scene(); scene.background = new THREE.Color(MODE === 'sil' ? 0xffffff : 0x120d16);
+const cam = new THREE.PerspectiveCamera(50, W / H, 0.5, 200);
+// game lights (index.html: hemi 1.1, sun 2.2 from (-30, 60, 25) toward (0, 0, -12))
+scene.add(new THREE.HemisphereLight(0xd9c9ff, 0x3a2a22, 1.1));
+const sun = new THREE.DirectionalLight(0xffe2b8, 2.2); sun.position.set(-30, 60, 25); sun.target.position.set(0, 0, -12); sun.castShadow = true;
+Object.assign(sun.shadow.camera, { left: -12, right: 12, top: 12, bottom: -12, near: 10, far: 150 }); sun.shadow.mapSize.set(2048, 2048);
+scene.add(sun, sun.target);
+const tl = new THREE.TextureLoader();
+const tex = (f, rep) => { const t = tl.load(f); t.colorSpace = THREE.SRGBColorSpace; t.wrapS = t.wrapT = THREE.RepeatWrapping; t.anisotropy = 4; if (rep) t.repeat.set(rep, rep); return t; };
+const floor = new THREE.Mesh(new THREE.PlaneGeometry(24, 24), new THREE.MeshStandardMaterial({ map: tex('../../assets/tex/hall_floor.png', 6), roughness: 0.9 }));
+floor.rotation.x = -Math.PI / 2; floor.receiveShadow = true; if (MODE === 'tex' || MODE === 'shade') scene.add(floor);
+const MATS = {
+  tex: { palBronze: () => { const t = tex('../../assets/tex/bronze_trim.png'); t.flipY = false; return new THREE.MeshStandardMaterial({ map: t, metalness: 0.4, roughness: 0.6 }); },
+    palInlay: () => new THREE.MeshStandardMaterial({ color: 0xc8ccd0, metalness: 0.6, roughness: 0.35 }),
+    palStone: () => new THREE.MeshStandardMaterial({ map: tex('../../assets/tex/lion_stone.png'), roughness: 0.9 }) },
+  shade: { palBronze: () => new THREE.MeshStandardMaterial({ color: 0x9a7a48, metalness: 0.4, roughness: 0.6 }), palInlay: () => new THREE.MeshStandardMaterial({ color: 0xc8ccd0, metalness: 0.6, roughness: 0.35 }), palStone: () => new THREE.MeshStandardMaterial({ color: 0x9a968c, roughness: 0.9 }) },
+  flat: { palBronze: () => new THREE.MeshBasicMaterial({ color: 0x9a7a48 }), palInlay: () => new THREE.MeshBasicMaterial({ color: 0xc8ccd0 }), palStone: () => new THREE.MeshBasicMaterial({ color: 0x9a968c }) },
+  sil: { palBronze: () => new THREE.MeshBasicMaterial({ color: 0x000000 }), palInlay: () => new THREE.MeshBasicMaterial({ color: 0x000000 }), palStone: () => new THREE.MeshBasicMaterial({ color: 0x000000 }) },
+};
+const made = {}; const matFor = (n) => made[n] || (made[n] = (MATS[MODE][n] || MATS[MODE].palBronze)());
+function boxLion(x) {  // the current palace lion (index.html: three boxes)
+  const m = new THREE.MeshStandardMaterial({ color: 0x9a968c, roughness: 0.9 }), g = new THREE.Group();
+  for (const [w, h, d, y, z] of [[1.6, 0.6, 2.2, 0.3, 0], [1.2, 1.2, 1.6, 1.2, 0], [1.0, 1.0, 0.8, 2.1, 0.6]]) { const b = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), m); b.position.set(x, y, z); b.castShadow = b.receiveShadow = true; g.add(b); }
+  return g;
+}
+const player = new THREE.Mesh(new THREE.BoxGeometry(0.9, 2.05, 0.9), new THREE.MeshStandardMaterial({ color: 0x3a7bd5, roughness: 0.6 })); player.position.set(2.2, 1.025, 2.6); player.castShadow = true;
+new GLTFLoader().load('../../assets/models/beast.glb', (g) => {
+  const root = g.scene;
+  root.traverse((o) => { if (o.isMesh) { o.material = matFor(o.material.name); o.castShadow = o.receiveShadow = true; } });
+  const lod = ['beast_lod0', 'beast_lod1', 'beast_lod2'].map((n) => root.getObjectByName(n));
+  if (VIEW === 'lods') { lod.forEach((m, i) => { m.position.set((i - 1) * 3, 0, 0); }); }
+  else { lod[1].visible = false; lod[2].visible = false; }
+  scene.add(root);
+  if (T !== null) { const mix = new THREE.AnimationMixer(root), clip = g.animations.find((a) => a.name === 'strike'); const a = mix.clipAction(clip); a.play(); mix.setTime(+T); }
+  if (VIEW === 'play' || VIEW === 'wide') { scene.add(player); if (MODE === 'tex' || MODE === 'shade') scene.add(boxLion(-3.4)); }
+  const pitch = 40 * Math.PI / 180, look = new THREE.Vector3(VIEW === 'play' || VIEW === 'wide' ? -0.4 : 0, 1.1, 0.6);
+  let dist = VIEW === 'play' ? 10.5 : VIEW === 'wide' ? 22 : VIEW === 'lods' ? 9 : 4.2, yaw = (+(Q.get('yaw') || (VIEW === 'turn' ? 30 : 0))) * Math.PI / 180;
+  if (VIEW === 'turn') { pitch; look.set(0, 1.25, 0.1); }
+  const p2 = VIEW === 'turn' ? 15 * Math.PI / 180 : pitch;
+  cam.position.set(look.x + Math.sin(yaw) * Math.cos(p2) * dist, look.y + Math.sin(p2) * dist, look.z + Math.cos(yaw) * Math.cos(p2) * dist); cam.lookAt(look);
+  const go = () => { r.render(scene, cam); window.__ready = true; };
+  setTimeout(go, 800);
+});
+</script></body></html>

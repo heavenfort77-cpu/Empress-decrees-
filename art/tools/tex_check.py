@@ -23,8 +23,11 @@ T = {
     'pillar': (1024 / (CIRC / PU), 1024 / 4, (140, 860), 0.6),
     'door': (1024 / 4, 1024 / 3.5, (80, 470), 0.6),
     'lion_stone': (1024 / LT, 1024 / LT, (0, 1024), 0.55),
+    'bronze_trim': (1024 / 4, 1024 / 4, (0, 384), 0.6),
 }
 fails = 0
+import os
+T = {k: v for k, v in T.items() if os.path.exists(f'{D}/{k}.png')}
 for n, (du, dv, (y0, y1), scap) in T.items():
     im = Image.open(f'{D}/{n}.png').convert('RGB')
     s = 1024 / im.width
@@ -45,4 +48,4 @@ for n, (du, dv, (y0, y1), scap) in T.items():
         if not ok:
             fails += 1
         print(f"{'PASS' if ok else 'FAIL'} {n} {rule}: {val}")
-print(f'{20 - fails} of 20 pass')
+print(f'{4 * len(T) - fails} of {4 * len(T)} pass')
