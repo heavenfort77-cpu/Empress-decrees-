@@ -1,1 +1,1 @@
-reference30,heavy_base,heavy_fix,cjk_base,latin_base,cjk_fix,heavy_fix,heavy_base,cjk_fix,cjk_base,latin_base
+webglmin,reference,scale_med,scale_med_scan,scale_low,scale_med,reference
