@@ -1,0 +1,99 @@
+== static
+AUDIO STATIC PASS (1 perframe block, 42 lines)
+== render
+NOTES (computed once, 五声 by 三分损益 from gong 174.61 Hz):
+  N(-6) yu 73.66 Hz
+  N(-5) gong 87.31 Hz
+  N(-4) shang 98.22 Hz
+  N(-3) jue 110.50 Hz
+  N(-2) zhi 130.96 Hz
+  N(-1) yu 147.33 Hz
+  N(0) gong 174.61 Hz
+  N(1) shang 196.44 Hz
+  N(2) jue 220.99 Hz
+  N(3) zhi 261.92 Hz
+  N(4) yu 294.65 Hz
+  N(5) gong 349.22 Hz
+  N(6) shang 392.87 Hz
+  N(7) jue 441.98 Hz
+  N(8) zhi 523.83 Hz
+  N(9) yu 589.31 Hz
+  N(10) gong 698.44 Hz
+  N(11) shang 785.75 Hz
+  N(12) jue 883.96 Hz
+  N(13) zhi 1047.66 Hz
+  N(14) yu 1178.62 Hz
+  N(15) gong 1396.88 Hz
+  N(16) shang 1571.49 Hz
+  N(17) jue 1767.93 Hz
+  N(18) zhi 2095.32 Hz
+RENDERED sounds 264 loops 16 ramps 2; render time 2.4 s (both profiles, runner CPU); render failures 0
+== gates
+PASS G1 renders: 282 of 282
+PASS G2 peak <= -3.0 dBFS: worst -4.00 dBFS, 0 over
+PASS G3 no NaN, no clipping: 0 bad
+FAIL G4 tells+stingers 1-4 kHz share >= 0.1: 48 of 68 (min 0.012)
+  phone/yy_r_tell 1-4 kHz share 0.033
+  phone/demon_ult_tell 1-4 kHz share 0.025
+  phone/g_thrust_tell 1-4 kHz share 0.070
+  phone/r_cleave_tell 1-4 kHz share 0.068
+  phone/r_bootleg_tell 1-4 kHz share 0.031
+  phone/lion_tell 1-4 kHz share 0.028
+  phone/giant_wake 1-4 kHz share 0.012
+  phone/st_decree 1-4 kHz share 0.019
+  phone/st_burn 1-4 kHz share 0.058
+  phone/st_wake 1-4 kHz share 0.016
+  desktop/yy_r_tell 1-4 kHz share 0.039
+  desktop/demon_ult_tell 1-4 kHz share 0.037
+  desktop/g_thrust_tell 1-4 kHz share 0.089
+  desktop/r_cleave_tell 1-4 kHz share 0.072
+  desktop/r_bootleg_tell 1-4 kHz share 0.039
+  desktop/lion_tell 1-4 kHz share 0.028
+  desktop/giant_wake 1-4 kHz share 0.012
+  desktop/st_decree 1-4 kHz share 0.015
+  desktop/st_burn 1-4 kHz share 0.074
+  desktop/st_wake 1-4 kHz share 0.016
+PASS G5 phone renders tonal (flatness <= 0.2): 140 of 140 (max 0.116)
+PASS G6 loops seamless: 16 of 16
+FAIL G7 ramp loudness: FAIL
+  phone: whole -19.4 LUFS, first 10 s -19.2, last 10 s -18.7
+  desktop: whole -19.3 LUFS, first 10 s -19.2, last 10 s -18.6
+  phone last 10 s -18.7 LUFS outside [-18.0, -12.0]
+  desktop last 10 s -18.6 LUFS outside [-18.0, -12.0]
+FAIL G8 stingers over the calm bed: FAIL
+  phone/st_decree: -6.3 LU over the bed
+  phone/st_burn: -6.3 LU over the bed
+  phone/st_bounty: -5.7 LU over the bed
+  phone/st_wake: -5.9 LU over the bed
+  desktop/st_decree: -3.4 LU over the bed
+  desktop/st_burn: -4.8 LU over the bed
+  desktop/st_bounty: -5.3 LU over the bed
+  desktop/st_wake: -6.0 LU over the bed
+  phone/st_decree -6.3 LU outside (3.0, 15.0)
+  phone/st_burn -6.3 LU outside (3.0, 15.0)
+  phone/st_bounty -5.7 LU outside (3.0, 15.0)
+  phone/st_wake -5.9 LU outside (3.0, 15.0)
+  desktop/st_decree -3.4 LU outside (3.0, 15.0)
+  desktop/st_burn -4.8 LU outside (3.0, 15.0)
+  desktop/st_bounty -5.3 LU outside (3.0, 15.0)
+  desktop/st_wake -6.0 LU outside (3.0, 15.0)
+GATES 5 of 8
+MUTANT G1 drop phone/ru_atk: caught
+MUTANT G2 phone/mo_w_tell raised to -1 dBFS: caught
+MUTANT G3 phone/mo_w_tell with one NaN: caught
+MUTANT G3 phone/mo_w_tell with one clipped sample: caught
+MUTANT G4 phone/mo_w_tell low-passed at 800 Hz: caught
+MUTANT G5 phone/vat_splash replaced by its desktop (noise) render: NOT CAUGHT
+MUTANT G5 phone/demon_claw replaced by its desktop (noise) render: NOT CAUGHT
+MUTANT G5 phone/a_wind replaced by the desktop wind (noise): NOT CAUGHT
+MUTANT G6 desktop/m_drone rendered without seam handling: caught
+MUTANT G6 desktop/m_bells rendered without seam handling: NOT CAUGHT
+MUTANT G6 desktop/a_wind rendered without seam handling: NOT CAUGHT
+MUTANT G7 ramp +8 dB: caught
+MUTANT G7 ramp -10 dB: caught
+MUTANT G8 phone/st_decree +14 dB: caught
+MUTATIONS gates fully caught 6 of 8; mutants caught 9 of 14
+DECODED MEMORY (float32): phone 21.0 MB, desktop 42.0 MB
+PREVIEW all_sounds_phone.wav 170.3 s, 132 sounds
+RESULT FAIL
+OUT size 48M	/home/runner/work/Empress-decrees-/Empress-decrees-/ci_audio_out
