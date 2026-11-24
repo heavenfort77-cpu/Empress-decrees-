@@ -1,0 +1,258 @@
+{
+ "ls": {
+  "unit": "ls",
+  "passed": 10,
+  "checks": 10,
+  "gates": [
+   [
+    true,
+    "lod0 tris 1252 + weapon 276 (budget 4000)"
+   ],
+   [
+    true,
+    "lod1 tris 568 + weapon 160 (budget 1500)"
+   ],
+   [
+    true,
+    "lod2 tris 170 (budget 500; weapons drop at LOD2)"
+   ],
+   [
+    true,
+    "every lod0 vertex weighted, sum 1 (0 bad)"
+   ],
+   [
+    true,
+    "clips ['attack', 'idle', 'move']"
+   ],
+   [
+    true,
+    "attack windup 0.80 s (tell >= 0.4)"
+   ],
+   [
+    true,
+    "weapon tip peaks at 0.80 s = windup 0.80 s"
+   ],
+   [
+    true,
+    "weapon tip moves 0.82 m by the windup (min 0.3)"
+   ],
+   [
+    true,
+    "body half-width 0.40 m (0.7-1.4 x radius 0.45)"
+   ],
+   [
+    true,
+    "body height 1.78 m (band 1.40-1.85)"
+   ]
+  ],
+  "solved": 1.0,
+  "tris": [
+   1252,
+   568,
+   170
+  ],
+  "weapon_tris": [
+   276,
+   160
+  ],
+  "tip": 0.8192721991134547,
+  "windup": 0.8,
+  "top": 1.7799999713897705,
+  "body_top": 1.7799999713897705,
+  "half_width": 0.40333521366119385
+ },
+ "fs": {
+  "unit": "fs",
+  "passed": 10,
+  "checks": 10,
+  "gates": [
+   [
+    true,
+    "lod0 tris 1304 (budget 4000)"
+   ],
+   [
+    true,
+    "lod1 tris 552 (budget 1500)"
+   ],
+   [
+    true,
+    "lod2 tris 163 (budget 500; weapons drop at LOD2)"
+   ],
+   [
+    true,
+    "every lod0 vertex weighted, sum 1 (0 bad)"
+   ],
+   [
+    true,
+    "clips ['attack', 'idle', 'move']"
+   ],
+   [
+    true,
+    "attack windup 0.80 s (tell >= 0.4)"
+   ],
+   [
+    true,
+    "weapon tip peaks at 0.80 s = windup 0.80 s"
+   ],
+   [
+    true,
+    "weapon tip moves 0.88 m by the windup (min 0.3)"
+   ],
+   [
+    true,
+    "body half-width 0.36 m (0.7-1.4 x radius 0.45)"
+   ],
+   [
+    true,
+    "body height 1.84 m (band 1.50-1.90)"
+   ]
+  ],
+  "solved": 1.0,
+  "tris": [
+   1304,
+   552,
+   163
+  ],
+  "weapon_tris": [
+   0,
+   0
+  ],
+  "tip": 0.8789542884414115,
+  "windup": 0.8,
+  "top": 2.0007100105285645,
+  "body_top": 1.840000033378601,
+  "half_width": 0.36333519220352173
+ },
+ "ss": {
+  "unit": "ss",
+  "passed": 11,
+  "checks": 11,
+  "gates": [
+   [
+    true,
+    "lod0 tris 1276 (budget 4000)"
+   ],
+   [
+    true,
+    "lod1 tris 520 (budget 1500)"
+   ],
+   [
+    true,
+    "lod2 tris 154 (budget 500; weapons drop at LOD2)"
+   ],
+   [
+    true,
+    "every lod0 vertex weighted, sum 1 (0 bad)"
+   ],
+   [
+    true,
+    "clips ['attack', 'idle', 'move']"
+   ],
+   [
+    true,
+    "attack windup 0.60 s (tell >= 0.4)"
+   ],
+   [
+    true,
+    "weapon tip peaks at 0.60 s = windup 0.60 s"
+   ],
+   [
+    true,
+    "weapon tip moves 0.42 m by the windup (min 0.3)"
+   ],
+   [
+    true,
+    "body half-width 0.40 m (0.7-1.4 x radius 0.45)"
+   ],
+   [
+    true,
+    "body height 1.34 m (band 0.90-1.35)"
+   ],
+   [
+    true,
+    "glint hidden in idle/move, shown from 0.2 s to the windup (1.12, 1.20)"
+   ]
+  ],
+  "solved": 1.0,
+  "tris": [
+   1276,
+   520,
+   154
+  ],
+  "weapon_tris": [
+   0,
+   0
+  ],
+  "tip": 0.4203726544639449,
+  "windup": 0.6,
+  "top": 1.340000033378601,
+  "body_top": 1.340000033378601,
+  "half_width": 0.39500001072883606
+ },
+ "qs": {
+  "unit": "qs",
+  "passed": 11,
+  "checks": 11,
+  "gates": [
+   [
+    true,
+    "lod0 tris 1540 (budget 4000)"
+   ],
+   [
+    true,
+    "lod1 tris 712 (budget 1500)"
+   ],
+   [
+    true,
+    "lod2 tris 212 (budget 500; weapons drop at LOD2)"
+   ],
+   [
+    true,
+    "every lod0 vertex weighted, sum 1 (0 bad)"
+   ],
+   [
+    true,
+    "clips ['attack', 'idle', 'move']"
+   ],
+   [
+    true,
+    "attack windup 0.60 s (tell >= 0.4)"
+   ],
+   [
+    true,
+    "weapon tip peaks at 0.60 s = windup 0.60 s"
+   ],
+   [
+    true,
+    "weapon tip moves 1.57 m by the windup (min 0.3)"
+   ],
+   [
+    true,
+    "body half-width 0.47 m (0.7-1.4 x radius 0.55)"
+   ],
+   [
+    true,
+    "body height 1.99 m (band 1.79-2.35)"
+   ],
+   [
+    true,
+    "leader pennant top 2.96 m >= 1.15 x tallest squad member 2.00 m"
+   ]
+  ],
+  "solved": 1.0,
+  "tris": [
+   1540,
+   712,
+   212
+  ],
+  "weapon_tris": [
+   0,
+   0
+  ],
+  "tip": 1.5680377008001434,
+  "windup": 0.6,
+  "top": 2.9567999839782715,
+  "body_top": 1.9875999689102173,
+  "half_width": 0.47040000557899475
+ }
+}

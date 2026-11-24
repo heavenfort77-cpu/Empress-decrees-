@@ -1,0 +1,10 @@
+PASS lineup silhouettes (fight view): 36 of 36 pairs under IoU 0.75 (closest ls_za_wonly/ls_nong_wonly 0.50)
+INFO ls_ru_wonly wide-view size 59 x 72 px
+INFO ls_dao_wonly wide-view size 58 x 66 px
+INFO ls_fa_wonly wide-view size 24 x 70 px
+INFO ls_mo_wonly wide-view size 62 x 34 px
+INFO ls_yinyang_wonly wide-view size 37 x 145 px
+INFO ls_za_wonly wide-view size 32 x 95 px
+INFO ls_ming_wonly wide-view size 51 x 52 px
+INFO ls_zongheng_wonly wide-view size 18 x 130 px
+INFO ls_nong_wonly wide-view size 39 x 94 px
