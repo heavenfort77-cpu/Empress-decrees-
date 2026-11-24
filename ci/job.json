@@ -1,1 +1,1 @@
-{"mode": "suite", "label": "int-bp10m"}
+{"mode": "mut", "muts": [{"name": "clamp-removed", "want": "1203", "a": "  if (m > lim) { const k = lim / m; dx *= k; dy *= k; dz *= k; dd *= k; }\n", "b": ""}, {"name": "clamp-wrong-term", "want": "1203", "a": "const m = Math.hypot(dx, dy + PCAM.sp * dd, dz + PCAM.cp * dd)", "b": "const m = Math.hypot(dx, dy, dz)"}, {"name": "limit-doubled", "want": "1203", "a": "phone: 0.85, stepMax: 0.4 }", "b": "phone: 0.85, stepMax: 0.8 }"}], "label": "int-bp10m-mut"}
