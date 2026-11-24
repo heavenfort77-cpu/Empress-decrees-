@@ -12,7 +12,7 @@ import { GLTFLoader } from './vendor/loaders/GLTFLoader.js';
 import { apexMaterials } from './apex_mat.js';
 const Q = new URLSearchParams(location.search), MODEL = Q.get('model') || 'tiger', VIEW = Q.get('view') || 'turn', MODE = Q.get('mode') || 'tex';
 const STATE = Q.get('state') || 'awake', SCHOOL = Q.get('school') === null ? null : +Q.get('school'), T = +(Q.get('t') || 0);
-const CLIP = Q.get('clip') || (STATE === 'dormant' ? 'dormant' : 'idle');
+const CLIP = Q.get('clip') || (STATE === 'dormant' ? 'dormant' : 'idle'), BRASS = Q.get('brass') === '1';
 const W = innerWidth, H = innerHeight;
 const r = new THREE.WebGLRenderer({ antialias: true }); r.setPixelRatio(1); r.setSize(W, H); r.shadowMap.enabled = MODE !== 'sil'; document.body.appendChild(r.domElement);
 const scene = new THREE.Scene(); scene.background = new THREE.Color(MODE === 'sil' ? 0xffffff : 0x120d16);
@@ -29,7 +29,7 @@ const loader = new GLTFLoader(), load = (m) => new Promise((ok, no) => loader.lo
 let pending = 0;
 async function place(model, { x = 0, z = 0, yaw = 0, state = STATE, school = SCHOOL, clip = CLIP, t = T, lod = 0 } = {}) {
   pending++;
-  const g = await load(model), root = g.scene, mats = apexMaterials(THREE, tex, state, school);
+  const g = await load(model), root = g.scene, mats = apexMaterials(THREE, tex, state, school, BRASS);
   root.traverse((o) => { if (o.isMesh) { o.material = MODE === 'sil' ? sil : (mats[o.material.name] || mats.apexBronze); o.castShadow = o.receiveShadow = true; o.frustumCulled = false; } });
   root.traverse((o) => { if (o.isMesh) o.visible = lodOf(o.name) === lod; });
   const name = model === 'tiger' && clip === 'idle' && state === 'dormant' ? 'dormant' : clip;
@@ -42,8 +42,8 @@ const player = (x, z) => { const p = new THREE.Mesh(new THREE.BoxGeometry(0.9, 2
 const BIG = MODEL === 'tiger';
 let look = new THREE.Vector3(0, BIG ? 1.05 : 0.55, 0), dist = BIG ? 7.6 : 3.4, pitch = 15, yaw = +(Q.get('yaw') || 30);
 if (VIEW === 'turn') await place(MODEL);
-else if (VIEW === 'lods') { const s = BIG ? 3.2 : 1.6; for (let i = 0; i < 3; i++) await place(MODEL, { x: (i - 1) * s * 1.0, lod: i, yaw: 90 }); dist = BIG ? 11 : 5; yaw = 0; }
-else if (VIEW === 'row') { const s = BIG ? 3.0 : 1.5; for (let i = 0; i < 9; i++) await place(MODEL, { x: ((i % 3) - 1) * s, z: (Math.floor(i / 3) - 1) * s * 1.9, school: i, yaw: 60 }); dist = BIG ? 19 : 8; pitch = 35; yaw = 0; look.set(0, 0.6, 0); }
+else if (VIEW === 'lods') { const s = BIG ? 6.8 : 2.2; for (let i = 0; i < 3; i++) await place(MODEL, { x: (i - 1) * s, lod: i, yaw: 90 }); dist = BIG ? 17 : 6; yaw = 0; }
+else if (VIEW === 'row') { for (let i = 0; i < 9; i++) await place(MODEL, { x: ((i % 3) - 1) * (BIG ? 6.8 : 2.2), z: (Math.floor(i / 3) - 1) * (BIG ? 3.4 : 1.6), school: i, yaw: 90 }); dist = BIG ? 25 : 9; pitch = 40; yaw = 0; look.set(0, 0.6, 0); }
 else if (VIEW === 'play') { await place('tiger', { yaw: 20 }); await place('stalker', { x: -3.6, z: 2.4, yaw: 35 }); await place('howler', { x: 3.4, z: 2.2, yaw: -30 }); player(0.6, 4.2); dist = 10.5; pitch = 40; yaw = 0; look.set(0, 1.0, 1.2); }
 else if (VIEW === 'statue') { await place('tiger', { state: 'dormant', clip: 'dormant' }); player(2.4, 2.6); dist = 10.5; pitch = 40; yaw = 0; look.set(0, 1.0, 0.6); }
 const p2 = pitch * Math.PI / 180, y2 = yaw * Math.PI / 180;

@@ -251,6 +251,7 @@ def _join(obs, name):
 def decimate(ob, ratio):
     dm = ob.modifiers.new('dec', 'DECIMATE'); dm.ratio = ratio
     bpy.context.view_layer.objects.active = ob; bpy.ops.object.modifier_apply(modifier='dec')
+    ob.data.validate(clean_customdata=False)  # drop degenerate faces left by the collapse (glTF exporter warned on howler_lod2)
 
 
 def tris(ob): return sum(len(p.vertices) - 2 for p in ob.data.polygons)

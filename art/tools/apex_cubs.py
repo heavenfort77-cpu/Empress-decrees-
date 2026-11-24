@@ -6,7 +6,7 @@
 # legs 0.37 of the height); Howler from 5218 (ding hull on tall legs: legs 0.49 of the height, rim flange, side lugs); ringed leg
 # joints and ornament bands from 5213.
 # Stalker: low tortoise dome on four short splayed legs, long tread bogies with two wheels, a low wedge head that bites straight ahead.
-# Howler: a ding cauldron hull high on four ox legs (knee flanges), short bogies with one big spoked chariot wheel, a raised head with a
+# Howler: a ding cauldron hull on four thick column legs (knee flanges; round 2: bigger hull, narrower rim, thicker legs), short bogies with one big spoked chariot wheel, a raised head with a
 # flared bell mouth (the howl) and two sharp back-swept horns.
 # Output: assets/models/apex/stalker.glb, howler.glb (LOD0/1/2 skinned to one rig; clips idle, move (wheels roll), attack (0.5 s tell)).
 # Usage: python apex_cubs.py OUTDIR [GATES.json]
@@ -81,6 +81,7 @@ def build_stalker(lod):
     for s in (-1, 1):
         spheroid(f'eye{s}', (s * 0.11, 0.8, 0.6), (0.05, 0.03, 0.025), 'apexInlay', 'head', segs=(8, 5))
         if det: prism(f'fang{s}', blade(0.035, 0.03), (s * 0.06, 0.9, 0.48), (s * 0.06, 0.92, 0.38), 'apexInlay', 'head', scale_b=0.1)
+
     # legs and bogies: short splayed legs, long tread bogies with two wheels
     for nm, sx, sf in (('FL', 1, 1), ('FR', -1, 1), ('BL', 1, -1), ('BR', -1, -1)):
         hip = (sx * 0.36, sf * 0.32, 0.55); foot = (sx * 0.46, sf * 0.36, 0.2)
@@ -104,13 +105,13 @@ def bones_stalker():
 def build_howler(lod):
     det = lod == 0; K.S['seg'] = SEGS[lod]; K.S['detail'] = det; sub = 2 if lod == 0 else 1
     # ding hull: rounded-square cauldron, rim flange on top, side lugs, a cloud band under the rim
-    secs = [(-0.34, 0.62, .3, .08), (-0.3, 0.66, .38, .2), (-0.1, 0.68, .42, .27), (0.12, 0.69, .42, .27), (0.3, 0.68, .38, .21), (0.36, 0.66, .3, .1)]
-    _, H = floft('hull', [(f, z + 0.3, w, h) for f, z, w, h in secs], 'apexBronze', 'hull', 'plain', n_exp=3.2, M=22, sub=sub)
-    floft('rim', [(-0.4, 1.24, .46, .03), (0.0, 1.25, .5, .035), (0.42, 1.24, .46, .03)], 'apexBronze', 'hull', 'flange', n_exp=3.4, M=20)
-    floft('band', [(-0.34, 1.12, .43, .04), (0.0, 1.12, .45, .045), (0.36, 1.12, .43, .04)], 'apexBronze', 'hull', 'clouds', n_exp=3.2, M=20)
+    secs = [(-0.38, 0.8, .34, .1), (-0.34, 0.84, .42, .24), (-0.12, 0.86, .46, .33), (0.14, 0.87, .46, .33), (0.34, 0.86, .42, .26), (0.4, 0.84, .34, .12)]
+    _, H = floft('hull', secs, 'apexBronze', 'hull', 'plain', n_exp=3.2, M=22, sub=sub)
+    floft('rim', [(-0.42, 1.18, .44, .03), (0.0, 1.19, .49, .035), (0.44, 1.18, .44, .03)], 'apexBronze', 'hull', 'flange', n_exp=3.4, M=20)
+    floft('band', [(-0.38, 1.07, .45, .045), (0.0, 1.07, .48, .05), (0.4, 1.07, .45, .045)], 'apexBronze', 'hull', 'clouds', n_exp=3.2, M=20)
     for s in (-1, 1):
-        tube(f'lug{s}', (s * 0.42, 0.0, 1.05), (s * 0.58, 0.0, 1.08), 0.05, 0.045, 'apexBronze', 'hull', 'flange', sides=8)
-        ring(f'lugr{s}', (s * 0.6, 0.0, 1.08), (1, 0, 0), 0.07, 0.03, 'apexInlay', 'hull', sides=10)
+        tube(f'lug{s}', (s * 0.44, 0.0, 0.98), (s * 0.55, 0.0, 1.0), 0.05, 0.045, 'apexBronze', 'hull', 'flange', sides=8)
+        ring(f'lugr{s}', (s * 0.565, 0.0, 1.0), (1, 0, 0), 0.07, 0.03, 'apexInlay', 'hull', sides=10)
     for k, t in enumerate((20, 160) if lod < 2 else (20,)):
         strip(f'crack{k}', H, [(H.s_at_f(-0.25 + 0.5 * i / 4), t + (12 if i % 2 else -12)) for i in range(5)], STRIPE_W, 'apexCrack', 'hull')
     if lod < 2:
@@ -118,33 +119,34 @@ def build_howler(lod):
         q, n = H.point(H.s_at_f(-0.05), 0, 0.0)
         prism('hull_mark', rect(0.13, 0.13), tuple(q - n * 0.01), tuple(q + n * 0.02), 'apexBronze', 'hull', 'mark', up=(0, 0, 1))
     # neck and head: raised ox head with a flared bell mouth (the howl) and sharp back-swept horns
-    tube('neck', (0, 0.3, 1.05), (0, 0.42, 1.3), 0.13, 0.11, 'apexBronze', 'head', 'flange', sides=12)
-    _, HD = floft('head', [(0.36, 1.36, .15, .14), (0.5, 1.4, .17, .15), (0.6, 1.4, .14, .12)], 'apexBronze', 'head', 'plain', n_exp=2.4, M=16)
-    floft('bell', [(0.58, 1.42, .12, .07), (0.7, 1.44, .17, .09), (0.8, 1.46, .23, .11)], 'apexBronze', 'head', 'flange', M=16, cap=False)
-    prism('bellin', ngon(0.17, K.seg(12, 6)), (0, 0.79, 1.45), (0, 0.8, 1.45), 'apexDark', 'head')
-    floft('jaw', [(0.56, 1.3, .1, .05), (0.7, 1.31, .14, .06), (0.8, 1.33, .2, .06)], 'apexBronze', 'jaw', 'lozenge', M=14, cap=True)
+    tube('neck', (0, 0.34, 0.95), (0, 0.46, 1.2), 0.15, 0.13, 'apexBronze', 'head', 'flange', sides=12)
+    _, HD = floft('head', [(0.38, 1.24, .17, .16), (0.52, 1.28, .19, .16), (0.62, 1.28, .16, .13)], 'apexBronze', 'head', 'plain', n_exp=2.4, M=16)
+    floft('bell', [(0.6, 1.3, .13, .08), (0.72, 1.32, .18, .1), (0.82, 1.34, .24, .12)], 'apexBronze', 'head', 'flange', M=16, cap=False)
+    floft('bellin', [(0.6, 1.32, .1, .05), (0.76, 1.33, .16, .08)], 'apexDark', 'head', M=12)  # recessed throat (round 1: a flat dark disc read as a pan)
+    floft('jaw', [(0.58, 1.18, .11, .05), (0.72, 1.19, .15, .06), (0.82, 1.21, .21, .06)], 'apexBronze', 'jaw', 'lozenge', M=14, cap=True)
     for s in (-1, 1):
-        spheroid(f'eye{s}', (s * 0.13, 0.55, 1.47), (0.04, 0.03, 0.03), 'apexInlay', 'head', segs=(8, 5))
-        prism(f'horn{s}', blade(0.07, 0.06), (s * 0.12, 0.44, 1.5), (s * 0.34, 0.2, 1.68), 'apexInlay', 'head', scale_b=0.1, up=(0, 0, 1))
-        prism(f'ear{s}', blade(0.09, 0.03), (s * 0.15, 0.4, 1.42), (s * 0.3, 0.32, 1.4), 'apexBronze', 'head', 'flange', scale_b=0.2)
+        spheroid(f'eye{s}', (s * 0.15, 0.57, 1.36), (0.04, 0.03, 0.03), 'apexInlay', 'head', segs=(8, 5))
+        prism(f'horn{s}', blade(0.08, 0.07), (s * 0.13, 0.46, 1.38), (s * 0.4, 0.2, 1.6), 'apexInlay', 'head', scale_b=0.1, up=(0, 0, 1))
+        prism(f'ear{s}', blade(0.09, 0.03), (s * 0.17, 0.42, 1.3), (s * 0.32, 0.34, 1.28), 'apexBronze', 'head', 'flange', scale_b=0.2)
+        if det: prism(f'fang{s}', blade(0.04, 0.035), (s * 0.12, 0.8, 1.25), (s * 0.12, 0.83, 1.14), 'apexInlay', 'head', scale_b=0.1)
     # ox legs: upper and lower with a knee flange, short bogie with one big spoked chariot wheel
     for nm, sx, sf in (('FL', 1, 1), ('FR', -1, 1), ('BL', 1, -1), ('BR', -1, -1)):
-        hip = (sx * 0.3, sf * 0.22, 0.95); knee = (sx * 0.36, sf * 0.26, 0.55); foot = (sx * 0.4, sf * 0.24, 0.24)
-        tube(f'up{nm}', hip, knee, 0.09, 0.075, 'apexBronze', f'leg_{nm}', 'plain', sides=10)
-        ring(f'knee{nm}', knee, (0, 0, 1), 0.09, 0.04, 'apexBronze', f'low_{nm}', sides=10)
-        tube(f'lo{nm}', knee, foot, 0.07, 0.06, 'apexBronze', f'low_{nm}', 'flange', sides=10)
-        ring(f'ank{nm}', foot, (0, 0, 1), 0.075, 0.035, 'apexBronze', f'bogie_{nm}', sides=10)
-        bogie(f'bg{nm}', sx * 0.4, sf * 0.24, 0.13, 0.32, 0.1, 1, f'bogie_{nm}', [f'wheel_{nm}0'], det, spoked=True)
-    tube('tail', (0, -0.36, 0.95), (0, -0.55, 0.75), 0.04, 0.025, 'apexBronze', 'tail', 'flange', sides=8)
-    prism('tailtip', blade(0.08, 0.04), (0, -0.55, 0.75), (0, -0.62, 0.6), 'apexInlay', 'tail', scale_b=0.15)
+        hip = (sx * 0.32, sf * 0.24, 0.8); knee = (sx * 0.36, sf * 0.27, 0.48); foot = (sx * 0.4, sf * 0.25, 0.24)
+        tube(f'up{nm}', hip, knee, 0.12, 0.1, 'apexBronze', f'leg_{nm}', 'plain', sides=10)
+        ring(f'knee{nm}', knee, (0, 0, 1), 0.12, 0.045, 'apexBronze', f'low_{nm}', sides=10)
+        tube(f'lo{nm}', knee, foot, 0.095, 0.085, 'apexBronze', f'low_{nm}', 'flange', sides=10)
+        ring(f'ank{nm}', foot, (0, 0, 1), 0.1, 0.04, 'apexBronze', f'bogie_{nm}', sides=10)
+        bogie(f'bg{nm}', sx * 0.4, sf * 0.25, 0.13, 0.32, 0.1, 1, f'bogie_{nm}', [f'wheel_{nm}0'], det, spoked=True)
+    tube('tail', (0, -0.42, 0.85), (0, -0.6, 0.65), 0.04, 0.025, 'apexBronze', 'tail', 'flange', sides=8)
+    prism('tailtip', blade(0.08, 0.04), (0, -0.6, 0.65), (0, -0.66, 0.5), 'apexInlay', 'tail', scale_b=0.15)
 
 
 def bones_howler():
-    B = [('root', (0, 0, 0), (0, 0.3, 0), None), ('hull', (0, -0.3, 0.98), (0, 0.3, 0.98), 'root'), ('head', (0, 0.3, 1.05), (0, 0.8, 1.45), 'hull'),
-         ('jaw', (0, 0.52, 1.33), (0, 0.8, 1.33), 'head'), ('tail', (0, -0.36, 0.95), (0, -0.62, 0.6), 'hull')]
+    B = [('root', (0, 0, 0), (0, 0.3, 0), None), ('hull', (0, -0.3, 0.86), (0, 0.3, 0.86), 'root'), ('head', (0, 0.34, 0.95), (0, 0.82, 1.32), 'hull'),
+         ('jaw', (0, 0.56, 1.2), (0, 0.82, 1.2), 'head'), ('tail', (0, -0.42, 0.85), (0, -0.66, 0.5), 'hull')]
     for nm, sx, sf in (('FL', 1, 1), ('FR', -1, 1), ('BL', 1, -1), ('BR', -1, -1)):
-        B += [(f'leg_{nm}', (sx * 0.3, sf * 0.22, 0.95), (sx * 0.36, sf * 0.26, 0.55), 'hull'), (f'low_{nm}', (sx * 0.36, sf * 0.26, 0.55), (sx * 0.4, sf * 0.24, 0.24), f'leg_{nm}'),
-              (f'bogie_{nm}', (sx * 0.4, sf * 0.24, 0.24), (sx * 0.4, sf * 0.24 + 0.15, 0.13), f'low_{nm}'), (f'wheel_{nm}0', (sx * 0.4, sf * 0.24, 0.13), (sx * 0.52, sf * 0.24, 0.13), f'bogie_{nm}')]
+        B += [(f'leg_{nm}', (sx * 0.32, sf * 0.24, 0.8), (sx * 0.36, sf * 0.27, 0.48), 'hull'), (f'low_{nm}', (sx * 0.36, sf * 0.27, 0.48), (sx * 0.4, sf * 0.25, 0.24), f'leg_{nm}'),
+              (f'bogie_{nm}', (sx * 0.4, sf * 0.25, 0.24), (sx * 0.4, sf * 0.25 + 0.15, 0.13), f'low_{nm}'), (f'wheel_{nm}0', (sx * 0.4, sf * 0.25, 0.13), (sx * 0.52, sf * 0.25, 0.13), f'bogie_{nm}')]
     return B
 
 

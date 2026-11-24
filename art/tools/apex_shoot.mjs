@@ -22,7 +22,8 @@ S.push(['tiger_pounce_rest', 'model=tiger&yaw=90&clip=pounce&t=0', 640, 640], ['
 S.push(['tiger_roar_windup', 'model=tiger&yaw=25&clip=roar&t=0.5', 640, 640]);
 for (const m of ['stalker', 'howler']) S.push([`${m}_attack_rest`, `model=${m}&yaw=90&clip=attack&t=0`, 480, 480], [`${m}_attack_windup`, `model=${m}&yaw=90&clip=attack&t=0.5`, 480, 480], [`${m}_move`, `model=${m}&yaw=35&clip=move&t=0.3`, 480, 480]);
 for (const m of ['tiger', 'stalker', 'howler']) S.push([`${m}_lods`, `model=${m}&view=lods`, 1280, 480], [`${m}_sil`, `model=${m}&yaw=35&mode=sil`, 480, 480]);
-S.push(['play', 'view=play', 1920, 1080], ['statue', 'view=statue', 1920, 1080]);
+S.push(['play', 'view=play', 1920, 1080], ['play_brass', 'view=play&brass=1', 1920, 1080], ['statue', 'view=statue', 1920, 1080]);
+S.push(['tiger_34_brass', 'model=tiger&yaw=35&brass=1', 640, 640]);
 S.push(['schools_awake', 'model=tiger&view=row&state=awake', 1280, 960], ['schools_dormant', 'model=tiger&view=row&state=dormant', 1280, 960]);
 let bad = 0;
 for (const [name, q, w, h] of S) {

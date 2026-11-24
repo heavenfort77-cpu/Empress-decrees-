@@ -11,7 +11,7 @@ def sheet(name, rows, h=360):
     for row in rows:
         tiles = []
         for f, label in row:
-            p = f if os.path.isabs(f) else os.path.join(S, f + '.png')
+            p = f if (os.path.isabs(f) or os.path.exists(f)) else os.path.join(S, f + '.png')
             if not os.path.exists(p): continue
             im = Image.open(p).convert('RGB'); im = im.resize((round(im.width * h / im.height), h))
             ImageDraw.Draw(im).rectangle([0, 0, 8 + 7 * len(label), 16], fill=(0, 0, 0)); ImageDraw.Draw(im).text((4, 2), label, fill=(255, 255, 255))
@@ -28,7 +28,7 @@ def sheet(name, rows, h=360):
 cpt = (lambda n: os.path.join(C, f'concept_{n}.png')) if C else (lambda n: '')
 sheet('tiger_sheet.png', [
     [(cpt(5107), 'concept 5107 (pick, reference only)'), ('tiger_front', 'front'), ('tiger_34', '3/4'), ('tiger_side', 'side'), ('tiger_back', 'back')],
-    [('tiger_dormant_34', 'dormant (patina)'), ('tiger_awake_34', 'awake (brass, glowing inlay)'), ('tiger_pounce_windup', 'pounce windup 0.5 s'), ('tiger_roar_windup', 'roar windup 0.5 s (throat core)'), ('tiger_sil', 'silhouette')],
+    [('tiger_dormant_34', 'dormant (patina)'), ('tiger_awake_34', 'awake (study bronze 0.4/0.6)'), ('tiger_34_brass', 'owner option: brass'), ('tiger_pounce_windup', 'pounce windup 0.5 s'), ('tiger_roar_windup', 'roar windup 0.5 s (throat core)'), ('tiger_sil', 'silhouette')],
     [('tiger_wake_0', 'wake 0.0 s'), ('tiger_wake_1.4', 'wake 1.4 s'), ('tiger_wake_2.1', 'wake 2.1 s'), ('tiger_wake_2.6', 'wake 2.6 s'), ('tiger_wake_3', 'wake 3.0 s (plates peel)')],
     [('tiger_lods', 'LOD0 / LOD1 / LOD2')]])
 sheet('cubs_sheet.png', [
@@ -36,5 +36,16 @@ sheet('cubs_sheet.png', [
     [(cpt(5218), 'concept 5218 (Howler pick)'), ('howler_front', 'Howler front'), ('howler_34', '3/4'), ('howler_side', 'side'), ('howler_back', 'back'), ('howler_attack_windup', 'attack windup 0.5 s')],
     [('stalker_sil', 'Stalker silhouette'), ('howler_sil', 'Howler silhouette'), ('stalker_move', 'Stalker move'), ('howler_move', 'Howler move')],
     [('stalker_lods', 'Stalker LODs'), ('howler_lods', 'Howler LODs')]])
-sheet('play_sheet.png', [[('play', 'play size (fight framing 10.5 m): tiger, Stalker, Howler, player box 2.05 m')], [('statue', 'royale: dormant statue beside the player box')]], h=540)
+sheet('play_sheet.png', [[('play', 'play size (fight framing 10.5 m): tiger, Stalker, Howler, player box 2.05 m'), ('play_brass', 'same, owner option brass')], [('statue', 'royale: dormant statue beside the player box')]], h=540)
+
+# measured: mean luminance of the tiger inside its silhouette (3/4 view), study bronze vs the brass option (value plan 70-110 on the sheet)
+import numpy as np
+m = os.path.join(S, 'tiger_sil.png')
+if os.path.exists(m):
+    sil = np.asarray(Image.open(m).convert('L').resize((640, 640))) < 128
+    for f in ('tiger_awake_34', 'tiger_34_brass', 'tiger_dormant_34'):
+        p = os.path.join(S, f + '.png')
+        if os.path.exists(p):
+            a = np.asarray(Image.open(p).convert('RGB')).astype(float); lum = 0.2126 * a[..., 0] + 0.7152 * a[..., 1] + 0.0722 * a[..., 2]
+            print(f'MEASURE {f}: mean lum inside silhouette {lum[sil].mean():.0f} (0-255), {sil.mean():.1%} of frame')
 sheet('schools_sheet.png', [[('schools_awake', 'school variants awake (ru dao fa / mo yinyang za / ming zongheng nong)'), ('schools_dormant', 'school variants dormant (statue)')]], h=480)
