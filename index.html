@@ -2402,7 +2402,7 @@ function palCamSnap() {
   palCamTarget(PAL.cur);
   PCAM.wx = PCAM.pwx = PCAM.tx; PCAM.wz = PCAM.pwz = PCAM.tz; PCAM.wd = PCAM.pwd = PCAM.td;
   G.camK = PAL.camT = PCAM.wd / CONFIG.CAM_DIST;
-  PCAM.qx = PCAM.pqx = PCAM.wx; PCAM.qy = PCAM.pqy = 0; PCAM.qz = PCAM.pqz = PCAM.wz; PCAM.qd = PCAM.pqd = PCAM.wd;
+  PCAM.qx = PCAM.pqx = PCAM.wx - P.x; PCAM.qy = PCAM.pqy = -P.y; PCAM.qz = PCAM.pqz = PCAM.wz - P.z; PCAM.qd = PCAM.pqd = PCAM.wd;
 }
 // Modes on the mode menu, in key order.
 const MODES = ['palace', 'rumble'];
@@ -2989,11 +2989,12 @@ function palCamStep(dt) {
   G.camK = (PCAM.wd + (dc - PCAM.wd) * e) / CONFIG.CAM_DIST; PAL.camT = (want ? dc : PCAM.td) / CONFIG.CAM_DIST;
   palCamView(e, dc);
 }
-// The view itself (look point q and distance qd) per fixed step, between the wide framing and the player by the eased b. Its move per step is
-// capped at stepMax: cause (BP10M, CI 45358068047): the ease and the room-change pan each stayed under 0.5 m but added to 0.511 m in one step
-// when a room's squad closed the camera during the pan; the camera position is linear in (q, qd), so scaling both deltas scales its move.
+// The view itself per fixed step: the look point relative to the player (q) and the distance (qd), between the wide framing and the player by
+// the eased b. The camera's own move (relative to the player) per step is capped at stepMax: cause (BP10M, CI 45358068047): the ease and the
+// room-change pan each stayed under 0.5 m but added to 0.511 m in one step when a room's squad closed the camera during the pan. The camera
+// position is linear in (q, qd), so scaling both deltas scales its move; the player's own moves are followed as before (no lag after a jump).
 function palCamView(e, dc) {
-  const fx = PCAM.wx + (P.x - PCAM.wx) * e, fz = PCAM.wz + (P.z - PCAM.wz) * e, fy = P.y * e, d = PCAM.wd + (dc - PCAM.wd) * e;
+  const u = 1 - e, fx = (PCAM.wx - P.x) * u, fz = (PCAM.wz - P.z) * u, fy = -P.y * u, d = PCAM.wd + (dc - PCAM.wd) * e;
   PCAM.pqx = PCAM.qx; PCAM.pqy = PCAM.qy; PCAM.pqz = PCAM.qz; PCAM.pqd = PCAM.qd;
   let dx = fx - PCAM.qx, dy = fy - PCAM.qy, dz = fz - PCAM.qz, dd = d - PCAM.qd;
   const m = Math.hypot(dx, dy + PCAM.sp * dd, dz + PCAM.cp * dd), lim = CONFIG.PAL_CAM.stepMax;
@@ -7190,17 +7191,17 @@ cv.addEventListener('webglcontextrestored', () => { G.ctxLost = false; renderer.
 
 let acc = 0, last = 0, slowT = 0, dbgT = 0, frameMs = 0, errShown = false;
 // PERFRAME-BEGIN
-// Palace view (ticket 10): the per-step view (look point q, distance qd; palCamView, capped per step) interpolated between fixed steps, so 30
-// and 60 fps draw the same path. Lens and tilt never change.
-function palView(a) {
-  const fx = PCAM.pqx + (PCAM.qx - PCAM.pqx) * a, fy = PCAM.pqy + (PCAM.qy - PCAM.pqy) * a, fz = PCAM.pqz + (PCAM.qz - PCAM.pqz) * a;
+// Palace view (ticket 10): the per-step view (look point q relative to the player, distance qd; palCamView, capped per step) interpolated
+// between fixed steps and added to the drawn player position, so 30 and 60 fps draw the same path. Lens and tilt never change.
+function palView(x, y, z, a) {
+  const fx = x + PCAM.pqx + (PCAM.qx - PCAM.pqx) * a, fy = y + PCAM.pqy + (PCAM.qy - PCAM.pqy) * a, fz = z + PCAM.pqz + (PCAM.qz - PCAM.pqz) * a;
   const d = PCAM.pqd + (PCAM.qd - PCAM.pqd) * a;
   camera.position.set(fx, fy + PCAM.sp * d, fz + PCAM.cp * d); camera.lookAt(fx, fy, fz);
 }
 function placeView(alpha) {
   const x = P.px + (P.x - P.px) * alpha, z = P.pz + (P.z - P.pz) * alpha, y = P.py + (P.y - P.py) * alpha;
   playerGroup.position.set(x, y, z);
-  if (G.view === 'follow' && PAL.on) palView(alpha);
+  if (G.view === 'follow' && PAL.on) palView(x, y, z, alpha);
   else if (G.view === 'follow') { camera.position.set(x, y + camOffY * G.camK, z + camOffZ * G.camK); camera.lookAt(x, y, z); }
   else { camera.position.set(CONFIG.OVERVIEW_POS[0] * K, CONFIG.OVERVIEW_POS[1] * K, CONFIG.OVERVIEW_POS[2] * K); camera.lookAt(0, 0, -12 * K); }
   camera.updateMatrixWorld();
