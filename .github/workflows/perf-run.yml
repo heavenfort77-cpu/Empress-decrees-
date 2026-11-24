@@ -24,17 +24,20 @@ jobs:
         run: npm install --no-save --no-audit --no-fund playwright@${PW_VERSION} && npx playwright install chromium
       - name: Machine
         run: (sysctl -n machdep.cpu.brand_string; system_profiler SPDisplaysDataType | grep -E "Chipset|Metal|Resolution" || true) | tee machine.txt
-      - name: Probe (real GPU)
+      - name: Probe (real GPU, vsync off)
         run: node ci_probe/perfgpu.mjs 2>&1 | tee perf.txt
+      - name: Probe (real GPU, vsync on)
+        if: always()
+        run: VSYNC=1 node ci_probe/perfgpu.mjs 2>&1 | tee perf_vsync.txt
       - name: Commit to ci-out
         if: always()
         run: |
           D=out/perf/${GITHUB_RUN_ID}
-          cp perf.txt machine.txt /tmp/ 2>/dev/null || true
+          cp perf.txt perf_vsync.txt machine.txt /tmp/ 2>/dev/null || true
           git config user.name Claude && git config user.email noreply@anthropic.com
           git fetch origin ci-out
           git checkout -B ci-out origin/ci-out
-          mkdir -p $D && cp /tmp/perf.txt /tmp/machine.txt $D/ 2>/dev/null || true
+          mkdir -p $D && cp /tmp/perf.txt /tmp/perf_vsync.txt /tmp/machine.txt $D/ 2>/dev/null || true
           echo "sha ${GITHUB_SHA} run ${GITHUB_RUN_ID} attempt ${GITHUB_RUN_ATTEMPT}" > $D/meta.txt
           git add out && git commit -qm "perf ${GITHUB_RUN_ID}"
           for k in 1 2 3; do git push origin ci-out && break; git pull --rebase origin ci-out; done

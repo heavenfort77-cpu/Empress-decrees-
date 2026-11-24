@@ -1,1 +1,1 @@
-reference,palace_heavy,palace_heavy_low,palace_heavy
+empty,webglmin,reference,palace_heavy,palace_heavy_low,webglmin,palace_heavy
