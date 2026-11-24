@@ -106,17 +106,21 @@ def outward_for(G, loop, x0, x1):
     """outward direction of a band face from its design centre: across the belt for side faces (all verts on one x), else away from
     the loop centre line (outer faces out, inner faces in, judged by distance to the centre line)."""
     at, tot, hl, rp = loop
-    xm = (x0 + x1) / 2; sx = 1 if x1 > x0 else -1
+    xm = (x0 + x1) / 2; solid = bool(G['caps'])
     def fn(c, idx):
         xs = {round(G['verts'][i][0], 6) for i in idx}
         if len(xs) == 1: return ((1 if c[0] > xm else -1) * 1.0, 0.0, 0.0)
-        # nearest centre-line point
+        # a solid belt has only its running surface: always outward (a chord midpoint on an arc lies just inside the centre line, so the
+        # distance test below would turn it in; round A1 bug)
+        if solid: return (0.0,) + nearest(c)[3:]
+        _, f, z, nf, nz = nearest(c); s = (c[1] - f) * nf + (c[2] - z) * nz
+        return (0.0, nf, nz) if s >= 0 else (0.0, -nf, -nz)
+    def nearest(c):
         best = None
-        for k in range(64):
-            (f, z), (nf, nz) = at(tot * k / 64); d = (c[1] - f) ** 2 + (c[2] - z) ** 2
+        for k in range(256):
+            (f, z), (nf, nz) = at(tot * k / 256); d = (c[1] - f) ** 2 + (c[2] - z) ** 2
             if best is None or d < best[0]: best = (d, f, z, nf, nz)
-        _, f, z, nf, nz = best; s = (c[1] - f) * nf + (c[2] - z) * nz
-        return (0.0, nf, nz) if s >= -1e-6 else (0.0, -nf, -nz)
+        return best
     return fn
 
 
@@ -177,6 +181,17 @@ def selftest():
         # mutation 2: unsnapped repeat length -> the loop's U span is not whole (a seam)
         G2 = geometry(loop, -0.06, 0.06, thick, mpr_target=0.5); span2 = G2['tot'] / (G2['mpr'] * 1.07)
         rows.append((abs(span2 - round(span2)) >= TOL_WHOLE, f'tread selftest thick={thick}: mutation (unsnapped repeat, span {span2:.3f}) caught'))
+    # orientation: every band face's wanted direction points away from the belt material (solid: away from the loop centre line)
+    for thick in (None, 0.04):
+        G = geometry(loop, -0.06, 0.06, thick); fn = outward_for(G, loop, -0.06, 0.06); bad = 0
+        for fc in G['band']:
+            idx = [i for i, _ in fc]; c = [sum(G['verts'][i][k] for i in idx) / len(idx) for k in range(3)]; w = fn(c, idx)
+            (f, z), (nf, nz) = loop[0](0.0)
+            if thick is None:
+                cz = 0.2  # loop centre height: outward faces point away from the centre line of the stadium
+                fcen = max(min(c[1], 0.3), -0.3); away = (c[1] - fcen) * w[1] + (c[2] - cz) * w[2]
+                bad += away <= 0
+        rows.append((bad == 0, f'tread selftest thick={thick}: band faces turned outward ({bad} turned in)'))
     return rows
 
 

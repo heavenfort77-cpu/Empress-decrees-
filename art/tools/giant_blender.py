@@ -56,7 +56,7 @@ MOTIF_MELT = 1.6
 # height. Every mesh vertex and bone is remapped in height: WARP_Z0..WARP_HIP (legs) stretch so the hip rises by LEG_ADD, WARP_HIP..WARP_Z1
 # (pelvis, belt, abdomen) shorten by the same amount, below WARP_Z0 (feet) and above WARP_Z1 (chest, arms, beam, head) nothing moves, so
 # grips, beam, heights and the walk targets stay where they were. Applied in put() and to the rig; directions are never remapped.
-WARP_Z0, WARP_HIP, WARP_Z1, LEG_ADD = 0.3, 1.95, 2.8, 0.2
+WARP_Z0, WARP_HIP, WARP_Z1, LEG_ADD = 0.3, 1.95, 3.1, 0.28  # round A1: 2.8 / 0.2 still read heavy
 def Wz(z):
     if z <= WARP_Z0 or z >= WARP_Z1: return z
     if z <= WARP_HIP: return WARP_Z0 + (z - WARP_Z0) * (WARP_HIP + LEG_ADD - WARP_Z0) / (WARP_HIP - WARP_Z0)
@@ -260,17 +260,18 @@ def build_body(lod):
     for s in (-1, 1):
         side = 'L' if s > 0 else 'R'; S, E, G = SHOULDER[s], ELBOW[s], GRIP[s]
         # cast pauldron: a domed plate over the shoulder with a flange rim (not a ball)
-        if d1: spheroid(f'shoulder_{side}', tuple(S + V(s * 0.02, 0, -0.02)), (0.24, 0.24, 0.22), 'palBronze', f'upper_{side}', segs=(10, 7))
-        loft(f'pauldron_{side}', [(S.z - 0.17, S.y, 0.26, 0.29, S.x + s * 0.08), (S.z + 0.02, S.y, 0.26, 0.28, S.x + s * 0.05), (S.z + 0.15, S.y, 0.17, 0.2, S.x + s * 0.02), (S.z + 0.21, S.y, 0.05, 0.07, S.x)],
+        # FIX-A round A2: pauldrons and arms about 12% slimmer (the domes read heavy at the game camera)
+        if d1: spheroid(f'shoulder_{side}', tuple(S + V(s * 0.02, 0, -0.02)), (0.21, 0.21, 0.2), 'palBronze', f'upper_{side}', segs=(10, 7))
+        loft(f'pauldron_{side}', [(S.z - 0.17, S.y, 0.23, 0.26, S.x + s * 0.06), (S.z + 0.02, S.y, 0.23, 0.25, S.x + s * 0.04), (S.z + 0.15, S.y, 0.15, 0.18, S.x + s * 0.02), (S.z + 0.21, S.y, 0.05, 0.07, S.x)],
              'palBronze', f'upper_{side}', 'plain', n_exp=2.4, M=18, cap=True)
-        if d1: loft(f'pauldron_rim_{side}', [(S.z - 0.21, S.y, 0.29, 0.32, S.x + s * 0.09), (S.z - 0.15, S.y, 0.29, 0.32, S.x + s * 0.08)], 'palBronze', f'upper_{side}', 'flange', n_exp=2.4, M=18, cap=False)
-        tube(f'upper_{side}', tuple(S), tuple(E), 0.2, 0.17, 'palBronze', f'upper_{side}', n=10)
-        if d1: spheroid(f'elbow_{side}', tuple(E), (0.17, 0.17, 0.17), 'palBronze', f'fore_{side}', segs=(8, 6))
+        if d1: loft(f'pauldron_rim_{side}', [(S.z - 0.21, S.y, 0.26, 0.29, S.x + s * 0.07), (S.z - 0.15, S.y, 0.26, 0.29, S.x + s * 0.06)], 'palBronze', f'upper_{side}', 'flange', n_exp=2.4, M=18, cap=False)
+        tube(f'upper_{side}', tuple(S), tuple(E), 0.18, 0.15, 'palBronze', f'upper_{side}', n=10)
+        if d1: spheroid(f'elbow_{side}', tuple(E), (0.15, 0.15, 0.15), 'palBronze', f'fore_{side}', segs=(8, 6))
         dirv = (G - E).normalized(); W = G - dirv * 0.14
-        tube(f'fore_{side}', tuple(E), tuple(W), 0.17, 0.13, 'palBronze', f'fore_{side}', n=10)
+        tube(f'fore_{side}', tuple(E), tuple(W), 0.15, 0.12, 'palBronze', f'fore_{side}', n=10)
         if d1:
             for k, t in enumerate((0.3, 0.62)):
-                c = E + (W - E) * t; rr = 0.17 + (0.13 - 0.17) * t
+                c = E + (W - E) * t; rr = 0.15 + (0.12 - 0.15) * t
                 tube(f'bracer_{side}{k}', tuple(c - dirv * 0.03), tuple(c + dirv * 0.03), rr + 0.03, rr + 0.03, 'palBronze', f'fore_{side}', 'flange', n=10)
         spheroid(f'fist_{side}', tuple(G + V(0, 0.03, -0.02)), (0.16, 0.17, 0.17), 'palBronze', f'fore_{side}', segs=(10, 7))
         if d0: spheroid(f'thumb_{side}', tuple(G + V(-s * 0.1, 0.12, 0.08)), (0.06, 0.08, 0.05), 'palBronze', f'fore_{side}', segs=(6, 4))
@@ -559,6 +560,7 @@ def motif(i, g, lod):
             a = 90 + 360 * k / nn
             p, nrm = surf(TORSO_HI, 3.38, a, -0.02, 2.4); d = nrm + V(0, 0, 0.3)
             if abs(math.sin(math.radians(a)) + 1) < 0.2: continue  # straight back: the beam rests there
+            if math.sin(math.radians(a)) > 0.75: continue  # round A1: front heads went 0.65 m into the floor in the fall; face kept clear
             spearhead(f'{g}_ruff{k}', tuple(p), tuple(d), (0, 0, 1), 'chest', L=0.95, w=0.22)
         MELT['k'] = 1.0
     elif m == 'spear_bundle':
@@ -580,7 +582,7 @@ def motif(i, g, lod):
             t = math.radians(a); p, nrm = surf(SKIRT[0], 2.1, 90 + a * 1.2, 0.02, 2.2)
             ji(f'{g}_ap{k}', tuple(p), (math.sin(t) * 0.9, 0.45, -1), (1, 0, 0), 'pelvis', L=1.1)
         for s in (-1, 1):
-            p, nrm = surf(TORSO_LO, 2.32, 90 - s * 90, 0.0, 2.4); ji(f'{g}_hip{s}', tuple(p), (s * 0.6, 0.1, 1), (0, 1, 0), 'pelvis', L=1.2)
+            p, nrm = surf(TORSO_LO, 2.32, 90 - s * 90, 0.0, 2.4); ji(f'{g}_hip{s}', tuple(p), (s * 1.0, 0.25, 0.7), (0, 1, 0), 'pelvis', L=1.25)  # round A2: out past the arms
         MELT['k'] = 1.0
     elif m == 'sword_fan':
         c = V(0, -0.46, 3.25)

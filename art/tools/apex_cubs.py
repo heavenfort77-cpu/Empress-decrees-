@@ -135,9 +135,10 @@ def cup(name, secs, wall, mat, bone, row='flange', throat_mat=None):
     fwd = axis[-1] - axis[-2]
     for i in range(n):
         j = (i + 1) % n; face([outer[-1][i], outer[-1][j], inner[-1][j], inner[-1][i]], fwd)
+    throat = [v.co.copy() for v in inner[0]]  # read before _put frees bm (round A1: ReferenceError on the freed verts)
     K._put(name, bm, mat, bone, row, True)
     if throat_mat:  # the throat plate (dark), facing out of the mouth
-        bm2 = bmesh.new(); vs = [bm2.verts.new(v.co) for v in inner[0]]; face2 = bm2.faces.new(vs); face2.normal_update()
+        bm2 = bmesh.new(); vs = [bm2.verts.new(co) for co in throat]; face2 = bm2.faces.new(vs); face2.normal_update()
         if face2.normal.dot(fwd) < 0: face2.normal_flip()
         K._put(name + '_throat', bm2, throat_mat, bone, 'plain', True)
 
