@@ -1,1 +1,1 @@
-{"mode": "mut", "label": "cam11-mut2", "muts": [{"name": "no focus blend", "want": "1204", "a": "    focus: 0.3,", "b": "    focus: 0,"}]}
+{"mode": "suite", "label": "cam11-final"}
