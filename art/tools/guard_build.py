@@ -158,13 +158,13 @@ def zu_clips(arm):
 # 弩手 crossbowman: crossbow level at the chest (wide horizontal), bolt case on the back; volley raises the bow ------------------------------
 NU_R, NU_L = (0.12, 0.34, 0.95), (-0.1, 0.42, 0.98)
 NU_TIP = (0.0, 0.75, 0.98)
-NU_DZ = -0.12
+NU_DZ = -0.16  # round 3: lower still (the kneeling archer read; run 45445673747 zu/nu IoU 0.75 at the limit)
 def nu_build(d):
     base(d, r_fore=NU_R, l_fore=NU_L, dz=NU_DZ)
     # stock from the right fist forward, prod (bow) across, string; bronze trigger box (batch-cast Qin trigger)
     prism('stock', rect(0.05, 0.06), (0.04, 0.1, 0.97), NU_TIP, LQ, 'weapon', 'lacquer')
-    arc = [(math.sin(a) * 0.56, 0.68 - (1 - math.cos(a)) * 0.3, 0.98) for a in [math.radians(x) for x in range(-70, 71, 20 if d else 35)]]
-    path_tube('prod', arc, 0.035, BR, 'weapon', 'flange', sides=6)  # the prod spans 1.05 m, wider than the hull: the 弩手 reads wide and low
+    arc = [(math.sin(a) * 0.64, 0.68 - (1 - math.cos(a)) * 0.3, 0.98) for a in [math.radians(x) for x in range(-70, 71, 20 if d else 35)]]
+    path_tube('prod', arc, 0.035, BR, 'weapon', 'flange', sides=6)  # the prod spans 1.2 m, wider than the hull: the 弩手 reads wide and low
     if d:
         prism('trigger', rect(0.06, 0.08), (0.04, 0.3, 0.94), (0.04, 0.4, 0.94), BR, 'weapon', 'mark')
         tube('string_l', arc[0], (0.0, 0.42, 0.98), 0.006, 0.006, LQ, 'weapon', 'cord', sides=4)
