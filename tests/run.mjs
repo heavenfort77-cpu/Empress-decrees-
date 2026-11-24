@@ -2856,7 +2856,7 @@ try {
     const G = __game, C = G.config, Z = window.__zh, R = C.KITS.zongheng.skills[2], o = {};
     Z.start(3); G.setHp(1e9); G.teleport(0, -12); const at = { 0: [3, -20], 1: [5, -20], 2: [-14, -40] }, park = () => { for (const k in at) G.placeBot(+k, at[k][0], at[k][1]); };
     park(); G.step(2); G.setCharge(-1, C.ULT.full); o.cast = G.cast(2, 4, -20); G.step(1); const s0 = G.zhState(-1);
-    o.circle = { t: +s0.circle.t.toFixed(3), r: s0.circle.r, inScene: s0.circle.inScene, vis: s0.circle.vis, status: s0.status.includes(G.text.st_buong) };
+    o.circle = { t: s0.circle.t, r: s0.circle.r, inScene: s0.circle.inScene, vis: s0.circle.vis, status: s0.status.includes(G.text.st_buong) };
     Z.hold(0.6, park); o.turned = [G.zhState(0).tgt, G.zhState(0).why, G.zhState(1).tgt];
     G.setBotHp(1, 100); G.strike(0, 1, 20); const k1 = G.zhState(1).armorK; o.inside = +(100 - G.zhState(1).hp).toFixed(6);
     at[1] = [-6, -27]; park(); G.setBotHp(1, 100); G.strike(0, 1, 20); o.outside = +(100 - G.zhState(1).hp).toFixed(6); o.k1 = k1;
