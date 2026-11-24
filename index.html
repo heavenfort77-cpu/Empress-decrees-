@@ -640,6 +640,22 @@ const CONFIG = {
   // fowR = fog radius inside the palace (walls block sight instead), m; lakeY = height of the black lake under the platform, m;
   // saveKey = browser storage key of the last mode picked.
   PALACE: { origin: [400, 0], wallH: 4, lowH: 0.8, wallT: 0.5, doorW: 4, doorH: 3.5, previewR: 6, openR: 2.2, closeR: 4.5, passM: 1.2, fowR: 60, lakeY: -6, saveKey: 'empressDecrees.mode' },
+  // Palace textures, painted in klad (owner go 24 Nov 16:58; SAMPLE 01: one hall look + the stone lion, waiting for the owner's approval).
+  // Only palace materials use them (Royal Rumble keeps its box colours). on false = the palace keeps its box colours.
+  TEX: {
+    // Switch for the palace textures.
+    on: true,
+    // Image per palace material (static files beside index.html; PNG for the sample, KTX2 after approval).
+    files: { palFloor: 'assets/tex/hall_floor.png', palWall: 'assets/tex/hall_wall.png', palPillar: 'assets/tex/pillar.png', palDoor: 'assets/tex/door.png', palLion: 'assets/tex/lion_stone.png' },
+    // Metres of floor or wall per texture repeat (world-space mapping); the wall image spans the wall height once (frieze at the top).
+    tileM: { palFloor: 4, palWall: 4, palLion: 1.6 },
+    // Repeats of the pillar image around a pillar (it spans the pillar height once).
+    pillarU: 2,
+    // Anisotropic filtering (owner rule: 4 max).
+    aniso: 4,
+    // Longest wait for the images at load, ms; past it the palace keeps its box colours.
+    waitMs: 5000,
+  },
   // Context camera in the palace (owner 24 Nov 13:18; ticket 10, owner 24 Nov 15:43-15:46). Field of view and pitch never change (no fisheye, no
   // squashed characters): the camera only moves back/up or in. Wide (no enemy within attack distance) = as far out as the floor allows: a room that
   // fits whole above the floor is shown whole, a bigger one is revealed as you walk ("reasonable larger character as room can show bit by bit as walk").
@@ -1248,6 +1264,24 @@ mat('aim', COL.aim, { emissive: COL.aim, emissiveIntensity: 0.6 }); mat('blob', 
 mat('terrace', COL.court); mat('stone', COL.stone); mat('broken', COL.broken, { roughness: 1 });
 mat('eyes', COL.eyes, { emissive: COL.eyes, emissiveIntensity: 0.4 }); mat('ring', COL.ring, { emissive: COL.ring, emissiveIntensity: 1.2 });
 mat('altarOn', COL.altarOn, { emissive: COL.altarOn, emissiveIntensity: 0.9 }); mat('altarOff', COL.altarOff, { roughness: 1 });
+// Palace textures (CONFIG.TEX): own materials, so Royal Rumble keeps its box colours. The images load before anything is built or drawn (and
+// upload in the load-time warm-up); any image missing or late = every palace material keeps its box colour (never half textured).
+const TEXCOL = { palFloor: COL.coreFloor, palWall: COL.wall, palPillar: COL.pillar, palDoor: COL.bronze, palLion: COL.stone };
+mat('palFloor', TEXCOL.palFloor); mat('palWall', TEXCOL.palWall); mat('palPillar', TEXCOL.palPillar, { roughness: 0.75 });
+mat('palDoor', TEXCOL.palDoor, { metalness: 0.4, roughness: 0.6 }); mat('palLion', TEXCOL.palLion);
+const PTEX = { on: false, list: [] };
+if (CONFIG.TEX.on) {
+  const TX = CONFIG.TEX, ld = new THREE.TextureLoader(), keys = Object.keys(TX.files);
+  const all = Promise.all(keys.map((k) => ld.loadAsync(TX.files[k])));
+  const got = await Promise.race([all.catch(() => null), new Promise((res) => setTimeout(() => res(null), TX.waitMs))]);
+  if (got) {
+    for (let i = 0; i < keys.length; i++) {
+      const t = got[i]; t.colorSpace = THREE.SRGBColorSpace; t.wrapS = t.wrapT = THREE.RepeatWrapping; t.anisotropy = Math.min(TX.aniso, renderer.capabilities.getMaxAnisotropy());
+      M[keys[i]].map = t; M[keys[i]].color.set(0xffffff); PTEX.list.push(t);
+    }
+    PTEX.on = true;
+  }
+}
 M.rail = M.wall;
 const warnMat = new THREE.MeshStandardMaterial({ color: COL.court, emissive: COL.warn, emissiveIntensity: 0.5, roughness: 0.9 });
 mat('dummy', COL.dummy, { roughness: 0.8 }); mat('hit', COL.hit, { emissive: COL.hit, emissiveIntensity: 1 });
@@ -1275,15 +1309,24 @@ mat('crab', COL.crab, { roughness: 0.6 }); mat('wander', COL.wander, { roughness
 // ===================== Geometry helpers (merge static parts per section and material) =====================
 function box(w, h, d, x, y, z) { const g = new THREE.BoxGeometry(w, h, d); g.translate(x, y, z); return g; }
 function cyl(r, h, x, y, z, seg) { const g = new THREE.CylinderGeometry(r, r, h, seg || 14); g.translate(x, y, z); return g; }
-function mergeGeoms(list) {
+// uv (optional, palace textures): { su, sv } keeps each part's own UVs scaled (door panels, pillars); { tile, vh } maps by world position,
+// top faces x/tile, z/tile and side faces along/tile, y/vh (walls span their height once: vh = wall height).
+function mergeGeoms(list, uv) {
   let nv = 0, ni = 0;
   for (const g of list) { nv += g.attributes.position.count; ni += g.index ? g.index.count : g.attributes.position.count; }
-  const pos = new Float32Array(nv * 3), nor = new Float32Array(nv * 3);
+  const pos = new Float32Array(nv * 3), nor = new Float32Array(nv * 3), uvs = uv ? new Float32Array(nv * 2) : null;
   const idx = nv > 65535 ? new Uint32Array(ni) : new Uint16Array(ni);
   let vo = 0, io = 0;
   for (const g of list) {
     const c = g.attributes.position.count;
     pos.set(g.attributes.position.array, vo * 3); nor.set(g.attributes.normal.array, vo * 3);
+    if (uv && uv.tile) {
+      const pa = g.attributes.position.array, na = g.attributes.normal.array;
+      for (let i = 0; i < c; i++) {
+        const x = pa[i * 3], y = pa[i * 3 + 1], z = pa[i * 3 + 2], ax = Math.abs(na[i * 3]), ay = Math.abs(na[i * 3 + 1]), az = Math.abs(na[i * 3 + 2]), o = (vo + i) * 2;
+        if (ay >= ax && ay >= az) { uvs[o] = x / uv.tile; uvs[o + 1] = z / uv.tile; } else { uvs[o] = (ax > az ? z : x) / uv.tile; uvs[o + 1] = y / uv.vh; }
+      }
+    } else if (uv) { const a = g.attributes.uv.array; for (let i = 0; i < c; i++) { uvs[(vo + i) * 2] = a[i * 2] * uv.su; uvs[(vo + i) * 2 + 1] = a[i * 2 + 1] * uv.sv; } }
     if (g.index) { const a = g.index.array; for (let i = 0; i < a.length; i++) idx[io + i] = a[i] + vo; io += a.length; }
     else { for (let i = 0; i < c; i++) idx[io + i] = vo + i; io += c; }
     vo += c; g.dispose();
@@ -1291,6 +1334,7 @@ function mergeGeoms(list) {
   const out = new THREE.BufferGeometry();
   out.setAttribute('position', new THREE.BufferAttribute(pos, 3));
   out.setAttribute('normal', new THREE.BufferAttribute(nor, 3));
+  if (uvs) out.setAttribute('uv', new THREE.BufferAttribute(uvs, 2));
   out.setIndex(new THREE.BufferAttribute(idx, 1));
   out.computeBoundingSphere();
   return out;
@@ -2410,6 +2454,9 @@ const DOOR_VARS = { room: '', decree: '', reward: '', stir: '' }, PAL_END = { s:
 function palPart(r, m, g) { const p = r.parts; (p[m] || (p[m] = [])).push(g); }
 function palSolid(r, x0, x1, z0, z1) { const b = { s: r, x0, x1, z0, z1 }; PAL.solids.push(b); return b; }
 // Every plan in PAL_LAYOUTS is built here once (BP05); palUseLayout points PAL at the one a run uses.
+// UV mapping per textured palace material (CONFIG.TEX; mergeGeoms): floors, walls and lions by world position, door panels and pillars by their own UVs.
+const PALUV = { palFloor: { tile: CONFIG.TEX.tileM.palFloor, vh: CONFIG.TEX.tileM.palFloor }, palWall: { tile: CONFIG.TEX.tileM.palWall, vh: CONFIG.PALACE.wallH },
+  palLion: { tile: CONFIG.TEX.tileM.palLion, vh: CONFIG.TEX.tileM.palLion }, palDoor: { su: 1, sv: 1 }, palPillar: { su: CONFIG.TEX.pillarU, sv: 1 } };
 for (const LK in PAL_LAYOUTS) {
   const LAY = PAL_LAYOUTS[LK];
   PAL.rooms = []; PAL.doors = []; PAL.byId = {}; PAL.floors = []; PAL.solids = []; PAL.start = null;
@@ -2437,13 +2484,13 @@ for (const LK in PAL_LAYOUTS) {
     else throw new Error('Palace door without a shared edge: ' + dd.a + ' / ' + dd.b);
     const c = (vert ? POZ : POX) + dd.at, x = vert ? e : c, z = vert ? c : e;
     const solidB = vert ? palSolid(A, e - t, e + t, c - w / 2, c + w / 2) : palSolid(A, c - w / 2, c + w / 2, e - t, e + t);
-    const panel = new THREE.Mesh(vert ? box(t * 2, PC.doorH, w, x, PC.doorH / 2, z) : box(w, PC.doorH, t * 2, x, PC.doorH / 2, z), M.bronze);
+    const panel = new THREE.Mesh(mergeGeoms([vert ? box(t * 2, PC.doorH, w, x, PC.doorH / 2, z) : box(w, PC.doorH, t * 2, x, PC.doorH / 2, z)], PALUV.palDoor), M.palDoor);
     panel.castShadow = true; panel.receiveShadow = true; panel.matrixAutoUpdate = false; panel.updateMatrix();
     const group = new THREE.Group(); group.add(panel); group.matrixAutoUpdate = false; group.updateMatrix();
     const d = { ra: A, rb: B, vert, e, c, w, x, z, open: false, locked: false, idx: PAL.doors.length, solid: solidB, panel, group };
     A.doors.push(d); B.doors.push(d); PAL.doors.push(d);
   }
-  const FMAT = { hall: 'core', court: 'court', corridor: 'bridge', garden: 'court', bridge: 'bridge', core: 'core' };
+  const FMAT = { hall: 'palFloor', court: 'court', corridor: 'bridge', garden: 'court', bridge: 'bridge', core: 'palFloor' };
   for (const r of PAL.rooms) {
     // Floor slab (no rails: the walking rule stops at its edge).
     const f = { sec: r.id, x0: r.x0, x1: r.x1, z0: r.z0, z1: r.z1, y: 0, mat: FMAT[r.type], th: 1.2, noRail: true, s: r, active: true, pal: true };
@@ -2459,14 +2506,14 @@ for (const LK in PAL_LAYOUTS) {
       let u = lo;
       for (const [g0, g1] of gaps.concat([[up, up]])) {
         if (g0 - u > 0.01) {
-          if (vert) { palPart(r, 'wall', box(b - a, h, g0 - u, (a + b) / 2, h / 2, (u + g0) / 2)); palSolid(r, a, b, u, g0); }
-          else { palPart(r, 'wall', box(g0 - u, h, b - a, (u + g0) / 2, h / 2, (a + b) / 2)); palSolid(r, u, g0, a, b); }
+          if (vert) { palPart(r, 'palWall', box(b - a, h, g0 - u, (a + b) / 2, h / 2, (u + g0) / 2)); palSolid(r, a, b, u, g0); }
+          else { palPart(r, 'palWall', box(g0 - u, h, b - a, (u + g0) / 2, h / 2, (a + b) / 2)); palSolid(r, u, g0, a, b); }
         }
         u = g1;
       }
     }
     // Props per room type (boxes until the art stage): pillars, a dais, stones, shrubs, silk curtains (walk-through), the throne.
-    const pillar = (x, z) => { palPart(r, 'pillar', cyl(0.6, PC.wallH, x, PC.wallH / 2, z)); palSolid(r, x - 0.6, x + 0.6, z - 0.6, z + 0.6); };
+    const pillar = (x, z) => { palPart(r, 'palPillar', cyl(0.6, PC.wallH, x, PC.wallH / 2, z)); palSolid(r, x - 0.6, x + 0.6, z - 0.6, z + 0.6); };
     const block = (m, sx, sy, sz, x, z) => { palPart(r, m, box(sx, sy, sz, x, sy / 2, z)); palSolid(r, x - sx / 2, x + sx / 2, z - sz / 2, z + sz / 2); };
     const curtain = (x, z) => { palPart(r, 'silk', box(4, 3.5, 0.15, x, 1.75 + 0.3, z)); palPart(r, 'wall', box(4.4, 0.25, 0.25, x, 3.9, z)); };
     if (r.type === 'hall') {
@@ -2484,7 +2531,7 @@ for (const LK in PAL_LAYOUTS) {
     }
     for (const key in r.parts) {
       const isFloor = key.startsWith('floor:'), m = isFloor ? M[key.slice(6)] : M[key];
-      const mesh = new THREE.Mesh(mergeGeoms(r.parts[key]), m);
+      const mesh = new THREE.Mesh(mergeGeoms(r.parts[key], PALUV[isFloor ? key.slice(6) : key]), m);
       mesh.receiveShadow = true; mesh.castShadow = key !== 'spawn';
       mesh.matrixAutoUpdate = false; mesh.updateMatrix();
       if (isFloor) { r.floorMeshes.push(mesh); r.floorMats.push(m); }
@@ -2569,7 +2616,7 @@ PIECE_SIDES.push({ list: P2_GIANT_T, hurt(u, n) { hitGiant(u, n, null, 'piece');
       const x = POX + p.x, z = POZ + p.z;
       if (p.type === 'lion') {
         const f = p.fz || 1;
-        add('stone', box(1.6, 0.6, 2.2, x, 0.3, z)); add('stone', box(1.2, 1.2, 1.6, x, 1.2, z)); add('stone', box(1.0, 1.0, 0.8, x, 2.1, z + 0.6 * f));
+        add('palLion', box(1.6, 0.6, 2.2, x, 0.3, z)); add('palLion', box(1.2, 1.2, 1.6, x, 1.2, z)); add('palLion', box(1.0, 1.0, 0.8, x, 2.1, z + 0.6 * f));
         palSolid(r, x - 0.9, x + 0.9, z - 1.1, z + 1.1);
         const ring = addStatic(r.group, ringMesh(CONFIG.LION.radius, x, 0, z)); ring.visible = false;
         PIECE_HAZ.push({ kind: 'lion', cfg: CONFIG.LION, x, z, y: 0, s: r, ring, state: 0, t: 0, statue: false, mark: false, eyes: null });
@@ -2599,7 +2646,7 @@ PIECE_SIDES.push({ list: P2_GIANT_T, hurt(u, n) { hitGiant(u, n, null, 'piece');
         PIECE_SMOKE.push({ s: r, x, z, r: rr });
       }
     }
-    for (const k in parts) still(r, new THREE.Mesh(mergeGeoms(parts[k]), M[k]), true);
+    for (const k in parts) still(r, new THREE.Mesh(mergeGeoms(parts[k], PALUV[k]), M[k]), true);
     if (puffs.length) { const sm = still(r, new THREE.Mesh(mergeGeoms(puffs), M.smoke), false); sm.receiveShadow = false; sm.renderOrder = 2; }
   }
   }
@@ -7326,6 +7373,8 @@ for (const h of HAZARDS) h.ring.visible = true;
 for (const b of BOTLIST) if (b.group.parent) b.group.visible = true;
 placeView(1);
 renderer.compile(scene, camera);
+// Palace textures (CONFIG.TEX) upload now, under the load, not on the first palace frame.
+for (const t of PTEX.list) renderer.initTexture(t);
 renderer.render(scene, camera);
 // One draw of the whole map so every section's buffers upload at load, not when first seen.
 setView('overview'); placeView(1); renderer.render(scene, camera);
