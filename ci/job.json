@@ -1,1 +1,1 @@
-{"mode": "cmd", "cmd": "node ci_probe/t10_hunt.mjs", "label": "t10-hunt-1"}
+{"mode": "cmd", "cmd": "node ci_probe/huntsweep.mjs", "label": "t12-sweep"}
