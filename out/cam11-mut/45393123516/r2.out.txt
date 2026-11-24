@@ -1,0 +1,3 @@
+FAIL 42 bot sweep 9 runs: 0 broken invariants, every run ends, never-dodge always loses, 0.3 s and 0.15 s reaction each win at least once :: 99/012:lost 7s hp0 demon905 | 99/120:lost 8s hp0 demon915 | 99/210:lost 8s hp0 demon915 | 0.3/012:lost 16s hp0 demon745 | 0.3/120:lost 19s hp0 demon845 | 0.3/210:lost 50s hp0 demon245 | 0.15/012:lost 24s hp0 demon570 | 0.15/120:won 68s hp65 demon0 | 0.15/210:won 64s hp100 demon0
+FAIL 1211 zoom-in capped by the foes' spread: 3 foes framed, distance > close and <= wide, player and foes inside safeFight + 0.05 :: {"fn":3,"ftd":10.5,"close":10.5,"wd":14.42,"b":1,"ndc":[[0,-0.11153339323459899],[-0.8536156280900266,-0.11153339323459899],[0.8536156280900266,-0.11153339323459899],[0,0.6197063369357969]]} max 0.854
+RUNTIME 271 of 273 pass

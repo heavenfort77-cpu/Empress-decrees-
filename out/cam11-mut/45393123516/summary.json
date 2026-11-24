@@ -1,0 +1,92 @@
+[
+ {
+  "i": 0,
+  "fails": [
+   "42",
+   "1209"
+  ],
+  "tot": [
+   "RUNTIME 271 of 273 pass"
+  ],
+  "s": 358,
+  "name": "no explore clamp",
+  "want": "1209",
+  "applied": true,
+  "caught_named": true
+ },
+ {
+  "i": 1,
+  "fails": [
+   "42",
+   "1204",
+   "1210"
+  ],
+  "tot": [
+   "RUNTIME 270 of 273 pass"
+  ],
+  "s": 509,
+  "name": "no hysteresis",
+  "want": "1210",
+  "applied": true,
+  "caught_named": true
+ },
+ {
+  "i": 2,
+  "fails": [
+   "42",
+   "1211"
+  ],
+  "tot": [
+   "RUNTIME 271 of 273 pass"
+  ],
+  "s": 529,
+  "name": "no spread cap",
+  "want": "1211",
+  "applied": true,
+  "caught_named": true
+ },
+ {
+  "i": 3,
+  "fails": [
+   "42",
+   "1212"
+  ],
+  "tot": [
+   "RUNTIME 271 of 273 pass"
+  ],
+  "s": 415,
+  "name": "no markers",
+  "want": "1212",
+  "applied": true,
+  "caught_named": true
+ },
+ {
+  "i": 4,
+  "fails": [
+   "42",
+   "1213"
+  ],
+  "tot": [
+   "RUNTIME 271 of 273 pass"
+  ],
+  "s": 228,
+  "name": "old text layout",
+  "want": "1213",
+  "applied": true,
+  "caught_named": true
+ },
+ {
+  "i": 5,
+  "fails": [
+   "42"
+  ],
+  "tot": [
+   "RUNTIME 272 of 273 pass"
+  ],
+  "s": 510,
+  "name": "no focus blend",
+  "want": "1204",
+  "applied": true,
+  "caught_named": false
+ }
+]
