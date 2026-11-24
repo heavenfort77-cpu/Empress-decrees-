@@ -1,0 +1,7 @@
+build mutation tris: 1 FAIL lines (must be > 0)
+build mutation weights: 1 FAIL lines (must be > 0)
+build mutation rigid: 1 FAIL lines (must be > 0)
+build mutation height: 1 FAIL lines (must be > 0)
+build mutation loop: 3 FAIL lines (must be > 0)
+build mutation texel: 2 FAIL lines (must be > 0)
+build mutation fps: 1 FAIL lines (must be > 0)

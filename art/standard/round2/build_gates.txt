@@ -1,0 +1,29 @@
+PASS lod0 rigid tris 224 (budget 300)
+PASS lod0 cloth card tris 24 (max 48)
+PASS standard_lod1 tris 94 incl. card (budget 130)
+PASS standard_lod2 tris 40 incl. card (budget 45)
+PASS height 3.84 m (range (3.0, 4.0), under the 4.0 m hall wall), foot at 0.000
+PASS footprint 1.10 x 0.48 m (max 1.2 x 0.6)
+PASS banner UVs inside atlas cell 0: u -0.000-0.200, v 0.000-0.500 (cell (0.2, 0.5)); one shared mesh, school = UV offset
+PASS banner texel density 256 x 256 px/m (target 256 +-5%)
+PASS materials ['palBanner', 'palBronze', 'palLacquerPlain']: bronze fittings, lacquer pole, banner card
+PASS bones ['pole', 'cloth_1', 'cloth_2', 'cloth_3']: rigid pole + 3 cloth bones
+PASS weights: every lod0 vertex on bones, sum 1 (0 bad of 176), max 2 influences (limit 4)
+PASS pole rigid through the clip: max move 0.00 mm (max 1)
+PASS banner top edge stays on the crossbar: max move 5.6 mm (max 10)
+PASS banner foot sway 0.188 m (gentle: (0.05, 0.35))
+PASS cloth clears the pole by 0.040 m through the clip (min 0.02)
+PASS idle loop seamless: t=0 vs t=2.0 max 0.00 mm (max 1); loop 2.0 s
+PASS clip keys from frame 0 to 60 at 30 fps = 2.00 s from 0 s (loop 2.0 s)
+PASS no lights in the file
+18 of 18 pass
+18:34:11 | INFO: Starting glTF 2.0 export
+18:34:11 | INFO: Extracting primitive: standard_lod1
+18:34:11 | INFO: Primitives created: 3
+18:34:11 | INFO: Extracting primitive: standard_lod2
+18:34:11 | INFO: Primitives created: 3
+18:34:11 | INFO: Extracting primitive: standard_lod0
+18:34:11 | INFO: Primitives created: 3
+18:34:11 | INFO: Finished glTF 2.0 export in 0.04947543144226074 s
+wrote /home/runner/work/Empress-decrees-/Empress-decrees-/assets/models/standard.glb 43392 bytes
+INFO tris 224 24 94 40 sway 0.188 clear 0.04

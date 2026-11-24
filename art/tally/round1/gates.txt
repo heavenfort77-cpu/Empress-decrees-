@@ -1,0 +1,8 @@
+PASS tally_lod0 tris 404 (budget 500)
+PASS tally_lod1 tris 184 (budget 200)
+PASS tally_lod2 tris 80 (budget 90)
+PASS split reads: halves 0.22 m apart and offset 0.25 m along the body (min 0.15 each)
+PASS gold inlay strokes 6 cm wide on both outer faces (invented sigils, no script)
+PASS tiger 0.60 m tall on a 0.55 m stand (reads in the hall, min 0.4), footprint 1.92 x 0.92 m
+PASS bronze halves on a lacquer stand at LOD1
+7 of 7 pass

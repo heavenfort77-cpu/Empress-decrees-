@@ -4035,6 +4035,21 @@ try {
   await g(() => __game.setLayout('proto'));
   await bp09bChecks(g, check);
 
+  // 1220 Text warm-up at load (item (g), 25 Nov): every CJK character of TEXT is laid out off screen in each CONFIG.FONT_WARM style, so the CJK
+  // fallback fonts load under the load (cause: a 178 ms style/layout frame at the first CJK banner line, probe run 45460602692). TEXT is read
+  // from the source here, apart from the game's own scan.
+  {
+    const src = await readFile(join(ROOT, 'index.html'), 'utf8'), ta = src.indexOf('const TEXT = {'), tb = src.indexOf('\n};', ta);
+    const TX = new Function('return ' + src.slice(ta + 'const TEXT = '.length, tb + 2) + ';')(), want = new Set();
+    for (const k in TX) for (const ch of String(TX[k])) { const c = ch.codePointAt(0); if ((c >= 0x3000 && c <= 0x9fff) || (c >= 0xff00 && c <= 0xffef)) want.add(ch); }
+    const fw = await g(() => { const C = __game.config.FONT_WARM, e = document.getElementById('fontWarm'); if (!C || !e) return { none: true };
+      const r = e.getBoundingClientRect(); return { on: C.on, styles: C.styles.length, kids: Array.from(e.children).map((d) => d.textContent), fonts: Array.from(e.children).map((d) => d.style.font), right: r.right, w: r.width }; });
+    const missing = fw.none ? Array.from(want) : Array.from(want).filter((ch) => fw.kids.some((t) => t.indexOf(ch) < 0));
+    check('1220 text warm-up: every CJK character of TEXT laid out off screen at load in each CONFIG.FONT_WARM style',
+      !fw.none && fw.on === true && want.size > 0 && fw.kids.length === fw.styles && new Set(fw.fonts).size === fw.styles && missing.length === 0 && fw.right <= 0 && fw.w > 0,
+      JSON.stringify({ want: want.size, missing: missing.join(''), kids: fw.kids && fw.kids.length, styles: fw.styles, right: fw.right, w: fw.w }));
+  }
+
   // 15 Graphics context lost and restored: no errors, renders again.
   const errBefore = errors.length;
   const ctx = await g(async () => {

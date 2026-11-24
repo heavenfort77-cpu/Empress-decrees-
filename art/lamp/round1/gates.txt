@@ -1,0 +1,9 @@
+PASS lamp_lod0 tris 462 (budget 500)
+PASS lamp_lod1 tris 170 (budget 200)
+PASS lamp_lod2 tris 78 (budget 90)
+PASS light faked by cards: 10 cards (max 12), flame + halo per dish, no light object
+PASS no lights in the file (game keeps 2-3 real lights)
+PASS footprint 0.84 x 0.84 m (max 0.9), height 2.28 m (range (1.8, 2.4))
+PASS mercury reflectors (palMercRef): 5 on LOD0, the top one kept on LOD1
+PASS lowest flame 1.45 m: above a suit's shoulders, reads over a fight (min 1.4)
+8 of 8 pass

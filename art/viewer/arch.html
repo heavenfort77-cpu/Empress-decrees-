@@ -1,0 +1,200 @@
+<!doctype html>
+<!-- Room scene sheets for the W2 palace pieces (art tool, not shipped): assembles each room type from the B pieces (assets/models/arch)
+     and the A textures (assets/tex) at the game camera (FOV 50, pitch 40), the game's two lights (hemi 1.1, sun 2.2 from (-30, 60, 25)),
+     shadows on, tier medium (pixel ratio 1). Repeats are InstancedMesh (one call per piece material), single props THREE.LOD.
+     ?room=hall|court|corridor|garden|bridge|core  &view=wide (room fit) | play (fight framing, 10.5 m) | up (looking up, core ceiling)
+     &burnt=1 (A18 material swap)  &locked=1 (door bars shown; default open rooms show bars hidden)
+     ?piece=<name>&yaw=deg : one piece alone, 3/4 view.  window.__stats = { calls, tris, callsMain, trisMain, lights } after the render. -->
+<html><head><meta charset="utf-8"><style>html,body{margin:0;background:#0e1a1c;overflow:hidden}</style>
+<script type="importmap">{"imports":{"three":"../../lib/three.module.min.js"}}</script></head><body>
+<script type="module">
+import * as THREE from 'three';
+import { GLTFLoader } from './vendor/loaders/GLTFLoader.js';
+const Q = new URLSearchParams(location.search), ROOM = Q.get('room'), PIECE = Q.get('piece'), VIEW = Q.get('view') || 'wide', BURNT = Q.get('burnt') === '1', LOCKED = Q.get('locked') === '1';
+const W = innerWidth, H = innerHeight;
+const r = new THREE.WebGLRenderer({ antialias: true }); r.setPixelRatio(1); r.setSize(W, H); r.shadowMap.enabled = true; document.body.appendChild(r.domElement);
+const scene = new THREE.Scene(); scene.background = new THREE.Color(0x0e1a1c);
+scene.fog = new THREE.Fog(0x0e1a1c, 60, 140);
+const cam = new THREE.PerspectiveCamera(50, W / H, 0.5, 220);
+scene.add(new THREE.HemisphereLight(0xd9c9ff, 0x3a2a22, 1.1));
+const sun = new THREE.DirectionalLight(0xffe2b8, 2.2); sun.castShadow = true; sun.shadow.mapSize.set(2048, 2048);
+scene.add(sun, sun.target);
+// textures: glTF UVs (flipY false), sRGB, repeat, anisotropy 4
+const TL = new THREE.TextureLoader(), TEX = {};
+const tex = (f, flip = false) => { const k = f + flip; if (TEX[k]) return TEX[k]; const t = TL.load('../../assets/tex/' + f + '.png'); t.colorSpace = THREE.SRGBColorSpace; t.wrapS = t.wrapT = THREE.RepeatWrapping; t.anisotropy = 4; t.flipY = flip; return (TEX[k] = t); };
+const FILES = { palWall: 'hall_wall', palFloor: 'hall_floor', palPillar: 'pillar', palDoor: 'door', palBronze: 'bronze_trim', palEarth: 'rammed_earth', palEarthCore: 'rammed_earth_core',
+  palRiver: 'river_stone', palStone: 'stone_paving', palTiles: 'floor_tiles', palBrick: 'hollow_brick', palMural: 'mural_wall', palRoof: 'roof_tile', palTileEnd: 'tile_ends', palTimber: 'timber',
+  palLacquer: 'timber', palGround: 'garden_ground', palPlant: 'garden_plants', palFlag: 'signal_flags', palSlips: 'slips', palStars: 'star_ceiling', palLake: 'black_lake' };
+const BURN = { palTimber: 'timber_burnt', palLacquer: 'timber_burnt', palPillar: 'timber_burnt', palDoor: 'timber_burnt', palEarth: 'earth_burnt', palWall: 'wall_burnt', palMural: 'wall_burnt', palSlips: 'slips_burnt' };
+const MADE = {};
+function mat(name) {
+  if (MADE[name]) return MADE[name];
+  let m;
+  if (name === 'palMercury') m = new THREE.MeshMatcapMaterial({ matcap: tex('mercury_matcap', true) });
+  else {
+    const f = (BURNT && BURN[name]) || FILES[name];
+    const o = { map: tex(f), roughness: 0.85, metalness: 0 };
+    if (name === 'palLacquer' && !(BURNT && BURN[name])) o.color = new THREE.Color(0x5a4f4a);   // lacquer = timber under a dark tint (LACQUER_TINT)
+    if (name === 'palBronze') { o.metalness = 0.4; o.roughness = 0.6; }
+    if (name === 'palLake') { o.roughness = 0.35; }
+    if (name === 'palPlant' || name === 'palFlag') { o.alphaTest = 0.5; o.side = THREE.DoubleSide; }
+    m = new THREE.MeshStandardMaterial(o);
+  }
+  return (MADE[name] = m);
+}
+const loader = new GLTFLoader(), GL = {};
+const load = (n) => GL[n] || (GL[n] = new Promise((res, rej) => loader.load('../../assets/models/arch/' + n + '.glb', (g) => { g.scene.updateMatrixWorld(true); res(g.scene); }, undefined, rej)));
+// meshes of a piece (optionally one LOD node), each with its matrix relative to the glTF root
+function meshesOf(root, node) {
+  const out = [], base = node ? root.getObjectByName(node) : root;
+  base.updateMatrixWorld(true);
+  base.traverse((o) => { if (o.isMesh) out.push({ geo: o.geometry, name: o.material.name, m: o.matrixWorld.clone() }); });
+  return out;
+}
+const T = (x, z, ry = 0, y = 0, s = 1) => new THREE.Matrix4().compose(new THREE.Vector3(x, y, z), new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), ry), new THREE.Vector3(s, s, s));
+const OVERRIDE = {};
+// instanced placement: one InstancedMesh per piece material
+async function inst(piece, mats, node, over) {
+  if (!mats.length) return;
+  const root = await load(piece);
+  for (const p of meshesOf(root, node)) {
+    const name = (over && over[p.name]) || p.name;
+    const im = new THREE.InstancedMesh(p.geo, mat(name), mats.length);
+    mats.forEach((M, i) => im.setMatrixAt(i, M.clone().multiply(p.m)));
+    im.castShadow = name !== 'palPlant'; im.receiveShadow = true; im.computeBoundingSphere(); scene.add(im);
+  }
+}
+// single prop with LOD (distances in m)
+async function single(piece, M, dists = [0, 35, 70]) {
+  const root = await load(piece), lod = new THREE.LOD();
+  for (let i = 0; i < 3; i++) {
+    const g = new THREE.Group();
+    for (const p of meshesOf(root, `${piece}_lod${i}`)) { const me = new THREE.Mesh(p.geo, mat(p.name)); me.applyMatrix4(p.m); me.castShadow = me.receiveShadow = true; g.add(me); }
+    lod.addLevel(g, dists[i]);
+  }
+  lod.applyMatrix4(M); scene.add(lod); return lod;
+}
+function slab(x0, x1, z0, z1, matName, y = 0, th = 1.2) {  // floor slab as the game builds it (box, 4 m world UVs on top)
+  const g = new THREE.BoxGeometry(x1 - x0, th, z1 - z0); const uv = g.attributes.uv, pos = g.attributes.position, nor = g.attributes.normal;
+  for (let i = 0; i < uv.count; i++) { const X = pos.getX(i) + (x0 + x1) / 2, Y = pos.getY(i), Z = pos.getZ(i) + (z0 + z1) / 2;
+    if (Math.abs(nor.getY(i)) > 0.5) uv.setXY(i, X / 4, Z / 4); else uv.setXY(i, (Math.abs(nor.getX(i)) > 0.5 ? Z : X) / 4, (Y + th / 2) / 4); }
+  const m = new THREE.Mesh(g, mat(matName)); m.position.set((x0 + x1) / 2, y - th / 2, (z0 + z1) / 2); m.receiveShadow = true; scene.add(m); return m;
+}
+function mercury(x0, x1, z0, z1) {  // A14: matcap liquid on a gently rippled strip (a flat plane samples one matcap texel and reads as white paint)
+  const nx = 6, nz = Math.round((z1 - z0) * 4), g = new THREE.PlaneGeometry(x1 - x0, z1 - z0, nx, nz); g.rotateX(-Math.PI / 2);
+  const p = g.attributes.position; for (let i = 0; i < p.count; i++) p.setY(i, 0.03 * Math.sin(p.getZ(i) * 5.1 + p.getX(i) * 2.3) + 0.02 * Math.sin(p.getZ(i) * 13.7));
+  g.computeVertexNormals(); const m = new THREE.Mesh(g, mat('palMercury')); m.position.set((x0 + x1) / 2, 0.04, (z0 + z1) / 2); scene.add(m); return m;
+}
+function plane(x0, x1, z0, z1, y, matName, rep = 4) {
+  const g = new THREE.PlaneGeometry(x1 - x0, z1 - z0); g.rotateX(-Math.PI / 2); const uv = g.attributes.uv, pos = g.attributes.position;
+  for (let i = 0; i < uv.count; i++) uv.setXY(i, (pos.getX(i) + (x0 + x1) / 2) / rep, (pos.getZ(i) + (z0 + z1) / 2) / rep);
+  const m = new THREE.Mesh(g, mat(matName)); m.position.set((x0 + x1) / 2, y, (z0 + z1) / 2); m.receiveShadow = true; scene.add(m); return m;
+}
+// runs of 4 m segments along a room edge; the piece's outward side (Blender +y = three -z) faces out of the room. gaps: [[a, b]] along the edge.
+function edgeRun(side, x0, x1, z0, z1, gaps = []) {
+  const out = [], free = (a, b) => !gaps.some(([g0, g1]) => a < g1 - 0.01 && b > g0 + 0.01);
+  if (side === 'n' || side === 's') for (let x = x0; x < x1 - 0.01; x += 4) { if (!free(x, x + 4)) continue; out.push(side === 'n' ? T(x, z0, 0) : T(x + 4, z1, Math.PI)); }
+  else for (let z = z0; z < z1 - 0.01; z += 4) { if (!free(z, z + 4)) continue; out.push(side === 'w' ? T(x0, z + 4, Math.PI / 2) : T(x1, z, -Math.PI / 2)); }
+  return out;
+}
+const player = new THREE.Mesh(new THREE.BoxGeometry(0.9, 2.05, 0.9), new THREE.MeshStandardMaterial({ color: 0x3a7bd5, roughness: 0.6 })); player.castShadow = true;
+const ROOMS = { hall: [32, 24], court: [48, 30], corridor: [12, 50], garden: [30, 30], bridge: [26, 8], core: [32, 30] };
+let look = new THREE.Vector3(), fit = 30;
+async function build() {
+  if (PIECE) {
+    const root = await load(PIECE); const g = root.clone(); scene.add(g);
+    g.traverse((o) => { if (o.isMesh) { o.material = mat(o.material.name); o.castShadow = o.receiveShadow = true; } });
+    for (const n of ['_lod1', '_lod2']) { const o = g.getObjectByName(PIECE + n); if (o) o.visible = false; }
+    const b = new THREE.Box3().setFromObject(g); b.getCenter(look); fit = b.getSize(new THREE.Vector3()).length() * 0.85 + 1.5;
+    plane(-30, 30, -30, 30, Math.min(0, b.min.y) - 0.01, 'palFloor'); player.position.set(b.max.x + 1.2, Math.min(0, b.min.y) + 1.025, b.max.z + 0.5); scene.add(player);
+    return;
+  }
+  const [w, d] = ROOMS[ROOM], x0 = -w / 2, x1 = w / 2, z0 = -d / 2, z1 = d / 2;
+  look.set(0, 0, 0); fit = Math.hypot(w, d) * 0.62 + 2;
+  plane(-120, 120, -120, 120, -6, 'palLake', 4);
+  const doorN = [[-2, 2]], doorS = [[-2, 2]];
+  const rim = (sides) => { for (const s of sides) inst('terrace_edge', edgeRun(s, x0, x1, z0, z1)); };
+  if (ROOM === 'hall' || ROOM === 'core') {
+    slab(x0, x1, z0, z1, 'palFloor');
+    const tall = [...edgeRun('n', x0, x1, z0, z1, doorN), ...edgeRun('w', x0, x1, z0, z1), ...edgeRun('e', x0, x1, z0, z1)];
+    await inst(ROOM === 'core' ? 'wall_earth_seg' : 'wall_seg', tall);
+    await inst('wall_low', edgeRun('s', x0, x1, z0, z1, doorS));
+    if (ROOM === 'hall') await inst('eave_seg', tall);
+    if (ROOM === 'hall') { const te = []; for (const M of tall) for (let i = 0; i < 8; i++) te.push(M.clone().multiply(T(0.3867 + i * 0.5, -(0.25 + 1.0) - 0.01, 0, 4.05 + 0.12 - 0.08))); await inst('tile_end', te); }
+    for (const n of ['door_frame', 'door_leaf_L', 'door_leaf_R']) await inst('door', [T(0, z0), T(0, z1, Math.PI)], n);
+    if (LOCKED) await inst('door', [T(0, z0), T(0, z1, Math.PI)], 'door_bar');
+    const pil = ROOM === 'hall' ? [[-10, -6], [0, -6], [10, -6], [-10, 5], [0, 5], [10, 5]] : [[x0 + 3, z0 + 10], [x1 - 3, z0 + 10], [x0 + 3, z1 - 5], [x1 - 3, z1 - 5]];
+    await inst('pillar', pil.map(([x, z]) => T(x, z)));
+    rim(['s', 'w', 'e']);
+    if (ROOM === 'hall') {  // A20: three slip racks on the west wall with their bundles (G1: the burning of the books)
+      const racks = [-6, -1, 4].map((z) => T(x0 + 0.85, z, Math.PI / 2)); await inst('slip_rack', racks);
+      const b = []; for (const R of racks) for (let k = 0; k < 4; k++) for (let j = 0; j < 9; j++) b.push(R.clone().multiply(T(0.1 + j * 0.16, -0.25, 0, 0.29 + k * 0.45)).multiply(new THREE.Matrix4().makeRotationY((j % 3 - 1) * 0.08)));
+      await inst('slip_bundle', b);
+      player.position.set(-4, 1.025, 0);
+    } else {
+      await single('throne_dais', T(0, z0 + 5, Math.PI));
+      for (const x of [-6, 6]) mercury(x - 0.5, x + 0.5, z0 + 9, z1 - 0.5);  // A14: mercury rivers (the channel lip is C7)
+      player.position.set(2, 1.025, 4);
+    }
+  } else if (ROOM === 'court') {
+    slab(x0, x1, z0, z1, 'palStone');
+    const tall = [...edgeRun('n', x0, x1, z0, z1, [[-8, 8]]), ...edgeRun('w', x0, x1, z0, z1), ...edgeRun('e', x0, x1, z0, z1)];
+    await inst('wall_walk_seg', tall); await inst('wall_low', edgeRun('s', x0, x1, z0, z1, doorS));
+    await single('que_pair', T(0, z0 - 3.2));
+    const poles = [-20, -12, 12, 20].map((x) => T(x, z0 + 0.9)), fl = [-20, -12, 12, 20].map((x) => T(x, z0 + 0.9, 0, 2.8));
+    await inst('flag_pole', poles); for (let i = 0; i < 4; i++) await inst('flag_' + [3, 0, 6, 8][i], [fl[i]]);
+    for (const n of ['door_frame', 'door_leaf_L', 'door_leaf_R']) await inst('door', [T(0, z1, Math.PI)], n);
+    if (LOCKED) await inst('door', [T(0, z1, Math.PI)], 'door_bar');
+    rim(['s', 'w', 'e']); player.position.set(-3, 1.025, 6);
+  } else if (ROOM === 'corridor') {
+    slab(x0, x1, z0, z1, 'palTiles');
+    await inst('wall_mural_seg', edgeRun('w', x0, x1, z0, z1)); await inst('eave_seg', edgeRun('w', x0, x1, z0, z1));
+    await inst('parapet_seg', edgeRun('e', x0 + 0.2, x1 - 0.2, z0, z1));
+    const posts = []; for (let z = z0 + 2; z < z1; z += 4) posts.push(T(x1 - 2.6, z)); await inst('walk_post', posts);
+    await inst('walk_beam', edgeRun('e', x0, x1 - 2.6, z0, z1).map((M) => M));
+    await inst('wall_low', edgeRun('n', x0, x1, z0, z1, [[-2, 2]])); await inst('wall_low', edgeRun('s', x0, x1, z0, z1, [[-2, 2]]));
+    rim(['e', 's']); player.position.set(-1, 1.025, 8);
+  } else if (ROOM === 'garden') {
+    slab(x0, x1, z0, -4, 'palGround'); slab(x0, x1, 4, z1, 'palGround'); slab(x0, -6, -4, 4, 'palGround'); slab(6, x1, -4, 4, 'palGround');
+    slab(-6, 6, -4, 4, 'palGround', -0.6, 0.6); plane(-6, 6, -4, 4, -0.3, 'palLake'); for (const [a, b, c, e] of [[-6.4, 6.4, -4.4, -4], [-6.4, 6.4, 4, 4.4], [-6.4, -6, -4, 4], [6, 6.4, -4, 4]]) slab(a, b, c, e, 'palStone', 0.08, 0.5);
+    await inst('wall_low', [...edgeRun('n', x0, x1, z0, z1, [[-2, 2]]), ...edgeRun('w', x0, x1, z0, z1), ...edgeRun('e', x0, x1, z0, z1), ...edgeRun('s', x0, x1, z0, z1, [[-2, 2]])]);
+    const rnd = (() => { let s = 7; return () => (s = (s * 16807) % 2147483647) / 2147483647; })();
+    const beds = { plant_wheat: [], plant_millet: [], plant_shrub: [], plant_grass: [] }, kinds = Object.keys(beds);
+    for (let i = 0; i < 400 && beds.plant_wheat.length + beds.plant_millet.length + beds.plant_shrub.length + beds.plant_grass.length < 170; i++) {
+      const x = x0 + 1.5 + rnd() * (w - 3), z = z0 + 1.5 + rnd() * (d - 3); if (Math.abs(x) < 6.8 && Math.abs(z) < 4.8) continue; if (Math.abs(x) < 3 && Math.abs(z) > 9) continue;
+      const nearPond = Math.abs(x) < 10 && Math.abs(z) < 8, nearWall = Math.min(x - x0, x1 - x, z - z0) < 4; if (!nearPond && !nearWall && rnd() < 0.75) continue;
+      beds[kinds[Math.floor(rnd() * 4)]].push(T(x, z, rnd() * 3, 0, 0.8 + rnd() * 0.5)); }
+    for (const k of kinds) await inst(k, beds[k]);
+    rim(['s', 'w', 'e']); player.position.set(-3, 1.025, 8);
+  } else if (ROOM === 'bridge') {
+    const bays = []; for (let x = x0; x < x1 - 0.01; x += 4) bays.push(T(x, 0)); await inst('bridge_bay_8', bays);
+    mercury(-1.6, -0.6, -3.9, 3.9);  // A14 on the deck: a mercury channel crossing (C7 owns the bronze lip)
+    for (const sx of [-1, 1]) { slab(sx > 0 ? x1 : x0 - 14, sx > 0 ? x1 + 14 : x0, -10, 10, 'palStone'); await inst('terrace_edge', sx > 0 ? edgeRun('w', x1, x1 + 14, -10, 10).map((M) => M) : edgeRun('e', x0 - 14, x0, -10, 10)); }
+    await inst('lake_rubble', [T(x1, 10, Math.PI), T(x1 + 4, 10, Math.PI), T(x0 - 4, 10, Math.PI), T(x0, 10, Math.PI)]);
+    await single('debris', T(4, 14, 0.4));
+    player.position.set(-2, 1.025, 1);
+  }
+  scene.add(player);
+}
+await build();
+// game camera: FOV 50, pitch 40 deg, from the south (+z) looking north; wide fits the room, play = fight framing 10.5 m on the player
+const pitch = (VIEW === 'up' ? -35 : 40) * Math.PI / 180, yaw = (+(Q.get('yaw') || (PIECE ? 30 : 0))) * Math.PI / 180;
+let dist = PIECE ? fit : VIEW === 'play' ? 10.5 : fit / Math.sin(25 * Math.PI / 180) * 0.55;
+if (VIEW === 'play') look.copy(player.position).setY(1.1);
+if (VIEW === 'up') { look.set(0, 4, -2); dist = 6; }
+cam.position.set(look.x + Math.sin(yaw) * Math.cos(pitch) * dist, look.y + Math.sin(pitch) * dist, look.z + Math.cos(yaw) * Math.cos(pitch) * dist); cam.lookAt(look);
+if (VIEW === 'up') { cam.position.set(0, 1.6, 6); cam.lookAt(0, 6, -6); plane(-16, 16, -15, 15, 5.2, 'palStars').rotation.x = Math.PI; }
+// sun as the game: from (-30, 60, 25) relative to the view target, tight shadow box around the room
+sun.position.copy(look).add(new THREE.Vector3(-30, 60, 25)); sun.target.position.copy(look).add(new THREE.Vector3(0, 0, -12));
+const sb = PIECE ? 14 : Math.max(...ROOMS[ROOM]) * 0.7 + 8; Object.assign(sun.shadow.camera, { left: -sb, right: sb, top: sb, bottom: -sb, near: 10, far: 160 }); sun.shadow.camera.updateProjectionMatrix();
+const lods = []; scene.traverse((o) => { if (o.isLOD) lods.push(o); });
+await new Promise((res) => setTimeout(res, 1500));
+cam.updateMatrixWorld(); for (const l of lods) l.update(cam);
+r.render(scene, cam); const calls = r.info.render.calls, tris = r.info.render.triangles;
+r.shadowMap.autoUpdate = false; r.render(scene, cam); const callsMain = r.info.render.calls, trisMain = r.info.render.triangles;
+let lights = 0, casters = 0, casterTris = 0; scene.traverse((o) => { if (o.isLight && !o.isAmbientLight) lights++;
+  if ((o.isMesh || o.isInstancedMesh) && o.castShadow && o.visible && (!o.parent || !o.parent.parent || !o.parent.parent.isLOD || o.parent.visible)) { casters++; const g = o.geometry, n = (g.index ? g.index.count : g.attributes.position.count) / 3; casterTris += n * (o.isInstancedMesh ? o.count : 1); } });
+// shadow pass (the main pass is what renderer.info reports here): one call per visible caster, their triangles again
+window.__stats = { calls, tris, shadowCalls: casters, shadowTris: Math.round(casterTris), totalCalls: calls + casters, totalTris: Math.round(tris + casterTris), lights, programs: r.info.programs.length, textures: r.info.memory.textures };
+window.__ready = true;
+</script></body></html>

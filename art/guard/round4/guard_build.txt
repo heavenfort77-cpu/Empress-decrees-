@@ -1,0 +1,65 @@
+PASS zu lod0 tris 3568 (budget 4000)
+PASS zu lod1 tris 1194 (budget 1500)
+PASS zu lod2 tris 316 (budget 500; weapons drop at LOD2)
+PASS zu every lod0 vertex weighted, sum 1 (0 bad)
+PASS zu clips ['attack', 'idle', 'move']
+PASS zu attack windup 0.50 s (tell >= 0.4)
+PASS zu weapon tip peaks at 0.50 s = windup 0.50 s
+PASS zu weapon tip moves 2.66 m by the windup (min 0.3)
+PASS zu body half-width 0.44 m (0.7-1.4 x radius 0.45)
+PASS zu body height 1.78 m (band 1.45-1.90)
+PASS zu body 6.4 heads tall (head 0.28 m incl. cap; min 6.0; round 3 about 4.9)
+wrote /tmp/gb/zu.glb 465136 bytes
+PASS nu lod0 tris 3928 (budget 4000)
+PASS nu lod1 tris 1330 (budget 1500)
+PASS nu lod2 tris 356 (budget 500; weapons drop at LOD2)
+PASS nu every lod0 vertex weighted, sum 1 (0 bad)
+PASS nu clips ['attack', 'idle', 'move']
+PASS nu attack windup 0.80 s (tell >= 0.4)
+PASS nu weapon tip peaks at 0.83 s = windup 0.80 s
+PASS nu weapon tip moves 0.91 m by the windup (min 0.3)
+PASS nu body half-width 0.44 m (0.7-1.4 x radius 0.45)
+PASS nu body height 1.71 m (band 1.45-1.90)
+PASS nu body 6.2 heads tall (head 0.28 m incl. cap; min 6.0; round 3 about 4.9)
+wrote /tmp/gb/nu.glb 512824 bytes
+PASS dun lod0 tris 3852 (budget 4000)
+PASS dun lod1 tris 1230 (budget 1500)
+PASS dun lod2 tris 326 (budget 500; weapons drop at LOD2)
+PASS dun every lod0 vertex weighted, sum 1 (0 bad)
+PASS dun clips ['attack', 'idle', 'move']
+PASS dun attack windup 0.50 s (tell >= 0.4)
+PASS dun weapon tip peaks at 0.50 s = windup 0.50 s
+PASS dun weapon tip moves 0.81 m by the windup (min 0.3)
+PASS dun body half-width 0.58 m (0.7-1.4 x radius 0.6)
+PASS dun body height 1.78 m (band 1.45-1.90)
+PASS dun body 6.4 heads tall (head 0.28 m incl. cap; min 6.0; round 3 about 4.9)
+wrote /tmp/gb/dun.glb 498460 bytes
+PASS che lod0 tris 3936 (budget 4000)
+PASS che lod1 tris 1424 (budget 1500)
+PASS che lod2 tris 363 (budget 500; weapons drop at LOD2)
+PASS che every lod0 vertex weighted, sum 1 (0 bad)
+PASS che clips ['attack', 'idle', 'move']
+PASS che attack windup 0.90 s (tell >= 0.4)
+PASS che weapon tip peaks at 0.90 s = windup 0.90 s
+PASS che weapon tip moves 1.05 m by the windup (min 0.3)
+PASS che body half-width 0.80 m (0.7-1.4 x radius 0.9)
+PASS che chariot body length 1.93 m (>= 1.9), top 2.08 m (<= 2.2)
+wrote /tmp/gb/che.glb 537212 bytes
+PASS wz lod0 tris 3784 (budget 4000)
+PASS wz lod1 tris 1234 (budget 1500)
+PASS wz lod2 tris 326 (budget 500; weapons drop at LOD2)
+PASS wz every lod0 vertex weighted, sum 1 (0 bad)
+PASS wz clips ['attack', 'idle', 'move']
+PASS wz attack windup 0.50 s (tell >= 0.4)
+PASS wz weapon tip peaks at 0.48 s = windup 0.50 s
+PASS wz weapon tip moves 1.37 m by the windup (min 0.3)
+PASS wz body half-width 0.49 m (0.7-1.4 x radius 0.5)
+PASS wz body height 1.95 m (band 1.45-2.09)
+PASS wz body 6.5 heads tall (head 0.30 m incl. cap; min 6.0; round 3 about 4.9)
+wrote /tmp/gb/wz.glb 498912 bytes
+PASS wz leader banner top 3.35 m >= 1.15 x tallest squad member 2.70 m
+SUMMARY zu 11 of 11 tris [3568, 1194, 316] top 2.70
+SUMMARY nu 11 of 11 tris [3928, 1330, 356] top 1.71
+SUMMARY dun 11 of 11 tris [3852, 1230, 326] top 1.78
+SUMMARY che 10 of 10 tris [3936, 1424, 363] top 2.08
+SUMMARY wz 12 of 12 tris [3784, 1234, 326] top 3.35

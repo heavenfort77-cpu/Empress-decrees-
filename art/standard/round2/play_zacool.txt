@@ -1,0 +1,13 @@
+PASS play ru: sigil box 66 px tall (>= 24), sigil vs painted IoU 0.91 (>= 0.75), contrast L* 27
+PASS play dao: sigil box 63 px tall (>= 24), sigil vs painted IoU 0.88 (>= 0.75), contrast L* 37
+PASS play fa: sigil box 61 px tall (>= 24), sigil vs painted IoU 0.87 (>= 0.75), contrast L* 40
+PASS play mo: sigil box 60 px tall (>= 24), sigil vs painted IoU 0.96 (>= 0.75), contrast L* 29
+PASS play yinyang: sigil box 60 px tall (>= 24), sigil vs painted IoU 0.92 (>= 0.75), contrast L* 45
+PASS play za: sigil box 61 px tall (>= 24), sigil vs painted IoU 0.84 (>= 0.75), contrast L* 36
+PASS play ming: sigil box 63 px tall (>= 24), sigil vs painted IoU 0.87 (>= 0.75), contrast L* 33
+PASS play zongheng: sigil box 65 px tall (>= 24), sigil vs painted IoU 0.87 (>= 0.75), contrast L* 23
+PASS play nong: sigil box 68 px tall (>= 24), sigil vs painted IoU 0.90 (>= 0.75), contrast L* 37
+INFO lineup_zacool fa-za field dE 12.2 in play
+PASS play field colours distinct: 36 of 36 pairs dE >= 10 (closest ru-dao 12.0)
+PASS play sigils distinct: 36 of 36 pairs IoU < 0.75 (max mo-yinyang 0.48)
+11 of 11 pass
