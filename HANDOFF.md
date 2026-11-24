@@ -34,6 +34,12 @@
 - Log: /home/claude/batch16.log (prefixes BPxx, INT, LEAD, OWNER). Watchdog via send_later every 30 min while workers run.
 
 ### NEXT SESSION: palace textures with klad + dispose + LOD (owner 24 Nov 16:58)
+STATUS 24 Nov 17:55 (session 015w2gCC): steps 1-2 sample DONE, waiting for the owner's look approval.
+- klad 0.4.0 built at /home/claude/kladsrc/src/target/linux/release/klad (session disk; rebuild per the skill if gone). Five 1024 px textures painted: assets/tex/hall_floor (丹地), hall_wall (lime plaster, black-lozenge frieze, Qin-black dado), pillar (black lacquer, vermilion bands, cloud scrolls), door (black lacquer, bronze bands, 铺首 masks), lion_stone. Generator art/tools/palace_tex.py, sources art/src/*.klad, references art/REFERENCES.md, CREDITS.md.
+- Game 03f24e6: own materials palFloor/palWall/palPillar/palDoor/palLion (Rumble unchanged), world UVs in mergeGeoms, CONFIG.TEX (on, files, tileM, pillarU, aniso 4, waitMs). CI suite 45368079411: 267 of 268 (only 42). Run 45366908283 on the same tree aborted once (cam10 page.goto 30 s timeout; local loads 1-2 s; not repeated): cause open.
+- Software-GPU screenshot counts (hall_ru): 12 calls, 842 tris, programs 8 (+1), textures 6. Phone link version 1795513925-193c carries the sample.
+- Owner 24 Nov 17:30: "use tripo to create asset and klad to give it texture". Tripo runs on GitHub runners: branch ci-tripo (ci_tripo/tripo.mjs, jobs.json, .github/workflows/tripo.yml), output out/tripo/<run>/ on ci-out. Needs repo Actions secret TRIPO_API_KEY (runs 45366086846, 45367565852, 45367812752: key empty) and a paid Tripo plan for commercial use. First job: lion_a (8k faces, no texture). Model check / LOD / compression with glTF-Transform (npm @gltf-transform/cli, installed in /home/claude/gltftools).
+- Not started: KTX2, per-level loading, dispose, LOD, item (g).
 Owner: "get next session to use klad to do up texture of all asset of palace and prop. reference to historical. geometry.dispose(), material.dispose(), texture.dispose(). THREE.LOD to minimise waste of frame rate". This is the owner's go for textures (art after the loop rule: owner gave it).
 
 Scope: the palace and its props. Characters (suits, guard, rebels, apex) only after their models are decided (owner 24 Nov 17:01: "only when model decided").
@@ -180,6 +186,7 @@ Panel note 16 (lead, 23 Nov 23:30; proposal):
 15 ultimate charge (DONE); 16 法甲 kit + suit stats sample (owner plays and approves); 17 the other eight kits (docs/SUITS.md); 18 hiding (curtains, 道甲 stillness, sight blocked by walls); 19 the ending + WINNER_STATUE; 20 final map size + balancing pass (re-measure, retune the CONFIG timing list once). Hunt sweep re-check with kits (0.15 s bot now loses demon-first).
 
 ## Owner decisions (dated)
+- 24 Nov 17:30: use Tripo to create the assets (props) and klad to texture them.
 - 24 Nov 17:01: character textures (suits, guard, rebels, apex) only when their models are decided.
 - 24 Nov 16:58: next session uses klad to texture all palace assets and props, with historical references; dispose geometry, material and texture; THREE.LOD to save frame time (brief at the top).
 - 24 Nov 15:52: order = merges, then 12-seed pacing, then handover, then close-out (real-GPU fps and phone link).
