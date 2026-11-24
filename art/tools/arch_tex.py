@@ -1,0 +1,811 @@
+#!/usr/bin/env python3
+"""Palace surfaces A6-A12 and A14-A20 (art/ASSET-LIST.md), painted in klad like the approved round 2 textures (A1-A4).
+
+Reuses art/tools/palace_tex.py by import (class Tex, band, cloud) like bronze_tex.py does; writes one klad `apply` op file per texture
+(seeded strokes; the paint is klad's). Every texture is 1024 px = 4 x 4 m at 256 px/m unless its docstring says otherwise.
+Style values (art/Qin-Palace-Painted-Study.md): brush runs 4-15 cm, luminance sd 8-30, saturation cap 0.55 (0.6 accents), the study's
+value plan and ramps, one light (no light or shadow painted into tiling textures). Colours from the study ramps and the research palette
+(docs/research/Qin-palace-medieval-tech-fusion.md, one-page rule list). All motifs are our own drawing; nothing is traced.
+
+Alpha cards (garden_plants, signal_flags) use the background 'none': paint_palace.py then exports a transparent PNG.
+
+Usage: python3 arch_tex.py OUTDIR [SIZE] [NAMES]   (NAMES: comma list, default all)
+"""
+import math, os, sys
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import palace_tex as P  # reads OUTDIR and SIZE from argv
+
+CM = 2.56  # px per cm at 256 px/m
+
+# Ramps (study ramps; research palette where the study has none)
+EARTH = dict(base='#a2875f', lines='#8c6f48', dark='#7d6444', light='#b49a70', mid='#977c56')           # loess, research #A88A5E / #8C6F48
+CORE = dict(base='#8e7553', lines='#735c3e', dark='#665139', light='#a08763', mid='#836b4b')            # core chamber earth: darker, smoke-dulled
+BURNT = dict(base='#8e5a45', lines='#6a3d2e', dark='#5c3629', light='#a26c55', mid='#83503e')           # reddened by fire (Xianyang finds)
+STONE = ['#7b786f', '#88857d', '#939087', '#a9a59b', '#8e8a80']
+LACQ = ['#15100d', '#1d1612', '#231a15', '#2c2320']
+VERM = ['#742d1e', '#86281a', '#9a4a34']
+PLASTER = ['#b0a48b', '#b8ac94', '#d2c8b2']
+
+
+def layered_earth(name, R, seed, lmin, lmax, soot=False, pocks=450):
+    """Rammed earth 夯土: horizontal tamped layers lmin-lmax cm, a darker line at each layer bed, rammer pocks, put-log holes, erosion."""
+    t = P.Tex(name, R['base'], True, True, seed)
+    r = t.r
+    t.stage = 1
+    for _ in range(70):
+        t.blot(r.uniform(0, 1024), r.uniform(0, 1024), r.uniform(60, 150), 'sponge', r.uniform(60, 120), r.choice([R['dark'], R['light'], R['mid']]), r.uniform(0.25, 0.4), 3)
+    # layers: heights in cm, scaled so they sum to exactly 4 m (the texture wraps in y)
+    hs = []
+    while sum(hs) < 400: hs.append(r.uniform(lmin, lmax))
+    k = 400 / sum(hs); hs = [h * k * CM for h in hs]
+    y = 0.0
+    t.stage = 2
+    for li, h in enumerate(hs):
+        # each layer one tone (alternately lighter and darker, as tamped lifts dry differently), laid in round sponge dabs, not streaks
+        tone = r.choice([R['light'], R['base']]) if li % 2 else r.choice([R['mid'], R['dark']])
+        x = r.uniform(0, 40)
+        while x < 1024 + 20:
+            L = r.uniform(5, 14) * CM
+            t.stroke([(x, y + h * 0.5), (x + L, y + h * 0.5 + r.uniform(-1, 1))], 'oil', h * 1.05, tone, r.uniform(0.35, 0.6), taper=[0, 0])
+            x += L * r.uniform(0.6, 1.0)
+        x0 = r.uniform(0, 1024)  # the bed line: darker, broken into 20-60 cm runs, slightly wavy
+        x = x0
+        while x < x0 + 1024:
+            L = r.uniform(20, 60) * CM
+            t.stroke(t.wobble(x, y + h, x + L, y + h, 4, 0.8), 'chalk', r.uniform(3, 5), R['lines'], r.uniform(0.6, 0.9), taper=[0, 0])
+            x += L + r.uniform(2, 8) * CM
+        y += h
+    for _ in range(pocks):  # rammer pocks: small round dents, darker
+        x, y = r.uniform(0, 1024), r.uniform(0, 1024); s = r.uniform(5, 10)
+        t.stroke([(x, y), (x + 0.6, y + 0.4)], 'chalk', s, r.choice([R['dark'], R['lines']]), r.uniform(0.3, 0.55), taper=[0, 0])
+    t.stage = 3
+    for _ in range(5):  # put-log holes in a loose row (formwork poles), dark
+        x, y = r.uniform(0, 1024), r.choice([256, 640, 896]) + r.uniform(-20, 20)
+        t.stroke([(x, y), (x + 1, y + 1)], 'ink', r.uniform(14, 20), '#3e3020' if not soot else '#1c1512', 0.85, taper=[0, 0])
+    for _ in range(40):  # erosion runs and hairline cracks down the face
+        x, y = r.uniform(0, 1024), r.uniform(0, 1024)
+        t.stroke(t.wobble(x, y, x + r.uniform(-8, 8), y + r.uniform(40, 140), 5, 2), 'pencil', 2.2, R['lines'], r.uniform(0.35, 0.6))
+    if soot:  # smoke and soot (core chamber: lamp smoke; burnt: fire): soft vertical stains rising up the face, not blobs
+        for _ in range(45):
+            x, y = r.uniform(0, 1024), r.uniform(0, 1024)
+            t.stroke(t.wobble(x, y, x + r.uniform(-20, 20), y - r.uniform(120, 300), 5, 8), 'soft', r.uniform(30, 70), r.choice(['#2a2220', '#3a2e28']), r.uniform(0.15, 0.3), pressure=[1, 0.6, 0.15])
+    return t
+
+
+def rammed_earth(): return layered_earth('rammed_earth', EARTH, 601, 5, 10, pocks=2200)
+def rammed_earth_core(): return layered_earth('rammed_earth_core', CORE, 602, 5, 6, soot=True)
+def earth_burnt(): return layered_earth('earth_burnt', BURNT, 603, 5, 10, soot=True)
+
+
+def river_stone():
+    """River-stone footing under rammed-earth walls and terraces: rounded cobbles 10-25 cm in earth mortar."""
+    t = P.Tex('river_stone', '#5b5246', True, True, 611)
+    r = t.r
+    placed = []
+    for _ in range(20000):
+        if len(placed) >= 700: break
+        x, y, rad = r.uniform(0, 1024), r.uniform(0, 1024), r.uniform(5, 12.5) * CM
+        ok = True
+        for px, py, pr in placed:
+            dx = min(abs(x - px), 1024 - abs(x - px)); dy = min(abs(y - py), 1024 - abs(y - py))
+            if dx * dx + dy * dy < (rad + pr + 2) ** 2: ok = False; break
+        if ok: placed.append((x, y, rad))
+    t.stage = 1
+    for _ in range(40):
+        t.blot(r.uniform(0, 1024), r.uniform(0, 1024), r.uniform(50, 120), 'sponge', 80, r.choice(['#4c443a', '#6a5f50']), 0.4, 3)
+    t.stage = 2
+    for x, y, rad in placed:  # each cobble: a solid rounded body of its own tone, a lighter worn crown, a dark bedding line under it
+        c = r.choice(STONE); sq = r.uniform(0.7, 1.0); a0 = r.uniform(-0.4, 0.4)
+        L = rad * (1 - sq) * 1.2
+        t.stroke([(x - math.cos(a0) * L, y - math.sin(a0) * L), (x + math.cos(a0) * L + 0.5, y + math.sin(a0) * L)], 'ink', rad * 2 * sq, c, 1.0, taper=[0, 0])
+        t.stroke([(x - math.cos(a0) * L * 0.6, y - math.sin(a0) * L * 0.6), (x + math.cos(a0) * L * 0.6 + 0.5, y + math.sin(a0) * L * 0.6)], 'oil', rad * 1.1 * sq, r.choice(STONE), 0.5, taper=[0, 0])
+    t.stage = 3
+    for _ in range(260):  # grit and lichen-free wear specks
+        x, y = r.uniform(0, 1024), r.uniform(0, 1024)
+        t.stroke([(x, y), (x + r.uniform(-8, 8), y + r.uniform(-8, 8))], 'chalk', r.uniform(3, 6), r.choice(['#a9a59b', '#5c564c']), 0.45)
+    return t
+
+
+def stone_paving():
+    """Court paving: rough-dressed limestone slabs in running courses (0.5-0.7 m deep, 0.8-1.3 m long), 1.5 cm joints."""
+    t = P.Tex('stone_paving', '#8e8a80', True, True, 621)
+    r = t.r
+    rows = []
+    while sum(rows) < 400: rows.append(r.choice([50, 60, 70]))
+    k = 400 / sum(rows); rows = [h * k * CM for h in rows]
+    slabs, y = [], 0.0
+    for h in rows:
+        x = r.uniform(0, 1024); start = x; ws = []
+        while sum(ws) < 400: ws.append(r.uniform(80, 130))
+        kk = 400 / sum(ws)
+        for w in ws:
+            w = w * kk * CM; slabs.append((x, y, w, h)); x += w
+        y += h
+    t.stage = 1
+    for x, y, w, h in slabs:  # each slab its own tone, filled with horizontal strokes
+        c = r.choice(STONE); yy = y + 6
+        while yy < y + h - 4:
+            t.stroke(t.wobble(x + 4, yy, x + w - 4, yy, 4, 1.2), 'flat-bristle', 16, c, 0.9, taper=[0, 0]); yy += 11
+    t.stage = 2
+    for x, y, w, h in slabs:  # chisel dressing: short parallel strokes in patches, a different angle per slab
+        a = r.uniform(-0.6, 0.6) + r.choice([0, math.pi / 2])
+        for _ in range(int(w * h / 900)):
+            cx, cy = r.uniform(x + 8, x + w - 8), r.uniform(y + 8, y + h - 8); L = r.uniform(4, 12) * CM
+            t.stroke([(cx, cy), (cx + math.cos(a) * L, cy + math.sin(a) * L)], 'chalk', r.uniform(3, 6), r.choice(['#6d6a62', '#a9a59b', '#7b786f']), r.uniform(0.3, 0.55))
+    t.stage = 3
+    for x, y, w, h in slabs:  # joints: dark mortar line on the top and left edge of each slab (tiles cover every edge once)
+        t.stroke(t.wobble(x, y, x + w, y, 5, 0.8), 'marker', 4, '#4b4740', 0.9, taper=[0, 0])
+        t.stroke(t.wobble(x, y, x, y + h, 4, 0.8), 'marker', 4, '#4b4740', 0.9, taper=[0, 0])
+        for _ in range(2):  # chipped arrises
+            ex = r.uniform(x, x + w)
+            t.stroke([(ex, y + 3), (ex + r.uniform(6, 16), y + 4)], 'chalk', 4, '#5e5a52', 0.5)
+    for _ in range(40):  # wear and stains
+        t.blot(r.uniform(0, 1024), r.uniform(0, 1024), r.uniform(20, 60), 'sponge', 40, r.choice(['#7a766c', '#a19d92']), 0.25, 2)
+    return t
+
+
+def floor_tiles():
+    """Corridor floor: square fired-clay tiles 40 cm (10 per 4 m) with stamped patterns, lozenge, 米-grid and square grid, on a diagonal
+    rotation; grey earthenware, incised pattern lines (no light painted in)."""
+    t = P.Tex('floor_tiles', '#76726a', True, True, 631)
+    r = t.r
+    S = 102.4
+    G = '#5c5951'; L = '#8b877e'
+    t.stage = 1
+    for i in range(10):
+        for j in range(10):
+            x, y = i * S, j * S; c = r.choice(['#7a766e', '#6f6b63', '#827e75', '#74706a'])
+            for k in range(6):
+                yy = y + 10 + k * 15
+                t.stroke(t.wobble(x + 6, yy, x + S - 6, yy, 3, 1.0), 'flat-bristle', 18, c, 0.85, taper=[0, 0])
+    t.stage = 2
+    for i in range(10):
+        for j in range(10):
+            x, y = i * S, j * S; kind = (i + 2 * j) % 3; m = 12
+            x0, y0, x1, y1 = x + m, y + m, x + S - m, y + S - m
+            t.stroke([(x0, y0), (x1, y0), (x1, y1), (x0, y1), (x0, y0)], 'pencil', 3, G, 0.7, taper=[0, 0])   # stamped border
+            cx, cy = x + S / 2, y + S / 2
+            if kind == 0:  # lozenge lattice: 2 x 2 lozenges and a centre lozenge
+                t.stroke([(x0, cy), (cx, y0), (x1, cy), (cx, y1), (x0, cy)], 'pencil', 3, G, 0.75, taper=[0, 0])
+                h = (x1 - x0) / 4
+                t.stroke([(cx - h, cy), (cx, cy - h), (cx + h, cy), (cx, cy + h), (cx - h, cy)], 'pencil', 3, G, 0.75, taper=[0, 0])
+                t.stroke([(x0 + 1.5, cy + 1.5), (cx + 1.5, y0 + 1.5)], 'pencil', 2, L, 0.5, taper=[0, 0])
+            elif kind == 1:  # 米 grid
+                for (a, b, c2, d) in ((x0, cy, x1, cy), (cx, y0, cx, y1), (x0, y0, x1, y1), (x0, y1, x1, y0)):
+                    t.stroke([(a, b), (c2, d)], 'pencil', 3, G, 0.75, taper=[0, 0])
+                    t.stroke([(a + 1.5, b + 1.5), (c2 + 1.5, d + 1.5)], 'pencil', 2, L, 0.45, taper=[0, 0])
+            else:  # square grid: nested squares 回
+                for f in (0.62, 0.3):
+                    h = (x1 - x0) / 2 * f
+                    t.stroke([(cx - h, cy - h), (cx + h, cy - h), (cx + h, cy + h), (cx - h, cy + h), (cx - h, cy - h)], 'pencil', 3, G, 0.75, taper=[0, 0])
+                t.stroke([(cx - 2, cy), (cx + 2, cy)], 'ink', 6, G, 0.8, taper=[0, 0])
+    t.stage = 3
+    for i in range(11):  # joints
+        x0 = r.uniform(0, 1024)
+        t.stroke([(i * S, 0), (i * S, 1024)], 'marker', 5, '#45423c', 0.9, taper=[0, 0], wrap=i in (0, 10))
+        t.stroke([(0, i * S), (1024, i * S)], 'marker', 5, '#45423c', 0.9, taper=[0, 0], wrap=i in (0, 10))
+    for _ in range(220):  # wear: footfall polish and chips
+        x, y = r.uniform(0, 1024), r.uniform(0, 1024); a = r.uniform(0, math.tau); Ln = r.uniform(10, 34)
+        t.stroke([(x, y), (x + math.cos(a) * Ln, y + math.sin(a) * Ln)], 'chalk', r.uniform(4, 9), r.choice(['#8d8980', '#5f5c55']), r.uniform(0.3, 0.5))
+    return t
+
+
+def dragon(t, x0, x1, yc, amp, d, c_dark, c_light):
+    """our own stamped dragon for the hollow bricks: an S-body with scale dabs, a long head with open jaws, three hooked legs, a curl tail."""
+    r = t.r
+    n = 30; pts = []
+    for i in range(n + 1):
+        a = i / n
+        pts.append((x0 + (x1 - x0) * a, yc + math.sin(a * math.pi * 2.2) * amp))
+    if d < 0: pts = [(x0 + x1 - x, y) for x, y in pts]
+    t.stroke(pts, 'ink', 20, c_dark, 0.85, taper=[6, 20])
+    t.stroke([(x + 1.5, y - 3) for x, y in pts], 'ink', 6, c_light, 0.6, taper=[6, 20])
+    for i in range(3, n - 4, 2):  # scales
+        x, y = pts[i]
+        t.stroke([(x - 3, y - 3), (x, y + 2), (x + 3, y - 3)], 'pencil', 2, c_light, 0.5, taper=[0, 0])
+    hx, hy = pts[0]; s = -d  # head at the start, facing outward
+    t.stroke([(hx - s * 4, hy), (hx + s * 6, hy)], 'ink', 26, c_dark, 0.9, taper=[0, 0])                            # head mass
+    t.stroke([(hx, hy - 4), (hx + s * 22, hy - 10), (hx + s * 36, hy - 6)], 'ink', 10, c_dark, 0.9, taper=[0, 4])   # upper jaw
+    t.stroke([(hx, hy + 6), (hx + s * 20, hy + 14), (hx + s * 32, hy + 18)], 'ink', 7, c_dark, 0.9, taper=[0, 4])   # lower jaw
+    t.stroke([(hx - s * 2, hy - 6), (hx - s * 12, hy - 20), (hx - s * 20, hy - 22)], 'ink', 4, c_dark, 0.8, taper=[0, 6])  # horn
+    t.stroke([(hx + s * 10, hy - 4), (hx + s * 11, hy - 3)], 'ink', 4, c_light, 0.9, taper=[0, 0])  # eye
+    for i in (8, 16, 23):  # legs with three-claw feet
+        x, y = pts[i]; dn = 1 if r.random() < 0.6 else -1
+        fx, fy = x + s * 8, y + dn * 22
+        t.stroke([(x, y), (x + s * 4, y + dn * 12), (fx, fy)], 'ink', 5, c_dark, 0.8, taper=[0, 2])
+        for k in (-1, 0, 1):
+            t.stroke([(fx, fy), (fx + s * 6 + k * 4, fy + dn * 5)], 'pencil', 2, c_dark, 0.8, taper=[0, 0])
+    tx, ty = pts[-1]  # tail curl
+    curl = [(tx + math.cos(a) * 10 * (1 - a / 12) * -s, ty - 10 + math.sin(a) * 10 * (1 - a / 12)) for a in [k * 0.5 for k in range(14)]]
+    t.stroke(curl, 'ink', 4, c_dark, 0.8, taper=[0, 6])
+
+
+def hollow_brick():
+    """Hollow-brick parapet and stair-tread faces 空心砖: grey earthenware bricks 133 x 40 cm, staggered, each with a stamped frame of
+    dot rings and our own dragon. Rows wrap; 10 rows per 4 m."""
+    t = P.Tex('hollow_brick', '#86827a', True, True, 641)
+    r = t.r
+    H, W = 102.4, 1024 / 3
+    D, Lt = '#5d5951', '#a29e94'
+    t.stage = 1
+    for j in range(10):
+        off = (W / 2) * (j % 2)
+        for i in range(3):
+            x, y = off + i * W, j * H; c = r.choice(['#8a867e', '#7f7b73', '#918d84', '#858178'])
+            for k in range(5):
+                yy = y + 12 + k * 19
+                t.stroke(t.wobble(x + 6, yy, x + W - 6, yy, 6, 1.0), 'flat-bristle', 22, c, 0.85, taper=[0, 0])
+    t.stage = 2
+    for j in range(10):
+        off = (W / 2) * (j % 2)
+        for i in range(3):
+            x, y = off + i * W, j * H
+            m = 9
+            t.stroke([(x + m, y + m), (x + W - m, y + m), (x + W - m, y + H - m), (x + m, y + H - m), (x + m, y + m)], 'pencil', 3, D, 0.75, taper=[0, 0])
+            for k in range(14):  # stamped dot rings along top and bottom borders
+                px = x + 18 + k * (W - 36) / 13
+                for py in (y + 17, y + H - 17):
+                    t.stroke([(px - 3, py), (px, py - 3), (px + 3, py), (px, py + 3), (px - 3, py)], 'pencil', 2, D, 0.65, taper=[0, 0])
+            dragon(t, x + 60, x + W - 40, y + H / 2, 18, 1 if (i + j) % 2 else -1, D, Lt)
+    t.stage = 3
+    for j in range(11):  # bed joints
+        t.stroke([(0, j * H), (1024, j * H)], 'marker', 5, '#4d4943', 0.9, taper=[0, 0], wrap=j in (0, 10))
+    for j in range(10):  # head joints
+        off = (W / 2) * (j % 2)
+        for i in range(3):
+            x = off + i * W
+            t.stroke([(x, j * H), (x, j * H + H)], 'marker', 5, '#4d4943', 0.9, taper=[0, 0])
+    for _ in range(150):
+        x, y = r.uniform(0, 1024), r.uniform(0, 1024)
+        t.stroke([(x, y), (x + r.uniform(-12, 12), y + r.uniform(-4, 4))], 'chalk', r.uniform(4, 8), r.choice([Lt, '#6c6860']), 0.4)
+    return t
+
+
+def plaster_body(t, y0, y1, burnt=False):
+    """lime plaster mottling and trowel strokes between rows y0-y1 (as the approved hall wall, our own pass)."""
+    r = t.r
+    cols = ['#9f927a', '#c9bea7', '#a89a80', '#bdb099'] if not burnt else ['#7d7262', '#958a78', '#6e6456', '#8a7f6d']
+    for _ in range(int(80 * (y1 - y0) / 590)):
+        t.blot(r.uniform(0, 1024), r.uniform(y0, y1), r.uniform(40, 110), 'sponge', r.uniform(50, 110), r.choice(cols), r.uniform(0.35, 0.55), 3)
+    tr = ['#9a8d75', '#d0c5ae', '#a99c83'] if not burnt else ['#6a6052', '#a09583', '#7a6f60']
+    for _ in range(int(700 * (y1 - y0) / 590)):
+        x, y = r.uniform(0, 1024), r.uniform(y0, y1); a = r.uniform(-0.6, 0.6); L = r.uniform(25, 80)
+        t.stroke(t.wobble(x, y, x + math.cos(a) * L, y + math.sin(a) * L, 3, 2), 'oil', r.uniform(10, 24), r.choice(tr), r.uniform(0.4, 0.6))
+
+
+def chariot(t, x, base, s=1.0):
+    """a four-horse chariot with a canopy and a driver, side view, facing right (our own brush drawing)."""
+    K_, R_, O_ = '#1b1714', '#8a3020', '#9c6a36'
+    for h in range(4):  # horses, overlapping, alternately black and ochre
+        hx = x + 30 * s + h * 14 * s; c = K_ if h % 2 == 0 else O_
+        body = [(hx, base - 70 * s), (hx + 70 * s, base - 74 * s)]
+        t.stroke(body, 'flat-bristle', 30 * s, c, 0.95, taper=[6, 6])
+        t.stroke([(hx + 66 * s, base - 80 * s), (hx + 82 * s, base - 112 * s), (hx + 96 * s, base - 108 * s)], 'ink', 12 * s, c, 0.95, taper=[0, 6])  # neck and head
+        for lx, kx in ((hx + 6 * s, -8), (hx + 18 * s, 6), (hx + 56 * s, 10), (hx + 66 * s, -6)):
+            t.stroke([(lx, base - 62 * s), (lx + kx * s * 0.6, base - 30 * s), (lx + kx * s, base)], 'ink', 5 * s, c, 0.95, taper=[0, 2])
+        t.stroke([(hx - 2, base - 74 * s), (hx - 12 * s, base - 50 * s)], 'ink', 4 * s, c, 0.9, taper=[0, 4])  # tail
+    t.stroke([(x + 30 * s, base - 86 * s), (x - 40 * s, base - 70 * s)], 'ink', 4 * s, K_, 0.9, taper=[0, 0])  # shaft and reins
+    cx = x - 70 * s  # car, wheel, canopy, driver
+    t.stroke([(cx - 34 * s, base - 64 * s), (cx + 34 * s, base - 64 * s)], 'flat-bristle', 26 * s, R_, 0.95, taper=[0, 0])
+    wheel = [(cx + math.cos(a) * 34 * s, base - 34 * s + math.sin(a) * 34 * s) for a in [k * math.tau / 24 for k in range(25)]]
+    t.stroke(wheel, 'ink', 5 * s, K_, 0.95, taper=[0, 0])
+    for k in range(6):
+        a = k * math.pi / 6
+        t.stroke([(cx - math.cos(a) * 32 * s, base - 34 * s - math.sin(a) * 32 * s), (cx + math.cos(a) * 32 * s, base - 34 * s + math.sin(a) * 32 * s)], 'pencil', 2.5 * s, K_, 0.85, taper=[0, 0])
+    t.stroke([(cx, base - 64 * s), (cx, base - 150 * s)], 'pencil', 3 * s, K_, 0.9, taper=[0, 0])  # canopy pole
+    t.stroke([(cx - 46 * s, base - 140 * s), (cx, base - 158 * s), (cx + 46 * s, base - 140 * s)], 'flat-bristle', 12 * s, O_, 0.95, taper=[4, 4])
+    figure(t, cx + 10 * s, base - 76 * s, 0.6 * s, K_, R_)
+
+
+def figure(t, x, foot, s, c1, c2, weapon=False):
+    """a standing figure in a long robe, side view: head, cap, robe as a tapering block, arms; our own drawing."""
+    t.stroke([(x, foot - 150 * s), (x, foot - 151 * s)], 'ink', 22 * s, c1, 0.95, taper=[0, 0])                      # head
+    t.stroke([(x - 8 * s, foot - 164 * s), (x + 10 * s, foot - 168 * s)], 'ink', 8 * s, c1, 0.95, taper=[0, 0])       # cap
+    t.stroke([(x, foot - 136 * s), (x - 2 * s, foot - 70 * s), (x - 6 * s, foot - 4 * s)], 'flat-bristle', 34 * s, c2, 0.95, taper=[0, 0])  # robe
+    t.stroke([(x - 18 * s, foot - 6 * s), (x + 16 * s, foot - 6 * s)], 'ink', 8 * s, c2, 0.95, taper=[0, 0])
+    t.stroke([(x + 4 * s, foot - 120 * s), (x + 22 * s, foot - 96 * s)], 'ink', 9 * s, c1, 0.95, taper=[0, 3])         # arm
+    t.stroke([(x - 14 * s, foot - 110 * s), (x + 12 * s, foot - 110 * s)], 'pencil', 3 * s, c1, 0.8, taper=[0, 0])     # belt line
+    if weapon:  # a halberd 戟: shaft, side blade
+        t.stroke([(x + 22 * s, foot), (x + 22 * s, foot - 230 * s)], 'pencil', 4 * s, '#1b1714', 0.95, taper=[0, 0])
+        t.stroke([(x + 22 * s, foot - 205 * s), (x + 44 * s, foot - 212 * s), (x + 22 * s, foot - 196 * s)], 'ink', 5 * s, '#1b1714', 0.95, taper=[0, 0])
+        t.stroke([(x + 22 * s, foot - 230 * s), (x + 22 * s, foot - 250 * s)], 'ink', 5 * s, '#1b1714', 0.95, taper=[0, 6])
+
+
+def strange_beast(t, x, base, s):
+    """a winged long-tailed beast (the murals' 'strange animals'), our own drawing: deer legs, tiger body, wing, curled tail."""
+    G_, K_ = '#4d6a55', '#1b1714'
+    t.stroke([(x, base - 60 * s), (x + 80 * s, base - 64 * s)], 'flat-bristle', 30 * s, G_, 0.95, taper=[8, 8])
+    for lx in (x + 6 * s, x + 20 * s, x + 64 * s, x + 76 * s):
+        t.stroke([(lx, base - 52 * s), (lx + 4 * s, base - 22 * s), (lx, base)], 'ink', 5 * s, K_, 0.95, taper=[0, 2])
+    t.stroke([(x + 78 * s, base - 72 * s), (x + 96 * s, base - 100 * s), (x + 114 * s, base - 96 * s)], 'ink', 11 * s, G_, 0.95, taper=[0, 6])
+    t.stroke([(x + 96 * s, base - 104 * s), (x + 90 * s, base - 128 * s), (x + 100 * s, base - 140 * s)], 'pencil', 3 * s, K_, 0.9, taper=[0, 4])  # antler
+    t.stroke([(x + 30 * s, base - 72 * s), (x + 20 * s, base - 120 * s), (x + 60 * s, base - 106 * s), (x + 50 * s, base - 76 * s)], 'ink', 8 * s, '#8a3020', 0.95, taper=[0, 4])  # wing
+    tail = [(x - math.cos(a) * 26 * s * (1 - a / 10), base - 70 * s - 26 * s + math.sin(a) * 26 * s * (1 - a / 10)) for a in [k * 0.45 for k in range(16)]]
+    t.stroke([(x, base - 62 * s)] + tail, 'ink', 6 * s, K_, 0.95, taper=[0, 6])
+    t.stroke([(x + 104 * s, base - 98 * s), (x + 105 * s, base - 97 * s)], 'ink', 4 * s, '#d6ccb6', 1.0, taper=[0, 0])
+
+
+def wall_rows(t, burnt=False, mural=False):
+    """the approved hall wall's rows (A2): black cornice 0-40, a band, red rule, lime plaster 170-760, red rule, black dado 772-1024.
+    mural True: a 1.5 m mural band 50-430 (corridor walls, A10); burnt True: soot, spalls to the reddened earth, a charred dado (A18)."""
+    r = t.r
+    t.stage = 1
+    plaster_body(t, 442 if mural else 170, 760, burnt)
+    if mural:
+        P.band(t, 50, 430, '#d6ccb6', 'flat-bristle', 40, 1.0, 26, 1.5)   # white ground
+        for _ in range(60):
+            x, y = r.uniform(0, 1024), r.uniform(60, 420)
+            t.stroke(t.wobble(x, y, x + r.uniform(30, 70), y + r.uniform(-4, 4), 3, 1.5), 'oil', r.uniform(10, 20), r.choice(['#cfc4ad', '#ddd4c0']), 0.5)
+        t.stage = 2
+        base = 400
+        chariot(t, 360, base, 1.0)
+        figure(t, 470, base, 0.95, '#1b1714', '#1b1714', weapon=True)
+        figure(t, 540, base, 0.95, '#1b1714', '#8a3020', weapon=True)
+        figure(t, 640, base, 0.9, '#1b1714', '#9c6a36')
+        figure(t, 700, base, 0.9, '#1b1714', '#4d6a55')
+        strange_beast(t, 790, base, 1.15)
+        figure(t, 990, base, 0.95, '#1b1714', '#1b1714', weapon=True)
+        x0 = r.uniform(0, 1024)
+        t.stroke(t.wobble(x0, base + 6, x0 + 1100, base + 6, 12, 1.5), 'dry-brush', 6, '#9c6a36', 0.8, taper=[0, 0])  # ground line
+        for i in range(8):  # a row of cloud scrolls above the procession
+            P.cloud(t, 64 + i * 128, 110, 30, '#9c6a36')
+        figure(t, 40, base, 0.9, '#1b1714', '#8a3020')
+        figure(t, 100, base, 0.9, '#1b1714', '#1b1714')
+        strange_beast(t, 140, base, 0.85)
+        P.band(t, 40, 52, '#7e271b', 'marker', 12, 1.0, 12, 0.8)
+        P.band(t, 430, 442, '#7e271b', 'marker', 12, 1.0, 12, 0.8)
+    else:
+        P.band(t, 40, 150, '#d6ccb6' if not burnt else '#8f8472', 'flat-bristle', 40, 1.0, 26, 1.5)
+        w = 1024 / 16
+        for i in range(16):
+            cx, yc, hh = (i + 0.5) * w, 95, 42
+            t.stroke([(cx - w / 2 + 4, yc), (cx, yc - hh), (cx + w / 2 - 4, yc), (cx, yc + hh), (cx - w / 2 + 4, yc)], 'marker', 7, '#1b1714', 0.9, taper=[0, 0])
+            t.stroke([(cx - w / 4, yc), (cx, yc - hh / 2), (cx + w / 4, yc), (cx, yc + hh / 2), (cx - w / 4, yc)], 'marker', 9, '#1b1714', 0.9, taper=[0, 0])
+        P.band(t, 150, 162, '#7e271b' if not burnt else '#4e2018', 'marker', 12, 1.0, 12, 0.8)
+    P.band(t, 0, 40, '#17120f', 'flat-bristle', 30, 1.0, 14, 1)
+    P.band(t, 760, 772, '#7e271b' if not burnt else '#4e2018', 'marker', 12, 1.0, 12, 0.8)
+    P.band(t, 772, 1024, '#1a1512' if not burnt else '#100d0c', 'flat-bristle', 50, 1.0, 26, 2)
+    t.stage = 3
+    for _ in range(60):
+        x, y = r.uniform(0, 1024), r.uniform(790, 1010)
+        t.stroke(t.wobble(x, y, x + r.uniform(40, 160), y + r.uniform(-4, 4), 4, 1.5), 'dry-brush', r.uniform(6, 14), r.choice(['#2e2722', '#262019']), r.uniform(0.3, 0.6))
+    if burnt:
+        for _ in range(6):  # spalled plaster: a jagged patch of fire-reddened earth with its layer lines, a pale broken plaster edge
+            cx, cy, w, h = r.uniform(0, 1024), r.uniform(280, 660), r.uniform(90, 190), r.uniform(60, 130)
+            edge = [(cx + math.cos(a) * w * 0.5 * r.uniform(0.55, 1.0), cy + math.sin(a) * h * 0.5 * r.uniform(0.55, 1.0)) for a in [k * math.tau / 11 for k in range(11)]]
+            edge.append(edge[0])
+            y = cy - h / 2
+            while y < cy + h / 2:  # fill the patch row by row inside the jagged outline
+                xs = []
+                for (x1, y1), (x2, y2) in zip(edge, edge[1:]):
+                    if (y1 - y) * (y2 - y) < 0: xs.append(x1 + (x2 - x1) * (y - y1) / (y2 - y1))
+                xs.sort()
+                for xa, xb in zip(xs[0::2], xs[1::2]):
+                    t.stroke([(xa, y), (xb, y)], 'oil', 9, r.choice(['#7e5444', '#74493b', '#6c4538']), 0.95, taper=[0, 0])
+                y += 6
+            for k in range(int(h / 16)):
+                yy = cy - h / 2 + 8 + k * 16
+                t.stroke([(cx - w * 0.25, yy), (cx + w * 0.25, yy)], 'pencil', 2, '#4e2f25', 0.6, taper=[0, 0])
+            t.stroke(edge, 'chalk', 4, '#b3a894', 0.65, taper=[0, 0])
+        for k in range(5):  # soot collected under the cornice and over the band: overlapping washes, heaviest at the top
+            y = 40 + k * 14
+            while y < 420:
+                for _ in range(6):
+                    x0 = r.uniform(0, 1024)
+                    t.stroke(t.wobble(x0, y, x0 + 300, y, 4, 6), 'soft', 60, '#1c1714', 0.5 * (1 - (y - 40) / 420), taper=[0, 0])
+                y += 36
+        for _ in range(16):  # plumes of soot rising from the dado, widening and fading as they rise
+            x = r.uniform(0, 1024)
+            for k in range(9):
+                y = 750 - k * 50; x += r.uniform(-12, 12)
+                t.blot(x, y, 20 + k * 7, 'oil', 30 + k * 8, '#1c1714', 0.3 - k * 0.028, 3)
+        for _ in range(80):  # heat crazing in the plaster
+            x, y = r.uniform(0, 1024), r.uniform(180, 740); pts = [(x, y)]
+            for _ in range(4): x += r.uniform(-18, 18); y += r.uniform(-18, 18); pts.append((x, y))
+            t.stroke(pts, 'pencil', 2, '#3a322b', 0.55)
+        for _ in range(500):  # ash and soot flecks
+            x, y = r.uniform(0, 1024), r.uniform(175, 745)
+            t.stroke([(x, y), (x + r.uniform(-6, 6), y + r.uniform(-3, 3))], 'chalk', r.uniform(4, 8), r.choice(['#2a2420', '#a59a88']), 0.45)
+        for _ in range(40):  # soot plumes rising from the dado and from the door gaps
+            x = r.uniform(0, 1024); y = r.uniform(600, 800)
+            t.stroke(t.wobble(x, y, x + r.uniform(-30, 30), y - r.uniform(200, 560), 6, 12), 'soft', r.uniform(40, 90), '#211b18', r.uniform(0.18, 0.35), pressure=[1, 0.7, 0.2])
+        for _ in range(140):  # char crazing on the dado
+            x, y = r.uniform(0, 1024), r.uniform(780, 1020)
+            t.stroke([(x, y), (x + r.uniform(-14, 14), y + r.uniform(4, 12))], 'pencil', 2, '#050404', 0.7)
+            t.stroke([(x + 3, y + 1), (x + r.uniform(6, 20), y + 1)], 'dry-brush', 4, '#3a302a', 0.45)
+    else:
+        for _ in range(26):
+            x = r.uniform(0, 1024); y = r.uniform(445 if mural else 160, 470 if mural else 220)
+            t.stroke(t.wobble(x, y, x + r.uniform(-6, 6), y + r.uniform(80, 260), 5, 2), 'soft', r.uniform(8, 18), '#8f8068', r.uniform(0.12, 0.25), pressure=[1, 0.6, 0.1])
+    return t
+
+
+def mural_wall(): return wall_rows(P.Tex('mural_wall', '#b9ad95', True, False, 651), mural=True)
+def wall_burnt(): return wall_rows(P.Tex('wall_burnt', '#857a69', True, False, 652), burnt=True)
+
+
+def tile_end(t, cx, cy, rad, kind):
+    """瓦当 tile end, our own cloud designs: rim, a cross dividing four fields, a cloud curl in each, a centre boss."""
+    D, Lt = '#3c3b3a', '#7e7c78'
+    t.stroke([(cx, cy), (cx + 0.5, cy)], 'ink', rad * 2, '#5a5956', 1.0, taper=[0, 0])
+    ring = [(cx + math.cos(a) * rad * 0.9, cy + math.sin(a) * rad * 0.9) for a in [k * math.tau / 28 for k in range(29)]]
+    t.stroke(ring, 'pencil', 3, Lt, 0.9, taper=[0, 0])
+    ring2 = [(cx + math.cos(a) * rad * 0.74, cy + math.sin(a) * rad * 0.74) for a in [k * math.tau / 24 for k in range(25)]]
+    t.stroke(ring2, 'pencil', 2, D, 0.8, taper=[0, 0])
+    if kind % 2 == 0:
+        for a in (0, math.pi / 2):
+            t.stroke([(cx - math.cos(a) * rad * 0.74, cy - math.sin(a) * rad * 0.74), (cx + math.cos(a) * rad * 0.74, cy + math.sin(a) * rad * 0.74)], 'pencil', 2, D, 0.8, taper=[0, 0])
+    for q in range(4):
+        a = q * math.pi / 2 + math.pi / 4 + (0.3 if kind >= 2 else 0)
+        qx, qy = cx + math.cos(a) * rad * 0.46, cy + math.sin(a) * rad * 0.46
+        curl = [(qx + math.cos(a + 2 + k * 0.6) * rad * 0.2 * (1 - k / 14), qy + math.sin(a + 2 + k * 0.6) * rad * 0.2 * (1 - k / 14)) for k in range(12)]
+        t.stroke(curl, 'pencil', 2.2, Lt, 0.9, taper=[0, 3])
+    t.stroke([(cx, cy), (cx + 0.5, cy)], 'ink', rad * 0.32, Lt, 0.95, taper=[0, 0])
+
+
+def roof_tile():
+    """Grey unglazed roof tile (A11). Rows 0-768: tile field, slope runs down the image: concave pan tiles 板瓦 (34 cm) and round cover
+    tiles 筒瓦 (16 cm) in 50 cm pairs, courses every 40 cm; wraps across x. Rows 780-1020: eight 瓦当 tile-end faces 20 cm across, our
+    own cloud designs (the eave piece's instanced tile ends map one each), on a dark eave board."""
+    t = P.Tex('roof_tile', '#4c4b4b', True, False, 661)
+    r = t.r
+    pitch = 128; pan = 87
+    t.stage = 1
+    for i in range(8):
+        x = i * pitch
+        for y in range(0, 768, 12):  # pan tile: mid grey, a little lighter to its middle (curvature by value, no light direction)
+            t.stroke([(x + 6, y), (x + pan - 6, y)], 'flat-bristle', 14, r.choice(['#4e4d4c', '#53524f', '#4a4949']), 0.85, taper=[0, 0], wrap=False)
+        t.stroke([(x + pan / 2, 0), (x + pan / 2, 768)], 'soft', 34, '#595856', 0.35, taper=[0, 0], wrap=False)
+    t.stage = 2
+    for i in range(8):
+        x = i * pitch + pan
+        t.stroke([(x - 3, 0), (x - 3, 768)], 'marker', 6, '#2d2c2c', 0.9, taper=[0, 0], wrap=False)          # gap shadow (occlusion) beside the cover tile
+        t.stroke([(x + 20, 0), (x + 20, 768)], 'marker', 34, '#5c5b58', 1.0, taper=[0, 0], wrap=False)  # cover tile
+        t.stroke([(x + 20, 0), (x + 20, 768)], 'oil', 12, '#6a6864', 0.6, taper=[0, 0], wrap=False)
+        t.stroke([(x + 43, 0), (x + 43, 768)], 'marker', 5, '#2d2c2c', 0.9, taper=[0, 0], wrap=False)
+    for y in range(0, 768, 102):  # course laps: each course's lower edge over the next
+        y = y + 90
+        for i in range(8):
+            x = i * pitch
+            t.stroke(t.wobble(x + 4, y, x + pan - 4, y, 4, 1), 'marker', 4, '#323131', 0.85, taper=[0, 0])
+            t.stroke([(x + pan + 4, y - 3), (x + pitch - 4, y - 3)], 'marker', 4, '#3a3938', 0.8, taper=[0, 0])
+    t.stage = 3
+    for _ in range(140):  # firing clouds and a few chips (soft, so the tile reads as one fired body)
+        x, y = r.uniform(0, 1024), r.uniform(0, 760); a = r.uniform(-0.3, 0.3) + math.pi / 2; L = r.uniform(15, 40)
+        t.stroke([(x, y), (x + math.cos(a) * L, y + math.sin(a) * L)], 'oil', r.uniform(8, 16), r.choice(['#454443', '#5c5a57']), r.uniform(0.3, 0.5))
+    P.band(t, 772, 1024, '#2a2624', 'flat-bristle', 40, 1.0, 22, 1.5)  # dark eave board ground for the tile-end atlas
+    for i in range(8):
+        tile_end(t, 64 + i * 128, 836, 26, i % 4)
+        tile_end(t, 64 + i * 128, 958, 26, (i + 2) % 4)
+    return t
+
+
+def timber():
+    """Timber (A12): weathered oiled softwood for beams, trestles and posts; grain runs down the image (v), so meshes map v along each
+    member's long axis; 4 m per repeat both ways."""
+    t = P.Tex('timber', '#6b5039', True, True, 671)
+    r = t.r
+    t.stage = 1
+    for _ in range(26):  # boards of different tone
+        x = r.uniform(0, 1024); w = r.uniform(30, 90)
+        t.stroke(t.wobble(x, -40, x + r.uniform(-6, 6), 1064, 8, 3), 'oil', w, r.choice(['#5a4230', '#7a5d42', '#523d2c', '#836446']), 0.6, taper=[0, 0])
+    t.stage = 2
+    for _ in range(420):  # grain: broad oil strokes along v (4-15 cm across the grain), broken into 20-60 cm pieces
+        x, y = r.uniform(0, 1024), r.uniform(0, 1024); L = r.uniform(20, 60) * CM
+        t.stroke(t.wobble(x, y, x + r.uniform(-4, 4), y + L, 5, 1.2), 'oil', r.uniform(12, 30), r.choice(['#4a3625', '#8a6b4c', '#553f2c', '#7e6044']), r.uniform(0.45, 0.7))
+    for _ in range(160):  # fine grain lines
+        x, y = r.uniform(0, 1024), r.uniform(0, 1024); L = r.uniform(20, 60) * CM
+        t.stroke(t.wobble(x, y, x + r.uniform(-3, 3), y + L, 5, 0.8), 'pencil', 2, '#3e2d1e', r.uniform(0.3, 0.5))
+    for _ in range(16):  # knots
+        x, y = r.uniform(0, 1024), r.uniform(0, 1024); a, b = r.uniform(6, 12), r.uniform(12, 24)
+        ring = [(x + math.cos(k * math.tau / 16) * a, y + math.sin(k * math.tau / 16) * b) for k in range(17)]
+        t.stroke(ring, 'ink', 4, '#3a2a1c', 0.8, taper=[0, 0])
+        t.stroke([(x, y), (x + 0.5, y + 0.5)], 'ink', a, '#4a3624', 0.8, taper=[0, 0])
+    t.stage = 3
+    for _ in range(60):  # checks (drying cracks) along the grain
+        x, y = r.uniform(0, 1024), r.uniform(0, 1024)
+        t.stroke(t.wobble(x, y, x + r.uniform(-3, 3), y + r.uniform(40, 160), 5, 0.8), 'pencil', 2.2, '#2e2116', r.uniform(0.5, 0.8))
+    for _ in range(120):
+        x, y = r.uniform(0, 1024), r.uniform(0, 1024)
+        t.stroke([(x, y), (x + r.uniform(-4, 4), y + r.uniform(8, 24))], 'chalk', r.uniform(3, 6), r.choice(['#957556', '#4a3626']), 0.4)
+    return t
+
+
+def timber_burnt():
+    """Charred timber (A18): alligator char, blocks 4-9 cm split by deep cracks across and along the grain, ash-grey highlights on the
+    blocks, a few patches of scorched brown; same layout and grain direction as timber (a material swap)."""
+    t = P.Tex('timber_burnt', '#2a2320', True, True, 672)
+    r = t.r
+    t.stage = 1
+    for _ in range(40):
+        t.blot(r.uniform(0, 1024), r.uniform(0, 1024), r.uniform(50, 120), 'sponge', 80, r.choice(['#3a302b', '#1d1816', '#4a3629']), 0.4, 3)
+    t.stage = 2
+    ws = []
+    while sum(ws) < 1024: ws.append(r.uniform(14, 22) * CM)
+    k = 1024 / sum(ws); ws = [w * k for w in ws]
+    x = 0.0
+    for w in ws:  # columns of char blocks along the grain (alligator char), each block a tone with a grey sheen
+        y = r.uniform(0, 30)
+        while y < 1024 + 30:
+            h = r.uniform(7, 14) * CM
+            t.stroke([(x + w * 0.5, y + h * 0.15), (x + w * 0.5 + r.uniform(-2, 2), y + h * 0.85)], 'marker', w * 1.0, r.choice(['#3b322d', '#362e29', '#3f352f', '#332b26']), 0.85, taper=[0, 0])
+            t.stroke([(x + w * 0.35, y + h * 0.3), (x + w * 0.45, y + h * 0.6)], 'soft', w * 0.4, r.choice(['#4e4640', '#58504a']), 0.3, taper=[0, 0])
+            t.stroke(t.wobble(x, y + h, x + w, y + h, 3, 2), 'ink', 5, '#0b0908', 0.95, taper=[0, 0])  # cross crack
+            y += h
+        t.stroke(t.wobble(x, -20, x + r.uniform(-3, 3), 1044, 10, 1.5), 'ink', 4, '#0b0908', 0.9, taper=[0, 0])  # long crack
+        x += w
+    t.stage = 3
+    for _ in range(30):  # scorched brown where the char is thin
+        t.blot(r.uniform(0, 1024), r.uniform(0, 1024), r.uniform(20, 50), 'sponge', 40, '#5a3e2a', 0.35, 2)
+    for _ in range(60):
+        x, y = r.uniform(0, 1024), r.uniform(0, 1024)
+        t.stroke([(x, y), (x + r.uniform(-3, 3), y + r.uniform(4, 12))], 'chalk', 3, '#77706a', 0.4)
+    return t
+
+
+def mercury_matcap():
+    """Mercury (A14): a matcap (lit sphere seen head-on), the only bright cool reflective surface. Disc radius 500 px on black.
+    Reflections of the dark hall: a black horizon band below the middle, a bright sky cap upper left, a cool rim light at the bottom."""
+    t = P.Tex('mercury_matcap', '#0a0c0e', False, False, 681)
+    r = t.r
+    C = (512, 512)
+    def ring(rad, c, size, op, brush='oil', a0=0.0, a1=math.tau, cx=512, cy=512):
+        n = max(12, int(rad / 6)); pts = [(cx + math.cos(a0 + (a1 - a0) * k / n) * rad, cy + math.sin(a0 + (a1 - a0) * k / n) * rad) for k in range(n + 1)]
+        t.stroke(pts, brush, size, c, op, taper=[0, 0], wrap=False)
+    t.stage = 0
+    t.stroke([(512, 512), (512.5, 512)], 'ink', 1000, '#c9d0d7', 1.0, taper=[0, 0], wrap=False)  # the solid disc
+    for rad in range(12, 500, 10):
+        f = rad / 500
+        c = '#%02x%02x%02x' % (int(226 - 70 * f ** 3), int(232 - 66 * f ** 3), int(238 - 60 * f ** 3))
+        ring(rad, c, 48, 0.5, 'soft')
+    t.stage = 1
+    for k in range(10):  # the hall's dark horizon band, slightly curved like a reflection on a sphere
+        y = 600 + k * 6
+        half = math.sqrt(max(0, 480 ** 2 - (y - 512) ** 2))
+        t.stroke([(512 - half, y + 10), (512, y - 8), (512 + half, y + 10)], 'soft', 22, r.choice(['#4a525b', '#5a626b', '#3e454d']), 0.45, taper=[0, 0], wrap=False)
+    t.stage = 2
+    for rad in range(20, 220, 12):  # bright cap upper left
+        ring(rad, r.choice(['#e9eef2', '#dfe6ec', '#f2f5f7']), 18, 0.6 * (1 - rad / 240), 'soft', cx=372, cy=352)
+    ring(470, '#cfd8e0', 16, 0.85, 'oil', math.radians(40), math.radians(140))  # rim light along the bottom
+    ring(492, '#4c5560', 18, 0.9, 'oil')                                           # dark outer rim
+    t.stage = 3
+    for _ in range(40):  # soft ripples (the liquid surface)
+        a = r.uniform(0, math.tau); rr = r.uniform(80, 420)
+        ring(rr, r.choice(['#c4ccd4', '#9aa4ae']), r.uniform(4, 8), 0.3, 'soft', a, a + r.uniform(0.3, 0.9))
+    return t
+
+
+def black_lake():
+    """Black lake (A15): near-black with a blue-green tint (#0E1A1C), never the black of cloth; short ripple strokes, a few cool glints."""
+    t = P.Tex('black_lake', '#0f1b1d', True, True, 691)
+    r = t.r
+    t.stage = 1
+    for _ in range(60):
+        t.blot(r.uniform(0, 1024), r.uniform(0, 1024), r.uniform(70, 160), 'sponge', 120, r.choice(['#0b1517', '#13252a', '#102022']), 0.5, 3)
+    t.stage = 2
+    for _ in range(2600):  # ripples: short, mostly horizontal, 4-15 cm; crests lighter, troughs darker
+        x, y = r.uniform(0, 1024), r.uniform(0, 1024); L = r.uniform(4, 15) * CM; a = r.uniform(-0.15, 0.15)
+        t.stroke(t.wobble(x, y, x + math.cos(a) * L, y + math.sin(a) * L, 3, 1.0), 'ink', r.uniform(3, 7), r.choice(['#25403f', '#050b0b', '#2b4848', '#060d0e']), r.uniform(0.6, 0.9), taper=[2, 2])
+    t.stage = 3
+    for _ in range(140):
+        x, y = r.uniform(0, 1024), r.uniform(0, 1024)
+        t.stroke([(x, y), (x + r.uniform(6, 18), y)], 'chalk', 3, '#3b5a5e', r.uniform(0.4, 0.7))
+    return t
+
+
+def garden_ground():
+    """Garden ground (A16): beaten loess with fine gravel, sparse grass tufts and damp patches near the ponds."""
+    t = P.Tex('garden_ground', '#7a6a50', True, True, 701)
+    r = t.r
+    t.stage = 1
+    for _ in range(80):
+        t.blot(r.uniform(0, 1024), r.uniform(0, 1024), r.uniform(50, 140), 'sponge', r.uniform(60, 120), r.choice(['#6c5d45', '#86765a', '#5f5a42', '#71634a']), r.uniform(0.3, 0.5), 3)
+    t.stage = 2
+    for _ in range(2400):  # gravel: solid little stones
+        x, y = r.uniform(0, 1024), r.uniform(0, 1024)
+        t.stroke([(x, y), (x + r.uniform(-3, 3), y + r.uniform(-2, 2))], 'ink', r.uniform(3, 7), r.choice(['#a5957a', '#54483a', '#b3a68e', '#665a48']), r.uniform(0.7, 0.95), taper=[0, 0])
+    for _ in range(150):  # grass tufts
+        x, y = r.uniform(0, 1024), r.uniform(0, 1024); c = r.choice(['#5d6a3e', '#6d7746', '#58603a'])
+        for _ in range(r.randint(4, 7)):
+            a = -math.pi / 2 + r.uniform(-0.7, 0.7); L = r.uniform(10, 24)
+            t.stroke([(x, y), (x + math.cos(a) * L, y + math.sin(a) * L)], 'ink', r.uniform(2, 3.5), c, 0.85, taper=[0, 6])
+    t.stage = 3
+    for _ in range(30):
+        x, y = r.uniform(0, 1024), r.uniform(0, 1024)
+        t.stroke([(x, y), (x + r.uniform(20, 60), y + r.uniform(-6, 6))], 'pencil', 2, '#4b3f30', 0.5)
+    return t
+
+
+def wheat(t, x, foot, h, lean, c_stalk, c_ear):
+    """one wheat stalk with an ear of paired grains and awns (the wheat-ear mural motif, our own drawing)."""
+    r = t.r
+    top = (x + lean * h * 0.3, foot - h)
+    mid = (x + lean * h * 0.08, foot - h * 0.5)
+    t.stroke([(x, foot), mid, top], 'ink', 3, c_stalk, 1.0, taper=[0, 2])
+    for k in range(7):  # grains climbing the ear
+        f = k / 7; gx = top[0] + lean * 4 * f; gy = top[1] - 4 - f * h * 0.28
+        for s in (-1, 1):
+            t.stroke([(gx, gy), (gx + s * 6, gy - 6)], 'ink', 6, c_ear, 1.0, taper=[0, 3])
+            t.stroke([(gx + s * 6, gy - 6), (gx + s * 11, gy - 22)], 'pencil', 1.5, c_ear, 1.0, taper=[0, 0])
+    for s in (-1, 1):  # two leaves
+        y0 = foot - h * r.uniform(0.2, 0.4)
+        t.stroke([(x, y0), (x + s * h * 0.18, y0 - h * 0.12), (x + s * h * 0.3, y0 - h * 0.05)], 'ink', 5, c_stalk, 1.0, taper=[0, 10])
+
+
+def garden_plants():
+    """Planting cards (A16), alpha-tested: a 4 x 4 atlas of 1 m cells (256 px). Row 0 wheat clumps, row 1 millet and reeds, row 2 low
+    shrubs, row 3 grass tufts. Opaque strokes on transparent ground; the bottom of each cell is the ground line."""
+    t = P.Tex('garden_plants', 'none', False, False, 711)
+    r = t.r
+    straw, olive, dark, green = '#b39a5e', '#6b7442', '#3f4629', '#7d8550'
+    for cx in range(4):
+        x0 = cx * 256
+        t.stage = 2
+        for _ in range(9):  # wheat
+            wheat(t, x0 + 128 + r.uniform(-60, 60), 250, r.uniform(150, 220), r.uniform(-0.5, 0.5), r.choice([olive, '#8a8048']), r.choice([straw, '#c2a868', '#a68c50']))
+        for _ in range(6):  # millet stalks with drooping heads, and reeds
+            x = x0 + 128 + r.uniform(-80, 80); h = r.uniform(170, 230); lean = r.choice([-1, 1])
+            top = (x + lean * 40, 506 - h)
+            t.stroke([(x, 506), (x + lean * 10, 506 - h * 0.6), top], 'ink', 3, olive, 1.0, taper=[0, 2])
+            t.stroke([top, (top[0] + lean * 20, top[1] + 10), (top[0] + lean * 26, top[1] + 50)], 'ink', 10, r.choice([straw, '#9c8a52']), 1.0, taper=[4, 8])
+            for s in (-1, 1):
+                y0 = 506 - h * r.uniform(0.2, 0.5)
+                t.stroke([(x, y0), (x + s * 40, y0 - 50), (x + s * 70, y0 - 30)], 'ink', 6, r.choice([olive, green]), 1.0, taper=[0, 12])
+        for _ in range(14):  # low shrub: clustered leaf dabs on short stems
+            x = x0 + 128 + r.uniform(-90, 90); y = 762 - r.uniform(20, 120)
+            t.stroke([(x0 + 128 + r.uniform(-20, 20), 762), (x, y)], 'ink', 3, dark, 1.0, taper=[0, 2])
+            for _ in range(10):
+                a = r.uniform(0, math.tau); L = r.uniform(8, 18)
+                t.stroke([(x + r.uniform(-14, 14), y + r.uniform(-14, 14)), (x + math.cos(a) * L, y + math.sin(a) * L)], 'ink', r.uniform(5, 8), r.choice([olive, dark, green]), 1.0, taper=[2, 4])
+        for _ in range(26):  # grass tuft
+            x = x0 + 128 + r.uniform(-90, 90); a = -math.pi / 2 + r.uniform(-0.6, 0.6); L = r.uniform(40, 110)
+            t.stroke([(x, 1020), (x + math.cos(a) * L * 0.5 + r.uniform(-6, 6), 1020 + math.sin(a) * L * 0.6), (x + math.cos(a) * L, 1020 + math.sin(a) * L)], 'ink', r.uniform(3, 5), r.choice([olive, green, straw]), 1.0, taper=[0, 8])
+    return t
+
+
+def star_ceiling():
+    """Star-map ceiling (A17), core hall: lacquer-black ground, a pale Milky Way wash on the diagonal, gold and silver stars, lodge
+    asterisms joined by fine gold lines with vermilion lodge rings; our own arrangement (no real chart copied)."""
+    t = P.Tex('star_ceiling', '#18161c', True, True, 721)
+    r = t.r
+    t.stage = 1
+    for _ in range(900):  # lacquer brushwork, 4-15 cm
+        x, y = r.uniform(0, 1024), r.uniform(0, 1024)
+        t.stroke(t.wobble(x, y, x + r.uniform(10, 38), y + r.uniform(-4, 4), 3, 1.5), 'oil', r.uniform(10, 24), r.choice(['#24212a', '#0f0d12', '#2b2832']), 0.6)
+    for k in range(70):  # the Milky Way band
+        f = r.uniform(0, 1); x = f * 1024; y = 200 + f * 600 + r.uniform(-90, 90)
+        t.blot(x, y, r.uniform(30, 70), 'sponge', r.uniform(50, 90), r.choice(['#35343f', '#43424d', '#2c2b35']), r.uniform(0.3, 0.5), 3)
+    t.stage = 2
+    for _ in range(1000):
+        x, y = r.uniform(0, 1024), r.uniform(0, 1024)
+        t.stroke([(x, y), (x + 0.5, y + 0.5)], 'ink', r.uniform(2, 5), r.choice(['#c8ccd0', '#c9a95e', '#9a9ca2']), r.uniform(0.6, 0.95), taper=[0, 0])
+    for _ in range(14):  # asterisms
+        cx, cy = r.uniform(0, 1024), r.uniform(0, 1024); n = r.randint(3, 6)
+        pts = [(cx, cy)]
+        for _ in range(n - 1):
+            a = r.uniform(0, math.tau); L = r.uniform(30, 70); pts.append((pts[-1][0] + math.cos(a) * L, pts[-1][1] + math.sin(a) * L))
+        t.stroke(pts, 'pencil', 2, '#a08050', 0.7, taper=[0, 0])
+        for x, y in pts:
+            t.stroke([(x, y), (x + 0.5, y)], 'ink', 9, '#c9a95e', 1.0, taper=[0, 0])
+        lx, ly = pts[0]
+        ring = [(lx + math.cos(a) * 14, ly + math.sin(a) * 14) for a in [k * math.tau / 18 for k in range(19)]]
+        t.stroke(ring, 'pencil', 2.5, '#86281a', 0.85, taper=[0, 0])
+    return t
+
+
+# School accents for the flags (research list; assignment is a proposal, owner to confirm): ground stays Qin black (banners black).
+SCHOOLS = [('ru', '#9a3a26'), ('dao', '#d2ccbe'), ('yinyang', '#8e8a84'), ('fa', '#2e5a9c'), ('ming', '#5b3f8c'),
+           ('mo', '#b8862e'), ('zongheng', '#a8adb2'), ('za', '#b0904e'), ('nong', '#3d7d5a')]
+
+
+def sigil(t, kind, cx, cy, s, c):
+    """invented school sigils (shapes differ first, colour second; no calligraphy)."""
+    sq = lambda h: [(cx - h, cy - h), (cx + h, cy - h), (cx + h, cy + h), (cx - h, cy + h), (cx - h, cy - h)]
+    circ = lambda rr, ox=0, oy=0, a0=0, a1=math.tau: [(cx + ox + math.cos(a0 + (a1 - a0) * k / 24) * rr, cy + oy + math.sin(a0 + (a1 - a0) * k / 24) * rr) for k in range(25)]
+    w = 8
+    if kind == 'ru': t.stroke(sq(s), 'marker', w, c, 1, taper=[0, 0]); t.stroke(sq(s * 0.5), 'marker', w, c, 1, taper=[0, 0])
+    elif kind == 'dao': t.stroke([(cx + math.cos(k * 0.4) * s * k / 30, cy + math.sin(k * 0.4) * s * k / 30) for k in range(31)], 'marker', w, c, 1, taper=[0, 0])
+    elif kind == 'yinyang': t.stroke(circ(s * 0.5, -s * 0.45), 'marker', w, c, 1, taper=[0, 0]); t.stroke(circ(s * 0.5, s * 0.45), 'marker', w * 1.6, c, 1, taper=[0, 0])
+    elif kind == 'fa': t.stroke([(cx, cy - s), (cx, cy + s)], 'marker', w, c, 1, taper=[0, 0]); t.stroke([(cx - s, cy - s * 0.5), (cx + s, cy - s * 0.5)], 'marker', w, c, 1, taper=[0, 0]); t.stroke([(cx - s, cy - s * 0.5), (cx - s * 0.8, cy + s * 0.2)], 'marker', w * 0.7, c, 1, taper=[0, 0]); t.stroke([(cx + s, cy - s * 0.5), (cx + s * 0.8, cy + s * 0.2)], 'marker', w * 0.7, c, 1, taper=[0, 0])
+    elif kind == 'ming': t.stroke([(cx - s, cy), (cx, cy - s), (cx + s, cy), (cx, cy + s), (cx - s, cy)], 'marker', w, c, 1, taper=[0, 0]); t.stroke([(cx - s * 1.2, cy - s * 1.1), (cx + s * 1.2, cy + s * 1.1)], 'marker', w * 0.7, c, 1, taper=[0, 0])
+    elif kind == 'mo':
+        pts = [(cx - s, cy + s * 0.6)]
+        for k in range(4):
+            x = cx - s + k * s / 2; pts += [(x, cy - s * 0.4), (x + s / 4, cy - s * 0.4), (x + s / 4, cy + 0.0), (x + s / 2, cy)]
+        t.stroke(pts + [(cx + s, cy + s * 0.6), (cx - s, cy + s * 0.6)], 'marker', w, c, 1, taper=[0, 0])
+    elif kind == 'zongheng':
+        for a in (math.pi / 4, -math.pi / 4):
+            x1, y1 = cx + math.cos(a) * s, cy + math.sin(a) * s
+            t.stroke([(cx - math.cos(a) * s, cy - math.sin(a) * s), (x1, y1)], 'marker', w, c, 1, taper=[0, 0])
+            t.stroke([(x1 - math.cos(a - 0.5) * s * 0.4, y1 - math.sin(a - 0.5) * s * 0.4), (x1, y1), (x1 - math.cos(a + 0.5) * s * 0.4, y1 - math.sin(a + 0.5) * s * 0.4)], 'marker', w * 0.8, c, 1, taper=[0, 0])
+    elif kind == 'za':
+        for i in range(3):
+            for j in range(3):
+                t.stroke([(cx + (i - 1) * s * 0.7, cy + (j - 1) * s * 0.7), (cx + (i - 1) * s * 0.7 + 0.5, cy + (j - 1) * s * 0.7)], 'ink', s * 0.35, c, 1, taper=[0, 0])
+    elif kind == 'nong':
+        t.stroke([(cx, cy + s), (cx, cy - s)], 'marker', w * 0.8, c, 1, taper=[0, 0])
+        for k in range(4):
+            y = cy - s * 0.8 + k * s * 0.4
+            for sx in (-1, 1): t.stroke([(cx, y + s * 0.15), (cx + sx * s * 0.45, y - s * 0.1)], 'marker', w * 1.2, c, 1, taper=[0, 4])
+
+
+def signal_flags():
+    """Signal flags (A19), alpha-tested: a 3 x 3 atlas of 1.33 m cells, one per school: a Qin-black swallow-tailed flag (court banners
+    were black), the school's accent as a border band and an invented sigil; the left edge sits on the pole, cloth folds by value."""
+    t = P.Tex('signal_flags', 'none', False, False, 731)
+    r = t.r
+    C = 1024 / 3
+    for i, (kind, acc) in enumerate(SCHOOLS):
+        x0, y0 = (i % 3) * C + 12, (i // 3) * C + 40; w, h = C - 30, C * 0.62
+        t.stage = 0
+        y = y0
+        while y <= y0 + h:  # black field; the swallow-tail notch cut from the fly
+            notch = w * 0.22 * (1 - abs((y - y0) / h - 0.5) * 2)
+            t.stroke([(x0, y), (x0 + w - notch, y)], 'ink', 8, '#302a27', 1.0, taper=[0, 0], wrap=False); y += 5
+        t.stage = 1
+        for k in range(5):  # cloth folds: darker and lighter vertical swathes
+            fx = x0 + (k + 0.5) * w / 5.5
+            t.stroke([(fx, y0 + 4), (fx + r.uniform(-6, 6), y0 + h - 4)], 'oil', r.uniform(14, 26), r.choice(['#2b2521', '#0f0c0b']), 0.6, taper=[0, 0], wrap=False)
+        t.stage = 2
+        for yy in (y0 + 8, y0 + h - 8):  # accent border bands top and bottom, and along the pole edge
+            t.stroke([(x0, yy), (x0 + w * 0.8, yy)], 'ink', 8, acc, 1.0, taper=[0, 0], wrap=False)
+        t.stroke([(x0 + 5, y0), (x0 + 5, y0 + h)], 'ink', 8, acc, 1.0, taper=[0, 0], wrap=False)
+        sigil(t, kind, x0 + w * 0.42, y0 + h / 2, h * 0.24, acc)
+    return t
+
+
+def slips_rows(t, burnt):
+    """bamboo slips 竹简 (A20): rows 0-512 slips 1.2 cm wide laid side by side (columns), unreadable ink dashes, two cords;
+    rows 512-768 rolled bundle ends (spirals); rows 768-1024 a silk wrapping cloth. Wraps across x."""
+    r = t.r
+    tones = ['#b39a66', '#af9662', '#b69d69', '#b0975f'] if not burnt else ['#3c2e24', '#3a2d23', '#3f3126', '#392b21']
+    ink = '#2b2018' if not burnt else '#0c0908'
+    t.stage = 1
+    x = 0.0
+    while x < 1024:
+        w = 1.2 * CM
+        t.stroke([(x + w / 2, 0), (x + w / 2, 512)], 'marker', w + 0.6, r.choice(tones), 1.0, taper=[0, 0], wrap=False); x += w
+    for _ in range(90):  # broad tone of the bundle (handling, ageing, scorch for the burnt set)
+        t.blot(r.uniform(0, 1024), r.uniform(20, 490), r.uniform(40, 90), 'sponge', 70, r.choice(['#9a8250', '#c6ad7a', '#a48a56'] if not burnt else ['#141010', '#6a5038', '#1c1613', '#5e4632']), 0.5 if burnt else 0.4, 2)
+    t.stage = 2
+    x = 1.5
+    while x < 1024:  # writing: short unreadable dashes down every second slip
+        if r.random() < 0.6:
+            y = r.uniform(20, 60)
+            while y < 500:
+                L = r.uniform(4, 10); t.stroke([(x, y), (x, y + L)], 'pencil', 1.8, ink, 0.55, taper=[0, 0], wrap=False); y += L + r.uniform(6, 16)
+        x += 2 * 1.2 * CM
+    for cy in (120, 392):  # the binding cords across the slips
+        t.stroke(t.wobble(0, cy, 1024, cy, 16, 1.5), 'ink', 7, '#5a3e26' if not burnt else '#120e0c', 0.95, taper=[0, 0], wrap=False)
+    P.band(t, 512, 768, '#3a2c20' if not burnt else '#141110', 'flat-bristle', 40, 1.0, 22, 1.5)
+    for i in range(16):  # bundle ends
+        for j in range(4):
+            cx, cy = 32 + i * 64, 544 + j * 64; rr = 26
+            t.stroke([(cx, cy), (cx + 0.5, cy)], 'ink', rr * 2, r.choice(tones), 1.0, taper=[0, 0])
+            spiral = [(cx + math.cos(k * 0.45) * rr * k / 40, cy + math.sin(k * 0.45) * rr * k / 40) for k in range(41)]
+            t.stroke(spiral, 'pencil', 2, '#5a4630' if not burnt else '#0c0908', 0.8, taper=[0, 0])
+    silk = ['#8a6a3a', '#7c5e32', '#97764a'] if not burnt else ['#2a221c', '#1f1915', '#352a22']
+    P.band(t, 768, 1024, silk[0], 'flat-bristle', 50, 1.0, 26, 2)
+    for _ in range(160):
+        x, y = r.uniform(0, 1024), r.uniform(780, 1015)
+        t.stroke(t.wobble(x, y, x + r.uniform(30, 90), y + r.uniform(-8, 8), 3, 2), 'oil', r.uniform(8, 18), r.choice(silk), 0.5)
+    t.stage = 3
+    if burnt:
+        for _ in range(120):  # ash and the last scorched tan at the edges
+            x, y = r.uniform(0, 1024), r.uniform(0, 1024)
+            t.stroke([(x, y), (x + r.uniform(-10, 10), y + r.uniform(-10, 10))], 'chalk', r.uniform(3, 7), r.choice(['#7a726a', '#6b4a2e']), 0.5)
+    return t
+
+
+def slips(): return slips_rows(P.Tex('slips', '#b09763', True, False, 741), False)
+def slips_burnt(): return slips_rows(P.Tex('slips_burnt', '#33281f', True, False, 742), True)
+
+
+ALL = [rammed_earth, rammed_earth_core, earth_burnt, river_stone, stone_paving, floor_tiles, hollow_brick, mural_wall, wall_burnt, roof_tile,
+       timber, timber_burnt, mercury_matcap, black_lake, garden_ground, garden_plants, star_ceiling, signal_flags, slips, slips_burnt]
+
+if __name__ == '__main__':
+    want = sys.argv[3].split(',') if len(sys.argv) > 3 else None
+    for f in ALL:
+        if want and f.__name__ not in want: continue
+        t = f(); print(t.name, t.write(), 'ops')
