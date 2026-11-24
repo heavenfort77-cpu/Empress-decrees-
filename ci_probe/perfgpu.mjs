@@ -10,7 +10,7 @@ try { ({ chromium } = await import('playwright')); } catch { ({ chromium } = awa
 const SOFT = process.argv.includes('--soft');
 const SETTLE = Number(process.env.SETTLE_S || 6), TIMED = Number(process.env.TIMED_S || 20);
 const ROOT = new URL('..', import.meta.url).pathname;
-const TYPES = { '.html': 'text/html', '.js': 'text/javascript', '.mjs': 'text/javascript' };
+const TYPES = { '.html': 'text/html', '.js': 'text/javascript', '.mjs': 'text/javascript', '.png': 'image/png', '.json': 'application/json', '.ktx2': 'image/ktx2' };
 // Controls for the ladder: an empty page, and the same with a fixed full-screen dark div (no WebGL, no game).
 const EMPTY = (div) => `<!doctype html><html><body style="margin:0;background:#120d16">${div ? '<div style="position:fixed;inset:0;background:#120d16;z-index:8"></div>' : ''}<script>window.__game={render:()=>({calls:0,tris:0,programs:0,geoms:0,texs:0})};window.__ready=true;</script></body></html>`;
 const server = createServer(async (req, res) => {
@@ -22,6 +22,41 @@ const BASE = `http://127.0.0.1:${server.address().port}/`;
 const ARGS = SOFT ? ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--ignore-gpu-blocklist']
   : ['--ignore-gpu-blocklist', '--enable-gpu', '--enable-webgl', '--use-angle=metal', '--disable-gpu-vsync', '--disable-frame-rate-limit'];
 const browser = await chromium.launch({ args: ARGS });
+// Measurement only (item (g), 24 Nov): every page gets an init script that times WebGL calls that can block (shader compile/link and their status
+// reads, texture and buffer uploads) into window.__glog [t, ms, name, arg], counts them in window.__glc, and keeps the game's GL context in
+// window.__gl for a GPU timer query per frame. No game code changes.
+const INIT = `(() => {
+  const now = () => performance.now(), LOG = window.__glog = [], C = window.__glc = { link: 0, compile: 0, buf: 0, bufBytes: 0, tex: 0 };
+  const push = (e) => { LOG.push(e); if (LOG.length > 40000) LOG.splice(0, 20000); };
+  const og = HTMLCanvasElement.prototype.getContext;
+  HTMLCanvasElement.prototype.getContext = function (type, ...a) { const c = og.call(this, type, ...a); if (c && /webgl/.test(type) && !window.__gl) window.__gl = c; return c; };
+  const wrap = (P, name, f) => { const o = P[name]; if (!o) return; P[name] = function (...a) { const t0 = now(), r = o.apply(this, a), d = now() - t0; f(t0, d, a); return r; }; };
+  for (const P of [WebGL2RenderingContext.prototype, WebGLRenderingContext.prototype]) {
+    wrap(P, 'linkProgram', (t, d) => { C.link++; push([t, d, 'linkProgram', C.link]); });
+    wrap(P, 'compileShader', (t, d) => { C.compile++; push([t, d, 'compileShader', C.compile]); });
+    for (const n of ['getProgramParameter', 'getShaderParameter', 'getProgramInfoLog', 'getShaderInfoLog', 'getError', 'readPixels', 'getUniformLocation', 'getAttribLocation', 'finish', 'clientWaitSync'])
+      wrap(P, n, (t, d, a) => { if (d > 0.5) push([t, d, n, a[1] | 0]); });
+    for (const n of ['texImage2D', 'texSubImage2D', 'texStorage2D', 'texImage3D', 'texSubImage3D', 'compressedTexImage2D', 'generateMipmap'])
+      wrap(P, n, (t, d) => { C.tex++; push([t, d, n, C.tex]); });
+    wrap(P, 'bufferData', (t, d, a) => { const b = (a[1] && a[1].byteLength) || (typeof a[1] === 'number' ? a[1] : 0); C.buf++; C.bufBytes += b; if (d > 0.5 || b > 16384) push([t, d, 'bufferData', b]); });
+  }
+})();`;
+// CPU profile stretches: contiguous non-idle samples longer than minMs; top self-time leaves and their callers (3 frames up).
+function stretches(prof, minMs) {
+  const nodes = new Map(prof.nodes.map((n) => [n.id, n])), parent = new Map();
+  for (const n of prof.nodes) for (const c of n.children || []) parent.set(c, n.id);
+  const nm = (id) => { const cf = nodes.get(id).callFrame; return (cf.functionName || '(anon)') + (cf.url ? ':' + (cf.lineNumber + 1) : ''); };
+  const path = (id) => { const a = []; let k = id; for (let i = 0; i < 4 && k !== undefined; i++) { a.push(nm(k)); k = parent.get(k); } return a.join(' < '); };
+  const out = []; let cur = null, t = 0;
+  for (let i = 0; i < prof.samples.length; i++) {
+    const id = prof.samples[i], dt = (prof.timeDeltas[i] || 0) / 1000; t += dt;
+    if (nodes.get(id).callFrame.functionName === '(idle)') { if (cur && cur.ms >= minMs) out.push(cur); cur = null; continue; }
+    if (!cur) cur = { at: +(t / 1000).toFixed(2), ms: 0, self: new Map() };
+    cur.ms += dt; const k = path(id); cur.self.set(k, (cur.self.get(k) || 0) + dt);
+  }
+  if (cur && cur.ms >= minMs) out.push(cur);
+  return out.map((c) => ({ at_s: c.at, ms: Math.round(c.ms), top: [...c.self].sort((a, b) => b[1] - a[1]).slice(0, 8).map(([k, v]) => Math.round(v) + 'ms ' + k) }));
+}
 
 // Scene setups run inside the page after __ready. Each returns nothing; a driver (optional) runs every 250 ms of real time during the timing.
 const SCENES = {
@@ -140,6 +175,7 @@ for (const name of LIST) {
   const sc = SCENES[name];
   const page = await browser.newPage({ viewport: { width: 1920, height: 1080 }, deviceScaleFactor: 1 });
   const errs = []; page.on('pageerror', (e) => errs.push(String(e).slice(0, 160)));
+  await page.addInitScript(INIT);
   await page.goto(BASE + (sc.path || '') + '?' + sc.q);
   await page.waitForFunction(() => window.__ready === true, null, { timeout: 90000 });
   if (!gpu) gpu = await renderer(page);
@@ -155,17 +191,42 @@ for (const name of LIST) {
   await page.evaluate(`(${sc.setup.toString()})()`);
   const setupMs = Date.now() - t0;
   const drv = sc.driver ? sc.driver.toString() : '() => {}';
+  const cdp = await page.context().newCDPSession(page);
+  await cdp.send('Profiler.enable'); await cdp.send('Profiler.setSamplingInterval', { interval: 500 }); await cdp.send('Profiler.start');
   const r = await page.evaluate(async ({ drv, SETTLE, TIMED }) => {
     const driver = eval('(' + drv + ')');
-    const id = setInterval(() => { try { driver(); } catch (e) { window.__drvErr = String(e); } }, 250);
+    const drvLog = [], stLog = [], loaf = [];
+    const id = setInterval(() => { const t0 = performance.now(); try { driver(); } catch (e) { window.__drvErr = String(e); } const d = performance.now() - t0; if (d > 5) drvLog.push([Math.round(t0), +d.toFixed(1)]); }, 250);
+    const stId = setInterval(() => { try { const G = __game, b = G.burnState(), p2 = G.pieces2State(); stLog.push([Math.round(performance.now()), 'room ' + G.palace().cur + ' burn ' + b.wing + '/' + b.st + ' falls ' + b.falls + ' awake ' + p2.awake + ' guards ' + G.guards().n]); if (stLog.length > 400) stLog.shift(); } catch (e) { /* not palace */ } }, 100);
+    let lo = null; try { lo = new PerformanceObserver((l) => { for (const e of l.getEntries()) if (e.duration > 60) loaf.push({ t: Math.round(e.startTime), ms: Math.round(e.duration), block: Math.round(e.blockingDuration), render: Math.round(e.renderStart ? e.startTime + e.duration - e.renderStart : 0),
+      scripts: e.scripts.map((x) => Math.round(x.duration) + 'ms ' + x.invokerType + ' ' + x.invoker + ' ' + x.sourceFunctionName + ' @' + x.sourceCharPosition + (x.forcedStyleAndLayoutDuration > 1 ? ' layout ' + Math.round(x.forcedStyleAndLayoutDuration) : '')) }); }); lo.observe({ type: 'long-animation-frame' }); } catch (e) { loaf.push({ none: String(e).slice(0, 60) }); }
+    const gl = window.__gl, ext = gl && gl.getExtension('EXT_disjoint_timer_query_webgl2'), caps = 'timerQuery ' + !!ext + ' parallelCompile ' + !!(gl && gl.getExtension('KHR_parallel_shader_compile'));
+    let q = null; const pend = [], gpu = [];
+    const gpuTick = (t) => {
+      if (!ext) return;
+      if (q) { gl.endQuery(ext.TIME_ELAPSED_EXT); pend.push([q, t]); q = null; }
+      while (pend.length && gl.getQueryParameter(pend[0][0], gl.QUERY_RESULT_AVAILABLE)) { const [pq, pt] = pend.shift(), dis = gl.getParameter(ext.GPU_DISJOINT_EXT), ns = gl.getQueryParameter(pq, gl.QUERY_RESULT); gl.deleteQuery(pq); if (!dis) gpu.push([pt, ns / 1e6]); }
+      if (pend.length < 16) { q = gl.createQuery(); gl.beginQuery(ext.TIME_ELAPSED_EXT, q); }
+    };
+    const glc0 = Object.assign({}, window.__glc || {});
     const mem = () => ({ heap: performance.memory ? Math.round(performance.memory.usedJSHeapSize / 1048576) : -1 });
     const wait = (s) => new Promise((res) => setTimeout(res, s * 1000));
     await wait(SETTLE);
     const m0 = mem(), g0 = __game.render(false);
     const lt = []; let ob = null; try { ob = new PerformanceObserver((l) => { for (const e of l.getEntries()) lt.push(e.duration); }); ob.observe({ type: 'longtask' }); } catch (e) { /* no longtask API */ }
-    const d = []; let last = 0, run = true;
-    await new Promise((res) => { const f = (t) => { if (last) d.push(t - last); last = t; if (run) requestAnimationFrame(f); else res(); }; requestAnimationFrame(f); setTimeout(() => { run = false; }, TIMED * 1000); });
-    clearInterval(id); if (ob) ob.disconnect();
+    const d = [], longF = []; let last = 0, run = true; const tStart = performance.now();
+    await new Promise((res) => { const f = (t) => { gpuTick(t); if (last) { d.push(t - last); if (t - last > 100) longF.push([last, t]); } last = t; if (run) requestAnimationFrame(f); else res(); }; requestAnimationFrame(f); setTimeout(() => { run = false; }, TIMED * 1000); });
+    clearInterval(id); clearInterval(stId); if (ob) ob.disconnect(); if (lo) lo.disconnect(); if (q) { gl.endQuery(ext.TIME_ELAPSED_EXT); q = null; }
+    // For each frame over 100 ms: the GL calls that can block from 200 ms before the frame to its end, the driver calls and the state samples around it.
+    const G0 = window.__glog || [];
+    const longs = longF.map(([a, b]) => ({ at_s: +((b - tStart) / 1000).toFixed(2), ms: Math.round(b - a),
+      gl: G0.filter((e) => e[0] >= a - 200 && e[0] <= b && (e[1] > 0.5 || e[2] !== 'bufferData')).slice(-40).map((e) => Math.round(e[0] - a) + ' ' + e[2] + ' ' + e[1].toFixed(1) + 'ms #' + e[3]),
+      drv: drvLog.filter((x) => x[0] >= a - 300 && x[0] <= b).map((x) => Math.round(x[0] - a) + ' ' + x[1] + 'ms'),
+      st: stLog.filter((x) => x[0] >= a - 300 && x[0] <= b + 200).map((x) => Math.round(x[0] - a) + ' ' + x[1]),
+      gpu: gpu.filter((x) => x[0] >= a && x[0] <= b + 40).map((x) => x[1].toFixed(1)) }));
+    const gs = gpu.map((x) => x[1]).sort((x, y) => x - y), gq = (k) => gs.length ? +gs[Math.min(gs.length - 1, Math.floor(gs.length * k))].toFixed(2) : -1;
+    const glc1 = window.__glc || {}, glDelta = Object.keys(glc1).map((k) => k + ' ' + ((glc1[k] || 0) - (glc0[k] || 0))).join(', ');
+    window.__diag = { caps, gpuN: gs.length, gpuP50: gq(0.5), gpuP95: gq(0.95), gpuMax: gq(1), longs, loaf: loaf.slice(0, 12), glDelta, drvSlow: drvLog.length };
     const m1 = mem(), info = __game.render(false);
     d.sort((a, b) => a - b);
     const sum = d.reduce((a, b) => a + b, 0), n = d.length;
@@ -174,9 +235,13 @@ for (const name of LIST) {
     try { const h = __game.hunt(); if (h.phase === 'hunt') extra.hunt = h.phase + ' alive ' + h.units.filter((u) => u.alive).length + ' hits ' + h.hits; } catch (e) { /* no hunt */ }
     return { frames: n, fps: +(n / (sum / 1000)).toFixed(1), p50: +d[Math.floor(n * 0.5)].toFixed(1), p95: +d[Math.floor(n * 0.95)].toFixed(1), worst: +d[n - 1].toFixed(1),
       over20: +(100 * d.filter((x) => x > 20).length / n).toFixed(1), over33: d.filter((x) => x > 33.4).length,
-      calls: info.calls, tris: info.tris, programs: info.programs, geoms: info.geoms, texs: info.texs, heap0: m0.heap, heap1: m1.heap, longN: lt.length, longMax: Math.round(Math.max(0, ...lt)), longSum: Math.round(lt.reduce((a, b) => a + b, 0)), geo0: g0.geoms, tex0: g0.texs, drvErr: window.__drvErr || '', info: window.__info || '', info2: window.__info2 || '', ...extra };
+      calls: info.calls, tris: info.tris, programs: info.programs, geoms: info.geoms, texs: info.texs, heap0: m0.heap, heap1: m1.heap, longN: lt.length, longMax: Math.round(Math.max(0, ...lt)), longSum: Math.round(lt.reduce((a, b) => a + b, 0)), geo0: g0.geoms, tex0: g0.texs, drvErr: window.__drvErr || '', info: window.__info || '', info2: window.__info2 || '', diag: window.__diag, ...extra };
   }, { drv, SETTLE, TIMED });
+  const { profile } = await cdp.send('Profiler.stop'); await cdp.detach();
+  const diag = r.diag; delete r.diag;
   rows.push({ scene: name, setupMs, errs: errs.length, err0: errs[0] || '', ...r });
+  console.log('DIAG ' + name + ' ' + JSON.stringify(diag));
+  console.log('PROFILE ' + name + ' stretches over 60 ms (at_s from settle start) ' + JSON.stringify(stretches(profile, 60)));
   console.log('ROW ' + JSON.stringify(rows[rows.length - 1]));
   await page.close();
 }

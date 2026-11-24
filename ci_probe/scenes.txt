@@ -1,1 +1,1 @@
-reference,palace_room,palace_heavy,palace_heavy_low,palace_garden,palace_first
+reference,palace_heavy,palace_heavy_low,palace_heavy

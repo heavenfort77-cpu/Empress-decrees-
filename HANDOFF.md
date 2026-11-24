@@ -1,10 +1,104 @@
-# Handoff (2026-11-24 afternoon, after batch 16: all nine kits, suit stats, the 兵家 apex; next: the balance talk with the owner). GDD: docs/GDD.md (also Project "empress decrees", claude/GDD.md)
+# Handoff (2026-11-24 21:05: owner answered the three look questions (round 2 textures approved; lions become segmented bronze guardian beasts; 0.75x close zoom OK); next session: (g), then KTX2/per-level load/dispose/LOD). GDD: docs/GDD.md (also Project "empress decrees", claude/GDD.md)
+
+## Fresh-session brief (read first)
+- State (24 Nov 21:00): batches-3-5 at 828692d (CI 45397493782: 272 of 273, only 42 = balance item; static PASS). Royal Rumble parked, green.
+- Done this session (session 015w2gCC):
+  - Palace camera = dynamic combat framing (owner 19:33; docs/BURNING-PALACE.md "Camera"; CONFIG.PAL_FRAME; checks 1204, 1209-1213; mutations 6 of 6). Room card and announcement stacked in #msgs.
+  - klad textures round 2 (assets/tex, 5 PNG 1024; CONFIG.TEX): style study art/Qin-Palace-Painted-Study.md (cocolito, proposal) with art/tools/tex_check.py 20 of 20; generator art/tools/palace_tex.py + paint_palace.py; sources art/src/*.klad; round 1 in art/round1. Textures load by fetch + createImageBitmap (img elements held the page load event: CI goto timeouts).
+  - Research report docs/research/Qin-palace-medieval-tech-fusion.md (one-page art-direction rule list at the end).
+  - Phone link (artifact 1688f9ba-a0e5-4f7b-ac2e-3a68d6fc67c3) version 1795525000-580e = 828692d with the CDN importmap + assets/tex.
+- Owner answers (24 Nov 21:03; do NOT ask again):
+  1. Round 2 texture look: APPROVED. Texture brief step 3 ("after approval, do the rest") is a go, in the order below.
+  2. Lions: segmented bronze guardian beasts with silver inlay (research: stone lions are post-Qin). The grey stone lion (texture lion_stone, CONFIG.TEX tileM.palLion, material palLion) is replaced by a bronze beast; it was part of the approved sample, so tell the owner when the swap lands and keep the stone source in art/. Applies to every 石狮 piece in the palace (ticket 08) and to the Blender sample (branch lion-sample-01: drop the dog-like lion, model the beast).
+  3. (b) Close zoom 0.75x: CONFIRMED (the fight framing's nearest distance).
+- Next, in order (one batch each, perf gate first):
+  1. (g) the 175-312 ms long task in palace_heavy medium (see below): frame-over-100-ms log with the 200 ms before it, name the cause, fix, re-measure on the macOS perf job (branch ci-perf, ci_probe/perfgpu.mjs).
+  2. Textures step 3: KTX2 (prove toktx/basisu or npm encoder round trip), 512 px phone set, load per level under a loading card (renderer.initTexture + compile), Met/scan licences only CC0/CC BY.
+  3. Dispose on leaving the palace / layout change (renderer.info.memory flat over N runs + mode switches, mutation-tested); LOD for single props (THREE.LOD) and InstancedMesh levels for repeats.
+  4. Props: models per the research rule list (Qin bronze/lacquer/earth; own designs). First prop = the bronze guardian beast (owner 21:03), one sample at play size, wait for approval. Blender route works here: pip venv /home/claude/bpyenv (bpy 5.3) — recreate with python3 -m venv + pip install bpy==5.3.0; script art/tools/lion_blender.py; first lion (branch lion-sample-01, not merged) reads as a dog and is superseded by the beast: hard carved segmented planes, bronze with silver inlay. Tripo: secret TRIPO_API_KEY works but the API account has no credit (code 2010); runner job ready on branch ci-tripo (make it end red on a failed job). Owner's Sketchfab lion (DailyArt) is CC BY-NC: never ship it. A Sketchfab CC0/CC-BY prop search was started and stopped by the owner (no results).
+- Tools on the session disk (gone in a new session): klad 0.4.0 build (/home/claude/kladsrc; rebuild per the klad-headless-cli skill, about 4-12 min, detached), CI helper /home/claude/citools/ci_mut.sh (copy from origin/ci-run:ci/ci_mut.sh + worktree /home/claude/ci-wt), glTF-Transform (npm @gltf-transform/cli in /home/claude/gltftools).
+- Older state (24 Nov 17:15): The Burning Palace is built on boxes and merged: tickets 01-05 and 07-10 plus 09b (tickets/burning-palace).
+- Built:
+  - The mode menu.
+  - A 29-room 阿房宫-model palace in six wings; only the current room plus the one behind an open door is drawn; you start in your school's hall.
+  - Door previews and door locks; rivals move room to room, with a seeded off-screen simulation and her announcement queue.
+  - The core is sealed until you are the last suit (owner 14:16); the shortest route from any hall to the core is at least 5 rooms.
+  - The burning: a wing every 40 s, 5 s warning, fairness monitor burnState().bad.
+  - 皇家 guard (5 types) and 反贼 rebels (4 types, bootleg moves, F charge), hostile to each other.
+  - Pieces: 石狮, 水银, smoke, 华表, 鼎 (ticket 08); water clocks, vats, twelve giants (ticket 09; giants killable at 400 hp and 50 charge, owner 15:41).
+  - Camera: see "Done this session" (the 17:15 camera was 120 px floor wide, close at attack distance; replaced by the dynamic framing).
+- Pacing (CI 45355174647 on 9b8b39d, 12 seeds, full palace, 8 rivals): idle 11% (5-24%), longest idle 3 s, 0 stretches over 5 s (Royal Rumble: 26%, 35.5 s). The probe player died in all 12 runs (15.5-193.3 s; 5 falls in warned rooms, 4 hits, 3 hazards) and none reached the core: a simple autopilot, so this says nothing yet about difficulty.
+- Open items:
+  - (a) The burn order is fixed per layout (CONFIG.BURN.orderFull): seeds 2, 5 and 8 ended the same at 46.3 s. Proposal, not approved: her wings come from a shuffled bag.
+  - (b) CLOSED 24 Nov 21:03: close zoom 0.75x of the base distance (BP10) confirmed by the owner.
+  - (c) Palace geometry count grows the first time each room is drawn (check 1207): warm every room under the loading card.
+  - (d) Close-out done 24 Nov 17:40. Real-GPU fps (macOS runner, ANGLE Metal Apple Paravirtual; runs 45363816937 / 45363877121, game 6c5642d, 1080p, 6 s settle + 20 s timed, 0 FAIL lines):
+    | Scene (run 1 / run 2) | fps | p95 ms | worst ms | >20 ms | calls | tris |
+    |---|---|---|---|---|---|---|
+    | reference | 201.7 / 192.9 | 11.9 / 12.5 | 53 / 112 | 1.0 / 1.7% | 27 | 2.8k |
+    | palace_room (forecourt) | 217.6 / 201.2 | 10.7 / 11.2 | 45 / 43 | 0.3 / 0.8% | 15 | 1.1k |
+    | palace_heavy medium (37 guard/rebel units, 2-3 awake giants, 3 rivals in room, a wing falling) | 210.4 / 203.5 | 11.3 / 11.8 | 168 / 313 | 0.5 / 0.7% | 24 / 28 | 1.6k / 1.9k |
+    | palace_heavy low | 226.5 / 209.1 | 10.9 / 11.7 | 34 / 52 | 0.4 / 0.9% | 25 / 23 | 1.7k / 1.5k |
+    | palace_garden (smoke) | 214 / 200.9 | 11.4 / 11.9 | 63 / 38 | 0.4 / 0.6% | 23 / 36 | 1.9k / 3.1k |
+    Memory flat (programs 7, geometries 257, textures 1, heap). Room first draw: only hall_ming grows geometries (257 to 266); worst first-entry frame 16-35 ms.
+  - (g) OPEN, do first next session (perf gate before the texture work): one main-thread long task of 175 / 312 ms in palace_heavy medium per run, in the window holding the wing fall and the third giant waking; cause NOT named (low tier saw the same fall at 34 / 52 ms; the reference scene also had a 112 ms frame in run 2). Add the frame-over-100-ms log with the 200 ms before it (spawn, kill, first draw, sound, GC), name the cause, fix, re-measure.
+  - (e) Balance talk (items under "Known balance items").
+  - (f) No bot finishes a palace run yet.
+- Parallel build method (owner 14:29): builders on their own branches and worktrees per docs/BP-INTERFACES.md, one integrator merges, the lead verifies every run on ci-out.
+- Log: /home/claude/batch16.log (prefixes BPxx, INT, LEAD, OWNER). Watchdog via send_later every 30 min while workers run.
+
+### NEXT SESSION: palace textures with klad + dispose + LOD (owner 24 Nov 16:58)
+STATUS 24 Nov 21:03: steps 1-2 sample APPROVED by the owner (round 2); lion becomes a bronze guardian beast; step 3 is a go after (g).
+- 24 Nov 20:2x camera batch (cam11): CI 45391445429 272 of 273 (only 42). Texture loading moved to fetch + createImageBitmap: cause of the cam10 page.goto 30 s timeouts (runs 45366908283, 45388273002): <img> textures hold the page load event (proof: textures delayed 8 s held load 8.2 s; after the fix load 0.13 s, ready waits up to TEX.waitMs then box colours). Mutation rounds 45393123516 (5 of 6) + cam11-mut2 (focus check pinned to 0.3, caught): 6 of 6. Final suite 45395748725: 272 of 273 (only 42).
+- Texture round 2 (cocolito method; art/Qin-Palace-Painted-Study.md): tex_check.py 20 of 20 (round 1 10 of 20), seams fixed, CONFIG.TEX tileM.palLion 4, pillarU 1; CI 45397493782 272 of 273 (only 42). Approved by the owner 24 Nov 21:03; lion: bronze guardian beast (owner 21:03).
+- Lion: Blender-scripted lion on branch lion-sample-01 (not merged; reads as a dog; superseded by the bronze guardian beast). Owner upload "Stone lion" by DailyArt is CC BY-NC: NOT usable (commercial-only rule).
+- Style study (cocolito): art/Qin-Palace-Painted-Study.md (proposal): textures not aligned (paint density 45x, texel density up to 2.5x, floor saturation 0.71); rules: 256 px/m, brush runs 4-15 cm, lum sd 8-30, sat cap 0.55. Round 2 after the research report (reports/ on the session disk; copy to docs/ when delivered).
+- klad 0.4.0 built at /home/claude/kladsrc/src/target/linux/release/klad (session disk; rebuild per the skill if gone). Five 1024 px textures painted: assets/tex/hall_floor (丹地), hall_wall (lime plaster, black-lozenge frieze, Qin-black dado), pillar (black lacquer, vermilion bands, cloud scrolls), door (black lacquer, bronze bands, 铺首 masks), lion_stone. Generator art/tools/palace_tex.py, sources art/src/*.klad, references art/REFERENCES.md, CREDITS.md.
+- Game 03f24e6: own materials palFloor/palWall/palPillar/palDoor/palLion (Rumble unchanged), world UVs in mergeGeoms, CONFIG.TEX (on, files, tileM, pillarU, aniso 4, waitMs). CI suite 45368079411: 267 of 268 (only 42). Run 45366908283 on the same tree aborted once (cam10 page.goto 30 s timeout; local loads 1-2 s; not repeated): cause open.
+- Software-GPU screenshot counts (hall_ru): 12 calls, 842 tris, programs 8 (+1), textures 6. Phone link version 1795513925-193c carries the sample.
+- Owner 24 Nov 17:30: "use tripo to create asset and klad to give it texture". Tripo runs on GitHub runners: branch ci-tripo (ci_tripo/tripo.mjs, jobs.json, .github/workflows/tripo.yml), output out/tripo/<run>/ on ci-out. Needs repo Actions secret TRIPO_API_KEY (runs 45366086846, 45367565852, 45367812752: key empty) and a paid Tripo plan for commercial use. First job: lion_a (8k faces, no texture). Model check / LOD / compression with glTF-Transform (npm @gltf-transform/cli, installed in /home/claude/gltftools).
+- Not started: KTX2, per-level loading, dispose, LOD, item (g).
+Owner: "get next session to use klad to do up texture of all asset of palace and prop. reference to historical. geometry.dispose(), material.dispose(), texture.dispose(). THREE.LOD to minimise waste of frame rate". This is the owner's go for textures (art after the loop rule: owner gave it).
+
+Scope: the palace and its props. Characters (suits, guard, rebels, apex) only after their models are decided (owner 24 Nov 17:01: "only when model decided").
+- Palace: floors (rammed earth 夯土, stone paving), walls (black lacquer, red pillars), doors, roof-edge tiles and 瓦当 tile ends, bridges, the black lake edge.
+- Props: 石狮 (now segmented bronze guardian beasts with silver inlay, owner 21:03), 水银 channels, 铜鹤 / 香炉, 华表, 鼎, 铜壶滴漏, 门海 vats, 十二金人, the throne and dais.
+
+History reference:
+- Qin first (阿房宫, the Qin tomb, 秦砖汉瓦, Qin black for the water virtue, red accents, bronze).
+- Forbidden-City-era pieces (门海, 铜鹤, 华表, 脊兽) are later; use them as designed, but in Qin materials.
+- Collect references with sources; never copy a photo into a texture.
+
+Steps:
+1. Build klad as the klad-headless-cli skill says: clone github klad-app/klad, run the detached cargo build (about 12 min), binary at target/linux/release/klad.
+   - Licence: ship only the exported PNGs, never klad code; add klad to CREDITS.
+   - Keep every .klad source in the repo under art/src/, so the owner can reach them.
+2. ONE sample first, at play size: one room (floor + wall + pillar + door) and one prop (石狮). DONE, approved 24 Nov 21:03 (lion to bronze beast).
+   - Show the owner screenshots from the exact build; wait for approval.
+   - Compare against the references by measurement and side by side.
+3. After approval, do the rest. Texture rules:
+   - Size: 1024 max on desktop, 512 on phone.
+   - Format: KTX2/Basis. Check that toktx or basisu is available, or use an npm basis encoder; prove the round trip first.
+   - Tileable where repeated.
+   - Very dark surfaces matte; vertex colours are linear.
+   - Anisotropy 4 max.
+   - Load per level, just before use, under the loading card with renderer.initTexture and compile. No big inlined base64: files go in assets/ (static files, as OpenGame allows).
+4. Dispose. Rooms are built once and kept, and kept or shared items are never disposed.
+   - Dispose geometry, material and texture when the palace mode is left (switch to Royal Rumble), when the layout changes, and for any per-run item that is not pooled.
+   - Check: renderer.info.memory stays flat over N palace runs plus mode switches (mutation-tested).
+5. LOD:
+   - THREE.LOD (2-3 levels; distances in CONFIG with a comment line) for single props: 石狮, 华表, 鼎, vats, dormant giants, the throne.
+   - Instanced repeats: one InstancedMesh per level, with counts swapped only when the camera moves (THREE.LOD does not work per instance).
+   - Never frustumCulled = false.
+   - Check: calls and tris in the heaviest room on tier medium, before and after.
+6. Also open from this session: palace geometry count grows the first time each room is drawn (BP10 check 1207). Rooms are not fully warmed at load: warm every room under the loading card.
+7. Perf gate: real-GPU macOS run (branch perf-probe / ci-perf) before and after the textures, heaviest palace room plus the reference scene, tiers medium and low.
 
 ## Session start (every session)
 0. CI (owner rule, reminded 24 Nov 08:47): full suite and mutation rounds run on GitHub runners via ci/ci_mut.sh on branch ci-run (results on branch ci-out, out/<label>/<run id>/summary.txt). If /home/claude/citools/ci_mut.sh is missing, copy it from origin/ci-run:ci/ci_mut.sh and create the worktree: git worktree add /home/claude/ci-wt -b ci-run origin/ci-run. Proof run 45298683619 (26 of 26, matches local). Job file: {"mode":"suite"} or {"mode":"mut","muts":[{name,want,a,b}]}.
-1. Attach both repos: add_repo heavenfort77-cpu/Empress-decrees- (access push) and heavenfort77-cpu/dawnpunk (read; public, anonymous clone works). Dawnpunk = reference for frame-rate rules and bug pitfalls; read only the part needed.
+1. Attach both repos: add_repo heavenfort77-cpu/Empress-decrees- (access push) and heavenfort77-cpu/dawnpunk (read; public, anonymous clone works). Dawnpunk = reference for frame-rate rules and bug pitfalls; read only the part needed. If add_repo is refused, tell the owner at once and ask for access.
 2. Clone with `--no-single-branch`; check out `batches-3-5` (PR #1 still open, not merged; use main only if it is merged: `gh api repos/heavenfort77-cpu/empress-decrees-/pulls/1 --jq .merged`, GraphQL is blocked).
-3. Read this file, then only the GDD section being changed (docs/SUITS.md for kits). Do not read the whole codebase. NEXT JOB: "Next batch: 16" below.
+3. Read this file, then only the GDD section being changed (docs/SUITS.md for kits). Do not read the whole codebase. NEXT JOB: the brief at the top (NEXT SESSION).
 4. Run the checks before and after any change: `node tests/static-check.mjs && node tests/run.mjs` (`-v` for details, `-vv 56,65` for named checks). Report pass/fail as N of N and failing lines only. `-sims` prints the GDD sim numbers. Expected now: static PASS, runtime 97 of 97 (after batch 15).
 5. Ask the owner the open questions under "Next batch" in ONE AskUserQuestion before building. Open design questions go to the panel (owner, 23 Nov 15:11).
 
@@ -18,7 +112,7 @@
 - Batch 13 GDD sims (12 seeds, code at the 13b proxy commit): old autopilot: decided 177.7-206.9 s, leader win share 5 of 12 (42%), player >= 1 plate 3 of 12, player out 121-179 s (won seed 5). Kennel autopilot (P5 proxy, check 85): player >= 1 plate 9 of 12 (75%, GDD 70% MET, so P6 not built); reached an announced camp in 15 of 24 free warnings; leader win share 2 of 12 (17%, BELOW band); decided 134.9-221.2 s (seeds 11 and 7 at 134.9 and 159.7 under 165: report only, the band gate 65 runs the old autopilot); proxy player out early in seeds 12345 (35 s) and 6 (54 s). Decrees told per match 3-4 in all 12 (bounty included), 0 banner overlaps, 0 heights breaks near a warned section; bots broke heights 2 times each in seeds 3 and 9 (away from collapses); the autopilot player never broke one.
 - Hunt sweep with the W dash (test 42, the sweep bot dashes out of seen tells): never-dodge loses all; 0.3 s wins howler-first only (batch 11: minions-first only); 0.15 s wins 2 of 3 (lost demon-first; batch 11: all 3).
 - Pathfinding: walk graph built at load (8114 nodes). Worst bot search 0.8 ms (1.8 ms unreachable), player right-click worst 4.0 ms. At most one bot search per step.
-- NOT run: real-GPU fps (needs a GitHub Actions macOS runner; no workflow yet). NOT tried on a real phone.
+- Real-GPU fps: see the brief at the top (runs 45334698556 / 45334758409). NOT tried on a real phone.
 - Phone review link: https://claude.ai/artifact/3nQ67JCTmb1JfPKC3Y416z. Republish after each batch: copy index.html, swap the importmap path for https://cdn.jsdelivr.net/npm/three@0.171.0/build/three.module.min.js, publish to slug 1688f9ba-a0e5-4f7b-ac2e-3a68d6fc67c3 (get_artifact first for base_version). Live: version 1795496303-efbf = batch 16 done (73d5940): nine kits + 兵家 apex, published 24 Nov 12:58 by the lead.
 - Project docs (claude/HANDOFF.md, claude/GDD.md, claude/SUITS.md, claude/code/index.html, claude/code/tests/run.mjs, claude/code/tests/static-check.mjs) are copies of repo files. The LEAD session syncs them after each batch with project_write local_path (a background worker cannot). If a write is refused, project_read first (code files print in full: do it once, then write).
 
@@ -110,6 +204,21 @@ Panel note 16 (lead, 23 Nov 23:30; proposal):
 15 ultimate charge (DONE); 16 法甲 kit + suit stats sample (owner plays and approves); 17 the other eight kits (docs/SUITS.md); 18 hiding (curtains, 道甲 stillness, sight blocked by walls); 19 the ending + WINNER_STATUE; 20 final map size + balancing pass (re-measure, retune the CONFIG timing list once). Hunt sweep re-check with kits (0.15 s bot now loses demon-first).
 
 ## Owner decisions (dated)
+- 24 Nov 21:03: (1) klad texture round 2 look approved; (2) lions become segmented bronze guardian beasts with silver inlay (stone lions are post-Qin), replacing the grey stone lion; (3) close zoom 0.75x confirmed as the fight framing's nearest distance.
+- 24 Nov 19:33: palace camera = dynamic combat framing (wide while exploring, two-shot in a fight, damped spring, hysteresis, 70/30 focus, zoom capped by spread, off-screen markers); fix the room card / announcement overlap in the same batch.
+- 24 Nov 20:11: camera batch first; texture round 2 after the research report; use the cocolito method to generate assets.
+- 24 Nov 17:30: use Tripo to create the assets (props) and klad to texture them.
+- 24 Nov 17:01: character textures (suits, guard, rebels, apex) only when their models are decided.
+- 24 Nov 16:58: next session uses klad to texture all palace assets and props, with historical references; dispose geometry, material and texture; THREE.LOD to save frame time (brief at the top).
+- 24 Nov 15:52: order = merges, then 12-seed pacing, then handover, then close-out (real-GPU fps and phone link).
+- 24 Nov 15:46: 36 px too small; "reasonable larger character as room can show bit by bit as walk": wide-view floor 120 px at 1080p; big rooms reveal as you walk.
+- 24 Nov 15:43: camera wide = whole room with scale, characters not squashed; close at attack distance; minimap shows the room layout (ticket 10).
+- 24 Nov 15:41: the twelve giants are killable.
+- 24 Nov 14:29: parallel build with one integrator managing the file ("i want it fast").
+- 24 Nov 14:27: palace pieces 水银, 十二金人, 门海, 铜鹤/香炉, 鼎, 铜壶滴漏, 华表 (+ 石狮 14:24); tickets 08 and 09.
+- 24 Nov 14:16: reaching the core in under 5 min was too easy: the core is sealed until the last suit; route at least 5 rooms.
+- 24 Nov 13:47: add the 反贼 (bootleg 甲, out to assassinate); lead picked a 黄巾 base with 死士 assassins inside it; ticket 07.
+- 24 Nov 13:44: build The Burning Palace now ("same asset"); battle royale (Royal Rumble) parked: kept and green, no new work. Tickets: tickets/burning-palace 01-06.
 - 24 Nov 13:18-13:28: map too small; direction = "The Burning Palace" (room-by-room royale in a 阿房宫-style palace, zoom camera, only the current room rendered), more cannon fodder (the 皇家 guard, owner 13:30; not 兵家), door previews (room, decree, reward, "something stirs"), doors lock during a fight, off-screen fights only announced, KEEP the open royale as a second mode "Royal Rumble". Design note docs/BURNING-PALACE.md; waiting for go.
 - 24 Nov 12:29: "update repo"; restarts must not need an owner reminder (self watchdog added).
 - 24 Nov 10:27: more workers in parallel where safe ("having more can be faster?").

@@ -3403,26 +3403,27 @@ try {
   check('404 walls block sight in the palace: shut door blocks; open door in line sees; off the opening blocked; same room sees; palace fog radius',
     !bpSg.shut.sight && !bpSg.shut.sees && bpSg.open.door && bpSg.open.sight && bpSg.open.sees && !bpSg.off.sight && !bpSg.off.sees && bpSg.same.sight && bpSg.same.sees && bpSg.fow, JSON.stringify(bpSg));
   // 405 Context camera (owner 24 Nov 13:18; changed on purpose by ticket 10, owner 15:43-15:46: the fixed wide/close multipliers became the room fit
-  // with the 120 px floor): wide at the start and idle (b 0, camK = the wide distance), eases to close with an enemy in attack distance (between at
-  // 0.2 s, there by 0.45 s, camK = PAL_CAM.close); Z = auto/wide/close; an enemy far out of reach keeps it wide; wide is farther than close; Rumble at 1.
+  // with the 120 px floor; changed on purpose again by the dynamic combat framing, owner 19:33: spring blend, fight framing from the close distance
+  // up to the wide one): wide at the start and idle (b 0, camK = the wide distance), blends to the fight framing with an enemy within enterR
+  // (between at 0.2 s, >= 0.98 by 1.0 s, camK from PAL_CAM.close up to idle); Z = auto/wide/close; an enemy beyond exitR keeps it wide; Rumble at 1.
   const bpCm = await g(() => {
     const G = __game, C = G.config.PAL_CAM, o = {}, key = () => dispatchEvent(new KeyboardEvent('keydown', { code: 'KeyZ' }));
     G.setSeed(12345); G.setMode('palace'); G.reset();
     const p = G.palace(), R = Object.fromEntries(p.rooms.map((r) => [r.id, r])), sx = p.x, sz = p.z, cam = () => ({ b: G.palCam().b, k: G.palace().camK, wd: G.palCam().wd });
     o.start = cam(); G.step(30); o.idle = cam();
-    G.palPlaceBot(0, sx, sz - 6); G.step(12); o.mid = cam(); G.step(15); o.close = cam();
-    key(); G.step(30); o.manWide = { man: G.palace().man, b: G.palCam().b };
-    key(); G.palPlaceBot(0, R.court.cx, R.court.cz); G.step(30); o.manClose = { man: G.palace().man, b: G.palCam().b };
+    G.palPlaceBot(0, sx, sz - 6); G.step(12); o.mid = cam(); G.step(48); o.close = cam();
+    key(); G.step(90); o.manWide = { man: G.palace().man, b: G.palCam().b };
+    key(); G.palPlaceBot(0, R.court.cx, R.court.cz); G.step(90); o.manClose = { man: G.palace().man, b: G.palCam().b };
     key(); G.step(150); o.auto = { man: G.palace().man, b: G.palCam().b };
     G.palPlaceBot(0, sx, sz - 30); G.step(30); o.outOfReach = G.palCam().b;
     G.setMode('rumble'); G.reset(); o.rumble = G.palace().camK;
     const near = (a, b) => Math.abs(a - b) < 1e-6;
     o.ok = o.start.b === 0 && near(o.start.k, o.start.wd / G.config.CAM_DIST) && o.idle.b === 0 && o.mid.b > 0.05 && o.mid.b < 0.95 && o.mid.k < o.idle.k - 0.01 && o.mid.k > C.close + 0.01
-      && o.close.b === 1 && near(o.close.k, C.close) && o.idle.k > C.close + 0.1 && o.manWide.man === 1 && o.manWide.b === 0 && o.manClose.man === 2 && o.manClose.b === 1
-      && o.auto.man === 0 && o.auto.b === 0 && o.outOfReach === 0 && o.rumble === 1;
+      && o.close.b >= 0.98 && o.close.k >= C.close - 1e-6 && o.close.k <= o.idle.k + 1e-6 && o.idle.k > C.close + 0.1 && o.manWide.man === 1 && o.manWide.b <= 0.01 && o.manClose.man === 2 && o.manClose.b >= 0.99
+      && o.auto.man === 0 && o.auto.b <= 0.01 && o.outOfReach <= 0.01 && o.rumble === 1;
     return o;
   });
-  check('405 context camera: wide idle, eases to close with an enemy in attack distance (between at 0.2 s, there by 0.45 s), Z = auto/wide/close, wide farther than close, Rumble at 1',
+  check('405 context camera: wide idle, blends to the fight framing with an enemy within enterR (between at 0.2 s, >= 0.98 by 1.0 s, close..wide), Z = auto/wide/close, beyond exitR stays wide, Rumble at 1',
     bpCm.ok, JSON.stringify(bpCm));
   {
     const ctx = await browser.newContext({ viewport: { width: 844, height: 390 }, isMobile: true, hasTouch: true });
