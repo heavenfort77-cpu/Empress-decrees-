@@ -17,7 +17,17 @@
   - (a) The burn order is fixed per layout (CONFIG.BURN.orderFull): seeds 2, 5 and 8 ended the same at 46.3 s. Proposal, not approved: her wings come from a shuffled bag.
   - (b) Close zoom changed from 1.0x to 0.75x of the base distance by BP10: owner to confirm.
   - (c) Palace geometry count grows the first time each room is drawn (check 1207): warm every room under the loading card.
-  - (d) Close-out (owner 15:52): real-GPU fps for the palace, then the phone link. Started 24 Nov 17:15 (perf worker, branch perf-probe / ci-perf, scenes palace_room, palace_heavy, palace_heavy_low and reference, on game commit 6c5642d). If this session ended first: look for the PERF2 lines in /home/claude/batch16.log and out/perf/<run id>/ on ci-out; if neither exists, re-run the probe from the worktree. Then republish the phone link (slug 1688f9ba-a0e5-4f7b-ac2e-3a68d6fc67c3), which still shows ticket 01, before the texture work.
+  - (d) Close-out done 24 Nov 17:40. Real-GPU fps (macOS runner, ANGLE Metal Apple Paravirtual; runs 45363816937 / 45363877121, game 6c5642d, 1080p, 6 s settle + 20 s timed, 0 FAIL lines):
+    | Scene (run 1 / run 2) | fps | p95 ms | worst ms | >20 ms | calls | tris |
+    |---|---|---|---|---|---|---|
+    | reference | 201.7 / 192.9 | 11.9 / 12.5 | 53 / 112 | 1.0 / 1.7% | 27 | 2.8k |
+    | palace_room (forecourt) | 217.6 / 201.2 | 10.7 / 11.2 | 45 / 43 | 0.3 / 0.8% | 15 | 1.1k |
+    | palace_heavy medium (37 guard/rebel units, 2-3 awake giants, 3 rivals in room, a wing falling) | 210.4 / 203.5 | 11.3 / 11.8 | 168 / 313 | 0.5 / 0.7% | 24 / 28 | 1.6k / 1.9k |
+    | palace_heavy low | 226.5 / 209.1 | 10.9 / 11.7 | 34 / 52 | 0.4 / 0.9% | 25 / 23 | 1.7k / 1.5k |
+    | palace_garden (smoke) | 214 / 200.9 | 11.4 / 11.9 | 63 / 38 | 0.4 / 0.6% | 23 / 36 | 1.9k / 3.1k |
+    Memory flat (programs 7, geometries 257, textures 1, heap). Room first draw: only hall_ming grows geometries (257 to 266); worst first-entry frame 16-35 ms.
+  - (g) OPEN, do first next session (perf gate before the texture work): one main-thread long task of 175 / 312 ms in palace_heavy medium per run, in the window holding the wing fall and the third giant waking; cause NOT named (low tier saw the same fall at 34 / 52 ms; the reference scene also had a 112 ms frame in run 2). Add the frame-over-100-ms log with the 200 ms before it (spawn, kill, first draw, sound, GC), name the cause, fix, re-measure.
+  - Phone link: version 1795511963-f257 is the merged Burning Palace build (byte-identical to batches-3-5 index.html with the CDN importmap; sha256 3bd35467).
   - (e) Balance talk (items under "Known balance items").
   - (f) No bot finishes a palace run yet.
 - Parallel build method (owner 14:29): builders on their own branches and worktrees per docs/BP-INTERFACES.md, one integrator merges, the lead verifies every run on ci-out.
