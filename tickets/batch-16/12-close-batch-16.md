@@ -9,7 +9,7 @@ All nine kits and the 兵家 apex measured, recorded and handed to the owner to 
 - [x] Hunt sweep (test 42 bot) run once per suit, against the final 兵家 apex (ticket 11),: report win/loss per kill order; flag any suit that makes the apex trivial (never loses) or impossible (never wins), no tuning.
 - [x] GDD and docs/SUITS.md: 兵家 apex lore and renamed moves (owner 24 Nov 09:44-09:5x), the empty 10th disc as 兵家's place.
 - [x] HANDOFF: batch 16 section, numbers, owner decisions; Next batch = 17 (balance pass when the owner has played, then hiding 18, ending 19, map size 20 as queued).
-- [ ] One commit, pushed. Lead: verify head and a fresh full run, republish the phone link, sync project docs.
+- [x] One commit, pushed (73d5940). Lead (done 24 Nov 12:58: CI 45329305763 180 of 181 on the committed files, phone 1795496303-efbf, project docs synced): verify head and a fresh full run, republish the phone link, sync project docs.
 
 ## Notes
 All heavy runs (suite, sims, hunt sweeps, mutations) on GitHub runners via ci_mut.sh (CLAUDE.md).
