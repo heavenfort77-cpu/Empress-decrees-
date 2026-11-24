@@ -656,6 +656,13 @@ const CONFIG = {
     // Longest wait for the images at load, ms; past it the palace keeps its box colours.
     waitMs: 5000,
   },
+  // Palace prop models made in Blender (art/tools/lion_blender.py; SAMPLE 01: the stone lion, waiting for the owner's approval).
+  MODELS: {
+    // Switch; off (or a file missing) = the box shapes.
+    on: true,
+    // Stone lion, faces +z, origin at the floor centre, 1.6 x 2.2 m footprint (LOD0 7000 tris; LOD1/LOD2 files kept for the LOD batch).
+    lion: 'assets/models/lion_lod0.glb',
+  },
   // Context camera in the palace (owner 24 Nov 13:18; ticket 10, owner 24 Nov 15:43-15:46). Field of view and pitch never change (no fisheye, no
   // squashed characters): the camera only moves back/up or in. Wide (no enemy within attack distance) = as far out as the floor allows: a room that
   // fits whole above the floor is shown whole, a bigger one is revealed as you walk ("reasonable larger character as room can show bit by bit as walk").
@@ -1281,6 +1288,22 @@ if (CONFIG.TEX.on) {
     }
     PTEX.on = true;
   }
+}
+// Palace prop models (CONFIG.MODELS): one mesh per GLB (positions, normals, indices), read by readGlbMesh; loaded with the textures.
+function readGlbMesh(buf) {
+  const dv = new DataView(buf), jl = dv.getUint32(12, true), J = JSON.parse(new TextDecoder().decode(new Uint8Array(buf, 20, jl)));
+  const bin = 20 + jl + 8, prim = J.meshes[0].primitives[0];
+  const acc = (i, C, n) => { const a = J.accessors[i], v = J.bufferViews[a.bufferView]; return new C(buf.slice(bin + (v.byteOffset || 0) + (a.byteOffset || 0), bin + (v.byteOffset || 0) + (a.byteOffset || 0) + a.count * n * C.BYTES_PER_ELEMENT)); };
+  const g = new THREE.BufferGeometry(), ia = J.accessors[prim.indices];
+  g.setAttribute('position', new THREE.BufferAttribute(acc(prim.attributes.POSITION, Float32Array, 3), 3));
+  g.setAttribute('normal', new THREE.BufferAttribute(acc(prim.attributes.NORMAL, Float32Array, 3), 3));
+  g.setIndex(new THREE.BufferAttribute(acc(prim.indices, ia.componentType === 5125 ? Uint32Array : Uint16Array, 1), 1));
+  return g;
+}
+const PMODEL = { lion: null };
+if (CONFIG.MODELS.on) {
+  const got = await Promise.race([fetch(CONFIG.MODELS.lion).then((r) => (r.ok ? r.arrayBuffer() : null)).catch(() => null), new Promise((res) => setTimeout(() => res(null), CONFIG.TEX.waitMs))]);
+  if (got) { try { PMODEL.lion = readGlbMesh(got); } catch (e) { PMODEL.lion = null; } }
 }
 M.rail = M.wall;
 const warnMat = new THREE.MeshStandardMaterial({ color: COL.court, emissive: COL.warn, emissiveIntensity: 0.5, roughness: 0.9 });
@@ -2616,7 +2639,8 @@ PIECE_SIDES.push({ list: P2_GIANT_T, hurt(u, n) { hitGiant(u, n, null, 'piece');
       const x = POX + p.x, z = POZ + p.z;
       if (p.type === 'lion') {
         const f = p.fz || 1;
-        add('palLion', box(1.6, 0.6, 2.2, x, 0.3, z)); add('palLion', box(1.2, 1.2, 1.6, x, 1.2, z)); add('palLion', box(1.0, 1.0, 0.8, x, 2.1, z + 0.6 * f));
+        if (PMODEL.lion) { const g = PMODEL.lion.clone(); if (f < 0) g.rotateY(Math.PI); g.translate(x, 0, z); add('palLion', g); }
+        else { add('palLion', box(1.6, 0.6, 2.2, x, 0.3, z)); add('palLion', box(1.2, 1.2, 1.6, x, 1.2, z)); add('palLion', box(1.0, 1.0, 0.8, x, 2.1, z + 0.6 * f)); }
         palSolid(r, x - 0.9, x + 0.9, z - 1.1, z + 1.1);
         const ring = addStatic(r.group, ringMesh(CONFIG.LION.radius, x, 0, z)); ring.visible = false;
         PIECE_HAZ.push({ kind: 'lion', cfg: CONFIG.LION, x, z, y: 0, s: r, ring, state: 0, t: 0, statue: false, mark: false, eyes: null });

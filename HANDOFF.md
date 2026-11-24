@@ -17,13 +17,29 @@
   - (a) The burn order is fixed per layout (CONFIG.BURN.orderFull): seeds 2, 5 and 8 ended the same at 46.3 s. Proposal, not approved: her wings come from a shuffled bag.
   - (b) Close zoom changed from 1.0x to 0.75x of the base distance by BP10: owner to confirm.
   - (c) Palace geometry count grows the first time each room is drawn (check 1207): warm every room under the loading card.
-  - (d) Close-out (owner 15:52): real-GPU fps for the palace, then the phone link. Started 24 Nov 17:15 (perf worker, branch perf-probe / ci-perf, scenes palace_room, palace_heavy, palace_heavy_low and reference, on game commit 6c5642d). If this session ended first: look for the PERF2 lines in /home/claude/batch16.log and out/perf/<run id>/ on ci-out; if neither exists, re-run the probe from the worktree. Then republish the phone link (slug 1688f9ba-a0e5-4f7b-ac2e-3a68d6fc67c3), which still shows ticket 01, before the texture work.
+  - (d) Close-out done 24 Nov 17:40. Real-GPU fps (macOS runner, ANGLE Metal Apple Paravirtual; runs 45363816937 / 45363877121, game 6c5642d, 1080p, 6 s settle + 20 s timed, 0 FAIL lines):
+    | Scene (run 1 / run 2) | fps | p95 ms | worst ms | >20 ms | calls | tris |
+    |---|---|---|---|---|---|---|
+    | reference | 201.7 / 192.9 | 11.9 / 12.5 | 53 / 112 | 1.0 / 1.7% | 27 | 2.8k |
+    | palace_room (forecourt) | 217.6 / 201.2 | 10.7 / 11.2 | 45 / 43 | 0.3 / 0.8% | 15 | 1.1k |
+    | palace_heavy medium (37 guard/rebel units, 2-3 awake giants, 3 rivals in room, a wing falling) | 210.4 / 203.5 | 11.3 / 11.8 | 168 / 313 | 0.5 / 0.7% | 24 / 28 | 1.6k / 1.9k |
+    | palace_heavy low | 226.5 / 209.1 | 10.9 / 11.7 | 34 / 52 | 0.4 / 0.9% | 25 / 23 | 1.7k / 1.5k |
+    | palace_garden (smoke) | 214 / 200.9 | 11.4 / 11.9 | 63 / 38 | 0.4 / 0.6% | 23 / 36 | 1.9k / 3.1k |
+    Memory flat (programs 7, geometries 257, textures 1, heap). Room first draw: only hall_ming grows geometries (257 to 266); worst first-entry frame 16-35 ms.
+  - (g) OPEN, do first next session (perf gate before the texture work): one main-thread long task of 175 / 312 ms in palace_heavy medium per run, in the window holding the wing fall and the third giant waking; cause NOT named (low tier saw the same fall at 34 / 52 ms; the reference scene also had a 112 ms frame in run 2). Add the frame-over-100-ms log with the 200 ms before it (spawn, kill, first draw, sound, GC), name the cause, fix, re-measure.
+  - Phone link: version 1795511963-f257 is the merged Burning Palace build (byte-identical to batches-3-5 index.html with the CDN importmap; sha256 3bd35467).
   - (e) Balance talk (items under "Known balance items").
   - (f) No bot finishes a palace run yet.
 - Parallel build method (owner 14:29): builders on their own branches and worktrees per docs/BP-INTERFACES.md, one integrator merges, the lead verifies every run on ci-out.
 - Log: /home/claude/batch16.log (prefixes BPxx, INT, LEAD, OWNER). Watchdog via send_later every 30 min while workers run.
 
 ### NEXT SESSION: palace textures with klad + dispose + LOD (owner 24 Nov 16:58)
+STATUS 24 Nov 17:55 (session 015w2gCC): steps 1-2 sample DONE, waiting for the owner's look approval.
+- klad 0.4.0 built at /home/claude/kladsrc/src/target/linux/release/klad (session disk; rebuild per the skill if gone). Five 1024 px textures painted: assets/tex/hall_floor (丹地), hall_wall (lime plaster, black-lozenge frieze, Qin-black dado), pillar (black lacquer, vermilion bands, cloud scrolls), door (black lacquer, bronze bands, 铺首 masks), lion_stone. Generator art/tools/palace_tex.py, sources art/src/*.klad, references art/REFERENCES.md, CREDITS.md.
+- Game 03f24e6: own materials palFloor/palWall/palPillar/palDoor/palLion (Rumble unchanged), world UVs in mergeGeoms, CONFIG.TEX (on, files, tileM, pillarU, aniso 4, waitMs). CI suite 45368079411: 267 of 268 (only 42). Run 45366908283 on the same tree aborted once (cam10 page.goto 30 s timeout; local loads 1-2 s; not repeated): cause open.
+- Software-GPU screenshot counts (hall_ru): 12 calls, 842 tris, programs 8 (+1), textures 6. Phone link version 1795513925-193c carries the sample.
+- Owner 24 Nov 17:30: "use tripo to create asset and klad to give it texture". Tripo runs on GitHub runners: branch ci-tripo (ci_tripo/tripo.mjs, jobs.json, .github/workflows/tripo.yml), output out/tripo/<run>/ on ci-out. Needs repo Actions secret TRIPO_API_KEY (runs 45366086846, 45367565852, 45367812752: key empty) and a paid Tripo plan for commercial use. First job: lion_a (8k faces, no texture). Model check / LOD / compression with glTF-Transform (npm @gltf-transform/cli, installed in /home/claude/gltftools).
+- Not started: KTX2, per-level loading, dispose, LOD, item (g).
 Owner: "get next session to use klad to do up texture of all asset of palace and prop. reference to historical. geometry.dispose(), material.dispose(), texture.dispose(). THREE.LOD to minimise waste of frame rate". This is the owner's go for textures (art after the loop rule: owner gave it).
 
 Scope: the palace and its props. Characters (suits, guard, rebels, apex) only after their models are decided (owner 24 Nov 17:01: "only when model decided").
@@ -170,6 +186,7 @@ Panel note 16 (lead, 23 Nov 23:30; proposal):
 15 ultimate charge (DONE); 16 法甲 kit + suit stats sample (owner plays and approves); 17 the other eight kits (docs/SUITS.md); 18 hiding (curtains, 道甲 stillness, sight blocked by walls); 19 the ending + WINNER_STATUE; 20 final map size + balancing pass (re-measure, retune the CONFIG timing list once). Hunt sweep re-check with kits (0.15 s bot now loses demon-first).
 
 ## Owner decisions (dated)
+- 24 Nov 17:30: use Tripo to create the assets (props) and klad to texture them.
 - 24 Nov 17:01: character textures (suits, guard, rebels, apex) only when their models are decided.
 - 24 Nov 16:58: next session uses klad to texture all palace assets and props, with historical references; dispose geometry, material and texture; THREE.LOD to save frame time (brief at the top).
 - 24 Nov 15:52: order = merges, then 12-seed pacing, then handover, then close-out (real-GPU fps and phone link).
