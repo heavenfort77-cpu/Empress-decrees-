@@ -649,10 +649,10 @@ const CONFIG = {
     on: true,
     // Image per palace material (static files beside index.html; PNG for the sample, KTX2 after approval).
     files: { palFloor: 'assets/tex/hall_floor.png', palWall: 'assets/tex/hall_wall.png', palPillar: 'assets/tex/pillar.png', palDoor: 'assets/tex/door.png', palLion: 'assets/tex/lion_stone.png' },
-    // Metres of floor or wall per texture repeat (world-space mapping); the wall image spans the wall height once (frieze at the top).
-    tileM: { palFloor: 4, palWall: 4, palLion: 1.6 },
-    // Repeats of the pillar image around a pillar (it spans the pillar height once).
-    pillarU: 2,
+    // Metres of floor, wall or lion stone per texture repeat (world-space mapping; 4 m = 256 px/m, style study round 2); the wall image spans the wall height once.
+    tileM: { palFloor: 4, palWall: 4, palLion: 4 },
+    // Repeats of the pillar image around a pillar (1 = 272 px/m around, style study round 2; it spans the pillar height once).
+    pillarU: 1,
     // Anisotropic filtering (owner rule: 4 max).
     aniso: 4,
     // Longest wait for the images at load, ms; past it the palace keeps its box colours.
