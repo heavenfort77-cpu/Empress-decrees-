@@ -138,10 +138,10 @@ def g5_tonal(D):
 
 
 def fold_err(x, ref, sr):
-    w = sr; out = -200.0
-    for a, b in ((x[:w], ref[:w]), (x[-w:], ref[-w:])):
-        e = np.sqrt(np.mean((a - b) ** 2)); r = np.sqrt(np.mean(b ** 2))
-        out = max(out, dbfs(e) - dbfs(r))
+    # Error in the first and last second, relative to the whole loop's RMS (a near-silent window must not inflate it).
+    w = sr; out = -200.0; r = np.sqrt(np.mean(ref ** 2))
+    for u, v in ((x[:w], ref[:w]), (x[-w:], ref[-w:])):
+        out = max(out, dbfs(np.sqrt(np.mean((u - v) ** 2))) - dbfs(r))
     return out
 
 
@@ -164,6 +164,7 @@ def g7_ramp(D):
     for p, (x, sr, st) in D['ramp'].items():
         i, a, b = lufs(x, sr), lufs(x[:10 * sr], sr), lufs(x[-10 * sr:], sr)
         out.append(f'  {p}: whole {i:.1f} LUFS, first 10 s {a:.1f}, last 10 s {b:.1f}')
+        out.append('    per 10 s: ' + ' '.join(f'{lufs(x[j * 10 * sr:(j + 1) * 10 * sr], sr):.1f}' for j in range(len(x) // (10 * sr))))
         for v, (lo, hi), what in ((i, G['ramp_int'], 'whole'), (a, G['ramp_first'], 'first 10 s'), (b, G['ramp_last'], 'last 10 s')):
             if not (lo <= v <= hi):
                 bad.append(f'  {p} {what} {v:.1f} LUFS outside [{lo}, {hi}]')

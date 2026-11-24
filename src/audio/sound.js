@@ -6,11 +6,11 @@
 
 export const CONFIG = {
   // Master gain after the limiter, 0-1 (13d: default reduced; the player raises it).
-  master: 0.8,
+  master: 0.9,
   // Bus gains, 0-1: effects, music, ambience, her stingers.
-  vol: { sfx: 1, music: 0.8, amb: 0.8, voice: 0.9 },
+  vol: { sfx: 1, music: 0.9, amb: 0.8, voice: 0.9 },
   // Compressor in front of the clip (a peak catcher; approximates a limiter; dB, dB, ratio, s, s).
-  comp: { threshold: -6, knee: 6, ratio: 8, attack: 0.003, release: 0.15 },
+  comp: { threshold: -4, knee: 6, ratio: 8, attack: 0.003, release: 0.15 },
   // Last-stage tanh clip ceiling (linear; 0.7 = -3.1 dBFS, so the mix never peaks above -3 dBFS).
   clip: 0.7,
   // Peak each rendered effect is normalised to, dBFS, per category (all at or under -3).
@@ -35,13 +35,13 @@ export const CONFIG = {
     bpm: 72, bars: 4,
     // Intensity smoothing time constant, s (13b: duration / 3 of a 1.2-3.6 s bed move).
     tau: 1.2,
-    // Layer windows: [smoothstep start, end] of intensity, and the layer's gain at full, dB.
+    // Layer windows: [smoothstep start, end] of intensity, the layer's gain at full (dB), and soft saturation at render (0 = none).
     layers: {
-      m_drone: { win: [-1, 0], db: -6 },
-      m_bells: { win: [0.1, 0.35], db: -3 },
-      m_pulse: { win: [0.3, 0.55], db: 2 },
-      m_drive: { win: [0.55, 0.8], db: -3 },
-      m_peak: { win: [0.8, 1.0], db: -3 },
+      m_drone: { win: [-1, 0], db: -3 },
+      m_bells: { win: [0.1, 0.35], db: 0, sat: 1.5 },
+      m_pulse: { win: [0.3, 0.55], db: 0, sat: 2.5 },
+      m_drive: { win: [0.55, 0.8], db: -1, sat: 2.5 },
+      m_peak: { win: [0.8, 1.0], db: -2, sat: 2.5 },
     },
     // Music low-pass by intensity, Hz at 0 and at 1 (13b sweep; open at the top).
     lp: [1600, 9000],
@@ -51,7 +51,7 @@ export const CONFIG = {
     duck: { db: -8, inTau: 0.01, outTau: 0.25 },
   },
   // Ambience loops: length s, layer gains dB; fire and wind follow setAmb (0-1); room tone is always on (13b keeps silence alive).
-  amb: { loopS: 16, room: -12, wind: -9, fire: -8 },
+  amb: { loopS: 16, room: -12, wind: -9, fire: -5 },
   // Crossfade length for steady loop content, s (events fold their tails onto the loop start instead).
   xfadeS: 0.25,
   // Reduce intensity (13d): stingers and heavy hits this many dB lower; music intensity capped; no beat-wait before stingers.
@@ -242,10 +242,10 @@ export const SOUNDS = {
   ui_ok: { cat: 'ui', v: [bl(N(7), 0, 0.3, 0.7), ck(2500, 0, 0.6)] },
   ui_back: { cat: 'ui', v: [tn(N(7), 0, 0.12, 0.5, { f1: N(4) }), ck(1600, 0, 0.5)] },
   // Kaymuse's stingers (synth only, no speech; calm contempt, never a shout). Each under 3 s (tone brief).
-  st_decree: { cat: 'voice', v: [bl(N(0), 0, 2.2, 0.5), bl(N(3), 0.35, 1.9, 0.4), ch(N(15), 0, 1.4, 0.35), ch(N(18), 0.35, 1.4, 0.3), hm(N(-1), 0.05, 2.1, 1.2, { env: 'flat', vib: [4.5, 12] }), hm(N(2), 0.35, 1.8, 0.8, { env: 'flat', vib: [4.5, 12] }), tn(N(17), 0.05, 2.0, 0.12, { env: 'flat', vib: [4.5, 12] }), ck(2200, 0, 0.5), ck(2200, 0.35, 0.5)] },
-  st_burn: { cat: 'voice', v: [bl(N(9), 0, 1.2, 0.4), bl(N(7), 0.3, 1.2, 0.4), bl(N(4), 0.6, 1.8, 0.5), ch(N(19), 0, 0.8, 0.3), ch(N(17), 0.3, 0.8, 0.3), ch(N(14), 0.6, 1.0, 0.3), tn(N(-5), 0, 2.2, 0.4, { w: 'sawtooth', am: [7, 0.6], env: 'swell' }), hm(N(-1), 0.1, 2.2, 1.2, { env: 'flat', vib: [4, 14] }), tn(1800, 0, 2.2, 0.25, { am: [7, 0.8], env: 'flat' }), ck(2600, 0, 0.5), ck(2600, 0.3, 0.5), ck(2600, 0.6, 0.5)] },
-  st_bounty: { cat: 'voice', v: [ch(N(14), 0, 0.3, 0.4), ch(N(16), 0.07, 0.3, 0.4), ch(N(13), 0.13, 0.3, 0.4), ch(N(17), 0.2, 0.3, 0.4), ch(N(15), 0.28, 0.4, 0.4), dr(180, 80, 0.4, 0.5, 0.6), bl(N(4), 0.4, 1.4, 0.4), hm(N(-1), 0.3, 1.5, 1.2, { env: 'flat', vib: [4.5, 12] }), hm(N(4), 0.3, 1.5, 0.6, { env: 'flat', vib: [4.5, 12] })] },
-  st_wake: { cat: 'voice', v: [bl(N(-5), 0, 2.6, 0.5), ch(N(16), 0, 1.6, 0.3), hm(N(-1), 0.1, 2.5, 1.2, { f1: N(1), env: 'flat', vib: [4, 10] }), hm(N(4), 0.6, 2.0, 0.6, { f1: N(6), env: 'flat', vib: [4, 10] }), bl(N(1), 1.4, 1.2, 0.4), ch(N(16), 1.4, 1.2, 0.3), ck(2000, 0, 0.5)] },
+  st_decree: { cat: 'voice', v: [bl(N(0), 0, 2.2, 0.5), bl(N(3), 0.35, 1.9, 0.4), ch(N(15), 0, 1.4, 0.55), ch(N(18), 0.35, 1.4, 0.5), hm(N(-1), 0.05, 2.1, 1.2, { env: 'flat', vib: [4.5, 12] }), hm(N(2), 0.35, 1.8, 0.8, { env: 'flat', vib: [4.5, 12] }), tn(N(17), 0.05, 2.0, 0.3, { env: 'flat', vib: [4.5, 12] }), tn(N(20), 0.35, 1.7, 0.15, { env: 'flat', vib: [4.5, 12] }), ck(2200, 0, 0.5), ck(2200, 0.35, 0.5)] },
+  st_burn: { cat: 'voice', v: [bl(N(9), 0, 1.2, 0.4), bl(N(7), 0.3, 1.2, 0.4), bl(N(4), 0.6, 1.8, 0.5), ch(N(19), 0, 0.8, 0.3), ch(N(17), 0.3, 0.8, 0.3), ch(N(14), 0.6, 1.0, 0.3), tn(N(-5), 0, 2.2, 0.4, { w: 'sawtooth', am: [7, 0.6], env: 'swell' }), hm(N(-1), 0.1, 2.2, 1.2, { env: 'flat', vib: [4, 14] }), tn(1800, 0, 2.2, 0.35, { am: [7, 0.8], env: 'flat' }), ck(2600, 0, 0.5), ck(2600, 0.3, 0.5), ck(2600, 0.6, 0.5)] },
+  st_bounty: { cat: 'voice', v: [ch(N(14), 0, 0.3, 0.6), ch(N(16), 0.07, 0.3, 0.6), ch(N(13), 0.13, 0.3, 0.6), ch(N(17), 0.2, 0.3, 0.6), ch(N(15), 0.28, 0.4, 0.6), tn(N(17), 0.35, 1.4, 0.3, { env: 'flat', vib: [4.5, 12] }), tn(N(19), 0.35, 1.4, 0.15, { env: 'flat', vib: [4.5, 12] }), dr(180, 80, 0.4, 0.5, 0.6), bl(N(4), 0.4, 1.4, 0.4), hm(N(-1), 0.3, 1.5, 1.2, { env: 'flat', vib: [4.5, 12] }), hm(N(4), 0.3, 1.5, 0.6, { env: 'flat', vib: [4.5, 12] })] },
+  st_wake: { cat: 'voice', v: [bl(N(-5), 0, 2.6, 0.5), ch(N(16), 0, 1.6, 0.5), tn(N(18), 0.6, 1.9, 0.3, { f1: N(19), env: 'flat', vib: [4, 10] }), hm(N(-1), 0.1, 2.5, 1.2, { f1: N(1), env: 'flat', vib: [4, 10] }), hm(N(4), 0.6, 2.0, 0.6, { f1: N(6), env: 'flat', vib: [4, 10] }), bl(N(1), 1.4, 1.2, 0.4), ch(N(16), 1.4, 1.2, 0.5), ck(2000, 0, 0.5)] },
 };
 
 // ---------- loops: music layers (13.33 s) and ambience (16 s) ----------
@@ -426,9 +426,10 @@ function snapVoices(vs, L) {
 export async function renderLoop(name, sr, profile, opts) {
   const def = LOOPS[name], Ls = loopSeconds(name), L = Math.round(Ls * sr), X = Math.round(CONFIG.xfadeS * sr), Y = Math.round(0.1 * sr);
   const phone = profile === 'phone', raw = !!(opts && opts.raw), seed = CONFIG.seed + hashName(name);
-  const out = await loopBody(def, Ls, L, X, Y, sr, phone, raw, seed);
+  const out = await loopBody(def, Ls, L, X, Y, sr, phone, raw, seed), p0 = peakOf(out), sat = (CONFIG.music.layers[name] || {}).sat || 0;
+  if (sat && p0 > 0) soft(out, p0, sat);
   const p = peakOf(out), r = rmsOf(out), k = p > 0 ? Math.min(db(CONFIG.loopRmsDb) / r, db(CONFIG.loopPeakDb) / p) : 1;
-  if (opts && opts.ref) return scale(await loopRef(def, Ls, L, sr, phone, seed), k);
+  if (opts && opts.ref) { const ref = await loopRef(def, Ls, L, Y, sr, phone, seed); if (sat && p0 > 0) soft(ref, p0, sat); return scale(ref, k); }
   return scale(out, k);
 }
 async function loopBody(def, Ls, L, X, Y, sr, phone, raw, seed) {
@@ -447,11 +448,13 @@ async function loopBody(def, Ls, L, X, Y, sr, phone, raw, seed) {
   }
   return out;
 }
-async function loopRef(def, Ls, L, sr, phone, seed) {
+// Soft saturation of percussive loops (lowers their crest factor so they can sit louder under the same peak cap).
+function soft(x, peak, k) { const n = Math.tanh(k); for (let i = 0; i < x.length; i++) x[i] = Math.tanh((k * x[i]) / peak) / n; return x; }
+async function loopRef(def, Ls, L, Y, sr, phone, seed) {
   const out = new Float32Array(L);
   if (def.steady) {
-    const vs = snapVoices(def.steady(), Ls), s = await renderVoices(vs, (2 * L) / sr, sr, phone, seed, (2 * L) / sr + 0.1);
-    for (let i = 0; i < L; i++) out[i] = s[L + i];
+    const vs = snapVoices(def.steady(), Ls), s = await renderVoices(vs, (2 * L + Y) / sr, sr, phone, seed, (2 * L + Y) / sr + 0.1);
+    for (let i = 0; i < L; i++) out[i] = s[L + Y + i];
   }
   if (def.events) {
     const ev = def.events(), both = ev.concat(shift(ev, Ls)), e = await renderVoices(both, (2 * L) / sr, sr, phone, seed + 1, 0);
