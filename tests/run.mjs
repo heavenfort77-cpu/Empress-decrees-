@@ -2,6 +2,7 @@
 import { createServer } from 'node:http';
 import { readFile } from 'node:fs/promises';
 import { extname, join, normalize } from 'node:path';
+import { bp09Checks } from './bp09-checks.mjs';
 
 let chromium;
 try { ({ chromium } = await import('playwright')); } catch { ({ chromium } = await import('/opt/npm-tools/node_modules/playwright/index.mjs')); }
@@ -3470,6 +3471,8 @@ try {
     && bpNr.reset.banner === 'none' && bpNr.reset.x && bpNr.ended === 'palend' && bpNr.again.phase === 'palace' && bpNr.again.cur === 'hall' && bpNr.again.banner === 'none' && bpNr.again.attached === 'hall', JSON.stringify(bpNr));
 
   // ===== BP04 the burning (checks 600-605) =====
+  // BP09: the burning's own checks run without the palace pieces II (the giants would hunt the player who waits on the bridge); BP09 checks 1000+ run them.
+  await g(() => __game.pieces2(false));
   // 600 Waves (owner design 24 Nov: about every 40 s she names a wing, 5 s warning, its rooms fall into the black lake): from a room that never burns
   // (the bridge) the wings are named at 40, 80, 120, 160 s in CONFIG order, each falls warnS later and leaves the scene; warned floors glow; her line
   // and the countdown on the banner (TEXT keys); the next-to-burn line shown and written only on change; doors to a fallen room stay shut, its card says so.
@@ -3986,6 +3989,27 @@ try {
   check('808 full palace pieces built from the plan (counts match), every lion in a pair beside a door of its room, only the plan in use listed, guard is a side',
     p8F.layout === 'full' && p8F.want.lion > 0 && JSON.stringify(p8F.want) === JSON.stringify(p8F.got) && p8F.far.length === 0 && p8F.protoLions === 2 && p8F.sides >= 2,
     JSON.stringify(p8F));
+  await g(() => __game.pieces2(true));
+  await bp09Checks(g, check);
+  // 1007 (integration 24 Nov) Pieces II in the full palace: one water clock per burning wing (in a room of that wing), the plan's vats and
+  // twelve giants built from BP05's placement; only the full plan's vats listed; a wake wakes a full-plan giant; back on the box the box's 4 vats.
+  const p9F = await g(() => {
+    const G = __game, o = {};
+    G.setSeed(12345); G.setLayout('full'); G.setMode('palace'); G.reset();
+    const pl = G.palPlan(), q = G.pieces2State(), b = G.burnState(), byId = {};
+    for (const r of pl.rooms) byId[r.id] = r;
+    o.layout = pl.layout; o.order = b.order.join(); o.clocks = q.clocks.map((c) => c.wing).sort().join();
+    o.clockRoomsOk = q.clocks.every((c) => byId[c.room] && byId[c.room].wing === c.wing);
+    o.vatWant = pl.rooms.reduce((n, r) => n + r.pieces.filter((x) => x.type === 'vat').length, 0); o.vats = q.vats.length;
+    o.giants = q.giants.length; o.giantRooms = [...new Set(q.giants.map((x) => x.room))].join();
+    o.woke = G.giantWake(); o.awake = G.pieces2State().awake;
+    G.setLayout('proto'); G.reset(); o.boxVats = G.pieces2State().vats.length; o.boxClocks = G.pieces2State().clocks.length;
+    G.setMode('rumble'); G.reset();
+    return o;
+  });
+  check('1007 full palace pieces II: a water clock per burning wing in its wing, the plan\'s vats, twelve giants on the approach, a wake works; the box keeps its own',
+    p9F.layout === 'full' && p9F.clocks === p9F.order.split(',').sort().join() && p9F.clockRoomsOk && p9F.vatWant > 0 && p9F.vats === p9F.vatWant
+    && p9F.giants === 12 && p9F.giantRooms.length > 0 && p9F.woke === true && p9F.awake === 1 && p9F.boxVats === 4 && p9F.boxClocks === 4, JSON.stringify(p9F));
 
   // 15 Graphics context lost and restored: no errors, renders again.
   const errBefore = errors.length;
