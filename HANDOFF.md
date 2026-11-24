@@ -205,6 +205,7 @@ Panel note 16 (lead, 23 Nov 23:30; proposal):
 15 ultimate charge (DONE); 16 法甲 kit + suit stats sample (owner plays and approves); 17 the other eight kits (docs/SUITS.md); 18 hiding (curtains, 道甲 stillness, sight blocked by walls); 19 the ending + WINNER_STATUE; 20 final map size + balancing pass (re-measure, retune the CONFIG timing list once). Hunt sweep re-check with kits (0.15 s bot now loses demon-first).
 
 ## Owner decisions (dated)
+- 25 Nov 02:1x (overnight picks): bronze = the brass variant (bronze_trim_brass.png) for every bronze piece; the nine suits stand out on the 丹 floor by a 2 px renderer outline (needs game code); one school colour mapping everywhere (鼎, suits, flags, banners) = W1a's pigment mapping (儒 ochre, 道 gold, 法 lead white, 墨 cinnabar, 阴阳 bone black, 杂 silver, 名 Han purple, 纵横 malachite, 农 azurite); the twelve giants keep one shared body, made slimmer at the game camera.
 - 24 Nov 22:00: all research (Sketchfab, museum scans, photos, textures) is reference only, never copied 1:1; every asset is our own design.
 - 24 Nov 21:58: Tripo skipped (no credit); UniRig replaced by CPU rigging in headless Blender (rigid segments for bronze castings, automatic weights for soft parts; art/tools/rig_test.py both PASS).
 - 24 Nov 21:52: start building assets: asset list art/ASSET-LIST.md (cocolito) and a Sketchfab search for references.
