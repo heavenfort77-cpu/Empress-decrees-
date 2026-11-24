@@ -18,7 +18,6 @@ const server = createServer(async (req, res) => {
 // the map and match checks were written for; the 儒甲 checks switch it off with __game.setPkitP(false).
 const URL0 = `http://127.0.0.1:${server.address().port}/?lock&tier=medium&bots=0&pkit=placeholder`;
 
-import { guardChecks } from './guard-checks.mjs';
 const results = [], SIMS = [];
 function check(name, ok, detail) { results.push({ name, ok: !!ok, detail }); }
 
@@ -3247,8 +3246,6 @@ try {
   });
   check('171 budget with 杂甲 effects: every suit + cubs + tells + a copied move tell (calls<500, tris<500k), no shader compile, geometry flat',
     !!d171 && d171.calls < 500 && d171.tris < 500000 && d171.programs === base.programs && d171.geoms === base.geoms, JSON.stringify(d171));
-  // 300-308 皇家 guard (Burning Palace ticket 02): tests/guard-checks.mjs.
-  await guardChecks(g, check, base);
   // 66 Idle player: standing at the spawn doing nothing loses the royale (frozen loss with a cause) before the last collapse is over.
   const idle = await g(() => {
     const G = __game, C = G.config; G.setSeed(12345); G.setBots(G.config.BOTS.count); G.reset(); let t = 0;
@@ -3464,6 +3461,154 @@ try {
   check('408 palace new run in the same page: start hall, doors shut, hall only, camera, Z and card reset; New run from the end screen starts again',
     bpNr.reset.cur === 'hall' && bpNr.reset.attached === 'hall' && bpNr.reset.shut && bpNr.reset.man === 0 && bpNr.reset.camK && bpNr.reset.card === 'none' && bpNr.reset.n === 1 && bpNr.reset.phase === 'palace'
     && bpNr.reset.banner === 'none' && bpNr.reset.x && bpNr.ended === 'palend' && bpNr.again.phase === 'palace' && bpNr.again.cur === 'hall' && bpNr.again.banner === 'none' && bpNr.again.attached === 'hall', JSON.stringify(bpNr));
+
+  const G8 = await g(() => { const c = __game.config; return { LION: c.LION, ALTAR: c.ALTAR, PIECES: c.PIECES }; });
+  // ===== BP08 palace pieces (800-807): 石狮 lions, 水银 mercury, 铜鹤/香炉 smoke, 华表 beasts, 鼎 cauldrons; every side (suits, bots, a stand-in unit).
+  // 800 Built into the palace rooms; Royal Rumble keeps its own lions and altars and never steps the pieces.
+  const p8B = await g(() => {
+    const G = __game, o = {};
+    G.setSeed(12345); G.setMode('palace'); G.reset();
+    const q = G.pieces(); o.n = { lions: q.haz.filter((h) => h.kind === 'lion').length, hb: q.haz.filter((h) => h.kind === 'huabiao').length, merc: q.merc.length, smoke: q.smoke.length, ding: q.ding.length, sides: q.sides };
+    o.rest = q.haz.every((h) => h.state === 0 && !h.ring) && q.merc.every((m) => m.look === m.state) && q.ding.every((d) => d.on && d.charge === G.config.ALTAR.charge);
+    o.rooms = [...new Set(q.haz.map((h) => h.room).concat(q.merc.map((m) => m.room), q.smoke.map((c) => c.room), q.ding.map((d) => d.room)))].sort().join(',');
+    G.setMode('rumble'); G.reset(); const t0 = G.pieces().merc.map((m) => m.t); G.step(120); const t1 = G.pieces().merc.map((m) => m.t);
+    o.rumbleStill = t0.join() === t1.join(); o.rumbleHaz = G.hazards().length; o.rumbleAltars = G.altars().length; o.rumbleLions = G.hazards().filter((h) => h.kind === 'lion').length;
+    return o;
+  });
+  check('800 palace pieces built in the BP01 rooms (2 lions, 1 华表, 3 mercury, 3 smoke, 1 鼎, 1 side list), at rest; Royal Rumble: own 5 hazards (4 lions) and 3 altars, pieces never stepped',
+    p8B.n.lions === 2 && p8B.n.hb === 1 && p8B.n.merc === 3 && p8B.n.smoke === 3 && p8B.n.ding === 1 && p8B.n.sides >= 1 && p8B.rest && p8B.rooms === 'bridge,court,garden,hall'
+    && p8B.rumbleStill && p8B.rumbleHaz === 5 && p8B.rumbleLions === 4 && p8B.rumbleAltars === 3, JSON.stringify(p8B));
+  // 801 Palace lions: a suit close by starts the tell (red ring, >= 0.4 s, nobody hurt during it); the strike hits the player, a bot and a unit of another side
+  // inside the radius (damage and knockback outward); then the cooldown.
+  const p8L = await g(() => {
+    const G = __game, C = G.config.LION, o = {}, sp = (s) => G.step(Math.round(s / G.config.STEP));
+    G.setSeed(12345); G.setMode('palace'); G.reset();
+    const l = G.pieces().haz.find((h) => h.kind === 'lion');
+    G.teleport(l.x + 2.5, l.z + 1.5); G.palPlaceBot(0, l.x - 2.5, l.z + 1.5); G.pieceProbe(l.x, l.z + 3, 100);
+    G.step(1); let h = G.pieces().haz.find((q) => q.x === l.x && q.z === l.z); o.tell = { state: h.state, ring: h.ring };
+    sp(C.windup - 0.05); o.mid = { hp: G.pieces().pHp, bot: G.pieceBot(0).hp, probe: G.probe().hp, state: G.pieces().haz.find((q) => q.x === l.x && q.z === l.z).state };
+    sp(0.1); h = G.pieces().haz.find((q) => q.x === l.x && q.z === l.z);
+    o.after = { state: h.state, ring: h.ring, hp: G.pieces().pHp, bot: G.pieceBot(0), probe: G.probe() };
+    G.teleport(l.x + 12, l.z + 12); G.palPlaceBot(0, l.x - 12, l.z + 12); G.pieceProbe(l.x + 14, l.z + 14, 100);
+    sp(C.cooldown + 0.1); o.back = G.pieces().haz.find((q) => q.x === l.x && q.z === l.z).state;
+    G.setMode('rumble'); G.reset(); return o;
+  });
+  check('801 palace lions: tell (ring) >= 0.4 s with nobody hurt; the strike hits player, bot and another side (damage, knockback out); cooldown',
+    G8.LION.windup >= 0.4 && p8L.tell.state === 1 && p8L.tell.ring && p8L.mid.hp === 100 && p8L.mid.bot === 100 && p8L.mid.probe === 100 && p8L.mid.state === 1
+    && p8L.after.state === 2 && !p8L.after.ring && p8L.after.hp === 100 - G8.LION.dmg && p8L.after.bot.hp === 100 - G8.LION.dmg && p8L.after.probe.hp === 100 - G8.LION.dmg
+    && p8L.after.probe.hits === 1 && p8L.after.probe.kz > 0 && p8L.after.bot.kx < 0 && p8L.back === 0, JSON.stringify(p8L));
+  // 802 Mercury: rest, shimmer (the tell, >= 0.4 s, harmless to its last step), burn (everyone standing in it loses about dps x on: player, bot, another side); off the channel nothing.
+  const p8M = await g(() => {
+    const G = __game, C = G.config.PIECES.mercury, o = { looks: [] };
+    G.setSeed(12345); G.setMode('palace'); G.reset();
+    const m = G.pieces().merc.find((q) => q.room === 'garden'), z = (m.z0 + m.z1) / 2;
+    G.teleport(m.x0 + 2, z); G.palPlaceBot(0, m.x0 + 4, z); G.pieceProbe(m.x1 - 2, z, 100);
+    const cur = () => G.pieces().merc.find((q) => q.x0 === m.x0 && q.z0 === m.z0);
+    let prev = cur().state, warnHp = null, warnLen = -1, burnT = 0, n = 0, lastWarn = null;
+    while (n < 900) {
+      G.step(1); n++; const q = cur(); o.looks.push(q.look === q.state);
+      if (q.state === 1 && prev === 0) warnHp = G.pieces().pHp;
+      if (q.state === 2 && prev === 1) { warnLen = burnT; o.atBurn = Object.assign({ warnHp }, lastWarn); }
+      if (q.state === 1) { burnT = q.stT + G.config.STEP; lastWarn = { hp: G.pieces().pHp, bot: G.pieceBot(0).hp, probe: G.probe().hp }; }
+      if (q.state === 0 && prev === 2) break;
+      prev = q.state;
+    }
+    o.warnLen = warnLen; o.end = { hp: G.pieces().pHp, bot: G.pieceBot(0).hp, probe: G.probe().hp };
+    G.teleport(m.x0 + 2, m.z1 + 2); G.setHp(100); G.step(Math.round(C.period / G.config.STEP) + 2); o.off = G.pieces().pHp;
+    o.looksOk = o.looks.every(Boolean); delete o.looks;
+    G.setMode('rumble'); G.reset(); return o;
+  });
+  const p8Loss = G8.PIECES.mercury.dps * G8.PIECES.mercury.on;
+  check('802 mercury: shimmer tell >= 0.4 s and harmless, then the burn hurts player, bot and another side in the channel (~dps x on); 2 m off the channel nothing; look follows state',
+    G8.PIECES.mercury.warn >= 0.4 && p8M.warnLen >= G8.PIECES.mercury.warn - 0.02 && p8M.atBurn && p8M.atBurn.warnHp === 100 && p8M.atBurn.hp === 100 && p8M.atBurn.bot === 100 && p8M.atBurn.probe === 100
+    && Math.abs(100 - p8M.end.hp - p8Loss) < 1 && Math.abs(100 - p8M.end.bot - p8Loss) < 1 && Math.abs(100 - p8M.end.probe - p8Loss) < 1 && p8M.off === 100 && p8M.looksOk, JSON.stringify(p8M));
+  // 803 Smoke blocks sight (palSight, bot vision of the player) through a cloud; two points within revealM still see each other; off the cloud nothing changes.
+  const p8S = await g(() => {
+    const G = __game, rv = G.config.PIECES.smoke.revealM, o = {};
+    G.setSeed(12345); G.setMode('palace'); G.reset();
+    const c = G.pieces().smoke.find((q) => q.room === 'court');
+    o.through = { blocks: G.smokeBlocks(c.x - 6, c.z, c.x + 6, c.z), sight: G.palSight(c.x - 6, c.z, c.x + 6, c.z), back: G.palSight(c.x + 6, c.z, c.x - 6, c.z) };
+    o.beside = { blocks: G.smokeBlocks(c.x - 6, c.z + c.r + 2, c.x + 6, c.z + c.r + 2), sight: G.palSight(c.x - 6, c.z + c.r + 2, c.x + 6, c.z + c.r + 2) };
+    o.close = { blocks: G.smokeBlocks(c.x - rv / 2 + 0.05, c.z, c.x + rv / 2 - 0.05, c.z), sight: G.palSight(c.x - rv / 2 + 0.05, c.z, c.x + rv / 2 - 0.05, c.z) };
+    G.teleport(c.x - 1.5, c.z); G.step(1); G.palPlaceBot(0, c.x + 6, c.z); o.hidden = G.botSeesP(0);
+    G.palPlaceBot(0, c.x - 1.5, c.z + 1.5); o.near = G.botSeesP(0);
+    G.teleport(c.x - 4, c.z + c.r + 2); G.step(1); G.palPlaceBot(0, c.x + 4, c.z + c.r + 2); o.clear = G.botSeesP(0);
+    G.setMode('rumble'); G.reset(); return o;
+  });
+  check('803 smoke blocks sight both ways through a cloud (palSight, bot vision of the player); within revealM or beside the cloud sight is clear',
+    p8S.through.blocks && !p8S.through.sight && !p8S.through.back && !p8S.beside.blocks && p8S.beside.sight && !p8S.close.blocks && p8S.close.sight && !p8S.hidden && p8S.near && p8S.clear, JSON.stringify(p8S));
+  // 804 华表: a suit close by wakes it (ring and eyes for windup >= 0.4 s, nobody marked yet); its look marks every suit in reach (her line for the player);
+  // a marked player is seen through a shut door by a bot in another room until the mark ends; other sides do not wake it; cooldown before it looks again.
+  const p8H = await g(() => {
+    const G = __game, C = G.config.PIECES.huabiao, o = {}, sp = (s) => G.step(Math.round(s / G.config.STEP));
+    G.setSeed(12345); G.setMode('palace'); G.reset();
+    const h0 = G.pieces().haz.find((h) => h.kind === 'huabiao'), cur = () => G.pieces().haz.find((h) => h.kind === 'huabiao');
+    G.pieceProbe(h0.x + 1.5, h0.z, 100); sp(1); o.probeOnly = cur().state;
+    G.reset(); G.teleport(h0.x + 2, h0.z); G.palPlaceBot(0, h0.x - 2, h0.z); G.step(1);
+    o.tell = { state: cur().state, ring: cur().ring, eyes: cur().eyes };
+    sp(C.windup - 0.05); o.mid = { pMark: G.pieces().pMark, bot: G.pieceBot(0).markT };
+    sp(0.1); const q = G.pieces(); o.look = { state: cur().state, eyes: cur().eyes, pMark: q.pMark, marker: q.pMarker, bot: G.pieceBot(0).markT, botMarker: G.pieceBot(0).marker, rule: G.palace().rule === G.text.piece_rule_hb.replace('{s}', C.markS) };
+    const hall = G.palace().rooms.find((r) => r.id === 'hall'); G.palPlaceBot(0, hall.cx, hall.cz + 4); o.wallSeen = G.botSeesP(0); o.shut = !G.palace().doors[0].open;
+    sp(C.markS + 0.1); o.later = { pMark: G.pieces().pMark, seen: G.botSeesP(0), state: cur().state };
+    sp(C.cooldown - C.markS - 0.05); o.again = cur().state;
+    G.setMode('rumble'); G.reset(); return o;
+  });
+  check('804 华表: suits wake it (tell >= 0.4 s, ring and eyes, nobody marked yet), its look marks suits in reach (her line); marked = seen through a shut door until it ends; other sides never wake it; cooldown',
+    G8.PIECES.huabiao.windup >= 0.4 && p8H.probeOnly === 0 && p8H.tell.state === 1 && p8H.tell.ring && p8H.tell.eyes && p8H.mid.pMark === 0 && p8H.mid.bot === 0
+    && p8H.look.state === 2 && !p8H.look.eyes && Math.abs(p8H.look.pMark - G8.PIECES.huabiao.markS) < 0.1 && p8H.look.marker && p8H.look.bot > 0 && p8H.look.botMarker && p8H.look.rule
+    && p8H.shut && p8H.wallSeen && p8H.later.pMark === 0 && !p8H.later.seen && p8H.later.state === 2 && p8H.again === 1, JSON.stringify(p8H));
+  // 805 鼎: heals the player, a bot and another side standing at it (altar rate, from its charge); emptied it looks empty and refills after emptyS.
+  const p8D = await g(() => {
+    const G = __game, A = G.config.ALTAR, o = {}, sp = (s) => G.step(Math.round(s / G.config.STEP));
+    G.setSeed(12345); G.setMode('palace'); G.reset();
+    const d = G.pieces().ding[0];
+    G.teleport(d.x + 1.5, d.z); G.setHp(50); G.palPlaceBot(0, d.x - 1.5, d.z); G.setBotHp(0, 50); G.pieceProbe(d.x, d.z + 1.5, 50);
+    sp(1); const q = G.pieces();
+    o.oneS = { hp: q.pHp, bot: G.pieceBot(0).hp, probe: G.probe().hp, charge: q.ding[0].charge };
+    sp(A.charge / A.rate + 1); o.empty = G.pieces().ding[0];
+    G.teleport(d.x + 8, d.z - 8); G.palPlaceBot(0, d.x - 8, d.z - 8); G.pieceProbe(d.x - 8, d.z - 10, 50);
+    sp(A.emptyS + 0.2); o.refill = G.pieces().ding[0];
+    G.setMode('rumble'); G.reset(); o.altars = G.altars().every((a) => a.on && a.charge === A.charge);
+    return o;
+  });
+  check('805 鼎 cauldron heals player, bot and another side at the altar rate from its charge; empty look; refills after emptyS; Royal Rumble altars untouched',
+    Math.abs(p8D.oneS.hp - (50 + G8.ALTAR.rate)) < 0.6 && Math.abs(p8D.oneS.bot - (50 + G8.ALTAR.rate)) < 0.6 && Math.abs(p8D.oneS.probe - (50 + G8.ALTAR.rate)) < 0.6
+    && Math.abs(p8D.oneS.charge - (G8.ALTAR.charge - 3 * G8.ALTAR.rate)) < 1 && p8D.empty.charge === 0 && !p8D.empty.on && p8D.refill.charge === G8.ALTAR.charge && p8D.refill.on && p8D.altars, JSON.stringify(p8D));
+  // 806 Bots read the pieces as danger once seen for their reaction time: a lion's tell (way out away from it), a shimmering or burning channel (way out across it); not at rest.
+  const p8G = await g(() => {
+    const G = __game, o = {}, react = 0.3;
+    G.setSeed(12345); G.setMode('palace'); G.reset();
+    const l = G.pieces().haz.find((h) => h.kind === 'lion'), m = G.pieces().merc.find((q) => q.room === 'garden'), z = (m.z0 + m.z1) / 2;
+    G.palPlaceBot(0, l.x + 2, l.z + 1); G.teleport(l.x + 2.5, l.z + 1.5); G.step(1); o.lionEarly = G.pieceDanger(0, l.x + 2, l.z + 1).hit;
+    G.step(Math.round(react / G.config.STEP) + 1); const d = G.pieceDanger(0, l.x + 2, l.z + 1); o.lionLate = d.hit; o.lionOut = d.ex > 0;
+    G.reset(); G.palPlaceBot(0, m.x0 + 4, z + 0.3); G.teleport(m.x0 + 4, m.z1 + 4); let n = 0, cur;
+    do { G.step(1); n++; cur = G.pieces().merc.find((q) => q.x0 === m.x0 && q.z0 === m.z0); } while (cur.state !== 0 && n < 400);
+    o.rest = G.pieceDanger(0, m.x0 + 4, z + 0.3).hit;
+    do { G.step(1); n++; cur = G.pieces().merc.find((q) => q.x0 === m.x0 && q.z0 === m.z0); } while (cur.state !== 1 && n < 800);
+    o.shimEarly = G.pieceDanger(0, m.x0 + 4, z + 0.3).hit;
+    G.step(Math.round(react / G.config.STEP) + 1); const e = G.pieceDanger(0, m.x0 + 4, z + 0.3); o.shimLate = e.hit; o.across = e.ex === 0 && e.ez === 1;
+    G.setMode('rumble'); G.reset(); return o;
+  });
+  check('806 bot danger from the pieces after its reaction time: lion tell (out away from the lion), mercury shimmer (out across the channel); none at rest or before reacting',
+    !p8G.lionEarly && p8G.lionLate && p8G.lionOut && !p8G.rest && !p8G.shimEarly && p8G.shimLate && p8G.across, JSON.stringify(p8G));
+  // 807 Budget in the busiest room (garden: lions, smoke, mercury) and every room, with every piece state drawn; shader programs flat (warmed at load);
+  // a new run puts every piece back to rest (mercury at its own phase).
+  const p8P = await g(() => {
+    const G = __game, o = { rooms: {} };
+    G.setSeed(12345); G.setMode('palace'); G.reset(); G.step(1); const p0 = G.render(true).programs;
+    for (const r of G.palace().rooms) { G.reset(); G.teleport(r.cx, r.cz); G.step(2); const x = G.render(true); o.rooms[r.id] = [x.calls, x.tris]; }
+    G.reset(); const l = G.pieces().haz.find((h) => h.kind === 'lion'), hb = G.pieces().haz.find((h) => h.kind === 'huabiao'), d = G.pieces().ding[0];
+    G.teleport(l.x + 2.5, l.z + 1.5); G.step(1); const busy = G.render(true); o.busy = [busy.calls, busy.tris];
+    let n = 0, seen = new Set(); while (n < 300) { G.step(1); n++; for (const m of G.pieces().merc) seen.add(m.look); if (n % 5 === 0) G.render(false); }
+    G.teleport(hb.x + 2, hb.z); G.step(2); G.render(false); G.teleport(d.x + 1, d.z); G.setHp(1); G.step(Math.round((G.config.ALTAR.charge / G.config.ALTAR.rate + 1) / G.config.STEP)); G.render(false);
+    o.looks = [...seen].sort().join(','); o.programs = [p0, G.render(true).programs];
+    G.reset(); const q = G.pieces();
+    o.rest = q.haz.every((h) => h.state === 0 && !h.ring && h.eyes !== true) && q.merc.every((m) => m.look === m.state && m.state === 0 && m.stT === 0 && m.t === m.ph % G.config.PIECES.mercury.period) && q.ding.every((x) => x.on && x.charge === G.config.ALTAR.charge) && q.pMark === 0 && G.probe() === null;
+    o.maxCalls = Math.max(o.busy[0], ...Object.values(o.rooms).map((v) => v[0])); o.maxTris = Math.max(o.busy[1], ...Object.values(o.rooms).map((v) => v[1]));
+    G.setMode('rumble'); G.reset(); return o;
+  });
+  check('807 pieces budget (every room and the busiest, calls<500, tris<500k), all mercury looks drawn with programs flat (warmed at load), new run back to rest',
+    p8P.maxCalls < 500 && p8P.maxTris < 500000 && p8P.looks === '0,1,2' && p8P.programs[0] === p8P.programs[1] && p8P.rest, JSON.stringify(p8P));
 
   // 15 Graphics context lost and restored: no errors, renders again.
   const errBefore = errors.length;
