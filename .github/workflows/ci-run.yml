@@ -9,6 +9,8 @@ permissions:
   contents: write
 jobs:
   plan:
+    # Only commits made by ci_mut.sh (message "ci job ...") start a run; tool commits on this branch do not.
+    if: startsWith(github.event.head_commit.message, 'ci job')
     runs-on: ubuntu-latest
     outputs:
       idx: ${{ steps.p.outputs.idx }}
@@ -68,7 +70,7 @@ jobs:
           retention-days: 1
   summary:
     needs: [plan, run]
-    if: always()
+    if: always() && needs.plan.result == 'success'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
