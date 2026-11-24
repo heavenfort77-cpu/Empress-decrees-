@@ -1,0 +1,4 @@
+FAIL 42 bot sweep 9 runs: 0 broken invariants, every run ends, never-dodge always loses, 0.3 s and 0.15 s reaction each win at least once :: 99/012:lost 7s hp0 demon905 | 99/120:lost 8s hp0 demon915 | 99/210:lost 8s hp0 demon915 | 0.3/012:lost 16s hp0 demon745 | 0.3/120:lost 19s hp0 demon845 | 0.3/210:lost 50s hp0 demon245 | 0.15/012:lost 24s hp0 demon570 | 0.15/120:won 68s hp65 demon0 | 0.15/210:won 64s hp100 demon0
+FAIL 1202 big room revealed as you walk: smooth follow (no camera step over 0.5 m), player above the floor, framing leans ahead (> 0.5 m), lens fixed; Rumble camK 1 :: {"steps":240,"maxStep":0.09999614699523818,"minPx":135.0330518773066,"off":0,"ahead":[-1.39,-1.76],"lens":0,"room":"fore","floor":120,"rumbleK":1}
+FAIL 1203 room change pans (hall -> court through the door): no camera step over 0.5 m :: {"steps":150,"maxStep":0.7325477204529633,"rooms":["hall","court"]}
+RUNTIME 248 of 251 pass

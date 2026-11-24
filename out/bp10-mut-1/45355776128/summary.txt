@@ -1,0 +1,18 @@
+jobs 17; caught by named check 17 of 17
+{"i": 0, "fails": ["42", "1200", "1201", "1202", "1204"], "tot": ["RUNTIME 246 of 251 pass"], "s": 341, "name": "pitch-tilted", "want": "1200", "applied": true, "caught_named": true}
+{"i": 1, "fails": ["42", "405b", "1200", "1202"], "tot": ["RUNTIME 247 of 251 pass"], "s": 178, "name": "floor-halved", "want": "1200", "applied": true, "caught_named": true}
+{"i": 2, "fails": ["42", "405b", "1200", "1201", "1202", "runner"], "tot": ["RUNTIME 236 of 242 pass"], "s": 137, "name": "fit-skips-view", "want": "1201", "applied": true, "caught_named": true}
+{"i": 3, "fails": ["42", "1202", "1203"], "tot": ["RUNTIME 248 of 251 pass"], "s": 261, "name": "no-move-lead", "want": "1202", "applied": true, "caught_named": true}
+{"i": 4, "fails": ["42", "1202", "1203"], "tot": ["RUNTIME 248 of 251 pass"], "s": 181, "name": "pan-cuts", "want": "1203", "applied": true, "caught_named": true}
+{"i": 5, "fails": ["42", "1204"], "tot": ["RUNTIME 249 of 251 pass"], "s": 247, "name": "guard-ignored", "want": "1204", "applied": true, "caught_named": true}
+{"i": 6, "fails": ["42", "1204"], "tot": ["RUNTIME 249 of 251 pass"], "s": 187, "name": "giant-ignored", "want": "1204", "applied": true, "caught_named": true}
+{"i": 7, "fails": ["42", "1204"], "tot": ["RUNTIME 249 of 251 pass"], "s": 326, "name": "lurk-counted", "want": "1204", "applied": true, "caught_named": true}
+{"i": 8, "fails": ["42", "1204"], "tot": ["RUNTIME 249 of 251 pass"], "s": 342, "name": "no-hold", "want": "1204", "applied": true, "caught_named": true}
+{"i": 9, "fails": ["42", "405", "1204"], "tot": ["RUNTIME 248 of 251 pass"], "s": 238, "name": "reach-basic-only", "want": "1204", "applied": true, "caught_named": true}
+{"i": 10, "fails": ["42", "405", "1205"], "tot": ["RUNTIME 248 of 251 pass"], "s": 330, "name": "z-wide-ignored", "want": "1205", "applied": true, "caught_named": true}
+{"i": 11, "fails": ["42", "1206"], "tot": ["RUNTIME 249 of 251 pass"], "s": 335, "name": "mini-every-frame", "want": "1206", "applied": true, "caught_named": true}
+{"i": 12, "fails": ["42", "1206"], "tot": ["RUNTIME 249 of 251 pass"], "s": 238, "name": "mini-off-centre", "want": "1206", "applied": true, "caught_named": true}
+{"i": 13, "fails": ["42", "1206"], "tot": ["RUNTIME 249 of 251 pass"], "s": 184, "name": "mini-no-ding", "want": "1206", "applied": true, "caught_named": true}
+{"i": 14, "fails": ["42", "1206"], "tot": ["RUNTIME 249 of 251 pass"], "s": 329, "name": "mini-giant-sig", "want": "1206", "applied": true, "caught_named": true}
+{"i": 15, "fails": ["42", "1206"], "tot": ["RUNTIME 249 of 251 pass"], "s": 334, "name": "mini-not-zoomed", "want": "1206", "applied": true, "caught_named": true}
+{"i": 16, "fails": ["42", "405", "1208"], "tot": ["RUNTIME 248 of 251 pass"], "s": 334, "name": "snap-keeps-b", "want": "1208", "applied": true, "caught_named": true}
