@@ -1,0 +1,355 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><title>Map-scale proof (box only)</title>
+<style>body{margin:0;background:#1a1420;overflow:hidden}</style></head><body>
+<script type="importmap">{"imports":{"three":"/lib/three.module.min.js"}}</script>
+<script type="module">
+// Map-scale proof (docs/BURNING-PALACE.md panel note 17; owner GO 25 Nov 02:2x "box-only perf proof"). A probe page on branch ci-perf only:
+// the shipped game is not changed. Box-only real-scale palace platform (about 1270 x 426 m, the 阿房宫 front hall platform) on the game's
+// renderer settings (tier, pixel ratio, shadows, fog, 2 real lights, standard materials), rooms built once and streamed in and out by
+// attach/detach (never rebuilt), far rooms as one low-detail block each, the heaviest palace fight's unit counts (37 guards/rebels, 3 giants,
+// 8 rivals, the player bot) moving, spawning from pools, fighting and dying, with the game's collision rule (5 body points: floor, wall,
+// solid). ?tier=medium|low, ?coll=grid (bucketed, default) | scan (linear scans over every floor and solid, as index.html does today).
+import * as THREE from 'three';
+const Q = new URLSearchParams(location.search);
+const CONFIG = {
+  // Platform footprint, x and z, metres (阿房宫 rammed-earth platform about 1270 x 426 m, excavation reports 2002-04 and 2025).
+  PLAT: [1270, 426],
+  // Gap between room blocks where corridors and bridges run, metres.
+  GAP: 20,
+  // Room block sizes to pick from, metres (courts 60-120, halls 40-60, panel note 17).
+  SIZES: [40, 50, 60, 80, 100, 120],
+  // Corridor and bridge width, metres.
+  CORR_W: 10,
+  // Door gap in a room wall, metres.
+  DOOR_W: 8,
+  // Wall heights, metres: court, hall, garden.
+  WALL_H: [4, 8, 2.5],
+  // Hall pillar spacing, metres.
+  PILLAR_STEP: 6,
+  // Layout seed.
+  SEED: 20261125,
+  // Tiers as in index.html CONFIG.TIER (medium default; no high tier).
+  TIER: { medium: { pr: 1.25, shadows: true, shadowMap: 2048, aa: true }, low: { pr: 1.0, shadows: false, shadowMap: 512, aa: true } },
+  // Rooms whose rectangle is within this distance of the camera target are drawn in full detail, metres.
+  NEAR_R: 60,
+  // Rooms within this distance are drawn as one low-detail block (beyond it: detached), metres; matches the far plane.
+  FAR_R: 170,
+  // Hysteresis on both radii so a room on the edge does not attach and detach every check, metres.
+  HYST: 8,
+  // Streaming check interval, seconds (not per frame).
+  STREAM_S: 0.2,
+  // Camera: field of view, pitch, wide (explore) and close (fight) distance, metres; far plane and fog, metres.
+  CAM_FOV: 50, CAM_PITCH_DEG: 40, CAM_WIDE: 42, CAM_CLOSE: 14, CAM_FAR: 175, FOG_NEAR: 95, FOG_FAR: 170,
+  // Camera distance spring time constant, seconds.
+  CAM_SPRING_S: 0.4,
+  // Shadow camera half extents, metres (index.html: 58 x 48), and the target move that re-renders the shadow map, metres.
+  SHADOW_HALF: [58, 48], SHADOW_MOVE: 20,
+  // Fixed logic step and the frame delta clamp, seconds (index.html STEP and MAX_DT).
+  STEP: 1 / 60, MAX_DT: 0.05,
+  // Player bot walking speed along the route, m/s (sprint/chariot pacing option of panel note 17 point 4).
+  BOT_SPEED: 10,
+  // Units alive around the player (palace_heavy: 37 guards/rebels), refill threshold, pools.
+  UNITS: 37, REFILL_BELOW: 24, POOL_GR: 48,
+  // Giants awake near the player, rivals in the match (3 of them stay with the player).
+  GIANTS: 3, RIVALS: 8, RIVALS_NEAR: 3,
+  // Units further than this from the player go back to the pool (left behind), metres.
+  DESPAWN_R: 90,
+  // Target search radius and re-scan interval, metres and seconds.
+  SEEK_R: 30, SEEK_S: 0.25,
+  // Body radius, step-up height, body height for the collision rule, metres (index.html PLAYER_RADIUS, STEP_UP, BODY_HEIGHT style).
+  R: 0.45, STEP_UP: 0.5, BODY: 1.8,
+  // Collision grid cell, metres (coll=grid).
+  CELL: 16,
+  // Projectile and spark pools, projectile speed m/s, life s.
+  PROJ_POOL: 192, SPARK_POOL: 320, PROJ_SPEED: 26, PROJ_LIFE: 0.9,
+  // Unit kinds: speed m/s, hp, damage, cooldown s, range m (range > 3 = shoots), body size x y z m, colour.
+  KIND: {
+    guard: { spd: 4.5, hp: 60, dmg: 12, cd: 0.9, rng: 1.6, size: [0.7, 1.8, 0.5], col: 0x7a2a22 },
+    archer: { spd: 4.5, hp: 45, dmg: 9, cd: 1.2, rng: 14, size: [0.7, 1.8, 0.5], col: 0x5a3a2a },
+    rebel: { spd: 5, hp: 50, dmg: 11, cd: 0.8, rng: 1.6, size: [0.7, 1.7, 0.5], col: 0x3c4a2a },
+    rival: { spd: 6, hp: 100, dmg: 14, cd: 0.6, rng: 10, size: [0.8, 1.9, 0.6], col: 0x2a5a8a },
+    giant: { spd: 2.5, hp: 400, dmg: 25, cd: 2.5, rng: 3, size: [2.0, 5.0, 1.4], col: 0x6a6a5a },
+    bot: { spd: 10, hp: 1e9, dmg: 20, cd: 0.45, rng: 9, size: [0.8, 1.9, 0.6], col: 0xe0c070 },
+  },
+  // Colours: sky/fog, platform, lake, floor, wall, pillar, bronze, stone, green, water, far block tint.
+  COL: { sky: 0x1a1420, plat: 0x6b5a44, lake: 0x0a0a10, floor: 0x8a5a3a, wall: 0xb8a890, pillar: 0x201010, bronze: 0x8a6a30, stone: 0x777068,
+    green: 0x2f4a2a, water: 0x223a4a, blob: 0x0c0a0a, proj: 0xffd080, spark: 0xff9040 },
+};
+const TIER = CONFIG.TIER[Q.get('tier')] ? Q.get('tier') : 'medium', T = CONFIG.TIER[TIER], SCAN = Q.get('coll') === 'scan';
+let seed = CONFIG.SEED; const rnd = () => { seed = (seed + 0x6D2B79F5) | 0; let t = Math.imul(seed ^ (seed >>> 15), 1 | seed); t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296; };
+
+// ---------- renderer, scene, 2 real lights ----------
+const renderer = new THREE.WebGLRenderer({ antialias: T.aa, powerPreference: 'high-performance' });
+renderer.setPixelRatio(Math.min(devicePixelRatio || 1, T.pr)); renderer.setSize(innerWidth, innerHeight);
+renderer.shadowMap.enabled = T.shadows; renderer.shadowMap.type = THREE.PCFShadowMap; renderer.shadowMap.autoUpdate = false;
+document.body.appendChild(renderer.domElement);
+const scene = new THREE.Scene(); scene.background = new THREE.Color(CONFIG.COL.sky); scene.fog = new THREE.Fog(CONFIG.COL.sky, CONFIG.FOG_NEAR, CONFIG.FOG_FAR);
+scene.matrixAutoUpdate = false;
+const camera = new THREE.PerspectiveCamera(CONFIG.CAM_FOV, innerWidth / innerHeight, 0.5, CONFIG.CAM_FAR);
+const hemi = new THREE.HemisphereLight(0xd8c8b0, 0x302018, 1.1), sun = new THREE.DirectionalLight(0xffe0b0, 2.2);
+sun.castShadow = T.shadows; sun.shadow.mapSize.set(T.shadowMap, T.shadowMap);
+const sc = sun.shadow.camera; sc.left = -CONFIG.SHADOW_HALF[0]; sc.right = CONFIG.SHADOW_HALF[0]; sc.top = CONFIG.SHADOW_HALF[1]; sc.bottom = -CONFIG.SHADOW_HALF[1]; sc.near = 10; sc.far = 150;
+scene.add(hemi, sun, sun.target);
+const C = CONFIG.COL, std = (c, x) => new THREE.MeshStandardMaterial(Object.assign({ color: c, roughness: 0.9, metalness: 0 }, x));
+const MAT = { floor: std(C.floor), wall: std(C.wall), pillar: std(C.pillar, { roughness: 0.75 }), bronze: std(C.bronze, { metalness: 0.4, roughness: 0.6 }), stone: std(C.stone), green: std(C.green), water: std(C.water, { roughness: 0.3 }) };
+const FARMAT = std(0xffffff, { vertexColors: true });
+
+// ---------- box merge (build time only) ----------
+const BOX = new THREE.BoxGeometry(1, 1, 1), BP = BOX.attributes.position.array, BN = BOX.attributes.normal.array, BI = BOX.index.array;
+function merge(boxes, colour) {
+  const n = boxes.length, pos = new Float32Array(n * 72), nor = new Float32Array(n * 72), idx = new Uint32Array(n * 36), col = colour ? new Float32Array(n * 72) : null;
+  for (let b = 0; b < n; b++) { const [cx, cy, cz, sx, sy, sz, c] = boxes[b], o = b * 72;
+    for (let v = 0; v < 24; v++) { pos[o + v * 3] = cx + BP[v * 3] * sx; pos[o + v * 3 + 1] = cy + BP[v * 3 + 1] * sy; pos[o + v * 3 + 2] = cz + BP[v * 3 + 2] * sz;
+      nor[o + v * 3] = BN[v * 3]; nor[o + v * 3 + 1] = BN[v * 3 + 1]; nor[o + v * 3 + 2] = BN[v * 3 + 2];
+      if (col) { const k = new THREE.Color(c); col[o + v * 3] = k.r; col[o + v * 3 + 1] = k.g; col[o + v * 3 + 2] = k.b; } }
+    for (let i = 0; i < 36; i++) idx[b * 36 + i] = BI[i] + b * 24; }
+  const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.BufferAttribute(pos, 3)); g.setAttribute('normal', new THREE.BufferAttribute(nor, 3));
+  if (col) g.setAttribute('color', new THREE.BufferAttribute(col, 3)); g.setIndex(new THREE.BufferAttribute(idx, 1)); g.computeBoundingSphere(); return g;
+}
+
+// ---------- layout: grid-aligned room blocks with corridors/bridges in the gaps ----------
+function cuts(total) { const w = []; let s = 0; while (s < total) { const x = CONFIG.SIZES[Math.floor(rnd() * CONFIG.SIZES.length)]; w.push(x); s += x + CONFIG.GAP; }
+  const k = (total - CONFIG.GAP * (w.length - 1)) / w.reduce((a, b) => a + b, 0); const out = []; let p = -total / 2; for (const x of w) { out.push([p, p + x * k]); p += x * k + CONFIG.GAP; } return out; }
+const COLS = cuts(CONFIG.PLAT[0]), ROWS = cuts(CONFIG.PLAT[1]);
+const ROOMS = [], FLOORS = [], SOLIDS = [];
+const fl = (r, x0, x1, z0, z1, h, base) => { FLOORS.push({ x0, x1, z0, z1, h, base, r }); };
+const so = (x0, x1, z0, z1) => { SOLIDS.push({ x0, x1, z0, z1 }); };
+function addRoom(type, x0, x1, z0, z1, ci, rj) { const r = { i: ROOMS.length, type, x0, x1, z0, z1, cx: (x0 + x1) / 2, cz: (z0 + z1) / 2, ci, rj, near: null, far: null, isNear: false, isFar: false, parts: {}, farBoxes: [], doors: [] }; ROOMS.push(r); return r; }
+const part = (r, m, b) => { (r.parts[m] || (r.parts[m] = [])).push(b); };
+for (let j = 0; j < ROWS.length; j++) for (let i = 0; i < COLS.length; i++) {
+  const [x0, x1] = COLS[i], [z0, z1] = ROWS[j], w = x1 - x0, d = z1 - z0;
+  const type = w >= 90 && d >= 90 ? 'court' : (w >= 90 || d >= 90) ? (rnd() < 0.5 ? 'garden' : 'court') : 'hall';
+  addRoom(type, x0, x1, z0, z1, i, j);
+}
+const roomAt = (i, j) => (i >= 0 && j >= 0 && i < COLS.length && j < ROWS.length) ? ROOMS[j * COLS.length + i] : null;
+const NROOM = ROOMS.length;
+// Corridors (east-west) and bridges (north-south) in the gaps, each joining two neighbouring rooms through a door at the wall centre.
+for (let j = 0; j < ROWS.length; j++) for (let i = 0; i < COLS.length - 1; i++) { const a = roomAt(i, j), b = roomAt(i + 1, j), zc = a.cz, hw = CONFIG.CORR_W / 2;
+  const c = addRoom('corridor', a.x1, b.x0, zc - hw, zc + hw, -1, -1); a.doors.push('e'); b.doors.push('w'); c.link = [a, b]; }
+for (let j = 0; j < ROWS.length - 1; j++) for (let i = 0; i < COLS.length; i++) { const a = roomAt(i, j), b = roomAt(i, j + 1), xc = a.cx, hw = CONFIG.CORR_W / 2;
+  const c = addRoom('bridge', xc - hw, xc + hw, a.z1, b.z0, -1, -1); a.doors.push('s'); b.doors.push('n'); c.link = [a, b]; }
+// Room contents: merged per material per room (near), one coloured low-detail block (far). Floors and solids for the collision rule.
+function wallRun(r, m, ax0, ax1, fixed, alongX, h, door) { const t = 1, mid = (ax0 + ax1) / 2, segs = door ? [[ax0, mid - CONFIG.DOOR_W / 2], [mid + CONFIG.DOOR_W / 2, ax1]] : [[ax0, ax1]];
+  for (const [a, b] of segs) { if (b - a < 0.5) continue; if (alongX) { part(r, m, [(a + b) / 2, h / 2, fixed, b - a, h, t]); fl(r, a, b, fixed - t / 2, fixed + t / 2, h, 0); }
+    else { part(r, m, [fixed, h / 2, (a + b) / 2, t, h, b - a]); fl(r, fixed - t / 2, fixed + t / 2, a, b, h, 0); } } }
+for (const r of ROOMS) {
+  const w = r.x1 - r.x0, d = r.z1 - r.z0;
+  fl(r, r.x0, r.x1, r.z0, r.z1, 0, -1);
+  if (r.type === 'corridor' || r.type === 'bridge') {
+    const along = r.type === 'corridor';
+    part(r, 'floor', [r.cx, -0.15, r.cz, w, 0.3, d]);
+    if (along) { wallRun(r, 'bronze', r.x0, r.x1, r.z0 + 0.3, true, 1.1, false); wallRun(r, 'bronze', r.x0, r.x1, r.z1 - 0.3, true, 1.1, false); }
+    else { wallRun(r, 'bronze', r.z0, r.z1, r.x0 + 0.3, false, 1.1, false); wallRun(r, 'bronze', r.z0, r.z1, r.x1 - 0.3, false, 1.1, false); }
+    const L = along ? w : d; for (let s = 3; s < L - 2; s += CONFIG.PILLAR_STEP) for (const side of [-1, 1]) { const px = along ? r.x0 + s : r.cx + side * (w / 2 - 0.8), pz = along ? r.cz + side * (d / 2 - 0.8) : r.z0 + s; part(r, 'pillar', [px, 2, pz, 0.6, 4, 0.6]); so(px - 0.3, px + 0.3, pz - 0.3, pz + 0.3); }
+    part(r, 'pillar', [r.cx, 4.2, r.cz, along ? w : 2, 0.4, along ? 2 : d]);
+    r.farBoxes.push([r.cx, -0.15, r.cz, w, 0.3, d, C.floor], [r.cx, 4.2, r.cz, along ? w : 2, 0.4, along ? 2 : d, C.pillar]);
+    continue;
+  }
+  const h = CONFIG.WALL_H[r.type === 'court' ? 0 : r.type === 'hall' ? 1 : 2], has = (s) => r.doors.indexOf(s) >= 0;
+  part(r, r.type === 'garden' ? 'green' : 'floor', [r.cx, -0.25, r.cz, w, 0.5, d]);
+  wallRun(r, 'wall', r.x0, r.x1, r.z0 + 0.5, true, h, has('n')); wallRun(r, 'wall', r.x0, r.x1, r.z1 - 0.5, true, h, has('s'));
+  wallRun(r, 'wall', r.z0, r.z1, r.x0 + 0.5, false, h, has('w')); wallRun(r, 'wall', r.z0, r.z1, r.x1 - 0.5, false, h, has('e'));
+  r.farBoxes.push([r.cx, -0.25, r.cz, w, 0.5, d, r.type === 'garden' ? C.green : C.floor], [r.cx, h / 2, r.z0 + 0.5, w, h, 1, C.wall], [r.cx, h / 2, r.z1 - 0.5, w, h, 1, C.wall], [r.x0 + 0.5, h / 2, r.cz, 1, h, d, C.wall], [r.x1 - 0.5, h / 2, r.cz, 1, h, d, C.wall]);
+  if (r.type === 'hall') {
+    // Pillar grid (black lacquer on stone bases), a dais with a throne, bronze lamps on the aisle; the aisle along x stays clear for the doors.
+    for (let x = r.x0 + 4; x < r.x1 - 3; x += CONFIG.PILLAR_STEP) for (let z = r.z0 + 4; z < r.z1 - 3; z += CONFIG.PILLAR_STEP) { if (Math.abs(z - r.cz) < 5 || Math.abs(x - r.cx) < 5) continue;
+      part(r, 'pillar', [x, h / 2, z, 0.9, h, 0.9]); part(r, 'stone', [x, 0.2, z, 1.4, 0.4, 1.4]); so(x - 0.7, x + 0.7, z - 0.7, z + 0.7); }
+    part(r, 'stone', [r.x0 + 7, 0.4, r.z0 + 6, 10, 0.8, 5]); part(r, 'bronze', [r.x0 + 7, 1.6, r.z0 + 6, 2.4, 1.6, 1.6]); so(r.x0 + 2, r.x0 + 12, r.z0 + 3.5, r.z0 + 8.5);
+    for (let k = -3; k <= 3; k++) if (k) { part(r, 'bronze', [r.cx + k * 6, 0.9, r.cz + 3.5, 0.5, 1.8, 0.5]); so(r.cx + k * 6 - 0.3, r.cx + k * 6 + 0.3, r.cz + 3.2, r.cz + 3.8); }
+    r.farBoxes.push([r.cx, h * 0.9, r.cz, w - 6, 1, d - 6, C.pillar]);
+  } else if (r.type === 'court') {
+    // Lamps, vats, guardian beasts and 华表 along the edges; paving bands.
+    for (let k = 0; k < 24; k++) { const e = k % 4, f = (Math.floor(k / 4) + 0.5) / 6, x = e < 2 ? r.x0 + 6 + f * (w - 12) : (e === 2 ? r.x0 + 4 : r.x1 - 4), z = e < 2 ? (e === 0 ? r.z0 + 4 : r.z1 - 4) : r.z0 + 6 + f * (d - 12);
+      const big = k % 3 === 0; part(r, big ? 'stone' : 'bronze', [x, big ? 1.5 : 0.8, z, big ? 1.6 : 1.2, big ? 3 : 1.6, big ? 1.6 : 1.2]); so(x - 0.8, x + 0.8, z - 0.8, z + 0.8); }
+    for (let k = 0; k < 6; k++) part(r, 'stone', [r.cx, 0.02, r.z0 + (k + 0.5) * d / 6, w - 4, 0.04, 1.2]);
+  } else {
+    // Garden: trees (trunk + canopy), ponds, rocks.
+    for (let k = 0; k < 36; k++) { const x = r.x0 + 5 + rnd() * (w - 10), z = r.z0 + 5 + rnd() * (d - 10); if (Math.abs(z - r.cz) < 5 || Math.abs(x - r.cx) < 5) continue;
+      part(r, 'pillar', [x, 1.5, z, 0.5, 3, 0.5]); part(r, 'green', [x, 4, z, 3.5, 2.5, 3.5]); so(x - 0.3, x + 0.3, z - 0.3, z + 0.3); }
+    for (let k = 0; k < 2; k++) { const x = r.cx + (k ? 1 : -1) * w / 4, z = r.cz + (k ? -1 : 1) * d / 5; part(r, 'water', [x, 0.02, z, w / 5, 0.04, d / 6]); }
+  }
+}
+// Build once: one group per room (detached until near), one far block per room. Static matrices frozen.
+let maxNearCalls = 0;
+for (const r of ROOMS) {
+  const g = new THREE.Group(); g.matrixAutoUpdate = false;
+  for (const m in r.parts) { const mesh = new THREE.Mesh(merge(r.parts[m], false), MAT[m]); mesh.matrixAutoUpdate = false; mesh.castShadow = m !== 'floor' && m !== 'green' && m !== 'water'; mesh.receiveShadow = true; g.add(mesh); }
+  g.updateMatrixWorld(true); r.near = g; r.parts = null;
+  const f = new THREE.Mesh(merge(r.farBoxes, true), FARMAT); f.matrixAutoUpdate = false; f.updateMatrixWorld(true); r.far = f; r.farBoxes = null;
+}
+const PLATFORM = new THREE.Mesh(merge([[0, -3, 0, CONFIG.PLAT[0] + 20, 5.4, CONFIG.PLAT[1] + 20, C.plat], [0, -8, 0, 4000, 1, 4000, C.lake]], true), FARMAT);
+PLATFORM.matrixAutoUpdate = false; PLATFORM.updateMatrixWorld(true); scene.add(PLATFORM);
+
+// ---------- collision: the game's rule (floor under, no wall, no solid, at the centre and 4 body points) ----------
+const NCX = Math.ceil((CONFIG.PLAT[0] + 40) / CONFIG.CELL), NCZ = Math.ceil((CONFIG.PLAT[1] + 40) / CONFIG.CELL), CF = [], CS = [];
+for (let k = 0; k < NCX * NCZ; k++) { CF.push([]); CS.push([]); }
+const cellOf = (x, z) => { const cx = Math.floor((x + CONFIG.PLAT[0] / 2 + 20) / CONFIG.CELL), cz = Math.floor((z + CONFIG.PLAT[1] / 2 + 20) / CONFIG.CELL); return cx < 0 || cz < 0 || cx >= NCX || cz >= NCZ ? -1 : cz * NCX + cx; };
+function bucket(list, arr, pad) { for (const b of list) { const a0 = Math.floor((b.x0 - pad + CONFIG.PLAT[0] / 2 + 20) / CONFIG.CELL), a1 = Math.floor((b.x1 + pad + CONFIG.PLAT[0] / 2 + 20) / CONFIG.CELL), c0 = Math.floor((b.z0 - pad + CONFIG.PLAT[1] / 2 + 20) / CONFIG.CELL), c1 = Math.floor((b.z1 + pad + CONFIG.PLAT[1] / 2 + 20) / CONFIG.CELL);
+  for (let cz = Math.max(0, c0); cz <= Math.min(NCZ - 1, c1); cz++) for (let cx = Math.max(0, a0); cx <= Math.min(NCX - 1, a1); cx++) arr[cz * NCX + cx].push(b); } }
+bucket(FLOORS, CF, 0); bucket(SOLIDS, CS, CONFIG.R);
+const R = CONFIG.R, STEP_UP = CONFIG.STEP_UP, BODY = CONFIG.BODY;
+let collChecks = 0;
+// PERFRAME-BEGIN
+function floorOk(x, z, y) {
+  const L = SCAN ? FLOORS : CF[cellOf(x, z)]; if (!L) return false; let best = false;
+  for (let i = 0; i < L.length; i++) { const f = L[i]; collChecks++; if (x < f.x0 || x > f.x1 || z < f.z0 || z > f.z1) continue; if (f.h <= y + STEP_UP) best = true; }
+  return best;
+}
+function wallAt(x, z, y) {
+  const L = SCAN ? FLOORS : CF[cellOf(x, z)]; if (!L) return false;
+  for (let i = 0; i < L.length; i++) { const f = L[i]; collChecks++; if (x < f.x0 || x > f.x1 || z < f.z0 || z > f.z1) continue; if (f.h > y + STEP_UP && f.base < y + BODY) return true; }
+  return false;
+}
+function hitSolid(x, z) {
+  const L = SCAN ? SOLIDS : CS[cellOf(x, z)]; if (!L) return false;
+  for (let i = 0; i < L.length; i++) { const b = L[i]; collChecks++; if (x > b.x0 - R && x < b.x1 + R && z > b.z0 - R && z < b.z1 + R) return true; }
+  return false;
+}
+function canStand(x, z) {
+  if (!floorOk(x, z, 0) || wallAt(x, z, 0) || hitSolid(x, z)) return false;
+  if (!floorOk(x + R, z, 0) || wallAt(x + R, z, 0)) return false;
+  if (!floorOk(x - R, z, 0) || wallAt(x - R, z, 0)) return false;
+  if (!floorOk(x, z + R, 0) || wallAt(x, z + R, 0)) return false;
+  if (!floorOk(x, z - R, 0) || wallAt(x, z - R, 0)) return false;
+  return true;
+}
+// PERFRAME-END
+
+// ---------- units, projectiles, sparks: fixed pools, drawn as instanced boxes ----------
+const KINDS = ['guard', 'archer', 'rebel', 'rival', 'giant', 'bot'], U = [], INST = {};
+const unit = (kind, team) => { const K = CONFIG.KIND[kind]; const u = { kind, K, team, alive: false, x: 0, z: 0, hp: 0, cd: 0, tgt: null, seekT: 0, near: true, wx: 0, wz: 0 }; U.push(u); return u; };
+for (let k = 0; k < CONFIG.POOL_GR; k++) unit(k % 4 === 3 ? 'archer' : 'guard', 0);
+for (let k = 0; k < CONFIG.POOL_GR; k++) unit('rebel', 1);
+for (let k = 0; k < CONFIG.RIVALS; k++) unit('rival', 2 + k);
+for (let k = 0; k < CONFIG.GIANTS; k++) unit('giant', 20);
+const BOT = unit('bot', 99);
+for (const k of KINDS) { const K = CONFIG.KIND[k], n = U.filter((u) => u.kind === k).length, m = new THREE.InstancedMesh(new THREE.BoxGeometry(K.size[0], K.size[1], K.size[2]).translate(0, K.size[1] / 2, 0), std(K.col, { roughness: 0.7 }), n);
+  m.boundingSphere = new THREE.Sphere(new THREE.Vector3(), CONFIG.FAR_R); m.matrixAutoUpdate = false; INST[k] = m; scene.add(m); }
+const PROJ = [], SPARK = [];
+for (let k = 0; k < CONFIG.PROJ_POOL; k++) PROJ.push({ on: false, x: 0, z: 0, vx: 0, vz: 0, life: 0, team: 0, dmg: 0 });
+for (let k = 0; k < CONFIG.SPARK_POOL; k++) SPARK.push({ on: false, x: 0, y: 0, z: 0, vx: 0, vy: 0, vz: 0, life: 0 });
+const mkInst = (geo, col, n) => { const m = new THREE.InstancedMesh(geo, std(col, { emissive: col, emissiveIntensity: 0.8 }), n); m.boundingSphere = new THREE.Sphere(new THREE.Vector3(), CONFIG.FAR_R); m.matrixAutoUpdate = false; scene.add(m); return m; };
+const PM = mkInst(new THREE.BoxGeometry(0.25, 0.25, 0.7), C.proj, CONFIG.PROJ_POOL), SM = mkInst(new THREE.BoxGeometry(0.18, 0.18, 0.18), C.spark, CONFIG.SPARK_POOL);
+const BLOB = new THREE.InstancedMesh(new THREE.BoxGeometry(1, 0.03, 1), std(C.blob, { roughness: 1 }), U.length); BLOB.boundingSphere = new THREE.Sphere(new THREE.Vector3(), CONFIG.FAR_R); BLOB.matrixAutoUpdate = false; scene.add(BLOB);
+const ST = { spawns: 0, deaths: 0, despawn: 0, shots: 0, attach: 0, detach: 0, visited: 0, nearN: 0, farN: 0, stepMs: 0, stepMax: 0, steps: 0, checks: 0, shadowRe: 0, room: -1 };
+let alive = { gr: 0 };
+
+// ---------- player route: serpentine through every row (room centre, door, corridor/bridge, door, next room) ----------
+const ROUTE = [];
+for (let j = 0; j < ROWS.length; j++) { const dir = j % 2 ? -1 : 1;
+  for (let s = 0; s < COLS.length; s++) { const i = dir > 0 ? s : COLS.length - 1 - s, r = roomAt(i, j); ROUTE.push([r.cx, r.cz]); const n = roomAt(i + dir, j); if (n) ROUTE.push([dir > 0 ? r.x1 : r.x0, r.cz], [dir > 0 ? n.x0 : n.x1, n.cz]); }
+  const last = roomAt(dir > 0 ? COLS.length - 1 : 0, j), nx = roomAt(dir > 0 ? COLS.length - 1 : 0, j + 1); if (nx) ROUTE.push([last.cx, last.z1], [nx.cx, nx.z0]); }
+let wp = 0;
+
+// PERFRAME-BEGIN
+function roomOf(x, z) { const L = SCAN ? null : CF[cellOf(x, z)]; if (L) { for (let i = 0; i < L.length; i++) { const f = L[i]; if (f.base === -1 && x >= f.x0 && x <= f.x1 && z >= f.z0 && z <= f.z1) return f.r; } return null; }
+  for (let i = 0; i < ROOMS.length; i++) { const r = ROOMS[i]; if (x >= r.x0 && x <= r.x1 && z >= r.z0 && z <= r.z1) return r; } return null; }
+function spark(x, y, z, n) { for (let k = 0, m = 0; k < SPARK.length && m < n; k++) { const s = SPARK[k]; if (s.on) continue; s.on = true; s.x = x; s.y = y; s.z = z; s.vx = (rnd() - 0.5) * 6; s.vy = 2 + rnd() * 4; s.vz = (rnd() - 0.5) * 6; s.life = 0.35; m++; } }
+function shoot(u, t) { for (let k = 0; k < PROJ.length; k++) { const p = PROJ[k]; if (p.on) continue; const dx = t.x - u.x, dz = t.z - u.z, d = Math.hypot(dx, dz) || 1;
+  p.on = true; p.x = u.x; p.z = u.z; p.vx = dx / d * CONFIG.PROJ_SPEED; p.vz = dz / d * CONFIG.PROJ_SPEED; p.life = CONFIG.PROJ_LIFE; p.team = u.team; p.dmg = u.K.dmg; ST.shots++; return; } }
+function hurt(t, dmg) { t.hp -= dmg; if (t.hp <= 0 && t !== BOT) { if (t.kind === 'rival' || t.kind === 'giant') { t.hp = t.K.hp; return; } t.alive = false; ST.deaths++; spark(t.x, 1, t.z, 6); } }
+function place(u, x, z) { u.alive = true; u.x = x; u.z = z; u.hp = u.K.hp; u.cd = rnd() * u.K.cd; u.tgt = null; u.seekT = rnd() * CONFIG.SEEK_S; }
+function spawnAt(r) {
+  let n = 0; for (let k = 0; k < U.length; k++) if (U[k].alive && U[k].team <= 1) n++;
+  for (let k = 0; k < U.length && n < CONFIG.UNITS; k++) { const u = U[k]; if (u.alive || u.team > 1) continue;
+    for (let tr = 0; tr < 6; tr++) { const x = r.cx + (rnd() - 0.5) * Math.min(30, r.x1 - r.x0 - 4), z = r.cz + (rnd() - 0.5) * Math.min(24, r.z1 - r.z0 - 4); if (canStand(x, z)) { place(u, x, z); n++; ST.spawns++; break; } } }
+  alive.gr = n;
+}
+function seek(u) { let best = null, bd = CONFIG.SEEK_R * CONFIG.SEEK_R; for (let k = 0; k < U.length; k++) { const o = U[k]; if (!o.alive || o.team === u.team) continue; const dx = o.x - u.x, dz = o.z - u.z, d = dx * dx + dz * dz; if (d < bd) { bd = d; best = o; } } u.tgt = best; }
+function moveTo(u, tx, tz, spd, dt) { const dx = tx - u.x, dz = tz - u.z, d = Math.hypot(dx, dz); if (d < 0.05) return; const s = Math.min(d, spd * dt), nx = u.x + dx / d * s, nz = u.z + dz / d * s;
+  if (!u.near || canStand(nx, nz)) { u.x = nx; u.z = nz; } else if (canStand(nx, u.z)) u.x = nx; else if (canStand(u.x, nz)) u.z = nz; }
+function step(dt) {
+  const t0 = performance.now(); collChecks = 0;
+  // Player bot: walks the route, shoots the nearest foe in range while moving.
+  const tw = ROUTE[wp]; moveTo(BOT, tw[0], tw[1], CONFIG.BOT_SPEED, dt); if (Math.abs(BOT.x - tw[0]) + Math.abs(BOT.z - tw[1]) < 0.3) wp = (wp + 1) % ROUTE.length;
+  const rb = roomOf(BOT.x, BOT.z); if (rb && rb.i !== ST.room) { ST.room = rb.i; ST.visited++; if (rb.i < NROOM) spawnAt(rb);
+    for (let k = 0; k < U.length; k++) { const u = U[k]; if (u.kind === 'giant' || (u.kind === 'rival' && (u.team - 2) < CONFIG.RIVALS_NEAR)) { if (!u.alive || Math.hypot(u.x - BOT.x, u.z - BOT.z) > 40) place(u, BOT.x + (rnd() - 0.5) * 8, BOT.z + (rnd() - 0.5) * 8); } } }
+  let n = 0;
+  for (let k = 0; k < U.length; k++) { const u = U[k]; if (!u.alive) continue;
+    const dB = Math.abs(u.x - BOT.x) + Math.abs(u.z - BOT.z);
+    if (u.team <= 1) { if (dB > CONFIG.DESPAWN_R) { u.alive = false; ST.despawn++; continue; } n++; }
+    u.near = dB < CONFIG.NEAR_R;
+    u.cd -= dt; u.seekT -= dt; if (u.seekT <= 0) { u.seekT = CONFIG.SEEK_S; seek(u); }
+    const t = u.tgt;
+    if (u === BOT) { if (t && t.alive && u.cd <= 0) { const dd = Math.hypot(t.x - u.x, t.z - u.z); if (dd < u.K.rng) { u.cd = u.K.cd; shoot(u, t); } } continue; }
+    if (u.kind === 'rival' && (u.team - 2) >= CONFIG.RIVALS_NEAR && !u.near) { if (Math.abs(u.x - u.wx) + Math.abs(u.z - u.wz) < 1) { const r = ROOMS[Math.floor(rnd() * NROOM)]; u.wx = r.cx; u.wz = r.cz; } moveTo(u, u.wx, u.wz, u.K.spd, dt); continue; }
+    if (t && t.alive) { const dd = Math.hypot(t.x - u.x, t.z - u.z);
+      if (dd > u.K.rng * 0.9) moveTo(u, t.x, t.z, u.K.spd, dt);
+      else if (u.cd <= 0) { u.cd = u.K.cd; if (u.K.rng > 3) shoot(u, t); else if (u.kind === 'giant') { for (let q = 0; q < U.length; q++) { const o = U[q]; if (o.alive && o.team !== u.team && Math.abs(o.x - u.x) + Math.abs(o.z - u.z) < 4.5) hurt(o, u.K.dmg); } spark(u.x, 2, u.z, 10); } else { hurt(t, u.K.dmg); spark(t.x, 1.2, t.z, 2); } } }
+    else if (u.kind === 'giant' || u.kind === 'rival') moveTo(u, BOT.x + 3, BOT.z + 3, u.K.spd, dt);
+  }
+  alive.gr = n; if (n < CONFIG.REFILL_BELOW && rb && rb.i < NROOM) spawnAt(rb);
+  for (let k = 0; k < PROJ.length; k++) { const p = PROJ[k]; if (!p.on) continue; p.life -= dt; if (p.life <= 0) { p.on = false; continue; } p.x += p.vx * dt; p.z += p.vz * dt;
+    for (let q = 0; q < U.length; q++) { const o = U[q]; if (!o.alive || o.team === p.team) continue; const dx = o.x - p.x, dz = o.z - p.z; if (dx * dx + dz * dz < 0.6) { hurt(o, p.dmg); spark(p.x, 1.2, p.z, 3); p.on = false; break; } } }
+  for (let k = 0; k < SPARK.length; k++) { const s = SPARK[k]; if (!s.on) continue; s.life -= dt; if (s.life <= 0) { s.on = false; continue; } s.vy -= 20 * dt; s.x += s.vx * dt; s.y += s.vy * dt; s.z += s.vz * dt; }
+  const ms = performance.now() - t0; ST.stepMs += ms; ST.steps++; if (ms > ST.stepMax) ST.stepMax = ms; ST.checks += collChecks;
+}
+// Streaming: attach the near group or the far block, detach the rest; nothing is built or disposed here.
+function stream(tx, tz) {
+  let ch = false, nn = 0, nf = 0;
+  for (let i = 0; i < ROOMS.length; i++) { const r = ROOMS[i], dx = Math.max(r.x0 - tx, 0, tx - r.x1), dz = Math.max(r.z0 - tz, 0, tz - r.z1), d = Math.hypot(dx, dz);
+    const wantN = d < CONFIG.NEAR_R + (r.isNear ? CONFIG.HYST : 0), wantF = !wantN && d < CONFIG.FAR_R + (r.isFar ? CONFIG.HYST : 0);
+    if (wantN !== r.isNear) { r.isNear = wantN; if (wantN) { scene.add(r.near); ST.attach++; } else { scene.remove(r.near); ST.detach++; } ch = true; }
+    if (wantF !== r.isFar) { r.isFar = wantF; if (wantF) scene.add(r.far); else scene.remove(r.far); }
+    if (wantN) nn++; if (wantF) nf++; }
+  ST.nearN = nn; ST.farN = nf; return ch;
+}
+const _m = new THREE.Matrix4(), _p = new THREE.Vector3(), _q = new THREE.Quaternion(), _s = new THREE.Vector3(1, 1, 1), _bs = new THREE.Vector3(1, 1, 1);
+function drawUnits() {
+  for (let k = 0; k < KINDS.length; k++) { const m = INST[KINDS[k]]; m.count = 0; m.boundingSphere.center.set(BOT.x, 0, BOT.z); }
+  let b = 0;
+  for (let k = 0; k < U.length; k++) { const u = U[k]; if (!u.alive) continue; const m = INST[u.kind]; _p.set(u.x, 0, u.z); _m.compose(_p, _q, _s); m.setMatrixAt(m.count++, _m);
+    _bs.set(u.K.size[0] * 1.3, 1, u.K.size[2] * 1.6); _p.y = 0.02; _m.compose(_p, _q, _bs); BLOB.setMatrixAt(b++, _m); }
+  BLOB.count = b; BLOB.boundingSphere.center.set(BOT.x, 0, BOT.z); BLOB.instanceMatrix.needsUpdate = true;
+  for (let k = 0; k < KINDS.length; k++) INST[KINDS[k]].instanceMatrix.needsUpdate = true;
+  let n = 0; for (let k = 0; k < PROJ.length; k++) { const p = PROJ[k]; if (!p.on) continue; _p.set(p.x, 1.2, p.z); _m.compose(_p, _q, _s); PM.setMatrixAt(n++, _m); } PM.count = n; PM.instanceMatrix.needsUpdate = true; PM.boundingSphere.center.set(BOT.x, 0, BOT.z);
+  n = 0; for (let k = 0; k < SPARK.length; k++) { const s = SPARK[k]; if (!s.on) continue; _p.set(s.x, s.y, s.z); _m.compose(_p, _q, _s); SM.setMatrixAt(n++, _m); } SM.count = n; SM.instanceMatrix.needsUpdate = true; SM.boundingSphere.center.set(BOT.x, 0, BOT.z);
+}
+// PERFRAME-END
+
+// ---------- warm-up under a card: every room group and far block drawn once (buffers uploaded, programs compiled), then streamed ----------
+const ortho = new THREE.OrthographicCamera(-CONFIG.PLAT[0] / 2 - 20, CONFIG.PLAT[0] / 2 + 20, CONFIG.PLAT[1] / 2 + 20, -CONFIG.PLAT[1] / 2 - 20, 1, 400);
+ortho.position.set(0, 200, 0); ortho.lookAt(0, 0, 0); ortho.updateMatrixWorld();
+const warmRT = new THREE.WebGLRenderTarget(512, 256);
+for (const r of ROOMS) { scene.add(r.near); scene.add(r.far); }
+for (const k of KINDS) INST[k].count = 1; PM.count = 1; SM.count = 1; BLOB.count = 1;
+for (const k of KINDS) INST[k].boundingSphere.radius = 2000; PM.boundingSphere.radius = SM.boundingSphere.radius = BLOB.boundingSphere.radius = 2000;
+renderer.compile(scene, camera); renderer.setRenderTarget(warmRT); renderer.shadowMap.needsUpdate = true; renderer.render(scene, ortho); renderer.setRenderTarget(null);
+for (const k of KINDS) INST[k].boundingSphere.radius = CONFIG.FAR_R; PM.boundingSphere.radius = SM.boundingSphere.radius = BLOB.boundingSphere.radius = CONFIG.FAR_R;
+const warmCalls = renderer.info.render.calls;
+for (const r of ROOMS) { scene.remove(r.near); scene.remove(r.far); }
+warmRT.dispose();
+place(BOT, ROUTE[0][0], ROUTE[0][1]);
+for (let k = 0; k < U.length; k++) if (U[k].kind === 'rival') place(U[k], ROOMS[(k * 7) % NROOM].cx, ROOMS[(k * 7) % NROOM].cz);
+
+// ---------- loop ----------
+let last = 0, acc = 0, camD = CONFIG.CAM_WIDE, streamT = 0, shX = 1e9, shZ = 1e9, maxCalls = 0, maxTris = 0, ctxLost = false;
+const pitch = CONFIG.CAM_PITCH_DEG * Math.PI / 180, SP = Math.sin(pitch), CP = Math.cos(pitch);
+renderer.domElement.addEventListener('webglcontextlost', (e) => { e.preventDefault(); ctxLost = true; });
+renderer.domElement.addEventListener('webglcontextrestored', () => { ctxLost = false; renderer.shadowMap.needsUpdate = true; });
+let hidden = false; document.addEventListener('visibilitychange', () => { hidden = document.hidden; last = 0; });
+// PERFRAME-BEGIN
+function frame(now) {
+  requestAnimationFrame(frame);
+  try {
+    if (hidden || ctxLost) return;
+    const dt = Math.min(last ? (now - last) / 1000 : CONFIG.STEP, CONFIG.MAX_DT); last = now;
+    acc += dt; while (acc >= CONFIG.STEP) { step(CONFIG.STEP); acc -= CONFIG.STEP; }
+    const fight = BOT.tgt && BOT.tgt.alive && Math.abs(BOT.tgt.x - BOT.x) + Math.abs(BOT.tgt.z - BOT.z) < 12;
+    camD += ((fight ? CONFIG.CAM_CLOSE : CONFIG.CAM_WIDE) - camD) * Math.min(1, dt / CONFIG.CAM_SPRING_S);
+    camera.position.set(BOT.x, SP * camD, BOT.z + CP * camD); camera.lookAt(BOT.x, 0, BOT.z); camera.updateMatrixWorld();
+    streamT -= dt; let ch = false; if (streamT <= 0) { streamT = CONFIG.STREAM_S; ch = stream(BOT.x, BOT.z); }
+    if (T.shadows && (ch || Math.abs(BOT.x - shX) + Math.abs(BOT.z - shZ) > CONFIG.SHADOW_MOVE)) { shX = BOT.x; shZ = BOT.z; sun.position.set(BOT.x - 30, 60, BOT.z + 25); sun.target.position.set(BOT.x, 0, BOT.z); sun.updateMatrixWorld(); sun.target.updateMatrixWorld(); renderer.shadowMap.needsUpdate = true; ST.shadowRe++; }
+    drawUnits();
+    renderer.render(scene, camera); renderer.shadowMap.needsUpdate = false;
+    const ri = renderer.info.render; if (ri.calls > maxCalls) maxCalls = ri.calls; if (ri.triangles > maxTris) maxTris = ri.triangles;
+  } catch (err) { if (!window.__err) window.__err = String(err && err.stack || err); }
+}
+// PERFRAME-END
+// Test hooks (read-only): render() gives the most calls and triangles in one frame since the last call, plus memory counts; stats() the run.
+window.__game = {
+  render: () => { const o = { calls: maxCalls, tris: maxTris, programs: renderer.info.programs.length, geoms: renderer.info.memory.geometries, texs: renderer.info.memory.textures }; maxCalls = 0; maxTris = 0; return o; },
+  stats: () => Object.assign({ rooms: ROOMS.length, roomsBig: NROOM, floors: FLOORS.length, solids: SOLIDS.length, warmCalls, unitsGR: alive.gr, scan: SCAN, tier: TIER, platform: CONFIG.PLAT.join('x') }, ST),
+};
+stream(BOT.x, BOT.z); requestAnimationFrame(frame); window.__ready = true;
+</script></body></html>

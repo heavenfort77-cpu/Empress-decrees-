@@ -179,7 +179,15 @@ const SCENES = {
   palace_garden: null,
   // (h) first draw of each palace room (check 1207): geometry count and the worst frame in the 1.5 s after entering 5 rooms not drawn yet.
   palace_first: { q: 'lock&tier=medium&bots=0&mode=palace', custom: true },
+  // Map-scale proof (panel note 17, owner GO 25 Nov 02:2x): ci_probe/scale.html, box-only real-scale platform, streamed rooms, the heaviest
+  // fight's unit counts following a bot that walks the route at 10 m/s. Not the shipped game. coll=scan = today's linear-scan collision rule.
+  scale_med: { path: 'ci_probe/scale.html', q: 'tier=medium', setup: () => { window.__info = 'scale start ' + JSON.stringify(__game.stats()); }, driver: () => {
+    const s = __game.stats(); window.__info2 = 'rooms ' + s.rooms + ' floors ' + s.floors + ' solids ' + s.solids + ' visited ' + s.visited + ' attach ' + s.attach + ' detach ' + s.detach + ' near ' + s.nearN + ' far ' + s.farN
+      + ' units ' + s.unitsGR + ' spawns ' + s.spawns + ' deaths ' + s.deaths + ' despawn ' + s.despawn + ' shots ' + s.shots + ' step avg ' + (s.stepMs / s.steps).toFixed(3) + 'ms max ' + s.stepMax.toFixed(1) + 'ms checks/step ' + Math.round(s.checks / s.steps) + ' shadowRe ' + s.shadowRe + ' warmCalls ' + s.warmCalls + (window.__err ? ' ERR ' + window.__err.slice(0, 80) : '');
+  } },
 };
+SCENES.scale_med_scan = { ...SCENES.scale_med, q: 'tier=medium&coll=scan' };
+SCENES.scale_low = { ...SCENES.scale_med, q: 'tier=low' };
 SCENES.heavy_low = { ...SCENES.heavy, q: 'lock&tier=low&bots=8' };
 SCENES.palace_heavy_low = { ...SCENES.palace_heavy, q: 'lock&tier=low&bots=8&mode=palace' };
 SCENES.palace_garden = { ...SCENES.palace_heavy, pre: () => { window.__room = 'garden_se'; window.__stepN = 300; } };
