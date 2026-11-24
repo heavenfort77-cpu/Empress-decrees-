@@ -1,0 +1,119 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><title>17a guards A/B</title>
+<script type="importmap">{"imports":{"three":"/lib/three.module.min.js"}}</script></head>
+<body style="margin:0;background:#120d16">
+<script type="module">
+// Batch 17a probe (CI only, never in the game): 37 皇家 guard / 反贼 rebel units walking, the game's lens (FOV 50, 1.25 pixel ratio, one 2048 shadow
+// sun + hemisphere), source GLBs, plain colours per material (same in every arm). One difference per arm:
+//   arm=A0   every unit a SkeletonUtils clone with its own mixer, skinned LOD0 only.
+//   arm=Alod the same, but units farther than lod0 m from the camera show the art's static LOD1 (one InstancedMesh per type per material) and stop animating.
+//   arm=B0   every unit at LOD0 drawn by one InstancedMesh per type per material, its 'move' clip baked into a bone texture (per-instance phase).
+//   arm=caps no units: reports capabilities and the KTX2 format three.js picks here.
+import * as THREE from 'three';
+import { GLTFLoader } from '/lib/jsm/loaders/GLTFLoader.js';
+import { KTX2Loader } from '/lib/jsm/loaders/KTX2Loader.js';
+import * as SkeletonUtils from '/lib/jsm/utils/SkeletonUtils.js';
+const Q = new URLSearchParams(location.search), ARM = Q.get('arm') || 'A0', LOD0 = +(Q.get('lod0') || 20);
+const MIX = { zu: 10, nu: 6, dun: 4, che: 2, wz: 2, ls: 8, fs: 1, ss: 3, qs: 1 };
+const DIR = { zu: 'guard', nu: 'guard', dun: 'guard', che: 'guard', wz: 'guard', ls: 'rebels', fs: 'rebels', ss: 'rebels', qs: 'rebels' };
+const r = new THREE.WebGLRenderer({ antialias: false }); r.setPixelRatio(1.25); r.setSize(innerWidth, innerHeight); r.shadowMap.enabled = true; document.body.appendChild(r.domElement);
+const sc = new THREE.Scene(), cam = new THREE.PerspectiveCamera(50, innerWidth / innerHeight, 0.5, 90); cam.position.set(0, 12, 13.4); cam.lookAt(0, 0, -2);
+sc.fog = new THREE.Fog(0x2a2233, 40, 90);
+sc.add(new THREE.HemisphereLight(0xd9c9ff, 0x3a2a22, 0.9)); const sun = new THREE.DirectionalLight(0xffe2b8, 1.6); sun.position.set(10, 22, 8); sun.castShadow = true; sun.shadow.mapSize.set(2048, 2048);
+Object.assign(sun.shadow.camera, { left: -20, right: 20, top: 20, bottom: -20, near: 1, far: 60 }); sc.add(sun, sun.target);
+const fl = new THREE.Mesh(new THREE.PlaneGeometry(48, 30), new THREE.MeshStandardMaterial({ color: 0x5a2a22, roughness: 0.9 })); fl.rotation.x = -Math.PI / 2; fl.receiveShadow = true; sc.add(fl);
+const caps = (() => { const gl = r.getContext(), k = new KTX2Loader().setTranscoderPath('/lib/jsm/libs/basis/').detectSupport(r); return { parallel: !!gl.getExtension('KHR_parallel_shader_compile'), ktx2: k.workerConfig }; })();
+const COLS = {}; let ci = 0;
+const PAL = [0x9a7a48, 0x2a2a30, 0x6a5a44, 0x4a6a7a, 0x7a3a2a, 0x8a8a70, 0x3a4a3a];
+function matFor(name) { return COLS[name] || (COLS[name] = new THREE.MeshStandardMaterial({ color: PAL[ci++ % PAL.length], roughness: 0.7, metalness: 0.2 })); }
+const loader = new GLTFLoader(), GL = {};
+const t0 = performance.now();
+for (const t of Object.keys(MIX)) GL[t] = await loader.loadAsync(`/assets/models/${DIR[t]}/${t}.glb`);
+for (const t in GL) GL[t].scene.traverse((o) => { if (o.isMesh) o.material = matFor(o.material.name); });
+const loadMs = performance.now() - t0;
+const units = []; let k = 0;
+for (const t of Object.keys(MIX)) for (let i = 0; i < MIX[t]; i++, k++) units.push({ t, cx: (k % 8) * 3.2 - 11.2, cz: Math.floor(k / 8) * 3.4 - 11, ph: k * 0.37, mx: null, root: null, lod: 0 });
+const lodOf = (n) => n.includes('_lod2') ? 2 : n.includes('_lod1') ? 1 : 0;
+const keepWeapon = (n) => !n.startsWith('ls_w_') || n.startsWith('ls_w_ru');
+const uTime = { value: 0 };
+const M4 = new THREE.Matrix4(), QQ = new THREE.Quaternion(), V = new THREE.Vector3(), S1 = new THREE.Vector3(1, 1, 1), YA = new THREE.Vector3(0, 1, 0);
+let mixN = 0, build = 0;
+const inst = [];
+// Static LOD1 per type per material for arm Alod: one InstancedMesh each; count rebuilt per frame from the far units (no allocation).
+function lod1Instances() {
+  for (const t in GL) {
+    const meshes = []; GL[t].scene.traverse((o) => { if (o.isMesh && lodOf(o.name) === 1 && keepWeapon(o.name)) meshes.push(o); });
+    for (const m of meshes) { m.updateWorldMatrix(true, false); const g = m.geometry.clone().applyMatrix4(m.matrixWorld); const im = new THREE.InstancedMesh(g, m.material, MIX[t]); im.count = 0; im.castShadow = true; im.boundingSphere = new THREE.Sphere(new THREE.Vector3(0, 0, -2), 30); sc.add(im); inst.push({ t, im, lod: 1 }); }
+  }
+}
+if (ARM === 'A0' || ARM === 'Alod') {
+  for (const u of units) {
+    const root = SkeletonUtils.clone(GL[u.t].scene), drop = [];
+    root.traverse((o) => { if (o.isMesh && (lodOf(o.name) > 0 || !keepWeapon(o.name))) drop.push(o); if (o.isMesh) o.castShadow = true; });
+    for (const o of drop) o.parent.remove(o);
+    root.traverse((o) => { if (o.isSkinnedMesh) o.frustumCulled = true; });
+    const mx = new THREE.AnimationMixer(root), clip = GL[u.t].animations.find((c) => c.name === 'move');
+    mx.clipAction(clip).play(); mx.setTime(u.ph); u.mx = mx; u.root = root; sc.add(root);
+  }
+  if (ARM === 'Alod') lod1Instances();
+} else if (ARM === 'B0') {
+  const tb = performance.now();
+  for (const t in GL) {
+    const g = GL[t], sms = []; g.scene.traverse((o) => { if (o.isSkinnedMesh && lodOf(o.name) === 0 && keepWeapon(o.name)) sms.push(o); });
+    const clip = g.animations.find((c) => c.name === 'move'), mixer = new THREE.AnimationMixer(g.scene); mixer.clipAction(clip).play();
+    const F = Math.max(2, Math.round(clip.duration * 30));
+    for (const sm of sms) {
+      const nb = sm.skeleton.bones.length, data = new Float32Array(nb * 4 * F * 4);
+      for (let f = 0; f < F; f++) {
+        mixer.setTime(f / 30); g.scene.updateMatrixWorld(true); sm.skeleton.update();
+        for (let b = 0; b < nb; b++) {
+          M4.fromArray(sm.skeleton.boneMatrices, b * 16); M4.premultiply(sm.bindMatrixInverse).multiply(sm.bindMatrix).premultiply(sm.matrixWorld);
+          data.set(M4.elements, (f * nb * 4 + b * 4) * 4);
+        }
+      }
+      const tex = new THREE.DataTexture(data, nb * 4, F, THREE.RGBAFormat, THREE.FloatType); tex.needsUpdate = true;
+      const inject = (sh) => {
+        sh.uniforms.uBake = { value: tex }; sh.uniforms.uTime = uTime; sh.uniforms.uFrames = { value: F };
+        sh.vertexShader = sh.vertexShader.replace('#include <common>', `#include <common>
+attribute vec4 skinIndex; attribute vec4 skinWeight; attribute float aPhase; uniform highp sampler2D uBake; uniform float uTime; uniform float uFrames;
+mat4 bakeM(float b, int y) { int x = int(b) * 4; return mat4(texelFetch(uBake, ivec2(x, y), 0), texelFetch(uBake, ivec2(x + 1, y), 0), texelFetch(uBake, ivec2(x + 2, y), 0), texelFetch(uBake, ivec2(x + 3, y), 0)); }`)
+          .replace('#include <skinbase_vertex>', `int bfr = int(mod(floor((uTime + aPhase) * 30.0), uFrames));
+mat4 skinM = skinWeight.x * bakeM(skinIndex.x, bfr) + skinWeight.y * bakeM(skinIndex.y, bfr) + skinWeight.z * bakeM(skinIndex.z, bfr) + skinWeight.w * bakeM(skinIndex.w, bfr);`)
+          .replace('#include <skinnormal_vertex>', 'objectNormal = (skinM * vec4(objectNormal, 0.0)).xyz;')
+          .replace('#include <skinning_vertex>', 'transformed = (skinM * vec4(transformed, 1.0)).xyz;');
+      };
+      const m = sm.material.clone(); m.onBeforeCompile = inject; m.customProgramCacheKey = () => 'bake1';
+      const dm = new THREE.MeshDepthMaterial({ depthPacking: THREE.RGBADepthPacking }); dm.onBeforeCompile = inject; dm.customProgramCacheKey = () => 'bake1d';
+      const im = new THREE.InstancedMesh(sm.geometry, m, MIX[t]); im.customDepthMaterial = dm; im.castShadow = true; im.boundingSphere = new THREE.Sphere(new THREE.Vector3(0, 0, -2), 30);
+      const ph = new Float32Array(MIX[t]); let j = 0; for (const u of units) if (u.t === t) ph[j++] = u.ph;
+      sm.geometry.setAttribute('aPhase', new THREE.InstancedBufferAttribute(ph, 1)); sc.add(im); inst.push({ t, im, lod: 0 });
+    }
+    mixer.stopAllAction();
+  }
+  build = performance.now() - tb;
+}
+let nodes = 0; sc.traverse(() => { nodes++; });
+r.compile(sc, cam);
+window.__game = { render: () => ({ calls: r.info.render.calls, tris: r.info.render.triangles, programs: r.info.programs.length, geoms: r.info.memory.geometries, texs: r.info.memory.textures }) };
+let last = 0, sk = 0;
+// Per frame (no allocation): each unit walks a 1.5 m circle; arm A steps its mixer (Alod: only units within lod0 m); arm B moves instance matrices.
+function frame(t) {
+  requestAnimationFrame(frame);
+  const dt = last ? Math.min((t - last) / 1000, 0.05) : 0.016; last = t; const s = t / 1000; uTime.value = s; mixN = 0;
+  for (const it of inst) it.im.count = 0;
+  for (let i = 0; i < units.length; i++) {
+    const u = units[i], a = s * 0.6 + u.ph, x = u.cx + Math.cos(a) * 1.5, z = u.cz + Math.sin(a) * 1.5, yaw = -a;
+    QQ.setFromAxisAngle(YA, yaw); V.set(x, 0, z);
+    if (u.root) {
+      const far = ARM === 'Alod' && cam.position.distanceTo(V) > LOD0;
+      if (far) { if (u.root.parent) sc.remove(u.root); M4.compose(V, QQ, S1); for (const it of inst) if (it.t === u.t) { it.im.setMatrixAt(it.im.count++, M4); it.im.instanceMatrix.needsUpdate = true; } continue; }
+      if (!u.root.parent) sc.add(u.root);
+      u.root.position.copy(V); u.root.quaternion.copy(QQ); u.mx.update(dt); mixN++;
+    } else { M4.compose(V, QQ, S1); for (const it of inst) if (it.t === u.t) { it.im.setMatrixAt(it.im.count++, M4); it.im.instanceMatrix.needsUpdate = true; } }
+  }
+  r.render(sc, cam);
+  window.__info = `arm ${ARM} lod0 ${LOD0} units ${units.length} mixers/frame ${mixN} nodes ${nodes} load ${loadMs.toFixed(0)}ms bake ${build.toFixed(0)}ms caps ${JSON.stringify(caps)}`;
+}
+requestAnimationFrame(frame); window.__ready = true;
+</script>
+</body></html>

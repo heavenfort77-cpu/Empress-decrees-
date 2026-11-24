@@ -10,7 +10,7 @@ try { ({ chromium } = await import('playwright')); } catch { ({ chromium } = awa
 const SOFT = process.argv.includes('--soft');
 const SETTLE = Number(process.env.SETTLE_S || 6), TIMED = Number(process.env.TIMED_S || 20);
 const ROOT = new URL('..', import.meta.url).pathname;
-const TYPES = { '.html': 'text/html', '.js': 'text/javascript', '.mjs': 'text/javascript', '.png': 'image/png', '.json': 'application/json', '.ktx2': 'image/ktx2' };
+const TYPES = { '.html': 'text/html', '.js': 'text/javascript', '.mjs': 'text/javascript', '.png': 'image/png', '.json': 'application/json', '.ktx2': 'image/ktx2', '.wasm': 'application/wasm', '.glb': 'model/gltf-binary' };
 // Controls for the ladder: an empty page, and the same with a fixed full-screen dark div (no WebGL, no game).
 const EMPTY = (div) => `<!doctype html><html><body style="margin:0;background:#120d16">${div ? '<div style="position:fixed;inset:0;background:#120d16;z-index:8"></div>' : ''}<script>window.__game={render:()=>({calls:0,tris:0,programs:0,geoms:0,texs:0})};window.__ready=true;</script></body></html>`;
 // Control (item (g)): plain three.js r171 from lib/, 30 boxes on a floor, one directional light with a 2048 shadow map re-rendered every frame,
@@ -137,6 +137,11 @@ const SCENES = {
   // Ladder controls for the select screen: empty page, empty page plus a full-screen div, the select with the game canvas hidden.
   empty: { path: '__empty', q: '', setup: () => {} },
   webglmin: { path: '__webglmin', q: '', setup: () => {} },
+  // Batch 17a guard A/B (ci_probe/guards.html): 37 guard/rebel units; one difference per arm (see the page header).
+  g_A0: { path: 'ci_probe/guards.html', q: 'arm=A0', setup: () => {} },
+  g_Alod: { path: 'ci_probe/guards.html', q: 'arm=Alod&lod0=20', setup: () => {} },
+  g_B0: { path: 'ci_probe/guards.html', q: 'arm=B0', setup: () => {} },
+  g_caps: { path: 'ci_probe/guards.html', q: 'arm=caps', setup: () => {} },
   emptydiv: { path: '__empty_div', q: '', setup: () => {} },
   select_nocanvas: { q: 'lock&tier=medium', setup: () => { document.querySelector('canvas').style.display = 'none'; } },
   // (b) again on the low tier.

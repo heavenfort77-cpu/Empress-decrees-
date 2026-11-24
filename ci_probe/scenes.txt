@@ -1,1 +1,1 @@
-heavy_fix,heavy_base,cjk_fix,cjk_base,heavy_fix,cjk_fix,heavy_base,reference30
+webglmin,reference,g_A0,g_B0,g_Alod,g_caps,reference,g_A0,g_B0
