@@ -1,0 +1,9 @@
+[
+ {
+  "i": 0,
+  "fails": [],
+  "tot": [],
+  "s": 5,
+  "tail": "1080p {\"small\":{\"id\":\"corr_s\",\"w\":12,\"d\":14,\"area\":168,\"fit\":false,\"wd\":14.42,\"px\":134.8,\"close\":10.5,\"floor\":120},\"big\":{\"id\":\"fore\",\"w\":48,\"d\":30,\"area\":1440,\"fit\":false,\"wd\":14.42,\"px\":135,\"close\":10.5,\"floor\":120},\"fitN\":0,\"n\":28,\"closePx\":192.5,\"closeB\":1}\nphoneL {\"small\":{\"id\":\"corr_s\",\"w\":12,\"d\":14,\"area\":168,\"fit\":false,\"wd\":12.14,\"px\":163,\"close\":8.92,\"floor\":141.2},\"big\":{\"id\":\"fore\",\"w\":48,\"d\":30,\"area\":1440,\"fit\":false,\"wd\":12.14,\"px\":163.3,\"close\":8.92,\"floor\":141.2},\"fitN\":0,\"n\":28,\"closePx\":232.2,\"closeB\":1}\n"
+ }
+]
