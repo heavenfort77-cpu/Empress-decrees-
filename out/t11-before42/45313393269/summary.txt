@@ -1,0 +1,2 @@
+jobs 1; caught by named check 0 of 0
+{"i": 0, "fails": [], "tot": ["RUNTIME 158 of 163 pass"], "s": 142, "tail": "1\nRUNTIME 158 of 163 pass\n42 bot sweep 9 runs: 0 broken invariants, every run ends, never-dodge always loses, 0.3 s and 0.15 s reaction each win at least once :: 99/012:lost 7s hp0 demon905 | 99/120:lost 8s hp0 demon915 | 99/210:lost 8s hp0 demon915 | 0.3/012:lost 21s hp0 demon670 | 0.3/120:lost 23s hp0 demon770 | 0.3/210:won 62s hp9 demon0 | 0.15/012:lost 26s hp0 demon540 | 0.15/120:won 68s hp71 demon0 | 0.15/210:won 64s hp100 demon0\n"}
