@@ -1,0 +1,47 @@
+[
+ {
+  "i": 0,
+  "fails": [
+   "42",
+   "1203"
+  ],
+  "tot": [
+   "RUNTIME 266 of 268 pass"
+  ],
+  "s": 272,
+  "name": "clamp-removed",
+  "want": "1203",
+  "applied": true,
+  "caught_named": true
+ },
+ {
+  "i": 1,
+  "fails": [
+   "42",
+   "1203"
+  ],
+  "tot": [
+   "RUNTIME 266 of 268 pass"
+  ],
+  "s": 352,
+  "name": "clamp-wrong-term",
+  "want": "1203",
+  "applied": true,
+  "caught_named": true
+ },
+ {
+  "i": 2,
+  "fails": [
+   "42",
+   "1203"
+  ],
+  "tot": [
+   "RUNTIME 266 of 268 pass"
+  ],
+  "s": 345,
+  "name": "limit-doubled",
+  "want": "1203",
+  "applied": true,
+  "caught_named": true
+ }
+]
