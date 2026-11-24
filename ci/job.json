@@ -1,1 +1,1 @@
-{"mode": "suite", "label": "t12-suite"}
+{"mode": "cmd", "cmd": "node ci_probe/dull.mjs", "label": "audit-dull"}

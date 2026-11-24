@@ -1,4 +1,4 @@
-# Handoff (2026-11-24 12:30, batch 16 in progress: tickets 01-09 and 11 done, 10 (杂甲) in progress, 12 close-out next). GDD: docs/GDD.md (also Project "empress decrees", claude/GDD.md)
+# Handoff (2026-11-24 afternoon, after batch 16: all nine kits, suit stats, the 兵家 apex; next: the balance talk with the owner). GDD: docs/GDD.md (also Project "empress decrees", claude/GDD.md)
 
 ## Session start (every session)
 0. CI (owner rule, reminded 24 Nov 08:47): full suite and mutation rounds run on GitHub runners via ci/ci_mut.sh on branch ci-run (results on branch ci-out, out/<label>/<run id>/summary.txt). If /home/claude/citools/ci_mut.sh is missing, copy it from origin/ci-run:ci/ci_mut.sh and create the worktree: git worktree add /home/claude/ci-wt -b ci-run origin/ci-run. Proof run 45298683619 (26 of 26, matches local). Job file: {"mode":"suite"} or {"mode":"mut","muts":[{name,want,a,b}]}.
@@ -9,9 +9,9 @@
 5. Ask the owner the open questions under "Next batch" in ONE AskUserQuestion before building. Open design questions go to the panel (owner, 23 Nov 15:11).
 
 ## Status
-- Batches 1-13, 14A and 15 done on branch `batches-3-5` (PR #1 open). 14B (10-minute game) dropped by the owner 23 Nov 21:28 ("4 5 min ok"); its patch is not applied. The owner has NOT yet said the loop works; no art before that.
+- Batches 1-13, 14A, 15 and 16 (all nine kits + suit stats + the 兵家 apex) done on branch `batches-3-5` (PR #1 open). 14B (10-minute game) dropped by the owner 23 Nov 21:28 ("4 5 min ok"); its patch is not applied. The owner has NOT yet said the loop works; no art before that.
 - Built so far on boxes: map v2 (2 layers, collapses, hazards, altars), LoL/MLBB controls, fog of war, minimap, apex hunt (demon + 2 minions, skill transfer), royale cubs and plates, buff creatures from marble bags, 9 bots with a brain, royale end, player-target cap (hunter slot), leader + crown + HUD line, decree slot, bounty decree, five bagged decrees, W dash, slow + mark penalty.
-- Static PASS. Runtime 97 of 97 after batch 15 (new 87-92: charge sources, charge wording, R gate, wake/hunt, new run, HUD writes). Earlier: 91 of 91 after 13b (13a: 83 decree pacing, 84 bounty paced like a decree; 13b: 85 kennel autopilot over 12 matches, 86 kennel autopilot fixed scene; headless Chromium, software GPU: correctness and counts only). Fixed seed 12345. Checks 1-55 run with ?bots=0 (map test); 56+ set bots themselves. Whole-match checks (65, 67, 69, 72, 78) run 12 seeds since batch 12 (was 6).
+- Static PASS. Runtime 180 of 181 after batch 16 (CI run 45329305763 on 6c9cbb0); the one FAIL is 42, the hunt sweep: the 0.3 s sweep bot no longer wins any kill order since 攻其无备 (ticket 11), a balance item left untuned by the owner's rule (24 Nov 01:22). Earlier: runtime 97 of 97 after batch 15 (new 87-92: charge sources, charge wording, R gate, wake/hunt, new run, HUD writes). Earlier: 91 of 91 after 13b (13a: 83 decree pacing, 84 bounty paced like a decree; 13b: 85 kennel autopilot over 12 matches, 86 kennel autopilot fixed scene; headless Chromium, software GPU: correctness and counts only). Fixed seed 12345. Checks 1-55 run with ?bots=0 (map test); 56+ set bots themselves. Whole-match checks (65, 67, 69, 72, 78) run 12 seeds since batch 12 (was 6).
 - Mutation rounds: batches 4-8 all caught (batch 7 12 of 13, the miss an equivalent change); batch 9 32 of 32; batch 10 6 of 6; batch 11 10 of 10; batch 13a 8 of 8 fail the suite (6 fail the named check 83/56; 'gap old' fails 65, 'bounty ignores gap' fails 84; log /home/claude/batch13.log); batch 13b proxy 4 of 4 (85/86; 'no cub fight' missed 85 alone, closed by the fixed scene 86); batch 12 14 of 14 (first round 12 of 13: check 80 marked before the wake too early; fixed; plus check 82 catches the replay fix reverted). Script: /home/claude/probe12/mut.py (session disk).
 - Counts (software GPU, medium): spawn 27 calls / 2.8k tris; whole map 76 / 8.4k; hunt 17 / 0.9k; heaviest royale (10 suits, 7 cubs, tells) 53 / 3.0k; with the crown 54 / 3.0k; with 10 marks, crown and zone tint 64 / 3.1k. Budget 500 / 0.5M. Shader programs 3, geometries 96 flat (mark marker +1). Batch 15 check 92 (HUD R ring drawn): 27 calls, 3 programs, 96 geometries.
 - Batch 12 GDD sims (12 seeds, autopilot player, average bots): decided 166.4-201.2 s (in 165-255); longest leader won 3 of 12 (25%, band 25-45%: at the bottom edge); player took >= 1 plate in 2 of 12 (target 70%: MISSED); player out 76-177 s (won 3 of 12: seeds 5, 10, 11); bagged decrees per match 1-3 (GDD 3-4: MISSED); bounties 0-2 per match (6 in 12 matches; batch 11 had 8 in 6: the shared slot halves them), bot fighting share on a seen leader 0.75 with the bounty vs 0.06 without; decree breaks: player 0, bots 7 (all seed 3: a heights decree over a collapse forced a crossing). Player never marked in matches (autopilot obeys), so the mark cap is proven by the scripted check 77 only.
@@ -19,7 +19,7 @@
 - Hunt sweep with the W dash (test 42, the sweep bot dashes out of seen tells): never-dodge loses all; 0.3 s wins howler-first only (batch 11: minions-first only); 0.15 s wins 2 of 3 (lost demon-first; batch 11: all 3).
 - Pathfinding: walk graph built at load (8114 nodes). Worst bot search 0.8 ms (1.8 ms unreachable), player right-click worst 4.0 ms. At most one bot search per step.
 - NOT run: real-GPU fps (needs a GitHub Actions macOS runner; no workflow yet). NOT tried on a real phone.
-- Phone review link: https://claude.ai/artifact/3nQ67JCTmb1JfPKC3Y416z. Republish after each batch: copy index.html, swap the importmap path for https://cdn.jsdelivr.net/npm/three@0.171.0/build/three.module.min.js, publish to slug 1688f9ba-a0e5-4f7b-ac2e-3a68d6fc67c3 (get_artifact first for base_version). Live: version 1795446788-559e = batch 15 (6eac5a2), published 23 Nov 23:13 by the lead.
+- Phone review link: https://claude.ai/artifact/3nQ67JCTmb1JfPKC3Y416z. Republish after each batch: copy index.html, swap the importmap path for https://cdn.jsdelivr.net/npm/three@0.171.0/build/three.module.min.js, publish to slug 1688f9ba-a0e5-4f7b-ac2e-3a68d6fc67c3 (get_artifact first for base_version). Live: version 1795496303-efbf = batch 16 done (73d5940): nine kits + 兵家 apex, published 24 Nov 12:58 by the lead.
 - Project docs (claude/HANDOFF.md, claude/GDD.md, claude/SUITS.md, claude/code/index.html, claude/code/tests/run.mjs, claude/code/tests/static-check.mjs) are copies of repo files. The LEAD session syncs them after each batch with project_write local_path (a background worker cannot). If a write is refused, project_read first (code files print in full: do it once, then write).
 
 ## Batch 13 (done): decree pacing 13a (62f8f0d) + plate-rate test proxy 13b (fcc6d0e). Details in git history and the Status numbers above.
@@ -49,15 +49,53 @@ Sims (12 seeds, one -sims run at c638527): old autopilot decided 152.3-211.4 s (
 kennel autopilot decided 148.2-214.6 s, plate 11 of 12, leader win share 4 of 12, reached camp 18 of 30 free warnings; bagged decrees in force per match 2-3 (3,3,2,3,3,3,3,3,3,3,2,3), told incl. bounty 3-4 per the order list; bounties 0-1 per match (5 in 12, 3 paid); breaks player 0, bots 8.
 R casts per suit per royale: not printed by -sims (the first gate run, before the checks were updated, logged bots 2-6 vs 8-13 with the old cooldown; player 0-2).
 
-## Batch 16 (IN PROGRESS, tickets/batch-16): all nine kits + suit stats + the 兵家 apex
-- Done on batches-3-5: 01 framework (b623a9a), 02 法 (58ddf09), 03 儒 (8de1b7a), 04 墨 (7d7a757), 05 名 (8bcba1d), 06 阴阳 (66b78b9), 07 农 (5dcd284), 08 道 (5809208), 09 纵横 (787ba8b), 11 兵家 apex (built in parallel on t11-bingjia ba32e01, merged b298701; CI 45315350373: 171 of 172, only 42).
-- In progress: 10 杂甲. WIP backup branch t10-wip (4c47225, not passing: CI 45318378897 174 of 181: 42 + 56 + new 165-169). Worker resumed from it 24 Nov 12:2x.
-- Next: rerun the close-out tools on the final head (branch t12-prep 6a178d3: ci_probe/schools.mjs per-school 12-seed matches, ci_probe/huntsweep.mjs per-school hunt sweep), then ticket 12 close-out (sims, sweep, HANDOFF, docs, phone link, project docs), then the balance talk with the owner.
-- Known balance items (reported, NOT tuned; owner 24 Nov 01:22 "get all results first then talk about balanced"): check 42 (攻其无备 costs the 0.3 s sweep bot its only hunt win), 144 R clause (农甲 bot rarely fills its meter), 83 decrees per match (2-5 depending on the kits in the match), 65 band; first per-school numbers (8 kits, runs 45316662334/45316662538): bot wins of 96: 儒 24, 纵横 19, 墨 14, 农 8, 道 7, 阴阳 6, 法 5, 名 3; hunt sweep: 阴阳, 名, 纵横 never win at 0.15 s (generic sweep bot: not proven).
-- Restarts: the server stopped 3 times (23-24 Nov). Procedure: read the tail of /home/claude/batch16.log and the CI runs; save the tree as a patch and to a wip branch; cmp index.html with the last good copy (a stop mid-mutation once left a mutation applied); start a replacement worker from the log. A 30-min self watchdog (scheduled task) does this while batch 16 is open.
-- CI: full suite and mutation rounds on GitHub (ci-run / ci-out, lanes ci-run-*); see Session start step 0 and CLAUDE.md. Parallel split: a second worker may build an independent ticket in its own worktree and branch with its own CI lane and checks numbered 200+; the lead merges.
+## Batch 16 (done, tickets/batch-16): all nine kits + suit stats + the 兵家 apex
+- Commits: 01 framework b623a9a (kit table, armor K 100 Low/Mid/High 20/40/70, speed tiers, school select 9 + random, unseen state, skill interface, bot tags); 02 法 58ddf09; 03 儒 8de1b7a; 04 墨 7d7a757; 05 名 8bcba1d; 06 阴阳 66b78b9; 07 农 5dcd284; 08 道 5809208; 09 纵横 787ba8b; 11 兵家 apex built in parallel on t11-bingjia ba32e01, merged b298701; 10 杂 6c9cbb0 (WIP backup branch t10-wip 4c47225, not needed now). Ticket files carry their CI run ids.
+- New checks 93-171 (framework 93-96; 法 97-103; 儒 104-111; 墨 112-120; 名 121-128; 阴阳 129-137; 农 138-145; 道 146-153; 纵横 154-162; 杂 163-171) and 200-204 (兵家 apex). Mutation rounds: T01 15/15, T02 20/20, T03 27 of 28 named (1 caught by other checks), T04 23/23, T05 19/19, T06 26/26, T07 25/25, T08 24/24 + 3/3 (CI 45305273396, 45308208031), T09 27 of 28 named (1 crashed the runner, caught unnamed; CI 45312289983, 45313799041, 45314526406), T10 11/11 (CI 45328001408), T11 10/10 (CI 45313846413).
+- CI: from ticket 08 every full suite and mutation round ran on GitHub runners (ci-run / ci-out, lanes ci-run-*); T06/T07 mutation rounds ran locally before the owner's reminder (24 Nov 08:35).
+- Game bugs fixed (cause / removed by / proof in /home/claude/batch16.log): player's last attacker survived a new run (reset clears it; 儒 passive); bots' path searches ignored 墨 walls (navInWall; 119), then started inside a wall (navNode skips wall nodes; 136); 儒 bot never walked into its aura R (botAuraIn; 110); 太极 burn pulses drifted (pulse index; 133); 农 furrow never ended (timer set to 0 before end; 140/144); 道 castAt survived a new run (clearMarks; 146); a fleeing bot walked back onto the heights (walk to the safe spot first; 56); 名 bot never fired R from range and 农 bot never sowed out of a fight (botReadyUlt, botFieldAhead; 127/144); 纵横 cord/circle never ended (end functions test active, not t; 156/158/160); 名 hanging-line strike crashed when its owner died mid-loop (read once; 162).
+- Close-out tools (not in the game branch): branch t12-prep 6a178d3, ci_probe/harness.mjs, schools.mjs (per-school 12-seed matches), huntsweep.mjs (test 42 sweep per player school). Run on CI with {"mode":"cmd"} jobs.
 
-## Next batch: 16 = ALL NINE kits + suit stats (owner 23 Nov 23:26 "do all 9": batches 16 and 17 merged; approval by play comes after all nine, not after a 法甲 sample). Panel note below, then the owner's go in ONE AskUserQuestion.
+### Batch 16 results (6c9cbb0; numbers from the runs, no tuning)
+Per school (CI run 45329303870, 12 seeds, the school played by the autopilot player; bot wins = matches won by that school's bot over 96 bot slots):
+| School | Bot wins /96 | Bot R /royale | Player wins /12 | Player R /royale | Decided (s) | Decrees /match | Player plate /12 | Leader win /12 |
+|---|---|---|---|---|---|---|---|---|
+| 儒 ru | 27 | 1.14 | 2 | 1.0 | 174.8-234.9 | 3-4 | 0 | 2 |
+| 墨 mo | 16 | 0.66 | 1 | 0.6 | 175.7-213.8 | 3-4 | 0 | 2 |
+| 纵横 zongheng | 13 | 0.51 | 1 | 0.7 | 141.1-203.4 | 2-4 | 0 | 3 |
+| 农 nong | 10 | 0.49 | 1 | 0.4 | 181.2-228.1 | 3-4 | 0 | 2 |
+| 法 fa | 9 | 0.80 | 0 | 0.8 | 169.7-204.5 | 3-4 | 2 | 2 |
+| 杂 za | 9 | 0.39 | 1 | 0.3 | 154.7-222 | 3-4 | 1 | 4 |
+| 道 dao | 6 | 0.48 | 0 | 0.3 | 181.1-220.3 | 3-4 | 2 | 8 |
+| 名 ming | 5 | 0.54 | 1 | 0.4 | 170.6-245.9 | 3-5 | 0 | 5 |
+| 阴阳 yinyang | 4 | 0.73 | 2 | 1.3 | 165-234.9 | 2-5 | 0 | 2 |
+Main suite sims (CI 45329305763): decided 179-225.8 s; decrees 2-3 bagged per match (3-4 with bounties); leader win share 1 of 12 (old autopilot) / 2 of 12 (kennel); player >= 1 plate 3 of 12 (old) / 12 of 12 (kennel).
+Hunt sweep per player school (CI 45329304057; wins of 3 kill orders at reaction never-dodge / 0.3 s / 0.15 s; never-dodge loses all everywhere):
+| Kit | 0.3 s | 0.15 s | Flag |
+|---|---|---|---|
+| placeholder | 0 | 2 | |
+| 儒 | 0 | 2 | |
+| 道 | 0 | 2 | |
+| 法 | 0 | 2 | |
+| 墨 | 0 | 2 | |
+| 农 | 1 | 1 | |
+| 纵横 | 1 | 0 | IMPOSSIBLE at 0.15 s |
+| 阴阳 | 0 | 0 | IMPOSSIBLE |
+| 杂 | 0 | 0 | IMPOSSIBLE |
+| 名 | 0 | 0 | IMPOSSIBLE |
+No kit makes the apex trivial. The sweep bot is generic (casts every skill at its target, no timing; uses each kit's escape slot), so IMPOSSIBLE flags are not proven for skilled play (道 stances, 法 stealth, line and zone skills are played badly).
+
+### Known balance items (reported, not tuned; owner 24 Nov 01:22)
+- Check 42 FAILS: since 攻其无备 (+20%, the worker's pick) the 0.3 s sweep bot wins no kill order (before: 1 of 3).
+- Hunt: 阴阳, 名, 杂, 纵横 never win at 0.15 s with the generic sweep bot.
+- Bot strength spread: 儒 27/96 vs 阴阳 4/96 and 名 5/96; 儒 bot also casts R most (1.14/royale).
+- Decrees per match 2-5 depending on the kits in the match (check 83 failed at times during the batch, passes now); royale as short as 141.1 s with 纵横 (check 65 floor 150 s passes on its own seeds).
+- 农 bot rarely fills its meter (144 R clause failed at times, passes now); player plate rate on the old autopilot 0-2 of 12 per school.
+- Numbers where docs/SUITS.md gave none are workers' picks, listed per ticket in the log (e.g. 攻其无备 +20%, 儒 passive +15%, 墨 passive +20%/0.8x).
+
+## Next: the balance talk with the owner (owner 24 Nov 01:22: results first, then balance), then the remaining queue (hiding 18, ending 19, map size 20).
+
+## Panel note 16 (record; owner go 23 Nov 23:3x)
 Panel note 16 (lead, 23 Nov 23:30; proposal):
 - Player suit: a school select before each run (9 buttons, 44 px on phone, last pick remembered in try/catch storage); bots take the other 8 (6-1). The placeholder kit stays only for the map test (?bots=0) and its checks.
 - Stats: docs/STATS-MATH.md as written (armor K 100; Low/Mid/High 20/40/70; HP 100 for all; Mid = yardstick, so every current number and check holds for a Mid suit); speed Low/Mid/High 5.6/6/6.4 m/s (cubs stay faster at 6.6) (6-1).
@@ -72,6 +110,7 @@ Panel note 16 (lead, 23 Nov 23:30; proposal):
 15 ultimate charge (DONE); 16 法甲 kit + suit stats sample (owner plays and approves); 17 the other eight kits (docs/SUITS.md); 18 hiding (curtains, 道甲 stillness, sight blocked by walls); 19 the ending + WINNER_STATUE; 20 final map size + balancing pass (re-measure, retune the CONFIG timing list once). Hunt sweep re-check with kits (0.15 s bot now loses demon-first).
 
 ## Owner decisions (dated)
+- 24 Nov 13:18-13:28: map too small; direction = "The Burning Palace" (room-by-room royale in a 阿房宫-style palace, zoom camera, only the current room rendered), more cannon fodder (the 皇家 guard, owner 13:30; not 兵家), door previews (room, decree, reward, "something stirs"), doors lock during a fight, off-screen fights only announced, KEEP the open royale as a second mode "Royal Rumble". Design note docs/BURNING-PALACE.md; waiting for go.
 - 24 Nov 12:29: "update repo"; restarts must not need an owner reminder (self watchdog added).
 - 24 Nov 10:27: more workers in parallel where safe ("having more can be faster?").
 - 24 Nov 09:44-09:5x: the apex is 兵家 (tiger look and the HUD name "Tiger Demon" kept); moves renamed from 孙子兵法 (其疾如风, 动如雷震, 侵掠如火，不动如山; minions 奇正; 奇正相生); passive 攻其无备 (bonus vs a suit whose escape is on cooldown); ticket 11 before the close-out.
