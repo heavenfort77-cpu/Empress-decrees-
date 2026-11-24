@@ -1,0 +1,14 @@
+== palace (full, 8 rivals): idle% mean 68 (range 68-70), longest idle max 85.8 s, stretches >5 s total 12, >10 s total 12, run length 121.5-124.8 s
+12345: t 124.8 end palend idle 68% longest 85s >5s 1 >10s 1 rooms 1 rivalsOut 6 falls 2 {"fight":116,"enemy":158,"tell":84,"locked":25,"hit":5,"choose":32,"burning":18}
+2: t 121.5 end palend idle 70% longest 85s >5s 1 >10s 1 rooms 1 rivalsOut 7 falls 2 {"fight":102,"enemy":145,"tell":73,"locked":49,"hit":6,"choose":3}
+3: t 123.8 end palend idle 69% longest 85s >5s 1 >10s 1 rooms 1 rivalsOut 5 falls 2 {"fight":109,"enemy":154,"tell":81,"locked":53,"hit":12,"choose":28}
+4: t 123.5 end palend idle 69% longest 85s >5s 1 >10s 1 rooms 1 rivalsOut 5 falls 2 {"fight":110,"enemy":153,"tell":79,"locked":25,"hit":5,"choose":27,"burning":13}
+5: t 124.8 end palend idle 68% longest 85s >5s 1 >10s 1 rooms 1 rivalsOut 4 falls 2 {"fight":116,"enemy":158,"tell":84,"locked":25,"hit":5,"choose":32,"burning":18}
+6: t 124.8 end palend idle 68% longest 85s >5s 1 >10s 1 rooms 1 rivalsOut 6 falls 2 {"fight":116,"enemy":158,"tell":84,"locked":25,"hit":5,"choose":32,"burning":18}
+7: t 124.8 end palend idle 68% longest 85s >5s 1 >10s 1 rooms 1 rivalsOut 6 falls 2 {"fight":116,"enemy":158,"tell":88,"locked":25,"hit":5,"choose":32,"burning":18}
+8: t 123.8 end palend idle 69% longest 85.8s >5s 1 >10s 1 rooms 1 rivalsOut 7 falls 2 {"fight":108,"enemy":151,"tell":86,"locked":9,"choose":4,"hit":5,"burning":14}
+9: t 124.8 end palend idle 68% longest 85s >5s 1 >10s 1 rooms 1 rivalsOut 7 falls 2 {"fight":116,"enemy":158,"tell":88,"locked":25,"hit":5,"choose":32,"burning":18}
+10: t 124.8 end palend idle 68% longest 85s >5s 1 >10s 1 rooms 1 rivalsOut 6 falls 2 {"fight":116,"enemy":158,"tell":84,"locked":25,"hit":5,"choose":32,"burning":18}
+11: t 124.8 end palend idle 68% longest 85s >5s 1 >10s 1 rooms 1 rivalsOut 6 falls 2 {"fight":116,"enemy":158,"tell":84,"locked":25,"hit":5,"choose":32,"burning":18}
+12: t 124.8 end palend idle 68% longest 85s >5s 1 >10s 1 rooms 1 rivalsOut 6 falls 2 {"fight":116,"enemy":158,"tell":88,"locked":25,"hit":5,"choose":32,"burning":18}
+errors 0
