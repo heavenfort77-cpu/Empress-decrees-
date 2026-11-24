@@ -26,5 +26,6 @@ python3 art/tools/fodder_preview.py /tmp/rb/preview "$OUT/preview_schools" $(pyt
 step "viewer shots"
 node art/tools/shoot_fodder.mjs "$OUT/shots" 2>&1 | tee "$OUT/shots.txt"
 cp assets/tex/fodder_trim.png "$OUT/" && cp -r art/src/fodder_trim.klad "$OUT/" 2>/dev/null
-git checkout -- art/tools/__pycache__ 2>/dev/null; git status --short | head -5
+# tracked models, texture and klad source are rebuilt above (copies are in $OUT); restore them so the ci-out step can switch branches
+git checkout -- art/tools/__pycache__ assets/models assets/tex art/src 2>/dev/null; git status --short | head -5
 echo "RESULT done"
