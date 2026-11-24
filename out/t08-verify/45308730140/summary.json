@@ -1,0 +1,22 @@
+[
+ {
+  "i": 0,
+  "fails": [
+   "144"
+  ],
+  "tot": [
+   "RUNTIME 157 of 158 pass"
+  ],
+  "s": 141,
+  "sims": [
+   "SIM leader win share (longest leader wins) 3 of 12; player >=1 plate 2 of 12; decided 207.8,191.7,198.7,184.1,187.8,188.8,170,202.6,183.5,214.8,206.8,191.7",
+   "SIM per seed decided/place/player out/winner spawn: 12345 207.8/7/hit@128/1; 2 191.7/9/hit@135/6; 3 198.7/8/hit@129/1; 4 184.1/7/hit@123/5; 5 187.8/4/hit@156/3; 6 188.8/4/fall@181/0; 7 170/6/hit@153/5; 8 202.6/9/hit@126/5; 9 183.5/6/hit@140/8; 10 214.8/8/hit@125/8; 11 206.8/7/hit@129/3; 12 191.7/5/hit@136/1",
+   "SIM bounties 0,0,1,1,0,0,1,0,0,0,0,1 paid 0,0,0,0,0,0,0,0,0,0,0,1; fight share on 0.35 off 0.17; bounty-on-player ticks 1711, cap max off 1 on 1",
+   "SIM kennel autopilot (P5 proxy): player >=1 plate 12 of 12 (old autopilot 2 of 12); reached camp 21 of 26 free warnings; leader win share 3 of 12; decided 214.2,187.5,176,204.3,184.5,168.4,184.7,182.4,232,167.4,193.1,212.8; player out 160,148,140,won,76,126,126,125,won,127,187,141",
+   "SIM decrees per match 3,3,3,2,3,3,2,3,3,3,3,2; order 12345:heights,silence,nodash | 2:nodash,heights,silence | 3:ult2x,heights,bounty,dry | 4:heights,dry,bounty | 5:heights,dry,ult2x | 6:heights,nodash,silence | 7:ult2x,bounty,heights | 8:nodash,dry,silence | 9:silence,heights,dry | 10:nodash,dry,heights | 11:nodash,dry,ult2x | 12:silence,ult2x,bounty; breaks player 0,0,1,0,0,0,0,0,0,0,0,0 bots 0,0,0,0,0,0,0,0,0,0,0,0; player marked ticks 301, cap max 0; bots on heights max 0 s"
+  ],
+  "faillines": [
+   "FAIL 144 农甲 in whole matches: on a floor, nobody stuck > 3 s, pool <= pool, furrows and rings end on time, hunter cap every tick, the 农甲 bot sows, ploughs, harvests and eats (player 农甲 autopilot reported) :: {\"viol\":[],\"casts\":{\"q\":65,\"w\":1,\"r\":0},\"player\":{\"q\":19,\"w\":0,\"r\":0},\"eat\":14,\"tramp\":76,\"decided\":[184.3,201.3,216.6,231.4],\"poolMax\":9,\"furrowMax\":2.55,\"ringMax\":0,\"clean\":true}"
+  ]
+ }
+]
