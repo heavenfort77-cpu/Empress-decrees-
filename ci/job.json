@@ -1,1 +1,1 @@
-{"mode": "suite", "label": "t09-suite-4"}
+{"mode": "cmd", "cmd": "node ci_probe/zh_hunt.mjs", "label": "t09-probe-1"}
