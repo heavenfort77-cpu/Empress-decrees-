@@ -25,6 +25,7 @@ class Tex:
         self.name, self.bg, self.wx, self.wy = name, bg, wrap_x, wrap_y
         self.r = random.Random(seed)
         self.ops = []
+        self.stage = 0  # paint stage for the passes strip: 0 base, 1 tone, 2 marks, 3 detail
 
     def stroke(self, pts, brush, size, color, opacity=1.0, pressure=None, taper=None, flow=None, wrap=True):
         """pts in 1024 space; repeated across wrapped edges when the stroke leaves the tile (wrap False: strokes that already span the tile)."""
@@ -46,7 +47,7 @@ class Tex:
                 if pressure: op["pressure"] = pressure
                 if taper is not None: op["taper"] = taper
                 if flow is not None: op["flow"] = flow
-                self.ops.append(op)
+                self.ops.append((self.stage, op))
 
     def wobble(self, x0, y0, x1, y1, n=6, amp=4):
         pts = []
@@ -64,7 +65,12 @@ class Tex:
 
     def write(self):
         with open(f'{OUT}/{self.name}.jsonl', 'w') as f:
-            for op in self.ops: f.write(json.dumps(op, ensure_ascii=False) + '\n')
+            for st, op in self.ops: f.write(json.dumps(op, ensure_ascii=False) + '\n')
+        # passes strip: op counts where one paint stage block ends (paint order kept), labelled by the stage
+        cuts, names = [], ['base', 'tone', 'marks', 'detail']
+        for i, (st, op) in enumerate(self.ops):
+            if i + 1 == len(self.ops) or self.ops[i + 1][0] != st: cuts.append([names[st], i + 1])
+        with open(f'{OUT}/{self.name}.passes.json', 'w') as f: json.dump(cuts, f)
         with open(f'{OUT}/{self.name}.bg', 'w') as f: f.write(self.bg)
         return len(self.ops)
 
@@ -72,35 +78,45 @@ class Tex:
 def band(t, y0, y1, color, brush='flat-bristle', size=60, opacity=1.0, step=None, jitter=3):
     """a horizontal band painted with overlapping horizontal strokes across the full width (wraps)."""
     step = step or size * 0.6
+    # Each band stroke starts at a random x and runs 1100 px, past the tile edge; its wrapped copy finishes it on the other side, so the
+    # tile edge falls mid-stroke (round 2: full-width strokes left a seam where their start met their end).
     if brush != 'marker':  # a solid marker pass first, so the band is opaque under the bristle texture
         y = y0 + 6
         while y <= y1 + 2:
-            t.stroke([(-60, y), (1084, y)], 'marker', 14, color, 1.0, taper=[0, 0], wrap=False)
+            x0 = t.r.uniform(0, 1024)
+            t.stroke([(x0, y), (x0 + 1100, y)], 'marker', 14, color, 1.0, taper=[0, 0])
             y += 9
     y = y0 + size / 2 - 4
     while y <= y1 - size / 2 + 6:
-        t.stroke(t.wobble(-60, y, 1084, y, 8, jitter), brush, size, color, opacity, taper=[0, 0], wrap=False)
+        x0 = t.r.uniform(0, 1024)
+        t.stroke(t.wobble(x0, y, x0 + 1100, y, 8, jitter), brush, size, color, opacity, taper=[0, 0])
         y += step
 
 
 def floor():
-    # 丹地: cinnabar earth floor, burnished with pebbles; one continuous painted surface (no tiles). 4 m per repeat.
-    t = Tex('hall_floor', '#6f2d1f', True, True, 101)
+    # 丹地: cinnabar earth floor, burnished with pebbles; one continuous painted surface (no tiles). 4 m per repeat (256 px/m).
+    # Round 2 (study 24 Nov): saturation down to <= 0.55, burnish and wear marks strong enough for lum sd >= 8 and 4-15 cm runs.
+    t = Tex('hall_floor', '#6b3d30', True, True, 101)
     r = t.r
-    for _ in range(90):  # broad tone variation (sponge, dark and warm)
-        cx, cy = r.uniform(0, 1024), r.uniform(0, 1024)
-        t.blot(cx, cy, r.uniform(60, 160), 'sponge', r.uniform(70, 140), r.choice(['#5a2318', '#7d3423', '#642a1c', '#843a26']), r.uniform(0.18, 0.35), 3)
-    for _ in range(260):  # burnish passes: long low strokes, slightly lighter, mostly one direction
-        x, y = r.uniform(0, 1024), r.uniform(0, 1024); a = r.uniform(-0.35, 0.35); L = r.uniform(120, 320)
-        t.stroke(t.wobble(x, y, x + math.cos(a) * L, y + math.sin(a) * L, 5, 3), 'dry-brush', r.uniform(18, 40), r.choice(['#8e4330', '#9a4a34', '#7a3526']), r.uniform(0.12, 0.28), pressure=[0.3, 1, 0.3])
-    for _ in range(120):  # scuffs where feet wore through the red to the earth below
+    t.stage = 1
+    for _ in range(90):  # broad tone variation
+        t.blot(r.uniform(0, 1024), r.uniform(0, 1024), r.uniform(60, 160), 'sponge', r.uniform(70, 140), r.choice(['#5c3830', '#77463a', '#63392d', '#80503f']), r.uniform(0.3, 0.5), 3)
+    t.stage = 2
+    for _ in range(320):  # burnish passes: long low strokes, mostly one direction, lighter and darker
+        x, y = r.uniform(0, 1024), r.uniform(0, 1024); a = r.uniform(-0.35, 0.35); L = r.uniform(80, 260)
+        t.stroke(t.wobble(x, y, x + math.cos(a) * L, y + math.sin(a) * L, 5, 3), 'dry-brush', r.uniform(14, 30), r.choice(['#8d5a48', '#97664f', '#5a342a']), r.uniform(0.3, 0.5), pressure=[0.3, 1, 0.3])
+    for _ in range(520):  # pebble-burnish dabs, 4-15 cm
+        x, y = r.uniform(0, 1024), r.uniform(0, 1024); a = r.uniform(0, math.tau); L = r.uniform(12, 40)
+        t.stroke([(x, y), (x + math.cos(a) * L, y + math.sin(a) * L)], 'chalk', r.uniform(6, 12), r.choice(['#94624d', '#55312a', '#7c4b3b']), r.uniform(0.35, 0.55))
+    t.stage = 3
+    for _ in range(120):  # scuffs worn through to the earth
         x, y = r.uniform(0, 1024), r.uniform(0, 1024); a = r.uniform(0, math.tau); L = r.uniform(10, 40)
-        t.stroke([(x, y), (x + math.cos(a) * L, y + math.sin(a) * L)], 'chalk', r.uniform(3, 7), r.choice(['#9c6a4c', '#4a1c12']), r.uniform(0.25, 0.5))
+        t.stroke([(x, y), (x + math.cos(a) * L, y + math.sin(a) * L)], 'chalk', r.uniform(3, 7), r.choice(['#a07a5e', '#45251c']), r.uniform(0.3, 0.55))
     for _ in range(18):  # hairline cracks
         x, y = r.uniform(0, 1024), r.uniform(0, 1024); pts = [(x, y)]
         for _ in range(r.randint(4, 8)):
             x += r.uniform(-30, 30); y += r.uniform(-30, 30); pts.append((x, y))
-        t.stroke(pts, 'pencil', 2.2, '#3e1610', 0.45)
+        t.stroke(pts, 'pencil', 2.2, '#3e1f17', 0.5)
     return t
 
 
@@ -108,9 +124,15 @@ def wall():
     # 4 m wide x 4 m high (image top = wall top). Black cornice, white-ground band of black lozenges, red rule, lime plaster, red rule, black dado.
     t = Tex('hall_wall', '#b9ad95', True, False, 202)
     r = t.r
-    for _ in range(70):  # plaster mottling
+    t.stage = 1
+    for _ in range(80):  # plaster mottling (round 2: stronger)
         cx, cy = r.uniform(0, 1024), r.uniform(170, 760)
-        t.blot(cx, cy, r.uniform(40, 110), 'sponge', r.uniform(50, 110), r.choice(['#a89a80', '#c6bba4', '#9e9078', '#b3a58a']), r.uniform(0.2, 0.4), 3)
+        t.blot(cx, cy, r.uniform(40, 110), 'sponge', r.uniform(50, 110), r.choice(['#9f927a', '#c9bea7', '#a89a80', '#bdb099']), r.uniform(0.35, 0.55), 3)
+    t.stage = 2
+    for _ in range(700):  # trowel strokes in the lime plaster, 4-15 cm
+        x, y = r.uniform(0, 1024), r.uniform(170, 750); a = r.uniform(-0.6, 0.6); L = r.uniform(25, 80)
+        t.stroke(t.wobble(x, y, x + math.cos(a) * L, y + math.sin(a) * L, 3, 2), 'oil', r.uniform(10, 24), r.choice(['#9a8d75', '#d0c5ae', '#a99c83']), r.uniform(0.4, 0.6))
+    t.stage = 3
     for _ in range(26):  # faint drips and water stains from the cornice
         x = r.uniform(0, 1024); y = r.uniform(160, 220)
         t.stroke(t.wobble(x, y, x + r.uniform(-6, 6), y + r.uniform(80, 300), 5, 2), 'soft', r.uniform(8, 18), '#8f8068', r.uniform(0.12, 0.25), pressure=[1, 0.6, 0.1])
@@ -155,11 +177,13 @@ def cloud(t, cx, cy, s, color):
 
 def pillar():
     # Wraps around (two repeats per pillar); spans the pillar height once (image top = pillar top).
-    t = Tex('pillar', '#17110e', True, False, 303)
+    t = Tex('pillar', '#1a1310', True, False, 303)
     r = t.r
-    for _ in range(140):  # vertical lacquer brushwork
+    t.stage = 2
+    for _ in range(170):  # vertical lacquer brushwork (round 2: broad oil strokes, smooth like lacquer, 4-15 cm across, more contrast; once around)
         x = r.uniform(0, 1024)
-        t.stroke(t.wobble(x, r.uniform(110, 400), x + r.uniform(-4, 4), r.uniform(600, 900), 6, 1.5), 'flat-bristle', r.uniform(14, 34), r.choice(['#221a15', '#1d1612', '#2a201a']), r.uniform(0.35, 0.7))
+        t.stroke(t.wobble(x, r.uniform(110, 400), x + r.uniform(-4, 4), r.uniform(600, 900), 6, 1.5), 'oil', r.uniform(20, 45), r.choice(['#30251e', '#100c0a', '#3a2c23', '#241b16']), r.uniform(0.45, 0.8))
+    t.stage = 0
     band(t, 0, 120, '#86281a', 'flat-bristle', 36, 1.0, 20, 1.2)      # vermilion capital band
     for i in range(4):
         cloud(t, (i + 0.5) * 256, 62, 58, '#16110e')
@@ -225,21 +249,24 @@ def door():
 
 
 def lion_stone():
-    # Grey limestone with chisel marks, wraps both ways (1.6 m per repeat).
+    # Grey limestone with chisel marks, wraps both ways. Round 2: 4 m per repeat (256 px/m, as every surface), stronger mottling and chisel work.
     t = Tex('lion_stone', '#8a877f', True, True, 505)
     r = t.r
+    t.stage = 1
     for _ in range(110):
-        t.blot(r.uniform(0, 1024), r.uniform(0, 1024), r.uniform(50, 130), 'sponge', r.uniform(60, 120), r.choice(['#7b786f', '#9a978e', '#837f76', '#928e84']), r.uniform(0.2, 0.4), 3)
-    for _ in range(70):  # patches of parallel chisel strokes
+        t.blot(r.uniform(0, 1024), r.uniform(0, 1024), r.uniform(50, 130), 'sponge', r.uniform(60, 120), r.choice(['#6f6c64', '#a29e94', '#7d7a71', '#97938a']), r.uniform(0.35, 0.55), 3)
+    t.stage = 2
+    for _ in range(150):  # patches of parallel chisel strokes
         cx, cy = r.uniform(0, 1024), r.uniform(0, 1024); a = r.uniform(0, math.pi); n = r.randint(4, 9)
         for k in range(n):
-            ox, oy = -math.sin(a) * k * 9, math.cos(a) * k * 9
-            L = r.uniform(20, 46)
+            ox, oy = -math.sin(a) * k * 10, math.cos(a) * k * 10
+            L = r.uniform(24, 50)
             x0, y0 = cx + ox + r.uniform(-3, 3), cy + oy + r.uniform(-3, 3)
-            t.stroke([(x0, y0), (x0 + math.cos(a) * L, y0 + math.sin(a) * L)], 'pencil', r.uniform(2.5, 4), r.choice(['#66625b', '#a9a59b']), r.uniform(0.3, 0.55))
+            t.stroke([(x0, y0), (x0 + math.cos(a) * L, y0 + math.sin(a) * L)], 'chalk', r.uniform(4, 7), r.choice(['#5a5750', '#b2aea4']), r.uniform(0.45, 0.7))
+    t.stage = 3
     for _ in range(160):  # pits
         x, y = r.uniform(0, 1024), r.uniform(0, 1024)
-        t.stroke([(x, y), (x + 1, y + 1)], 'ink', r.uniform(3, 7), '#5c5952', r.uniform(0.4, 0.7), taper=[0, 0])
+        t.stroke([(x, y), (x + 1, y + 1)], 'ink', r.uniform(3, 7), '#55524b', r.uniform(0.5, 0.8), taper=[0, 0])
     return t
 
 
