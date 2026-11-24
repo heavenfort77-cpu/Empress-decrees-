@@ -1,0 +1,19 @@
+jobs 18; caught by named check 17 of 18
+{"i": 0, "fails": ["18", "41", "42", "61", "119", "127", "140", "801", "804", "806"], "tot": ["RUNTIME 189 of 199 pass"], "s": 200, "name": "lion-no-tell", "want": "801", "applied": true, "caught_named": true}
+{"i": 1, "fails": ["42", "801"], "tot": ["RUNTIME 197 of 199 pass"], "s": 142, "name": "strike-skips-sides", "want": "801", "applied": true, "caught_named": true}
+{"i": 2, "fails": ["42", "802", "806", "807"], "tot": ["RUNTIME 195 of 199 pass"], "s": 198, "name": "merc-no-shimmer", "want": "802", "applied": true, "caught_named": true}
+{"i": 3, "fails": ["42", "801", "802"], "tot": ["RUNTIME 196 of 199 pass"], "s": 197, "name": "merc-burns-at-rest", "want": "802", "applied": true, "caught_named": true}
+{"i": 4, "fails": ["42", "802"], "tot": ["RUNTIME 197 of 199 pass"], "s": 139, "name": "merc-skips-sides", "want": "802", "applied": true, "caught_named": true}
+{"i": 5, "fails": ["42", "803"], "tot": ["RUNTIME 197 of 199 pass"], "s": 141, "name": "smoke-never", "want": "803", "applied": true, "caught_named": true}
+{"i": 6, "fails": ["42", "803"], "tot": ["RUNTIME 197 of 199 pass"], "s": 193, "name": "smoke-no-reveal", "want": "803", "applied": true, "caught_named": true}
+{"i": 7, "fails": ["42", "803"], "tot": ["RUNTIME 197 of 199 pass"], "s": 141, "name": "sight-ignores-smoke", "want": "803", "applied": true, "caught_named": true}
+{"i": 8, "fails": ["42", "804"], "tot": ["RUNTIME 197 of 199 pass"], "s": 114, "name": "huabiao-woken-by-sides", "want": "804", "applied": true, "caught_named": true}
+{"i": 9, "fails": ["42", "804"], "tot": ["RUNTIME 197 of 199 pass"], "s": 198, "name": "mark-not-through-walls", "want": "804", "applied": true, "caught_named": true}
+{"i": 10, "fails": ["42", "804"], "tot": ["RUNTIME 197 of 199 pass"], "s": 95, "name": "huabiao-no-tell", "want": "804", "applied": true, "caught_named": true}
+{"i": 11, "fails": ["42", "805"], "tot": ["RUNTIME 197 of 199 pass"], "s": 111, "name": "ding-skips-sides", "want": "805", "applied": true, "caught_named": true}
+{"i": 12, "fails": ["21", "42", "160", "805"], "tot": ["RUNTIME 195 of 199 pass"], "s": 109, "name": "ding-never-refills", "want": "805", "applied": true, "caught_named": true}
+{"i": 13, "fails": ["42", "806"], "tot": ["RUNTIME 197 of 199 pass"], "s": 182, "name": "danger-ignores-react", "want": "806", "applied": true, "caught_named": true}
+{"i": 14, "fails": ["42", "806"], "tot": ["RUNTIME 197 of 199 pass"], "s": 108, "name": "danger-wrong-way", "want": "806", "applied": true, "caught_named": true}
+{"i": 15, "fails": ["42", "801", "802"], "tot": ["RUNTIME 196 of 199 pass"], "s": 141, "name": "reset-keeps-merc", "want": "807", "applied": true, "caught_named": false}
+{"i": 16, "fails": ["42", "800"], "tot": ["RUNTIME 197 of 199 pass"], "s": 97, "name": "pieces-step-in-rumble", "want": "800", "applied": true, "caught_named": true}
+{"i": 17, "fails": ["42", "800", "807"], "tot": ["RUNTIME 196 of 199 pass"], "s": 111, "name": "rings-left-on", "want": "807", "applied": true, "caught_named": true}
