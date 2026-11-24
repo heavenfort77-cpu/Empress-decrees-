@@ -13,13 +13,16 @@ function wav(x, sr) {
 }
 function stats(x) { let nan = 0, clip = 0, peak = 0; for (let i = 0; i < x.length; i++) { const v = x[i]; if (!Number.isFinite(v)) { nan++; continue; } const a = Math.abs(v); if (a >= 0.999) clip++; if (a > peak) peak = a; } return { nan, clip, peak, len: x.length }; }
 const loopCache = {};
+// Counts noise sources: the only AudioBufferSourceNodes an effect or loop render makes are its noise layers (phones must make none).
+let srcCount = 0; const OACp = (window.OfflineAudioContext || window.webkitOfflineAudioContext).prototype, mk = OACp.createBufferSource;
+OACp.createBufferSource = function () { srcCount++; return mk.call(this); };
 window.H = {
   list: () => Object.keys(A.SOUNDS).map((k) => ({ name: k, cat: A.SOUNDS[k].cat })),
   loops: () => Object.keys(A.LOOPS),
   config: () => JSON.parse(JSON.stringify(A.CONFIG)),
   notes: () => A.noteTable(),
-  sound: async (name, sr, profile) => { const t = performance.now(), x = await A.renderSound(name, sr, profile); return Object.assign(stats(x), { ms: performance.now() - t, b64: wav(x, sr) }); },
-  loop: async (name, sr, profile, raw) => { const t = performance.now(), x = await A.renderLoop(name, sr, profile, raw ? { raw: true } : undefined); if (!raw) loopCache[profile + sr + name] = x; return Object.assign(stats(x), { ms: performance.now() - t, b64: wav(x, sr) }); },
+  sound: async (name, sr, profile) => { srcCount = 0; const t = performance.now(), x = await A.renderSound(name, sr, profile); return Object.assign(stats(x), { noiseSrc: srcCount, ms: performance.now() - t, b64: wav(x, sr) }); },
+  loop: async (name, sr, profile, mode) => { srcCount = 0; const t = performance.now(), x = await A.renderLoop(name, sr, profile, mode ? { [mode]: true } : undefined); if (!mode) loopCache[profile + sr + name] = x; return Object.assign(stats(x), { noiseSrc: srcCount, ms: performance.now() - t, b64: wav(x, sr) }); },
   ramp: async (sr, seconds, profile) => { const L = {}; for (const k of Object.keys(A.LOOPS)) L[k] = loopCache[profile + sr + k] || await A.renderLoop(k, sr, profile); const t = performance.now(), x = await A.renderRamp(sr, seconds, profile, L); return Object.assign(stats(x), { ms: performance.now() - t, b64: wav(x, sr) }); },
 };
 window.HREADY = true;

@@ -9,14 +9,14 @@ export const CONFIG = {
   master: 0.8,
   // Bus gains, 0-1: effects, music, ambience, her stingers.
   vol: { sfx: 1, music: 0.8, amb: 0.8, voice: 0.9 },
-  // Compressor in front of the clip (approximates a limiter; dB, dB, ratio, s, s).
-  comp: { threshold: -10, knee: 6, ratio: 8, attack: 0.003, release: 0.15 },
+  // Compressor in front of the clip (a peak catcher; approximates a limiter; dB, dB, ratio, s, s).
+  comp: { threshold: -6, knee: 6, ratio: 8, attack: 0.003, release: 0.15 },
   // Last-stage tanh clip ceiling (linear; 0.7 = -3.1 dBFS, so the mix never peaks above -3 dBFS).
   clip: 0.7,
   // Peak each rendered effect is normalised to, dBFS, per category (all at or under -3).
   peakDb: { tell: -6, sfx: -7, heavy: -5, voice: -4, ui: -10 },
   // Loops: RMS target and peak cap after rendering, dBFS (bus and layer gains set the mix).
-  loopRmsDb: -18, loopPeakDb: -6,
+  loopRmsDb: -18, loopPeakDb: -3.5,
   // Live voices for effects (desktop, phone) and for her stingers; a new sound steals the oldest non-tell voice.
   pool: { desktop: 16, phone: 8, voice: 2 },
   // Spatial effects: heard within range m of the listener; full level within refM; pan reaches panMax at panM m to a side.
@@ -37,11 +37,11 @@ export const CONFIG = {
     tau: 1.2,
     // Layer windows: [smoothstep start, end] of intensity, and the layer's gain at full, dB.
     layers: {
-      m_drone: { win: [-1, 0], db: -2 },
-      m_bells: { win: [0.1, 0.35], db: -5 },
-      m_pulse: { win: [0.3, 0.55], db: -3 },
-      m_drive: { win: [0.55, 0.8], db: -4 },
-      m_peak: { win: [0.8, 1.0], db: -6 },
+      m_drone: { win: [-1, 0], db: -6 },
+      m_bells: { win: [0.1, 0.35], db: -3 },
+      m_pulse: { win: [0.3, 0.55], db: 2 },
+      m_drive: { win: [0.55, 0.8], db: -3 },
+      m_peak: { win: [0.8, 1.0], db: -3 },
     },
     // Music low-pass by intensity, Hz at 0 and at 1 (13b sweep; open at the top).
     lp: [1600, 9000],
@@ -51,7 +51,7 @@ export const CONFIG = {
     duck: { db: -8, inTau: 0.01, outTau: 0.25 },
   },
   // Ambience loops: length s, layer gains dB; fire and wind follow setAmb (0-1); room tone is always on (13b keeps silence alive).
-  amb: { loopS: 16, room: -10, wind: -6, fire: -4 },
+  amb: { loopS: 16, room: -12, wind: -9, fire: -8 },
   // Crossfade length for steady loop content, s (events fold their tails onto the loop start instead).
   xfadeS: 0.25,
   // Reduce intensity (13d): stingers and heavy hits this many dB lower; music intensity capped; no beat-wait before stingers.
@@ -132,7 +132,7 @@ export const SOUNDS = {
   yy_q: { cat: 'sfx', v: [tn(N(-1), 0, 0.5, 1, { f1: N(-3), w: 'triangle' }), tn(N(4), 0, 0.4, 0.5, { f1: N(2) }), ck(1800, 0, 0.5)] },
   yy_w_tell: { cat: 'tell', v: [tn(N(9), 0, 0.8, 0.6, { f1: N(14), env: 'swell' }), tn(N(4), 0, 0.8, 0.4, { f1: N(9), env: 'swell' })].concat(accel(2400, 0.8, 0.8)) },
   yy_w: { cat: 'sfx', v: [bl(N(9), 0, 0.8, 1), dr(200, 90, 0, 0.25, 0.8), ck(3000, 0, 0.6)] },
-  yy_r_tell: { cat: 'tell', v: [tn(N(-1), 0, 1.0, 0.6, { f1: N(9), env: 'swell', w: 'triangle' }), tn(N(9), 0, 1.0, 0.6, { f1: N(-1), env: 'swell', w: 'triangle' })].concat(accel(2200, 1.0, 0.8)) },
+  yy_r_tell: { cat: 'tell', v: [tn(1800, 0, 1.0, 0.5, { f1: 3000, env: 'swell' }), tn(N(-1), 0, 1.0, 0.6, { f1: N(9), env: 'swell', w: 'triangle' }), tn(N(9), 0, 1.0, 0.6, { f1: N(-1), env: 'swell', w: 'triangle' })].concat(accel(2200, 1.0, 0.8)) },
   yy_r: { cat: 'heavy', v: [tn(N(4), 0, 1.5, 0.6, { am: [4, 0.8], env: 'flat' }), bl(N(-1), 0, 1.8, 0.8), bl(N(9), 0, 1.2, 0.5), ck(2400, 0, 0.5)] },
   // 杂甲 a blend: bell and chime, odd FM (borrows from every school).
   za_atk: { cat: 'sfx', v: [fm(N(7), 1.5, 1.5, 0, 0.25, 0.8), ck(2200, 0, 0.4)] },
@@ -171,7 +171,7 @@ export const SOUNDS = {
   demon_pounce: { cat: 'heavy', v: [dr(140, 60, 0, 0.4, 1), fm(1600, 1.4, 3, 0, 0.25, 0.6), nz(800, 0.8, 0, 0.3, 0.6)] },
   demon_roar_tell: { cat: 'tell', v: [hm(110, 0, 0.7, 1, { env: 'swell', vib: [7, 40] }), tn(1200, 0, 0.7, 0.4, { f1: 2000, env: 'swell' })].concat(accel(2000, 0.7, 0.6)) },
   demon_roar: { cat: 'heavy', v: [hm(98, 0, 1.4, 1, { am: [30, 0.5], vib: [4, 30] }), tn(196, 0, 1.2, 0.4, { w: 'sawtooth', am: [30, 0.5] }), tn(1800, 0, 1.2, 0.3, { am: [30, 0.6] })] },
-  demon_ult_tell: { cat: 'tell', v: [bl(N(-5), 0, 0.8, 1), hm(110, 0, 0.8, 0.8, { env: 'swell', vib: [6, 30] }), tn(220, 0, 0.8, 0.4, { f1: 880, env: 'swell' })].concat(accel(2400, 0.8, 0.8)) },
+  demon_ult_tell: { cat: 'tell', v: [bl(N(-5), 0, 0.8, 0.6), tn(1600, 0, 0.8, 0.6, { f1: 3200, env: 'swell' }), hm(110, 0, 0.8, 0.8, { env: 'swell', vib: [6, 30] }), tn(220, 0, 0.8, 0.4, { f1: 880, env: 'swell' })].concat(accel(2400, 0.8, 0.8)) },
   demon_hit: { cat: 'heavy', v: [fm(700, 1.41, 3, 0, 0.4, 0.8), dr(160, 70, 0, 0.3, 1), ck(2000, 0, 0.6)] },
   // Cubs and hunt minions (treaded four-legged machines): smaller, higher.
   cub_bite_tell: { cat: 'tell', v: [tn(440, 0, 0.4, 0.6, Object.assign({ f1: 660 }, swSaw)), ck(2800, 0.3, 0.8), ck(2800, 0.37, 0.9)] },
@@ -185,7 +185,7 @@ export const SOUNDS = {
   cub_howl_tell: { cat: 'tell', v: [hm(330, 0, 0.7, 0.8, { env: 'swell', vib: [5, 30] }), tn(1300, 0, 0.7, 0.4, sw)] },
   cub_howl: { cat: 'sfx', v: [hm(440, 0, 1.4, 1, { f1: 620, vib: [6, 40] }), tn(1760, 0, 1.2, 0.3, { f1: 2200, vib: [6, 40] })] },
   // 皇家 guard (Qin army): bronze blades, crossbow 弩, wooden shields, chariots.
-  g_thrust_tell: { cat: 'tell', v: [tn(N(6), 0, 0.5, 0.6, { f1: N(9), env: 'swell', w: 'triangle' }), ck(2600, 0.3, 0.7), ck(2600, 0.45, 0.9)] },
+  g_thrust_tell: { cat: 'tell', v: [tn(2200, 0, 0.5, 0.4, { f1: 3000, env: 'swell' }), tn(N(6), 0, 0.5, 0.6, { f1: N(9), env: 'swell', w: 'triangle' }), ck(2600, 0.3, 0.7), ck(2600, 0.45, 0.9)] },
   g_thrust: { cat: 'sfx', v: [tn(1600, 0, 0.12, 0.6, { f1: 700 }), ch(N(10), 0, 0.25, 0.6), nz(2200, 1, 0, 0.1, 0.4)] },
   g_volley_tell: { cat: 'tell', v: [tn(N(-1), 0, 0.8, 0.6, Object.assign({ f1: N(2) }, swSaw))].concat(accel(2000, 0.8, 0.8)) },
   g_volley: { cat: 'sfx', v: [pk(N(1), 0, 0.3, 1, { n: 8, pos: 0.08 }), tn(3200, 0.05, 0.5, 0.35, { f1: 1800 }), tn(2800, 0.1, 0.5, 0.3, { f1: 1500 })] },
@@ -201,9 +201,9 @@ export const SOUNDS = {
   r_talisman: { cat: 'sfx', v: [bl(N(9), 0, 0.8, 0.7), bl(N(12), 0.08, 0.8, 0.5), ck(3000, 0, 0.4)] },
   r_lunge_tell: { cat: 'tell', v: [tn(3000, 0, 0.6, 0.5, { env: 'swell', am: [16, 0.5] }), ck(3200, 0, 0.8), ck(3200, 0.5, 0.9)] },
   r_lunge: { cat: 'sfx', v: [tn(1800, 0, 0.2, 0.6, { f1: 600 }), ck(2400, 0, 0.6), nz(2000, 1, 0, 0.15, 0.4)] },
-  r_cleave_tell: { cat: 'tell', v: [tn(N(1), 0, 0.6, 0.6, { env: 'swell', w: 'square' }), ck(1900, 0.35, 0.7), ck(1900, 0.5, 0.9)] },
+  r_cleave_tell: { cat: 'tell', v: [tn(1900, 0, 0.6, 0.45, { f1: 2600, env: 'swell' }), tn(N(1), 0, 0.6, 0.6, { env: 'swell', w: 'square' }), ck(1900, 0.35, 0.7), ck(1900, 0.5, 0.9)] },
   r_cleave: { cat: 'sfx', v: [fm(600, 1.37, 4, 0, 0.3, 0.9), dr(170, 80, 0, 0.2, 0.8)] },
-  r_bootleg_tell: { cat: 'tell', v: [tn(N(4), 0, 0.9, 0.5, { env: 'swell', vib: [9, 60] }), tn(N(4) * 1.06, 0, 0.9, 0.4, { env: 'swell' })].concat(accel(2200, 0.9, 0.8)) },
+  r_bootleg_tell: { cat: 'tell', v: [tn(2400, 0, 0.9, 0.45, { env: 'swell', vib: [9, 60] }), tn(N(4), 0, 0.9, 0.5, { env: 'swell', vib: [9, 60] }), tn(N(4) * 1.06, 0, 0.9, 0.4, { env: 'swell' })].concat(accel(2200, 0.9, 0.8)) },
   r_stall: { cat: 'sfx', v: [ck(3200, 0, 0.8), ck(2600, 0.06, 0.7), ck(2000, 0.14, 0.6), ck(1400, 0.25, 0.5), tn(800, 0, 0.4, 0.4, { f1: 200, w: 'square' })] },
   // Shared unit blows.
   unit_hit: { cat: 'sfx', v: [dr(240, 120, 0, 0.12, 0.8), ck(2000, 0, 0.6)] },
@@ -211,11 +211,11 @@ export const SOUNDS = {
   // Palace pieces and royale hazards.
   statue_tell: { cat: 'tell', v: [tn(N(-3), 0, 0.6, 0.8, { w: 'sawtooth', am: [22, 0.7], env: 'swell' }), ck(2300, 0.2, 0.6), ck(2300, 0.4, 0.8), ck(2300, 0.55, 1)] },
   statue_strike: { cat: 'heavy', v: [dr(90, 45, 0, 0.6, 1), ch(N(1), 0, 0.6, 0.6), nz(300, 0.7, 0, 0.4, 0.5), ck(1600, 0, 0.5)] },
-  lion_tell: { cat: 'tell', v: [fm(N(6), 1.41, 1.5, 0, 0.6, 0.7, sw), ck(2500, 0.3, 0.7), ck(2500, 0.5, 0.9)] },
+  lion_tell: { cat: 'tell', v: [tn(2500, 0, 0.6, 0.45, { f1: 3200, env: 'swell' }), fm(N(6), 1.41, 1.5, 0, 0.6, 0.7, sw), ck(2500, 0.3, 0.7), ck(2500, 0.5, 0.9)] },
   lion_strike: { cat: 'heavy', v: [dr(120, 55, 0, 0.45, 1), bl(N(1), 0, 0.6, 0.6), ck(1800, 0, 0.5)] },
   merc_warn: { cat: 'tell', v: [tn(2400, 0, 0.6, 0.5, { am: [14, 0.9], env: 'swell' }), tn(3100, 0, 0.6, 0.4, { am: [11, 0.9], env: 'swell' }), tn(N(9), 0, 0.6, 0.3, sw)] },
   merc_on: { cat: 'sfx', v: [tn(N(-1), 0, 1.2, 0.6, { w: 'triangle', am: [9, 0.5], env: 'flat' }), tn(1800, 0, 1.2, 0.25, { am: [9, 0.8], env: 'flat' })] },
-  giant_wake: { cat: 'tell', v: [bl(N(-5), 0, 2.0, 1), hm(N(-5), 0, 2.0, 0.6, { f1: N(-3), env: 'swell' }), tn(N(-1), 0, 2.0, 0.4, { f1: N(4), env: 'swell' }), ck(2000, 1.6, 0.7), ck(2000, 1.9, 0.9)] },
+  giant_wake: { cat: 'tell', v: [bl(N(-5), 0, 2.0, 0.6), tn(1500, 0, 2.0, 0.5, { f1: 2500, env: 'swell', am: [6, 0.5] }), ck(2000, 0.8, 0.6), ck(2000, 1.2, 0.7), hm(N(-5), 0, 2.0, 0.6, { f1: N(-3), env: 'swell' }), tn(N(-1), 0, 2.0, 0.4, { f1: N(4), env: 'swell' }), ck(2000, 1.6, 0.7), ck(2000, 1.9, 0.9)] },
   giant_slam_tell: { cat: 'tell', v: [tn(N(-3), 0, 1.0, 0.8, Object.assign({ f1: N(2) }, swSaw)), dr(120, 90, 0, 0.15, 0.6), dr(120, 90, 0.5, 0.15, 0.7)].concat(accel(2200, 1.0, 0.9)) },
   giant_slam: { cat: 'heavy', v: [dr(80, 40, 0, 0.9, 1), bl(N(-5), 0, 1.4, 0.8), ch(N(1), 0, 0.6, 0.4), nz(200, 0.7, 0, 0.6, 0.6), ck(1600, 0, 0.5)] },
   giant_sweep_tell: { cat: 'tell', v: [tn(N(1), 0, 1.2, 0.7, { w: 'sawtooth', am: [3, 0.6], env: 'swell' }), tn(1400, 0, 1.2, 0.4, { f1: 2600, env: 'swell' })].concat(accel(2400, 1.2, 0.8)) },
@@ -242,10 +242,10 @@ export const SOUNDS = {
   ui_ok: { cat: 'ui', v: [bl(N(7), 0, 0.3, 0.7), ck(2500, 0, 0.6)] },
   ui_back: { cat: 'ui', v: [tn(N(7), 0, 0.12, 0.5, { f1: N(4) }), ck(1600, 0, 0.5)] },
   // Kaymuse's stingers (synth only, no speech; calm contempt, never a shout). Each under 3 s (tone brief).
-  st_decree: { cat: 'voice', v: [bl(N(0), 0, 2.2, 1), bl(N(3), 0.35, 1.9, 0.8), hm(N(-1), 0.1, 2.0, 0.5, { env: 'flat', vib: [4.5, 12] }), hm(N(2), 0.35, 1.8, 0.35, { env: 'flat', vib: [4.5, 12] }), ck(2200, 0, 0.6), ck(2200, 0.35, 0.6)] },
-  st_burn: { cat: 'voice', v: [bl(N(9), 0, 1.2, 0.8), bl(N(7), 0.3, 1.2, 0.8), bl(N(4), 0.6, 1.8, 1), tn(N(-5), 0, 2.2, 0.4, { w: 'sawtooth', am: [7, 0.6], env: 'swell' }), hm(N(-1), 0.2, 2.2, 0.5, { env: 'flat', vib: [4, 14] }), tn(1800, 0, 2.2, 0.15, { am: [7, 0.8], env: 'flat' }), ck(2600, 0, 0.6), ck(2600, 0.3, 0.6), ck(2600, 0.6, 0.6)] },
-  st_bounty: { cat: 'voice', v: [ch(N(14), 0, 0.3, 0.6), ch(N(16), 0.07, 0.3, 0.6), ch(N(13), 0.13, 0.3, 0.6), ch(N(17), 0.2, 0.3, 0.6), ch(N(15), 0.28, 0.4, 0.6), dr(180, 80, 0.4, 0.5, 1), bl(N(4), 0.4, 1.4, 0.8), hm(N(-1), 0.4, 1.3, 0.4, { env: 'flat', vib: [4.5, 12] })] },
-  st_wake: { cat: 'voice', v: [bl(N(-5), 0, 2.6, 1), hm(N(-1), 0.2, 2.4, 0.6, { f1: N(1), env: 'flat', vib: [4, 10] }), bl(N(1), 1.4, 1.2, 0.6), ck(2000, 0, 0.6)] },
+  st_decree: { cat: 'voice', v: [bl(N(0), 0, 2.2, 0.5), bl(N(3), 0.35, 1.9, 0.4), ch(N(15), 0, 1.4, 0.35), ch(N(18), 0.35, 1.4, 0.3), hm(N(-1), 0.05, 2.1, 1.2, { env: 'flat', vib: [4.5, 12] }), hm(N(2), 0.35, 1.8, 0.8, { env: 'flat', vib: [4.5, 12] }), tn(N(17), 0.05, 2.0, 0.12, { env: 'flat', vib: [4.5, 12] }), ck(2200, 0, 0.5), ck(2200, 0.35, 0.5)] },
+  st_burn: { cat: 'voice', v: [bl(N(9), 0, 1.2, 0.4), bl(N(7), 0.3, 1.2, 0.4), bl(N(4), 0.6, 1.8, 0.5), ch(N(19), 0, 0.8, 0.3), ch(N(17), 0.3, 0.8, 0.3), ch(N(14), 0.6, 1.0, 0.3), tn(N(-5), 0, 2.2, 0.4, { w: 'sawtooth', am: [7, 0.6], env: 'swell' }), hm(N(-1), 0.1, 2.2, 1.2, { env: 'flat', vib: [4, 14] }), tn(1800, 0, 2.2, 0.25, { am: [7, 0.8], env: 'flat' }), ck(2600, 0, 0.5), ck(2600, 0.3, 0.5), ck(2600, 0.6, 0.5)] },
+  st_bounty: { cat: 'voice', v: [ch(N(14), 0, 0.3, 0.4), ch(N(16), 0.07, 0.3, 0.4), ch(N(13), 0.13, 0.3, 0.4), ch(N(17), 0.2, 0.3, 0.4), ch(N(15), 0.28, 0.4, 0.4), dr(180, 80, 0.4, 0.5, 0.6), bl(N(4), 0.4, 1.4, 0.4), hm(N(-1), 0.3, 1.5, 1.2, { env: 'flat', vib: [4.5, 12] }), hm(N(4), 0.3, 1.5, 0.6, { env: 'flat', vib: [4.5, 12] })] },
+  st_wake: { cat: 'voice', v: [bl(N(-5), 0, 2.6, 0.5), ch(N(16), 0, 1.6, 0.3), hm(N(-1), 0.1, 2.5, 1.2, { f1: N(1), env: 'flat', vib: [4, 10] }), hm(N(4), 0.6, 2.0, 0.6, { f1: N(6), env: 'flat', vib: [4, 10] }), bl(N(1), 1.4, 1.2, 0.4), ch(N(16), 1.4, 1.2, 0.3), ck(2000, 0, 0.5)] },
 };
 
 // ---------- loops: music layers (13.33 s) and ambience (16 s) ----------
@@ -372,7 +372,8 @@ function buildVoice(c, out, v, phone, r, dur) {
     }
     case 'pops': {
       // Fire crackle made of short tonal pops at seeded times (phone-safe).
-      for (let k = 0; k < v.n; k++) { const t = v.at + r() * (v.d - 0.06), f = v.f + r() * (v.f1 - v.f); osc(c, out, 'sine', f, f * 0.8, t, 0.02 + r() * 0.03, { g: v.g * (0.3 + r() * 0.7), a: 0.001 }); }
+      const pr = rng(Math.round(v.f * 7 + v.d * 1000 + v.n));
+      for (let k = 0; k < v.n; k++) { const t = v.at + pr() * (v.d - 0.06), f = v.f + pr() * (v.f1 - v.f); osc(c, out, 'sine', f, f * 0.8, t, 0.02 + pr() * 0.03, { g: v.g * (0.3 + pr() * 0.7), a: 0.001 }); }
       break;
     }
     case 'noise': {
@@ -418,15 +419,25 @@ function snapVoices(vs, L) {
     return o;
   });
 }
-// Renders one loop: steady voices crossfaded across the seam, event tails folded onto the start. opts.raw = no snap, no wrap (test mutant).
+// Renders one loop. Steady voices (snapped to whole cycles) are read from an offset Y past their attack and crossfaded across the
+// seam (an identity for tonal content, a true crossfade for noise); event tails are folded onto the loop start.
+// opts.raw = no snap, no offset, no crossfade, no fold (test mutant). opts.ref = the second loop of a continuous two-loop render,
+// scaled like the loop (the steady state the loop must equal; test reference).
 export async function renderLoop(name, sr, profile, opts) {
-  const def = LOOPS[name], Ls = loopSeconds(name), L = Math.round(Ls * sr), X = Math.round(CONFIG.xfadeS * sr), phone = profile === 'phone', raw = opts && opts.raw;
-  const out = new Float32Array(L), seed = CONFIG.seed + hashName(name);
+  const def = LOOPS[name], Ls = loopSeconds(name), L = Math.round(Ls * sr), X = Math.round(CONFIG.xfadeS * sr), Y = Math.round(0.1 * sr);
+  const phone = profile === 'phone', raw = !!(opts && opts.raw), seed = CONFIG.seed + hashName(name);
+  const out = await loopBody(def, Ls, L, X, Y, sr, phone, raw, seed);
+  const p = peakOf(out), r = rmsOf(out), k = p > 0 ? Math.min(db(CONFIG.loopRmsDb) / r, db(CONFIG.loopPeakDb) / p) : 1;
+  if (opts && opts.ref) return scale(await loopRef(def, Ls, L, sr, phone, seed), k);
+  return scale(out, k);
+}
+async function loopBody(def, Ls, L, X, Y, sr, phone, raw, seed) {
+  const out = new Float32Array(L);
   if (def.steady) {
-    const vs = raw ? def.steady() : snapVoices(def.steady(), Ls), total = raw ? Ls : (L + X) / sr;
+    const vs = raw ? def.steady() : snapVoices(def.steady(), Ls), total = raw ? Ls : (Y + L + X) / sr;
     const s = await renderVoices(vs, total, sr, phone, seed, total + 0.1);
     if (raw) out.set(s.subarray(0, L));
-    else for (let i = 0; i < L; i++) out[i] = i < X ? s[i] * (i / X) + s[L + i] * (1 - i / X) : s[i];
+    else for (let i = 0; i < L; i++) out[i] = i < X ? s[Y + i] * (i / X) + s[Y + L + i] * (1 - i / X) : s[Y + i];
   }
   if (def.events) {
     const ev = def.events(), tail = raw ? Ls : Math.max(Ls, voicesEnd(ev) + 0.05);
@@ -434,8 +445,18 @@ export async function renderLoop(name, sr, profile, opts) {
     for (let i = 0; i < L; i++) out[i] += e[i];
     if (!raw) for (let i = L; i < e.length; i++) out[i % L] += e[i];
   }
-  const p = peakOf(out), r = rmsOf(out);
-  if (p > 0) scale(out, Math.min(db(CONFIG.loopRmsDb) / r, db(CONFIG.loopPeakDb) / p));
+  return out;
+}
+async function loopRef(def, Ls, L, sr, phone, seed) {
+  const out = new Float32Array(L);
+  if (def.steady) {
+    const vs = snapVoices(def.steady(), Ls), s = await renderVoices(vs, (2 * L) / sr, sr, phone, seed, (2 * L) / sr + 0.1);
+    for (let i = 0; i < L; i++) out[i] = s[L + i];
+  }
+  if (def.events) {
+    const ev = def.events(), both = ev.concat(shift(ev, Ls)), e = await renderVoices(both, (2 * L) / sr, sr, phone, seed + 1, 0);
+    for (let i = 0; i < L; i++) out[i] += e[L + i];
+  }
   return out;
 }
 

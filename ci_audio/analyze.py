@@ -15,6 +15,8 @@ G = {
     'flat_max': 0.2,
     # Loop seam: end-to-start first and second differences at most k x the loop's own 99.9th percentile (plus 16-bit slack).
     'seam_k': 2.0, 'seam_slack': 1e-4,
+    # Loop seam, phone loops: first and last second of the loop against the steady state of a continuous render, error at most this, dB.
+    'fold_db': -30.0,
     # Ramp loudness windows, LUFS: whole 60 s, first 10 s (calm bed), last 10 s (peak) (13d: mobile -16 +-2, beds -22..-18, peaks -16..-12).
     'ramp_int': (-20.0, -14.0), 'ramp_first': (-26.0, -18.0), 'ramp_last': (-18.0, -12.0),
     # Stinger over the calm bed, LU (13d: not more than 12-15 LU above the bed; at least 3 LU so it reads).
@@ -127,18 +129,34 @@ def g5_tonal(D):
     items = [(k, v) for k, v in D['snd'].items() if k.startswith('phone/')] + [('loop ' + k, v) for k, v in D['loop'].items() if k.startswith('phone/')]
     for k, (x, sr, st) in items:
         fl = flatness(x, sr); vals.append(fl)
+        if st.get('noiseSrc', -1) != 0:
+            bad.append(f'  {k} noise sources {st.get("noiseSrc")}')
         if fl > G['flat_max']:
             bad.append(f'  {k} flatness {fl:.3f}')
-    return not bad and vals, [f'G5 phone renders tonal (flatness <= {G["flat_max"]}): {len(vals) - len(bad)} of {len(vals)} (max {max(vals) if vals else 0:.3f})'] + bad[:20]
+    dn = sum(v[2].get('noiseSrc', 0) for k, v in D['snd'].items() if k.startswith('desktop/'))
+    return not bad and vals, [f'G5 phone renders tonal (0 noise sources, flatness <= {G["flat_max"]}): {len(vals) - len(bad)} of {len(vals)} (max flatness {max(vals) if vals else 0:.3f}; desktop effects use {dn} noise sources)'] + bad[:20]
+
+
+def fold_err(x, ref, sr):
+    w = sr; out = -200.0
+    for a, b in ((x[:w], ref[:w]), (x[-w:], ref[-w:])):
+        e = np.sqrt(np.mean((a - b) ** 2)); r = np.sqrt(np.mean(b ** 2))
+        out = max(out, dbfs(e) - dbfs(r))
+    return out
 
 
 def g6_seam(D):
-    bad = []; n = 0
+    bad = []; n = 0; worst = -200.0
     for k, (x, sr, st) in D['loop'].items():
         n += 1; ok, s1, p1, s2, p2 = seam(x)
         if not ok:
             bad.append(f'  {k} seam d1 {s1:.5f} (p99.9 {p1:.5f}) d2 {s2:.5f} (p99.9 {p2:.5f})')
-    return not bad and n > 0, [f'G6 loops seamless: {n - len(bad)} of {n}'] + bad
+        if k in D['ref']:
+            fe = fold_err(x, D['ref'][k][0], sr); worst = max(worst, fe)
+            if len(x) != len(D['ref'][k][0]) or fe > G['fold_db']:
+                bad.append(f'  {k} differs from the steady state by {fe:.1f} dB')
+    nr = sum(1 for k in D['loop'] if k in D['ref'])
+    return not bad and n > 0 and nr > 0, [f'G6 loops seamless: {n - len(bad)} of {n} (click check all; steady-state check on {nr} phone loops, worst {worst:.1f} dB)'] + bad
 
 
 def g7_ramp(D):
@@ -182,6 +200,9 @@ def load(out):
         p, n = k.split('/'); x, sr = read_wav(os.path.join(out, 'wav', p, 'loop_' + n + '.wav')); D['loop'][k] = (x, sr, st)
     for p, st in S['stats']['ramp'].items():
         x, sr = read_wav(os.path.join(out, 'preview', f'ramp_60s_{p}.wav')); D['ramp'][p] = (x, sr, st)
+    D['ref'] = {}
+    for k, st in S['stats']['refs'].items():
+        p, n = k.split('/'); x, sr = read_wav(os.path.join(out, 'ref', p, 'loop_' + n + '.wav')); D['ref'][k] = (x, sr, st)
     D['mut'] = {k: read_wav(os.path.join(out, 'mut', k + '.wav')) + (st,) for k, st in S['stats']['mut'].items()}
     return D
 
@@ -200,9 +221,9 @@ def mutants(D):
     m = clone(D); x, sr, st = m['snd'][tell]; F = np.fft.rfft(x); F[np.fft.rfftfreq(len(x), 1 / sr) > 800] = 0; m['snd'][tell] = (np.fft.irfft(F, len(x)), sr, st); yield 3, f'{tell} low-passed at 800 Hz', m
     for n in ('vat_splash', 'demon_claw'):
         m = clone(D); m['snd'][f'phone/{n}'] = D['snd'][f'desktop/{n}']; yield 4, f'phone/{n} replaced by its desktop (noise) render', m
-    m = clone(D); x, sr, st = D['mut']['raw_a_wind']; m['loop']['phone/a_wind'] = (x, sr, st); yield 4, 'phone/a_wind replaced by the desktop wind (noise)', m
-    for n in ('m_drone', 'm_bells', 'a_wind'):
-        m = clone(D); x, sr, st = D['mut'][f'raw_{n}']; m['loop'][f'desktop/{n}'] = (x, sr, st); yield 5, f'desktop/{n} rendered without seam handling', m
+    m = clone(D); m['loop']['phone/a_wind'] = D['loop']['desktop/a_wind']; yield 4, 'phone/a_wind replaced by the desktop wind (noise)', m
+    for n in ('m_drone', 'm_bells', 'a_wind', 'a_fire'):
+        m = clone(D); m['loop'][f'phone/{n}'] = D['mut'][f'raw_{n}']; yield 5, f'phone/{n} rendered without seam handling', m
     for g in (8, -10):
         m = clone(D); m['ramp'] = {p: (x * 10 ** (g / 20), sr, st) for p, (x, sr, st) in D['ramp'].items()}; yield 6, f'ramp {g:+d} dB', m
     m = clone(D); n = next(n for n, c in D['list'] if c == 'voice'); x, sr, st = D['snd'][f'phone/{n}']; m['snd'][f'phone/{n}'] = (x * 10 ** (14 / 20), sr, st); yield 7, f'phone/{n} +14 dB', m
@@ -226,6 +247,9 @@ def main():
     for g in GATES:
         ok, lines = g(D); res.append(bool(ok)); print(('PASS ' if ok else 'FAIL ') + '\n'.join(lines))
     print(f'GATES {sum(res)} of {len(res)}')
+    for k, (x, sr, st) in sorted(D['loop'].items()):
+        if k.startswith('phone/'):
+            print(f'INFO loop {k}: rms {dbfs(np.sqrt(np.mean(x ** 2))):.1f} dBFS, peak {dbfs(np.max(np.abs(x))):.1f} dBFS, {lufs(x, sr):.1f} LUFS')
     caught = [0] * len(GATES); tried = [0] * len(GATES)
     for gi, label, m in mutants(D):
         ok, _ = GATES[gi](m); tried[gi] += 1; caught[gi] += (not ok)

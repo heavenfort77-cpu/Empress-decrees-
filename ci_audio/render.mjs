@@ -14,7 +14,7 @@ await page.waitForFunction(() => window.HREADY === true, null, { timeout: 30000 
 const list = await page.evaluate(() => H.list()), loops = await page.evaluate(() => H.loops()), cfg = await page.evaluate(() => H.config());
 console.log('NOTES (computed once, 五声 by 三分损益 from gong ' + cfg.music.gongHz + ' Hz):');
 for (const l of await page.evaluate(() => H.notes())) console.log('  ' + l);
-const stats = { sounds: {}, loops: {}, ramp: {}, mut: {} };
+const stats = { sounds: {}, loops: {}, refs: {}, ramp: {}, mut: {} };
 const save = (rel, b64) => { const p = join(OUT, rel); mkdirSync(join(p, '..'), { recursive: true }); writeFileSync(p, Buffer.from(b64, 'base64')); };
 let fails = 0;
 for (const prof of ['phone', 'desktop']) {
@@ -26,13 +26,17 @@ for (const prof of ['phone', 'desktop']) {
   for (const k of loops) {
     try { const r = await page.evaluate(([n, sr, p]) => H.loop(n, sr, p, false), [k, sr, prof]); save(`wav/${prof}/loop_${k}.wav`, r.b64); delete r.b64; stats.loops[prof + '/' + k] = Object.assign(r, { sr }); }
     catch (e) { fails++; console.log(`RENDER FAIL loop ${prof}/${k}: ${String(e.message).split('\n')[0]}`); }
+    if (prof !== 'phone') continue;
+    // Steady-state reference (second loop of a continuous two-loop render) for the seam check of phone loops.
+    try { const r = await page.evaluate(([n, sr, p]) => H.loop(n, sr, p, 'ref'), [k, sr, prof]); save(`ref/${prof}/loop_${k}.wav`, r.b64); delete r.b64; stats.refs[prof + '/' + k] = Object.assign(r, { sr }); }
+    catch (e) { fails++; console.log(`RENDER FAIL ref ${prof}/${k}: ${String(e.message).split('\n')[0]}`); }
   }
   try { const r = await page.evaluate(([sr, p]) => H.ramp(sr, 60, p), [sr, prof]); save(`preview/ramp_60s_${prof}.wav`, r.b64); delete r.b64; stats.ramp[prof] = Object.assign(r, { sr }); }
   catch (e) { fails++; console.log(`RENDER FAIL ramp ${prof}: ${String(e.message).split('\n')[0]}`); }
 }
 // Mutation material: loops rendered without the seam handling (no whole-cycle snap, no crossfade, no tail fold).
-for (const k of ['m_drone', 'm_bells', 'a_wind']) {
-  const r = await page.evaluate(([n, sr]) => H.loop(n, sr, 'desktop', true), [k, 48000]); save(`mut/raw_${k}.wav`, r.b64); delete r.b64; stats.mut['raw_' + k] = r;
+for (const k of ['m_drone', 'm_bells', 'a_wind', 'a_fire']) {
+  const r = await page.evaluate(([n, sr]) => H.loop(n, sr, 'phone', 'raw'), [k, RATE.phone]); save(`mut/raw_${k}.wav`, r.b64); delete r.b64; stats.mut['raw_' + k] = r;
 }
 writeFileSync(join(OUT, 'stats.json'), JSON.stringify({ list, loops, config: cfg, rate: RATE, stats }, null, 1));
 const ms = Object.values(stats.sounds).reduce((a, r) => a + r.ms, 0) + Object.values(stats.loops).reduce((a, r) => a + r.ms, 0);
