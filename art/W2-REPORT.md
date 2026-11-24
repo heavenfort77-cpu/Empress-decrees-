@@ -15,6 +15,11 @@ Shared tools changed (lead, please check when merging):
 - `paint_palace.py`: a background `none` gives a transparent export (alpha cards). Old textures behave the same: the approved rows still pass 25 of 25, and they were not repainted.
 - `tex_check.py`: the new rows and rules only touch W2 names. An alpha card with no opaque pixel now prints FAIL instead of crashing.
 
+## Runs
+- Runner run 45447259803 (commit df7ab9c, green) rebuilt everything from source on a clean runner and got the same numbers as local: tex_check 165 of 165, mutation 12 of 12, mesh gates 100 of 100, mesh mutations 28 / 27 / 3, and the same room counts. Results are in ci-out `out/art/ci-art-w2/45447259803/` (job.log, shots, sheets, repro.txt).
+- Repaint check (repro.txt): the runner's repaint matches the committed PNGs exactly (mean absolute difference 0.0) for most textures, and within 0.12 of 255 for the rest (klad 8-bit dithering).
+- Run 45444792219 (commit 0b40809) passed every check, but its step that saves results to ci-out failed (the job left rebuilt tracked files behind). job.sh now cleans up first, and that is fixed in 45447259803.
+
 ## Gates (numbers)
 - Textures: tex_check passes 165 of 165 (25 approved rows and 140 W2 rows). The mutation test catches 12 of 12.
 - Meshes: arch_blender passes 100 of 100 gates (triangles, texel density on 95% of the surface in 205-320 px/m in both principal directions, CONFIG dimensions). Mesh-gate mutations: uv gives 28 FAIL lines, budget 27, dims 3. The gates are not blind.
