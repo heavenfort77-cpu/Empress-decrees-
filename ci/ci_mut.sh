@@ -10,7 +10,7 @@ exec 9>/home/claude/citools/.lock; flock 9
 cd "$WT"; git fetch -q origin ci-run
 git reset -q --hard origin/ci-run
 KEEP=$(mktemp -d); cp -r .github ci "$KEEP"/
-find "$WT" -mindepth 1 -maxdepth 1 ! -name .git -exec rm -rf {} +; (cd "$REPO" && tar --exclude=.git --exclude=node_modules -cf - .) | (cd "$WT" && tar -xf -)
+find "$WT" -mindepth 1 -maxdepth 1 ! -name .git -exec rm -rf {} +; (cd "$REPO" && tar --exclude=.git --exclude=node_modules --exclude=backup --exclude="*_before_*" -cf - .) | (cd "$WT" && tar -xf -)
 cp -r "$KEEP"/.github "$KEEP"/ci "$WT"/; python3 - "$JOB" "$LABEL" <<'PY'
 import json,sys; j=json.load(open(sys.argv[1],encoding='utf-8')); j['label']=sys.argv[2]; json.dump(j,open('ci/job.json','w',encoding='utf-8'),ensure_ascii=False)
 PY
