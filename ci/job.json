@@ -1,1 +1,1 @@
-{"mode": "suite", "label": "int-02"}
+{"mode": "cmd", "label": "bp05-detail", "cmd": "node tests/run.mjs -vv 704,705,708 2>&1 | grep -E \"^(ok|FAIL|RUNTIME)|^70[0-9]|^ *705|^ *704|^ *708\" | cut -c1-1500 | tail -20"}
