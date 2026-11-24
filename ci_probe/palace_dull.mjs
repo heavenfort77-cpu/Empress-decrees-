@@ -13,6 +13,7 @@ const res = await page.evaluate(({ SEEDS }) => {
     const plan = G.palPlan(), byId = {}, adj = {}, visits = {};
     for (const r of plan.rooms) { byId[r.id] = r; adj[r.id] = []; visits[r.id] = 0; }
     plan.doors.forEach((d, i) => { adj[d.a].push({ to: d.b, i }); adj[d.b].push({ to: d.a, i }); });
+    let auto = false; const setAuto = (on) => { if (on !== auto) { auto = on; G.autoPlayer(on); } };
     let t = 0, idle = 0, runS = 0, longest = 0, over5 = 0, over10 = 0, samples = 0, lastHp = G.state().hp, goal = null, rooms = 0, last = '';
     const why = {};
     for (let n = 0; n < 330 / 0.25; n++) {
@@ -24,9 +25,9 @@ const res = await page.evaluate(({ SEEDS }) => {
       const inRoom = (x, z) => { const r = byId[p.cur]; return x >= r.x0 && x <= r.x1 && z >= r.z0 && z <= r.z1; };
       const foes = gs.filter((u) => u.alive && inRoom(u.x, u.z)).length + s.recs.filter((r) => r.st === 'live' && !r.dead && inRoom(r.x, r.z)).length
         + q2.giants.filter((g) => g.st >= 1 && g.st <= 4 && inRoom(g.x, g.z)).length;
-      if (foes > 0 || s.locked.indexOf(p.cur) >= 0) { G.autoPlayer(true); goal = null; }
+      if (foes > 0 || s.locked.indexOf(p.cur) >= 0) { setAuto(true); goal = null; }
       else {
-        G.autoPlayer(false);
+        if (auto) { setAuto(false); goal = null; }
         if (!goal) {
           let best = null;
           for (const e of adj[p.cur]) {
@@ -37,7 +38,7 @@ const res = await page.evaluate(({ SEEDS }) => {
             if (!best || score < best.score) best = { id: e.to, score };
           }
           if (best) { goal = best.id; G.palMoveTo(byId[goal].cx, byId[goal].cz); }
-        }
+        } else if (n % 8 === 0 && Math.hypot(G.player().x - byId[goal].cx, G.player().z - byId[goal].cz) > 1) G.palMoveTo(byId[goal].cx, byId[goal].cz);
       }
       G.step(STEP); t += 0.25;
       const me2 = G.player(), hp = G.state().hp, w = [];
@@ -55,9 +56,9 @@ const res = await page.evaluate(({ SEEDS }) => {
       else { idle++; runS += 0.25; if (runS > longest) longest = runS; }
     }
     if (runS > 5) over5++; if (runS > 10) over10++;
-    G.autoPlayer(false);
+    setAuto(false);
     const p = G.palace(), me = G.player(), s = G.palSim();
-    return { seed, t: +t.toFixed(1), end: p.phase === 'palace' ? (me.dead ? 'dead:' + me.cause : 'time') : p.phase, idlePct: Math.round(100 * idle / Math.max(1, samples)),
+    return { seed, cause: me.cause, t: +t.toFixed(1), end: p.phase === 'palace' ? (me.dead ? 'dead:' + me.cause : 'time') : p.phase, idlePct: Math.round(100 * idle / Math.max(1, samples)),
       longest: +longest.toFixed(1), over5, over10, rooms, rivalsOut: s.outN, falls: G.burnState().falls, why };
   }
   const out = [];
@@ -67,6 +68,6 @@ const res = await page.evaluate(({ SEEDS }) => {
 }, { SEEDS });
 const sum = (k) => res.reduce((a, r) => a + r[k], 0);
 console.log(`== palace (full, 8 rivals): idle% mean ${Math.round(sum('idlePct') / res.length)} (range ${Math.min(...res.map((r) => r.idlePct))}-${Math.max(...res.map((r) => r.idlePct))}), longest idle max ${Math.max(...res.map((r) => r.longest))} s, stretches >5 s total ${sum('over5')}, >10 s total ${sum('over10')}, run length ${Math.min(...res.map((r) => r.t))}-${Math.max(...res.map((r) => r.t))} s`);
-for (const r of res) console.log(`${r.seed}: t ${r.t} end ${r.end} idle ${r.idlePct}% longest ${r.longest}s >5s ${r.over5} >10s ${r.over10} rooms ${r.rooms} rivalsOut ${r.rivalsOut} falls ${r.falls} ${JSON.stringify(r.why)}`);
+for (const r of res) console.log(`${r.seed}: t ${r.t} end ${r.end} cause ${r.cause} idle ${r.idlePct}% longest ${r.longest}s >5s ${r.over5} >10s ${r.over10} rooms ${r.rooms} rivalsOut ${r.rivalsOut} falls ${r.falls} ${JSON.stringify(r.why)}`);
 console.log('errors ' + errors.length + (errors.length ? ' ' + errors.slice(0, 2).join(' | ') : ''));
 await close();
