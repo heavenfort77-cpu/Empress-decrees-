@@ -31,12 +31,14 @@ TIP_MIN = 0.3
 
 # helpers -------------------------------------------------------------------------------------------------------------
 def P(x, f, z):
-    k = Q['scale']; return Vector((-x * k, -f * k, (z + Q['zoff']) * k))  # a proper rotation (x right of a figure facing +f): glTF faces +Z, right hand on -X
+    k = Q['scale']; z = z + Q['zoff']
+    z = Q['zpiv'] + (z - Q['zpiv']) * Q['zk']  # round 4 (guard): upper body stretched about the pivot; zk 1 (rebels) changes nothing
+    return Vector((-x * k, -f * k, z * k))  # a proper rotation (x right of a figure facing +f): glTF faces +Z, right hand on -X
 
 PARTS = []   # dict(ob, bone, mat, row, rnd, cloth, group)
 def Pd(x, f, z): return Vector((-x, -f, z))  # a direction (no offset, no scale)
 
-Q = {'seg': 1.0, 'detail': True, 'group': 'body', 'scale': 1.0, 'zoff': 0.0}
+Q = {'seg': 1.0, 'detail': True, 'group': 'body', 'scale': 1.0, 'zoff': 0.0, 'zk': 1.0, 'zpiv': 0.0}
 
 def put(name, bm, mat, bone, row, rnd, cloth=False):
     me = bpy.data.meshes.new(name); bm.to_mesh(me); bm.free()
@@ -162,9 +164,9 @@ def make_rig(name, bones):
     bpy.ops.object.armature_add(location=(0, 0, 0)); arm = bpy.context.active_object; arm.name = name
     bpy.ops.object.mode_set(mode='EDIT'); eb = arm.data.edit_bones; eb.remove(eb[0])
     for bone in bones:
-        n, h, t, p = bone[:4]; Q['zoff'] = bone[4] if len(bone) > 4 else 0.0
+        n, h, t, p = bone[:4]; Q['zoff'] = bone[4] if len(bone) > 4 else 0.0; zk = Q['zk']; Q['zk'] = bone[5] if len(bone) > 5 else 1.0
         b = eb.new(n); b.head = P(*h); b.tail = P(*t); b.roll = 0.0
-        Q['zoff'] = 0.0
+        Q['zoff'] = 0.0; Q['zk'] = zk
         if p: b.parent = eb[p]
     bpy.ops.object.mode_set(mode='OBJECT')
     return arm
@@ -321,11 +323,11 @@ def build_unit(key, build, bones, clips_fn, out, extra_gates=None, weapons=None,
     # LOD1 and LOD2 (static, no detail, lower segments)
     lods = []
     for k, (seg, ratio) in enumerate(((LOD1_SEG, None), (LOD1_SEG * 0.8, LOD2_RATIO))):
-        PARTS.clear(); Q['seg'] = seg; Q['detail'] = False; Q['group'] = 'body'; Q['zoff'] = 0.0; build(False); Q['zoff'] = 0.0
+        PARTS.clear(); Q['seg'] = seg; Q['detail'] = False; Q['group'] = 'body'; Q['zoff'] = 0.0; Q['zk'] = 1.0; build(False); Q['zoff'] = 0.0; Q['zk'] = 1.0
         for p in PARTS: prep(p, False)
         lods.append(static(PARTS, f'{key}_lod{k + 1}', ratio, BUDGET[k + 1] if ratio else None))
     # LOD0
-    PARTS.clear(); Q['seg'] = 1.0; Q['detail'] = True; Q['group'] = 'body'; Q['zoff'] = 0.0; build(True); Q['zoff'] = 0.0
+    PARTS.clear(); Q['seg'] = 1.0; Q['detail'] = True; Q['group'] = 'body'; Q['zoff'] = 0.0; Q['zk'] = 1.0; build(True); Q['zoff'] = 0.0; Q['zk'] = 1.0
     for p in PARTS: prep(p, True)
     arm = make_rig(f'{key}_rig', bones)
     for k, v in (extras or {}).items(): arm[k] = json.dumps(v, ensure_ascii=False)

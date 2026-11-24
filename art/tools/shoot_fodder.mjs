@@ -18,6 +18,7 @@ const UNITS = ['zu', 'nu', 'dun', 'che', 'wz', 'ls', 'fs', 'ss', 'qs'];
 const SHOTS = [
   ['lineup_guard', 'view=lineup&faction=guard', 1920, 1080], ['lineup_rebels', 'view=lineup&faction=rebels', 1920, 1080],
   ['lineup_all_wide', 'view=lineup&faction=all&dist=22', 1920, 1080], ['lineup_all_sil', 'view=lineup&faction=all&dist=22&mode=sil&yaw=35', 1920, 1080],
+  ['lineup_guard_wide', 'view=lineup&faction=guard&dist=22', 1920, 1080], ['lineup_guard_sil', 'view=lineup&faction=guard&mode=sil', 1920, 1080],
   ['schools', 'view=schools', 1920, 1080], ['schools_sil', 'view=schools&mode=sil', 1920, 1080],
 ];
 for (const u of UNITS) {
