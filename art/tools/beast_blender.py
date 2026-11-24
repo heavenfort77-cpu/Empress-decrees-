@@ -1,11 +1,11 @@
-# Bronze guardian beast, round 2 (asset list C1; study art/Qin-Bronze-Castings-Study.md).
-# Owner 24 Nov 21:03: segmented bronze guardian beasts with silver inlay replace the stone lions. Owner 22:30: round where the form is
-# round, sharp where it is sharp, never square and blocky. Our own design in headless Blender (no sculpt, scan or trace).
-# Round: haunches, torso, chest, skull, cheeks, snout, paws, mane curls, tail (smooth-shaded spheroids and tapered tubes).
-# Sharp: claws, fangs, ear tips, brow ridge, flanges, breast plate, collar, plinth (flat faces, bevelled, split normals).
-# Pose: seated upright on a stone plinth (taller inside the same 1.8 x 2.2 m collision footprint). Facing cues forward: face, chest plate,
-# front paws and claws; behind: mane curls, haunches, tail. Ears point up and out, never backward.
-# Round 1 is kept in art/beast/round1/ (script, GLB, trim sheet).
+# Bronze guardian beast, round 3 (asset list C1; study art/Qin-Bronze-Castings-Study.md).
+# Shape follows ComfyUI concept 2130 (owner pick 24 Nov 23:51; art/beast/concepts/, reference only, nothing traced): a compact seated
+# guardian, frontal and massive; a big broad head (0.37 of the figure height) on a low neck; a collar of mane tufts under and around the
+# face; forelegs built of stacked rings (read as segmented castings, with silver inlay bands between rings); big paws side by side.
+# Measured on the concept (front view, 512 x 768): figure height H = 535 px; head 0.37 H; forehead width 0.48 H, mane collar 0.56 H;
+# body 0.63 H; paws 0.61 H. Built from lofted rounded-square sections (superellipses), not spheres: round where round, sharp where
+# sharp (owner 22:30). Material and ornament from the study and the klad bronze sheet (the concept reads as stone).
+# Rounds 1 and 2 are kept in art/beast/round1/ and round2/.
 #
 # Output (one GLB, Y up, faces +Z in three.js): beast_lod0 skinned to a rigid rig (clips 'idle' 1 s, 'strike' with the 0.6 s windup tell),
 # beast_lod1 and beast_lod2 static. Materials palBronze (trim sheet UVs at 256 px/m), palInlay (silver), palStone (plinth, world UVs).
@@ -81,80 +81,104 @@ def rect(w, h): return [(-w / 2, -h / 2), (w / 2, -h / 2), (w / 2, h / 2), (-w /
 def ngon(r, n, rot=0.0): return [(math.cos(rot + i * math.tau / n) * r, math.sin(rot + i * math.tau / n) * r) for i in range(n)]
 def blade(w, t): return [(-w / 2, -t / 2), (w / 2, -t / 2), (0, t / 2)]  # a sharp sliver (claw, fang, ear) when tapered to a point
 
+def loft(name, secs, mat, bone, row='plain', n_exp=2.6, M=24, cap=True):
+    """a rounded-square mass lofted through sections (z, cf, hw, hd, cx) in design coords: superellipse rings (exponent n_exp: 2 = ellipse,
+    higher = squarer), quads between rings, caps at both ends; smooth sides, hard caps."""
+    M = max(10, round(M * Q['seg']))
+    bm = bmesh.new(); rings = []
+    for z, cf, hw, hd, cx in secs:
+        ring = []
+        for i in range(M):
+            t = i * math.tau / M; c, sn = math.cos(t), math.sin(t)
+            ring.append(bm.verts.new(P(cx + hw * math.copysign(abs(c) ** (2 / n_exp), c), cf + hd * math.copysign(abs(sn) ** (2 / n_exp), sn), z)))
+        rings.append(ring)
+    for a, b in zip(rings, rings[1:]):
+        for i in range(M): bm.faces.new([a[i], a[(i + 1) % M], b[(i + 1) % M], b[i]])
+    if cap: bm.faces.new(list(reversed(rings[0]))); bm.faces.new(rings[-1])
+    bmesh.ops.recalc_face_normals(bm, faces=bm.faces)
+    return put(name, bm, mat, bone, row, True)
+
+# figure proportions (concept 2130, figure height FH on the plinth top)
+FH = 2.1
+
 def build(detail):
     PARTS.clear()
-    # plinth: two stepped stone tiers (sharp)
+    # plinth: two stepped stone tiers (sharp; the collision footprint 1.8 x 2.2 m)
     prism('plinth_a', rect(1.8, 2.2), (0, 0, 0), (0, 0, 0.35), 'palStone', 'root')
     prism('plinth_b', rect(1.6, 2.0), (0, 0, 0.35), (0, 0, Z0), 'palStone', 'root')
-    # haunches and hind paws (round, behind)
+    # body: one lofted rounded-square mass, haunches behind and low, chest high and forward (body width 0.63 FH = 1.32 m)
+    loft('body', [(Z0, -0.22, 0.6, 0.72, 0), (Z0 + 0.25, -0.2, 0.66, 0.74, 0), (Z0 + 0.55, -0.14, 0.66, 0.66, 0),
+                  (Z0 + 0.85, -0.04, 0.6, 0.54, 0), (Z0 + 1.1, 0.04, 0.54, 0.46, 0), (Z0 + 1.32, 0.08, 0.46, 0.38, 0)], 'palBronze', 'body')
+    # haunch rolls on the flanks behind (the concept's stacked rolls), three per side
     for s in (-1, 1):
-        spheroid(f'haunch_{s}', (s * 0.36, -0.5, Z0 + 0.38), (0.3, 0.52, 0.4), 'palBronze', 'body', 'plain', tilt=-8, segs=(12, 8))
-        spheroid(f'hindpaw_{s}', (s * 0.46, -0.06, Z0 + 0.09), (0.15, 0.24, 0.09), 'palBronze', 'body', 'plain', segs=(10, 6))
+        for k in range(3):
+            spheroid(f'roll_{s}{k}', (s * 0.6, -0.42 + k * 0.1, Z0 + 0.22 + k * 0.2), (0.12, 0.34, 0.1), 'palBronze', 'body', 'clouds', segs=(10, 6))
+    # forelegs: four stacked rings each (segmented castings) with silver inlay bands between, from the chest down to the paws
+    for s in (-1, 1):
+        side = 'R' if s < 0 else 'L'; x = s * 0.3
+        zs = [Z0 + 1.05, Z0 + 0.82, Z0 + 0.6, Z0 + 0.4, Z0 + 0.2]
+        for k in range(4):
+            z1, z0 = zs[k], zs[k + 1]; r = 0.2 - k * 0.006; bone = f'leg_{side}' if k < 2 else f'fore_{side}'
+            loft(f'ring_{side}{k}', [(z0 + 0.01, 0.42, r * 0.86, r * 0.8, x), ((z0 + z1) / 2, 0.43, r, r * 0.93, x), (z1 - 0.01, 0.44, r * 0.86, r * 0.8, x)],
+                 'palBronze', bone, 'flange' if k % 2 else 'plain', n_exp=2.2, M=18)
+            if detail and k > 0:
+                prism(f'band_{side}{k}', ngon(r * 0.9, 12), (x, 0.43, z1 + 0.012), (x, 0.43, z1 - 0.012), 'palInlay', bone)
+        # paw: a rounded box reaching forward with four toe lobes and sharp claws
+        loft(f'paw_{side}', [(Z0, 0.56, 0.2, 0.3, x), (Z0 + 0.1, 0.56, 0.22, 0.32, x), (Z0 + 0.2, 0.5, 0.18, 0.26, x)], 'palBronze', f'paw_{side}', n_exp=2.4, M=18)
+        for k in range(4):
+            tx = x + (k - 1.5) * 0.1
+            spheroid(f'toe_{side}{k}', (tx, 0.82, Z0 + 0.09), (0.055, 0.07, 0.07), 'palBronze', f'paw_{side}', segs=(8, 5))
+            if detail:
+                prism(f'claw_{side}{k}', blade(0.05, 0.04), (tx, 0.88, Z0 + 0.07), (tx, 0.96, Z0 + 0.02), 'palInlay', f'paw_{side}', scale_b=0.1)
+    # head: a broad rounded-square loft (0.37 FH tall), flat face plane, low neck
+    HB = Z0 + 1.22
+    loft('head', [(HB, 0.2, 0.42, 0.36, 0), (HB + 0.18, 0.18, 0.52, 0.42, 0), (HB + 0.44, 0.14, 0.5, 0.42, 0),
+                  (HB + 0.62, 0.1, 0.44, 0.38, 0), (HB + 0.74, 0.07, 0.36, 0.3, 0), (HB + 0.82, 0.05, 0.22, 0.19, 0), (HB + 0.85, 0.04, 0.08, 0.07, 0)], 'palBronze', 'head', 'plain', n_exp=2.8)  # domed crown (round 3a: the flat cap read as a box)
+    # muzzle and jaw (the jaw on its own bone for the strike tell), sharp nose wedge, sharp brow ridge, almond silver eyes, small round ears
+    loft('muzzle', [(HB + 0.12, 0.5, 0.24, 0.16, 0), (HB + 0.22, 0.56, 0.26, 0.18, 0), (HB + 0.32, 0.52, 0.22, 0.14, 0)], 'palBronze', 'head', 'plain', n_exp=2.4, M=18)
+    loft('jaw', [(HB - 0.02, 0.4, 0.15, 0.12, 0), (HB + 0.06, 0.45, 0.17, 0.13, 0), (HB + 0.12, 0.46, 0.16, 0.12, 0)], 'palBronze', 'jaw', 'lozenge', n_exp=2.2, M=16)  # tucked under the muzzle (round 3: read as a shelf)
+    prism('nose', [(-0.1, -0.04), (0.1, -0.04), (0, 0.08)], (0, 0.7, HB + 0.32), (0, 0.76, HB + 0.24), 'palBronze', 'head', 'flange', scale_b=0.6)
+    prism('brow', [(-0.4, -0.04), (0.4, -0.04), (0.34, 0.06), (0, 0.0), (-0.34, 0.06)], (0, 0.5, HB + 0.5), (0, 0.6, HB + 0.48), 'palBronze', 'head', 'flange')
+    loft('bridge', [(HB + 0.3, 0.58, 0.09, 0.07, 0), (HB + 0.4, 0.57, 0.08, 0.06, 0), (HB + 0.5, 0.55, 0.1, 0.06, 0)], 'palBronze', 'head', 'plain', n_exp=2.2, M=12)
+    for s in (-1, 1):
+        spheroid(f'cheek_{s}', (s * 0.2, 0.55, HB + 0.22), (0.14, 0.09, 0.12), 'palBronze', 'head', 'plain', segs=(10, 6))
+    for s in (-1, 1):
+        spheroid(f'eye_{s}', (s * 0.18, 0.585, HB + 0.42), (0.1, 0.04, 0.055), 'palInlay', 'head', segs=(8, 5))
+        spheroid(f'ear_{s}', (s * 0.38, 0.08, HB + 0.72), (0.09, 0.045, 0.08), 'palBronze', 'head', 'plain', segs=(8, 5))  # set into the head sides
         if detail:
-            for k in (-1, 0, 1):
-                prism(f'hclaw_{s}{k}', blade(0.06, 0.05), (s * 0.46 + k * 0.07, 0.15, Z0 + 0.05), (s * 0.46 + k * 0.07, 0.25, Z0 + 0.02), 'palInlay', 'body', scale_b=0.1)
-    # torso (round, leaning forward) and the chest mass
-    spheroid('torso', (0, -0.15, Z0 + 0.85), (0.4, 0.4, 0.72), 'palBronze', 'body', 'plain', tilt=18)
-    spheroid('chest', (0, 0.2, Z0 + 1.02), (0.42, 0.3, 0.42), 'palBronze', 'body', 'plain')
-    # breast plate (sharp): a shield on the chest with the mask band; silver ridge line
-    prism('breastplate', [(-0.3, -0.3), (0.3, -0.3), (0.34, 0.16), (0, 0.3), (-0.34, 0.16)], (0, 0.44, Z0 + 1.0), (0, 0.53, Z0 + 1.0), 'palBronze', 'body', 'mask')
-    if detail:
-        prism('breast_inlay', rect(0.07, 0.5), (0, 0.53, Z0 + 1.0), (0, 0.555, Z0 + 1.0), 'palInlay', 'body')
-    # forelegs (round tubes, front), elbow flange (sharp), round paw with sharp claws
-    for s in (-1, 1):
-        side = 'R' if s < 0 else 'L'; x = s * 0.27
-        tube(f'upper_{side}', (x, 0.34, Z0 + 1.02), (x, 0.4, Z0 + 0.46), 0.17, 0.14, 'palBronze', f'leg_{side}')
-        prism(f'flange_{side}', ngon(0.19, 8, math.pi / 8), (x, 0.4, Z0 + 0.5), (x, 0.41, Z0 + 0.42), 'palBronze', f'fore_{side}', 'flange')
-        tube(f'lower_{side}', (x, 0.41, Z0 + 0.44), (x, 0.45, Z0 + 0.16), 0.13, 0.12, 'palBronze', f'fore_{side}')
-        spheroid(f'paw_{side}', (x, 0.52, Z0 + 0.12), (0.17, 0.25, 0.12), 'palBronze', f'paw_{side}', 'plain', segs=(12, 8))
-        if detail:
-            prism(f'legband_{side}', ngon(0.165, 10), (x, 0.37, Z0 + 0.8), (x, 0.375, Z0 + 0.74), 'palInlay', f'leg_{side}')
-            for k in (-1, 0, 1):
-                prism(f'claw_{side}{k}', blade(0.07, 0.06), (x + k * 0.085, 0.7, Z0 + 0.08), (x + k * 0.085, 0.82, Z0 + 0.02), 'palInlay', f'paw_{side}', scale_b=0.1)
-    # collar (sharp octagonal flange) with a silver ring
-    prism('collar', ngon(0.36, 8, math.pi / 8), (0, 0.3, Z0 + 1.32), (0, 0.42, Z0 + 1.4), 'palBronze', 'head', 'flange')
-    if detail:
-        prism('collar_inlay', ngon(0.365, 8, math.pi / 8), (0, 0.35, Z0 + 1.35), (0, 0.37, Z0 + 1.365), 'palInlay', 'head')
-    # head: round skull, cheeks, snout and nose bump; sharp brow ridge; round silver eyes; jaw on its own bone; sharp fangs; ears up and out
-    H = Z0 + 1.68
-    spheroid('skull', (0, 0.52, H), (0.36, 0.34, 0.32), 'palBronze', 'head', 'plain')
-    spheroid('snout', (0, 0.82, H - 0.14), (0.22, 0.2, 0.15), 'palBronze', 'head', 'plain', segs=(12, 8))
-    prism('brow', [(-0.32, -0.04), (0.32, -0.04), (0.26, 0.06), (0, 0.02), (-0.26, 0.06)], (0, 0.74, H + 0.11), (0, 0.86, H + 0.08), 'palBronze', 'head', 'flange')
-    spheroid('jaw', (0, 0.74, H - 0.3), (0.18, 0.22, 0.07), 'palBronze', 'jaw', 'lozenge', segs=(10, 6))
-    for s in (-1, 1):
-        prism(f'ear_{s}', blade(0.18, 0.05), (s * 0.26, 0.44, H + 0.24), (s * 0.4, 0.4, H + 0.42), 'palBronze', 'head', 'plain', scale_b=0.15)
-    if detail:
-        spheroid('nose', (0, 0.99, H - 0.08), (0.1, 0.06, 0.07), 'palBronze', 'head', 'plain', segs=(8, 6))
-        for s in (-1, 1):
-            spheroid(f'cheek_{s}', (s * 0.22, 0.66, H - 0.12), (0.14, 0.14, 0.12), 'palBronze', 'head', 'plain', segs=(10, 6))
-            spheroid(f'eye_{s}', (s * 0.15, 0.84, H + 0.02), (0.075, 0.05, 0.065), 'palInlay', 'head', segs=(8, 6))
-            for k in (0.07, 0.14):
-                prism(f'fang_{s}{k}', blade(0.05, 0.04), (s * k, 0.95, H - 0.2), (s * k, 0.96, H - 0.32), 'palInlay', 'head', scale_b=0.1)
-    # mane: rows of round curls on a shell behind and around the head and neck, each flattened outward
-    rows = [(0.47, H + 0.02, 0.46, 9, 0.12), (0.34, H - 0.28, 0.44, 7, 0.13)] if detail else [(0.47, H + 0.02, 0.46, 6, 0.14), (0.34, H - 0.28, 0.44, 5, 0.15)]
-    for ri, (fc, zc, rad, n, cr) in enumerate(rows):
-        for i in range(n):
-            a = math.radians(-110 + 220 * i / (n - 1))  # around the back: 0 = straight behind
-            dx, df = math.sin(a), -math.cos(a)
-            spheroid(f'curl_{ri}_{i}', (dx * rad, fc + df * rad * 0.8, zc + (0.1 if ri == 0 else 0)), (cr, 0.055, cr), 'palBronze', 'head' if ri == 0 else 'body', 'clouds',
-                     segs=(8, 6), axis=(dx, df, 0.25))
-    # tail: round segments curling up behind, a sharp flame tuft at the end
-    pts = [(0, -0.9, Z0 + 0.3), (0, -1.0, Z0 + 0.55), (0, -0.98, Z0 + 0.85), (0, -0.88, Z0 + 1.05)]
+            for k in range(3):  # whisker grooves as silver lines on the muzzle
+                prism(f'whisker_{s}{k}', rect(0.2, 0.016), (s * 0.24, 0.6, HB + 0.16 + k * 0.05), (s * 0.24, 0.62, HB + 0.16 + k * 0.05), 'palInlay', 'head')
+            for k in (0.06, 0.13):
+                prism(f'fang_{s}{k}', blade(0.05, 0.04), (s * k, 0.6, HB + 0.12), (s * k, 0.61, HB + 0.02), 'palInlay', 'head', scale_b=0.1)
+    # mane collar: tuft lobes around the sides of the face and under the chin, then two rows down the back of the head and neck
+    n = 15 if detail else 9
+    for i in range(n):
+        a = math.radians(-120 + 240 * i / (n - 1))  # 0 = under the chin, +-120 = up the sides of the face
+        lx, lz = math.sin(a) * 0.56, -math.cos(a) * 0.34
+        big = 1.25 if abs(a) < 0.8 else 1.0  # the ruff under the chin is the biggest part of the collar (concept 2130)
+        spheroid(f'tuft_{i}', (lx, 0.42, HB + 0.3 + lz), (0.13 * big, 0.07, 0.11 * big), 'palBronze', 'head', 'clouds', segs=(8, 5), axis=(math.sin(a), 0.6, -math.cos(a)))
+    for ri in range(2):
+        m = 5 if detail else 3
+        for i in range(m):
+            a = math.radians(-80 + 160 * i / (m - 1))
+            spheroid(f'mane_{ri}_{i}', (math.sin(a) * 0.4, -0.18 - ri * 0.12, HB + 0.5 - ri * 0.32), (0.13, 0.06, 0.12), 'palBronze', 'head' if ri == 0 else 'body', 'clouds',
+                     segs=(8, 5), axis=(math.sin(a), -1, 0.2))
+    # tail: round segments curling up the back, a sharp flame tuft
+    pts = [(0, -0.9, Z0 + 0.15), (0, -0.98, Z0 + 0.45), (0, -0.92, Z0 + 0.8), (0, -0.82, Z0 + 1.0)]
     for i in range(3):
         tube(f'tail_{i}', pts[i], pts[i + 1], 0.09 - i * 0.012, 0.08 - i * 0.012, 'palBronze', f'tail_{i}', 'plain', sides=8)
-    spheroid('tail_curl', (0, -0.86, Z0 + 1.1), (0.1, 0.1, 0.1), 'palBronze', 'tail_2', 'clouds', segs=(8, 6))
     if detail:
         for k in (-1, 0, 1):
-            prism(f'tuft_{k}', blade(0.12, 0.04), (k * 0.06, -0.86, Z0 + 1.12), (k * 0.12, -0.78, Z0 + 1.34), 'palBronze', 'tail_2', 'flange', scale_b=0.1)
+            prism(f'flame_{k}', blade(0.12, 0.04), (k * 0.06, -0.82, Z0 + 1.02), (k * 0.12, -0.74, Z0 + 1.24), 'palBronze', 'tail_2', 'flange', scale_b=0.1)
 
-BONES = [('root', P(0, 0, 0), P(0, 0, Z0), None), ('body', P(0, -0.3, Z0 + 0.4), P(0, 0.2, Z0 + 1.2), 'root'),
-         ('head', P(0, 0.36, Z0 + 1.36), P(0, 0.6, Z0 + 1.9), 'body'), ('jaw', P(0, 0.6, Z0 + 1.42), P(0, 0.92, Z0 + 1.38), 'head')]
+BONES = [('root', P(0, 0, 0), P(0, 0, Z0), None), ('body', P(0, -0.2, Z0 + 0.3), P(0, 0.08, Z0 + 1.2), 'root'),
+         ('head', P(0, 0.15, Z0 + 1.2), P(0, 0.2, Z0 + 1.9), 'body'), ('jaw', P(0, 0.4, Z0 + 1.28), P(0, 0.6, Z0 + 1.28), 'head')]
 for side, s in (('R', -1), ('L', 1)):
-    x = s * 0.27
-    BONES += [(f'leg_{side}', P(x, 0.34, Z0 + 1.02), P(x, 0.41, Z0 + 0.46), 'body'), (f'fore_{side}', P(x, 0.41, Z0 + 0.46), P(x, 0.45, Z0 + 0.16), f'leg_{side}'),
-              (f'paw_{side}', P(x, 0.45, Z0 + 0.16), P(x, 0.8, Z0 + 0.06), f'fore_{side}')]
-BONES += [('tail_0', P(0, -0.9, Z0 + 0.3), P(0, -1.0, Z0 + 0.55), 'body'), ('tail_1', P(0, -1.0, Z0 + 0.55), P(0, -0.98, Z0 + 0.85), 'tail_0'),
-          ('tail_2', P(0, -0.98, Z0 + 0.85), P(0, -0.88, Z0 + 1.05), 'tail_1')]
+    x = s * 0.3
+    BONES += [(f'leg_{side}', P(x, 0.42, Z0 + 1.05), P(x, 0.43, Z0 + 0.6), 'body'), (f'fore_{side}', P(x, 0.43, Z0 + 0.6), P(x, 0.44, Z0 + 0.2), f'leg_{side}'),
+              (f'paw_{side}', P(x, 0.44, Z0 + 0.2), P(x, 0.9, Z0 + 0.05), f'fore_{side}')]
+BONES += [('tail_0', P(0, -0.9, Z0 + 0.15), P(0, -0.98, Z0 + 0.45), 'body'), ('tail_1', P(0, -0.98, Z0 + 0.45), P(0, -0.92, Z0 + 0.8), 'tail_0'),
+          ('tail_2', P(0, -0.92, Z0 + 0.8), P(0, -0.82, Z0 + 1.0), 'tail_1')]
 
 def uv_trim(ob, row):
     """per-face planar UVs at 256 px/m on the dominant axis; v inside the part's trim-sheet row. glTF keeps image rows top-down (flipY false)."""
@@ -203,7 +227,7 @@ def tris(ob): return sum(len(p.vertices) - 2 for p in ob.data.polygons)
 bpy.ops.wm.read_factory_settings(use_empty=True)
 sc = bpy.context.scene; sc.render.fps = FPS
 
-Q['seg'] = 0.65; build(False); lod1 = finish('beast_lod1', False)
+Q['seg'] = 0.55; build(False); lod1 = finish('beast_lod1', False)
 for vg in list(lod1.vertex_groups): lod1.vertex_groups.remove(vg)
 build(False); lod2 = finish('beast_lod2', False)
 for vg in list(lod2.vertex_groups): lod2.vertex_groups.remove(vg)

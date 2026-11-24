@@ -68,7 +68,7 @@ Room types in the plan: hall, court, corridor, garden, bridge, core. Walls 4 m h
 ## C. Props (gameplay pieces already built in code, box shapes today)
 | # | Prop | In game | Look (research rule list) | Mesh budget, LOD | Status |
 |---|---|---|---|---|---|
-| C1 | Bronze guardian beast, a pair beside big doors | 石狮 hazard (0.6 s red ring, 3.5 m strike) | segmented bronze beast, silver inlay, own design; strike pose readable | 7k / 2.5k / 800 tris (palace study budget; was 3k / 1k / 300) | SAMPLE round 2 (24 Nov 22:5x): round/sharp rebuild, 5440 / 1426 / 424 tris, gates 8 of 8, shots art/beast/round2/; study art/Qin-Bronze-Castings-Study.md; waiting for approval; not in the game yet |
+| C1 | Bronze guardian beast, a pair beside big doors | 石狮 hazard (0.6 s red ring, 3.5 m strike) | segmented bronze beast, silver inlay, own design; strike pose readable | 7k / 2.5k / 800 tris (palace study budget; was 3k / 1k / 300) | SAMPLE round 3 (25 Nov 00:0x): from ComfyUI concept 2130 (owner pick), 6932 / 2426 / 726 tris, gates 8 of 8, shots art/beast/round3/; study art/Qin-Bronze-Castings-Study.md; waiting for approval; not in the game yet |
 | C2 | 鼎 cauldron, 9 (one per school hall, the 九鼎) | replaces the healing altar; lit and dry states (G4) | real Warring States proportions, deconstructed taotie; school accent inlay | 2k / 600 | TODO |
 | C3 | 门海 water vat | breakable: floods, douses fire, knockback | cast bronze, stamp bands; intact, cracked, pooled shards | 1.5k / 500 | TODO |
 | C4 | 铜鹤 crane and 香炉 censer | smoke clouds for hiding | cast bronze; smoke as few small cards | 1.5k / 500 each | TODO |
