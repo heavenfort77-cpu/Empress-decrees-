@@ -1,0 +1,3 @@
+hall_wall repaint (PLASTER_K unset) mean abs diff vs committed 0.0
+hall_wall approved: plaster mean lum 169.1 (rows 170-750)
+mural_wall approved-matched: plaster mean lum 168.1 (rows 450-750)

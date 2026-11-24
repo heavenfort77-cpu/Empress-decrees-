@@ -88,6 +88,26 @@ Room types in the plan: hall, court, corridor, garden, bridge, core. Walls 4 m h
 | Apex Tiger Demon, cubs Stalker and Howler | W4, ci-art-w4 4c45ba7 (merged) | tiger 15 of 15, cubs 21 of 21, tex 11 of 11, shots 43 of 43 (run 45447534120); tiger reads heavy and bear-like; Howler reads as a box on legs; bronze material and glow colour for the owner |
 | 皇家 guard (卒, 弩手, 盾, 车, 伍长) and 反贼 rebels | W5/W5b, ci-art-w5 16618bd (merged) | guard round 5 gates 11/11/11/10/12, rebels 10/10/11/11 (run 45451027192); treads fixed; still compact and dark at the game camera; chariot canopy round |
 
+## H. Fix round after the owner's 25 Nov 02:1x-02:4x picks (merged; nothing in the game)
+| Item | Run | Result |
+|---|---|---|
+| Brass for every bronze piece (viewers) | FIXB 45467670225, FIXA 45471050221 | PASS: no shot loads the old bronze sheet |
+| A19 flags in the owner's school mapping | FIXB 45467670225 | PARKED after 2 rounds: colours 9 of 9 match, contrast lum sd 30.5 vs max 30 (fix: BAND_W 6 to 5) |
+| A2 plaster | FIXB | KEPT unchanged: a darker candidate failed brush scale and sat below the floor; study range now 150-185; candidate in art/arch/round3/plaster_candidate/ |
+| Garden ponds lighter water | FIXB | PASS (9 of 9 texture, 2 of 2 on screen) |
+| A17 star map as core floor inlay | FIXB | PASS; subtle at play, unseen at the wide camera |
+| B10 dais 1.5 m; throne larger | FIXB | dais PASS; throne x1.34 on screen, still small at the wide camera |
+| Bamboo-slip racks bigger | FIXB | PASS with note: screen share x5.5; 6 of 9 racks moved to the north wall |
+| Garden planting fuller | FIXB | PASS: calls 41 to 41, tris 3.7k to 8.9k |
+| C7 mercury brighter + shimmer | FIXB | PASS with notes: idle 140, warn 211, hot 236; tile seams show close up |
+| C11 tiger tally ~1.5k | FIXB | PASS: 1468 tris, reads as a striped walking tiger |
+| Howler reshaped | FIXA | PASS: lidded cauldron with horned head, water-blue throat core; 3812 / 1490 / 428 |
+| Treads scroll (UV strip) | FIXA | PASS: game rule map.offset.x += metres / mpr (Stalker 0.554, Howler 0.477, zu/nu/dun 0.540, che 0.527, wz 0.594) |
+| Chariot without canopy | FIXA | PASS |
+| Giants slimmer, motifs 02/05/07/08 | FIXA (third run on one pose value: rule break, logged) | PASS with notes: still heavy from 40 deg; 05-11 closest pair IoU 0.78 |
+| Rebels in non-school colours, larger 死士 glint | FIXA | PASS: olive, umber, madder; glint 0.62 m |
+| Suits ~7.5 heads | FIXA | PASS: 7.51 heads; cloth colours not yet on the 鼎 mapping (za, zh) |
+
 ## D. Effects that change assets (no new meshes)
 Burning wing (char swap A18, steady fire cards, smoke), room falling into the lake, vat flood, mercury pulse shimmer, giant waking (patina cracks to brass). All pooled and warmed under the loading card.
 

@@ -1,0 +1,10 @@
+PASS merc_lip tris 28 (piece budget 60, instanced)
+PASS merc_end tris 28 (piece budget 60, instanced)
+PASS merc_post tris 12 (piece budget 60, instanced)
+PASS merc_surface tris 8 (piece budget 60, instanced)
+PASS 2 x 6 m demo channel drawn tris 592 from 32 instances of 4 meshes (budget 600)
+PASS demo uses only the 4 shared meshes, none scaled (tilted normals survive) (['merc_end', 'merc_lip', 'merc_post', 'merc_surface'])
+PASS mercury shading normals tilted 38 deg toward the camera on average (25-50: samples the matcap centre from the 40 deg pitch)
+PASS mercury surface at 0.04 m under the lip top 0.07 m, faces up: True, material palMerc (matcap)
+PASS silver inlay line 6 cm on the bronze lip (min 6)
+9 of 9 pass

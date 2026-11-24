@@ -47,8 +47,18 @@ TERRACE = [(0.0, 0.0), (0.05, -0.25), (0.4, -2.6), (1.4, -2.6), (1.8, -5.0), (2.
 BRIDGE_W = (8.0, 12.0)
 # 阙 tower: earth base footprint and height, gallery height, roof rise, passage between the pair, m.
 QUE_BASE, QUE_H, QUE_GAL, QUE_ROOF, QUE_GAP = (6.0, 5.0), 7.0, 2.6, 2.2, 8.0
-# Throne dais tiers (w, d, h) and throne couch, m (the game's dais block is 12 x 6 x 1.5; this one is out of reach at 2.2 m).
-DAIS = [(12.0, 7.0, 1.0), (9.0, 5.0, 1.0), (7.0, 3.6, 0.8)]
+# Throne dais tiers (w, d, h), m. FIXB 25 Nov (owner 02:2x: 'dais stays 1.5 m, model lowered'): the game's palace core dais block is
+# 12 x 6 x 1.5 (index.html core props), so the tiers sum to 1.5 m on a 12 x 6 m footprint (round 1 was 12 x 7 x 2.8).
+DAIS = [(12.0, 6.0, 0.6), (9.4, 4.6, 0.5), (7.4, 3.6, 0.4)]
+# The game's dais height and footprint the model must match, m (index.html palace core: block('pillar', 12, 1.5, 6)).
+GAME_DAIS = (12.0, 6.0, 1.5)
+# Throne (couch, arms, back, screen, fittings) scale about its own centre on the top tier. FIXB 25 Nov (owner 02:2x: 'throne larger so it
+# reads at the wide camera'): 1.4 (round 1 was 1.0: couch 3.2 x 1.6 m, screen 4 x 2.6 m).
+THRONE_S = 1.4
+# Slip rack (A20 dressing): width, depth, height m and shelf count; bundle length and radius m. FIXB 25 Nov (owner 02:2x: 'racks bigger
+# so they read as the burning of the books at the wide camera'); round 1 was 1.6 x 0.5 x 1.8 m, 4 shelves, bundles 0.30 x 0.05 m.
+RACK = (2.4, 0.7, 2.8, 5)
+BUNDLE = (0.5, 0.09)
 # Lacquer tint over the timber texture (palLacquer): material colour, applied in the viewer.
 LACQUER_TINT = '#5a4f4a'
 
@@ -390,6 +400,9 @@ if MUT == 'uv': M_UV = 2.0
 if MUT == 'budget': INST_BUDGET, SINGLE_BUDGET = 10, (10, 10, 10)
 WALL_GATE_H = WALL_H
 if MUT == 'dims': WALL_H = 3.5
+# FIXB mutations: dais = the round 1 tiers (2.8 m), the dais gate must fail; rack = the round 1 rack size, the rack gate must fail.
+if MUT == 'dais': DAIS = [(12.0, 7.0, 1.0), (9.0, 5.0, 1.0), (7.0, 3.6, 0.8)]
+if MUT == 'rack': RACK, BUNDLE = (1.6, 0.5, 1.8, 4), (0.3, 0.05)
 bpy.ops.wm.read_factory_settings(use_empty=True)
 W = UV_WORLD()
 def GR(a): return UV_GRAIN(a)
@@ -644,32 +657,37 @@ def throne(detail):
             box(f'edge{i}', -w / 2 - 0.03, w / 2 + 0.03, yc - d_ / 2 - 0.03, yc - d_ / 2 + 0.06, z + h - 0.12, z + h, 'palBronze', UV_ROWS(448, 512))
             box(f'foot{i}', -w / 2 - 0.03, w / 2 + 0.03, yc - d_ / 2 - 0.03, yc - d_ / 2 + 0.06, z, z + 0.12, 'palBronze', UV_ROWS(448, 512))
         z += h
-    top = z; yb = 0.8
+    top = z; k = THRONE_S; yb = 0.8 + 0.1 * (k - 1)
     w, d_, _ = DAIS[-1]; yc = 0.8
     if detail:  # a low lacquer balustrade along the top tier's front, bronze-capped posts (reads as a platform from above)
         box('rail', -w / 2 + 0.2, w / 2 - 0.2, yc - d_ / 2 + 0.1, yc - d_ / 2 + 0.22, top + 0.5, top + 0.62, 'palLacquer', GR(0))
-        for k in range(8):
-            x = -w / 2 + 0.25 + k * (w - 0.5) / 7
-            box(f'bp{k}', x - 0.07, x + 0.07, yc - d_ / 2 + 0.09, yc - d_ / 2 + 0.23, top, top + 0.7, 'palBronze', UV_ROWS(40, 344))
-    box('couch', -1.6, 1.6, yb - 0.8, yb + 0.8, top, top + 0.42, 'palLacquer', GR(0), skip=('-z',))
-    box('seat', -1.45, 1.45, yb - 0.65, yb + 0.65, top + 0.42, top + 0.47, 'palFloor', W, skip=('-z',))
+        for q in range(8):
+            x = -w / 2 + 0.25 + q * (w - 0.5) / 7
+            box(f'bp{q}', x - 0.07, x + 0.07, yc - d_ / 2 + 0.09, yc - d_ / 2 + 0.23, top, top + 0.7, 'palBronze', UV_ROWS(40, 344))
+    # couch and screen in round 1 units (m) scaled by THRONE_S about (0, yb) and the top of the dais
+    def tb(nm, x0, x1, y0, y1, z0, z1, mat, uv, **kw): box(nm, x0 * k, x1 * k, yb + y0 * k, yb + y1 * k, top + z0 * k, top + z1 * k, mat, uv, **kw)
+    tb('couch', -1.6, 1.6, -0.8, 0.8, 0, 0.42, 'palLacquer', GR(0), skip=('-z',))
+    tb('seat', -1.45, 1.45, -0.65, 0.65, 0.42, 0.47, 'palFloor', W, skip=('-z',))
     for sx in (-1, 1):
-        box(f'arm{sx}', sx * 1.6 - (0.12 if sx > 0 else 0), sx * 1.6 + (0.12 if sx < 0 else 0), yb - 0.7, yb + 0.8, top + 0.45, top + 0.85, 'palLacquer', GR(1))
-    box('back', -1.6, 1.6, yb + 0.68, yb + 0.8, top + 0.45, top + 0.95, 'palLacquer', GR(0))
-    for k, x in enumerate((-1.5, -0.5, 0.5, 1.5)):  # screen 屏风: four lacquer panels framed in bronze, tall behind the couch
-        box(f'scr{k}', x - 0.5, x + 0.5, yb + 1.0, yb + 1.1, top, top + 2.1, 'palPillar', UV_ROWS(140, 860))
-        box(f'scb{k}', x - 0.5, x + 0.5, yb + 1.0, yb + 1.1, top + 2.1, top + 2.6, 'palPillar', UV_ROWS(0, 120))  # the vermilion cloud band
+        tb(f'arm{sx}', sx * 1.6 - (0.12 if sx > 0 else 0), sx * 1.6 + (0.12 if sx < 0 else 0), -0.7, 0.8, 0.45, 0.85, 'palLacquer', GR(1))
+    tb('back', -1.6, 1.6, 0.68, 0.8, 0.45, 0.95, 'palLacquer', GR(0))
+    for q, x in enumerate((-1.5, -0.5, 0.5, 1.5)):  # screen 屏风: four lacquer panels framed in bronze, tall behind the couch
+        tb(f'scr{q}', x - 0.5, x + 0.5, 1.0, 1.1, 0, 2.1, 'palPillar', UV_ROWS(140, 860))
+        tb(f'scb{q}', x - 0.5, x + 0.5, 1.0, 1.1, 2.1, 2.6, 'palPillar', UV_ROWS(0, 120))  # the vermilion cloud band
         if detail:
-            box(f'sfr{k}', x - 0.52, x + 0.52, yb + 0.97, yb + 1.0, top + 2.5, top + 2.62, 'palBronze', UV_ROWS(576, 640))
+            tb(f'sfr{q}', x - 0.52, x + 0.52, 0.97, 1.0, 2.5, 2.62, 'palBronze', UV_ROWS(576, 640))
     if detail:
         for sx in (-1, 1):  # bronze corner fittings on the couch
             for sy in (-1, 1):
-                box(f'cf{sx}{sy}', sx * 1.6 - 0.1, sx * 1.6 + 0.1, yb + sy * 0.8 - 0.1, yb + sy * 0.8 + 0.1, top, top + 0.47, 'palBronze', UV_ROWS(40, 344))
+                tb(f'cf{sx}{sy}', sx * 1.6 - 0.1, sx * 1.6 + 0.1, sy * 0.8 - 0.1, sy * 0.8 + 0.1, 0, 0.47, 'palBronze', UV_ROWS(40, 344))
 lods = []
 for li, detail in enumerate((True, False, False)):
     throne(detail); lods.append(finish(f'throne_dais_lod{li}'))
 for o, b in zip(lods, SINGLE_BUDGET): check(o, b)
-d, lo, hi = dims(lods[0]); gate(sum(h for _, _, h in DAIS) >= 2.0 and d[0] <= 12.2, f'throne_dais footprint {d[0]:.1f} x {d[1]:.1f} m, dais top {sum(h for _, _, h in DAIS):.1f} m (out of reach), screen top {hi[2]:.1f} m')
+d, lo, hi = dims(lods[0]); dtop = sum(h for _, _, h in DAIS)
+gate(abs(dtop - GAME_DAIS[2]) < 0.01 and DAIS[0][0] <= GAME_DAIS[0] + 0.01 and DAIS[0][1] <= GAME_DAIS[1] + 0.01,
+     f'throne_dais dais top {dtop:.2f} m on a {DAIS[0][0]:.1f} x {DAIS[0][1]:.1f} m base (game block {GAME_DAIS[0]:.0f} x {GAME_DAIS[1]:.0f} x {GAME_DAIS[2]} m)')
+gate(abs(hi[2] - dtop - 2.62 * THRONE_S) < 0.01 and THRONE_S >= 1.3, f'throne screen top {hi[2] - dtop:.2f} m over the dais (2.62 x THRONE_S {THRONE_S}), whole prop {d[0]:.1f} x {d[1]:.1f} x {hi[2]:.1f} m')
 root = bpy.data.objects.new('throne_dais', None); bpy.context.collection.objects.link(root)
 for o in lods: o.parent = root
 export('throne_dais', [root])
@@ -711,12 +729,15 @@ for o in lods: o.parent = root
 export('debris', [root])
 
 # dressing: A20 slip rack and bundle, A19 flag, A16 plant cards (instanced) -----------------------------------------------------
-for i, (x, y) in enumerate(((0, 0), (1.6, 0), (0, 0.5), (1.6, 0.5))):
-    box(f'leg{i}', x - 0.04, x + 0.04, y - 0.04, y + 0.04, 0, 1.8, 'palLacquer', GR(2), skip=('-z',))
-for k in range(4):
-    box(f'shelf{k}', -0.04, 1.64, -0.04, 0.54, 0.2 + k * 0.45, 0.24 + k * 0.45, 'palLacquer', GR(0))
-ob = finish('slip_rack'); check(ob, INST_BUDGET); export('slip_rack', [ob])
-L, R_ = 0.3, 0.05
+RW, RD, RH, RN = RACK; SH_P = (RH - 0.3) / RN   # shelf pitch
+for i, (x, y) in enumerate(((0, 0), (RW, 0), (0, RD), (RW, RD))):
+    box(f'leg{i}', x - 0.05, x + 0.05, y - 0.05, y + 0.05, 0, RH, 'palLacquer', GR(2), skip=('-z',))
+for k in range(RN):
+    box(f'shelf{k}', -0.05, RW + 0.05, -0.05, RD + 0.05, 0.2 + k * SH_P, 0.25 + k * SH_P, 'palLacquer', GR(0))
+ob = finish('slip_rack'); check(ob, INST_BUDGET)
+d, lo, hi = dims(ob); gate(d[0] >= 2.3 and d[2] >= 2.6, f'slip_rack {d[0]:.2f} x {d[1]:.2f} x {d[2]:.2f} m, {RN} shelves at {SH_P:.2f} m (min 2.3 wide, 2.6 tall: reads at the wide camera)')
+export('slip_rack', [ob])
+L, R_ = BUNDLE
 def uv_roll(ob):  # side: slips run along the roll (columns), v along x inside rows 20-492 (cords included); ends: the bundle-end atlas disc
     me, uvl = _uv(ob)
     for p in me.polygons:

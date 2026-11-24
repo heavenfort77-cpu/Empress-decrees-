@@ -55,6 +55,11 @@ ROWS = {
 # Silhouette cameras (viewer and game: FOV 50, pitch 40; fight framing 10.5 m = 110 px/m, wide 22 m = 52 px/m at 1920 x 1080).
 CAMS = {'play_front': (0, 40, 10.5), 'play_34': (35, 40, 10.5), 'play_side': (90, 40, 10.5), 'wide_34': (35, 40, 22.0)}
 LOOK_Y = 1.0
+# Proportions (FIX-A, owner 25 Nov 02:2x: suits taller, about 7.5 heads, from 6.4): heights up to the chin (V_CHIN of the study scale)
+# stretch by BODY_K, the head (chin to crown, and its width) scales by HEAD_K: crown 2.03 m at H 1.0 (study 1.86), head 0.27 m.
+BODY_K, HEAD_K, V_CHIN = 1.118, 0.93, 1.57
+# Heads-tall gate band (crown / head height).
+HEADS_BAND = (7.3, 7.7)
 # LOD decimation passes: target triangles.
 LOD_TARGET = {1: 2600, 2: 900}
 
@@ -228,11 +233,13 @@ def bez(p0, p1, p2, k):
 
 # the shared humanoid base ----------------------------------------------------------------------------------------------
 class Body:
-    """measured proportions (study): crown 1.86 m at H 1.0 (6.4 heads), head 0.29 m, shoulders 0.46 m wide at W 1.0, legs 0.92 m."""
-    def __init__(s, S):
+    """measured proportions (study): crown 1.86 m at H 1.0 (6.4 heads), head 0.29 m, shoulders 0.46 m wide at W 1.0, legs 0.92 m.
+    FIX-A: study heights v map to v * BODY_K below the chin and the head part by HEAD_K (crown 2.03 m, 7.5 heads at H 1.0)."""
+    def __init__(s, S, body_k=None, head_k=None):
         s.S = S; H, W, G, L = S['H'], S['W'], S['G'], S['L']
         s.H, s.W, s.G, s.L = H, W, G, L
-        z = lambda v: v * H
+        bk = BODY_K if body_k is None else body_k; hk = HEAD_K if head_k is None else head_k; s.hk = hk
+        z = lambda v: (v * bk if v <= V_CHIN else V_CHIN * bk + (v - V_CHIN) * hk) * H
         s.z = z
         s.sx = 0.2 * W                       # shoulder joint x
         s.hx = 0.095 * G                     # hip joint x
@@ -244,7 +251,7 @@ class Body:
         H, W, G = s.H, s.W, s.G
         tab = [(0.86, 0.165 * G, 0.12 * G), (0.95, 0.17 * G, 0.125 * G), (1.03, 0.15 * G, 0.115 * G), (1.2, 0.17 * max(G, W), 0.13 * G),
                (1.32, 0.195 * W, 0.14 * G), (1.44, 0.19 * W, 0.12 * G), (1.52, 0.075, 0.075)]
-        zs = [t[0] * H for t in tab]
+        zs = [s.z(t[0]) for t in tab]
         if zz <= zs[0]: return tab[0][1:]
         for i in range(len(tab) - 1):
             if zz <= zs[i + 1]:
@@ -707,7 +714,10 @@ def build_parts(S):
     c_lower(b, S, *S['lower'])
     if S['arms'] == 'sleeves': c_sleeves(b, S)
     c_shoulders(b, S, *S['shoulders'])
-    c_helm(b, S, *S['helm'])
+    n0 = len(PARTS); c_helm(b, S, *S['helm'])
+    for P_ in PARTS[n0:]:  # FIX-A: the head is HEAD_K smaller across too (its heights already follow zchin..zcrown)
+        if P_['bone'] == 'head':
+            for v in P_['ob'].data.vertices: v.co.x *= b.hk; v.co.y *= b.hk
     wb = c_weapon(b, S, *S['weapon']) if S['weapon'] else None
     if S['back']: c_back(b, S, *S['back'])
     return b, wb
@@ -895,6 +905,10 @@ def build_suit(sid):
     gate(abs((fi - 1) / FPS - IDLE_S) < 1e-6, f'idle {(fi - 1) / FPS:.2f} s')
     bb = [lod0.matrix_world @ Vector(c) for c in lod0.bound_box]; h = max(c.z for c in bb)
     gate(1.7 <= h <= 2.9, f'height with crest {h:.2f} m (1.7-2.9)')
+    # FIX-A proportion gate (owner: about 7.5 heads): crown / (crown - chin); the round-3 proportions must fail it (mutation)
+    heads = b.zcrown / (b.zcrown - b.zchin); b3 = Body(S, 1.0, 1.0); h3 = b3.zcrown / (b3.zcrown - b3.zchin)
+    gate(HEADS_BAND[0] <= heads <= HEADS_BAND[1] and not (HEADS_BAND[0] <= h3 <= HEADS_BAND[1]),
+         f'{heads:.2f} heads tall (crown {b.zcrown:.2f} m, head {b.zcrown - b.zchin:.2f} m; band {HEADS_BAND}); mutation round-3 body {h3:.2f} heads caught')
     dmin = min([k for _, k in DENS], default=1.0); low = sorted(DENS, key=lambda d: d[1])[:4]
     gate(dmin >= 0.8, f'texel density min {dmin:.2f} of 256 px/m (min 0.8; {len(DENS)} parts squeezed; lowest {[(n, round(k, 2)) for n, k in low]})')
     # export: three LODs on one rig

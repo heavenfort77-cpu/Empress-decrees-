@@ -49,15 +49,29 @@ WALK_T = 1.0
 TELL_EARLY, SLAM_RISE, SWEEP_ARC = 0.5, 0.9, 60
 # Hands stay on the beam within this distance at every sampled frame, m.
 GRIP_TOL = 0.08
+# FIX-A (owner 25 Nov: stronger melted-weapon motifs on 02, 05, 07, 08 that read at play size): melt pool size multiplier on those motifs.
+MOTIF_MELT = 1.6
+
+# FIX-A (owner 25 Nov 02:1x: keep one shared body, slimmer and taller-reading at the 40 deg game camera): longer legs at the same
+# height. Every mesh vertex and bone is remapped in height: WARP_Z0..WARP_HIP (legs) stretch so the hip rises by LEG_ADD, WARP_HIP..WARP_Z1
+# (pelvis, belt, abdomen) shorten by the same amount, below WARP_Z0 (feet) and above WARP_Z1 (chest, arms, beam, head) nothing moves, so
+# grips, beam, heights and the walk targets stay where they were. Applied in put() and to the rig; directions are never remapped.
+WARP_Z0, WARP_HIP, WARP_Z1, LEG_ADD = 0.3, 1.95, 3.1, 0.28  # round A1: 2.8 / 0.2 still read heavy
+def Wz(z):
+    if z <= WARP_Z0 or z >= WARP_Z1: return z
+    if z <= WARP_HIP: return WARP_Z0 + (z - WARP_Z0) * (WARP_HIP + LEG_ADD - WARP_Z0) / (WARP_HIP - WARP_Z0)
+    return WARP_HIP + LEG_ADD + (z - WARP_HIP) * (WARP_Z1 - WARP_HIP - LEG_ADD) / (WARP_Z1 - WARP_HIP)
 
 # design coordinates (x right, f forward, z up) -> Blender (forward = -Y, so the glTF faces +Z)
 def P(x, f, z): return Vector((x, -f, z))
+def PW(x, f, z): return Vector((x, -f, Wz(z)))  # a remapped position (rig bones)
 def V(*a): return Vector(a)
 
 PARTS = []
 Q = {'seg': 1.0, 'lod': 0}
 
 def put(name, bm, mat, bone, row, rnd):
+    for v in bm.verts: v.co.z = Wz(v.co.z)  # FIX-A height remap (longer legs)
     me = bpy.data.meshes.new(name); bm.to_mesh(me); bm.free()
     ob = bpy.data.objects.new(name, me); bpy.context.collection.objects.link(ob)
     PARTS.append((ob, bone, mat, row, rnd)); return ob
@@ -173,11 +187,13 @@ def band(name, secs, z, bone, lip=0.03, n_exp=2.6, M=24, row='flange'):
 
 # ---------------------------------------------------------------------------------------------------------------------
 # Body layout (design coords, m). Rest pose = the carried pose: beam across the shoulders behind the neck, hands gripping it.
-TORSO_LO = [(2.12, 0.0, 0.6, 0.46, 0), (2.4, 0.02, 0.58, 0.44, 0), (2.66, 0.04, 0.66, 0.48, 0)]
-TORSO_HI = [(2.56, 0.04, 0.64, 0.47, 0), (2.8, 0.05, 0.74, 0.51, 0), (3.02, 0.06, 0.8, 0.53, 0), (3.24, 0.03, 0.78, 0.48, 0), (3.42, -0.02, 0.62, 0.38, 0), (3.56, -0.04, 0.3, 0.27, 0)]
-SKIRT = [[(2.34, 0.0, 0.64, 0.5, 0), (2.14, 0.02, 0.7, 0.56, 0), (1.96, 0.03, 0.76, 0.62, 0)],
-         [(2.02, 0.03, 0.74, 0.6, 0), (1.84, 0.04, 0.79, 0.65, 0), (1.68, 0.05, 0.83, 0.69, 0)],
-         [(1.74, 0.05, 0.81, 0.67, 0), (1.56, 0.06, 0.86, 0.72, 0), (1.42, 0.06, 0.89, 0.75, 0)]]
+# FIX-A slimmer: waist 0.6 -> 0.47 half width, skirt flare 0.64-0.89 -> 0.53-0.66 and its hem 1.42 -> 1.6 m (before the height remap;
+# 1.76 m after), chest a little narrower; broad shoulders kept (a V taper reads taller than a column).
+TORSO_LO = [(2.12, 0.0, 0.5, 0.4, 0), (2.4, 0.02, 0.47, 0.38, 0), (2.66, 0.04, 0.58, 0.44, 0)]
+TORSO_HI = [(2.56, 0.04, 0.6, 0.45, 0), (2.8, 0.05, 0.72, 0.5, 0), (3.02, 0.06, 0.78, 0.52, 0), (3.24, 0.03, 0.78, 0.48, 0), (3.42, -0.02, 0.62, 0.38, 0), (3.56, -0.04, 0.3, 0.27, 0)]
+SKIRT = [[(2.34, 0.0, 0.53, 0.42, 0), (2.18, 0.02, 0.57, 0.45, 0), (2.04, 0.03, 0.6, 0.48, 0)],
+         [(2.1, 0.03, 0.59, 0.47, 0), (1.94, 0.04, 0.62, 0.5, 0), (1.8, 0.05, 0.64, 0.52, 0)],
+         [(1.86, 0.05, 0.63, 0.51, 0), (1.72, 0.06, 0.65, 0.53, 0), (1.6, 0.06, 0.66, 0.54, 0)]]
 SHOULDER = {s: V(s * 0.86, -0.02, 3.32) for s in (-1, 1)}
 BC = V(0, -0.36, 3.66)  # beam centre, behind the neck on the trapezius
 BEAM_R = 0.17
@@ -220,40 +236,42 @@ def build_body(lod):
             pts = [tuple(surf(TORSO_HI, z, 90 + s * a, 0.01, 2.4)[0]) for z, a in ((3.46, 55), (3.3, 40), (3.12, 22), (2.94, 6 if s > 0 else 2))]
             ridge(f'collar_{s}', pts, 0.12, 0.05, (0, 0.5, 0), 'chest')
     # belt with a belt hook (带钩) and the skirt in three cast tiers, each with a flange lip at its hem (segmented casting)
-    loft('belt', [(2.26, 0.01, 0.63, 0.49, 0), (2.44, 0.02, 0.62, 0.48, 0)], 'palBronze', 'pelvis', 'lozenge', n_exp=2.4, M=24, cap=False)
+    loft('belt', [(2.26, 0.01, 0.52, 0.41, 0), (2.44, 0.02, 0.5, 0.4, 0)], 'palBronze', 'pelvis', 'lozenge', n_exp=2.4, M=24, cap=False)
     if d1:
-        tube('hook', (0, 0.5, 2.3), (0, 0.62, 2.42), 0.05, 0.025, 'palTin', 'pelvis', 'plain', n=8)
-        spheroid('hook_boss', (0, 0.51, 2.33), (0.07, 0.03, 0.06), 'palBronze', 'pelvis', 'flange', segs=(8, 5))
+        tube('hook', (0, 0.42, 2.3), (0, 0.54, 2.42), 0.05, 0.025, 'palTin', 'pelvis', 'plain', n=8)
+        spheroid('hook_boss', (0, 0.43, 2.33), (0.07, 0.03, 0.06), 'palBronze', 'pelvis', 'flange', segs=(8, 5))
     for k, tier in enumerate(SKIRT if d1 else [[SKIRT[0][0], SKIRT[1][1], SKIRT[2][-1]]]):
         loft(f'skirt_{k}', tier, 'palBronze', 'pelvis', 'plain' if k != 1 else 'clouds', n_exp=2.2, M=28, cap=False)
-        if d1: band(f'skirt_lip_{k}', tier, tier[-1][0] + 0.04, 'pelvis', lip=0.03, n_exp=2.2, M=28)
+        if d1 and k == len(SKIRT) - 1: band(f'skirt_lip_{k}', tier, tier[-1][0] + 0.04, 'pelvis', lip=0.03, n_exp=2.2, M=28)  # FIX-A: hem lip only (less stacked)
     # legs: thigh (mostly under the skirt), knee guard, shin with a boot flange, boot
     for s in (-1, 1):
         side = 'L' if s > 0 else 'R'
         # legs as fluted columns (concept 6105: a pleated column under the tunic), so the standing giant reads columnar and still walks
-        tube(f'thigh_{side}', tuple(HIP[s]), tuple(KNEE[s]), 0.29, 0.26, 'palBronze', f'thigh_{side}', n=10)
-        if d1: spheroid(f'knee_{side}', tuple(KNEE[s] + V(0, 0.08, 0.02)), (0.22, 0.17, 0.2), 'palBronze', f'shin_{side}', 'flange', segs=(10, 6))
+        # FIX-A slimmer legs: thigh 0.29 -> 0.25, shin 0.27 -> 0.23, boot 0.24 -> 0.21 half width
+        tube(f'thigh_{side}', tuple(HIP[s]), tuple(KNEE[s]), 0.25, 0.22, 'palBronze', f'thigh_{side}', n=10)
+        if d1: spheroid(f'knee_{side}', tuple(KNEE[s] + V(0, 0.08, 0.02)), (0.19, 0.15, 0.18), 'palBronze', f'shin_{side}', 'flange', segs=(10, 6))
         nf = sides(16) // 2 * 2
-        sweep(f'shin_{side}', [tuple(KNEE[s]), tuple(ANKLE[s] + V(0, 0, 0.05))], [flutes(0.27, nf), flutes(0.23, nf)], 'palBronze', f'shin_{side}', 'plain')
-        if d1: tube(f'boot_top_{side}', tuple(ANKLE[s] + V(0, 0, 0.3)), tuple(ANKLE[s] + V(0, 0, 0.38)), 0.27, 0.27, 'palBronze', f'shin_{side}', 'flange', n=12)
+        sweep(f'shin_{side}', [tuple(KNEE[s]), tuple(ANKLE[s] + V(0, 0, 0.05))], [flutes(0.23, nf), flutes(0.2, nf)], 'palBronze', f'shin_{side}', 'plain')
+        if d1: tube(f'boot_top_{side}', tuple(ANKLE[s] + V(0, 0, 0.3)), tuple(ANKLE[s] + V(0, 0, 0.38)), 0.235, 0.235, 'palBronze', f'shin_{side}', 'flange', n=12)
         x = s * 0.42
-        loft(f'boot_{side}', [(0.0, 0.12, 0.24, 0.44, x), (0.12, 0.1, 0.25, 0.42, x), (0.26, 0.02, 0.24, 0.28, x), (0.36, 0.0, 0.23, 0.24, x)], 'palBronze', f'foot_{side}', 'plain', n_exp=2.3, M=16)
-        if d0: spheroid(f'toecap_{side}', (x, 0.44, 0.1), (0.15, 0.12, 0.1), 'palBronze', f'foot_{side}', 'flange', segs=(8, 5))
+        loft(f'boot_{side}', [(0.0, 0.12, 0.21, 0.44, x), (0.12, 0.1, 0.22, 0.42, x), (0.26, 0.02, 0.21, 0.28, x), (0.36, 0.0, 0.2, 0.24, x)], 'palBronze', f'foot_{side}', 'plain', n_exp=2.3, M=16)
+        if d0: spheroid(f'toecap_{side}', (x, 0.44, 0.1), (0.13, 0.12, 0.1), 'palBronze', f'foot_{side}', 'flange', segs=(8, 5))
     # arms (built along the rest pose's IK chain): shoulder mass, upper arm, elbow, banded forearm, fist around the beam
     for s in (-1, 1):
         side = 'L' if s > 0 else 'R'; S, E, G = SHOULDER[s], ELBOW[s], GRIP[s]
         # cast pauldron: a domed plate over the shoulder with a flange rim (not a ball)
-        if d1: spheroid(f'shoulder_{side}', tuple(S + V(s * 0.02, 0, -0.02)), (0.24, 0.24, 0.22), 'palBronze', f'upper_{side}', segs=(10, 7))
-        loft(f'pauldron_{side}', [(S.z - 0.17, S.y, 0.26, 0.29, S.x + s * 0.08), (S.z + 0.02, S.y, 0.26, 0.28, S.x + s * 0.05), (S.z + 0.15, S.y, 0.17, 0.2, S.x + s * 0.02), (S.z + 0.21, S.y, 0.05, 0.07, S.x)],
+        # FIX-A round A2: pauldrons and arms about 12% slimmer (the domes read heavy at the game camera)
+        if d1: spheroid(f'shoulder_{side}', tuple(S + V(s * 0.02, 0, -0.02)), (0.21, 0.21, 0.2), 'palBronze', f'upper_{side}', segs=(10, 7))
+        loft(f'pauldron_{side}', [(S.z - 0.17, S.y, 0.23, 0.26, S.x + s * 0.06), (S.z + 0.02, S.y, 0.23, 0.25, S.x + s * 0.04), (S.z + 0.15, S.y, 0.15, 0.18, S.x + s * 0.02), (S.z + 0.21, S.y, 0.05, 0.07, S.x)],
              'palBronze', f'upper_{side}', 'plain', n_exp=2.4, M=18, cap=True)
-        if d1: loft(f'pauldron_rim_{side}', [(S.z - 0.21, S.y, 0.29, 0.32, S.x + s * 0.09), (S.z - 0.15, S.y, 0.29, 0.32, S.x + s * 0.08)], 'palBronze', f'upper_{side}', 'flange', n_exp=2.4, M=18, cap=False)
-        tube(f'upper_{side}', tuple(S), tuple(E), 0.2, 0.17, 'palBronze', f'upper_{side}', n=10)
-        if d1: spheroid(f'elbow_{side}', tuple(E), (0.17, 0.17, 0.17), 'palBronze', f'fore_{side}', segs=(8, 6))
+        if d1: loft(f'pauldron_rim_{side}', [(S.z - 0.21, S.y, 0.26, 0.29, S.x + s * 0.07), (S.z - 0.15, S.y, 0.26, 0.29, S.x + s * 0.06)], 'palBronze', f'upper_{side}', 'flange', n_exp=2.4, M=18, cap=False)
+        tube(f'upper_{side}', tuple(S), tuple(E), 0.18, 0.15, 'palBronze', f'upper_{side}', n=10)
+        if d1: spheroid(f'elbow_{side}', tuple(E), (0.15, 0.15, 0.15), 'palBronze', f'fore_{side}', segs=(8, 6))
         dirv = (G - E).normalized(); W = G - dirv * 0.14
-        tube(f'fore_{side}', tuple(E), tuple(W), 0.17, 0.13, 'palBronze', f'fore_{side}', n=10)
+        tube(f'fore_{side}', tuple(E), tuple(W), 0.15, 0.12, 'palBronze', f'fore_{side}', n=10)
         if d1:
             for k, t in enumerate((0.3, 0.62)):
-                c = E + (W - E) * t; rr = 0.17 + (0.13 - 0.17) * t
+                c = E + (W - E) * t; rr = 0.15 + (0.12 - 0.15) * t
                 tube(f'bracer_{side}{k}', tuple(c - dirv * 0.03), tuple(c + dirv * 0.03), rr + 0.03, rr + 0.03, 'palBronze', f'fore_{side}', 'flange', n=10)
         spheroid(f'fist_{side}', tuple(G + V(0, 0.03, -0.02)), (0.16, 0.17, 0.17), 'palBronze', f'fore_{side}', segs=(10, 7))
         if d0: spheroid(f'thumb_{side}', tuple(G + V(-s * 0.1, 0.12, 0.08)), (0.06, 0.08, 0.05), 'palBronze', f'fore_{side}', segs=(6, 4))
@@ -478,7 +496,7 @@ def finial(g, kind, s, E, arch, lod):
 MELT = {'n': 0}
 def melt(n, at, bone, r=0.09):
     if Q['lod'] > 1: return
-    a = V(*at); MELT['n'] += 1
+    a = V(*at); MELT['n'] += 1; r *= MELT.get('k', 1.0)
     spheroid(f'{n}_melt', tuple(a), (r, r, r * 0.7), 'palBronze', bone, 'plain', segs=(8, 5))
     if Q['lod'] == 0: tongue(f'{n}_drip', tuple(a + V(0, 0.02, -r * 0.4)), (0, 0.15, -1), (1, 0, 0), r * 2.2, r * 0.9, r * 0.6, (0, 0, 0), bone, 'palBronze', 'plain')
 
@@ -491,9 +509,9 @@ def sword(n, base, d, u, bone, L=1.05, w=0.1):
         tube(f'{n}_guard', tuple(b + d * 0.05), tuple(b + d * 0.11), 0.07, 0.07, 'palBronze', bone, 'flange', n=6)
         tube(f'{n}_grip', tuple(b - d * 0.12), tuple(b + d * 0.05), 0.035, 0.03, 'palBronze', bone, n=6)
 
-def spearhead(n, base, d, u, bone, L=0.45):
+def spearhead(n, base, d, u, bone, L=0.45, w=0.15):
     d = V(*d).normalized(); b = V(*base)
-    tongue(f'{n}_head', tuple(b + d * 0.08), tuple(d), u, L, 0.15, 0.05, (0, 0, -0.06), bone, 'palTin', 'plain')
+    tongue(f'{n}_head', tuple(b + d * 0.08), tuple(d), u, L, w, 0.05, (0, 0, -0.06), bone, 'palTin', 'plain')
     melt(n, tuple(b), bone, 0.075)
     if Q['lod'] <= 1: tube(f'{n}_socket', tuple(b - d * 0.05), tuple(b + d * 0.1), 0.04, 0.035, 'palBronze', bone, n=6)
 
@@ -536,13 +554,15 @@ def motif(i, g, lod):
                 prod(f'{g}_sprod{s}{k}', tuple(c), math.radians(-10), math.radians(150), R, (s, 0, 0), (0, 0, 1), f'upper_{side}', r=0.05)
         for k, z in enumerate((3.15, 2.95, 2.75) if d1 else (2.95,)):
             p, _ = surf(TORSO_HI, z, 90, 0.03, 2.4); trigger(f'{g}_ctrig{k}', tuple(p), 'chest')
-    elif m == 'spear_ruff':
-        nn = 12 if d1 else 8
+    elif m == 'spear_ruff':  # FIX-A: longer, wider heads splayed up and out (a sunburst collar at play size), bigger melt pools
+        nn = 12 if d1 else 8; MELT['k'] = MOTIF_MELT
         for k in range(nn):
             a = 90 + 360 * k / nn
-            p, nrm = surf(TORSO_HI, 3.38, a, -0.02, 2.4); d = nrm + V(0, 0, -0.15)
+            p, nrm = surf(TORSO_HI, 3.38, a, -0.02, 2.4); d = nrm + V(0, 0, 0.3)
             if abs(math.sin(math.radians(a)) + 1) < 0.2: continue  # straight back: the beam rests there
-            spearhead(f'{g}_ruff{k}', tuple(p), tuple(d), (0, 0, 1), 'chest', L=0.62)
+            if math.sin(math.radians(a)) > 0.75: continue  # round A1: front heads went 0.65 m into the floor in the fall; face kept clear
+            spearhead(f'{g}_ruff{k}', tuple(p), tuple(d), (0, 0, 1), 'chest', L=0.95, w=0.22)
+        MELT['k'] = 1.0
     elif m == 'spear_bundle':
         for k in range(4 if d1 else 2):
             o = V(0.12 * k - 0.18, 0, 0)
@@ -556,36 +576,40 @@ def motif(i, g, lod):
             side = 'L' if s > 0 else 'R'; c = SHOULDER[s] + V(s * 0.22, -0.04, 0.22)
             ji(f'{g}_ji{s}', tuple(c), (s * 0.45, 0, 1), (0, 1, 0), f'upper_{side}', L=0.6)
         p, _ = surf(TORSO_HI, 3.05, 90, 0.0, 2.4); ji(f'{g}_jic', tuple(p + V(0, 0, 0.12)), (0, 0.15, -1), (1, 0, 0), 'chest', L=0.4)
-    elif m == 'ji_apron':
+    elif m == 'ji_apron':  # FIX-A: apron heads longer and fanned out, hip halberds raised like wings, bigger melt pools
+        MELT['k'] = MOTIF_MELT
         for k, a in enumerate((-30, -15, 0, 15, 30) if d1 else (-20, 0, 20)):
             t = math.radians(a); p, nrm = surf(SKIRT[0], 2.1, 90 + a * 1.2, 0.02, 2.2)
-            ji(f'{g}_ap{k}', tuple(p), (math.sin(t) * 0.5, 0.3, -1), (1, 0, 0), 'pelvis', L=0.85)
+            ji(f'{g}_ap{k}', tuple(p), (math.sin(t) * 0.9, 0.45, -1), (1, 0, 0), 'pelvis', L=1.1)
         for s in (-1, 1):
-            p, nrm = surf(TORSO_LO, 2.32, 90 - s * 90, 0.0, 2.4); ji(f'{g}_hip{s}', tuple(p), (s * 0.45, 0, 1), (0, 1, 0), 'pelvis', L=0.75)
+            p, nrm = surf(TORSO_LO, 2.32, 90 - s * 90, 0.0, 2.4); ji(f'{g}_hip{s}', tuple(p), (s * 1.0, 0.25, 0.7), (0, 1, 0), 'pelvis', L=1.25)  # round A2: out past the arms
+        MELT['k'] = 1.0
     elif m == 'sword_fan':
         c = V(0, -0.46, 3.25)
         for k in range(7 if d1 else 5):
             a = math.radians(-80 + 160 * k / ((7 if d1 else 5) - 1)); d = V(math.sin(a), -0.2, math.cos(a))
             sword(f'{g}_fan{k}', tuple(c + d * 0.3), tuple(d), (0, 1, 0), 'chest', L=1.45 if abs(a) < 1 else 1.25, w=0.15)
-    elif m == 'sword_hem':
-        nn = 11 if d1 else 7
+    elif m == 'sword_hem':  # FIX-A: blades longer and wider, splayed out from the hem (a skirt of swords at play size), bigger melt pools
+        nn = 11 if d1 else 7; MELT['k'] = MOTIF_MELT; zh = SKIRT[2][-1][0] + 0.1
         for k in range(nn):
             a = 130 + 280 * k / (nn - 1)
-            p, nrm = surf(SKIRT[2], 1.5, a, 0.04, 2.2)
-            sword(f'{g}_hem{k}', tuple(p + V(0, 0, 0.12) - nrm * 0.03), tuple(nrm * 0.04 + V(0, 0, -1)), (-nrm.y, nrm.x, 0), 'pelvis', L=0.78)
-    elif m == 'arrow_scales':
+            p, nrm = surf(SKIRT[2], zh, a, 0.04, 2.2)
+            sword(f'{g}_hem{k}', tuple(p + V(0, 0, 0.08) - nrm * 0.03), tuple(nrm * 0.35 + V(0, 0, -1)), (-nrm.y, nrm.x, 0), 'pelvis', L=0.95, w=0.14)
+        MELT['k'] = 1.0
+    elif m == 'arrow_scales':  # FIX-A: bigger chest scales and melt pools, and a crest of upright arrowheads fanned on each shoulder
         rows = ((3.22, 9), (3.02, 10), (2.82, 9)) if d1 else ((3.1, 6),)
         for r_i, (z, nn) in enumerate(rows):
             for k in range(nn):
                 a = 90 + (k - (nn - 1) / 2) * 13
                 p, nrm = surf(TORSO_HI, z, a, -0.01, 2.4)
-                tongue(f'{g}_ah{r_i}_{k}', tuple(p + V(0, 0, 0.1)), tuple(nrm * 0.35 + V(0, 0, -1)), tuple(V(-nrm.y, nrm.x, 0)), 0.22, 0.13, 0.05, (0, 0, 0), 'chest', 'palTin', 'plain')
-                if k % 3 == 1: melt(f'{g}_ahm{r_i}_{k}', tuple(p + V(0, 0, 0.1)), 'chest', 0.08)
+                tongue(f'{g}_ah{r_i}_{k}', tuple(p + V(0, 0, 0.1)), tuple(nrm * 0.35 + V(0, 0, -1)), tuple(V(-nrm.y, nrm.x, 0)), 0.28, 0.17, 0.05, (0, 0, 0), 'chest', 'palTin', 'plain')
+                if k % 3 == 1: melt(f'{g}_ahm{r_i}_{k}', tuple(p + V(0, 0, 0.1)), 'chest', 0.08 * MOTIF_MELT)
         for s in (-1, 1):
             side = 'L' if s > 0 else 'R'
-            for k in range(4 if d1 else 2):
-                a = math.radians(20 + 35 * k); c = SHOULDER[s] + V(s * 0.04, 0, 0.02); d = V(s * math.cos(a), 0, math.sin(a))
-                tongue(f'{g}_sah{s}{k}', tuple(c + d * 0.27), tuple(d * 0.4 + V(0, 0, -1)), (0, 1, 0), 0.2, 0.12, 0.05, (0, 0, 0), f'upper_{side}', 'palTin', 'plain')
+            for k in range(6 if d1 else 3):
+                a = math.radians(10 + 30 * k * (4 if d1 else 2) / (6 if d1 else 3)); c = SHOULDER[s] + V(s * 0.04, 0, 0.02); d = V(s * math.cos(a), 0, math.sin(a))
+                tongue(f'{g}_sah{s}{k}', tuple(c + d * 0.27), tuple(d + V(0, 0, 0.3)), (0, 1, 0), 0.42, 0.16, 0.05, (0, 0, 0), f'upper_{side}', 'palTin', 'plain')
+            melt(f'{g}_sahm{s}', tuple(SHOULDER[s] + V(s * 0.2, 0, 0.22)), f'upper_{side}', 0.09 * MOTIF_MELT)
     elif m == 'quiver':
         a, b = V(-0.45, -0.52, 2.5), V(0.5, -0.6, 3.6)
         tube(f'{g}_quiver', tuple(a), tuple(b), 0.13, 0.16, 'palBronze', 'chest', 'lozenge', n=10)
@@ -634,8 +658,8 @@ MOTIF_WORDS = {'prods_chest': 'crossbow prods crossed on the chest, trigger lock
                'ge_bracers': 'dagger-axe blades on both forearms', 'ge_chest': 'a great dagger-axe blade across the chest, dagger-axes on the knees'}
 
 # ---- flakes (the dormant patina cracking away in the wake clip) ------------------------------------------------------
-FLAKES = [('hi', 3.05, 60), ('hi', 3.1, 118), ('hi', 3.0, 250), ('hi', 3.05, 290), ('hi', 2.75, 90), ('sk0', 2.1, 70), ('sk1', 1.85, 112),
-          ('sk2', 1.56, 80), ('sk2', 1.58, 260), ('sk1', 1.84, 0), ('sk1', 1.84, 180), ('sk0', 2.12, 230)]
+FLAKES = [('hi', 3.05, 60), ('hi', 3.1, 118), ('hi', 3.0, 250), ('hi', 3.05, 290), ('hi', 2.75, 90), ('sk0', 2.18, 70), ('sk1', 1.95, 112),
+          ('sk2', 1.68, 80), ('sk2', 1.7, 260), ('sk1', 1.94, 0), ('sk1', 1.94, 180), ('sk0', 2.2, 230)]  # FIX-A: skirt tiers end higher
 def flake_spec(k):
     w, z, a = FLAKES[k]; secs = {'hi': TORSO_HI, 'sk0': SKIRT[0], 'sk1': SKIRT[1], 'sk2': SKIRT[2]}[w]
     p, nrm = surf(secs, z, a, 0.02, 2.4 if w == 'hi' else 2.2); return p, nrm
@@ -717,7 +741,7 @@ CONNECT = {'fore_R', 'fore_L', 'shin_R', 'shin_L'}
 bpy.ops.object.armature_add(location=(0, 0, 0)); arm = bpy.context.active_object; arm.name = 'giant_rig'
 bpy.ops.object.mode_set(mode='EDIT'); eb = arm.data.edit_bones; eb.remove(eb[0])
 for n, h, t, p in BONES:
-    b = eb.new(n); b.head = P(*h); b.tail = P(*t); b.roll = 0
+    b = eb.new(n); b.head = PW(*h); b.tail = PW(*t); b.roll = 0
     if p: b.parent = eb[p]; b.use_connect = n in CONNECT
 bpy.ops.object.mode_set(mode='OBJECT')
 NAMES = [b[0] for b in BONES]; PAR = {b[0]: b[3] for b in BONES}
@@ -790,7 +814,8 @@ CARRY = {}
 DORM = {'beam_off': (0, 0.11, 1.02), 'chest_pitch': -3, 'head_pitch': -4}
 # slam: windup = beam high overhead, leaning back, up on the chest; hit = folded forward, knees bent, beam crashing down in front
 SLAM_UP = {'beam_off': (0, 0.3, 1.1), 'chest_pitch': -8, 'spine_pitch': -4, 'head_pitch': -10}
-SLAM_HIT = {'beam_off': (0, 1.6, -0.7), 'beam_pitch': 0, 'chest_pitch': 34, 'spine_pitch': 18, 'pelvis_pitch': 12, 'pelvis_drop': 0.42, 'pelvis_f': -0.1, 'head_pitch': -20}
+# FIX-A round A3: pelvis_f -0.1 -> -0.05 (the raised hip pivots of the longer legs left the beam 0.77 m in front, gate min 0.8)
+SLAM_HIT = {'beam_off': (0, 1.6, -0.7), 'beam_pitch': 0, 'chest_pitch': 34, 'spine_pitch': 18, 'pelvis_pitch': 12, 'pelvis_drop': 0.42, 'pelvis_f': -0.05, 'head_pitch': -20}
 # sweep: windup = turned 80 deg to the right, beam low on that side; hit = swung across to the left, leaning in
 SWEEP_UP = {'pelvis_yaw': -20, 'spine_yaw': -25, 'chest_yaw': -35, 'beam_roll': -14, 'beam_off': (0, 0.0, -0.1), 'chest_roll': 6, 'pelvis_drop': 0.18, 'head_yaw': 25}
 SWEEP_HIT = {'pelvis_yaw': 25, 'spine_yaw': 30, 'chest_yaw': 40, 'beam_roll': 12, 'beam_off': (0, 0.05, -0.2), 'chest_pitch': 14, 'chest_roll': -6, 'pelvis_drop': 0.25, 'head_yaw': -20}
@@ -819,7 +844,7 @@ def flakes_at(t):
         if t < 0.7 + delay:
             k1 = (t - 0.3) / (0.4 + delay); j = 2.5 * math.sin(t * 70 + k)
             out.append((tuple(nrm * 0.03 * k1), ax, j * k1, 1)); continue
-        u = min(1.0, (t - 0.7 - delay) / 0.6); drop = p.z - 0.05
+        u = min(1.0, (t - 0.7 - delay) / 0.6); drop = Wz(p.z) - 0.05
         off = nrm * (0.03 + 0.6 * u) + V(0, 0, -drop * u * u)
         sc_ = 1.0 if t < 1.5 else max(0.01, 1 - (t - 1.5) / 0.45)
         out.append((tuple(off), ax, 2.5 + 140 * u, sc_))

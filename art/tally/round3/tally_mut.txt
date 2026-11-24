@@ -1,0 +1,2 @@
+tally gate mutation budget: 3 FAIL lines (must be > 0)
+tally gate mutation stripes: 1 FAIL lines (must be > 0)

@@ -49,6 +49,9 @@ T = {
     'signal_flags': (256, 256, (0, 1024), 0.6),
     'slips': (256, 256, (0, 512), 0.55),
     'slips_burnt': (256, 256, (0, 512), 0.55),
+    # FIXB 25 Nov (owner 02:2x): garden pond water and the core floor star-map inlay decal
+    'pond_water': (256, 256, (0, 1024), 0.55),
+    'star_inlay': (256, 256, (0, 1024), 0.6),
 }
 # Extra rules per W2 texture: value = mean luminance range of the broad region (study value plan; research palette), wrap = edges that
 # must tile (edge step <= 1.5x the inside step), alpha = opaque share range per atlas cell (alpha cards), plus named checks below.
@@ -58,11 +61,25 @@ X = {
     'stone_paving': dict(repeat=True, value=(115, 150), wrap='xy'), 'floor_tiles': dict(repeat=True, value=(95, 130), wrap='xy'), 'hollow_brick': dict(value=(100, 135), wrap='xy'),
     'mural_wall': dict(value=(150, 185), wrap='x', ink=(60, 420)), 'wall_burnt': dict(value=(70, 125), wrap='x', darker='hall_wall'),
     'roof_tile': dict(value=(60, 95), wrap='xy'), 'tile_ends': dict(discs=True), 'timber': dict(value=(65, 100), wrap='xy'), 'timber_burnt': dict(value=(25, 55), wrap='xy'),
-    'mercury_matcap': dict(value=(110, 190), matcap=True), 'black_lake': dict(repeat=True, value=(12, 35), wrap='xy', teal=True),
+    'mercury_matcap': dict(value=(145, 190), matcap=True), 'black_lake': dict(repeat=True, value=(12, 35), wrap='xy', teal=True),
     'garden_ground': dict(repeat=True, value=(85, 125), wrap='xy'), 'garden_plants': dict(alpha=(0.06, 0.6), cells=4),
     'star_ceiling': dict(value=(22, 50), wrap='xy'), 'signal_flags': dict(alpha=(0.25, 0.7), cells=3), 'slips': dict(value=(120, 165), wrap='x'),
     'slips_burnt': dict(value=(28, 70), wrap='x'),
+    'hall_wall': dict(value=(150, 185)),   # FIXB 25 Nov: approved A2 plaster value kept (owner 02:2x), study range updated to it
+    'pond_water': dict(repeat=True, value=(115, 155), wrap='xy', teal=True), 'star_inlay': dict(alpha=(0.01, 0.08), cells=2, decal='hall_floor'),
 }
+# FIXB 25 Nov: mercury value raised from 110-190 to 145-190 (owner 02:2x 'mercury brighter'; round 3 measured 130).
+# The owner's one school colour mapping (25 Nov 02:1x, W1a's 鼎 accents) in CONFIG.SCHOOLS order: signal_flags cell i must carry school i's
+# accent on its top border band (median within FLAG_DIST RGB), and the band must read on the black field (p95 band lum - field median >= 30).
+SCHOOL_MAP = [('ru', '#b8862e'), ('dao', '#e2b84a'), ('fa', '#d9d2c3'), ('mo', '#a8321e'), ('yinyang', '#1a1614'), ('za', '#c8ccd0'),
+              ('ming', '#5b3f8c'), ('zongheng', '#2f8a5c'), ('nong', '#2e5a9c')]
+FLAG_DIST = 40
+# Game tell colours the floor inlay must stay clear of (index.html CONFIG: hazard ring 0xff2a10; minimap warned room #b33a2a), min RGB distance.
+TELLS = [('hazard ring', '#ff2a10', 120), ('warned', '#b33a2a', 60)]
+def hx(h): return np.array([int(h[i:i + 2], 16) for i in (1, 3, 5)], float)
+def hue_of(c):
+    mx, mn = c.max(-1), c.min(-1); d = np.maximum(mx - mn, 1e-6); R, G, B = c[..., 0], c[..., 1], c[..., 2]
+    return np.where(mx == R, 60 * (((G - B) / d) % 6), np.where(mx == G, 60 * ((B - R) / d + 2), 60 * ((R - G) / d + 4)))
 fails = 0
 checks = 0
 import os
@@ -97,6 +114,8 @@ for n, (du, dv, (y0, y1), scap) in T.items():
     if x.get('discs'):  # ornament atlas: fine detail may run under 4 cm (study: rules, lozenges, masks); no brush-scale rule
         res = [('density', 0.8 * 256 <= du <= 1.25 * 256 and 0.8 * 256 <= dv <= 1.25 * 256, f'{du:.0f} x {dv:.0f} px/m'),
                ('contrast', 8 <= sd <= 30, f'lum sd {sd:.1f} inside the discs'), ('saturation', sat <= scap, f'{sat:.2f} (cap {scap})')]
+    elif x.get('decal'):  # line decal (star inlay): thin inlay lines, no brush field to measure; read is judged over the floor below
+        res = [('density', 0.8 * 256 <= du <= 1.25 * 256 and 0.8 * 256 <= dv <= 1.25 * 256, f'{du:.0f} x {dv:.0f} px/m'), ('saturation', sat <= scap, f'{sat:.2f} (cap {scap})')]
     elif du is None:  # matcap: no texel density or brush run (it is a lighting lookup, not a surface)
         res = [('contrast', 30 <= sd <= 80, f'lum sd {sd:.1f} (matcap 30-80: a mirror shows hard reflections)'), ('saturation', sat <= scap, f'{sat:.2f} (cap {scap}, cool grey)')]
     else:
@@ -138,6 +157,29 @@ for n, (du, dv, (y0, y1), scap) in T.items():
     if 'ink' in x:
         b = lum_of(full[x['ink'][0]:x['ink'][1]]); cov = (b < 110).mean()
         res.append(('mural ink', 0.08 <= cov <= 0.4, f'figure share {cov:.2f} of the band (0.08-0.4)'))
+    if x.get('decal') and os.path.exists(f"{D}/{x['decal']}.png"):  # inlay over the approved floor: keeps the floor read, subtle, no tell colour
+        fl = np.asarray(Image.open(f"{D}/{x['decal']}.png").convert('RGB').resize(rgba.shape[1::-1])).astype(float); A = rgba[..., 3] > 127
+        comp = np.where(A[..., None], full, fl)
+        dl = lum_of(comp).mean() - lum_of(fl).mean(); dh = abs(hue_of(comp.reshape(-1, 3).mean(0)) - hue_of(fl.reshape(-1, 3).mean(0)))
+        res.append(('floor read', abs(dl) <= 8 and dh <= 6, f'mean lum {dl:+.1f} (max 8), mean hue shift {dh:.1f} deg (max 6) over {x["decal"]}'))
+        ic = full[A]; con = lum_of(ic).mean() - lum_of(fl[A]).mean()
+        res.append(('subtle', 25 <= con <= 75, f'inlay minus floor lum {con:.0f} (25-75: seen, not loud)'))
+        for tn, th, tmin in TELLS:
+            dmin = np.sqrt(((ic - hx(th)) ** 2).sum(-1)).min(); res.append((f'not {tn}', dmin >= tmin, f'nearest inlay pixel to {th} at {dmin:.0f} (min {tmin})'))
+        mg = 24 * rgba.shape[0] // 1024; edge = np.concatenate([A[:mg].ravel(), A[-mg:].ravel(), A[:, :mg].ravel(), A[:, -mg:].ravel()]).mean()
+        res.append(('edge clear', edge == 0, f'opaque share in the {mg} px border {edge:.4f} (0: cells turn without a seam)'))
+    if n == 'signal_flags':
+        C = rgba.shape[1] / 3; L_ = lum_of(full); bad = []; weak = []
+        for i, (sid, h) in enumerate(SCHOOL_MAP):
+            x0, y0 = int((i % 3) * C + 12 / s), int((i // 3) * C + 40 / s); w = C - 30 / s; hh = C * 0.62
+            band = full[y0 + int(6 / s):y0 + int(10 / s), x0 + int(30 / s):x0 + int(0.7 * w)].reshape(-1, 3)
+            med = np.median(band, 0); dist = np.linalg.norm(med - hx(h))
+            if dist > FLAG_DIST: bad.append(f'{sid} {dist:.0f}')
+            win = L_[y0:y0 + int(18 / s), x0 + int(30 / s):x0 + int(0.7 * w)]; fld = L_[y0 + int(hh * 0.3):y0 + int(hh * 0.4), x0 + int(0.62 * w):x0 + int(0.75 * w)]
+            rd = np.percentile(win, 95) - np.median(fld)
+            if rd < 30: weak.append(f'{sid} {rd:.0f}')
+        res.append(('school colours', not bad, 'owner mapping, all 9 within %d' % FLAG_DIST if not bad else 'off: ' + ', '.join(bad)))
+        res.append(('band reads', not weak, 'all 9 bands >= 30 over the field' if not weak else 'weak: ' + ', '.join(weak)))
     if 'redder' in x and os.path.exists(f"{D}/{x['redder']}.png"):
         o = np.asarray(Image.open(f"{D}/{x['redder']}.png").convert('RGB')).astype(float)
         d0 = (o[..., 0] - o[..., 1]).mean(); d1 = (full[..., 0] - full[..., 1]).mean()

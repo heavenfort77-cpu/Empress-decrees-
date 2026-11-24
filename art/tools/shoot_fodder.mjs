@@ -21,6 +21,8 @@ const SHOTS = [
   ['lineup_guard_wide', 'view=lineup&faction=guard&dist=22', 1920, 1080], ['lineup_guard_sil', 'view=lineup&faction=guard&mode=sil', 1920, 1080],
   ['schools', 'view=schools', 1920, 1080], ['schools_sil', 'view=schools&mode=sil', 1920, 1080],
 ];
+// FIX-A: tread scroll proof (same view, belt scrolled by half a link and by one link: the links move, the seam does not show)
+for (const [n, m] of [['0', 0], ['half', 0.0625], ['link', 0.125]]) SHOTS.push([`che_scroll_${n}`, `view=turn&unit=che&yaw=90&scroll=${m}`, 560, 640]);
 for (const u of UNITS) {
   for (const y of [0, 35, 90, 180]) SHOTS.push([`${u}_turn_${y}`, `view=turn&unit=${u}&yaw=${y}`, 560, 640]);
   SHOTS.push([`${u}_tell`, `view=tell&unit=${u}`, 1280, 640], [`${u}_lods`, `view=lods&unit=${u}`, 1280, 640]);

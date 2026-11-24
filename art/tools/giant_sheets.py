@@ -59,6 +59,11 @@ top = {(a, b): iou(sil[a][:ytop], sil[b][:ytop]) for a, b in pairs}
 fa, fb = max(full, key=full.get); ta, tb = max(top, key=top.get)
 gate(full[(fa, fb)] <= IOU_FULL, f'whole silhouette most alike pair {fa:02d}-{fb:02d} IoU {full[(fa, fb)]:.3f} (max {IOU_FULL}); mean {np.mean(list(full.values())):.3f}')
 gate(top[(ta, tb)] <= IOU_TOP, f'top region (head, beam, motif) most alike pair {ta:02d}-{tb:02d} IoU {top[(ta, tb)]:.3f} (max {IOU_TOP}); mean {np.mean(list(top.values())):.3f}')
+# FIX-A (owner: stronger motifs on 02, 05, 07, 08): each one's most alike partner, whole figure and top region
+for i in (2, 5, 7, 8):
+    if i not in G: continue
+    pf = max((full[tuple(sorted((i, j)))], j) for j in G if j != i); pt = max((top[tuple(sorted((i, j)))], j) for j in G if j != i)
+    print(f'MEASURE giant {i:02d}: most alike whole {pf[0]:.3f} (with {pf[1]:02d}), top region {pt[0]:.3f} (with {pt[1]:02d}; gate max {IOU_TOP})')
 # wide framing, LOD2 vs LOD0
 if all(os.path.exists(f'{D}/g{i:02d}_sil_wide_lod2.png') for i in G):
     w2 = {i: mask(f'{D}/g{i:02d}_sil_wide_lod2.png') for i in G}
