@@ -110,7 +110,7 @@ Panel note 16 (lead, 23 Nov 23:30; proposal):
 15 ultimate charge (DONE); 16 法甲 kit + suit stats sample (owner plays and approves); 17 the other eight kits (docs/SUITS.md); 18 hiding (curtains, 道甲 stillness, sight blocked by walls); 19 the ending + WINNER_STATUE; 20 final map size + balancing pass (re-measure, retune the CONFIG timing list once). Hunt sweep re-check with kits (0.15 s bot now loses demon-first).
 
 ## Owner decisions (dated)
-- 24 Nov 13:18-13:28: map too small; direction = "The Burning Palace" (room-by-room royale in a 阿房宫-style palace, zoom camera, only the current room rendered), more cannon fodder (her 兵家 garrison), door previews (room, decree, reward, "something stirs"), doors lock during a fight, off-screen fights only announced, KEEP the open royale as a second mode "Royal Rumble". Design note docs/BURNING-PALACE.md; waiting for go.
+- 24 Nov 13:18-13:28: map too small; direction = "The Burning Palace" (room-by-room royale in a 阿房宫-style palace, zoom camera, only the current room rendered), more cannon fodder (the 皇家 guard, owner 13:30; not 兵家), door previews (room, decree, reward, "something stirs"), doors lock during a fight, off-screen fights only announced, KEEP the open royale as a second mode "Royal Rumble". Design note docs/BURNING-PALACE.md; waiting for go.
 - 24 Nov 12:29: "update repo"; restarts must not need an owner reminder (self watchdog added).
 - 24 Nov 10:27: more workers in parallel where safe ("having more can be faster?").
 - 24 Nov 09:44-09:5x: the apex is 兵家 (tiger look and the HUD name "Tiger Demon" kept); moves renamed from 孙子兵法 (其疾如风, 动如雷震, 侵掠如火，不动如山; minions 奇正; 奇正相生); passive 攻其无备 (bonus vs a suit whose escape is on cooldown); ticket 11 before the close-out.

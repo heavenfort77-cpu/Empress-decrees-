@@ -9,7 +9,7 @@ The current open-map royale stays as a second mode, "Royal Rumble" (owner 13:28:
 - No fleeing: doors lock while a fight is on in the room.
 - Off-screen rival fights: only Kaymuse's announcements and the traces left behind; the room map shows fallen rooms only.
 - Keep Royal Rumble as a second mode (menu choice).
-- More cannon fodder (owner 13:26): Kaymuse's 兵家 garrison (below).
+- More cannon fodder (owner 13:26): the 皇家 guard, Kaymuse's own imperial household guard (owner 13:30: 皇家, not 兵家) (below).
 
 ## The palace (阿房宫 model)
 - A rammed-earth platform over a black lake (the Qin water virtue). Fallen rooms drop into the lake.
@@ -27,8 +27,8 @@ The current open-map royale stays as a second mode, "Royal Rumble" (owner 13:28:
 7. Two suits left: she seals all other doors so the two meet in one hall. The winner opens the core hall: the 兵家 apex.
 - Target length 4-5 min (owner 23 Nov 21:28); about 6-10 rooms, 3-5 rivals met in person; no more than about 5 s without something to fight, dodge or choose.
 
-## Cannon fodder: her 兵家 garrison
-Bronze soldiers on treads (same machine style as the cubs). Every attack shows its tell >= 0.4 s; low damage per hit; numbers in CONFIG.
+## Cannon fodder: the 皇家 guard (owner 24 Nov 13:30)
+Kaymuse's own imperial household guard, not 兵家: the 兵家 is the tiger under her throne; the 皇家 guard is her palace's men-at-arms. Bronze soldiers on treads in her court's black and water-blue (look decided at the art stage, distinct from the cubs, which are the tiger's plates). Every attack shows its tell >= 0.4 s; low damage per hit; numbers in CONFIG.
 - 卒 foot soldiers: line thrust; packs of 3-6; die in 2-3 hits.
 - 弩手 crossbowmen: volley on a ground marker, from behind the 卒.
 - 盾 shieldbearers: block from the front, shove; go around or break with skills.
@@ -48,7 +48,7 @@ Bronze soldiers on treads (same machine style as the cubs). Every attack shows i
 All nine kits and the bot brain, decrees and their bags, collapses (per room), plates, cubs and boons, leader/bounty/hunter cap, the 兵家 apex, school select, the ultimate meter.
 
 ## New work (for tickets after the go)
-Room graph and doors with previews; room build/detach; door locks; off-screen simulation (seeded) and announcements; spawning rivals in their current state; the garrison (5 unit types, formation, pool, instancing); context camera; walls block sight; room minimap; mode menu (Burning Palace / Royal Rumble); checks for each (fairness: no warned locked room; tells; budget per room; determinism per seed).
+Room graph and doors with previews; room build/detach; door locks; off-screen simulation (seeded) and announcements; spawning rivals in their current state; the 皇家 guard (5 unit types, formation, pool, instancing); context camera; walls block sight; room minimap; mode menu (Burning Palace / Royal Rumble); checks for each (fairness: no warned locked room; tells; budget per room; determinism per seed).
 
 ## Premortem (panel)
 - The simulation must feel fair: every off-screen death is announced and leaves a trace.
