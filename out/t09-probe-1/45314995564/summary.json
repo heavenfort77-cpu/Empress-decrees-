@@ -1,0 +1,9 @@
+[
+ {
+  "i": 0,
+  "fails": [],
+  "tot": [],
+  "s": 6,
+  "tail": "PROBE {\"seed\":1,\"casts\":[6,5,2],\"unitPers\":12,\"waits\":14,\"links\":6,\"swaps\":5,\"units\":\"true,935|true,30|false,0\",\"demonSkills\":4,\"phase\":\"hunt\"}\nPROBE {\"seed\":2,\"casts\":[6,5,2],\"unitPers\":12,\"waits\":14,\"links\":6,\"swaps\":5,\"units\":\"true,935|true,30|false,0\",\"demonSkills\":4,\"phase\":\"hunt\"}\nPROBE {\"seed\":3,\"casts\":[6,5,2],\"unitPers\":12,\"waits\":14,\"links\":6,\"swaps\":5,\"units\":\"true,935|true,30|false,0\",\"demonSkills\":4,\"phase\":\"hunt\"}\nPROBE errors 0 \n"
+ }
+]
