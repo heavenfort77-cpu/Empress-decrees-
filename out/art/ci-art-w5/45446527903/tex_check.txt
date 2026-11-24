@@ -1,0 +1,40 @@
+PASS hall_floor density: 256 x 256 px/m
+PASS hall_floor brush scale: 10.0 cm
+PASS hall_floor contrast: lum sd 9.1
+PASS hall_floor saturation: 0.52 (cap 0.55)
+PASS hall_wall density: 256 x 256 px/m
+PASS hall_wall brush scale: 14.1 cm
+PASS hall_wall contrast: lum sd 10.6
+PASS hall_wall saturation: 0.20 (cap 0.55)
+PASS pillar density: 272 x 256 px/m
+PASS pillar brush scale: 11.0 cm
+PASS pillar contrast: lum sd 8.6
+PASS pillar saturation: 0.39 (cap 0.6)
+PASS door density: 256 x 293 px/m
+PASS door brush scale: 4.6 cm
+PASS door contrast: lum sd 8.5
+PASS door saturation: 0.39 (cap 0.6)
+PASS lion_stone density: 256 x 256 px/m
+PASS lion_stone brush scale: 4.5 cm
+PASS lion_stone contrast: lum sd 9.6
+PASS lion_stone saturation: 0.09 (cap 0.55)
+PASS bronze_trim density: 256 x 256 px/m
+PASS bronze_trim brush scale: 10.1 cm
+PASS bronze_trim contrast: lum sd 9.6
+PASS bronze_trim saturation: 0.54 (cap 0.6)
+PASS bronze_trim value: mean lum 104
+PASS fodder_trim density: 256 x 256 px/m
+PASS fodder_trim brush scale: 4.9 cm
+PASS fodder_trim contrast: lum sd 9.4
+PASS fodder_trim saturation: 0.27 (cap 0.55)
+PASS fodder_trim lacquer value: mean lum 31 (22-45)
+PASS fodder_trim lacquer saturation: 0.30 (cap 0.6)
+PASS fodder_trim blue cloth value: mean lum 100 (70-110)
+PASS fodder_trim blue cloth saturation: 0.48 (cap 0.6)
+PASS fodder_trim headband value: mean lum 153 (140-180)
+PASS fodder_trim headband saturation: 0.56 (cap 0.62)
+PASS fodder_trim hemp value: mean lum 127 (90-130)
+PASS fodder_trim hemp saturation: 0.27 (cap 0.55)
+PASS fodder_trim patch value: mean lum 179 (160-210)
+PASS fodder_trim patch saturation: 0.07 (cap 0.12)
+39 of 39 pass
