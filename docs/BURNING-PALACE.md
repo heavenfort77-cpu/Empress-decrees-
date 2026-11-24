@@ -64,6 +64,7 @@ Hazards and tools from traditional palaces (Qin first). Every hit shows a tell >
 
 ## Camera
 - Wide when no enemy is within reach, tighter when one is; eased over about 0.4 s; never jumps. Corridors closer, courtyards wider.
+- Dynamic combat framing (owner 24 Nov 19:33; CONFIG.PAL_FRAME; checks 1204, 1209-1213): explore = the wide framing (room fit, or look-ahead held so the player stays within 45% of the half-screen on every screen shape: the old look-ahead was in metres and put a phone-portrait player off screen); fight = a two-shot, look point 70% player / 30% the nearest four foes' centre, at the nearest distance (close up to wide) that keeps the player and those foes within 70% of the half-screen. Hysteresis: in when a foe in sight is within 9 m, out when none is within 13 m for 1.5 s. Critically damped springs (0.15 s) for the blend and the fight framing; camera step still capped at 0.4 m. Foes off screen within 30 m get red edge arrows. Her announcement and the door card stack in one column (they overlapped on phones).
 - A manual zoom key overrides it (MOBA players expect a fixed zoom). Phones start closer.
 - Walls block sight (pulled forward from batch 18 hiding).
 

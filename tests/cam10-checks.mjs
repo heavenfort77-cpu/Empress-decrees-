@@ -170,9 +170,10 @@ export async function cam10Checks(g, check, browser, URL0) {
       const s = G.pieces2State(), gi = s.giants.find((q) => q.st >= 2), br = P0().rooms.find((q) => q.id === gi.room), sx = Math.sign(br.cx - gi.x) || 1;
       G.teleport(gi.x + 6 * sx, gi.z); return [gi.room, gi.st];
     }, () => { const p = P0(), R = p.rooms.find((q) => q.id === 'hall'); G.teleport(R.cx, R.cz); });
-    // Look point: one rival 6 m north of the player, settled: 30% of the way to it.
+    // Look point: one rival 6 m north of the player, settled: 30% of the way to it (the owner's 70/30 spec, a fixed number here, not read from
+    // CONFIG: mutation cam11-mut 45393123516 set focus to 0 and a check reading CONFIG moved with it).
     G.setSeed(12345); G.setMode('palace'); G.pieces2(true); G.reset(); G.step(10);
-    { const p = P0(), bx = p.x, bz = p.z - 6; G.palPlaceBot(0, bx, bz); G.step(120); const c = lens(), q = P0(); o.focus = { fn: c.fn, dx: +(c.ftx - (q.x + (bx - q.x) * F.focus)).toFixed(3), dz: +(c.ftz - (q.z + (bz - q.z) * F.focus)).toFixed(3) }; }
+    { const p = P0(), bx = p.x, bz = p.z - 6; G.palPlaceBot(0, bx, bz); G.step(120); const c = lens(), q = P0(); o.focus = { fn: c.fn, dx: +(c.ftx - (q.x + (bx - q.x) * 0.3)).toFixed(3), dz: +(c.ftz - (q.z + (bz - q.z) * 0.3)).toFixed(3) }; }
     // Negatives: a rival between enterR and exitR in the court (40 m wide), and a lurking 死士 at 6 m (fresh run each).
     G.setSeed(12345); G.setMode('palace'); G.pieces2(true); G.reset(); G.step(10);
     const ct = P0().rooms.find((q) => q.id === 'court'), far = (F.enterR + F.exitR) / 2;
