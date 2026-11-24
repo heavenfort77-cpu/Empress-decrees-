@@ -688,11 +688,14 @@ const CONFIG = {
   // giant = 十二金人 bronze giants on the core approach: n = how many stand there; cap = most awake at once; wakeS = wake tell seconds before it moves;
   // speed = m/s (slow: suits walk 5.6-6.4); r = body radius m; thinkS = seconds between route choices; gapS = seconds between its moves; recoverS = rest
   // after a move; slam = ring around itself, sweep = line ahead: windup s (tell, >= 0.4), radius / len + width m, dmg hp, kb m/s, range m to start it, cd s.
-  // colors = water, the awake giant's glow (linear vertex-free picks; art later).
-  PIECES2: { on: true, clock: { steps: 48 }, vat: { hp: 30, crackS: 0.5, radius: 3.5, kb: 12, floodS: 3, douseS: 4, perWave: 1 },
-    giant: { n: 12, cap: 4, wakeS: 2, speed: 3.2, r: 1.1, thinkS: 0.5, gapS: 0.6, recoverS: 1,
+  // colors = water, the awake giant's glow, its health bar (linear vertex-free picks; art later).
+  // Killable giants (owner 24 Nov 15:41 "make them killable"; first picks, not tuned): giant.hp = health of an awake giant (a dormant one cannot be hurt);
+  // giant.charge = ultimate charge for the suit that breaks one (a suit kill gives 20); giant.fallS = seconds of its collapse; it then lies there for the run;
+  // vat.giantDmg = damage a vat's splash deals to a giant inside it (lure one onto a vat).
+  PIECES2: { on: true, clock: { steps: 48 }, vat: { hp: 30, crackS: 0.5, radius: 3.5, kb: 12, floodS: 3, douseS: 4, perWave: 1, giantDmg: 60 },
+    giant: { n: 12, cap: 4, wakeS: 2, hp: 400, charge: 50, fallS: 0.8, speed: 3.2, r: 1.1, thinkS: 0.5, gapS: 0.6, recoverS: 1,
       slam: { windup: 1, radius: 4, dmg: 30, kb: 10, range: 3.2, cd: 3 }, sweep: { windup: 1.2, len: 7, width: 3, dmg: 24, kb: 8, range: 6, cd: 4 } },
-    colors: { water: 0x2a6a9a, glow: 0xff6a20 } },
+    colors: { water: 0x2a6a9a, glow: 0xff6a20, bar: 0xd04020 } },
   // BP03 door locks (owner 24 Nov 13:26: no fleeing; doors lock while a fight is on). on = switch; clearM = a room locks once the player is inside it
   // and at least this far from each of its doors (never on a door's solid), m. Owner 24 Nov 14:16: the core hall stays sealed until the player is
   // the last suit standing (sealCore = switch for that rule).
@@ -896,6 +899,7 @@ const TEXT = {
   burn_now: 'Burning: {wing}',
   burn_none: 'Nothing more shall burn.',
   piece2_giant_voice: 'One of Our twelve wakes. Bronze does not tire.',
+  piece2_giant_down: 'One of Our twelve lies broken. So bronze does tire.',
   door_card_burn: '{room}\nBURNING: it falls within seconds.\nDecree: {decree}\nReward: {reward}\n{stir}',
   door_fallen: '{room}\nFallen into the black lake.',
   pal3_door_sealed: '{room}\nSealed by Our decree while {n} rivals stand.',
@@ -1137,6 +1141,12 @@ const P2_VAT_SPOTS = P2_VAT_AT.map((v) => ({ lay: 'proto', room: v.room, x: v.x,
 for (const id in PAL_FULL_PIECES) for (const q of PAL_FULL_PIECES[id]) if (q.type === 'vat') P2_VAT_SPOTS.push({ lay: 'full', room: id, x: q.x, z: q.z });
 const P2_VATS = P2_VAT_SPOTS.map((v, i) => ({ vat: true, idx: i, lay: v.lay, room: v.room, x: CONFIG.PALACE.origin[0] + v.x, z: CONFIG.PALACE.origin[1] + v.z, y: 0, r: 0.8,
   hp: CONFIG.PIECES2.vat.hp, seen: false, st: 0, t: 0, r0: null, solid: null, body: null, ring: null, flood: null, flashT: 0, deadT: 0 }));
+// The giants are targets too (owner 24 Nov 15:41: killable), like the vats (no kind: blows reach them through hitDummy): giant.n per palace plan,
+// made here so TARGETS holds them; the palace build fills each one in (lay = its plan; only the plan in use acts). seen / alive while awake and drawn.
+const P2_GIANT_T = [];
+for (const LK in PAL_LAYOUTS) for (let i = 0; i < CONFIG.PIECES2.giant.n; i++) {
+  P2_GIANT_T.push({ giant: true, lay: LK, i, x: 0, y: 0, z: 0, r: CONFIG.PIECES2.giant.r, hp: CONFIG.PIECES2.giant.hp, seen: false, alive: false });
+}
 
 // ===================== DOM helpers (writes only on change) =====================
 const $ = (id) => document.getElementById(id);
@@ -1648,7 +1658,7 @@ const halfDiskGeo = new THREE.CircleGeometry(1, 40, 0, Math.PI); halfDiskGeo.rot
 // Places in 农甲's sprout pool (ticket 07): one pool per suit, built once at load (the pool size is the skill's, read here once).
 const NONG_POOL = CONFIG.KITS.nong.skills[0].pool;
 // Most targets one hit can reach (dummies, hunt units, cubs, buff creatures, bots, 皇家 guards, 门海 vats and the player): the size of 名甲's per-pass hit list (ticket 05).
-const TARGET_MAX = DUMMY_LIST.length + ENEMIES.length + CUBS.length + NEUTRALS.length + BOTLIST.length + GUARDS.length + P2_VATS.length + 1;
+const TARGET_MAX = DUMMY_LIST.length + ENEMIES.length + CUBS.length + NEUTRALS.length + BOTLIST.length + GUARDS.length + P2_VATS.length + P2_GIANT_T.length + 1;
 for (let k = 0; k < SUITS.length; k++) {
   const s = SUITS[k], m = new THREE.Mesh(markGeo, M.ring);
   m.position.y = DD.markY; m.visible = false; m.castShadow = false;
@@ -1724,7 +1734,7 @@ Object.assign(P, { campK: -1, cd: [0, 0, 0], navWant: false, gx: 0, gz: 0, gy: 0
   heal: null, skip: null, castT: 0, lastBy: null, lastByT: -99, declined: null, declinedT: -99, flee: false, fleeGo: false, pathGen: 0, why: '', hunter: false, huntLostT: 0, mx: 0, mz: 0,
   pend: false, pendT: 0, pendS: 2, pendX: 0, pendZ: 0, pendDx: 0, pendDz: 0, pendAge: 0, ring: new THREE.Mesh(fxTele.geometry, M.ring) });
 // Everything the player can target: training dummies, hunt units, cubs, buff creatures and bot suits share x, z, r, hp, seen.
-const TARGETS = DUMMY_LIST.concat(ENEMIES, CUBS, NEUTRALS, BOTLIST, GUARDS, P2_VATS);
+const TARGETS = DUMMY_LIST.concat(ENEMIES, CUBS, NEUTRALS, BOTLIST, GUARDS, P2_VATS, P2_GIANT_T);
 // Gate seal shown during the hunt.
 const sealMesh = new THREE.Mesh(new THREE.BoxGeometry((GATE.x1 - GATE.x0), 2.6, 0.3).translate(0, 1.3, CH.z1 - 0.5), M.tellD);
 sealMesh.matrixAutoUpdate = false; sealMesh.updateMatrix();
@@ -1976,7 +1986,7 @@ function hitTarget(by, d, n, basic, sk) {
   if (sk && d.kind === 'suit') zaStore(d, sk);
   if (by.expArmT > 0) { if (d.kind === 'suit') expose(d, by.expS); by.expArmT = 0; }
   if (by.kit && by.kit.passive === 'halving') chainHit(by, d);
-  if (!d.kind) { hitDummy(d, n); return true; }
+  if (!d.kind) { hitDummy(d, n, by); return true; }
   if (d.kind === 'suit') { hurtSuit(d, n, 'hit', by); return true; }
   // 皇家 guard (Burning Palace ticket 02): the 伍长 buff and the 盾's front block cut the blow.
   if (d.guard) n *= guardTakenK(d, by, !!basic);
@@ -2004,9 +2014,10 @@ function gainCharge(s, v) {
   if (!onMeter(s) || s.dead || v <= 0) return;
   s.ch = Math.min(CONFIG.ULT.full, s.ch + v * (decOn('ult2x') ? CONFIG.DECREES.ultK : 1));
 }
-function hitDummy(d, n) {
-  // BP09: a bronze vat takes the blow (it cracks, then splashes).
+function hitDummy(d, n, by) {
+  // BP09: a bronze vat takes the blow (it cracks, then splashes); a bronze giant too (owner 24 Nov 15:41: killable).
   if (d.vat) { hitVat(d, n); return; }
+  if (d.giant) { hitGiant(d, n, by, 'blow'); return; }
   d.hp = Math.max(0, d.hp - n); d.flashT = 0.12; d.body.material = M.hit;
   d.bar.scale.x = Math.max(0.001, d.hp / CONFIG.DUMMY_HP);
   if (d.hp <= 0) { d.deadT = CONFIG.DUMMY_RESPAWN_S; if (ORD.attack === d) ORD.attack = null; }
@@ -2446,6 +2457,8 @@ PIECE_SIDES.push(PIECE_PROBE);
 PIECE_SIDES.push({ list: GUARDS,
   hurt(u, n) { hitEnemy(u, n, null); },
   heal(u, n) { const h = Math.min(n, u.maxHp - u.hp); u.hp += h; u.bar.scale.x = Math.max(0.001, u.hp / u.maxHp); return h; } });
+// The bronze giants are a side too (owner 24 Nov 15:41: killable): pieces hurt an awake one (no knockback: bronze; no reward); the 鼎 does not mend bronze.
+PIECE_SIDES.push({ list: P2_GIANT_T, hurt(u, n) { hitGiant(u, n, null, 'piece'); }, heal() { return 0; } });
 {
   const PP = CONFIG.PIECES, col = PP.col;
   mat('merc', col.merc, { metalness: 0.8, roughness: 0.3 });
@@ -3344,7 +3357,10 @@ function stepBurn(dt) {
 // Placement: P2_CLOCKS / P2_VAT_AT / P2_GIANT_AT (BP01 rooms) until BP05's room.pieces. Every side is hit alike (suits now; BP02's guard by tag at the merge).
 const C2 = CONFIG.PIECES2, G2 = C2.giant;
 const P2 = { on: C2.on, giantsOn: true, clocks: [], giants: [], awake: 0, wakes: 0, lost: 0, douses: 0, douseWave: -1, note: false, notes: 0,
-  instWrites: 0, dirty: true, nDorm: 0, nAwake: 0, wingIdx: {} };
+  instWrites: 0, dirty: true, nDorm: 0, nAwake: 0, wingIdx: {}, kills: 0, downNote: 0, downNotes: 0, nBars: 0,
+  dmg: { blow: 0, guard: 0, piece: 0, vat: 0 } };
+// Giant health bars (owner 24 Nov 15:41): one instanced bar over every awake giant drawn, its length the health left (written with the giants' matrices).
+const p2BarMat = new THREE.MeshStandardMaterial({ color: C2.colors.bar, emissive: C2.colors.bar, emissiveIntensity: 1, roughness: 1 }), p2BarQ = new THREE.Quaternion(), p2BarS = new THREE.Vector3(), p2BarP = new THREE.Vector3(), p2Euler = new THREE.Euler();
 const p2WaterMat = new THREE.MeshStandardMaterial({ color: C2.colors.water, roughness: 0.3, metalness: 0.1 });
 const p2GlowMat = new THREE.MeshStandardMaterial({ color: COL.bronze, emissive: C2.colors.glow, emissiveIntensity: 0.6, metalness: 0.4, roughness: 0.6 });
 const p2Mat4 = new THREE.Matrix4();
@@ -3373,7 +3389,8 @@ function p2Static(r, geo, m) { const mesh = new THREE.Mesh(geo, m); mesh.castSha
   const gGeo = mergeGeoms([box(0.7, 2, 0.8, -0.5, 1, 0), box(0.7, 2, 0.8, 0.5, 1, 0), box(2.2, 2, 1.2, 0, 3, 0), box(0.9, 0.9, 0.9, 0, 4.45, 0),
     box(0.6, 2, 0.6, -1.45, 3, 0), box(0.6, 2, 0.6, 1.45, 3, 0)]);
   P2.dorm = new THREE.InstancedMesh(gGeo, M.bronze, G2.n); P2.wake = new THREE.InstancedMesh(gGeo, p2GlowMat, G2.n);
-  for (const im of [P2.dorm, P2.wake]) {
+  P2.bars = new THREE.InstancedMesh(new THREE.BoxGeometry(2.4, 0.25, 0.25).translate(1.2, 0, 0), p2BarMat, G2.n);
+  for (const im of [P2.dorm, P2.wake, P2.bars]) {
     // No shadow from giants (they move; the shadow map is redrawn only on change); count 0 and hidden until one stands in a drawn room.
     im.castShadow = false; im.receiveShadow = true; im.count = 0; im.visible = false; im.matrixAutoUpdate = false;
     // Culling stays on: one sphere around the whole palace (instances move between rooms; both plans fit inside it).
@@ -3406,9 +3423,9 @@ function p2Static(r, geo, m) { const mesh = new THREE.Mesh(geo, m); mesh.castSha
   for (let i = 0; i < Math.min(G2.n, spots.length); i++) {
     const a = spots[i], r = p2Room(a.room), x = ox + a.x, z = oz + a.z;
     const ring = new THREE.Mesh(tellRingGeo, M.tellD), line = new THREE.Mesh(tellLineGeo, M.tellD);
-    S.giants.push({ i, hx: x, hz: z, x, z, px: x, pz: z, ry: Math.PI, fx: 0, fz: 1, st: 0, t: 0, tellT: 0, cur: '', thinkT: 0, gapT: 0, cdS: 0, cdW: 0,
+    S.giants.push(Object.assign(P2_GIANT_T.find((t) => t.lay === LK && t.i === i), { hx: x, hz: z, x, z, px: x, pz: z, ry: Math.PI, fx: 0, fz: 1, st: 0, t: 0, tellT: 0, cur: '', thinkT: 0, gapT: 0, cdS: 0, cdW: 0,
       tgt: null, wx: x, wz: z, door: null, tl: 0, tx: 0, tz: 0, ring, line, home: r, order: Math.hypot(x - core.cx, z - core.z1),
-      hits: 0, minTell: 99, vis: false });
+      hits: 0, minTell: 99, vis: false, fallT: 0, killer: null }));
   }
   // Wake order: nearest the core hall's door first.
   S.byWake = S.giants.slice().sort((a, b) => a.order - b.order);
@@ -3444,6 +3461,34 @@ function hitVat(v, n) {
   v.st = 1; v.t = C2.vat.crackS; if (ORD.attack === v) ORD.attack = null;
   scene.add(v.ring);
 }
+// A blow on a giant (owner 24 Nov 15:41: killable): only an awake one of the plan in use (1 waking .. 4 recovering) takes it; at 0 it collapses
+// (fallS), then lies there for the run; the suit that broke it takes giant.charge; her line waits for the banner; its awake slot frees (another may wake).
+// src = what struck it ('blow' a suit or other target's blow, 'guard', 'piece', 'vat'): P2.dmg counts the damage by source (checks read it).
+function hitGiant(g, n, by, src) {
+  if (g.st < 1 || g.st > 4 || g.lay !== PAL.layout || !PAL.on) return;
+  P2.dmg[src] += Math.min(n, g.hp);
+  g.hp = Math.max(0, g.hp - n); P2.dirty = true;
+  if (g.hp > 0) return;
+  if (g.ring.parent) scene.remove(g.ring); if (g.line.parent) scene.remove(g.line);
+  g.st = 6; g.t = G2.fallS; g.fallT = 0; g.killer = by; g.seen = false; g.alive = false; P2.awake--; P2.kills++; P2.downNote++;
+  if (ORD.attack === g) ORD.attack = null;
+  if (by && by.kind === 'suit') gainCharge(by, G2.charge);
+}
+// Bots dodge a giant's shown move (seen for the reaction time) like any other tell: away from the slam's centre, sideways out of the sweep.
+function p2Danger(b, x, z, margin) {
+  const react = b.skill.react;
+  for (let i = 0; i < P2.giants.length; i++) {
+    const g = P2.giants[i];
+    if (g.st !== 3 || g.tellT < react || Math.abs(b.y) >= 3) continue;
+    if (g.cur === 'slam') {
+      if (Math.hypot(x - g.tx, z - g.tz) < G2.slam.radius + margin) { DNG.ex = b.x - g.tx; DNG.ez = b.z - g.tz; if (DNG.ex === 0 && DNG.ez === 0) DNG.ez = 1; return true; }
+    } else {
+      const qx = x - g.x, qz = z - g.z, along = qx * g.fx + qz * g.fz, side = qx * g.fz - qz * g.fx;
+      if (along >= -margin && along <= g.tl + margin && Math.abs(side) <= G2.sweep.width / 2 + margin) { const sg = side >= 0 ? 1 : -1; DNG.ex = g.fz * sg; DNG.ez = -g.fx * sg; return true; }
+    }
+  }
+  return false;
+}
 // The splash: knockback for every suit inside; inside the wing that is burning now it holds the fall douseS seconds (once per wave).
 function p2Splash(v) {
   v.st = 2; v.t = C2.vat.floodS; v.seen = false; v.solid.off = true; v.body.visible = false; scene.remove(v.ring); v.r0.group.add(v.flood);
@@ -3454,6 +3499,8 @@ function p2Splash(v) {
     if (d >= C2.vat.radius) continue;
     if (d > 0.01) { s.kx += hx / d * C2.vat.kb; s.kz += hz / d * C2.vat.kb; } else s.kz += C2.vat.kb;
   }
+  // A giant inside the splash takes giantDmg (no reward: the water broke it).
+  for (let i = 0; i < P2.giants.length; i++) { const g = P2.giants[i]; if (Math.hypot(g.x - v.x, g.z - v.z) < C2.vat.radius + G2.r) hitGiant(g, C2.vat.giantDmg, null, 'vat'); }
   const r = v.r0;
   if (BURN.st === 1 && r.warned && !r.fallen && r.wing === BURN.wing && P2.douseWave !== BURN.i) {
     BURN.warnAt += C2.vat.douseS; BURN.shownS = -1; P2.douses++; P2.douseWave = BURN.i;
@@ -3472,7 +3519,7 @@ function p2Reset() {
   p2Bind();
   for (const LK in P2.sets) for (const g of P2.sets[LK].giants) {
     g.x = g.hx; g.z = g.hz; g.px = g.x; g.pz = g.z; g.ry = Math.PI; g.st = 0; g.t = 0; g.tellT = 0; g.cur = ''; g.thinkT = 0; g.gapT = 0; g.cdS = 0; g.cdW = 0;
-    g.tgt = null; g.door = null; g.hits = 0; g.minTell = 99; g.vis = false;
+    g.tgt = null; g.door = null; g.hits = 0; g.minTell = 99; g.vis = false; g.hp = G2.hp; g.seen = false; g.alive = false; g.fallT = 0; g.killer = null;
     if (g.ring.parent) scene.remove(g.ring); if (g.line.parent) scene.remove(g.line);
   }
   for (const v of P2_VATS) {
@@ -3481,17 +3528,18 @@ function p2Reset() {
   }
   for (const c of P2.clocks) { c.step = -1; c.writes = 0; }
   P2.awake = 0; P2.wakes = 0; P2.lost = 0; P2.douses = 0; P2.douseWave = -1; P2.note = false; P2.notes = 0; P2.instWrites = 0; P2.dirty = true;
+  P2.kills = 0; P2.downNote = 0; P2.downNotes = 0; P2.nBars = 0; P2.dmg.blow = 0; P2.dmg.guard = 0; P2.dmg.piece = 0; P2.dmg.vat = 0;
   const on = G.mode === 'palace' && CONFIG.PALACE_ON && P2.on;
-  for (const im of [P2.dorm, P2.wake]) { im.count = 0; im.visible = false; if (on && !im.parent) scene.add(im); else if (!on && im.parent) scene.remove(im); }
+  for (const im of [P2.dorm, P2.wake, P2.bars]) { im.count = 0; im.visible = false; if (on && !im.parent) scene.add(im); else if (!on && im.parent) scene.remove(im); }
 }
 // Load warm-up (palace draw): giant meshes, tells, a vat ring and flood are drawn once so their programs and buffers exist before play.
 function p2Warm(on) {
   const g = P2.giants[0], v = P2_VATS[0];
   if (on) {
-    for (const im of [P2.dorm, P2.wake]) { im.count = 1; im.visible = true; p2Mat4.makeTranslation(g.hx, 0, g.hz); im.setMatrixAt(0, p2Mat4); im.instanceMatrix.needsUpdate = true; scene.add(im); }
+    for (const im of [P2.dorm, P2.wake, P2.bars]) { im.count = 1; im.visible = true; p2Mat4.makeTranslation(g.hx, 0, g.hz); im.setMatrixAt(0, p2Mat4); im.instanceMatrix.needsUpdate = true; scene.add(im); }
     g.ring.position.set(g.hx, 0.08, g.hz); g.line.position.set(g.hx, 0.08, g.hz); scene.add(g.ring, g.line, v.ring); v.r0.group.add(v.flood);
   } else {
-    for (const im of [P2.dorm, P2.wake]) { im.count = 0; im.visible = false; scene.remove(im); }
+    for (const im of [P2.dorm, P2.wake, P2.bars]) { im.count = 0; im.visible = false; scene.remove(im); }
     scene.remove(g.ring, g.line, v.ring); v.r0.group.remove(v.flood);
   }
 }
@@ -3567,8 +3615,15 @@ function p2In(g, k, x, z) {
 function p2StepGiant(g, dt) {
   g.px = g.x; g.pz = g.z;
   if (g.st === 0 || g.st === 5) return;
+  // Broken (6 collapsing, 7 lying for the run): it never acts again; a fall of its room takes the body into the lake (not counted as lost).
+  if (g.st >= 6) {
+    const r = palRoomAt(g.x, g.z);
+    if (r && r.state >= 2) { g.st = 5; P2.dirty = true; return; }
+    if (g.st === 6) { g.fallT = Math.min(G2.fallS, g.fallT + dt); P2.dirty = true; if (g.fallT >= G2.fallS) g.st = 7; }
+    return;
+  }
   const here = palRoomAt(g.x, g.z);
-  if (here && here.state >= 2) { if (g.ring.parent) scene.remove(g.ring); if (g.line.parent) scene.remove(g.line); g.st = 5; P2.awake--; P2.lost++; P2.dirty = true; return; }
+  if (here && here.state >= 2) { if (g.ring.parent) scene.remove(g.ring); if (g.line.parent) scene.remove(g.line); g.st = 5; g.seen = false; g.alive = false; P2.awake--; P2.lost++; P2.dirty = true; return; }
   if (g.cdS > 0) g.cdS -= dt; if (g.cdW > 0) g.cdW -= dt; if (g.gapT > 0) g.gapT -= dt;
   if (g.st === 1) { g.t -= dt; if (g.t <= 0) { g.st = 2; g.thinkT = 0; } return; }
   if (g.st === 3) { g.t -= dt; g.tellT += dt; if (g.t <= 0) p2Resolve(g); return; }
@@ -3608,6 +3663,7 @@ function stepPieces2(dt) {
   }
   if (P2.giantsOn) for (let i = 0; i < P2.giants.length; i++) p2StepGiant(P2.giants[i], dt);
   if (P2.note && G.bannerWave < 0 && G.fellT <= 0) { P2.note = false; P2.notes++; palAnnounce('piece2_giant_voice'); }
+  else if (P2.downNote > 0 && G.bannerWave < 0 && G.fellT <= 0) { P2.downNote--; P2.downNotes++; palAnnounce('piece2_giant_down'); }
   p2Draw();
 }
 // Instances: giants standing in a room that is in the scene; matrices written only when one moved or the drawn set changed.
@@ -3616,19 +3672,24 @@ function p2Draw() {
   for (let i = 0; i < P2.giants.length; i++) {
     const g = P2.giants[i], r = palRoomAt(g.x, g.z), vis = g.st !== 5 && !!r && !!r.group.parent && r.state < 2;
     if (vis !== g.vis) { g.vis = vis; moved = true; }
+    // A target (the auto-target, blows, bots) while awake (waking .. recovering) and drawn.
+    g.alive = g.st >= 1 && g.st <= 4; g.seen = vis && g.alive;
     if (vis && (g.x !== g.px || g.z !== g.pz)) moved = true;
   }
   if (!moved) return;
   P2.dirty = false;
-  let nd = 0, na = 0;
+  let nd = 0, na = 0, nb = 0;
   for (let i = 0; i < P2.giants.length; i++) {
     const g = P2.giants[i];
     if (!g.vis) continue;
     p2Mat4.makeRotationY(g.ry); p2Mat4.setPosition(g.x, 0, g.z);
-    if (g.st === 0) P2.dorm.setMatrixAt(nd++, p2Mat4); else P2.wake.setMatrixAt(na++, p2Mat4);
+    // A broken giant tips over backwards during its collapse and lies on the floor (bronze, no glow).
+    if (g.st >= 6) { p2BarQ.setFromEuler(p2Euler.set(-Math.PI / 2 * (g.fallT / G2.fallS), g.ry, 0, 'YXZ')); p2BarP.set(g.x, 0, g.z); p2BarS.set(1, 1, 1); p2Mat4.compose(p2BarP, p2BarQ, p2BarS); }
+    if (g.st === 0 || g.st >= 6) P2.dorm.setMatrixAt(nd++, p2Mat4); else P2.wake.setMatrixAt(na++, p2Mat4);
+    if (g.st >= 1 && g.st <= 4) { p2BarP.set(g.x - 1.2, 5.4, g.z); p2BarS.set(Math.max(0.001, g.hp / G2.hp), 1, 1); p2BarQ.identity(); p2Mat4.compose(p2BarP, p2BarQ, p2BarS); P2.bars.setMatrixAt(nb++, p2Mat4); }
   }
-  P2.dorm.count = nd; P2.wake.count = na; P2.nDorm = nd; P2.nAwake = na; P2.dorm.visible = nd > 0; P2.wake.visible = na > 0;
-  P2.dorm.instanceMatrix.needsUpdate = true; P2.wake.instanceMatrix.needsUpdate = true; P2.instWrites++;
+  P2.dorm.count = nd; P2.wake.count = na; P2.bars.count = nb; P2.nDorm = nd; P2.nAwake = na; P2.nBars = nb; P2.dorm.visible = nd > 0; P2.wake.visible = na > 0; P2.bars.visible = nb > 0;
+  P2.dorm.instanceMatrix.needsUpdate = true; P2.wake.instanceMatrix.needsUpdate = true; P2.bars.instanceMatrix.needsUpdate = true; P2.instWrites++;
 }
 // PERFRAME-END
 
@@ -5793,6 +5854,11 @@ function botDecide(b) {
       if (!u.alive || u.hid || (u.guard && !GC.factions[u.faction].foeSuits) || u === b.skip || Math.abs(u.y - b.y) > 1.5 || (G.hiAvoid && u.y >= CONFIG.DECREES.heightY - 0.5)) continue;
       const d = Math.hypot(u.x - b.x, u.z - b.z); if (d < bd) { bd = d; c = u; }
     }
+    // An awake bronze giant in sight is a creature target too (owner 24 Nov 15:41: killable; target tag giant).
+    for (let i = 0; PAL.on && i < P2.giants.length; i++) {
+      const g = P2.giants[i]; if (!g.alive || g === b.skip || Math.abs(b.y) > 1.5 || !palSight(b.x, b.z, g.x, g.z)) continue;
+      const d = Math.hypot(g.x - b.x, g.z - b.z); if (d < bd) { bd = d; c = g; }
+    }
     if (c && brnd() > b.skill.aggro) { b.skip = c; c = null; }
   }
   if (c) { botTarget(b, c, 'creature'); return; }
@@ -6050,6 +6116,8 @@ function botDanger(b, x, z, margin) {
   }
   // 皇家 guard tells (Burning Palace ticket 02).
   if (G.guardN > 0 && guardDanger(b, x, z, margin)) return true;
+  // Bronze giants' moves (BP09; killable, owner 24 Nov 15:41).
+  if (PAL.on && P2.awake > 0 && p2Danger(b, x, z, margin)) return true;
   for (let i = 0; i < BOTLIST.length; i++) {
     const o = BOTLIST[i];
     if (o === b || !o.pend || o.pendAge < react) continue;
@@ -6204,6 +6272,11 @@ function nearestFoe(f, x, z, y, r) {
     const o = GUARDS[i]; if (!o.alive || o.hid || o.faction === f || !guardFoe(f, o, y)) continue;
     const d = Math.hypot(o.x - x, o.z - z); if (d <= bd) { bd = d; best = o; }
   }
+  // An awake bronze giant in the palace is every faction's foe (seen through open doors only).
+  for (let i = 0; i < P2.giants.length; i++) {
+    const g = P2.giants[i]; if (!g.alive || !PAL.on || Math.abs(y) >= 1.5 || !palSight(x, z, g.x, g.z)) continue;
+    const d = Math.hypot(g.x - x, g.z - z); if (d <= bd) { bd = d; best = g; }
+  }
   return best;
 }
 // A formed squad follows its 伍长 and takes one target for all; it faces that target.
@@ -6338,6 +6411,8 @@ function guardResolve(u) {
     if (!o.alive || o.faction === u.faction || Math.abs(o.y - u.ty) >= 1.5 || !guardCovers(u, m, o)) continue;
     hitEnemy(o, dmg * o.defK, null);
   }
+  // An awake bronze giant inside the move is hit too (owner 24 Nov 15:41: killable by every side; no reward for a guard's blow).
+  for (let i = 0; i < P2.giants.length; i++) { const g = P2.giants[i]; if (g.alive && Math.abs(u.ty) < 1.5 && guardCovers(u, m, g)) hitGiant(g, dmg, null, 'guard'); }
   if (m.shape !== 'line' || m.stay) { u.st = 3; u.t = CONFIG.APEX.recoverS; return; }
   u.ax = u.x; u.az = u.z; u.dashS = m.dashS; u.st = 2; u.t = 0; u.bx = u.x + u.fx * u.tl; u.bz = u.z + u.fz * u.tl;
 }
@@ -7469,11 +7544,21 @@ Object.assign(window.__game, {
     clocks: P2.clocks.map((c) => ({ room: c.room.id, wing: c.wing, level: c.level, eta: c.eta, full: c.full, step: c.step, scale: c.water.scale.y, writes: c.writes, attached: !!c.room.group.parent })),
     vats: P2_VATS.filter((v) => v.lay === PAL.layout).map((v) => ({ room: v.room, x: v.x, z: v.z, hp: v.hp, st: v.st, seen: v.seen, solidOff: v.solid.off, body: v.body.visible, ring: !!v.ring.parent, flood: !!v.flood.parent })),
     giants: P2.giants.map((g) => ({ i: g.i, st: g.st, x: g.x, z: g.z, hx: g.hx, hz: g.hz, room: (palRoomAt(g.x, g.z) || { id: '' }).id, cur: g.cur, t: g.t, tellT: g.tellT,
-      ring: !!g.ring.parent, line: !!g.line.parent, hits: g.hits, minTell: g.minTell, tgt: g.tgt === P ? 'P' : g.tgt ? 'suit' : '', vis: g.vis })),
+      ring: !!g.ring.parent, line: !!g.line.parent, hits: g.hits, minTell: g.minTell, tgt: g.tgt === P ? 'P' : g.tgt ? 'suit' : '', vis: g.vis,
+      hp: g.hp, alive: g.alive, seen: g.seen, fallT: g.fallT, killer: g.killer === P ? 'P' : g.killer ? 'suit' : '' })),
+    kills: P2.kills, downNotes: P2.downNotes, nBars: P2.nBars, barsIn: !!P2.bars.parent, dmg: Object.assign({}, P2.dmg), hpMax: CONFIG.PIECES2.giant.hp,
     burnWarnAt: BURN.warnAt, t: G.time }),
   pieces2(on, giants) { P2.on = !!on; P2.giantsOn = giants === undefined ? true : !!giants; },
   giantWake: () => p2Wake(),
   vatAttack(i) { ORD.attack = P2_VATS[i]; PATH.n = 0; },
+  // Killable giants (owner 24 Nov 15:41; checks only): giantAttack (the player's attack order on giant i), giantStrike (suit k's basic attack on it,
+  // -1 = the player), giantSetHp, giantPlace (moves it, no step), giantDanger (bot k's dodge test at x, z), botDecideNow (bot k decides now: mode, giant index).
+  giantAttack(i) { ORD.attack = P2.giants[i]; PATH.n = 0; },
+  giantStrike(i, k) { basicAttack(k < 0 ? P : BOTLIST[k], P2.giants[i]); },
+  giantSetHp(i, hp) { P2.giants[i].hp = hp; P2.dirty = true; },
+  giantPlace(i, x, z) { const g = P2.giants[i]; g.x = x; g.z = z; g.px = x; g.pz = z; P2.dirty = true; },
+  giantDanger(k, x, z) { return p2Danger(BOTLIST[k], x, z, 0.5); },
+  botDecideNow(k) { const b = BOTLIST[k]; b.skip = null; botDecide(b); return { mode: b.mode, giant: b.tgt && b.tgt.giant ? b.tgt.i : -1 }; },
 });
 // BP03 hooks: palSim (read: rivals, hunter, final, seal, locks, counters, the result log), palSimSet (checks only: rival k out of sight in room id
 // with hp and meter, or out with id null), palHunter (checks only: rival k tracks the player now), palDoorLocked (door index locked).

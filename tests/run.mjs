@@ -3,6 +3,7 @@ import { createServer } from 'node:http';
 import { readFile } from 'node:fs/promises';
 import { extname, join, normalize } from 'node:path';
 import { bp09Checks } from './bp09-checks.mjs';
+import { bp09bChecks } from './bp09b-checks.mjs';
 
 let chromium;
 import { palace3Checks } from './palace3-checks.mjs';
@@ -4020,6 +4021,8 @@ try {
     && p9F.giants === 12 && p9F.giantRooms.length > 0 && p9F.woke === true && p9F.awake === 1 && p9F.boxVats === 4 && p9F.boxClocks === 4, JSON.stringify(p9F));
   // 500-508 The Burning Palace ticket 03 (locks, rivals out of sight, announcements, core seal, final two, apex): tests/palace3-checks.mjs.
   await palace3Checks(g, check, base);
+  await g(() => __game.setLayout('proto'));
+  await bp09bChecks(g, check);
 
   // 15 Graphics context lost and restored: no errors, renders again.
   const errBefore = errors.length;
