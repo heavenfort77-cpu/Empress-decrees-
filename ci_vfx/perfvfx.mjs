@@ -21,10 +21,9 @@ const BASE = `http://127.0.0.1:${server.address().port}/probe/vfx/index.html`;
 const ARGS = SOFT ? ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--ignore-gpu-blocklist']
   : ['--ignore-gpu-blocklist', '--enable-gpu', '--enable-webgl', '--use-angle=metal', '--disable-gpu-vsync', '--disable-frame-rate-limit'];
 const browser = await chromium.launch({ args: ARGS });
-const SCENES = [
-  ['ref', 'kind=none'], ['A_n1', 'kind=a&n=1'], ['B_n1', 'kind=b&n=1'], ['A_n40', 'kind=a&n=40'], ['B_n40', 'kind=b&n=40'],
-  ['B_n40#2', 'kind=b&n=40'], ['A_n40#2', 'kind=a&n=40'], ['ref#2', 'kind=none'], ['B_n1#2', 'kind=b&n=1'], ['A_n1#2', 'kind=a&n=1'],
-];
+// Forward, then reversed (#2): every pair is measured twice in opposite order, the reference at both ends. n160 = 4x the heavy case (stress).
+const ONE = [['ref', 'kind=none'], ['A_n1', 'kind=a&n=1'], ['B_n1', 'kind=b&n=1'], ['A_n40', 'kind=a&n=40'], ['B_n40', 'kind=b&n=40'], ['A_n160', 'kind=a&n=160'], ['B_n160', 'kind=b&n=160']];
+const SCENES = [...ONE, ...ONE.slice().reverse().map(([n, q]) => [n + '#2', q])];
 const q = (a, p) => a[Math.min(a.length - 1, Math.floor(a.length * p))];
 const rows = [];
 if (!SHOTS_ONLY) for (const [name, qs] of SCENES) {
@@ -36,18 +35,18 @@ if (!SHOTS_ONLY) for (const [name, qs] of SCENES) {
   await page.waitForTimeout(SETTLE * 1000);
   await page.evaluate(() => window.__probe.start()); await page.waitForTimeout(TIMED * 1000);
   const s = await page.evaluate(() => window.__probe.stop());
-  const ft = s.ft.slice().sort((a, b) => a - b), gt = s.gt.slice().sort((a, b) => a - b), sum = s.ft.reduce((a, b) => a + b, 0);
+  const ft = s.ft.slice().sort((a, b) => a - b), gt = s.gt.slice().sort((a, b) => a - b), gc = s.gc.slice().sort((a, b) => a - b), mean = (a) => a.length ? +(a.reduce((x, y) => x + y, 0) / a.length).toFixed(3) : null, sum = s.ft.reduce((a, b) => a + b, 0);
   const row = { scene: name, fps: +(s.ft.length / (sum / 1000)).toFixed(1), p50: +q(ft, 0.5).toFixed(2), p95: +q(ft, 0.95).toFixed(2), worst: +ft[ft.length - 1].toFixed(1),
     over20: s.ft.filter((x) => x > 20).length, frames: s.ft.length, gpuMean: gt.length ? +(gt.reduce((a, b) => a + b, 0) / gt.length).toFixed(3) : null,
-    gpuP50: gt.length ? +q(gt, 0.5).toFixed(3) : null, gpuP95: gt.length ? +q(gt, 0.95).toFixed(3) : null, gpuN: gt.length, calls: s.calls, tris: s.tris,
+    gpuP50: gt.length ? +q(gt, 0.5).toFixed(3) : null, cardGpuMean: mean(gc), cardGpuP95: gc.length ? +q(gc, 0.95).toFixed(3) : null, cardGpuN: gc.length, long: s.long.map((x) => +x.toFixed(0)).join(','), gpuP95: gt.length ? +q(gt, 0.95).toFixed(3) : null, gpuN: gt.length, calls: s.calls, tris: s.tris,
     progNew: s.programs - s.progsAtStart, progs: s.programs, texs: s.textures, cardTexMB: s.cardTexMB, loadMs, timer: s.timer, errs: errs.length };
   rows.push(row); console.log('ROW ' + JSON.stringify(row)); if (errs.length) console.log('ERRS ' + name + ' ' + errs.slice(0, 5).join(' | '));
   await page.close();
 }
 if (rows.length) {
-  console.log('\nscene      fps     p50    p95   worst  >20ms  gpuMean gpuP95  calls  tris   newProg texMB(cards)');
-  for (const r of rows) console.log([r.scene.padEnd(9), String(r.fps).padStart(7), String(r.p50).padStart(6), String(r.p95).padStart(6), String(r.worst).padStart(6),
-    String(r.over20).padStart(6), String(r.gpuMean).padStart(8), String(r.gpuP95).padStart(7), String(r.calls).padStart(6), String(r.tris).padStart(6), String(r.progNew).padStart(8), String(r.cardTexMB).padStart(8)].join(' '));
+  console.log('\nscene       fps     p50    p95   worst  >20ms  stageGPU stageP95 cardGPU cardP95 calls  tris   newProg texMB(cards)  long frames [t ms from start, ms]');
+  for (const r of rows) console.log([r.scene.padEnd(10), String(r.fps).padStart(7), String(r.p50).padStart(6), String(r.p95).padStart(6), String(r.worst).padStart(6),
+    String(r.over20).padStart(6), String(r.gpuMean).padStart(8), String(r.gpuP95).padStart(8), String(r.cardGpuMean).padStart(7), String(r.cardGpuP95).padStart(7), String(r.calls).padStart(5), String(r.tris).padStart(6), String(r.progNew).padStart(8), String(r.cardTexMB).padStart(8), ' ' + r.long].join(' '));
   // Gates: new programs during timing must be 0 (warm-up proven); every scene under 500 calls and 0.5 M triangles; no page errors.
   for (const r of rows) {
     console.log(`GATE ${r.scene} warmup newPrograms ${r.progNew} ${r.progNew === 0 ? 'PASS' : 'FAIL'}`);
