@@ -1,6 +1,7 @@
 # Handoff (2026-11-23 night, after batch 15: ultimate charge meter, tickets 01-04). GDD: docs/GDD.md (also Project "empress decrees", claude/GDD.md)
 
 ## Session start (every session)
+0. CI (owner rule, reminded 24 Nov 08:47): full suite and mutation rounds run on GitHub runners via ci/ci_mut.sh on branch ci-run (results on branch ci-out, out/<label>/<run id>/summary.txt). If /home/claude/citools/ci_mut.sh is missing, copy it from origin/ci-run:ci/ci_mut.sh and create the worktree: git worktree add /home/claude/ci-wt -b ci-run origin/ci-run. Proof run 45298683619 (26 of 26, matches local). Job file: {"mode":"suite"} or {"mode":"mut","muts":[{name,want,a,b}]}.
 1. Attach both repos: add_repo heavenfort77-cpu/Empress-decrees- (access push) and heavenfort77-cpu/dawnpunk (read; public, anonymous clone works). Dawnpunk = reference for frame-rate rules and bug pitfalls; read only the part needed.
 2. Clone with `--no-single-branch`; check out `batches-3-5` (PR #1 still open, not merged; use main only if it is merged: `gh api repos/heavenfort77-cpu/empress-decrees-/pulls/1 --jq .merged`, GraphQL is blocked).
 3. Read this file, then only the GDD section being changed (docs/SUITS.md for kits). Do not read the whole codebase. NEXT JOB: "Next batch: 16" below.

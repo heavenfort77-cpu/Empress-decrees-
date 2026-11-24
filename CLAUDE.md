@@ -7,3 +7,4 @@
 - Keep all tunables in one CONFIG block with a comment line above each value. Automated pass/fail tests (tests/); report only pass/fail and failing lines; mutation-test new checks.
 - 3D budget: under 500 draw calls and 0.5M triangles, tier medium, pixel ratio max 1.25. Per-frame code sits between PERFRAME-BEGIN/END markers and must pass tests/static-check.mjs.
 - Build only what the user has said go for; design questions get answers, not builds.
+- Heavy work runs on GitHub runners, never on the session machine (owner rule; 24 Nov 08:47 reminder): the full suite (`node tests/run.mjs`) and every mutation round go through /home/claude/citools/ci_mut.sh (copy on branch ci-run: ci/ci_mut.sh), which pushes the working tree to branch ci-run and reads the summary from branch ci-out. Locally only `node tests/static-check.mjs` and single short probes. Never push CI files to main or batches-3-5.
