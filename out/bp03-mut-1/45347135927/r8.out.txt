@@ -1,0 +1,6 @@
+SKIP 509 burning not in this build (ticket 04 not merged): not run
+SKIP 510 guard not in this build (ticket 02 not merged): not run
+FAIL 42 bot sweep 9 runs: 0 broken invariants, every run ends, never-dodge always loses, 0.3 s and 0.15 s reaction each win at least once :: 99/012:lost 7s hp0 demon905 | 99/120:lost 8s hp0 demon915 | 99/210:lost 8s hp0 demon915 | 0.3/012:lost 16s hp0 demon745 | 0.3/120:lost 19s hp0 demon845 | 0.3/210:lost 50s hp0 demon245 | 0.15/012:lost 24s hp0 demon570 | 0.15/120:won 68s hp65 demon0 | 0.15/210:won 64s hp100 demon0
+FAIL 504 core sealed while rivals stand: no route, door shut and locked at arm's length, walking in keeps you on the bridge, card says sealed (count); all out = open, announced; walking in wakes the apex :: {"route":true,"sealed":{"open":false,"locked":true,"cur":"bridge","card":false,"standing":8},"pushed":{"cur":"bridge","phase":"palace"},"opened":{"open":true,"locked":false,"door":true},"line":true,"apex":{"phase":"wake","on":false,"voice":true}}
+FAIL 508 palace new run after rivals: same seeded start, no locks, traces, hunter, queue or results left; core sealed again :: {"midOut":5,"same":true,"locked":"","traces":0,"hunter":-1,"qn":0,"outN":0,"final":false,"open":false,"core":false,"standing":8}
+RUNTIME 197 of 200 pass

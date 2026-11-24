@@ -1,0 +1,5 @@
+SKIP 509 burning not in this build (ticket 04 not merged): not run
+SKIP 510 guard not in this build (ticket 02 not merged): not run
+FAIL 42 bot sweep 9 runs: 0 broken invariants, every run ends, never-dodge always loses, 0.3 s and 0.15 s reaction each win at least once :: 99/012:lost 7s hp0 demon905 | 99/120:lost 8s hp0 demon915 | 99/210:lost 8s hp0 demon915 | 0.3/012:lost 16s hp0 demon745 | 0.3/120:lost 19s hp0 demon845 | 0.3/210:lost 50s hp0 demon245 | 0.15/012:lost 24s hp0 demon570 | 0.15/120:won 68s hp65 demon0 | 0.15/210:won 64s hp100 demon0
+FAIL 502 every rival out is announced on the banner from TEXT keys (winner, loser, room; none dropped) and leaves a trace in its room; the hunter is announced :: {"outN":6,"shownOut":0,"drop":0,"qn":0,"traces":6,"hunt":true,"named":true,"sample":["Nong suit tracks you, room by room.","Locked in the School hall: break every enemy here to open the doors."],"keys":true}
+RUNTIME 198 of 200 pass

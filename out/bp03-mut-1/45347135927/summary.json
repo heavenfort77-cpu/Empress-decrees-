@@ -1,0 +1,206 @@
+[
+ {
+  "i": 0,
+  "fails": [
+   "42",
+   "500",
+   "502",
+   "505",
+   "507"
+  ],
+  "tot": [
+   "RUNTIME 195 of 200 pass"
+  ],
+  "s": 188,
+  "name": "lock-never",
+  "want": "500",
+  "applied": true,
+  "caught_named": true
+ },
+ {
+  "i": 1,
+  "fails": [
+   "42",
+   "500",
+   "505"
+  ],
+  "tot": [
+   "RUNTIME 197 of 200 pass"
+  ],
+  "s": 179,
+  "name": "unlock-never",
+  "want": "500",
+  "applied": true,
+  "caught_named": true
+ },
+ {
+  "i": 2,
+  "fails": [
+   "42",
+   "501",
+   "508"
+  ],
+  "tot": [
+   "RUNTIME 197 of 200 pass"
+  ],
+  "s": 157,
+  "name": "sim-unseeded",
+  "want": "501",
+  "applied": true,
+  "caught_named": true
+ },
+ {
+  "i": 3,
+  "fails": [
+   "42",
+   "502"
+  ],
+  "tot": [
+   "RUNTIME 198 of 200 pass"
+  ],
+  "s": 131,
+  "name": "result-not-announced",
+  "want": "502",
+  "applied": true,
+  "caught_named": true
+ },
+ {
+  "i": 4,
+  "fails": [
+   "42",
+   "502"
+  ],
+  "tot": [
+   "RUNTIME 198 of 200 pass"
+  ],
+  "s": 186,
+  "name": "no-trace",
+  "want": "502",
+  "applied": true,
+  "caught_named": true
+ },
+ {
+  "i": 5,
+  "fails": [
+   "42",
+   "503"
+  ],
+  "tot": [
+   "RUNTIME 198 of 200 pass"
+  ],
+  "s": 132,
+  "name": "spawn-full-hp",
+  "want": "503",
+  "applied": true,
+  "caught_named": true
+ },
+ {
+  "i": 6,
+  "fails": [
+   "42",
+   "503"
+  ],
+  "tot": [
+   "RUNTIME 198 of 200 pass"
+  ],
+  "s": 148,
+  "name": "park-forgets-hp",
+  "want": "503",
+  "applied": true,
+  "caught_named": true
+ },
+ {
+  "i": 7,
+  "fails": [
+   "42",
+   "503"
+  ],
+  "tot": [
+   "RUNTIME 198 of 200 pass"
+  ],
+  "s": 186,
+  "name": "walk-in-at-centre",
+  "want": "503",
+  "applied": true,
+  "caught_named": true
+ },
+ {
+  "i": 8,
+  "fails": [
+   "42",
+   "504",
+   "508"
+  ],
+  "tot": [
+   "RUNTIME 197 of 200 pass"
+  ],
+  "s": 186,
+  "name": "core-never-sealed",
+  "want": "504",
+  "applied": true,
+  "caught_named": true
+ },
+ {
+  "i": 9,
+  "fails": [
+   "42",
+   "402",
+   "504"
+  ],
+  "tot": [
+   "RUNTIME 197 of 200 pass"
+  ],
+  "s": 188,
+  "name": "core-ends-run",
+  "want": "504",
+  "applied": true,
+  "caught_named": true
+ },
+ {
+  "i": 10,
+  "fails": [
+   "42",
+   "503",
+   "505"
+  ],
+  "tot": [
+   "RUNTIME 197 of 200 pass"
+  ],
+  "s": 187,
+  "name": "hunter-never-moves",
+  "want": "505",
+  "applied": true,
+  "caught_named": true
+ },
+ {
+  "i": 11,
+  "fails": [
+   "42",
+   "506"
+  ],
+  "tot": [
+   "RUNTIME 198 of 200 pass"
+  ],
+  "s": 190,
+  "name": "royale-brain-in-palace",
+  "want": "506",
+  "applied": true,
+  "caught_named": true
+ },
+ {
+  "i": 12,
+  "fails": [
+   "42",
+   "502",
+   "508"
+  ],
+  "tot": [
+   "RUNTIME 197 of 200 pass"
+  ],
+  "s": 131,
+  "name": "traces-kept",
+  "want": "508",
+  "applied": true,
+  "caught_named": true
+ }
+]
