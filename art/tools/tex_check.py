@@ -34,7 +34,8 @@ T = {
     'hollow_brick': (256, 256, (0, 1024), 0.55),
     'mural_wall': (256, 256, (450, 750), 0.55),
     'wall_burnt': (256, 256, (170, 750), 0.55),
-    'roof_tile': (256, 256, (0, 768), 0.55),
+    'roof_tile': (256, 256, (0, 1024), 0.55),
+    'tile_ends': (256, 256, (0, 1024), 0.55),
     'timber': (256, 256, (0, 1024), 0.55),
     'timber_burnt': (256, 256, (0, 1024), 0.55),
     'mercury_matcap': (None, None, (212, 812), 0.12),
@@ -53,8 +54,8 @@ X = {
     'earth_burnt': dict(value=(60, 105), wrap='xy', redder='rammed_earth'), 'river_stone': dict(value=(90, 140), wrap='xy'),
     'stone_paving': dict(value=(115, 150), wrap='xy'), 'floor_tiles': dict(value=(95, 130), wrap='xy'), 'hollow_brick': dict(value=(100, 135), wrap='xy'),
     'mural_wall': dict(value=(150, 185), wrap='x', ink=(60, 420)), 'wall_burnt': dict(value=(70, 125), wrap='x', darker='hall_wall'),
-    'roof_tile': dict(value=(60, 95), wrap='x'), 'timber': dict(value=(65, 100), wrap='xy'), 'timber_burnt': dict(value=(25, 55), wrap='xy'),
-    'mercury_matcap': dict(value=(175, 225), matcap=True), 'black_lake': dict(value=(12, 35), wrap='xy', teal=True),
+    'roof_tile': dict(value=(60, 95), wrap='xy'), 'tile_ends': dict(discs=True), 'timber': dict(value=(65, 100), wrap='xy'), 'timber_burnt': dict(value=(25, 55), wrap='xy'),
+    'mercury_matcap': dict(value=(110, 190), matcap=True), 'black_lake': dict(value=(12, 35), wrap='xy', teal=True),
     'garden_ground': dict(value=(85, 125), wrap='xy'), 'garden_plants': dict(alpha=(0.06, 0.6), cells=4),
     'star_ceiling': dict(value=(22, 50), wrap='xy'), 'signal_flags': dict(alpha=(0.25, 0.7), cells=3), 'slips': dict(value=(120, 165), wrap='x'),
     'slips_burnt': dict(value=(28, 70), wrap='x'),
@@ -64,7 +65,7 @@ checks = 0
 import os
 T = {k: v for k, v in T.items() if os.path.exists(f'{D}/{k}.png')}
 def lum_of(a): return 0.2126 * a[..., 0] + 0.7152 * a[..., 1] + 0.0722 * a[..., 2]
-MEANS = {}
+MEANS = {}; HI = {}
 for n, (du, dv, (y0, y1), scap) in T.items():
     x = X.get(n, {})
     rgba = np.asarray(Image.open(f'{D}/{n}.png').convert('RGBA')).astype(float)
@@ -72,9 +73,16 @@ for n, (du, dv, (y0, y1), scap) in T.items():
     full = rgba[..., :3]
     a = full[int(y0 / s):int(y1 / s)]
     op = rgba[int(y0 / s):int(y1 / s), :, 3] > 127 if 'alpha' in x else np.ones(a.shape[:2], bool)
+    if x.get('discs'):  # tile-end atlas: rules apply inside the disc faces (16 discs, radius 22 px), the board is only rim colour
+        yy, xx = np.mgrid[0:rgba.shape[0], 0:rgba.shape[1]]; m = np.zeros(rgba.shape[:2], bool)
+        for i in range(8):
+            for cy in (128, 384): m |= (xx - (64 + 128 * i) / s) ** 2 + (yy - cy / s) ** 2 < (22 / s) ** 2
+        op = m[int(y0 / s):int(y1 / s)]
     if x.get('matcap'):  # inside the disc only
         yy, xx = np.mgrid[0:rgba.shape[0], 0:rgba.shape[1]]
         op = ((xx - 512 / s) ** 2 + (yy - 512 / s) ** 2 < (480 / s) ** 2)[int(y0 / s):int(y1 / s)]
+    if not op.any():  # nothing left to measure (e.g. an alpha card with no pixel over the alpha test): every rule of this texture fails
+        checks += 1; fails += 1; print(f'FAIL {n} alpha test: no opaque pixel'); continue
     lum = lum_of(a)
     mx, mn = a.max(2), a.min(2)
     satm = np.where(mx > 0, (mx - mn) / np.maximum(mx, 1), 0)
@@ -82,9 +90,12 @@ for n, (du, dv, (y0, y1), scap) in T.items():
     stepok = op[:, 1:] & op[:, :-1]
     eq = (np.abs(np.diff(lum, axis=1)) < 6)[stepok].mean()
     sd = lum[op].std()
-    MEANS[n] = lum[op].mean()
-    if du is None:  # matcap: no texel density or brush run (it is a lighting lookup, not a surface)
-        res = [('contrast', 8 <= sd <= 60, f'lum sd {sd:.1f} (matcap 8-60)'), ('saturation', sat <= scap, f'{sat:.2f} (cap {scap}, cool grey)')]
+    MEANS[n] = lum[op].mean(); HI[n] = np.percentile(lum[op], 95)
+    if x.get('discs'):  # ornament atlas: fine detail may run under 4 cm (study: rules, lozenges, masks); no brush-scale rule
+        res = [('density', 0.8 * 256 <= du <= 1.25 * 256 and 0.8 * 256 <= dv <= 1.25 * 256, f'{du:.0f} x {dv:.0f} px/m'),
+               ('contrast', 8 <= sd <= 30, f'lum sd {sd:.1f} inside the discs'), ('saturation', sat <= scap, f'{sat:.2f} (cap {scap})')]
+    elif du is None:  # matcap: no texel density or brush run (it is a lighting lookup, not a surface)
+        res = [('contrast', 30 <= sd <= 80, f'lum sd {sd:.1f} (matcap 30-80: a mirror shows hard reflections)'), ('saturation', sat <= scap, f'{sat:.2f} (cap {scap}, cool grey)')]
     else:
         run_cm = (1 / (1 - eq) if eq < 1 else 1e9) / (du / s) * 100
         res = [
@@ -134,8 +145,9 @@ for n, (du, dv, (y0, y1), scap) in T.items():
         if not ok:
             fails += 1
         print(f"{'PASS' if ok else 'FAIL'} {n} {rule}: {val}")
-if 'mercury_matcap' in MEANS:  # mercury is the only bright cool surface: brighter than every other palace texture
-    others = {k: v for k, v in MEANS.items() if k != 'mercury_matcap'}; top = max(others, key=others.get); ok = MEANS['mercury_matcap'] > others[top] + 10
+if 'mercury_matcap' in HI:  # mercury is the only bright cool surface: its highlights (95th percentile) are the brightest of every palace texture
+    # (round 2: was 'mean brightest'; a light disc passed it and read as white paint on screen, a chrome matcap is dark with bright highlights)
+    others = {k: v for k, v in HI.items() if k != 'mercury_matcap'}; top = max(others, key=others.get); ok = HI['mercury_matcap'] > others[top] + 10
     checks += 1; fails += 0 if ok else 1
-    print(f"{'PASS' if ok else 'FAIL'} mercury_matcap brightest: {MEANS['mercury_matcap']:.0f} vs next {top} {others[top]:.0f} (min +10)")
+    print(f"{'PASS' if ok else 'FAIL'} mercury_matcap brightest highlights: p95 {HI['mercury_matcap']:.0f} vs next {top} {others[top]:.0f} (min +10)")
 print(f'{checks - fails} of {checks} pass')

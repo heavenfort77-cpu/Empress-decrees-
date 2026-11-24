@@ -18,7 +18,7 @@ import palace_tex as P  # reads OUTDIR and SIZE from argv
 CM = 2.56  # px per cm at 256 px/m
 
 # Ramps (study ramps; research palette where the study has none)
-EARTH = dict(base='#a2875f', lines='#8c6f48', dark='#7d6444', light='#b49a70', mid='#977c56')           # loess, research #A88A5E / #8C6F48
+EARTH = dict(base='#9e8a68', lines='#7a664a', dark='#746248', light='#b4a280', mid='#8e7b5c')           # loess, research #A88A5E / #8C6F48 (round 2: greyer; round 1 read as plywood)
 CORE = dict(base='#8e7553', lines='#735c3e', dark='#665139', light='#a08763', mid='#836b4b')            # core chamber earth: darker, smoke-dulled
 BURNT = dict(base='#8e5a45', lines='#6a3d2e', dark='#5c3629', light='#a26c55', mid='#83503e')           # reddened by fire (Xianyang finds)
 STONE = ['#7b786f', '#88857d', '#939087', '#a9a59b', '#8e8a80']
@@ -27,7 +27,7 @@ VERM = ['#742d1e', '#86281a', '#9a4a34']
 PLASTER = ['#b0a48b', '#b8ac94', '#d2c8b2']
 
 
-def layered_earth(name, R, seed, lmin, lmax, soot=False, pocks=450):
+def layered_earth(name, R, seed, lmin, lmax, soot=False, pocks=3200):
     """Rammed earth 夯土: horizontal tamped layers lmin-lmax cm, a darker line at each layer bed, rammer pocks, put-log holes, erosion."""
     t = P.Tex(name, R['base'], True, True, seed)
     r = t.r
@@ -42,26 +42,28 @@ def layered_earth(name, R, seed, lmin, lmax, soot=False, pocks=450):
     t.stage = 2
     for li, h in enumerate(hs):
         # each layer one tone (alternately lighter and darker, as tamped lifts dry differently), laid in round sponge dabs, not streaks
-        tone = r.choice([R['light'], R['base']]) if li % 2 else r.choice([R['mid'], R['dark']])
+        tone = r.choice([R['base'], R['mid']]) if li % 2 else r.choice([R['light'], R['base']])   # round 2: softer alternation (round 1 read as boards)
         x = r.uniform(0, 40)
         while x < 1024 + 20:
             L = r.uniform(5, 14) * CM
-            t.stroke([(x, y + h * 0.5), (x + L, y + h * 0.5 + r.uniform(-1, 1))], 'oil', h * 1.05, tone, r.uniform(0.35, 0.6), taper=[0, 0])
+            t.stroke([(x, y + h * 0.5), (x + L, y + h * 0.5 + r.uniform(-1, 1))], 'oil', h * 1.05, tone, r.uniform(0.25, 0.45), taper=[0, 0])
             x += L * r.uniform(0.6, 1.0)
         x0 = r.uniform(0, 1024)  # the bed line: darker, broken into 20-60 cm runs, slightly wavy
         x = x0
         while x < x0 + 1024:
             L = r.uniform(20, 60) * CM
-            t.stroke(t.wobble(x, y + h, x + L, y + h, 4, 0.8), 'chalk', r.uniform(3, 5), R['lines'], r.uniform(0.6, 0.9), taper=[0, 0])
+            t.stroke(t.wobble(x, y + h, x + L, y + h, 4, 1.2), 'chalk', r.uniform(2.5, 4), R['lines'], r.uniform(0.45, 0.7), taper=[0, 0])
             x += L + r.uniform(2, 8) * CM
         y += h
     for _ in range(pocks):  # rammer pocks: small round dents, darker
-        x, y = r.uniform(0, 1024), r.uniform(0, 1024); s = r.uniform(5, 10)
-        t.stroke([(x, y), (x + 0.6, y + 0.4)], 'chalk', s, r.choice([R['dark'], R['lines']]), r.uniform(0.3, 0.55), taper=[0, 0])
+        x, y = r.uniform(0, 1024), r.uniform(0, 1024); s = r.uniform(5, 12)
+        t.stroke([(x, y), (x + 0.6, y + 0.4)], 'ink', s * 0.6, r.choice([R['dark'], R['lines'], R['light']]), r.uniform(0.35, 0.55), taper=[0, 0])
     t.stage = 3
     for _ in range(5):  # put-log holes in a loose row (formwork poles), dark
         x, y = r.uniform(0, 1024), r.choice([256, 640, 896]) + r.uniform(-20, 20)
         t.stroke([(x, y), (x + 1, y + 1)], 'ink', r.uniform(14, 20), '#3e3020' if not soot else '#1c1512', 0.85, taper=[0, 0])
+    for _ in range(50):  # weathered patches that break the strata (loess crumbling at the face)
+        t.blot(r.uniform(0, 1024), r.uniform(0, 1024), r.uniform(20, 60), 'oil', r.uniform(20, 40), r.choice([R['dark'], R['light']]), r.uniform(0.25, 0.4), 3)
     for _ in range(40):  # erosion runs and hairline cracks down the face
         x, y = r.uniform(0, 1024), r.uniform(0, 1024)
         t.stroke(t.wobble(x, y, x + r.uniform(-8, 8), y + r.uniform(40, 140), 5, 2), 'pencil', 2.2, R['lines'], r.uniform(0.35, 0.6))
@@ -72,7 +74,7 @@ def layered_earth(name, R, seed, lmin, lmax, soot=False, pocks=450):
     return t
 
 
-def rammed_earth(): return layered_earth('rammed_earth', EARTH, 601, 5, 10, pocks=2200)
+def rammed_earth(): return layered_earth('rammed_earth', EARTH, 601, 5, 10)
 def rammed_earth_core(): return layered_earth('rammed_earth_core', CORE, 602, 5, 6, soot=True)
 def earth_burnt(): return layered_earth('earth_burnt', BURNT, 603, 5, 10, soot=True)
 
@@ -426,8 +428,8 @@ def wall_burnt(): return wall_rows(P.Tex('wall_burnt', '#857a69', True, False, 6
 
 def tile_end(t, cx, cy, rad, kind):
     """瓦当 tile end, our own cloud designs: rim, a cross dividing four fields, a cloud curl in each, a centre boss."""
-    D, Lt = '#3c3b3a', '#7e7c78'
-    t.stroke([(cx, cy), (cx + 0.5, cy)], 'ink', rad * 2, '#5a5956', 1.0, taper=[0, 0])
+    D, Lt = '#353433', '#8c8a86'
+    t.stroke([(cx, cy), (cx + 0.5, cy)], 'ink', rad * 2, '#575654', 1.0, taper=[0, 0])
     ring = [(cx + math.cos(a) * rad * 0.9, cy + math.sin(a) * rad * 0.9) for a in [k * math.tau / 28 for k in range(29)]]
     t.stroke(ring, 'pencil', 3, Lt, 0.9, taper=[0, 0])
     ring2 = [(cx + math.cos(a) * rad * 0.74, cy + math.sin(a) * rad * 0.74) for a in [k * math.tau / 24 for k in range(25)]]
@@ -444,39 +446,52 @@ def tile_end(t, cx, cy, rad, kind):
 
 
 def roof_tile():
-    """Grey unglazed roof tile (A11). Rows 0-768: tile field, slope runs down the image: concave pan tiles 板瓦 (34 cm) and round cover
-    tiles 筒瓦 (16 cm) in 50 cm pairs, courses every 40 cm; wraps across x. Rows 780-1020: eight 瓦当 tile-end faces 20 cm across, our
-    own cloud designs (the eave piece's instanced tile ends map one each), on a dark eave board."""
-    t = P.Tex('roof_tile', '#4c4b4b', True, False, 661)
+    """Grey unglazed roof tile (A11), the tile field: the slope runs down the image: concave pan tiles 板瓦 (34 cm) and round cover tiles
+    筒瓦 (16 cm) in 50 cm pairs, courses every 40 cm (10 per 4 m); wraps both ways (round 2 of the mesh work: a slope longer than one
+    repeat must tile, so the tile ends moved to their own sheet, tile_ends)."""
+    t = P.Tex('roof_tile', '#4c4b4b', True, True, 661)
     r = t.r
-    pitch = 128; pan = 87
+    pitch = 128; pan = 87; off = -8  # off: no dark line on the wrap edge
     t.stage = 1
     for i in range(8):
-        x = i * pitch
-        for y in range(0, 768, 12):  # pan tile: mid grey, a little lighter to its middle (curvature by value, no light direction)
-            t.stroke([(x + 6, y), (x + pan - 6, y)], 'flat-bristle', 14, r.choice(['#4e4d4c', '#53524f', '#4a4949']), 0.85, taper=[0, 0], wrap=False)
-        t.stroke([(x + pan / 2, 0), (x + pan / 2, 768)], 'soft', 34, '#595856', 0.35, taper=[0, 0], wrap=False)
+        x = i * pitch + off
+        for y in range(0, 1024, 12):  # pan tile: mid grey, a little lighter to its middle (curvature by value, no light direction)
+            t.stroke([(x + 6, y), (x + pan - 6, y)], 'flat-bristle', 14, r.choice(['#4e4d4c', '#53524f', '#4a4949']), 0.85, taper=[0, 0])
+        t.stroke([(x + pan / 2, -20), (x + pan / 2, 1044)], 'soft', 34, '#595856', 0.35, taper=[0, 0])
     t.stage = 2
     for i in range(8):
-        x = i * pitch + pan
-        t.stroke([(x - 3, 0), (x - 3, 768)], 'marker', 6, '#2d2c2c', 0.9, taper=[0, 0], wrap=False)          # gap shadow (occlusion) beside the cover tile
-        t.stroke([(x + 20, 0), (x + 20, 768)], 'marker', 34, '#5c5b58', 1.0, taper=[0, 0], wrap=False)  # cover tile
-        t.stroke([(x + 20, 0), (x + 20, 768)], 'oil', 12, '#6a6864', 0.6, taper=[0, 0], wrap=False)
-        t.stroke([(x + 43, 0), (x + 43, 768)], 'marker', 5, '#2d2c2c', 0.9, taper=[0, 0], wrap=False)
-    for y in range(0, 768, 102):  # course laps: each course's lower edge over the next
-        y = y + 90
+        x = i * pitch + pan + off
+        t.stroke([(x - 3, -20), (x - 3, 1044)], 'marker', 6, '#2d2c2c', 0.9, taper=[0, 0])          # gap shadow (occlusion) beside the cover tile
+        t.stroke([(x + 20, -20), (x + 20, 1044)], 'marker', 34, '#5c5b58', 1.0, taper=[0, 0])  # cover tile
+        t.stroke([(x + 20, -20), (x + 20, 1044)], 'oil', 12, '#6a6864', 0.6, taper=[0, 0])
+        t.stroke([(x + 43, -20), (x + 43, 1044)], 'marker', 5, '#2d2c2c', 0.9, taper=[0, 0])
+    for k in range(10):  # course laps: each course's lower edge over the next (102.4 px = 40 cm, so the field wraps)
+        y = 90 + k * 102.4
         for i in range(8):
-            x = i * pitch
+            x = i * pitch + off
             t.stroke(t.wobble(x + 4, y, x + pan - 4, y, 4, 1), 'marker', 4, '#323131', 0.85, taper=[0, 0])
             t.stroke([(x + pan + 4, y - 3), (x + pitch - 4, y - 3)], 'marker', 4, '#3a3938', 0.8, taper=[0, 0])
     t.stage = 3
-    for _ in range(140):  # firing clouds and a few chips (soft, so the tile reads as one fired body)
-        x, y = r.uniform(0, 1024), r.uniform(0, 760); a = r.uniform(-0.3, 0.3) + math.pi / 2; L = r.uniform(15, 40)
+    for _ in range(180):  # firing clouds and a few chips (soft, so the tile reads as one fired body)
+        x, y = r.uniform(0, 1024), r.uniform(0, 1024); a = r.uniform(-0.3, 0.3) + math.pi / 2; L = r.uniform(15, 40)
         t.stroke([(x, y), (x + math.cos(a) * L, y + math.sin(a) * L)], 'oil', r.uniform(8, 16), r.choice(['#454443', '#5c5a57']), r.uniform(0.3, 0.5))
-    P.band(t, 772, 1024, '#2a2624', 'flat-bristle', 40, 1.0, 22, 1.5)  # dark eave board ground for the tile-end atlas
+    return t
+
+
+def tile_ends():
+    """瓦当 tile ends (A11), their own small atlas: two rows of eight 20 cm discs (our own cloud designs: rim, cross, four curls, boss)
+    at rows 128 and 384, column centres 64 + 128 i; the rest is the dark eave board the disc rims map onto."""
+    t = P.Tex('tile_ends', '#2a2624', True, False, 662)
+    r = t.r
+    t.stage = 1
+    P.band(t, 0, 1024, '#2a2624', 'flat-bristle', 40, 1.0, 22, 1.5)
+    for _ in range(200):
+        x, y = r.uniform(0, 1024), r.uniform(0, 1024)
+        t.stroke(t.wobble(x, y, x + r.uniform(30, 90), y, 3, 1), 'oil', r.uniform(8, 16), r.choice(['#332e2b', '#221f1d']), 0.5)
+    t.stage = 2
     for i in range(8):
-        tile_end(t, 64 + i * 128, 836, 26, i % 4)
-        tile_end(t, 64 + i * 128, 958, 26, (i + 2) % 4)
+        tile_end(t, 64 + i * 128, 128, 26, i % 4)
+        tile_end(t, 64 + i * 128, 384, 26, (i + 2) % 4)
     return t
 
 
@@ -544,34 +559,40 @@ def timber_burnt():
 
 
 def mercury_matcap():
-    """Mercury (A14): a matcap (lit sphere seen head-on), the only bright cool reflective surface. Disc radius 500 px on black.
-    Reflections of the dark hall: a black horizon band below the middle, a bright sky cap upper left, a cool rim light at the bottom."""
+    """Mercury (A14): a chrome matcap (a lit sphere seen head-on), the only bright cool reflective surface. Disc radius 500 px on black.
+    Round 3: at the game camera (pitch 40) a floor-level pool samples the matcap's upper part (normals tilted toward the camera's up),
+    so that part holds what the pool mirrors in a dark hall: the dark ceiling with bright lamp streaks; the middle is bright silver
+    (normals facing the eye), the lower half darker, a cool rim light at the bottom. Rounds 1-2 (a light disc, then a pale sky top)
+    read as white paint on screen."""
     t = P.Tex('mercury_matcap', '#0a0c0e', False, False, 681)
     r = t.r
-    C = (512, 512)
     def ring(rad, c, size, op, brush='oil', a0=0.0, a1=math.tau, cx=512, cy=512):
         n = max(12, int(rad / 6)); pts = [(cx + math.cos(a0 + (a1 - a0) * k / n) * rad, cy + math.sin(a0 + (a1 - a0) * k / n) * rad) for k in range(n + 1)]
         t.stroke(pts, brush, size, c, op, taper=[0, 0], wrap=False)
+    def row(y, c, size, op, brush='soft'):
+        half = math.sqrt(max(0, 492 ** 2 - (y - 512) ** 2))
+        if half > 4: t.stroke([(512 - half, y), (512 + half, y)], brush, size, c, op, taper=[0, 0], wrap=False)
     t.stage = 0
-    t.stroke([(512, 512), (512.5, 512)], 'ink', 1000, '#c9d0d7', 1.0, taper=[0, 0], wrap=False)  # the solid disc
-    for rad in range(12, 500, 10):
-        f = rad / 500
-        c = '#%02x%02x%02x' % (int(226 - 70 * f ** 3), int(232 - 66 * f ** 3), int(238 - 60 * f ** 3))
-        ring(rad, c, 48, 0.5, 'soft')
+    t.stroke([(512, 512), (512.5, 512)], 'ink', 1000, '#3c4046', 1.0, taper=[0, 0], wrap=False)
+    for y in range(24, 1000, 10):  # value down the disc: dark ceiling band on top, bright silver middle, darker floor half
+        f = y / 1024
+        v = 70 + 150 * math.exp(-((f - 0.5) / 0.17) ** 2) if f > 0.28 else 66 + 20 * f
+        if f > 0.62: v = 70 + 90 * math.exp(-((f - 0.5) / 0.2) ** 2)
+        row(y, '#%02x%02x%02x' % (int(v - 4), int(v), int(v + 5)), 22, 1.0, 'marker')
     t.stage = 1
-    for k in range(10):  # the hall's dark horizon band, slightly curved like a reflection on a sphere
-        y = 600 + k * 6
-        half = math.sqrt(max(0, 480 ** 2 - (y - 512) ** 2))
-        t.stroke([(512 - half, y + 10), (512, y - 8), (512 + half, y + 10)], 'soft', 22, r.choice(['#4a525b', '#5a626b', '#3e454d']), 0.45, taper=[0, 0], wrap=False)
+    for k, y in enumerate((70, 110, 150, 196, 236, 268)):  # lamp streaks reflected from the ceiling (ripples sweep the pool across them)
+        half = math.sqrt(max(0, 470 ** 2 - (y - 512) ** 2)) * r.uniform(0.35, 0.8); cx = 512 + r.uniform(-80, 80)
+        t.stroke([(cx - half, y), (cx + half, y)], 'soft', r.uniform(10, 18), '#f2f5f8', 0.95, taper=[0, 0], wrap=False)
     t.stage = 2
-    for rad in range(20, 220, 12):  # bright cap upper left
-        ring(rad, r.choice(['#e9eef2', '#dfe6ec', '#f2f5f7']), 18, 0.6 * (1 - rad / 240), 'soft', cx=372, cy=352)
-    ring(470, '#cfd8e0', 16, 0.85, 'oil', math.radians(40), math.radians(140))  # rim light along the bottom
-    ring(492, '#4c5560', 18, 0.9, 'oil')                                           # dark outer rim
+    t.stroke([(400, 430), (400.5, 430)], 'ink', 90, '#f4f6f8', 1.0, taper=[0, 0], wrap=False)    # the main highlight
+    for rad in range(50, 200, 10):
+        ring(rad, '#e8edf1', 22, 0.55 * (1 - rad / 210), 'soft', cx=400, cy=430)
+    ring(462, '#d6dee6', 24, 0.9, 'soft', math.radians(35), math.radians(145))  # cool rim light along the bottom
+    ring(494, '#2a3038', 16, 1.0, 'marker')                                       # dark outer rim
     t.stage = 3
-    for _ in range(40):  # soft ripples (the liquid surface)
-        a = r.uniform(0, math.tau); rr = r.uniform(80, 420)
-        ring(rr, r.choice(['#c4ccd4', '#9aa4ae']), r.uniform(4, 8), 0.3, 'soft', a, a + r.uniform(0.3, 0.9))
+    for _ in range(30):  # soft ripples
+        a = r.uniform(0, math.tau); rr = r.uniform(120, 440)
+        ring(rr, r.choice(['#9aa2aa', '#d2d8de']), r.uniform(4, 8), 0.3, 'soft', a, a + r.uniform(0.2, 0.6))
     return t
 
 
@@ -801,7 +822,7 @@ def slips(): return slips_rows(P.Tex('slips', '#b09763', True, False, 741), Fals
 def slips_burnt(): return slips_rows(P.Tex('slips_burnt', '#33281f', True, False, 742), True)
 
 
-ALL = [rammed_earth, rammed_earth_core, earth_burnt, river_stone, stone_paving, floor_tiles, hollow_brick, mural_wall, wall_burnt, roof_tile,
+ALL = [rammed_earth, rammed_earth_core, earth_burnt, river_stone, stone_paving, floor_tiles, hollow_brick, mural_wall, wall_burnt, roof_tile, tile_ends,
        timber, timber_burnt, mercury_matcap, black_lake, garden_ground, garden_plants, star_ceiling, signal_flags, slips, slips_burnt]
 
 if __name__ == '__main__':
