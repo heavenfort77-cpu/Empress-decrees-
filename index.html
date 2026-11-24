@@ -60,6 +60,10 @@ body.touch #school{left:auto;right:12px;top:124px}
 .sel__btn{min-width:44px;min-height:44px;padding:10px;font:15px system-ui,sans-serif;color:#fff;background:#2a2030;border:2px solid #6a5a7a;border-radius:8px}
 .sel__btn.is-last{border-color:#c9a040}
 .sel__btn--random{grid-column:1/-1;background:#3a2a1a}
+body.palace #mini,body.palace #next{display:none !important}
+#mode{position:fixed;inset:0;display:none;background:#120d16;z-index:9;overflow:auto}
+.sel__btn--mode{margin-top:14px;background:#1a2a3a}
+#door{position:fixed;left:50%;top:22%;transform:translateX(-50%);display:none;pointer-events:none;white-space:pre-line;text-align:center;font:15px system-ui,sans-serif;color:#fff;background:#120d16cc;border:2px solid #c9a040;border-radius:8px;padding:10px 16px;max-width:80vw}
 #bar.silenced .skill{opacity:.35;border-color:#888}
 body.touch #banner{top:26%}
 #cancel{position:fixed;right:20px;top:90px;width:90px;height:56px;border-radius:10px;background:#5a1a1a;color:#fff;font:15px system-ui;display:none;align-items:center;justify-content:center;border:2px solid #f88}
@@ -83,7 +87,9 @@ body.touch #banner{top:26%}
 <div id="leader"></div>
 <div id="decree"></div>
 <div id="school"></div>
-<div id="select"><div class="sel__box"><div class="sel__title"></div><div class="sel__rule"></div><div class="sel__list"></div></div></div>
+<div id="select"><div class="sel__box"><div class="sel__title"></div><div class="sel__rule"></div><div class="sel__list"></div><button id="selMode" class="sel__btn sel__btn--mode"></button></div></div>
+<div id="mode"><div class="sel__box"><div class="sel__title"></div><div class="sel__rule"></div><div class="sel__list"></div></div></div>
+<div id="door"></div>
 <button id="btnHunt"></button>
 <div id="err"></div>
 <script type="module">
@@ -532,6 +538,21 @@ const CONFIG = {
   // School select before each run (batch 16, owner 23 Nov 23:3x: nine buttons plus a random pick, last pick remembered). on = feature switch;
   // the select never opens with ?bots=N in the address (map test and checks). saveKey = browser storage key of the last pick.
   SELECT: { on: true, saveKey: 'empressDecrees.school' },
+  // The Burning Palace (owner 24 Nov 13:18-13:44: build it now, Royal Rumble kept as a parked second mode; box prototype BP01). Feature switch:
+  // off = no mode menu and Royal Rumble only.
+  PALACE_ON: true,
+  // Palace layout and doors (owner 24 Nov 13:18: rooms, only the current room drawn). origin = world x, z of the palace, metres (far east of the
+  // royale map, so its hazards, walls and floors never meet the palace); wallH / lowH = wall height and the low wall on the camera side (south)
+  // and on bridges, so the player stays in view (m); wallT = wall thickness, doorW = door width, doorH = door panel height (m); previewR = a door's
+  // preview shows within this distance of its centre, openR = it opens, closeR = an open door closes again once you are this far (m); passM = a
+  // walking route passes a door through points this far either side of its centre (m);
+  // fowR = fog radius inside the palace (walls block sight instead), m; lakeY = height of the black lake under the platform, m;
+  // saveKey = browser storage key of the last mode picked.
+  PALACE: { origin: [400, 0], wallH: 4, lowH: 0.8, wallT: 0.5, doorW: 4, doorH: 3.5, previewR: 6, openR: 2.2, closeR: 4.5, passM: 1.2, fowR: 60, lakeY: -6, saveKey: 'empressDecrees.mode' },
+  // Context camera in the palace (owner 24 Nov 13:18: zoom out in a room, in at attack range). Multipliers of CAM_DIST: wide = no enemy within
+  // reach metres (in sight), close = one is; easeS = seconds to ease between them; phone = multiplier on phones (they start closer); type = per
+  // room type (corridors closer, courtyards wider). Z cycles auto, wide, close (manual override). Royal Rumble keeps 1.
+  PAL_CAM: { wide: 1.6, close: 1.0, reach: 10, easeS: 0.4, phone: 0.85, type: { hall: 1, court: 1.15, corridor: 0.85, garden: 1, bridge: 1, core: 1.15 } },
   // Unseen state (batch 16, minimal; full hiding with curtains and walls is batch 18): an unseen suit is not drawn for others and cannot be
   // targeted, except within shimmerM metres (drawn as a shimmer) or while marked; attacking or being hit ends it.
   UNSEEN: { shimmerM: 3 },
@@ -676,6 +697,23 @@ const TEXT = {
   sel_title: 'Choose thy school',
   sel_rule: 'Pick a suit (keys 1-9), or let Heaven choose (key 0). Enter: last pick.',
   sel_random: 'Let Heaven choose',
+  sel_mode: 'Mode: {mode} (M or tap to change)',
+  mode_title: 'What game does the Empress play today?',
+  mode_rule: 'Pick a mode (keys 1-2). Enter: last pick.',
+  mode_key: '{n}. {mode}',
+  mode_palace: 'The Burning Palace',
+  mode_rumble: 'Royal Rumble',
+  room_hall: 'School hall', room_court: 'Courtyard', room_corridor: 'Corridor', room_garden: 'Garden', room_bridge: 'Bridge over the black lake', room_core: 'Core hall',
+  door_card: '{room}\nDecree: {decree}\nReward: {reward}\n{stir}',
+  door_dec_none: 'none', door_dec_dry: 'altars do not heal', door_dec_nodash: 'no dashing', door_dec_silence: 'no skills', door_dec_heights: 'stay low', door_dec_ult2x: 'ultimate charge 2x',
+  door_rew_none: 'none', door_rew_heal: 'healing', door_rew_meter: 'ultimate charge', door_rew_boon: 'a boon',
+  door_stir: 'Something stirs.', door_quiet: 'All is quiet.',
+  pal_voice_core: 'You stand before Our throne. Kneel, or be judged.',
+  pal_rule_core: 'Core hall reached in {s} s through {n} rooms (prototype: the apex comes in a later build). {retry}',
+  pal_voice_lost: 'The palace keeps you.',
+  pal_rule_lost: 'Broken in the {room}. {retry}',
+  help_pal_desktop: 'Right-click move / attack · Q W R aim at cursor (release to cast) · Z zoom: auto, wide, close · S stop · N new run',
+  help_pal_touch: 'Left stick: move · tap or drag skills · New run',
   sel_key: '{n}. {who}',
   hud_leader: 'Leader: {who}',
   hud_leader_bounty: 'Leader: {who}  (bounty {s} s)',
@@ -786,6 +824,23 @@ const SPAWNS = [
   [-8, 4, 'C2'], [8, 4, 'C2'],
 ];
 
+// The Burning Palace (BP01 box prototype): rooms in metres from CONFIG.PALACE.origin (north is -z); type = hall | court | corridor | garden | bridge | core.
+// What its doors show (placeholders until BP03 fills the rooms): decree = a decree key or 'none'; reward = 'heal' | 'meter' | 'boon' | 'none';
+// stir = something stirs behind the door. start = the room a run starts in; spawn = start point (x, z from the origin).
+const PAL_ROOMS = [
+  { id: 'hall', type: 'hall', x0: -10, x1: 10, z0: 24, z1: 44, decree: 'none', reward: 'none', stir: false, start: true, spawn: [0, 38] },
+  { id: 'court', type: 'court', x0: -20, x1: 20, z0: -6, z1: 24, decree: 'dry', reward: 'heal', stir: true },
+  { id: 'corridor', type: 'corridor', x0: -28, x1: -20, z0: -24, z1: 12, decree: 'nodash', reward: 'meter', stir: false },
+  { id: 'garden', type: 'garden', x0: 20, x1: 40, z0: -24, z1: 12, decree: 'none', reward: 'boon', stir: true },
+  { id: 'bridge', type: 'bridge', x0: -28, x1: 40, z0: -32, z1: -24, decree: 'silence', reward: 'none', stir: false },
+  { id: 'core', type: 'core', x0: -14, x1: 14, z0: -60, z1: -32, decree: 'none', reward: 'none', stir: true },
+];
+// Doors: the two rooms they join (they share an edge) and the door centre along that edge (metres from the origin).
+const PAL_DOORS = [
+  { a: 'hall', b: 'court', at: 0 }, { a: 'court', b: 'corridor', at: 8 }, { a: 'court', b: 'garden', at: 8 },
+  { a: 'corridor', b: 'bridge', at: -24 }, { a: 'garden', b: 'bridge', at: 30 }, { a: 'bridge', b: 'core', at: 0 },
+];
+
 // ===================== DOM helpers (writes only on change) =====================
 const $ = (id) => document.getElementById(id);
 const el = {
@@ -793,6 +848,8 @@ const el = {
   btnMap: $('btnMap'), stick: $('stick'), err: $('err'), hpfill: $('hpfill'), hptext: $('hptext'),
   mini: $('mini'), bar: $('bar'), cancel: $('cancel'), boss: $('boss'), bossname: $('bossname'), bossfill: $('bossfill'),
   bossskills: $('bossskills'), status: $('status'), btnHunt: $('btnHunt'), leader: $('leader'), decree: $('decree'), school: $('school'), select: $('select'),
+  door: $('door'), mode: $('mode'), selMode: $('selMode'),
+  modeTitle: document.querySelector('#mode .sel__title'), modeRule: document.querySelector('#mode .sel__rule'), modeList: document.querySelector('#mode .sel__list'),
   selTitle: document.querySelector('#select .sel__title'), selRule: document.querySelector('#select .sel__rule'), selList: document.querySelector('#select .sel__list'),
   voice: document.querySelector('#banner .voice'), rule: document.querySelector('#banner .rule'),
 };
@@ -1325,6 +1382,7 @@ cv.addEventListener('contextmenu', (e) => e.preventDefault());
 el.mini.addEventListener('contextmenu', (e) => e.preventDefault());
 addEventListener('keydown', (e) => {
   if (e.repeat || e.ctrlKey || e.metaKey || e.altKey) return;
+  if (G.modeOpen) { modeKey(e); return; }
   if (G.selecting) { selectKey(e); return; }
   for (let i = 0; i < CONFIG.SKILLS.length; i++) if (e.code === CONFIG.SKILLS[i].key) { startAim(i, 'key'); e.preventDefault(); return; }
   if (e.code === 'KeyS') stopOrders();
@@ -1332,6 +1390,7 @@ addEventListener('keydown', (e) => {
   if (e.code === 'Escape') { cancelAim(); ORD.attackMove = false; }
   if (e.code === 'KeyN') newRun();
   if (e.code === 'KeyH') huntButton();
+  if (e.code === 'KeyZ' && PAL.on) PAL.man = (PAL.man + 1) % 3;
   if (e.code === 'KeyM' && DEBUG) toggleView();
 });
 addEventListener('keyup', (e) => {
@@ -1423,12 +1482,13 @@ function rightOrder() {
   const hp = cursorGround(); if (!hp.ok) return;
   const d = dummyNear(hp.x, hp.z, 1.4);
   if (d) { ORD.attack = d; PATH.n = 0; return; }
-  ORD.attack = null; navSearch(P.x, P.z, P.y, hp.x, hp.z, hp.y, PATH, true);
+  ORD.attack = null;
+  if (PAL.on) palRoute(hp.x, hp.z, PATH); else navSearch(P.x, P.z, P.y, hp.x, hp.z, hp.y, PATH, true);
 }
 function attackMoveOrder() {
   const hp = cursorGround(); if (!hp.ok) return;
   const d = dummyNear(hp.x, hp.z, 4);
-  if (d) { ORD.attack = d; PATH.n = 0; } else { ORD.attack = null; navSearch(P.x, P.z, P.y, hp.x, hp.z, hp.y, PATH, true); }
+  if (d) { ORD.attack = d; PATH.n = 0; } else if (PAL.on) { ORD.attack = null; palRoute(hp.x, hp.z, PATH); } else { ORD.attack = null; navSearch(P.x, P.z, P.y, hp.x, hp.z, hp.y, PATH, true); }
 }
 function stopOrders() { ORD.attack = null; PATH.n = 0; PATH.i = 0; }
 function dummyNear(x, z, r) {
@@ -1516,7 +1576,7 @@ function applySkill(slot, x, z, dx, dz, ox, oz) {
   G.fxT = 0.25;
 }
 // The player may act: alive, not stunned, and no end screen is up.
-function canAct() { return !P.dead && P.stunT <= 0 && G.phase !== 'won' && G.phase !== 'lost'; }
+function canAct() { return !P.dead && P.stunT <= 0 && G.phase !== 'won' && G.phase !== 'lost' && G.phase !== 'palend'; }
 // Plates and boons work only while the suit is not sealed (儒甲's 正名, batch 16). The leader still counts held plates.
 function hasPlate(s, kind) { return s.sealT <= 0 && ((s.pt[0] > 0 && s.pk[0] === kind) || (s.pt[1] > 0 && s.pk[1] === kind)); }
 // A boon (0 power, 1 regen, 2 vision, 3 speed) is working on suit s.
@@ -1546,7 +1606,7 @@ function hitTarget(by, d, n, basic, sk) {
   return true;
 }
 // Ultimate charge (batch 15): a suit's R runs on the meter in the royale (charge mode); the hunt keeps the R cooldown.
-function onMeter(s) { return G.phase === 'royale' && s.ultMode === 'charge'; }
+function onMeter(s) { return (G.phase === 'royale' || G.phase === 'palace') && s.ultMode === 'charge'; }
 // A suit's ultimate is unlocked (cooldown aside): on the meter it is full; 阴阳甲's lock (ultMode 'lock', batch 16) has both halves full.
 function ultUnlocked(s) { return s.ultMode === 'lock' ? s.yinF && s.yangF : !onMeter(s) || s.ch >= CONFIG.ULT.full; }
 // The player's skill in this slot can be cast now: its cooldown is over and, for R, it is unlocked.
@@ -1638,7 +1698,7 @@ function canStand(x, z, y) {
 // Knockback may also carry a suit through a broken-rail gap into the void.
 // A suit whose edge lost its floor (a neighbour section fell under its body) may still step while its centre stays on a floor (batch 9b fix: it was trapped).
 function tryMove(s, x, z, kb) {
-  if (G.phase !== 'royale' && z > GATE_Z) return false;
+  if ((G.phase === 'wake' || G.phase === 'hunt') && z > GATE_Z) return false;
   if (canStand(x, z, s.y)) return true;
   if (kb && inBroken(x, z, R + 0.05) && !hitSolid(x, z) && !wallAt(x, z, s.y)) return true;
   return !canStand(s.x, s.z, s.y) && !!floorAt(x, z, s.y) && !wallAt(x, z, s.y) && !hitSolid(x, z);
@@ -1659,6 +1719,8 @@ NAV.nx = Math.ceil(156 / NAV.st); NAV.nz = Math.ceil(132 / NAV.st);
 // walking rule runs once per node here. Each node keeps a bit mask of the floors under its body: a fallen floor switches it off without a rebuild.
 {
   const st = NAV.st, nx = NAV.nx, nz = NAV.nz, NF = FLOORS.length;
+  // BP01: the walk graph covers the royale floors only (the palace floors join FLOORS during a palace run).
+  NAV.NF = NF;
   FLOORS.forEach((f, i) => { f.idx = i; });
   NAV.node = new Int32Array(nx * nz * NF).fill(-1);
   const ci = [], cj = [], cf = [], cy = [], cm = [];
@@ -1696,12 +1758,12 @@ NAV.nx = Math.ceil(156 / NAV.st); NAV.nz = Math.ceil(132 / NAV.st);
 // Batch 12: while the heights decree is told or in force (G.hiAvoid), bot searches also avoid every floor that reaches Our heights.
 function navOff(warned, startSec) {
   let m = 0;
-  for (let i = 0; i < FLOORS.length; i++) { const f = FLOORS[i]; if (!f.active || (warned && f.s !== startSec && (f.s.state === 1 || (G.hiAvoid && f.hi)))) m |= 1 << i; }
+  for (let i = 0; i < NAV.NF; i++) { const f = FLOORS[i]; if (!f.active || (warned && f.s !== startSec && (f.s.state === 1 || (G.hiAvoid && f.hi)))) m |= 1 << i; }
   return m;
 }
 // Node under a point: its own cell, else the nearest usable neighbour cell (a suit standing near an edge).
 function navNode(x, z, y, off) {
-  const st = NAV.st, nx = NAV.nx, NF = FLOORS.length, i = Math.floor((x - NAV.x0) / st), j = Math.floor((z - NAV.z0) / st);
+  const st = NAV.st, nx = NAV.nx, NF = NAV.NF, i = Math.floor((x - NAV.x0) / st), j = Math.floor((z - NAV.z0) / st);
   const f = floorAt(x, z, y); if (!f) return -1;
   for (let d = -1; d < 8; d++) {
     const a = d < 0 ? i : i + NAV.dx[d], b = d < 0 ? j : j + NAV.dz[d];
@@ -1861,6 +1923,253 @@ function heapPop(hs) {
 }
 // PERFRAME-END
 
+// ===================== The Burning Palace (BP01): rooms built once at load, attached on entry, detached on leaving =====================
+// A palace run: FLOORS gains the palace floors and SOLIDS its walls and doors (removed again for Royal Rumble, which is unchanged).
+const PC = CONFIG.PALACE, POX = PC.origin[0], POZ = PC.origin[1];
+const PAL = { on: false, rooms: [], doors: [], byId: {}, cur: null, start: null, pv: null, man: 0, n: 0, camT: 1, cx: 0, cz: 0,
+  floors: [], solids: [], lake: null, q: null, from: null, stk: null };
+// Modes on the mode menu, in key order.
+const MODES = ['palace', 'rumble'];
+const DOOR_VARS = { room: '', decree: '', reward: '', stir: '' }, PAL_END = { s: 0, n: 0, room: '', retry: '' }, MODE_VARS = { mode: '' };
+function palPart(r, m, g) { const p = r.parts; (p[m] || (p[m] = [])).push(g); }
+function palSolid(r, x0, x1, z0, z1) { const b = { s: r, x0, x1, z0, z1 }; PAL.solids.push(b); return b; }
+{
+  let bx0 = 1e9, bx1 = -1e9, bz0 = 1e9, bz1 = -1e9;
+  for (const d of PAL_ROOMS) {
+    const r = { id: d.id, type: d.type, name: T('room_' + d.type), decree: d.decree, reward: d.reward, stir: d.stir,
+      x0: POX + d.x0, x1: POX + d.x1, z0: POZ + d.z0, z1: POZ + d.z1, cx: 0, cz: 0, idx: PAL.rooms.length,
+      group: new THREE.Group(), parts: {}, floorMeshes: [], floorMats: [], state: 0, fallT: 0, doors: [], spawn: null };
+    r.cx = (r.x0 + r.x1) / 2; r.cz = (r.z0 + r.z1) / 2;
+    if (d.spawn) r.spawn = [POX + d.spawn[0], POZ + d.spawn[1]];
+    if (d.start) PAL.start = r;
+    bx0 = Math.min(bx0, r.x0); bx1 = Math.max(bx1, r.x1); bz0 = Math.min(bz0, r.z0); bz1 = Math.max(bz1, r.z1);
+    PAL.rooms.push(r); PAL.byId[r.id] = r;
+  }
+  PAL.cx = (bx0 + bx1) / 2; PAL.cz = (bz0 + bz1) / 2;
+  const t = PC.wallT, w = PC.doorW;
+  // Doors: the shared edge of their two rooms; a bronze panel (its own group, drawn with either room) and a solid while shut.
+  for (const dd of PAL_DOORS) {
+    const A = PAL.byId[dd.a], B = PAL.byId[dd.b];
+    let vert, e;
+    if (A.x1 === B.x0) { vert = true; e = A.x1; } else if (A.x0 === B.x1) { vert = true; e = A.x0; }
+    else if (A.z1 === B.z0) { vert = false; e = A.z1; } else if (A.z0 === B.z1) { vert = false; e = A.z0; }
+    else throw new Error('Palace door without a shared edge: ' + dd.a + ' / ' + dd.b);
+    const c = (vert ? POZ : POX) + dd.at, x = vert ? e : c, z = vert ? c : e;
+    const solidB = vert ? palSolid(A, e - t, e + t, c - w / 2, c + w / 2) : palSolid(A, c - w / 2, c + w / 2, e - t, e + t);
+    const panel = new THREE.Mesh(vert ? box(t * 2, PC.doorH, w, x, PC.doorH / 2, z) : box(w, PC.doorH, t * 2, x, PC.doorH / 2, z), M.bronze);
+    panel.castShadow = true; panel.receiveShadow = true; panel.matrixAutoUpdate = false; panel.updateMatrix();
+    const group = new THREE.Group(); group.add(panel); group.matrixAutoUpdate = false; group.updateMatrix();
+    const d = { ra: A, rb: B, vert, e, c, w, x, z, open: false, locked: false, idx: PAL.doors.length, solid: solidB, panel, group };
+    A.doors.push(d); B.doors.push(d); PAL.doors.push(d);
+  }
+  const FMAT = { hall: 'core', court: 'court', corridor: 'bridge', garden: 'court', bridge: 'bridge', core: 'core' };
+  for (const r of PAL.rooms) {
+    // Floor slab (no rails: the walking rule stops at its edge).
+    const f = { sec: r.id, x0: r.x0, x1: r.x1, z0: r.z0, z1: r.z1, y: 0, mat: FMAT[r.type], th: 1.2, noRail: true, s: r, active: true, pal: true };
+    PAL.floors.push(f);
+    palPart(r, 'floor:' + f.mat, box(r.x1 - r.x0, f.th, r.z1 - r.z0, r.cx, -f.th / 2, r.cz));
+    // Walls inside the room's edge, tall except on the camera side (south) and on bridges, with a gap at each door.
+    const hi = r.type === 'bridge' ? PC.lowH : PC.wallH;
+    const edges = [[false, r.z0, r.z0, r.z0 + t, hi], [false, r.z1, r.z1 - t, r.z1, PC.lowH], [true, r.x0, r.x0, r.x0 + t, hi], [true, r.x1, r.x1 - t, r.x1, hi]];
+    for (const [vert, e, a, b, h] of edges) {
+      const lo = vert ? r.z0 : r.x0, up = vert ? r.z1 : r.x1, gaps = [];
+      for (const d of r.doors) if (d.vert === vert && d.e === e) gaps.push([d.c - d.w / 2, d.c + d.w / 2]);
+      gaps.sort((p, q) => p[0] - q[0]);
+      let u = lo;
+      for (const [g0, g1] of gaps.concat([[up, up]])) {
+        if (g0 - u > 0.01) {
+          if (vert) { palPart(r, 'wall', box(b - a, h, g0 - u, (a + b) / 2, h / 2, (u + g0) / 2)); palSolid(r, a, b, u, g0); }
+          else { palPart(r, 'wall', box(g0 - u, h, b - a, (u + g0) / 2, h / 2, (a + b) / 2)); palSolid(r, u, g0, a, b); }
+        }
+        u = g1;
+      }
+    }
+    // Props per room type (boxes until the art stage): pillars, a dais, stones, shrubs, silk curtains (walk-through), the throne.
+    const pillar = (x, z) => { palPart(r, 'pillar', cyl(0.6, PC.wallH, x, PC.wallH / 2, z)); palSolid(r, x - 0.6, x + 0.6, z - 0.6, z + 0.6); };
+    const block = (m, sx, sy, sz, x, z) => { palPart(r, m, box(sx, sy, sz, x, sy / 2, z)); palSolid(r, x - sx / 2, x + sx / 2, z - sz / 2, z + sz / 2); };
+    const curtain = (x, z) => { palPart(r, 'silk', box(4, 3.5, 0.15, x, 1.75 + 0.3, z)); palPart(r, 'wall', box(4.4, 0.25, 0.25, x, 3.9, z)); };
+    if (r.type === 'hall') {
+      pillar(r.x0 + 3, r.z0 + 3); pillar(r.x1 - 3, r.z0 + 3); pillar(r.x0 + 3, r.z1 - 5); pillar(r.x1 - 3, r.z1 - 5);
+      block('stone', 3, 1, 8, r.x0 + 2.5, r.cz);
+      palPart(r, 'spawn', cyl(0.5, 0.06, r.spawn[0], 0.03, r.spawn[1], 12));
+    } else if (r.type === 'court') {
+      block('stone', 2, 1.2, 2, r.cx - 8, r.cz - 4); block('stone', 2, 1.2, 2, r.cx + 8, r.cz - 4);
+    } else if (r.type === 'garden') {
+      block('pillar', 1.6, 1, 1.6, r.x1 - 4, r.z1 - 6); block('pillar', 1.6, 1, 1.6, r.x1 - 4, r.z0 + 6); block('pillar', 1.6, 1, 1.6, r.x0 + 4, r.z0 + 6);
+      curtain(r.cx - 4, r.cz); curtain(r.cx + 5, r.cz + 8); curtain(r.cx + 3, r.cz - 10);
+    } else if (r.type === 'core') {
+      block('pillar', 12, 1.5, 6, r.cx, r.z0 + 4); palPart(r, 'gold', box(3, 3, 1, r.cx, 3, r.z0 + 2.5));
+      pillar(r.x0 + 3, r.z0 + 10); pillar(r.x1 - 3, r.z0 + 10); pillar(r.x0 + 3, r.z1 - 5); pillar(r.x1 - 3, r.z1 - 5);
+    }
+    for (const key in r.parts) {
+      const isFloor = key.startsWith('floor:'), m = isFloor ? M[key.slice(6)] : M[key];
+      const mesh = new THREE.Mesh(mergeGeoms(r.parts[key]), m);
+      mesh.receiveShadow = true; mesh.castShadow = key !== 'spawn';
+      mesh.matrixAutoUpdate = false; mesh.updateMatrix();
+      if (isFloor) { r.floorMeshes.push(mesh); r.floorMats.push(m); }
+      r.group.add(mesh);
+    }
+    r.parts = null;
+    r.group.matrixAutoUpdate = false; r.group.updateMatrix();
+  }
+  // The black lake under the platform (the Qin water virtue): one plane, in the scene for the whole palace run.
+  PAL.lake = new THREE.Mesh(new THREE.PlaneGeometry(240, 240), M.abyss);
+  PAL.lake.rotation.x = -Math.PI / 2; PAL.lake.position.set(PAL.cx, PC.lakeY, PAL.cz); PAL.lake.matrixAutoUpdate = false; PAL.lake.updateMatrix();
+  const n = PAL.rooms.length;
+  PAL.q = new Int16Array(n); PAL.from = new Int16Array(n); PAL.stk = new Int16Array(n);
+}
+const SUN_POS = sun.position.clone(), SUN_TGT = sun.target.position.clone();
+// Fog radius: the vision radius in Royal Rumble; inside the palace the walls block sight instead.
+function fowR() { return PAL.on ? PC.fowR : G.visR; }
+// Rooms in the scene: the current one, and any whose door to it stands open; door panels with either of their rooms. Writes only on change.
+function palSync() {
+  for (const r of PAL.rooms) {
+    let want = PAL.on && r === PAL.cur;
+    if (PAL.on && !want) for (const d of r.doors) if (d.open && (d.ra === PAL.cur || d.rb === PAL.cur)) want = true;
+    if (want !== !!r.group.parent) { if (want) scene.add(r.group); else scene.remove(r.group); renderer.shadowMap.needsUpdate = true; }
+  }
+  for (const d of PAL.doors) {
+    const want = PAL.on && (!!d.ra.group.parent || !!d.rb.group.parent);
+    if (want !== !!d.group.parent) { if (want) scene.add(d.group); else scene.remove(d.group); }
+  }
+}
+function palDoor(d, open) {
+  d.open = open; d.solid.off = open; d.panel.visible = !open; renderer.shadowMap.needsUpdate = true; palSync();
+}
+function palEnter(r) {
+  PAL.cur = r; PAL.n++; palSync();
+  if (r.type === 'core') endPalace(true);
+}
+// The door card: the room behind the nearest door of the current room (type, decree, reward, something stirs). Written on change only.
+function palCard() {
+  const d = PAL.pv;
+  if (!d) { setShow(el.door, false); return; }
+  const r = d.ra === PAL.cur ? d.rb : d.ra;
+  DOOR_VARS.room = r.name; DOOR_VARS.decree = T('door_dec_' + r.decree); DOOR_VARS.reward = T('door_rew_' + r.reward); DOOR_VARS.stir = T(r.stir ? 'door_stir' : 'door_quiet');
+  setText(el.door, T('door_card', DOOR_VARS)); setShow(el.door, true);
+}
+// A palace run starts (called by reset): royale map out of the scene, palace floors and walls in, doors shut, the player in the start hall.
+function enterPalace() {
+  const CC = CONFIG.PAL_CAM;
+  PAL.on = true; G.phase = 'palace';
+  clearBots(); G.alive = 1;
+  for (const s of SECLIST) if (s.group.parent) scene.remove(s.group);
+  if (abyss.parent) scene.remove(abyss);
+  if (!PAL.lake.parent) scene.add(PAL.lake);
+  if (FLOORS.length === NAV.NF) for (const f of PAL.floors) FLOORS.push(f);
+  if (SOLIDS.indexOf(PAL.solids[0]) < 0) for (const b of PAL.solids) SOLIDS.push(b);
+  for (const d of PAL.doors) { d.open = false; d.locked = false; d.solid.off = false; d.panel.visible = true; }
+  PAL.cur = PAL.start; PAL.pv = null; PAL.man = 0; PAL.n = 1;
+  palSync();
+  const sp = PAL.start.spawn;
+  P.x = P.px = sp[0]; P.z = P.pz = sp[1]; P.y = P.py = topY(sp[0], sp[1]); P.floor = null; P.zone = null; PATH.n = 0; PATH.i = 0;
+  G.camK = PAL.camT = (TOUCH ? CC.phone : 1) * CC.wide * CC.type[PAL.start.type];
+  const dx = PAL.cx - SUN_TGT.x, dz = PAL.cz - SUN_TGT.z;
+  sun.position.set(SUN_POS.x + dx, SUN_POS.y, SUN_POS.z + dz); sun.target.position.set(SUN_TGT.x + dx, SUN_TGT.y, SUN_TGT.z + dz);
+  document.body.classList.add('palace'); setShow(el.door, false);
+  setText(el.help, T(TOUCH ? 'help_pal_touch' : 'help_pal_desktop'));
+  if (G.view === 'follow') FOW.uFowR.value = fowR();
+  setHuntUi(); renderer.shadowMap.needsUpdate = true;
+}
+// Back to Royal Rumble (called by reset): palace out of the scene and out of FLOORS and SOLIDS; camera, sun, fog and HUD as before.
+function leavePalace() {
+  const was = PAL.on;
+  PAL.on = false; PAL.cur = null; PAL.pv = null;
+  palSync();
+  if (PAL.lake.parent) scene.remove(PAL.lake);
+  if (!abyss.parent) scene.add(abyss);
+  FLOORS.length = NAV.NF;
+  const k = SOLIDS.indexOf(PAL.solids[0]); if (k >= 0) SOLIDS.splice(k, PAL.solids.length);
+  for (const d of PAL.doors) d.solid.off = false;
+  G.camK = 1;
+  if (!was) return;
+  sun.position.copy(SUN_POS); sun.target.position.copy(SUN_TGT);
+  document.body.classList.remove('palace'); setShow(el.door, false);
+  setText(el.help, T(TOUCH ? 'help_touch' : 'help_desktop'));
+  if (G.view === 'follow') FOW.uFowR.value = fowR();
+  renderer.shadowMap.needsUpdate = true;
+}
+// The palace run ends: the core hall reached (BP01: the apex comes with BP03) or the player broken. The simulation freezes on the banner.
+function endPalace(reached) {
+  G.phase = 'palend'; PAL.pv = null; setShow(el.door, false);
+  ORD.attack = null; ORD.atkHeld = false; ORD.rightHeld = false; PATH.n = 0; PATH.i = 0; cancelAim();
+  PAL_END.s = Math.round(G.time); PAL_END.n = PAL.n; PAL_END.room = PAL.cur.name; PAL_END.retry = T(TOUCH ? 'retry_run_touch' : 'retry_run_desktop');
+  G.bannerWave = -1; G.fellT = 0;
+  setText(el.voice, T(reached ? 'pal_voice_core' : 'pal_voice_lost')); setText(el.rule, T(reached ? 'pal_rule_core' : 'pal_rule_lost', PAL_END)); setShow(el.banner, true);
+  setHuntUi();
+}
+// PERFRAME-BEGIN
+function palIn(r, x, z) { return !!r && x >= r.x0 && x <= r.x1 && z >= r.z0 && z <= r.z1; }
+function palRoomAt(x, z) { for (let i = 0; i < PAL.rooms.length; i++) if (palIn(PAL.rooms[i], x, z)) return PAL.rooms[i]; return null; }
+// True when the segment a-b crosses the door's opening.
+function palDoorSight(d, ax, az, bx, bz) {
+  if (d.vert) { const den = bx - ax; if (Math.abs(den) < 1e-6) return false; const t = (d.e - ax) / den; return t >= 0 && t <= 1 && Math.abs(az + (bz - az) * t - d.c) <= d.w / 2; }
+  const den = bz - az; if (Math.abs(den) < 1e-6) return false;
+  const t = (d.e - az) / den; return t >= 0 && t <= 1 && Math.abs(ax + (bx - ax) * t - d.c) <= d.w / 2;
+}
+// Walls block sight (owner 24 Nov 13:18): two points see each other in the same room, or across an open door through its opening.
+function palSight(ax, az, bx, bz) {
+  const ra = palRoomAt(ax, az), rb = palRoomAt(bx, bz);
+  if (!ra || !rb) return false;
+  if (ra === rb) return true;
+  for (let i = 0; i < ra.doors.length; i++) { const d = ra.doors[i]; if (d.open && (d.ra === rb || d.rb === rb) && palDoorSight(d, ax, az, bx, bz)) return true; }
+  return false;
+}
+// An enemy within the camera's reach that the player can see (rival suits, apex units; BP02 adds the guard).
+function palFoeNear() {
+  const reach = CONFIG.PAL_CAM.reach;
+  for (let i = 0; i < BOTLIST.length; i++) { const b = BOTLIST[i]; if (!b.dead && Math.hypot(b.x - P.x, b.z - P.z) <= reach && palSight(P.x, P.z, b.x, b.z)) return true; }
+  for (let i = 0; i < ENEMIES.length; i++) { const u = ENEMIES[i]; if (u.alive && Math.hypot(u.x - P.x, u.z - P.z) <= reach && palSight(P.x, P.z, u.x, u.z)) return true; }
+  return false;
+}
+// Palace step: room under the player, doors (open on approach, shut behind), the door card, the context camera.
+function stepPalace(dt) {
+  if (!palIn(PAL.cur, P.x, P.z)) { const r = palRoomAt(P.x, P.z); if (r) palEnter(r); if (G.phase !== 'palace') return; }
+  let pv = null, pd = PC.previewR;
+  for (let i = 0; i < PAL.doors.length; i++) {
+    const d = PAL.doors[i], dd = Math.hypot(P.x - d.x, P.z - d.z), mine = d.ra === PAL.cur || d.rb === PAL.cur;
+    if (!d.open && mine && !d.locked && !P.dead && dd <= PC.openR) palDoor(d, true);
+    else if (d.open && (dd > PC.closeR || !mine)) palDoor(d, false);
+    if (mine && dd < pd) { pd = dd; pv = d; }
+  }
+  if (pv !== PAL.pv) { PAL.pv = pv; palCard(); }
+  // Context camera: wide with no enemy in reach, close with one; eased so a full change takes easeS seconds; Z overrides it.
+  const CC = CONFIG.PAL_CAM, ph = TOUCH ? CC.phone : 1;
+  PAL.camT = ph * (PAL.man === 1 ? CC.wide : PAL.man === 2 ? CC.close : (palFoeNear() ? CC.close : CC.wide) * CC.type[PAL.cur.type]);
+  const dk = PAL.camT - G.camK, mv = (CC.wide - CC.close) * ph / CC.easeS * dt;
+  G.camK = Math.abs(dk) <= mv ? PAL.camT : G.camK + (dk > 0 ? mv : -mv);
+}
+// Walking route in the palace (no grid): through the door points from room to room (breadth-first over the room graph), then to the goal.
+function palRoute(gx, gz, path) {
+  path.n = 0; path.i = 0;
+  const ra = palIn(PAL.cur, P.x, P.z) ? PAL.cur : palRoomAt(P.x, P.z), rb = palRoomAt(gx, gz);
+  if (!ra || !rb) return false;
+  let n = 0;
+  if (ra !== rb) {
+    const from = PAL.from, q = PAL.q;
+    from.fill(-2); from[ra.idx] = -1; q[0] = ra.idx;
+    let qh = 0, qt = 1;
+    while (qh < qt && from[rb.idx] === -2) {
+      const r = PAL.rooms[q[qh++]];
+      for (let i = 0; i < r.doors.length; i++) { const d = r.doors[i], o = d.ra === r ? d.rb : d.ra; if (from[o.idx] !== -2 || d.locked) continue; from[o.idx] = d.idx; q[qt++] = o.idx; }
+    }
+    if (from[rb.idx] === -2) return false;
+    let k = 0;
+    for (let r = rb; r !== ra;) { const d = PAL.doors[from[r.idx]]; PAL.stk[k++] = d.idx; r = d.ra === r ? d.rb : d.ra; }
+    let r = ra;
+    for (let j = k - 1; j >= 0; j--) {
+      const d = PAL.doors[PAL.stk[j]], sg = (d.vert ? r.cx : r.cz) < d.e ? -PC.passM : PC.passM;
+      path.pts[n * 2] = d.vert ? d.e + sg : d.c; path.pts[n * 2 + 1] = d.vert ? d.c : d.e + sg; n++;
+      path.pts[n * 2] = d.vert ? d.e - sg : d.c; path.pts[n * 2 + 1] = d.vert ? d.c : d.e - sg; n++;
+      r = d.ra === r ? d.rb : d.ra;
+    }
+  }
+  path.pts[n * 2] = gx; path.pts[n * 2 + 1] = gz; n++;
+  path.n = n;
+  return true;
+}
+// PERFRAME-END
+
 // ===================== Game state =====================
 const G = { time: 0, view: 'follow', paused: false, ctxLost: false, frames: 0, bannerWave: -1, fellT: 0, nextWave: -2, fxT: 0, miniDirty: true, miniT: 0,
   phase: 'royale', phaseT: 0, huntT: 0, plates: 0, bossDirty: true, bossHp: -1, hits: 0, minTell: 99, hitDmg: 0, bleedDmg: 0,
@@ -1869,7 +2178,7 @@ const G = { time: 0, view: 'follow', paused: false, ctxLost: false, frames: 0, b
   huntN: 0, huntClaims: 0, huntFrees: 0,
   leader: null, leadT: 0, leaderChanges: 0, leaderCode: -1, leaderWrites: 0, miniLeader: false,
   bountyN: 0, bountyWarnAt: -1, bountyStartAt: -1, bountyEndAt: -1, bountyEndWhy: '', bountyPaid: 0, bountyPaidTo: -1,
-  auraN: 0, bellN: 0, wallN: 0, wheelN: 0, shadowN: 0, hangN: 0, orbN: 0, taijiN: 0, sproutN: 0, furrowN: 0, harvRingN: 0, stanceN: 0, counterN: 0, cordN: 0, circleN: 0, zmN: 0, zaShown: -1, zaWrites: 0, linkBusy: false, unitPersN: 0, decNext: 0, decN: 0, decCount: { dry: 0, nodash: 0, silence: 0, heights: 0, ult2x: 0 }, decLog: [], brkP: 0, brkB: 0, decCode: -1, decWrites: 0, hiAvoid: false, zoneSec: null, skips: 0, chWrites: 0 , school: 0, selecting: false, selectOn: false, selBtns: [], saveFail: false};
+  auraN: 0, bellN: 0, wallN: 0, wheelN: 0, shadowN: 0, hangN: 0, orbN: 0, taijiN: 0, sproutN: 0, furrowN: 0, harvRingN: 0, stanceN: 0, counterN: 0, cordN: 0, circleN: 0, zmN: 0, zaShown: -1, zaWrites: 0, linkBusy: false, unitPersN: 0, decNext: 0, decN: 0, decCount: { dry: 0, nodash: 0, silence: 0, heights: 0, ult2x: 0 }, decLog: [], brkP: 0, brkB: 0, decCode: -1, decWrites: 0, hiAvoid: false, zoneSec: null, skips: 0, chWrites: 0 , school: 0, selecting: false, selectOn: false, selBtns: [], saveFail: false, mode: 'rumble', modeOpen: false, modeBtns: [], camK: 1};
 // The one decree slot (batch 11): st 0 idle, 1 queued, 2 warning (banner), 3 in force. key = decree name, tgt = its suit (bounty), t = seconds left in the state.
 // Decree slot. st: 0 free, 1 queued, 2 warning, 3 in force. len = seconds in force; zone = the no-dash decree's section; warnAt = when its warning began.
 const DEC = { st: 0, key: '', tgt: null, t: 0, count: -1, banner: false, len: 0, zone: null, warnAt: -1 };
@@ -1877,6 +2186,8 @@ const DEC = { st: 0, key: '', tgt: null, t: 0, count: -1, banner: false, len: 0,
 // School select (batch 16): never with ?bots=N (map test and checks); the last pick is read from storage only when the select is on.
 G.selectOn = CONFIG.SELECT.on && !params.has('bots');
 G.school = G.selectOn ? loadSchool() : 0;
+// Mode (BP01): players pick it on the mode menu before the school select (last pick stored); checks use ?mode=palace (Royal Rumble by default with ?bots=N).
+G.mode = !CONFIG.PALACE_ON ? 'rumble' : params.has('bots') ? (params.get('mode') === 'palace' ? 'palace' : 'rumble') : loadMode();
 // Checks only (batch 16 ticket 03): with ?pkit=placeholder the default pick (school index 0, 儒甲) plays the placeholder kit at Mid stats, so the map and
 // match checks keep testing the kit they were written for; a check that picks another school plays that school's kit, and the 儒甲 checks switch it off
 // (__game.setPkitP). Players never use it.
@@ -1893,7 +2204,7 @@ function removeSection(s) { G.miniDirty = true; s.state = 3; scene.remove(s.grou
 // PERFRAME-BEGIN
 function step(dt) {
   // End screens freeze the whole simulation.
-  if (G.phase === 'won' || G.phase === 'lost') return;
+  if (G.phase === 'won' || G.phase === 'lost' || G.phase === 'palend') return;
   G.time += dt;
   const roy = G.phase === 'royale';
   // Collapse waves (royale only; they stop for the apex phase).
@@ -1983,7 +2294,7 @@ function step(dt) {
   stepZongheng(dt);
   stepZa(dt);
   const vr = CONFIG.VISION_R + (boonOn(P, 2) ? P.bV[2] : 0);
-  if (vr !== G.visR) { G.visR = vr; if (G.view === 'follow') FOW.uFowR.value = vr; }
+  if (vr !== G.visR) { G.visR = vr; if (G.view === 'follow') FOW.uFowR.value = fowR(); }
   if (roy && CONFIG.ROYALE_MINIONS) stepKennel(dt);
   if (roy && CONFIG.NEUTRALS) stepNeutrals(dt);
   if (roy && G.botN > 0) {
@@ -1993,7 +2304,8 @@ function step(dt) {
   }
   if (roy && G.botN > 0 && CONFIG.LEADER.on) stepLeader(dt);
   if (G.phase === 'wake' || G.phase === 'hunt') stepHunt(dt);
-  if (G.phase === 'won' || G.phase === 'lost') { updateHp(); updateStatus(); return; }
+  if (G.phase === 'palace') stepPalace(dt);
+  if (G.phase === 'won' || G.phase === 'lost' || G.phase === 'palend') { updateHp(); updateStatus(); return; }
   // Player.
   P.px = P.x; P.pz = P.z; P.py = P.y;
   if (P.dead) { P.deadT += dt; if (G.botN === 0 && P.deadT >= CONFIG.RESPAWN_S) respawn(); updateHp(); stepCombat(dt); return; }
@@ -2183,7 +2495,7 @@ function suitDown(s, cause, by) {
     if (DEC.st === 3 && by && by.kind === 'suit' && by !== s && !by.dead) payBounty(by);
     endDecree('out');
   }
-  if (s === P) { if (G.phase !== 'royale') endHunt(false); else if (G.botN > 0) endRoyale(); else showNote('voice_died', 'rule_died'); }
+  if (s === P) { if (G.phase === 'palace') endPalace(false); else if (G.phase !== 'royale') endHunt(false); else if (G.botN > 0) endRoyale(); else showNote('voice_died', 'rule_died'); }
   else botOut(s);
   checkLeader();
 }
@@ -4085,7 +4397,7 @@ function botTarget(b, t, mode) {
 }
 // A bot sees a suit inside its own vision radius, on about its own layer.
 // A marked suit (batch 12) is seen by every bot from anywhere.
-function botSees(b, s, vr) { return !s.dead && !hiddenFrom(s, b.x, b.z) && (seenAnywhere(s) || (Math.abs(s.y - b.y) < 2 && Math.hypot(s.x - b.x, s.z - b.z) <= vr)); }
+function botSees(b, s, vr) { return !s.dead && !hiddenFrom(s, b.x, b.z) && (seenAnywhere(s) || (Math.abs(s.y - b.y) < 2 && Math.hypot(s.x - b.x, s.z - b.z) <= vr)) && (!PAL.on || palSight(b.x, b.z, s.x, s.z)); }
 // Skills when ready and in range: Q line, W burst, R delayed burst with a ring shown for its whole delay. Aim error from the skill profile.
 // ultOnly = only the ultimate is considered (botReadyUlt, outside a fight).
 function botUseSkills(b, q, d, ultOnly) {
@@ -4430,9 +4742,11 @@ function clearPlayerStatus() {
 }
 function setHuntUi() {
   const on = G.phase === 'wake' || G.phase === 'hunt', end = G.phase === 'won' || G.phase === 'lost';
+  // BP01: a palace run shows no hunt button; its end shows New run.
+  const pe = G.phase === 'palend';
   setShow(el.boss, on || end);
-  setText(el.btnHunt, T(end ? (G.lostIn === 'royale' ? 'btn_new_run' : 'btn_retry') : 'btn_hunt'));
-  setShow(el.btnHunt, CONFIG.APEX_HUNT && !on && (end || G.botN === 0 || DEBUG));
+  setText(el.btnHunt, T(pe ? 'btn_new_run' : end ? (G.lostIn === 'royale' ? 'btn_new_run' : 'btn_retry') : 'btn_hunt'));
+  setShow(el.btnHunt, pe || (CONFIG.APEX_HUNT && G.phase !== 'palace' && !on && (end || G.botN === 0 || DEBUG)));
 }
 // The apex phase begins: collapses stop, the statue wakes, the gate seals, the player stands at the core hall entrance.
 function startHunt() {
@@ -4518,6 +4832,7 @@ function buildSelect() {
 function openSelect() {
   G.selecting = true; clearInput(); setShow(el.select, true);
   for (let i = 0; i < CONFIG.SCHOOLS.length; i++) G.selBtns[i].classList.toggle('is-last', i === G.school);
+  MODE_VARS.mode = T('mode_' + G.mode); setText(el.selMode, T('sel_mode', MODE_VARS)); setShow(el.selMode, CONFIG.PALACE_ON);
 }
 // Pick a school (-1 = let Heaven choose), remember it and start a new run with it.
 function pickSchool(i) {
@@ -4530,8 +4845,34 @@ function selectKey(e) {
   if (n >= 1 && n <= CONFIG.SCHOOLS.length) pickSchool(n - 1);
   else if (n === 0) pickSchool(-1);
   else if (e.code === 'Enter') pickSchool(G.school);
+  else if (e.code === 'KeyM' && CONFIG.PALACE_ON) openMode();
+}
+// ----- Mode menu (BP01, owner 24 Nov 13:44): The Burning Palace or Royal Rumble, before the school select; the last pick is remembered.
+function loadMode() { try { const v = localStorage.getItem(CONFIG.PALACE.saveKey); return MODES.indexOf(v) >= 0 ? v : 'palace'; } catch (e) { return 'palace'; } }
+function saveMode(m) { try { localStorage.setItem(CONFIG.PALACE.saveKey, m); } catch (e) { G.saveFail = true; } }
+function buildMode() {
+  setText(el.modeTitle, T('mode_title')); setText(el.modeRule, T('mode_rule'));
+  MODES.forEach((m, i) => {
+    const b = document.createElement('button'); b.className = 'sel__btn'; b.textContent = T('mode_key', { n: i + 1, mode: T('mode_' + m) });
+    b.addEventListener('click', () => pickMode(m)); el.modeList.appendChild(b); G.modeBtns.push(b);
+  });
+  el.selMode.addEventListener('click', () => { if (CONFIG.PALACE_ON) openMode(); });
+}
+// Open the mode menu: like the select, nothing steps or renders until a pick; the pick opens the school select.
+function openMode() {
+  G.selecting = true; G.modeOpen = true; clearInput(); setShow(el.select, false); setShow(el.mode, true);
+  for (let i = 0; i < MODES.length; i++) G.modeBtns[i].classList.toggle('is-last', MODES[i] === G.mode);
+}
+function pickMode(m) { G.mode = m; saveMode(m); G.modeOpen = false; setShow(el.mode, false); openSelect(); }
+// Keys on the mode menu: 1 The Burning Palace, 2 Royal Rumble, Enter the last pick.
+function modeKey(e) {
+  const n = e.code.startsWith('Digit') ? parseInt(e.code.slice(5), 10) : -1;
+  if (n >= 1 && n <= MODES.length) pickMode(MODES[n - 1]);
+  else if (e.code === 'Enter') pickMode(G.mode);
 }
 function huntButton() {
+  if (G.phase === 'palend') { newRun(); return; }
+  if (G.phase === 'palace') return;
   if (G.phase === 'lost' && G.lostIn === 'royale') { newRun(); return; }
   if (G.phase === 'wake' || G.phase === 'hunt') return;
   if (G.phase === 'royale' && G.botN > 0 && !DEBUG) return;
@@ -4723,6 +5064,8 @@ function reset() {
   assignSchools();
   spawnBots();
   setShow(el.banner, false);
+  // BP01: the mode decides the map (Royal Rumble: the royale map as before; The Burning Palace: the rooms).
+  if (G.mode === 'palace' && CONFIG.PALACE_ON) enterPalace(); else leavePalace();
   renderer.shadowMap.needsUpdate = true;
 }
 
@@ -4738,7 +5081,7 @@ function setView(v) {
   scene.fog.far = v === 'follow' ? CONFIG.FOG_FAR : farOv * 2;
   scene.fog.near = v === 'follow' ? CONFIG.FOG_NEAR : farOv;
   camera.updateProjectionMatrix();
-  FOW.uFowR.value = v === 'follow' ? G.visR : 1e5;
+  FOW.uFowR.value = v === 'follow' ? fowR() : 1e5;
   setText(el.btnMap, T(v === 'follow' ? 'btn_map' : 'btn_follow'));
 }
 function applyTier(name) {
@@ -4763,7 +5106,7 @@ let acc = 0, last = 0, slowT = 0, dbgT = 0, frameMs = 0, errShown = false;
 function placeView(alpha) {
   const x = P.px + (P.x - P.px) * alpha, z = P.pz + (P.z - P.pz) * alpha, y = P.py + (P.y - P.py) * alpha;
   playerGroup.position.set(x, y, z);
-  if (G.view === 'follow') { camera.position.set(x, y + camOffY, z + camOffZ); camera.lookAt(x, y, z); }
+  if (G.view === 'follow') { camera.position.set(x, y + camOffY * G.camK, z + camOffZ * G.camK); camera.lookAt(x, y, z); }
   else { camera.position.set(CONFIG.OVERVIEW_POS[0] * K, CONFIG.OVERVIEW_POS[1] * K, CONFIG.OVERVIEW_POS[2] * K); camera.lookAt(0, 0, -12 * K); }
   camera.updateMatrixWorld();
   playerGroup.rotation.y = Math.atan2(-P.faceX, -P.faceZ);
@@ -4820,7 +5163,7 @@ function frame(now) {
     while (acc >= CONFIG.STEP) { step(CONFIG.STEP); acc -= CONFIG.STEP; }
     placeView(acc / CONFIG.STEP);
     if (ORD.rightHeld) { ORD.repathT -= dt; if (ORD.repathT <= 0) { ORD.repathT = CONFIG.REPATH_S; rightOrder(); } }
-    G.miniT -= dt; if (G.miniT <= 0) { G.miniT = 1 / CONFIG.MINI_HZ; drawMini(); }
+    G.miniT -= dt; if (G.miniT <= 0 && !PAL.on) { G.miniT = 1 / CONFIG.MINI_HZ; drawMini(); }
     renderer.render(scene, camera);
     renderer.shadowMap.needsUpdate = false;
     frameMs += (realMs - frameMs) * 0.1;
@@ -4845,10 +5188,13 @@ function frame(now) {
 setText(el.help, T(TOUCH ? 'help_touch' : 'help_desktop'));
 if (TOUCH) document.body.classList.add('touch');
 setShow(el.btnMap, DEBUG);
-setupMini(); buildBar(); buildSelect();
+setupMini(); buildBar(); buildSelect(); buildMode();
 setShow(el.dbg, DEBUG);
 applyTier(tier);
 setView('follow');
+// BP01: the first reset builds the royale map so the warm-up draws every section; a palace run starts after the warm-up.
+const mode0 = G.mode;
+G.mode = 'rumble';
 reset();
 const warm = new THREE.Mesh(new THREE.BoxGeometry(0.1, 0.1, 0.1), warnMat);
 warm.receiveShadow = true; warm.castShadow = true; scene.add(warm);
@@ -4882,7 +5228,16 @@ placeView(1);
 renderer.compile(scene, camera);
 renderer.render(scene, camera);
 // One draw of the whole map so every section's buffers upload at load, not when first seen.
-setView('overview'); placeView(1); renderer.render(scene, camera); setView('follow');
+setView('overview'); placeView(1); renderer.render(scene, camera);
+// The palace rooms, doors and lake (BP01) are drawn once too, from above the palace, so their buffers upload at load.
+for (const r of PAL.rooms) scene.add(r.group);
+for (const d of PAL.doors) scene.add(d.group);
+scene.add(PAL.lake);
+camera.position.set(PAL.cx, 90, PAL.cz + 60); camera.lookAt(PAL.cx, 0, PAL.cz); camera.updateMatrixWorld(); renderer.render(scene, camera);
+for (const r of PAL.rooms) scene.remove(r.group);
+for (const d of PAL.doors) scene.remove(d.group);
+scene.remove(PAL.lake);
+setView('follow');
 for (const h of HAZARDS) h.ring.visible = false;
 for (const b of BOTLIST) b.group.visible = false;
 for (const o of warmHunt) scene.remove(o);
@@ -4891,7 +5246,9 @@ for (const m of INDICATORS) m.visible = false;
 scene.remove(warm, warmZone); warm.geometry.dispose(); P.marker.visible = false;
 drawMini();
 renderer.shadowMap.needsUpdate = true;
-if (G.selectOn) openSelect();
+G.mode = mode0;
+if (G.mode === 'palace') reset();
+if (G.selectOn && CONFIG.PALACE_ON) openMode(); else if (G.selectOn) openSelect();
 
 // Test hooks (read-mostly). Batch 16 ticket 08: daoState (read), strikeBasic (a basic blow through hitTarget), daoN (set counters, checks only). Batch 16 ticket 07: nongState, nongSow (a sowing without a cast). Batch 16 ticket 05: mingState, autoPick (what the auto-target picks), actOf (what a bot acts on), botCast (a bot casts a slot now). Batch 16 ticket 04: moState, wallCut. Batch 16 ticket 02: kitState, strike (a hit through hitTarget), castSelfOf, placeholderKit (a suit back on the placeholder kit at Mid, checks only). Batch 16: openSelect, pickSchool, selectKey, setSelectOn, newRun, schools, setStats, bleed, unseen (set), unseenOf (read).
 function tellsOf(list) {
@@ -5138,6 +5495,30 @@ Object.assign(window.__game, {
   escapeOf: (school) => escapeSlot({ kit: kitFor(school) }),
   setSkillCd(i, slot, v) { if (i < 0) SK[slot].cdT = v; else BOTLIST[i].cd[slot] = v; },
   bossNote: () => ({ text: BOSS_NOTE.textContent, shown: BOSS_NOTE.style.display }),
+});
+// The Burning Palace hooks (BP01): palace (read), setMode (the next reset takes it), openMode, modeKey, modes (read), palMoveTo (a palace walking
+// route), palSight, palPlaceBot (a bot alive and standing at x, z without stepping; checks only), botSeesP (a bot sees the player), palRoomAt.
+Object.assign(window.__game, {
+  palace: () => ({ on: PAL.on, phase: G.phase, mode: G.mode, cur: PAL.cur ? PAL.cur.id : null, n: PAL.n, man: PAL.man, camK: G.camK, camT: PAL.camT,
+    attached: PAL.rooms.filter((r) => !!r.group.parent).map((r) => r.id), doorsIn: PAL.doors.filter((d) => !!d.group.parent).length,
+    doors: PAL.doors.map((d) => ({ a: d.ra.id, b: d.rb.id, x: d.x, z: d.z, vert: d.vert, e: d.e, c: d.c, w: d.w, open: d.open, solid: !d.solid.off, panel: d.panel.visible, inSolids: SOLIDS.indexOf(d.solid) >= 0 })),
+    rooms: PAL.rooms.map((r) => ({ id: r.id, type: r.type, name: r.name, x0: r.x0, x1: r.x1, z0: r.z0, z1: r.z1, cx: r.cx, cz: r.cz, decree: r.decree, reward: r.reward, stir: r.stir })),
+    card: el.door.textContent, cardShown: el.door.style.display, floors: FLOORS.length, navNF: NAV.NF, solids: SOLIDS.length, palSolids: PAL.solids.length,
+    lake: !!PAL.lake.parent, abyss: !!abyss.parent, royaleIn: SECLIST.filter((s) => !!s.group.parent).length, bodyPalace: document.body.classList.contains('palace'),
+    voice: el.voice.textContent, rule: el.rule.textContent, banner: el.banner.style.display, help: el.help.textContent, fow: FOW.uFowR.value,
+    sunX: sun.target.position.x, hud: el.hud.textContent, btn: el.btnHunt.style.display, btnText: el.btnHunt.textContent, x: P.x, z: P.z, t: G.time }),
+  setMode(m) { G.mode = m; },
+  openMode, modeKey(code) { modeKey({ code }); },
+  modes: () => ({ open: G.modeOpen, selecting: G.selecting, shown: el.mode.style.display, selShown: el.select.style.display, mode: G.mode,
+    buttons: G.modeBtns.map((b) => { const r = b.getBoundingClientRect(); return { w: r.width, h: r.height, text: b.textContent, last: b.classList.contains('is-last') }; }),
+    selMode: el.selMode.textContent, selModeShown: el.selMode.style.display }),
+  palMoveTo(x, z) { ORD.attack = null; return palRoute(x, z, PATH); },
+  palSight, palRoomAt: (x, z) => { const r = palRoomAt(x, z); return r ? r.id : null; },
+  palPlaceBot(k, x, z) {
+    const b = BOTLIST[k]; b.dead = false; b.hp = CONFIG.MAX_HP; b.x = b.px = x; b.z = b.pz = z; b.y = b.py = topY(x, z);
+    b.group.position.set(b.x, b.y, b.z); b.group.visible = true; if (!b.group.parent) scene.add(b.group);
+  },
+  botSeesP: (k) => botSees(BOTLIST[k], P, CONFIG.VISION_R),
 });
 window.__ready = true;
 requestAnimationFrame(frame);
