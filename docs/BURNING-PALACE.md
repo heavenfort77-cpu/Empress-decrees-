@@ -39,6 +39,17 @@ Kaymuse's own imperial household guard, not 兵家: the 兵家 is the tiger unde
 - Performance: pooled, drawn as instances (about one draw call per unit type), cap about 12 per room, spawned when the door opens; simple brain (follow formation, one attack).
 - Rivals farm them too (off-screen in the simulation, on-screen with the bot brain).
 
+## Third side: the 反贼 (owner 24 Nov 13:47; ideology picked by the lead: 黄巾, with assassins inside it)
+Rebels of the 太平道 in yellow headbands, wearing bootleg 甲: cheap copies of the nine suits. Slogan reworked for the suits: 岁在甲子 (the year of the 甲). They are out to assassinate Kaymuse, and anyone wearing a real suit is in their way, so they come for the player too.
+- Bootleg 甲: each rebel copies one move of one school (a random school per squad), weaker and flawed: longer tell, the suit sparks and stalls after a few uses. Visual: yellow headband, patched armour in the school's colour, so you can read which move is coming.
+- 黄巾力士: the mob; packs of 4-8; die in 1-2 hits; the bootleg move.
+- 符水道人: talisman-water healer from behind; kill it first.
+- 死士 assassins: hide in curtains and dark corners (gardens, corridors), lunge at whoever leads the run (most plates or kills, so usually the player). Tell: yellow glint and a whispered chant, at least 0.4 s.
+- 渠帅: squad leader; killing it breaks the squad and drops a bootleg charge (one free use of that school's move).
+- Three-way fights: rebels and the 皇家 guard attack each other on sight, so a room can hold a fight you walk into or wait out.
+- Placement: some doors show "something stirs" for rebels; more of them near rooms that burn; her announcements name rebel ambushes off-screen.
+- Same rules as the guard: shared spawn API with a faction field, fixed pools, instances, numbers in CONFIG, a CONFIG switch (off in Royal Rumble).
+
 ## Camera
 - Wide when no enemy is within reach, tighter when one is; eased over about 0.4 s; never jumps. Corridors closer, courtyards wider.
 - A manual zoom key overrides it (MOBA players expect a fixed zoom). Phones start closer.
