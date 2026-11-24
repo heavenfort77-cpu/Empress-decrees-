@@ -1,0 +1,2 @@
+FAIL 144 农甲 in whole matches: on a floor, nobody stuck > 3 s, pool <= pool, furrows and rings end on time, hunter cap every tick, the 农甲 bot sows, ploughs, harvests and eats (player 农甲 autopilot reported) :: {"viol":[],"casts":{"q":65,"w":1,"r":0},"player":{"q":19,"w":0,"r":0},"eat":14,"tramp":76,"decided":[184.3,201.3,216.6,231.4],"poolMax":9,"furrowMax":2.55,"ringMax":0,"clean":true}
+RUNTIME 157 of 158 pass

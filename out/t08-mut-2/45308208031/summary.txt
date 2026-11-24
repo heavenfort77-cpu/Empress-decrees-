@@ -1,0 +1,4 @@
+jobs 3; caught by named check 3 of 3
+{"i": 0, "fails": ["127", "144"], "tot": ["RUNTIME 156 of 158 pass"], "s": 143, "name": "pierce never from range", "want": "127", "applied": true, "caught_named": true}
+{"i": 1, "fails": ["83", "144"], "tot": ["RUNTIME 156 of 158 pass"], "s": 140, "name": "no field ahead", "want": "144", "applied": true, "caught_named": true}
+{"i": 2, "fails": ["144"], "tot": ["RUNTIME 157 of 158 pass"], "s": 114, "name": "no harvest while healing", "want": "144", "applied": true, "caught_named": true}

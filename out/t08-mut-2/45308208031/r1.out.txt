@@ -1,0 +1,3 @@
+FAIL 83 decree pacing: 3-4 decrees told (bounty included) in each of 12 matches, about one a minute (mean warning to warning <= 60 s), no banner over a decree warning, no heights break near a warned section :: told 12345:3,2:3,3:4,4:3,5:4,6:3,7:3,8:4,9:3,10:4,11:3,12:5; mean warning to warning 50.2 s (30 gaps); bannerOv 0; heights breaks 2, near warned 0
+FAIL 144 农甲 in whole matches: on a floor, nobody stuck > 3 s, pool <= pool, furrows and rings end on time, hunter cap every tick, the 农甲 bot sows, ploughs, harvests and eats (player 农甲 autopilot reported) :: {"viol":[],"casts":{"q":4,"w":2,"r":1},"player":{"q":2,"w":0,"r":0},"eat":0,"tramp":1,"decided":[197.1,201.3,181.1,190.4],"poolMax":3,"furrowMax":2.55,"ringMax":0.417,"clean":true}
+RUNTIME 156 of 158 pass
