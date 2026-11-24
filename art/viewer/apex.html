@@ -12,7 +12,7 @@ import { GLTFLoader } from './vendor/loaders/GLTFLoader.js';
 import { apexMaterials } from './apex_mat.js';
 const Q = new URLSearchParams(location.search), MODEL = Q.get('model') || 'tiger', VIEW = Q.get('view') || 'turn', MODE = Q.get('mode') || 'tex';
 const STATE = Q.get('state') || 'awake', SCHOOL = Q.get('school') === null ? null : +Q.get('school'), T = +(Q.get('t') || 0);
-const CLIP = Q.get('clip') || (STATE === 'dormant' ? 'dormant' : 'idle'), BRASS = Q.get('brass') === '1';
+const CLIP = Q.get('clip') || (STATE === 'dormant' ? 'dormant' : 'idle'), BRASS = +(Q.get('brass') || 0);
 const W = innerWidth, H = innerHeight;
 const r = new THREE.WebGLRenderer({ antialias: true }); r.setPixelRatio(1); r.setSize(W, H); r.shadowMap.enabled = MODE !== 'sil'; document.body.appendChild(r.domElement);
 const scene = new THREE.Scene(); scene.background = new THREE.Color(MODE === 'sil' ? 0xffffff : 0x120d16);

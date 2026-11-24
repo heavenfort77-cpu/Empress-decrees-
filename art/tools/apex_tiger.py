@@ -96,19 +96,19 @@ def build(lod):
         if det:
             prism(f'fang_{s}', blade(0.05, 0.045), (s * 0.09, 2.2, 1.52), (s * 0.09, 2.22, 1.37), 'apexInlay', 'head', scale_b=0.1)
             prism(f'lfang_{s}', blade(0.04, 0.035), (s * 0.07, 2.17, 1.47), (s * 0.07, 2.19, 1.57), 'apexInlay', 'jaw', scale_b=0.1)
-    # legs: segmented castings with flange lips at every joint, round masses, sharp claws
+    # legs: segmented castings with flange lips at every joint, round masses, sharp claws (round 3: about 1.2x thicker, concept 5107's heavy forearms)
     for side, s in (('L', 1), ('R', -1)):
         x = s * 0.42
-        loft(f'fl_up_{side}', Loft([(s * .42, .86, 1.45), (s * .44, .80, 1.08), (x, .72, .76)], [(.19, .27), (.17, .2), (.14, .15)]), 'apexBronze', f'fl_up_{side}', M=16, sub=sub)
-        ring(f'elbow_{side}', (x, .72, .74), (0, .13, -1), .165, .05, 'apexBronze', f'fl_lo_{side}')
-        loft(f'fl_lo_{side}', Loft([(x, .72, .76), (x, .76, .46), (x, .80, .22)], [(.14, .15), (.13, .14), (.12, .12)]), 'apexBronze', f'fl_lo_{side}', 'flange', M=16, sub=sub)
-        ring(f'wrist_{side}', (x, .80, .21), (0, .1, -1), .14, .045, 'apexBronze', f'fl_paw_{side}')
-        floft(f'fl_paw_{side}', [(.66, .11, .13, .10), (.80, .12, .17, .12), (.96, .10, .17, .10), (1.06, .07, .13, .07)], 'apexBronze', f'fl_paw_{side}', x=x, M=16)
-        loft(f'hl_up_{side}', Loft([(s * .40, -1.36, 1.36), (s * .44, -1.20, 1.0), (x, -1.03, .72)], [(.2, .34), (.17, .25), (.13, .15)]), 'apexBronze', f'hl_up_{side}', M=16, sub=sub)
-        ring(f'knee_{side}', (x, -1.03, .71), (0, -.43, -.32), .14, .05, 'apexBronze', f'hl_lo_{side}')
-        loft(f'hl_lo_{side}', Loft([(x, -1.03, .72), (x, -1.25, .54), (x, -1.45, .40)], [(.12, .13), (.10, .11), (.09, .10)]), 'apexBronze', f'hl_lo_{side}', 'flange', M=14, sub=sub)
-        ring(f'hock_{side}', (x, -1.45, .39), (0, .15, -.28), .105, .04, 'apexBronze', f'hl_ft_{side}')
-        loft(f'hl_ft_{side}', Loft([(x, -1.45, .40), (x, -1.38, .24), (x, -1.31, .12)], [(.08, .09), (.08, .085), (.085, .085)]), 'apexBronze', f'hl_ft_{side}', M=12)
+        loft(f'fl_up_{side}', Loft([(s * .42, .86, 1.45), (s * .44, .80, 1.08), (x, .72, .76)], [(.22, .3), (.2, .24), (.17, .18)]), 'apexBronze', f'fl_up_{side}', M=16, sub=sub)
+        ring(f'elbow_{side}', (x, .72, .74), (0, .13, -1), .195, .05, 'apexBronze', f'fl_lo_{side}')
+        loft(f'fl_lo_{side}', Loft([(x, .72, .76), (x, .76, .46), (x, .80, .22)], [(.17, .18), (.16, .17), (.14, .14)]), 'apexBronze', f'fl_lo_{side}', 'flange', M=16, sub=sub)
+        ring(f'wrist_{side}', (x, .80, .21), (0, .1, -1), .165, .045, 'apexBronze', f'fl_paw_{side}')
+        floft(f'fl_paw_{side}', [(.66, .11, .15, .10), (.80, .12, .19, .12), (.96, .10, .19, .10), (1.06, .07, .15, .07)], 'apexBronze', f'fl_paw_{side}', x=x, M=16)
+        loft(f'hl_up_{side}', Loft([(s * .40, -1.36, 1.36), (s * .44, -1.20, 1.0), (x, -1.03, .72)], [(.23, .36), (.2, .28), (.16, .18)]), 'apexBronze', f'hl_up_{side}', M=16, sub=sub)
+        ring(f'knee_{side}', (x, -1.03, .71), (0, -.43, -.32), .17, .05, 'apexBronze', f'hl_lo_{side}')
+        loft(f'hl_lo_{side}', Loft([(x, -1.03, .72), (x, -1.25, .54), (x, -1.45, .40)], [(.15, .16), (.13, .14), (.11, .12)]), 'apexBronze', f'hl_lo_{side}', 'flange', M=14, sub=sub)
+        ring(f'hock_{side}', (x, -1.45, .39), (0, .15, -.28), .13, .04, 'apexBronze', f'hl_ft_{side}')
+        loft(f'hl_ft_{side}', Loft([(x, -1.45, .40), (x, -1.38, .24), (x, -1.31, .12)], [(.1, .11), (.1, .1), (.1, .1)]), 'apexBronze', f'hl_ft_{side}', M=12)
         floft(f'hl_paw_{side}', [(-1.42, .09, .13, .09), (-1.28, .10, .16, .10), (-1.13, .09, .15, .09), (-1.05, .06, .11, .06)], 'apexBronze', f'hl_paw_{side}', x=x, M=16)
         if det:
             for pre, f0 in (('fl', 1.04), ('hl', -1.07)):
@@ -117,12 +117,12 @@ def build(lod):
                     spheroid(f'{pre}toe_{side}{k}', (tx, f0, .065), (.045, .06, .055), 'apexBronze', f'{pre}_paw_{side}', segs=(8, 5))
                     prism(f'{pre}claw_{side}{k}', blade(0.04, 0.035), (tx, f0 + .04, .07), (tx, f0 + .13, .015), 'apexInlay', f'{pre}_paw_{side}', scale_b=0.1)
         # thigh and upper-arm stripes (inlay = crack lines), on the outer face of each leg
-        TH = Loft([(s * .40, -1.36, 1.36), (s * .44, -1.20, 1.0), (x, -1.03, .72)], [(.2, .34), (.17, .25), (.13, .15)])
+        TH = Loft([(s * .40, -1.36, 1.36), (s * .44, -1.20, 1.0), (x, -1.03, .72)], [(.23, .36), (.2, .28), (.16, .18)])
         to = 0 if s > 0 else 180
         for k, sv in enumerate((0.5, 0.9, 1.3) if lod < 2 else (0.9,)):
             strip(f'thst_{side}{k}', TH, [(sv + 0.12 * abs(t) / 60, to + t) for t in range(-60, 61, 20 if det else 40)], STRIPE_W, 'apexCrack', f'hl_up_{side}')
         if lod < 2:
-            FU = Loft([(s * .42, .86, 1.45), (s * .44, .80, 1.08), (x, .72, .76)], [(.19, .27), (.17, .2), (.14, .15)])
+            FU = Loft([(s * .42, .86, 1.45), (s * .44, .80, 1.08), (x, .72, .76)], [(.22, .3), (.2, .24), (.17, .18)])
             for k, sv in enumerate((0.9, 1.4)):
                 strip(f'fust_{side}{k}', FU, [(sv + 0.1 * abs(t) / 60, to + t) for t in range(-60, 61, 20 if det else 40)], STRIPE_W, 'apexCrack', f'fl_up_{side}')
     # tail: ringed segments, flange lips, a sharp finial

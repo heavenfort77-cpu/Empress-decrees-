@@ -107,7 +107,7 @@ def build_howler(lod):
     # ding hull: rounded-square cauldron, rim flange on top, side lugs, a cloud band under the rim
     secs = [(-0.38, 0.8, .34, .1), (-0.34, 0.84, .42, .24), (-0.12, 0.86, .46, .33), (0.14, 0.87, .46, .33), (0.34, 0.86, .42, .26), (0.4, 0.84, .34, .12)]
     _, H = floft('hull', secs, 'apexBronze', 'hull', 'plain', n_exp=3.2, M=22, sub=sub)
-    floft('rim', [(-0.42, 1.18, .44, .03), (0.0, 1.19, .49, .035), (0.44, 1.18, .44, .03)], 'apexBronze', 'hull', 'flange', n_exp=3.4, M=20)
+    floft('rim', [(-0.38, 1.18, .42, .03), (0.0, 1.19, .47, .035), (0.4, 1.18, .42, .03)], 'apexBronze', 'hull', 'flange', n_exp=3.4, M=20)
     floft('band', [(-0.38, 1.07, .45, .045), (0.0, 1.07, .48, .05), (0.4, 1.07, .45, .045)], 'apexBronze', 'hull', 'clouds', n_exp=3.2, M=20)
     for s in (-1, 1):
         tube(f'lug{s}', (s * 0.44, 0.0, 0.98), (s * 0.55, 0.0, 1.0), 0.05, 0.045, 'apexBronze', 'hull', 'flange', sides=8)
