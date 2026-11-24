@@ -13,6 +13,7 @@ import numpy as np
 from PIL import Image, ImageDraw
 
 D, OUT, UNITS = sys.argv[1], sys.argv[2], sys.argv[3].split(',')
+GATE_DIST = 'fight' if '--fight' in sys.argv else 'wide'  # --fight: silhouettes at the fight framing (the 力士 weapon-only variant gate)
 os.makedirs(OUT, exist_ok=True)
 # CONFIG
 # Pairwise IoU limit of two types' flat-black silhouettes (study gate 10).
@@ -128,7 +129,7 @@ for u in UNITS:
 # silhouette gate: each unit alone, flat black at the wide view (yaw 35), cropped to its box, feet centred, compared pairwise
 def sil(u):
     im = Image.new('L', (900, 900), 255); tri, row, names, _, _ = unit_items(u)
-    rgb = Image.new('RGB', im.size, (255, 255, 255)); draw(rgb, [(tri, row, names, np.zeros(3), None)], 35, PITCH, WIDE, np.array([0, 0, 0.9]), 'sil')
+    rgb = Image.new('RGB', im.size, (255, 255, 255)); draw(rgb, [(tri, row, names, np.zeros(3), None)], 35, PITCH, FIGHT if GATE_DIST == 'fight' else WIDE, np.array([0, 0, 0.9]), 'sil')
     a = np.asarray(rgb.convert('L')) < 128; ys, xs_ = np.nonzero(a)
     return a, (xs_.min(), xs_.max(), ys.min(), ys.max())
 S = {u: sil(u) for u in UNITS}
@@ -142,6 +143,7 @@ for a, b in itertools.combinations(UNITS, 2):
     i = (PL[a] & PL[b]).sum() / max(1, (PL[a] | PL[b]).sum()); n += 1
     ok = i < IOU_MAX; fails += not ok; worst = max(worst, (i, f'{a}/{b}'))
     if not ok: print(f'FAIL silhouette {a} vs {b} IoU {i:.2f} (max {IOU_MAX})')
-print(f'{"PASS" if fails == 0 else "FAIL"} lineup silhouettes: {n - fails} of {n} pairs under IoU {IOU_MAX} (closest {worst[1]} {worst[0]:.2f})')
+    elif '--all' in sys.argv: print(f'INFO silhouette {a} vs {b} IoU {i:.2f}')
+print(f'{"PASS" if fails == 0 else "FAIL"} lineup silhouettes ({GATE_DIST} view): {n - fails} of {n} pairs under IoU {IOU_MAX} (closest {worst[1]} {worst[0]:.2f})')
 for u in UNITS:
     a, (x0, x1, y0, y1) = S[u]; print(f'INFO {u} wide-view size {x1 - x0 + 1} x {y1 - y0 + 1} px')

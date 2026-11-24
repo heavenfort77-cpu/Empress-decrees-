@@ -46,8 +46,8 @@ def body(d, hunch=0.1, chest=0.24, belly=0.22, robe=False, patch=True, hood=Fals
                        (pz + 0.25, hf * 0.5 + 0.02, chest, chest * 0.78, 0), (sz - 0.04, hf, chest * 0.95, chest * 0.66, 0), (sz + 0.04, hf, 0.1, 0.08, 0)],
              CL, 'spine', tunic, n_exp=2.2, M=16, cloth=True)
         for side, s in (('R', 1), ('L', -1)):  # trousers, wrapped at the shin
-            tube(f'leg_{side}', (s * 0.11, 0, pz - 0.05), (s * 0.12, kf, pz * 0.5), 0.11 * limb, 0.085 * limb, CL, f'thigh_{side}', 'hemp', sides=8, cloth=True)
-            tube(f'shin_{side}', (s * 0.12, kf, pz * 0.5), (s * 0.12, 0.0, 0.1), 0.085 * limb, 0.06 * limb, CL, f'shin_{side}', 'rope', sides=8, cloth=True)
+            tube(f'leg_{side}', (s * 0.11, 0, pz - 0.05), (s * 0.12, kf, pz * 0.5), 0.11 * limb, 0.085 * limb, CL, f'thigh_{side}', tunic if tunic == 'dark' else 'hemp', sides=8, cloth=True)
+            tube(f'shin_{side}', (s * 0.12, kf, pz * 0.5), (s * 0.12, 0.0, 0.1), 0.085 * limb, 0.06 * limb, CL, f'shin_{side}', tunic if tunic == 'dark' else 'rope', sides=8, cloth=True)
     for side, s in (('R', 1), ('L', -1)):
         foot = (s * 0.12, 0.06, 0.04)
         loft(f'foot_{side}', [(0.0, 0.06, 0.055, 0.12, s * 0.12), (0.07, 0.04, 0.05, 0.09, s * 0.12)], CL, f'foot_{side}', 'plates', n_exp=2.4, M=10)
@@ -240,8 +240,8 @@ def ss_build(d):
         prism(f'knife_{side}', blade(0.05, 0.012), g, tip, CL, bone, 'metal', scale_b=0.1)
         # glint cards: a small four-point star on each blade, scaled 0 at rest and 1 through the windup (rbGlint, bright yellow)
         c = tuple((a + b) / 2 for a, b in zip(g, tip))
-        for k, up in enumerate([(0, 0, 1), (1, 0, 0)] if d else []):  # a four-point star 0.28 m across (25 px at the fight framing); LOD0 only (static LODs cannot hide it)
-            prism(f'glint_{side}{k}', blade(0.28, 0.06), (c[0], c[1] - 0.01, c[2]), (c[0], c[1] + 0.01, c[2]), GL, 'glint_' + side, 'glint', up=up)
+        for k, up in enumerate([(0, 0, 1), (1, 0, 0)] if d else []):  # a four-point star 0.36 m across (40 px at the fight framing); LOD0 only (static LODs cannot hide it)
+            prism(f'glint_{side}{k}', blade(0.36, 0.07), (c[0], c[1] - 0.01, c[2]), (c[0], c[1] + 0.01, c[2]), GL, 'glint_' + side, 'glint', up=up)
 
 def ss_bones():
     gR = ((0.34 + SS_TIP[0]) / 2, (0.08 + SS_TIP[1]) / 2, (0.72 + SS_TIP[2]) / 2); gL = ((-0.34 - 0.36) / 2, (0.1 - 0.18) / 2, (0.74 + 0.66) / 2)

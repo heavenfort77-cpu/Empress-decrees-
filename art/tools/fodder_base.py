@@ -350,6 +350,8 @@ def build_unit(key, build, bones, clips_fn, out, extra_gates=None, weapons=None,
         wl = [wobs[(sch, 0)]] if sch else []; tag = f'{key}_{sch}' if sch else key
         dump([lod0] + wl, os.path.join(prev, f'{tag}_rest.npz'), arm, acts['idle'], 0.0)
         dump([lod0] + wl, os.path.join(prev, f'{tag}_windup.npz'), arm, attack, windup)
+        if sch:  # the weapon alone (the school's shape cue), for the variant silhouette gate
+            for pose, a_, t_ in (('rest', acts['idle'], 0.0), ('windup', attack, windup)): dump(wl, os.path.join(prev, f'{tag}_wonly_{pose}.npz'), arm, a_, t_)
     for i, l in enumerate(lods): dump([l], os.path.join(prev, f'{key}_lod{i + 1}.npz'))
     for a in acts.values(): push(arm, a)
     # gates
