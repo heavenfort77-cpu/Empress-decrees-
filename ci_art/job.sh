@@ -25,3 +25,5 @@ echo "== shots"; node art/tools/shoot_arch.mjs "$OUT/shots" all 2>&1 | tee "$OUT
 python3 art/tools/arch_sheets.py "$OUT/shots" "$OUT/sheets" | tee "$OUT/sheets.txt"
 ls assets/models/arch | tee "$OUT/glbs.txt" | wc -l
 echo "RESULT done"
+# leave the checkout clean (the workflow switches to ci-out after this script; rebuilt tracked files would block it: run 45444792219)
+git checkout -q -- . && git clean -qfd assets art
