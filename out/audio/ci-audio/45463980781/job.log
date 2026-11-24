@@ -1,0 +1,95 @@
+== static
+AUDIO STATIC PASS (1 perframe block, 42 lines)
+== render
+NOTES (computed once, 五声 by 三分损益 from gong 174.61 Hz):
+  N(-6) yu 73.66 Hz
+  N(-5) gong 87.31 Hz
+  N(-4) shang 98.22 Hz
+  N(-3) jue 110.50 Hz
+  N(-2) zhi 130.96 Hz
+  N(-1) yu 147.33 Hz
+  N(0) gong 174.61 Hz
+  N(1) shang 196.44 Hz
+  N(2) jue 220.99 Hz
+  N(3) zhi 261.92 Hz
+  N(4) yu 294.65 Hz
+  N(5) gong 349.22 Hz
+  N(6) shang 392.87 Hz
+  N(7) jue 441.98 Hz
+  N(8) zhi 523.83 Hz
+  N(9) yu 589.31 Hz
+  N(10) gong 698.44 Hz
+  N(11) shang 785.75 Hz
+  N(12) jue 883.96 Hz
+  N(13) zhi 1047.66 Hz
+  N(14) yu 1178.62 Hz
+  N(15) gong 1396.88 Hz
+  N(16) shang 1571.49 Hz
+  N(17) jue 1767.93 Hz
+  N(18) zhi 2095.32 Hz
+RENDERED sounds 264 loops 16 ramps 2; render time 4.1 s (both profiles, runner CPU); render failures 0
+== gates
+PASS G1 renders: 282 of 282
+PASS G2 peak <= -3.0 dBFS: worst -3.50 dBFS, 0 over
+PASS G3 no NaN, no clipping: 0 bad
+FAIL G4 tells+stingers 1-4 kHz share >= 0.1: 61 of 68 (min 0.044)
+  phone/st_decree 1-4 kHz share 0.047
+  phone/st_bounty 1-4 kHz share 0.044
+  phone/st_wake 1-4 kHz share 0.054
+  desktop/st_decree 1-4 kHz share 0.082
+  desktop/st_burn 1-4 kHz share 0.098
+  desktop/st_bounty 1-4 kHz share 0.045
+  desktop/st_wake 1-4 kHz share 0.053
+PASS G5 phone renders tonal (0 noise sources, flatness <= 0.2): 140 of 140 (max flatness 0.116; desktop effects use 16 noise sources)
+FAIL G6 loops seamless: 10 of 16 (click check all; steady-state check on 8 phone loops, worst 3.4 dB)
+  phone/m_drone differs from the steady state by 3.0 dB
+  phone/m_pulse differs from the steady state by 0.0 dB
+  phone/m_peak differs from the steady state by -7.9 dB
+  phone/a_room differs from the steady state by 3.4 dB
+  phone/a_wind differs from the steady state by 1.7 dB
+  phone/a_fire differs from the steady state by 3.2 dB
+FAIL G7 ramp loudness: FAIL
+  phone: whole -23.0 LUFS, first 10 s -24.3, last 10 s -21.5
+  desktop: whole -22.8 LUFS, first 10 s -24.2, last 10 s -21.1
+  phone whole -23.0 LUFS outside [-20.0, -14.0]
+  phone last 10 s -21.5 LUFS outside [-18.0, -12.0]
+  desktop whole -22.8 LUFS outside [-20.0, -14.0]
+  desktop last 10 s -21.1 LUFS outside [-18.0, -12.0]
+PASS G8 stingers over the calm bed: PASS
+  phone/st_decree: +4.0 LU over the bed
+  phone/st_burn: +4.1 LU over the bed
+  phone/st_bounty: +3.1 LU over the bed
+  phone/st_wake: +4.9 LU over the bed
+  desktop/st_decree: +3.8 LU over the bed
+  desktop/st_burn: +4.4 LU over the bed
+  desktop/st_bounty: +3.1 LU over the bed
+  desktop/st_wake: +5.4 LU over the bed
+GATES 5 of 8
+INFO loop phone/a_fire: rms -18.0 dBFS, peak -7.0 dBFS, -19.5 LUFS
+INFO loop phone/a_room: rms -18.0 dBFS, peak -11.4 dBFS, -19.2 LUFS
+INFO loop phone/a_wind: rms -18.0 dBFS, peak -7.3 dBFS, -18.4 LUFS
+INFO loop phone/m_bells: rms -23.0 dBFS, peak -3.5 dBFS, -21.9 LUFS
+INFO loop phone/m_drive: rms -25.3 dBFS, peak -3.5 dBFS, -25.0 LUFS
+INFO loop phone/m_drone: rms -18.0 dBFS, peak -9.0 dBFS, -19.2 LUFS
+INFO loop phone/m_peak: rms -23.0 dBFS, peak -3.5 dBFS, -23.1 LUFS
+INFO loop phone/m_pulse: rms -26.7 dBFS, peak -3.5 dBFS, -22.8 LUFS
+MUTANT G1 drop phone/ru_atk: caught
+MUTANT G2 phone/mo_w_tell raised to -1 dBFS: caught
+MUTANT G3 phone/mo_w_tell with one NaN: caught
+MUTANT G3 phone/mo_w_tell with one clipped sample: caught
+MUTANT G4 phone/mo_w_tell low-passed at 800 Hz: caught
+MUTANT G5 phone/vat_splash replaced by its desktop (noise) render: caught
+MUTANT G5 phone/demon_claw replaced by its desktop (noise) render: caught
+MUTANT G5 phone/a_wind replaced by the desktop wind (noise): caught
+MUTANT G6 phone/m_drone rendered without seam handling: caught
+MUTANT G6 phone/m_bells rendered without seam handling: caught
+MUTANT G6 phone/a_wind rendered without seam handling: caught
+MUTANT G6 phone/a_fire rendered without seam handling: caught
+MUTANT G7 ramp +8 dB: caught
+MUTANT G7 ramp -10 dB: caught
+MUTANT G8 phone/st_decree +14 dB: caught
+MUTATIONS gates fully caught 8 of 8; mutants caught 15 of 15
+DECODED MEMORY (float32): phone 21.0 MB, desktop 42.0 MB
+PREVIEW all_sounds_phone.wav 170.3 s, 132 sounds
+RESULT FAIL
+OUT size 48M	/home/runner/work/Empress-decrees-/Empress-decrees-/ci_audio_out
