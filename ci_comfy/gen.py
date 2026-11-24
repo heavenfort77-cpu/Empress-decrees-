@@ -4,6 +4,8 @@ Builds the standard API graph: checkpoint -> two text encodes -> empty latent ->
 import json, sys, time, urllib.request, urllib.parse, os
 
 CFG = json.load(open(sys.argv[1])); JOB = CFG['jobs'][int(sys.argv[2])]; OUT = sys.argv[3]
+# a job is one entry {view, seeds} or a list of entries {name, view, seeds} under 'items' (W3: several suits per job)
+ITEMS = JOB['items'] if 'items' in JOB else [dict(JOB, name='beast')]
 URL = 'http://127.0.0.1:8188'
 os.makedirs(OUT, exist_ok=True)
 
@@ -15,7 +17,7 @@ for _ in range(300):  # wait for the server (up to 10 min)
     except Exception: time.sleep(2)
 
 log = []
-for seed in JOB['seeds']:
+for seed, JOB in [(sd, it) for it in ITEMS for sd in it['seeds']]:
     pos = CFG['positive'].replace('{view}', JOB['view'])
     g = {
         '1': {'class_type': 'CheckpointLoaderSimple', 'inputs': {'ckpt_name': CFG['checkpoint']}},
@@ -25,7 +27,7 @@ for seed in JOB['seeds']:
         '5': {'class_type': 'KSampler', 'inputs': {'model': ['8', 0] if CFG.get('lora') else ['1', 0], 'positive': ['2', 0], 'negative': ['3', 0], 'latent_image': ['4', 0], 'seed': seed,
               'steps': CFG['steps'], 'cfg': CFG['cfg'], 'sampler_name': CFG['sampler'], 'scheduler': CFG['scheduler'], 'denoise': 1.0}},
         '6': {'class_type': 'VAEDecode', 'inputs': {'samples': ['5', 0], 'vae': ['1', 2]}},
-        '7': {'class_type': 'SaveImage', 'inputs': {'images': ['6', 0], 'filename_prefix': f'beast_{seed}'}},
+        '7': {'class_type': 'SaveImage', 'inputs': {'images': ['6', 0], 'filename_prefix': f"{JOB['name']}_{seed}"}},
     }
     if CFG.get('lora'):
         g['8'] = {'class_type': 'LoraLoaderModelOnly', 'inputs': {'model': ['1', 0], 'lora_name': CFG['lora'], 'strength_model': 1.0}}
@@ -40,7 +42,7 @@ for seed in JOB['seeds']:
         time.sleep(3)
     for img in h[pid]['outputs']['7']['images']:
         q = urllib.parse.urlencode({'filename': img['filename'], 'subfolder': img['subfolder'], 'type': img['type']})
-        open(os.path.join(OUT, f"beast_{seed}.png"), 'wb').write(get('/view?' + q))
+        open(os.path.join(OUT, f"{JOB['name']}_{seed}.png"), 'wb').write(get('/view?' + q))
     line = f'seed {seed} view "{JOB["view"]}" {time.time() - t0:.0f} s'
     print(line); log.append(line)
 open(os.path.join(OUT, 'gen.log'), 'w').write('\n'.join(log) + '\n')

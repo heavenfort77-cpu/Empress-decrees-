@@ -3,7 +3,7 @@
 name: comfy-run
 on:
   push:
-    branches: [ci-comfy]
+    branches: ['ci-comfy-w3']
 permissions:
   contents: write
 jobs:
