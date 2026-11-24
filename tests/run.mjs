@@ -551,6 +551,67 @@ try {
   const mk = await g(() => __game.moves.filter((k) => !__game.text['move_' + k]));
   check('45 text keys for every move', mk.length === 0, mk.join(' '));
 
+  // ===== Batch 16 ticket 11: the apex is 兵家 (owner 24 Nov 09:44-09:5x): renamed moves (孙子兵法), passive 攻其无备 =====
+  // 200 Names and lines: moves and lines carry their 孙子兵法 names; the HUD boss name stays "Tiger Demon"; the boss panel lists the renamed moves.
+  const bj0 = await g(() => {
+    const G = __game, X = G.text, H = window.__h; H.start(); const ui = G.huntUi();
+    return { pounce: X.move_pounce, roar: X.move_roar, frenzy: X.rule_frenzy, plate: X.rule_plate, wake: X.rule_wake, boss: X.boss_name, note: X.boss_unprepared, bossText: ui.bossText };
+  });
+  check('200 兵家 names: 其疾如风, 动如雷震, 侵掠如火，不动如山, 奇正相生, 正/奇 minions; boss name stays Tiger Demon; boss panel lists them',
+    /其疾如风/.test(bj0.pounce) && /动如雷震/.test(bj0.roar) && /侵掠如火，不动如山/.test(bj0.frenzy) && /奇正相生/.test(bj0.plate) && /正/.test(bj0.wake) && /奇/.test(bj0.wake)
+    && bj0.boss === 'Tiger Demon' && /攻其无备/.test(bj0.note) && /其疾如风/.test(bj0.bossText) && /动如雷震/.test(bj0.bossText), JSON.stringify(bj0));
+  // 201-202 攻其无备 on the placeholder player (escape = W dash): a claw (demon) and a bite (Stalker) hit for their move damage while the dash is ready,
+  // and for move damage x (1 + BINGJIA.bonus) while it is on cooldown; the boss panel note shows only while unprepared.
+  const bjHit = async (unit, move) => g(({ unit, move }) => {
+    const G = __game, C = G.config, H = window.__h, o = { hits: [] };
+    H.start(); for (let i = 0; i < 3; i++) H.mute(i); H.mute(unit, move); G.setHp(1000); G.teleport(0, -55); G.placeUnit(unit, 0, -56.2);
+    for (const cd of [0, 30]) {
+      G.setSkillCd(-1, 1, cd); const before = G.hunt().p.hp; let n = 0;
+      while (G.hunt().p.hp === before && n < 900) { G.setSkillCd(-1, 1, cd); G.placeUnit(unit, 0, -56.2); G.step(1); n++; }
+      o.hits.push(+(before - G.hunt().p.hp).toFixed(4)); o['un' + cd] = G.unprepared(-1); o['note' + cd] = G.bossNote().shown;
+      H.until((h) => h.tells.length === 0, 300);
+    }
+    o.want = C.MOVES[move].dmg; o.k = 1 + C.BINGJIA.bonus; o.noteText = G.bossNote().text; return o;
+  }, { unit, move });
+  const bj1 = await bjHit(0, 'claw'), bj2 = await bjHit(1, 'bite');
+  for (const [n, o, who] of [['201', bj1, 'demon claw'], ['202', bj2, 'Stalker bite']])
+    check(`${n} 攻其无备 (${who}): normal damage with the dash ready, x(1 + bonus) with it on cooldown; boss note only while unprepared`,
+      Math.abs(o.hits[0] - o.want) < 1e-6 && Math.abs(o.hits[1] - o.want * o.k) < 1e-6 && !o.un0 && o.un30 && o.note0 === 'none' && o.note30 === 'block' && /20%/.test(o.noteText), JSON.stringify(o));
+  // 203 Cap: in the demon's frenzy an unprepared suit takes claw x min(BONUS_CAP, frenzy x (1 + bonus)), a prepared one claw x frenzy.
+  const bj3 = await g(() => {
+    const G = __game, C = G.config, H = window.__h, o = { hits: [] };
+    H.start(); for (let i = 0; i < 3; i++) H.mute(i); G.setHp(1000); G.teleport(0, -45);
+    G.hitUnit(0, C.DEMON.hp * 0.5); H.until((h) => h.units[0].frenzy > 0, 600); H.mute(0, 'claw'); G.teleport(0, -55); G.placeUnit(0, 0, -56.2);
+    for (const cd of [0, 30]) {
+      const before = G.hunt().p.hp; let n = 0;
+      while (G.hunt().p.hp === before && n < 600) { G.setSkillCd(-1, 1, cd); G.placeUnit(0, 0, -56.2); G.step(1); n++; }
+      o.hits.push(+(before - G.hunt().p.hp).toFixed(4)); o.frenzy = G.hunt().units[0].frenzy; H.until((h) => h.tells.length === 0, 300);
+    }
+    o.wantReady = C.MOVES.claw.dmg * C.DEMON_ULT.dmg; o.wantUn = C.MOVES.claw.dmg * Math.min(C.BONUS_CAP, C.DEMON_ULT.dmg * (1 + C.BINGJIA.bonus)); o.capBites = C.DEMON_ULT.dmg * (1 + C.BINGJIA.bonus) > C.BONUS_CAP;
+    return o;
+  });
+  check('203 攻其无备 under frenzy: capped at BONUS_CAP together with the frenzy', bj3.frenzy > 0 && Math.abs(bj3.hits[0] - bj3.wantReady) < 1e-6 && Math.abs(bj3.hits[1] - bj3.wantUn) < 1e-6 && bj3.capBites, JSON.stringify(bj3));
+  // 204 Escape per kit: the dash where the kit has one; 墨甲 (no dash) his wall (Q); 阴阳甲 his step back (Q); 道甲 his flow (W); unbuilt schools the placeholder W.
+  // A 墨甲 player is unprepared only while his wall is on cooldown; the statue's strike and a royale cub's bite are never raised.
+  const bj4 = await g(() => {
+    const G = __game, C = G.config, H = window.__h, o = { esc: {} };
+    for (const k of C.SCHOOLS) o.esc[k] = G.escapeOf(k);
+    G.setPkitP(false); G.setSchool(C.SCHOOLS.indexOf('mo')); H.start(); o.moSlot = G.escapeOf('mo');
+    G.setSkillCd(-1, 0, 0); G.setSkillCd(-1, 1, 30); o.moWReady = G.unprepared(-1); G.setSkillCd(-1, 0, 30); o.moQcd = G.unprepared(-1);
+    G.setPkitP(true); G.setSchool(0); G.reset();
+    const st = G.hazards()[0]; G.teleport(st.x, st.z + 4); G.setSkillCd(-1, 1, 30); G.step(1); let n = 0; while (G.state().hp === 100 && n < 120) { G.setSkillCd(-1, 1, 30); G.step(1); n++; }
+    o.statueHit = 100 - G.state().hp; o.statueWant = C.STATUE.dmg;
+    G.reset(); G.step(Math.round((C.KENNEL.firstS + 0.1) / C.STEP)); const cubs = G.cubs().list, ci = cubs.findIndex((u) => u.alive);
+    for (const k of G.moves) G.cubCd(ci, k, k === 'bite' ? 0 : 9999);
+    G.teleport(cubs[ci].x + 1.2, cubs[ci].z); let m = 0; while (G.state().hp === 100 && m < 600) { G.setSkillCd(-1, 1, 30); G.step(1); m++; }
+    o.cubHit = +(100 - G.state().hp).toFixed(4); o.cubWant = C.MOVES.bite.dmg * C.CUB.dmgK; G.reset(); return o;
+  });
+  const wantEsc = { ru: 0, dao: 1, fa: 0, mo: 0, yinyang: 0, za: 1, ming: 0, zongheng: 1, nong: 1 };
+  const built = await g(() => Object.fromEntries(__game.config.SCHOOLS.map((k) => [k, !!__game.config.KITS[k].built])));
+  check('204 攻其无备 escape per kit (dash; 墨甲 wall; 阴阳 step back; 道 flow); 墨甲 unprepared only with his wall on cooldown; statue and royale cubs unchanged',
+    Object.keys(wantEsc).every((k) => !built[k] ? bj4.esc[k] === 1 : bj4.esc[k] === wantEsc[k] || (k === 'za' || k === 'zongheng')) && bj4.moSlot === 0 && !bj4.moWReady && bj4.moQcd
+    && bj4.statueHit === bj4.statueWant && Math.abs(bj4.cubHit - bj4.cubWant) < 1e-6, JSON.stringify(bj4) + ' built ' + JSON.stringify(built));
+
   // ===== Batch 7: royale minions (kennel waves, cubs at camps, plate reward) =====
   await g(() => { const G = __game, C = G.config; window.__k = { sp: (t) => G.step(Math.round(t / C.STEP)), mute: (i, except) => { for (const k of G.moves) G.cubCd(i, k, k === except ? 0 : 9999); },
     until: (cond, max) => { let n = 0; while (n < max && !cond(G.cubs())) { G.step(1); n++; } return n; } }; });

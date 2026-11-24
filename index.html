@@ -39,6 +39,7 @@ body.touch .sk .lb{display:none}
 #bossbar{height:12px;background:#0008;border:1px solid #fff6;border-radius:3px;margin:3px 0}
 #bossfill{height:100%;width:100%;background:#e0662a;border-radius:2px}
 #bossskills{font:12px system-ui,sans-serif;color:#fff}
+#bossnote{font:bold 12px system-ui,sans-serif;color:#ffb0a0;display:none}
 #status{position:fixed;left:12px;top:56px;font:bold 13px system-ui,sans-serif;color:#ffb0a0;text-shadow:0 1px 2px #000;pointer-events:none}
 #btnHunt{position:fixed;left:12px;bottom:40px;min-width:120px;min-height:44px;font:15px system-ui,sans-serif;background:#5a1a1a;color:#fff;border:1px solid #f88;border-radius:8px;display:none}
 body.touch #help{bottom:12px}
@@ -76,7 +77,7 @@ body.touch #banner{top:26%}
 <div id="bar"></div>
 <div id="cancel"></div>
 <div id="stick"></div>
-<div id="boss"><div id="bossname"></div><div id="bossbar"><div id="bossfill"></div></div><div id="bossskills"></div></div>
+<div id="boss"><div id="bossname"></div><div id="bossbar"><div id="bossfill"></div></div><div id="bossskills"></div><div id="bossnote"></div></div>
 <div id="status"></div>
 <div id="leader"></div>
 <div id="decree"></div>
@@ -226,6 +227,9 @@ const CONFIG = {
   HOWLER: { hp: 100, speed: 6.6, r: 0.5, scale: 0.5, keep: 0.5, off: [4.5, 3], flank: 1.2 },
   // Demon ultimate "Shed the limit". mode: 'once50' = one use at or below half health, 'cooldown' = repeats every cd seconds. windup = tell (s), dur = frenzy length (s), speed and dmg = multipliers.
   DEMON_ULT: { mode: 'once50', windup: 0.8, dur: 8, speed: 1.4, dmg: 1.3, cd: 40 },
+  // The apex is 兵家 (owner 24 Nov 09:44-09:5x). Passive 攻其无备 (strike where they are unprepared): on = switch; bonus = extra damage share the Tiger Demon
+  // and both hunt minions deal to a suit whose escape skill is on cooldown (its dash; 墨甲's wall; else its movement skill); capped with frenzy at BONUS_CAP.
+  BINGJIA: { on: true, bonus: 0.2 },
   // Enemy moves. shape: circle (around the user), line (dash strip), spot (circle at a point locked behind the player). windup = tell in seconds (fairness: never under 0.4).
   // min, max = distance band to the player in which the move starts (m). cd = cooldown (s). dashS = dash travel time (s). slow = speed cut (0-1) for slowS seconds. stun in seconds. bleed = stacks added.
   MOVES: {
@@ -581,11 +585,11 @@ const TEXT = {
   btn_retry: 'Retry hunt',
   next_hunt: 'The collapses have stopped.',
   voice_wake: 'The survivor shall be... received.',
-  rule_wake: 'The Tiger Demon wakes. Kill it to win. The gate is sealed.',
+  rule_wake: 'The Tiger Demon wakes with its straight force (正, Stalker) and its surprise force (奇, Howler). Kill it to win. The gate is sealed.',
   voice_plate: 'What thou breakest, it weareth.',
-  rule_plate: 'The plate flew home. The demon gained {a} and {b}.',
-  voice_frenzy: 'It sheddeth the limit.',
-  rule_frenzy: 'Frenzy for {s} s: faster, hits harder.',
+  rule_plate: 'Straight and surprise beget each other (奇正相生): the plate flew home. The demon gained {a} and {b}.',
+  voice_frenzy: 'It raideth like fire. It standeth like the mountain.',
+  rule_frenzy: 'Fire and Mountain (侵掠如火，不动如山) for {s} s: faster, hits harder.',
   voice_won: 'Heaven chose thee. We chose what thou wouldst become.',
   rule_won: 'Victory. The Tiger Demon fell in {s} s. {retry}',
   voice_lost: 'The tiger is fed.',
@@ -599,6 +603,7 @@ const TEXT = {
   retry_touch: 'Tap Retry hunt',
   boss_name: 'Tiger Demon',
   boss_skills: 'Skills: {list}',
+  boss_unprepared: 'Unprepared (攻其无备): your escape is on cooldown, it hits {p}% harder',
   st_stun: 'Stunned',
   st_slow: 'Slowed',
   st_bleed: 'Bleeding x{n}',
@@ -672,7 +677,7 @@ const TEXT = {
   ult_charge: '{n}',
   buff_stalker: 'Stalker plate {s}s',
   buff_howler: 'Howler plate {s}s',
-  move_claw: 'Claw swipe', move_pounce: 'Pounce', move_roar: 'Metal roar', move_bite: 'Bite',
+  move_claw: 'Claw swipe', move_pounce: 'Swift as Wind (其疾如风)', move_roar: 'Thunder Roar (动如雷震)', move_bite: 'Bite',
   move_lunge: 'Lunge', move_rend: 'Rend', move_flank: 'Flank', move_howl: 'Howl',
 };
 
@@ -3078,7 +3083,8 @@ function resolveMove(u) {
       hit = along >= 0 && along <= u.tl && side <= m.width / 2;
     } else hit = Math.hypot(s.x - u.tx, s.z - u.tz) <= m.radius;
     if (!hit) continue;
-    const dmg = m.dmg * u.dmgK * (u.frenzyT > 0 ? CONFIG.DEMON_ULT.dmg : 1);
+    // 攻其无备 (兵家 passive): hunt units hit a suit whose escape is on cooldown harder; frenzy and this bonus together stay under BONUS_CAP.
+    const dmg = m.dmg * u.dmgK * Math.min(CONFIG.BONUS_CAP, (u.frenzyT > 0 ? CONFIG.DEMON_ULT.dmg : 1) * (u.hunt && unprepared(s) ? 1 + CONFIG.BINGJIA.bonus : 1));
     // 道甲's stances (ticket 08): the unit's basic attack (claw, bite) or its skill passes the one counter function; a countered move lands nothing on him.
     if (counterHit(s, k === u.atk, null, u, dmg)) continue;
     if (s === P) { G.hits++; if (u.tellT < G.minTell) G.minTell = u.tellT; }
@@ -3199,6 +3205,8 @@ function grantPlate(u) {
   PLATE_VARS.a = T('move_' + u.gain[0]); PLATE_VARS.b = T('move_' + u.gain[1]);
   showNote('voice_plate', 'rule_plate', PLATE_VARS);
 }
+// 攻其无备 boss-panel note and its text vars (the bonus in percent).
+const BOSS_NOTE = $('bossnote'), UNPREP_VARS = { p: Math.round(CONFIG.BINGJIA.bonus * 100) };
 function updateBoss() {
   const n = Math.ceil(DEMON.hp);
   if (n !== G.bossHp) { G.bossHp = n; setBar(el.bossfill, n / DEMON.cfg.hp); }
@@ -3208,6 +3216,25 @@ function updateBoss() {
     for (let i = 0; i < DEMON.skills.length; i++) s += ', ' + T('move_' + DEMON.skills[i]);
     BOSS_VARS.list = s; setText(el.bossskills, T('boss_skills', BOSS_VARS));
   }
+  // 攻其无备: the boss panel says when the player is unprepared (written only on change).
+  const un = G.phase === 'hunt' && unprepared(P);
+  if (un !== G.unprepShown) { G.unprepShown = un; if (un) setText(BOSS_NOTE, T('boss_unprepared', UNPREP_VARS)); setShow(BOSS_NOTE, un); }
+}
+// 攻其无备 (兵家 passive): the slot of a suit's escape skill: its dash; else 墨甲's wall; else a movement skill (阴阳甲's step back, 道甲's flow); -1 = none.
+function escapeSlot(s) {
+  const sk = s.kit.skills;
+  for (let i = 0; i < 2; i++) if (sk[i].dash) return i;
+  for (let i = 0; i < 2; i++) if (sk[i].wall) return i;
+  for (let i = 0; i < 2; i++) if (sk[i].back || sk[i].flow) return i;
+  return -1;
+}
+// Cooldown left on a suit's slot (the player's lives in the ability bar unless the test autopilot drives it).
+function slotCdOf(s, slot) { return s === P && !G.autoP ? SK[slot].cdT : s.cd[slot]; }
+// A suit is unprepared when the passive is on and its escape skill is on cooldown (a suit with no escape never is).
+function unprepared(s) {
+  if (!CONFIG.BINGJIA.on || s.kind !== 'suit') return false;
+  const i = escapeSlot(s);
+  return i >= 0 && slotCdOf(s, i) > 0;
 }
 // ----- Royale minions: kennel waves, cubs guarding camps, plate reward for the last hit.
 // A cub rests at its camp and heals, fights the nearest suit that comes inside the aggro radius, keeps that suit until the leash, and goes home past it. Returns true while it fights.
@@ -4607,6 +4634,13 @@ window.__game = {
   canvasSize: () => [cv.width, cv.height],
   loseContext() { const x = renderer.getContext().getExtension('WEBGL_lose_context'); x.loseContext(); return x; },
 };
+// 兵家 apex hooks (batch 16 ticket 11): 攻其无备 state, a suit's escape slot by school, and a slot's cooldown (tests).
+Object.assign(window.__game, {
+  unprepared: (i) => unprepared(i < 0 ? P : BOTLIST[i]),
+  escapeOf: (school) => escapeSlot({ kit: kitFor(school) }),
+  setSkillCd(i, slot, v) { if (i < 0) SK[slot].cdT = v; else BOTLIST[i].cd[slot] = v; },
+  bossNote: () => ({ text: BOSS_NOTE.textContent, shown: BOSS_NOTE.style.display }),
+});
 window.__ready = true;
 requestAnimationFrame(frame);
 </script>
