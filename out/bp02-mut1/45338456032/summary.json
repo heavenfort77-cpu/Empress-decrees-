@@ -1,0 +1,215 @@
+[
+ {
+  "i": 0,
+  "fails": [
+   "42",
+   "301"
+  ],
+  "tot": [
+   "RUNTIME 188 of 190 pass"
+  ],
+  "s": 158,
+  "name": "tell-short",
+  "want": "301",
+  "applied": true,
+  "caught_named": true
+ },
+ {
+  "i": 1,
+  "fails": [
+   "42",
+   "302"
+  ],
+  "tot": [
+   "RUNTIME 188 of 190 pass"
+  ],
+  "s": 173,
+  "name": "block-off",
+  "want": "302",
+  "applied": true,
+  "caught_named": true
+ },
+ {
+  "i": 2,
+  "fails": [
+   "42",
+   "303"
+  ],
+  "tot": [
+   "RUNTIME 188 of 190 pass"
+  ],
+  "s": 142,
+  "name": "buff-off",
+  "want": "303",
+  "applied": true,
+  "caught_named": true
+ },
+ {
+  "i": 3,
+  "fails": [
+   "42",
+   "303"
+  ],
+  "tot": [
+   "RUNTIME 188 of 190 pass"
+  ],
+  "s": 88,
+  "name": "no-break",
+  "want": "303",
+  "applied": true,
+  "caught_named": true
+ },
+ {
+  "i": 4,
+  "fails": [
+   "42",
+   "303",
+   "304"
+  ],
+  "tot": [
+   "RUNTIME 187 of 190 pass"
+  ],
+  "s": 128,
+  "name": "no-reward",
+  "want": "304",
+  "applied": true,
+  "caught_named": true
+ },
+ {
+  "i": 5,
+  "fails": [
+   "42",
+   "304"
+  ],
+  "tot": [
+   "RUNTIME 188 of 190 pass"
+  ],
+  "s": 176,
+  "name": "fall-rewards",
+  "want": "304",
+  "applied": true,
+  "caught_named": true
+ },
+ {
+  "i": 6,
+  "fails": [
+   "42"
+  ],
+  "tot": [
+   "RUNTIME 189 of 190 pass"
+  ],
+  "s": 174,
+  "name": "cap-off",
+  "want": "300",
+  "applied": true,
+  "caught_named": false
+ },
+ {
+  "i": 7,
+  "fails": [
+   "42",
+   "300",
+   "301"
+  ],
+  "tot": [
+   "RUNTIME 187 of 190 pass"
+  ],
+  "s": 175,
+  "name": "che-closed",
+  "want": "300",
+  "applied": true,
+  "caught_named": true
+ },
+ {
+  "i": 8,
+  "fails": [
+   "42",
+   "306"
+  ],
+  "tot": [
+   "RUNTIME 188 of 190 pass"
+  ],
+  "s": 99,
+  "name": "mesh-stays",
+  "want": "306",
+  "applied": true,
+  "caught_named": true
+ },
+ {
+  "i": 9,
+  "fails": [
+   "42",
+   "303"
+  ],
+  "tot": [
+   "RUNTIME 188 of 190 pass"
+  ],
+  "s": 99,
+  "name": "faction-same",
+  "want": "308",
+  "applied": true,
+  "caught_named": false
+ },
+ {
+  "i": 10,
+  "fails": [
+   "42",
+   "305"
+  ],
+  "tot": [
+   "RUNTIME 188 of 190 pass"
+  ],
+  "s": 179,
+  "name": "bots-ignore",
+  "want": "305",
+  "applied": true,
+  "caught_named": true
+ },
+ {
+  "i": 11,
+  "fails": [
+   "42",
+   "306",
+   "10"
+  ],
+  "tot": [
+   "RUNTIME 187 of 190 pass"
+  ],
+  "s": 99,
+  "name": "no-warm",
+  "want": "306",
+  "applied": true,
+  "caught_named": true
+ },
+ {
+  "i": 12,
+  "fails": [
+   "42",
+   "301",
+   "runner"
+  ],
+  "tot": [
+   "RUNTIME 175 of 178 pass"
+  ],
+  "s": 88,
+  "name": "reset-keeps",
+  "want": "307",
+  "applied": true,
+  "caught_named": false
+ },
+ {
+  "i": 13,
+  "fails": [
+   "42",
+   "301"
+  ],
+  "tot": [
+   "RUNTIME 188 of 190 pass"
+  ],
+  "s": 176,
+  "name": "tell-hidden",
+  "want": "301",
+  "applied": true,
+  "caught_named": true
+ }
+]
