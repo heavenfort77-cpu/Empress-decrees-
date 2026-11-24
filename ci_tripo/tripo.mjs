@@ -1,5 +1,5 @@
 // Tripo text-to-model jobs on a GitHub runner (the session machine cannot reach the Tripo API). Reads ci_tripo/jobs.json, writes
-// out/<name>.glb, out/<name>.png (Tripo's preview render) and out/<name>.json (task record, no key) and out/summary.txt.
+// tripo_out/<name>.glb, tripo_out/<name>.png (Tripo preview render), tripo_out/<name>.json (task record, no key) and tripo_out/summary.txt.
 // Key: repo secret TRIPO_API_KEY (the owner adds it in GitHub settings; it is never written to a file or a log).
 // API (developers.tripo3d.com): POST {base}/generation/text-to-model, GET {base}/tasks/{id}; model URLs expire minutes after success,
 // so each model is downloaded as soon as its task succeeds.
@@ -9,8 +9,8 @@ const KEY = process.env.TRIPO_API_KEY || '';
 const BASE = process.env.TRIPO_BASE || 'https://openapi.tripo3d.ai/v3';
 const lines = [];
 const log = (s) => { lines.push(s); console.log(s); };
-await mkdir('out', { recursive: true });
-if (!KEY) { log('FAIL no TRIPO_API_KEY secret on the repo'); await writeFile('out/summary.txt', lines.join('\n') + '\n'); process.exit(1); }
+await mkdir('tripo_out', { recursive: true });
+if (!KEY) { log('FAIL no TRIPO_API_KEY secret on the repo'); await writeFile('tripo_out/summary.txt', lines.join('\n') + '\n'); process.exit(1); }
 const H = { Authorization: 'Bearer ' + KEY, 'Content-Type': 'application/json' };
 const jobs = JSON.parse(await readFile(new URL('jobs.json', import.meta.url), 'utf8'));
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
@@ -31,10 +31,10 @@ async function run(job) {
       for (const [k, ext] of [['model_url', 'glb'], ['pbr_model_url', 'glb'], ['base_model_url', 'glb'], ['rendered_image_url', 'png']]) {
         if (!o[k]) continue;
         const b = Buffer.from(await (await fetch(o[k])).arrayBuffer());
-        const f = `out/${job.name}${k === 'model_url' || ext === 'png' ? '' : '_' + k.replace('_model_url', '')}.${ext === 'png' ? (o[k].includes('.webp') ? 'webp' : 'png') : 'glb'}`;
+        const f = `tripo_out/${job.name}${k === 'model_url' || ext === 'png' ? '' : '_' + k.replace('_model_url', '')}.${ext === 'png' ? (o[k].includes('.webp') ? 'webp' : 'png') : 'glb'}`;
         await writeFile(f, b); log(`FILE ${f} ${b.length} bytes`);
       }
-      await writeFile(`out/${job.name}.json`, JSON.stringify({ job, task_id: id, status: st, credits: d.credits_consumed, created_at: d.created_at, completed_at: d.completed_at }, null, 1));
+      await writeFile(`tripo_out/${job.name}.json`, JSON.stringify({ job, task_id: id, status: st, credits: d.credits_consumed, created_at: d.created_at, completed_at: d.completed_at }, null, 1));
       log(`OK ${job.name} ${Math.round((Date.now() - t0) / 1000)} s credits ${d.credits_consumed}`);
       return;
     }
@@ -43,4 +43,4 @@ async function run(job) {
   }
 }
 for (const job of jobs) await run(job);
-await writeFile('out/summary.txt', lines.join('\n') + '\n');
+await writeFile('tripo_out/summary.txt', lines.join('\n') + '\n');

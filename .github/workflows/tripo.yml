@@ -26,7 +26,8 @@ jobs:
         if: always()
         run: |
           D=out/tripo/${GITHUB_RUN_ID}
-          mkdir -p /tmp/tr && cp -r out/. /tmp/tr/ 2>/dev/null || true
+          mkdir -p /tmp/tr && cp -r tripo_out/. /tmp/tr/ 2>/dev/null || true
+          rm -rf tripo_out
           git config user.name Claude && git config user.email noreply@anthropic.com
           git fetch origin ci-out
           git checkout -B ci-out origin/ci-out
