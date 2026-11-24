@@ -1,0 +1,169 @@
+[
+ {
+  "i": 0,
+  "fails": [
+   "42",
+   "200",
+   "144"
+  ],
+  "tot": [
+   "RUNTIME 160 of 163 pass"
+  ],
+  "s": 143,
+  "name": "pounce old name",
+  "want": "200",
+  "applied": true,
+  "caught_named": true
+ },
+ {
+  "i": 1,
+  "fails": [
+   "42",
+   "200",
+   "144"
+  ],
+  "tot": [
+   "RUNTIME 160 of 163 pass"
+  ],
+  "s": 83,
+  "name": "boss renamed",
+  "want": "200",
+  "applied": true,
+  "caught_named": true
+ },
+ {
+  "i": 2,
+  "fails": [
+   "201",
+   "202",
+   "203",
+   "144"
+  ],
+  "tot": [
+   "RUNTIME 159 of 163 pass"
+  ],
+  "s": 144,
+  "name": "no passive",
+  "want": "201",
+  "applied": true,
+  "caught_named": true
+ },
+ {
+  "i": 3,
+  "fails": [
+   "34",
+   "42",
+   "201",
+   "202",
+   "203",
+   "204",
+   "144",
+   "150"
+  ],
+  "tot": [
+   "RUNTIME 155 of 163 pass"
+  ],
+  "s": 79,
+  "name": "passive always",
+  "want": "201",
+  "applied": true,
+  "caught_named": true
+ },
+ {
+  "i": 4,
+  "fails": [
+   "42",
+   "202",
+   "144"
+  ],
+  "tot": [
+   "RUNTIME 160 of 163 pass"
+  ],
+  "s": 142,
+  "name": "minions excluded",
+  "want": "202",
+  "applied": true,
+  "caught_named": true
+ },
+ {
+  "i": 5,
+  "fails": [
+   "42",
+   "203",
+   "144"
+  ],
+  "tot": [
+   "RUNTIME 160 of 163 pass"
+  ],
+  "s": 150,
+  "name": "no cap",
+  "want": "203",
+  "applied": true,
+  "caught_named": true
+ },
+ {
+  "i": 6,
+  "fails": [
+   "42",
+   "204",
+   "144"
+  ],
+  "tot": [
+   "RUNTIME 160 of 163 pass"
+  ],
+  "s": 85,
+  "name": "mo no wall escape",
+  "want": "204",
+  "applied": true,
+  "caught_named": true
+ },
+ {
+  "i": 7,
+  "fails": [
+   "42",
+   "204",
+   "144"
+  ],
+  "tot": [
+   "RUNTIME 160 of 163 pass"
+  ],
+  "s": 74,
+  "name": "cubs raised",
+  "want": "204",
+  "applied": true,
+  "caught_named": true
+ },
+ {
+  "i": 8,
+  "fails": [
+   "42",
+   "201",
+   "202",
+   "144"
+  ],
+  "tot": [
+   "RUNTIME 159 of 163 pass"
+  ],
+  "s": 101,
+  "name": "note never shown",
+  "want": "201",
+  "applied": true,
+  "caught_named": true
+ },
+ {
+  "i": 9,
+  "fails": [
+   "42",
+   "204",
+   "144"
+  ],
+  "tot": [
+   "RUNTIME 160 of 163 pass"
+  ],
+  "s": 83,
+  "name": "flow not escape",
+  "want": "204",
+  "applied": true,
+  "caught_named": true
+ }
+]
