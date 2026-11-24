@@ -1,66 +1,66 @@
 {
-  "_about": "Concept references for the bronze guardian beast (asset list C1). Prompt built with the cocolito method from art/Qin-Bronze-Castings-Study.md, art/Qin-Palace-Painted-Study.md, docs/research/Qin-palace-medieval-tech-fusion.md and the owner's notes (21:03 segmented bronze with silver inlay; 22:30 round where round, sharp where sharp; 22:43 figure still bad, fierce guardian). Reference only: never shipped, never traced; the model is built in Blender from what is measured on the chosen image. Model: SD 1.5 (stable-diffusion-v1-5, CreativeML OpenRAIL-M, commercial use allowed). Round B (24 Nov 23:2x): round A's long prompt (over the 77-token CLIP limit) gave silver horses, griffins and trophies; round B is a short prompt with the study's core (seated Qin bronze guardian lion, fierce, curl mane, round masses, sharp claws, brass-gold, cloud bands, stone plinth) and the LCM LoRA (latent-consistency/lcm-lora-sdv1-5, openrail++) for 6-step sampling on CPU. Round C (25 Nov 00:0x): owner said round 3 (built to concept 2130) looks like a fluffy cat; face concepts only, fierce guardian cues, cat cues in the negative prompt. Round D (25 Nov, worker W1a): props C2 ding (jobs 0-1) and C3 water vat (jobs 2-3); the view field carries the whole subject, reference only.",
+  "_about": "W1c giant concepts (25 Nov, owner asleep; art/OVERNIGHT.md C8). The twelve bronze giants 十二金人: bell-stand bearers cast from melted weapons (Shiji), giants in foreign dress at Lintao (Ban Gu). Jobs 0-1 full figure carrying a beam (bell-stand bearer), job 2 head busts (variety for twelve heads), job 3 weapon fragments fused into the cast body. Reference only, never shipped or traced. Same model and LCM settings as rounds B-D.",
   "checkpoint": "v1-5-pruned-emaonly.safetensors",
   "checkpoint_url": "https://huggingface.co/stable-diffusion-v1-5/stable-diffusion-v1-5/resolve/main/v1-5-pruned-emaonly.safetensors",
   "width": 512,
-  "height": 512,
+  "height": 768,
   "steps": 6,
   "cfg": 1.5,
   "sampler": "lcm",
   "scheduler": "sgm_uniform",
-  "positive": "{view}, brass-gold cast bronze with raised bands of mask and cloud scroll relief, museum photograph, plain grey background",
-  "negative": "text, watermark, people, hands, blurry, cartoon, toy, porcelain, glazed, ceramic, wood, modern, green, patina, rust, silver",
+  "positive": "{view}, brass-gold cast bronze with raised cloud scroll relief bands, museum photograph, plain grey background",
+  "negative": "text, watermark, people, real person, blurry, cartoon, toy, porcelain, ceramic, wood, modern, green, patina, rust, silver, robot, sci-fi, neon, armor plates, buddha",
   "jobs": [
     {
-      "view": "front view of an ancient chinese bronze ding cauldron, warring states, deep round bowl on three thick legs, two upright loop handles on the rim",
+      "view": "front view of a colossal ancient chinese bronze statue of a standing giant man holding a heavy horizontal beam across his shoulders, bell stand bearer, stocky, full figure",
       "seeds": [
-        4101,
-        4102,
-        4103,
-        4104,
-        4105,
-        4106,
-        4107,
-        4108
+        6101,
+        6102,
+        6103,
+        6104,
+        6105,
+        6106,
+        6107,
+        6108
       ]
     },
     {
-      "view": "three quarter view from above of an ancient chinese bronze ding cauldron, warring states, deep round bowl on three thick legs, two upright handles",
+      "view": "three quarter view of a colossal ancient chinese bronze giant statue bearing a long beam on his shoulders with both hands, heavy robe, broad stance, full figure",
       "seeds": [
-        4109,
-        4110,
-        4111,
-        4112,
-        4113,
-        4114,
-        4115,
-        4116
+        6111,
+        6112,
+        6113,
+        6114,
+        6115,
+        6116,
+        6117,
+        6118
       ]
     },
     {
-      "view": "front view of a large ancient chinese bronze water basin vessel, wide deep round tub with thick flat rim, four ring handles, low foot",
+      "view": "head and shoulders of an ancient chinese bronze giant statue, foreign nomad face, heavy brows, tall cap, cast bronze mask",
       "seeds": [
-        4201,
-        4202,
-        4203,
-        4204,
-        4205,
-        4206,
-        4207,
-        4208
+        6121,
+        6122,
+        6123,
+        6124,
+        6125,
+        6126,
+        6127,
+        6128
       ]
     },
     {
-      "view": "three quarter view from above of a large ancient chinese bronze water basin full of dark water, wide round tub, thick rim, ring handles",
+      "view": "front view of a colossal ancient bronze giant statue cast from melted swords and halberds, blades and spear tips fused into the body, beam on shoulders, full figure",
       "seeds": [
-        4209,
-        4210,
-        4211,
-        4212,
-        4213,
-        4214,
-        4215,
-        4216
+        6131,
+        6132,
+        6133,
+        6134,
+        6135,
+        6136,
+        6137,
+        6138
       ]
     }
   ],
