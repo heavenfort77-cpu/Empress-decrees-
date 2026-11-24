@@ -1,0 +1,81 @@
+{
+ "gates": [
+  {
+   "ok": true,
+   "line": "tiger LOD0 tris 14218 (body 11146 + plates/organs 3072; budget 15000)"
+  },
+  {
+   "ok": true,
+   "line": "tiger LOD1 tris 2806 (body 2054 + plates/organs 752; budget 3000)"
+  },
+  {
+   "ok": true,
+   "line": "tiger LOD2 tris 934 (body 662 + plates/organs 272; budget 1000)"
+  },
+  {
+   "ok": true,
+   "line": "every vertex on one bone (3 skinned LOD bodies rigid 100%; 30 plate/organ nodes bone-parented)"
+  },
+  {
+   "ok": true,
+   "line": "sheddable plates: [6, 6, 6] per LOD, each on its own plate bone, 6 workshop marks"
+  },
+  {
+   "ok": true,
+   "line": "three organs: throat (neck bone, roar), eye (head, sight), haunches L+R (hips, legs), each in a gold inlay ring"
+  },
+  {
+   "ok": true,
+   "line": "standing height 2.52 m (over the 2.05 m suit box, at most the 2.55 m box statue + 0.15: band 2.2-2.7), length 6.07 m incl. tail, width 1.52 m"
+  },
+  {
+   "ok": true,
+   "line": "dormant crouch 1.54 x 4.86 m, 1.94 m tall (statue solid 3.2 x 5.0, box 2.55 m)"
+  },
+  {
+   "ok": true,
+   "line": "feet on the floor: standing lowest +0.000 m, dormant lowest -0.040 m"
+  },
+  {
+   "ok": true,
+   "line": "wake 3.0 s (CONFIG.APEX.wakeS 3); plates (0, 1) peel 0.80 m (min 0.4)"
+  },
+  {
+   "ok": true,
+   "line": "pounce tell 0.5 s (min 0.4): hips drop 0.37 m (min 0.25), tail tip rise 0.49 m (min 0.3)"
+  },
+  {
+   "ok": true,
+   "line": "roar tell 0.5 s: jaw open 42 deg (min 25), throat core up 0.75 m (min 0.15)"
+  },
+  {
+   "ok": true,
+   "line": "smooth-shaded share 94% of surface area (round forms, min 50%)"
+  },
+  {
+   "ok": true,
+   "line": "material slots ['apexBronze', 'apexCrack', 'apexDark', 'apexInlay']; crack inlay faces 2009, line width 6.5 cm (min 6)"
+  },
+  {
+   "ok": true,
+   "line": "GLB: clips ['dormant', 'idle', 'pounce', 'roar', 'wake']; plate and organ nodes present; materials ['apexBronze', 'apexCrack', 'apexDark', 'apexInlay', 'apexOrgan']"
+  }
+ ],
+ "tris": [
+  14218,
+  2806,
+  934
+ ],
+ "rest": {
+  "w": 1.5200181603431702,
+  "l": 6.069116830825806,
+  "h": 2.520153522491455,
+  "zmin": 2.449639214319177e-05
+ },
+ "dormant": {
+  "w": 1.5441225171089172,
+  "l": 4.86483907699585,
+  "h": 1.9375628232955933,
+  "zmin": -0.03989596664905548
+ }
+}
