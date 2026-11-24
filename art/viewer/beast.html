@@ -42,6 +42,19 @@ function glowTex() {  // soft radial ember glow for the lit card (additive; no n
   gr.addColorStop(0, 'rgba(255,190,110,1)'); gr.addColorStop(0.4, 'rgba(232,116,42,0.55)'); gr.addColorStop(1, 'rgba(232,116,42,0)'); g.fillStyle = gr; g.fillRect(0, 0, 128, 128);
   const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; return t;
 }
+// CONFIG (FIXB mercury): per state material colour (linear multiplier on the matcap), ripple normal strength, shimmer slide speed (UV per s);
+// ripple tile repeat on the surface UVs (trim UVs: 0.25 per m, so 8 = a 0.5 m ripple tile); still-shot phase s (&t= overrides).
+const MERC = { idle: { col: [0.6, 0.62, 0.66], ns: 0.25, speed: 0.02 }, warn: { col: [1.3, 1.34, 1.4], ns: 1.0, speed: 0.35 }, hot: { col: [1.9, 1.9, 1.95], ns: 0.5, speed: 0.6 } };
+const RIPPLE_REP = 8, SHIMMER_T = Q.get('t') !== null ? +Q.get('t') : 0.4;
+let RIP = null;
+function rippleTex() {  // tileable ripple normal map from whole sine cycles (generated once; shared by every mercury surface)
+  if (RIP) return RIP; const N = 128, c = document.createElement('canvas'); c.width = c.height = N; const g = c.getContext('2d'), im = g.createImageData(N, N);
+  const W = [[3, 1, 0.5], [1, 4, 0.35], [5, -2, 0.25], [-2, 6, 0.2]], hgt = (x, y) => W.reduce((a, [fx, fy, A]) => a + A * Math.sin(2 * Math.PI * (fx * x + fy * y) / N), 0);
+  for (let y = 0; y < N; y++) for (let x = 0; x < N; x++) { const dx = (hgt(x + 1, y) - hgt(x - 1, y)) * 4, dy = (hgt(x, y + 1) - hgt(x, y - 1)) * 4, l = Math.hypot(dx, dy, 1), i = (y * N + x) * 4;
+    im.data[i] = 128 - 127 * dx / l; im.data[i + 1] = 128 - 127 * dy / l; im.data[i + 2] = 128 + 127 / l; im.data[i + 3] = 255; }
+  g.putImageData(im, 0, 0); RIP = new THREE.CanvasTexture(c); RIP.wrapS = RIP.wrapT = THREE.RepeatWrapping; RIP.repeat.set(RIPPLE_REP, RIPPLE_REP); return RIP;
+}
+const MASK = Q.get('mask');  // FIXB: &mask=<material name>: unlit white for that material, black for the rest (on-screen measurement)
 const MATS = {
   tex: { palBronze: () => { const t = tex(`../../assets/tex/bronze_trim${SHEET ? '_' + SHEET : ''}.png`); t.flipY = false; return new THREE.MeshStandardMaterial({ map: t, metalness: METAL, roughness: ROUGH }); },
     palInlay: () => new THREE.MeshStandardMaterial({ color: 0xc8ccd0, metalness: 0.6, roughness: 0.35 }),
@@ -66,8 +79,10 @@ const MATS = {
     // mercury-silvered lamp reflector: the mercury matcap (A14, W2's assets/tex/mercury_matcap.png)
     palMercRef: () => new THREE.MeshMatcapMaterial({ matcap: tex('../../assets/tex/mercury_matcap.png'), side: THREE.DoubleSide }),
     palMerc: () => { const t = tex('../../assets/tex/mercury_matcap.png'); const m = new THREE.MeshMatcapMaterial({ matcap: t });
-      // idle held down (0.72) so the shimmer tell (warn: full matcap) and the burn (hot: over-bright white) step up from it
-      m.color = STATE === 'warn' ? new THREE.Color(1.0, 1.02, 1.06) : STATE === 'hot' ? new THREE.Color(1.6, 1.6, 1.65) : new THREE.Color(0.72, 0.74, 0.78); return m; } },
+      // FIXB 25 Nov (owner 02:2x: 'brighter mercury texture + shimmer'): the brighter A14 matcap, a ripple normal map that slides (the
+      // shimmer: the matcap glints move), held calm when idle, strong and over-bright in the warn tell, white-hot when it burns. MERC below.
+      const S = MERC[STATE] || MERC.idle; m.color = new THREE.Color(...S.col);
+      m.normalMap = rippleTex(); m.normalScale.set(S.ns, S.ns); m.normalMap.offset.set(S.speed * SHIMMER_T, S.speed * SHIMMER_T * 0.37); return m; } },
   shade: { palBronze: () => new THREE.MeshStandardMaterial({ color: 0x9a7a48, metalness: METAL, roughness: ROUGH }), palInlay: () => new THREE.MeshStandardMaterial({ color: 0xc8ccd0, metalness: 0.6, roughness: 0.35 }), palStone: () => new THREE.MeshStandardMaterial({ color: 0x9a968c, roughness: 0.9 }) },
   flat: { palBronze: () => new THREE.MeshBasicMaterial({ color: 0x9a7a48 }), palInlay: () => new THREE.MeshBasicMaterial({ color: 0xc8ccd0 }), palStone: () => new THREE.MeshBasicMaterial({ color: 0x9a968c }) },
   sil: { palBronze: () => new THREE.MeshBasicMaterial({ color: 0x000000 }), palInlay: () => new THREE.MeshBasicMaterial({ color: 0x000000 }), palStone: () => new THREE.MeshBasicMaterial({ color: 0x000000 }) },
@@ -95,7 +110,7 @@ const SPEC = {
     states: null, lookY: 1.3, turnY: 1.5, turnD: 4.6, boxX: -3.2 },
   lamp: { clip: null, box: () => new THREE.Group(), states: { lit: ['lamp_flames'], out: [] }, def: 'lit', lookY: 1.2, turnY: 1.4, turnD: 3.6, boxX: -3.0 },
   bells: { clip: null, box: () => new THREE.Group(), states: null, lookY: 1.3, turnY: 1.4, turnD: 6.5, boxX: 0, lodGap: 5, lodD: 15 },
-  tally: { clip: null, box: () => new THREE.Group(), states: null, lookY: 0.7, turnY: 0.8, turnD: 3.2, boxX: 0 },
+  tally: { clip: null, box: () => new THREE.Group(), states: null, lookY: 0.7, turnY: 0.85, turnD: 4.3, boxX: 0, lodGap: 3.4, lodD: 11 },  // FIXB round 3: 2.7 m stand
   merc: { clip: null, box: (x) => boxes(x, [[2, 0.06, 6, 0.03, 0]], (w, h, d) => new THREE.BoxGeometry(w, h, d)), states: { idle: [], warn: [], hot: [] }, def: 'idle', lookY: 0.2, turnY: 0.3, turnD: 6.5, boxX: -3.4 },
   censer: { clip: null, box: (x) => boxes(x, [[1.2, 1.0, 1.2, 0.5, 0], [0.8, 0.5, 0.8, 1.25, 0]], (w, h, d) => new THREE.BoxGeometry(w, h, d)),
     states: null, lookY: 0.9, turnY: 0.9, turnD: 4.0, boxX: -3.0 },
@@ -105,7 +120,7 @@ const player = new THREE.Mesh(new THREE.BoxGeometry(0.9, 2.05, 0.9), new THREE.M
 new GLTFLoader().load(`../../assets/models/${MODEL}.glb`, (g) => {
   const root = g.scene;
   root.traverse((o) => { if (o.userData && o.userData.accents) { ACCENTS = o.userData.accents; ACC_METAL = o.userData.accentMetal || []; } });
-  root.traverse((o) => { if (o.isMesh) { const n0 = o.material.name; o.material = matFor(n0); o.castShadow = o.material.name !== 'palGlow' && !o.material.transparent; o.receiveShadow = true;
+  root.traverse((o) => { if (o.isMesh) { const n0 = o.material.name; o.userData.m0 = n0; o.material = matFor(n0); o.castShadow = o.material.name !== 'palGlow' && !o.material.transparent; o.receiveShadow = true;
     if (MODE !== 'tex' && (n0 === 'palSmoke' || n0 === 'palFlame')) o.visible = false; } });  // cards only in the textured view (W1b)
   // state objects: shown only in their state (and in the lods view, only LOD0-level state objects with LOD0)
   if (SPEC.states) {
@@ -119,11 +134,13 @@ new GLTFLoader().load(`../../assets/models/${MODEL}.glb`, (g) => {
     if (VIEW === 'lods') o.position.x = (i - 1) * (SPEC.lodGap || 3);  // a skinned LOD0 is placed by its bones: its rig moves, not the mesh (round 1 viewer bug)
     else if (i > 0) o.visible = false;
   }
+  if (MASK) { scene.background = new THREE.Color(0); r.shadowMap.enabled = false; const Wm = new THREE.MeshBasicMaterial({ color: 0xffffff }), Bm = new THREE.MeshBasicMaterial({ color: 0 });
+    root.traverse((o) => { if (o.isMesh) o.material = o.userData.m0 === MASK ? Wm : Bm; }); floor.material = Bm; player.material = Bm; }
   scene.add(root);
   // clip '*' = every clip in the file (the clock's three countdown clips); &level=L sets t = 1 - L (clock: 1 full, 0 empty)
   const TT = Q.get('level') !== null ? 1 - +Q.get('level') : T;
   if (TT !== null && SPEC.clip) { const mix = new THREE.AnimationMixer(root); for (const clip of g.animations.filter((a) => SPEC.clip === '*' || a.name === SPEC.clip)) mix.clipAction(clip).play(); mix.setTime(+TT); }
-  if (VIEW === 'play' || VIEW === 'wide') { scene.add(player); if (MODE === 'tex' || MODE === 'shade') scene.add(SPEC.box(SPEC.boxX)); }
+  if (VIEW === 'play' || VIEW === 'wide') { scene.add(player); if (!MASK && (MODE === 'tex' || MODE === 'shade')) scene.add(SPEC.box(SPEC.boxX)); }
   const pitch = 40 * Math.PI / 180, look = new THREE.Vector3(VIEW === 'play' || VIEW === 'wide' ? -0.4 : 0, SPEC.lookY, 0.6);
   let dist = VIEW === 'play' ? 10.5 : VIEW === 'wide' ? 22 : VIEW === 'lods' ? (SPEC.lodD || 9) : SPEC.turnD, yaw = (+(Q.get('yaw') || (VIEW === 'turn' ? 30 : 0))) * Math.PI / 180;
   if (VIEW === 'turn') look.set(0, SPEC.turnY, 0.1);

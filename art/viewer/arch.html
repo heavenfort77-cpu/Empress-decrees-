@@ -4,13 +4,24 @@
      shadows on, tier medium (pixel ratio 1). Repeats are InstancedMesh (one call per piece material), single props THREE.LOD.
      ?room=hall|court|corridor|garden|bridge|core  &view=wide (room fit) | play (fight framing, 10.5 m) | up (looking up, core ceiling)
      &burnt=1 (A18 material swap)  &locked=1 (door bars shown; default open rooms show bars hidden)
-     ?piece=<name>&yaw=deg : one piece alone, 3/4 view.  window.__stats = { calls, tris, callsMain, trisMain, lights } after the render. -->
+     ?piece=<name>&yaw=deg : one piece alone, 3/4 view.  window.__stats = { calls, tris, callsMain, trisMain, lights } after the render.
+     FIXB 25 Nov (owner 02:1x-02:2x): bronze pieces use the brass sheet (bronze_trim_brass) only; garden ponds = light pond_water with a pale
+     1 m margin (vertex colours); core floor = approved 丹 floor plus the star-map inlay decal (star_inlay, alpha test, cells turned per 4 m;
+     &inlay=0 hides it); &tell=1 adds the game's hazard rings (0xff2a10, emissive 1.2) on the core floor; &wall=<png name> / &mural=<png name>
+     swap the plaster textures (side-by-side candidates); &mask=tag,tag renders white for the tagged meshes (pond, ground, floor, inlay, tell,
+     throne, racks, wall, mural, plants) and black for the rest, unlit, for on-screen measurements. -->
 <html><head><meta charset="utf-8"><style>html,body{margin:0;background:#0e1a1c;overflow:hidden}</style>
 <script type="importmap">{"imports":{"three":"../../lib/three.module.min.js"}}</script></head><body>
 <script type="module">
 import * as THREE from 'three';
 import { GLTFLoader } from './vendor/loaders/GLTFLoader.js';
 const Q = new URLSearchParams(location.search), ROOM = Q.get('room'), PIECE = Q.get('piece'), VIEW = Q.get('view') || 'wide', BURNT = Q.get('burnt') === '1', LOCKED = Q.get('locked') === '1';
+// &glbdir=arch_r2: the round 2 GLBs with the round 2 rack, throne and planting layout (before/after measurements only)
+const GLBDIR = Q.get('glbdir') || 'arch', R2 = GLBDIR === 'arch_r2';
+const INLAY = Q.get('inlay') !== '0', TELL = Q.get('tell') === '1', MASK = Q.get('mask') ? Q.get('mask').split(',') : null;
+// CONFIG (FIXB): pond open-water vertex colour (linear; the 1 m margin stays 1.0 = the pale edge), margin and fade widths m; inlay cell m;
+// garden planting target count and card scale range; hazard ring radius m (the game's ring is r-0.3..r).
+const POND_DEEP = [0.62, 0.70, 0.70], POND_EDGE = [0.35, 1.4], INLAY_CELL = 4, PLANTS_N = 560, PLANT_S = [1.0, 1.9], RING_R = 3;
 const W = innerWidth, H = innerHeight;
 const r = new THREE.WebGLRenderer({ antialias: true }); r.setPixelRatio(1); r.setSize(W, H); r.shadowMap.enabled = true; document.body.appendChild(r.domElement);
 const scene = new THREE.Scene(); scene.background = new THREE.Color(0x0e1a1c);
@@ -22,9 +33,11 @@ scene.add(sun, sun.target);
 // textures: glTF UVs (flipY false), sRGB, repeat, anisotropy 4
 const TL = new THREE.TextureLoader(), TEX = {};
 const tex = (f, flip = false) => { const k = f + flip; if (TEX[k]) return TEX[k]; const t = TL.load('../../assets/tex/' + f + '.png'); t.colorSpace = THREE.SRGBColorSpace; t.wrapS = t.wrapT = THREE.RepeatWrapping; t.anisotropy = 4; t.flipY = flip; return (TEX[k] = t); };
-const FILES = { palWall: 'hall_wall', palFloor: 'hall_floor', palPillar: 'pillar', palDoor: 'door', palBronze: 'bronze_trim', palEarth: 'rammed_earth', palEarthCore: 'rammed_earth_core',
+const FILES = { palWall: 'hall_wall', palFloor: 'hall_floor', palPillar: 'pillar', palDoor: 'door', palBronze: 'bronze_trim_brass', palEarth: 'rammed_earth', palEarthCore: 'rammed_earth_core',
   palRiver: 'river_stone', palStone: 'stone_paving', palTiles: 'floor_tiles', palBrick: 'hollow_brick', palMural: 'mural_wall', palRoof: 'roof_tile', palTileEnd: 'tile_ends', palTimber: 'timber',
-  palLacquer: 'timber', palGround: 'garden_ground', palPlant: 'garden_plants', palFlag: 'signal_flags', palSlips: 'slips', palStars: 'star_ceiling', palLake: 'black_lake' };
+  palLacquer: 'timber', palGround: 'garden_ground', palPlant: 'garden_plants', palFlag: 'signal_flags', palSlips: 'slips', palStars: 'star_ceiling', palLake: 'black_lake', palPond: 'pond_water', palInlay: 'star_inlay' };
+if (Q.get('wall')) FILES.palWall = Q.get('wall');
+if (Q.get('mural')) FILES.palMural = Q.get('mural');
 const BURN = { palTimber: 'timber_burnt', palLacquer: 'timber_burnt', palPillar: 'timber_burnt', palDoor: 'timber_burnt', palEarth: 'earth_burnt', palWall: 'wall_burnt', palMural: 'wall_burnt', palSlips: 'slips_burnt' };
 const MADE = {};
 function mat(name) {
@@ -38,12 +51,14 @@ function mat(name) {
     if (name === 'palBronze') { o.metalness = 0.4; o.roughness = 0.6; }
     if (name === 'palLake') { o.roughness = 0.35; }
     if (name === 'palPlant' || name === 'palFlag') { o.alphaTest = 0.5; o.side = THREE.DoubleSide; }
+    if (name === 'palPond') { o.roughness = 0.3; o.vertexColors = true; }
+    if (name === 'palInlay') { o.alphaTest = 0.5; o.roughness = 0.5; o.metalness = 0.3; o.polygonOffset = true; o.polygonOffsetFactor = -2; o.polygonOffsetUnits = -2; }
     m = new THREE.MeshStandardMaterial(o);
   }
   return (MADE[name] = m);
 }
 const loader = new GLTFLoader(), GL = {};
-const load = (n) => GL[n] || (GL[n] = new Promise((res, rej) => loader.load('../../assets/models/arch/' + n + '.glb', (g) => { g.scene.updateMatrixWorld(true); res(g.scene); }, undefined, rej)));
+const load = (n) => GL[n] || (GL[n] = new Promise((res, rej) => loader.load('../../assets/models/' + GLBDIR + '/' + n + '.glb', (g) => { g.scene.updateMatrixWorld(true); res(g.scene); }, undefined, rej)));
 // meshes of a piece (optionally one LOD node), each with its matrix relative to the glTF root
 function meshesOf(root, node) {
   const out = [], base = node ? root.getObjectByName(node) : root;
@@ -53,6 +68,8 @@ function meshesOf(root, node) {
 }
 const T = (x, z, ry = 0, y = 0, s = 1) => new THREE.Matrix4().compose(new THREE.Vector3(x, y, z), new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), ry), new THREE.Vector3(s, s, s));
 const OVERRIDE = {};
+let TAG = '';  // mask tag given to every mesh made while it is set
+const tagged = (o) => { if (TAG) o.userData.tag = TAG; return o; };
 // instanced placement: one InstancedMesh per piece material
 async function inst(piece, mats, node, over) {
   if (!mats.length) return;
@@ -61,7 +78,7 @@ async function inst(piece, mats, node, over) {
     const name = (over && over[p.name]) || p.name;
     const im = new THREE.InstancedMesh(p.geo, mat(name), mats.length);
     mats.forEach((M, i) => im.setMatrixAt(i, M.clone().multiply(p.m)));
-    im.castShadow = name !== 'palPlant'; im.receiveShadow = true; im.computeBoundingSphere(); scene.add(im);
+    im.castShadow = name !== 'palPlant'; im.receiveShadow = true; im.computeBoundingSphere(); scene.add(tagged(im));
   }
 }
 // single prop with LOD (distances in m)
@@ -69,7 +86,7 @@ async function single(piece, M, dists = [0, 35, 70]) {
   const root = await load(piece), lod = new THREE.LOD();
   for (let i = 0; i < 3; i++) {
     const g = new THREE.Group();
-    for (const p of meshesOf(root, `${piece}_lod${i}`)) { const me = new THREE.Mesh(p.geo, mat(p.name)); me.applyMatrix4(p.m); me.castShadow = me.receiveShadow = true; g.add(me); }
+    for (const p of meshesOf(root, `${piece}_lod${i}`)) { const me = new THREE.Mesh(p.geo, mat(p.name)); me.applyMatrix4(p.m); me.castShadow = me.receiveShadow = true; g.add(tagged(me)); }
     lod.addLevel(g, dists[i]);
   }
   lod.applyMatrix4(M); scene.add(lod); return lod;
@@ -78,7 +95,7 @@ function slab(x0, x1, z0, z1, matName, y = 0, th = 1.2) {  // floor slab as the 
   const g = new THREE.BoxGeometry(x1 - x0, th, z1 - z0); const uv = g.attributes.uv, pos = g.attributes.position, nor = g.attributes.normal;
   for (let i = 0; i < uv.count; i++) { const X = pos.getX(i) + (x0 + x1) / 2, Y = pos.getY(i), Z = pos.getZ(i) + (z0 + z1) / 2;
     if (Math.abs(nor.getY(i)) > 0.5) uv.setXY(i, X / 4, Z / 4); else uv.setXY(i, (Math.abs(nor.getX(i)) > 0.5 ? Z : X) / 4, (Y + th / 2) / 4); }
-  const m = new THREE.Mesh(g, mat(matName)); m.position.set((x0 + x1) / 2, y - th / 2, (z0 + z1) / 2); m.receiveShadow = true; scene.add(m); return m;
+  const m = new THREE.Mesh(g, mat(matName)); m.position.set((x0 + x1) / 2, y - th / 2, (z0 + z1) / 2); m.receiveShadow = true; scene.add(tagged(m)); return m;
 }
 function mercury(x0, x1, z0, z1) {  // A14: matcap liquid on a gently rippled strip (a flat plane samples one matcap texel and reads as white paint)
   const nx = 6, nz = Math.round((z1 - z0) * 4), g = new THREE.PlaneGeometry(x1 - x0, z1 - z0, nx, nz); g.rotateX(-Math.PI / 2);
@@ -88,7 +105,28 @@ function mercury(x0, x1, z0, z1) {  // A14: matcap liquid on a gently rippled st
 function plane(x0, x1, z0, z1, y, matName, rep = 4) {
   const g = new THREE.PlaneGeometry(x1 - x0, z1 - z0); g.rotateX(-Math.PI / 2); const uv = g.attributes.uv, pos = g.attributes.position;
   for (let i = 0; i < uv.count; i++) uv.setXY(i, (pos.getX(i) + (x0 + x1) / 2) / rep, (pos.getZ(i) + (z0 + z1) / 2) / rep);
-  const m = new THREE.Mesh(g, mat(matName)); m.position.set((x0 + x1) / 2, y, (z0 + z1) / 2); m.receiveShadow = true; scene.add(m); return m;
+  const m = new THREE.Mesh(g, mat(matName)); m.position.set((x0 + x1) / 2, y, (z0 + z1) / 2); m.receiveShadow = true; scene.add(tagged(m)); return m;
+}
+function pond(x0, x1, z0, z1, y) {  // A16 pond (FIXB): light water, open water darkened by vertex colours, the 1 m margin left pale
+  const nx = Math.round((x1 - x0) * 2), nz = Math.round((z1 - z0) * 2), g = new THREE.PlaneGeometry(x1 - x0, z1 - z0, nx, nz); g.rotateX(-Math.PI / 2);
+  const uv = g.attributes.uv, pos = g.attributes.position, col = new Float32Array(pos.count * 3);
+  for (let i = 0; i < pos.count; i++) { const X = pos.getX(i) + (x0 + x1) / 2, Z = pos.getZ(i) + (z0 + z1) / 2; uv.setXY(i, X / 4, Z / 4);
+    const d = Math.min(X - x0, x1 - X, Z - z0, z1 - Z), f = Math.min(1, Math.max(0, (d - POND_EDGE[0]) / (POND_EDGE[1] - POND_EDGE[0])));
+    for (let c = 0; c < 3; c++) col[i * 3 + c] = 1 + (POND_DEEP[c] - 1) * f; }
+  g.setAttribute('color', new THREE.BufferAttribute(col, 3));
+  const m = new THREE.Mesh(g, mat('palPond')); m.position.set((x0 + x1) / 2, y, (z0 + z1) / 2); m.receiveShadow = true; m.userData.tag = 'pond'; scene.add(m); return m;
+}
+async function inlay(x0, x1, z0, z1) {  // A17 star map as a core floor inlay (FIXB): one decal quad per 4 m cell, turned/mirrored per cell, one call
+  const g = new THREE.PlaneGeometry(INLAY_CELL, INLAY_CELL); g.rotateX(-Math.PI / 2);
+  const cells = []; for (let x = x0; x < x1 - 0.01; x += INLAY_CELL) for (let z = z0; z < z1 - 0.01; z += INLAY_CELL) cells.push([x, z]);
+  const im = new THREE.InstancedMesh(g, mat('palInlay'), cells.length);
+  cells.forEach(([x, z], i) => { const h = ((i * 7 + 3) * 2654435761 >>> 0) % 8; const M = T(x + INLAY_CELL / 2, z + INLAY_CELL / 2, (h % 4) * Math.PI / 2, 0.003);
+    if (h >= 4) M.multiply(new THREE.Matrix4().makeScale(-1, 1, 1)); im.setMatrixAt(i, M); });
+  im.receiveShadow = true; im.userData.tag = 'inlay'; im.computeBoundingSphere(); scene.add(im);
+}
+function tellRing(x, z) {  // the game's hazard ring (index.html ringMesh: RingGeometry r-0.3..r, M.ring 0xff2a10 emissive 1.2) for the tell check
+  const g = new THREE.RingGeometry(RING_R - 0.3, RING_R, 48); g.rotateX(-Math.PI / 2); g.translate(x, 0.06, z);
+  const m = new THREE.Mesh(g, new THREE.MeshStandardMaterial({ color: 0xff2a10, emissive: 0xff2a10, emissiveIntensity: 1.2 })); m.userData.tag = 'tell'; scene.add(m);
 }
 // runs of 4 m segments along a room edge; the piece's outward side (Blender +y = three -z) faces out of the room. gaps: [[a, b]] along the edge.
 function edgeRun(side, x0, x1, z0, z1, gaps = []) {
@@ -115,9 +153,9 @@ async function build() {
   const doorN = [[-2, 2]], doorS = [[-2, 2]];
   const rim = (sides) => { for (const s of sides) inst('terrace_edge', edgeRun(s, x0, x1, z0, z1)); };
   if (ROOM === 'hall' || ROOM === 'core') {
-    slab(x0, x1, z0, z1, 'palFloor');
+    TAG = 'floor'; slab(x0, x1, z0, z1, 'palFloor'); TAG = '';
     const tall = [...edgeRun('n', x0, x1, z0, z1, doorN), ...edgeRun('w', x0, x1, z0, z1), ...edgeRun('e', x0, x1, z0, z1)];
-    await inst(ROOM === 'core' ? 'wall_earth_seg' : 'wall_seg', tall);
+    TAG = 'wall'; await inst(ROOM === 'core' ? 'wall_earth_seg' : 'wall_seg', tall); TAG = '';
     await inst('wall_low', edgeRun('s', x0, x1, z0, z1, doorS));
     if (ROOM === 'hall') await inst('eave_seg', tall);
     if (ROOM === 'hall') { const te = []; for (const M of tall) for (let i = 0; i < 8; i++) te.push(M.clone().multiply(T(0.3867 + i * 0.5, -(0.25 + 1.0) - 0.01, 0, 4.05 + 0.12 - 0.08))); await inst('tile_end', te); }
@@ -127,12 +165,17 @@ async function build() {
     await inst('pillar', pil.map(([x, z]) => T(x, z)));
     rim(['s', 'w', 'e']);
     if (ROOM === 'hall') {  // A20: three slip racks on the west wall with their bundles (G1: the burning of the books)
-      const racks = [-6, -1, 4].map((z) => T(x0 + 0.85, z, Math.PI / 2)); await inst('slip_rack', racks);
-      const b = []; for (const R of racks) for (let k = 0; k < 4; k++) for (let j = 0; j < 9; j++) b.push(R.clone().multiply(T(0.1 + j * 0.16, -0.25, 0, 0.29 + k * 0.45)).multiply(new THREE.Matrix4().makeRotationY((j % 3 - 1) * 0.08)));
-      await inst('slip_bundle', b);
+      // FIXB: racks 2.4 x 0.7 x 2.8 m, 5 shelves at 0.5 m (arch_blender RACK); bundles 0.5 x 0.09 m lie end-on (spiral ends face the room), two layers
+      TAG = 'racks'; const racks = (R2 ? [-6, -1, 4] : [-7, -2.5, 2]).map((z) => T(x0 + (R2 ? 0.85 : 0.95), z, Math.PI / 2)); await inst('slip_rack', racks);
+      const b = []; if (R2) for (const R of racks) for (let k = 0; k < 4; k++) for (let j = 0; j < 9; j++) b.push(R.clone().multiply(T(0.1 + j * 0.16, -0.25, 0, 0.29 + k * 0.45)).multiply(new THREE.Matrix4().makeRotationY((j % 3 - 1) * 0.08)));
+      else for (const R of racks) for (let k = 0; k < 5; k++) for (let j = 0; j < 11; j++) for (let l = 0; l < 2; l++) { if ((j * 5 + k * 3 + l) % 7 === 6) continue;
+        b.push(R.clone().multiply(T(0.2 + j * 0.2 + l * 0.1, -0.08 - l * 0.04, Math.PI / 2 + ((j + k) % 3 - 1) * 0.05, 0.25 + k * 0.5 + 0.09 + l * 0.165))); }
+      await inst('slip_bundle', b); TAG = '';
       player.position.set(-4, 1.025, 0);
     } else {
-      await single('throne_dais', T(0, z0 + 5, Math.PI));
+      TAG = 'throne'; await single('throne_dais', T(0, z0 + (R2 ? 5 : 4.5), Math.PI)); TAG = '';
+      if (INLAY) await inlay(-12, 12, z0 + 9, z1 - 1);   // the apex arena in front of the dais
+      if (TELL) { tellRing(0, z0 + 10.5); tellRing(4, 4); }
       for (const x of [-6, 6]) mercury(x - 0.5, x + 0.5, z0 + 9, z1 - 0.5);  // A14: mercury rivers (the channel lip is C7)
       player.position.set(2, 1.025, 4);
     }
@@ -148,23 +191,30 @@ async function build() {
     rim(['s', 'w', 'e']); player.position.set(-3, 1.025, 6);
   } else if (ROOM === 'corridor') {
     slab(x0, x1, z0, z1, 'palTiles');
-    await inst('wall_mural_seg', edgeRun('w', x0, x1, z0, z1)); await inst('eave_seg', edgeRun('w', x0, x1, z0, z1));
+    TAG = 'mural'; await inst('wall_mural_seg', edgeRun('w', x0, x1, z0, z1)); TAG = ''; await inst('eave_seg', edgeRun('w', x0, x1, z0, z1));
     await inst('parapet_seg', edgeRun('e', x0 + 0.2, x1 - 0.2, z0, z1));
     const posts = []; for (let z = z0 + 2; z < z1; z += 4) posts.push(T(x1 - 2.6, z)); await inst('walk_post', posts);
     await inst('walk_beam', edgeRun('e', x0, x1 - 2.6, z0, z1).map((M) => M));
     await inst('wall_low', edgeRun('n', x0, x1, z0, z1, [[-2, 2]])); await inst('wall_low', edgeRun('s', x0, x1, z0, z1, [[-2, 2]]));
     rim(['e', 's']); player.position.set(-1, 1.025, 8);
   } else if (ROOM === 'garden') {
-    slab(x0, x1, z0, -4, 'palGround'); slab(x0, x1, 4, z1, 'palGround'); slab(x0, -6, -4, 4, 'palGround'); slab(6, x1, -4, 4, 'palGround');
-    slab(-6, 6, -4, 4, 'palGround', -0.6, 0.6); plane(-6, 6, -4, 4, -0.3, 'palLake'); for (const [a, b, c, e] of [[-6.4, 6.4, -4.4, -4], [-6.4, 6.4, 4, 4.4], [-6.4, -6, -4, 4], [6, 6.4, -4, 4]]) slab(a, b, c, e, 'palStone', 0.08, 0.5);
+    TAG = 'ground'; slab(x0, x1, z0, -4, 'palGround'); slab(x0, x1, 4, z1, 'palGround'); slab(x0, -6, -4, 4, 'palGround'); slab(6, x1, -4, 4, 'palGround'); TAG = '';
+    slab(-6, 6, -4, 4, 'palGround', -0.6, 0.6); pond(-6, 6, -4, 4, -0.3); for (const [a, b, c, e] of [[-6.4, 6.4, -4.4, -4], [-6.4, 6.4, 4, 4.4], [-6.4, -6, -4, 4], [6, 6.4, -4, 4]]) slab(a, b, c, e, 'palStone', 0.08, 0.5);
     await inst('wall_low', [...edgeRun('n', x0, x1, z0, z1, [[-2, 2]]), ...edgeRun('w', x0, x1, z0, z1), ...edgeRun('e', x0, x1, z0, z1), ...edgeRun('s', x0, x1, z0, z1, [[-2, 2]])]);
     const rnd = (() => { let s = 7; return () => (s = (s * 16807) % 2147483647) / 2147483647; })();
     const beds = { plant_wheat: [], plant_millet: [], plant_shrub: [], plant_grass: [] }, kinds = Object.keys(beds);
-    for (let i = 0; i < 400 && beds.plant_wheat.length + beds.plant_millet.length + beds.plant_shrub.length + beds.plant_grass.length < 170; i++) {
+    // FIXB (owner 02:2x 'fuller planting at the wide camera'): PLANTS_N cards (round 2: 170 at 0.8-1.3 m), PLANT_S scale, open beds kept
+    // fuller (skip 0.3, was 0.75), the north-south path and the pond kerb stay clear; still one call per plant kind, no shadow casting
+    const nP = () => beds.plant_wheat.length + beds.plant_millet.length + beds.plant_shrub.length + beds.plant_grass.length;
+    if (R2) for (let i = 0; i < 400 && nP() < 170; i++) {  // round 2 planting (before/after only)
       const x = x0 + 1.5 + rnd() * (w - 3), z = z0 + 1.5 + rnd() * (d - 3); if (Math.abs(x) < 6.8 && Math.abs(z) < 4.8) continue; if (Math.abs(x) < 3 && Math.abs(z) > 9) continue;
       const nearPond = Math.abs(x) < 10 && Math.abs(z) < 8, nearWall = Math.min(x - x0, x1 - x, z - z0) < 4; if (!nearPond && !nearWall && rnd() < 0.75) continue;
       beds[kinds[Math.floor(rnd() * 4)]].push(T(x, z, rnd() * 3, 0, 0.8 + rnd() * 0.5)); }
-    for (const k of kinds) await inst(k, beds[k]);
+    else for (let i = 0; i < 4000 && nP() < PLANTS_N; i++) {
+      const x = x0 + 1.2 + rnd() * (w - 2.4), z = z0 + 1.2 + rnd() * (d - 2.4); if (Math.abs(x) < 7 && Math.abs(z) < 5) continue; if (Math.abs(x) < 2.2) continue;
+      const nearPond = Math.abs(x) < 10 && Math.abs(z) < 8, nearWall = Math.min(x - x0, x1 - x, z - z0) < 4; if (!nearPond && !nearWall && rnd() < 0.3) continue;
+      beds[kinds[Math.floor(rnd() * 4)]].push(T(x, z, rnd() * 3, 0, PLANT_S[0] + rnd() * (PLANT_S[1] - PLANT_S[0]))); }
+    TAG = 'plants'; for (const k of kinds) await inst(k, beds[k]); TAG = '';
     rim(['s', 'w', 'e']); player.position.set(-3, 1.025, 8);
   } else if (ROOM === 'bridge') {
     const bays = []; for (let x = x0; x < x1 - 0.01; x += 4) bays.push(T(x, 0)); await inst('bridge_bay_8', bays);
@@ -187,6 +237,14 @@ if (VIEW === 'up') { cam.position.set(0, 1.6, 6); cam.lookAt(0, 6, -6); plane(-1
 // sun as the game: from (-30, 60, 25) relative to the view target, tight shadow box around the room
 sun.position.copy(look).add(new THREE.Vector3(-30, 60, 25)); sun.target.position.copy(look).add(new THREE.Vector3(0, 0, -12));
 const sb = PIECE ? 14 : Math.max(...ROOMS[ROOM]) * 0.7 + 8; Object.assign(sun.shadow.camera, { left: -sb, right: sb, top: sb, bottom: -sb, near: 10, far: 160 }); sun.shadow.camera.updateProjectionMatrix();
+if (MASK) {  // unlit white/black masks for on-screen measurement (same camera, same geometry, alpha cutouts kept)
+  scene.background = new THREE.Color(0); scene.fog = null; r.shadowMap.enabled = false;
+  const W_ = {}, B_ = {}; const mk = (src, on) => { const key = (on ? 'w' : 'b') + (src.alphaTest > 0 ? src.uuid : ''); const C = on ? W_ : B_; if (C[key]) return C[key];
+    return (C[key] = new THREE.MeshBasicMaterial({ color: on ? 0xffffff : 0, map: src.alphaTest > 0 ? src.map : null, alphaTest: src.alphaTest || 0, side: src.side,
+      polygonOffset: src.polygonOffset, polygonOffsetFactor: src.polygonOffsetFactor, polygonOffsetUnits: src.polygonOffsetUnits })); };
+  scene.traverse((o) => { if (o.isMesh) { let t = o.userData.tag; for (let p = o.parent; !t && p; p = p.parent) t = p.userData.tag; o.material = mk(o.material, MASK.includes(t)); } });
+  if (!MASK.includes('player')) player.material = mk(player.material, false);
+}
 const lods = []; scene.traverse((o) => { if (o.isLOD) lods.push(o); });
 await new Promise((res) => setTimeout(res, 1500));
 cam.updateMatrixWorld(); for (const l of lods) l.update(cam);
@@ -195,6 +253,14 @@ r.shadowMap.autoUpdate = false; r.render(scene, cam); const callsMain = r.info.r
 let lights = 0, casters = 0, casterTris = 0; scene.traverse((o) => { if (o.isLight && !o.isAmbientLight) lights++;
   if ((o.isMesh || o.isInstancedMesh) && o.castShadow && o.visible && (!o.parent || !o.parent.parent || !o.parent.parent.isLOD || o.parent.visible)) { casters++; const g = o.geometry, n = (g.index ? g.index.count : g.attributes.position.count) / 3; casterTris += n * (o.isInstancedMesh ? o.count : 1); } });
 // shadow pass (the main pass is what renderer.info reports here): one call per visible caster, their triangles again
-window.__stats = { calls, tris, shadowCalls: casters, shadowTris: Math.round(casterTris), totalCalls: calls + casters, totalTris: Math.round(tris + casterTris), lights, programs: r.info.programs.length, textures: r.info.memory.textures };
+// FIXB: screen box (px) of the throne above the dais top (the part that must read at the wide camera); round 2 dais top 2.8 m, now 1.5 m
+let throneBox = null;
+if (ROOM === 'core') { const dtop = R2 ? 2.8 : 1.5, v = new THREE.Vector3(), bb = [1e9, 1e9, -1e9, -1e9];
+  for (const l of lods) { if (!l.levels[0].object.children.some((c) => c.userData.tag === 'throne')) continue;
+    l.levels[0].object.traverse((o) => { if (!o.isMesh) return; const pa = o.geometry.attributes.position;
+      for (let i = 0; i < pa.count; i++) { v.fromBufferAttribute(pa, i).applyMatrix4(o.matrixWorld); if (v.y < dtop + 0.02) continue;
+        v.project(cam); const X = (v.x + 1) / 2 * W, Y = (1 - v.y) / 2 * H; bb[0] = Math.min(bb[0], X); bb[1] = Math.min(bb[1], Y); bb[2] = Math.max(bb[2], X); bb[3] = Math.max(bb[3], Y); } }); }
+  throneBox = { w: Math.round(bb[2] - bb[0]), h: Math.round(bb[3] - bb[1]) }; }
+window.__stats = { throneBox, calls, tris, shadowCalls: casters, shadowTris: Math.round(casterTris), totalCalls: calls + casters, totalTris: Math.round(tris + casterTris), lights, programs: r.info.programs.length, textures: r.info.memory.textures };
 window.__ready = true;
 </script></body></html>

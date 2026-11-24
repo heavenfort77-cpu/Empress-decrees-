@@ -16,7 +16,19 @@ def blank_band(a): b = a.copy(); b[60:420, :, :3] = np.array([214, 204, 182]); r
 def blank_discs(a): b = a.copy(); b[..., :3] = np.array([87, 86, 84]); return b
 def blocks(a): b = a.copy(); yy, xx = np.mgrid[0:a.shape[0], 0:a.shape[1]]; b[..., :3] += (16 * (((xx // 256) + (yy // 128)) % 2) - 8)[..., None]; return b
 def saturate(a): b = a.copy(); b[..., 0] = np.clip(a[..., 0] * 1.6, 0, 255); b[..., 2] = a[..., 2] * 0.4; return b
+# FIXB 25 Nov mutations (new rows and rules): flags with two schools swapped, flags without the bone keyline, inlay shifted into the border,
+# inlay in hazard red, inlay in white, pond dulled, pond grey, mercury back at round 3 value.
+def swap01(a): b = a.copy(); C = a.shape[1] // 3; b[:C, :C], b[:C, C:2 * C] = a[:C, C:2 * C].copy(), a[:C, :C].copy(); return b
+def nokey(a):
+    b = a.copy(); C = a.shape[1] // 3; y0, x0 = C + 40 * a.shape[0] // 1024, C + 12 * a.shape[1] // 1024; blk = b[y0 - 4:y0 + 30, x0:x0 + C - 30]
+    L = 0.2126 * blk[..., 0] + 0.7152 * blk[..., 1] + 0.0722 * blk[..., 2]; blk[L > 120, :3] = np.array([26, 22, 20]); return b
+def roll20(a): return np.roll(a, 20, axis=1)
+def tellred(a): b = a.copy(); b[a[..., 3] > 127, :3] = np.array([224, 48, 26]); return b
+def white(a): b = a.copy(); b[a[..., 3] > 127, :3] = 245; return b
+def r3(a): b = a.copy(); b[..., :3] = a[..., :3] * 0.82; return b
 M = [  # (texture, mutation, rule that must fail)
+    ('signal_flags', swap01, 'school colours'), ('signal_flags', nokey, 'band reads'), ('star_inlay', roll20, 'edge clear'), ('star_inlay', tellred, 'not hazard ring'),
+    ('star_inlay', white, 'subtle'), ('pond_water', dull, 'value'), ('pond_water', grey, 'teal tint'), ('mercury_matcap', r3, 'value'),
     ('rammed_earth', flat, 'brush scale'), ('rammed_earth', flat, 'contrast'), ('rammed_earth', shear, 'seam x'),
     ('stone_paving', saturate, 'saturation'), ('stone_paving', blocks, 'repeat'), ('rammed_earth', blocks, 'repeat'), ('black_lake', grey, 'teal tint'), ('garden_plants', faint, 'alpha test'),
     ('mercury_matcap', dull, 'brightest'), ('mural_wall', blank_band, 'mural ink'), ('tile_ends', blank_discs, 'contrast'),

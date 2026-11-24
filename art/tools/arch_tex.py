@@ -26,6 +26,16 @@ SLAB = ['#8b877e', '#908c83', '#868279', '#8e8a80', '#928e85']  # paving slab to
 LACQ = ['#15100d', '#1d1612', '#231a15', '#2c2320']
 VERM = ['#742d1e', '#86281a', '#9a4a34']
 PLASTER = ['#b0a48b', '#b8ac94', '#d2c8b2']
+# FIXB 25 Nov (owner 02:2x: 'mercury brighter texture + shimmer'): matcap value ramp = (floor of the bright middle and lower half, peak of
+# the bright middle, top band start, lower-half peak); round 3 was (70, 150, 66, 90) at mean lum 130.
+MERC_LIFT = (92, 150, 84, 120)
+# FIXB pond water (owner 02:2x: 'garden ponds lighter water, blue-green with a pale edge'; the black lake A15 stays black): base, ripple
+# crest, trough, glint. Painted light: the pond mesh darkens the open water with vertex colours and leaves the 1 m margin pale.
+POND = dict(base='#5f8f88', crest='#86b2aa', trough='#4a7872', glint='#d4e6e0', sand='#9fb3a2')
+# FIXB star-map inlay (owner 02:2x: A17 becomes a core floor inlay, subtle lines at 256 px/m, must not fight the 丹 floor or hide tells):
+# brass inlay tones (lines, studs, highlight), line and stud widths px, number of asterisms, single studs, margin kept clear px (the
+# tile can then be turned 0/90/180/270 deg per 4 m cell without a seam).
+INLAY = dict(tones=['#a8864c', '#9a7a44', '#b8965a'], line=7, stud=13, ring=5, asterisms=11, singles=46, margin=24)
 
 
 def layered_earth(name, R, seed, lmin, lmax, soot=False, pocks=3200, thick=0.18):
@@ -288,10 +298,10 @@ def hollow_brick():
 def plaster_body(t, y0, y1, burnt=False):
     """lime plaster mottling and trowel strokes between rows y0-y1 (as the approved hall wall, our own pass)."""
     r = t.r
-    cols = ['#9f927a', '#c9bea7', '#a89a80', '#bdb099'] if not burnt else ['#7d7262', '#958a78', '#6e6456', '#8a7f6d']
+    cols = [P.pk(c) for c in ['#9f927a', '#c9bea7', '#a89a80', '#bdb099']] if not burnt else ['#7d7262', '#958a78', '#6e6456', '#8a7f6d']
     for _ in range(int(80 * (y1 - y0) / 590)):
         t.blot(r.uniform(0, 1024), r.uniform(y0, y1), r.uniform(40, 110), 'sponge', r.uniform(50, 110), r.choice(cols), r.uniform(0.35, 0.55), 3)
-    tr = ['#9a8d75', '#d0c5ae', '#a99c83'] if not burnt else ['#6a6052', '#a09583', '#7a6f60']
+    tr = [P.pk(c) for c in ['#9a8d75', '#d0c5ae', '#a99c83']] if not burnt else ['#6a6052', '#a09583', '#7a6f60']
     for _ in range(int(700 * (y1 - y0) / 590)):
         x, y = r.uniform(0, 1024), r.uniform(y0, y1); a = r.uniform(-0.6, 0.6); L = r.uniform(25, 80)
         t.stroke(t.wobble(x, y, x + math.cos(a) * L, y + math.sin(a) * L, 3, 2), 'oil', r.uniform(10, 24), r.choice(tr), r.uniform(0.4, 0.6))
@@ -444,7 +454,7 @@ def wall_rows(t, burnt=False, mural=False):
     return t
 
 
-def mural_wall(): return wall_rows(P.Tex('mural_wall', '#b9ad95', True, False, 651), mural=True)
+def mural_wall(): return wall_rows(P.Tex('mural_wall', P.pk('#b9ad95'), True, False, 651), mural=True)   # plaster follows A2 (P.PLASTER_K)
 def wall_burnt(): return wall_rows(P.Tex('wall_burnt', '#857a69', True, False, 652), burnt=True)
 
 
@@ -598,8 +608,9 @@ def mercury_matcap():
     t.stroke([(512, 512), (512.5, 512)], 'ink', 1000, '#3c4046', 1.0, taper=[0, 0], wrap=False)
     for y in range(24, 1000, 10):  # value down the disc: dark ceiling band on top, bright silver middle, darker floor half
         f = y / 1024
-        v = 70 + 150 * math.exp(-((f - 0.5) / 0.17) ** 2) if f > 0.28 else 66 + 20 * f
-        if f > 0.62: v = 70 + 90 * math.exp(-((f - 0.5) / 0.2) ** 2)
+        v = MERC_LIFT[0] + MERC_LIFT[1] * math.exp(-((f - 0.5) / 0.17) ** 2) if f > 0.28 else MERC_LIFT[2] + 24 * f
+        if f > 0.62: v = MERC_LIFT[0] + MERC_LIFT[3] * math.exp(-((f - 0.5) / 0.2) ** 2)
+        v = min(v, 246)
         row(y, '#%02x%02x%02x' % (int(v - 4), int(v), int(v + 5)), 22, 1.0, 'marker')
     t.stage = 1
     for k, y in enumerate((70, 110, 150, 196, 236, 268)):  # lamp streaks reflected from the ceiling (ripples sweep the pool across them)
@@ -736,16 +747,70 @@ def star_ceiling():
     return t
 
 
-# School accents for the flags (research list; assignment is a proposal, owner to confirm): ground stays Qin black (banners black).
-SCHOOLS = [('ru', '#9a3a26'), ('dao', '#d2ccbe'), ('yinyang', '#8e8a84'), ('fa', '#2e5a9c'), ('ming', '#5b3f8c'),
-           ('mo', '#b8862e'), ('zongheng', '#a8adb2'), ('za', '#b0904e'), ('nong', '#3d7d5a')]
+def pond_water():
+    """Garden pond water (A16, FIXB 25 Nov, owner: lighter blue-green with a pale edge; the black lake stays black): a light blue-green
+    tiling water, soft ripple bands, crests and troughs 4-15 cm, a few pale glints and sunk sand patches. The pond mesh (viewer: vertex
+    colours, linear) darkens the open water toward the centre and keeps the 1 m margin at full value: the pale edge."""
+    t = P.Tex('pond_water', POND['base'], True, True, 761)
+    r = t.r
+    t.stage = 1
+    for _ in range(70):
+        t.blot(r.uniform(0, 1024), r.uniform(0, 1024), r.uniform(70, 160), 'sponge', 120, r.choice([POND['trough'], POND['crest'], POND['base'], POND['sand']]), 0.3, 3)
+    t.stage = 2
+    for _ in range(2400):  # ripples: short, mostly horizontal, 4-15 cm
+        x, y = r.uniform(0, 1024), r.uniform(0, 1024); L = r.uniform(4, 15) * CM; a = r.uniform(-0.2, 0.2)
+        t.stroke(t.wobble(x, y, x + math.cos(a) * L, y + math.sin(a) * L, 3, 1.0), 'ink', r.uniform(3, 7), r.choice([POND['crest'], POND['trough'], POND['crest'], POND['trough'], POND['base']]), r.uniform(0.5, 0.8), taper=[2, 2])
+    t.stage = 3
+    for _ in range(160):  # glints
+        x, y = r.uniform(0, 1024), r.uniform(0, 1024)
+        t.stroke([(x, y), (x + r.uniform(6, 18), y)], 'chalk', 3, POND['glint'], r.uniform(0.4, 0.7))
+    return t
 
 
-def sigil(t, kind, cx, cy, s, c):
+def star_inlay():
+    """Star-map floor inlay (A17 moved to the core floor, FIXB 25 Nov, owner 02:2x): an alpha-tested decal of brass inlay lines laid over the
+    approved 丹 floor (A1 itself is not repainted). Lodge asterisms of 3-6 studs joined by thin lines, a lodge ring on the first star of each,
+    scattered single studs; our own arrangement (no real chart copied). Nothing within INLAY margin px of the edge, so each 4 m cell can be
+    turned 0/90/180/270 deg (8 looks with mirroring) without a seam: the map does not show a 4 m repeat."""
+    t = P.Tex('star_inlay', 'none', False, False, 771)
+    r = t.r; I = INLAY; m = I['margin'] + I['stud']
+    def inside(x, y): return m <= x <= 1024 - m and m <= y <= 1024 - m
+    t.stage = 2
+    placed = []
+    for _ in range(I['asterisms']):
+        for _try in range(60):
+            cx, cy = r.uniform(m + 40, 1024 - m - 40), r.uniform(m + 40, 1024 - m - 40)
+            if all(math.hypot(cx - a, cy - b) > 190 for a, b in placed): break
+        placed.append((cx, cy)); pts = [(cx, cy)]
+        for _ in range(r.randint(2, 5)):
+            for _try in range(30):
+                a = r.uniform(0, math.tau); L = r.uniform(45, 110); q = (pts[-1][0] + math.cos(a) * L, pts[-1][1] + math.sin(a) * L)
+                if inside(*q): break
+            else: continue
+            pts.append(q)
+        if len(pts) > 1: t.stroke(pts, 'marker', I['line'], r.choice(I['tones'][:2]), 1.0, taper=[0, 0], wrap=False)
+        for x, y in pts: t.stroke([(x, y), (x + 0.5, y)], 'ink', I['stud'], I['tones'][2], 1.0, taper=[0, 0], wrap=False)
+        lx, ly = pts[0]
+        t.stroke([(lx + math.cos(a) * 26, ly + math.sin(a) * 26) for a in [k * math.tau / 24 for k in range(25)]], 'marker', I['ring'], I['tones'][0], 1.0, taper=[0, 0], wrap=False)
+    for _ in range(I['singles']):
+        x, y = r.uniform(m, 1024 - m), r.uniform(m, 1024 - m)
+        t.stroke([(x, y), (x + 0.5, y)], 'ink', I['stud'] * r.uniform(0.6, 0.9), r.choice(I['tones']), 1.0, taper=[0, 0], wrap=False)
+    return t
+
+
+# School accents for the flags in CONFIG.SCHOOLS order (flag_i = school i): the owner's one mapping for every school item (25 Nov 02:1x:
+# W1a's 鼎 accents, art/tools/ding_blender.py ACCENTS): ru ochre, dao gold, fa lead white, mo cinnabar, yinyang bone black, za silver,
+# ming Han purple, zongheng malachite, nong azurite. Ground stays Qin black (banners black).
+SCHOOLS = [('ru', '#b8862e'), ('dao', '#e2b84a'), ('fa', '#d9d2c3'), ('mo', '#a8321e'), ('yinyang', '#1a1614'), ('za', '#c8ccd0'),
+           ('ming', '#5b3f8c'), ('zongheng', '#2f8a5c'), ('nong', '#2e5a9c')]
+# Accents darker than this luminance (bone black on Qin black) get bone keylines (KEYLINE colour, px each side) so band and sigil still read.
+KEY_LUM, KEYLINE, KEY_W = 45, '#e9dfca', 3
+
+
+def sigil(t, kind, cx, cy, s, c, w=8):
     """invented school sigils (shapes differ first, colour second; no calligraphy)."""
     sq = lambda h: [(cx - h, cy - h), (cx + h, cy - h), (cx + h, cy + h), (cx - h, cy + h), (cx - h, cy - h)]
     circ = lambda rr, ox=0, oy=0, a0=0, a1=math.tau: [(cx + ox + math.cos(a0 + (a1 - a0) * k / 24) * rr, cy + oy + math.sin(a0 + (a1 - a0) * k / 24) * rr) for k in range(25)]
-    w = 8
     if kind == 'ru': t.stroke(sq(s), 'marker', w, c, 1, taper=[0, 0]); t.stroke(sq(s * 0.5), 'marker', w, c, 1, taper=[0, 0])
     elif kind == 'dao': t.stroke([(cx + math.cos(k * 0.4) * s * k / 30, cy + math.sin(k * 0.4) * s * k / 30) for k in range(31)], 'marker', w, c, 1, taper=[0, 0])
     elif kind == 'yinyang': t.stroke(circ(s * 0.5, -s * 0.45), 'marker', w, c, 1, taper=[0, 0]); t.stroke(circ(s * 0.5, s * 0.45), 'marker', w * 1.6, c, 1, taper=[0, 0])
@@ -764,7 +829,7 @@ def sigil(t, kind, cx, cy, s, c):
     elif kind == 'za':
         for i in range(3):
             for j in range(3):
-                t.stroke([(cx + (i - 1) * s * 0.7, cy + (j - 1) * s * 0.7), (cx + (i - 1) * s * 0.7 + 0.5, cy + (j - 1) * s * 0.7)], 'ink', s * 0.35, c, 1, taper=[0, 0])
+                t.stroke([(cx + (i - 1) * s * 0.7, cy + (j - 1) * s * 0.7), (cx + (i - 1) * s * 0.7 + 0.5, cy + (j - 1) * s * 0.7)], 'ink', s * 0.35 + (w - 8), c, 1, taper=[0, 0])
     elif kind == 'nong':
         t.stroke([(cx, cy + s), (cx, cy - s)], 'marker', w * 0.8, c, 1, taper=[0, 0])
         for k in range(4):
@@ -790,10 +855,13 @@ def signal_flags():
             fx = x0 + (k + 0.5) * w / 5.5
             t.stroke([(fx, y0 + 4), (fx + r.uniform(-6, 6), y0 + h - 4)], 'oil', r.uniform(14, 26), r.choice(['#2b2521', '#0f0c0b']), 0.6, taper=[0, 0], wrap=False)
         t.stage = 2
-        for yy in (y0 + 8, y0 + h - 8):  # accent border bands top and bottom, and along the pole edge
-            t.stroke([(x0, yy), (x0 + w * 0.8, yy)], 'ink', 8, acc, 1.0, taper=[0, 0], wrap=False)
-        t.stroke([(x0 + 5, y0), (x0 + 5, y0 + h)], 'ink', 8, acc, 1.0, taper=[0, 0], wrap=False)
-        sigil(t, kind, x0 + w * 0.42, y0 + h / 2, h * 0.24, acc)
+        lum = sum(k * int(acc[j:j + 2], 16) for k, j in ((0.2126, 1), (0.7152, 3), (0.0722, 5)))
+        layers = [(KEYLINE, 8 + 2 * KEY_W), (acc, 8)] if lum < KEY_LUM else [(acc, 8)]
+        for col, bw in layers:  # accent border bands top and bottom, and along the pole edge (dark accents over a bone keyline)
+            for yy in (y0 + 8, y0 + h - 8):
+                t.stroke([(x0, yy), (x0 + w * 0.8, yy)], 'ink', bw, col, 1.0, taper=[0, 0], wrap=False)
+            t.stroke([(x0 + 5, y0), (x0 + 5, y0 + h)], 'ink', bw, col, 1.0, taper=[0, 0], wrap=False)
+            sigil(t, kind, x0 + w * 0.42, y0 + h / 2, h * 0.24, col, bw)
     return t
 
 
@@ -845,7 +913,8 @@ def slips_burnt(): return slips_rows(P.Tex('slips_burnt', '#33281f', True, False
 
 
 ALL = [rammed_earth, rammed_earth_core, earth_burnt, river_stone, stone_paving, floor_tiles, hollow_brick, mural_wall, wall_burnt, roof_tile, tile_ends,
-       timber, timber_burnt, mercury_matcap, black_lake, garden_ground, garden_plants, star_ceiling, signal_flags, slips, slips_burnt]
+       timber, timber_burnt, mercury_matcap, black_lake, garden_ground, garden_plants, star_ceiling, signal_flags, slips, slips_burnt,
+       pond_water, star_inlay]
 
 if __name__ == '__main__':
     want = sys.argv[3].split(',') if len(sys.argv) > 3 else None
