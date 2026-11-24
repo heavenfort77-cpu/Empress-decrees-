@@ -23,7 +23,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: ckpt
-          key: sd15-emaonly-v1
+          key: sd15-emaonly-lcm-v2
       - name: Install ComfyUI (CPU torch)
         run: |
           python -m pip install --quiet torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cpu
@@ -38,6 +38,9 @@ jobs:
           [ -f ckpt/$F ] || curl -sL -o ckpt/$F "$U"
           ls -la ckpt
           ln -s $PWD/ckpt/$F comfy/models/checkpoints/$F
+          L=$(python -c "import json;print(json.load(open('ci_comfy/prompts.json')).get('lora',''))")
+          LU=$(python -c "import json;print(json.load(open('ci_comfy/prompts.json')).get('lora_url',''))")
+          if [ -n "$L" ]; then [ -f ckpt/$L ] || curl -sL -o ckpt/$L "$LU"; ln -s $PWD/ckpt/$L comfy/models/loras/$L; fi
       - name: Generate
         run: |
           (cd comfy && nohup python main.py --cpu --listen 127.0.0.1 --port 8188 > ../server.log 2>&1 &)

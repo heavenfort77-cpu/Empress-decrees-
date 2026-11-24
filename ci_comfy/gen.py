@@ -22,11 +22,13 @@ for seed in JOB['seeds']:
         '2': {'class_type': 'CLIPTextEncode', 'inputs': {'text': pos, 'clip': ['1', 1]}},
         '3': {'class_type': 'CLIPTextEncode', 'inputs': {'text': CFG['negative'], 'clip': ['1', 1]}},
         '4': {'class_type': 'EmptyLatentImage', 'inputs': {'width': CFG['width'], 'height': CFG['height'], 'batch_size': 1}},
-        '5': {'class_type': 'KSampler', 'inputs': {'model': ['1', 0], 'positive': ['2', 0], 'negative': ['3', 0], 'latent_image': ['4', 0], 'seed': seed,
+        '5': {'class_type': 'KSampler', 'inputs': {'model': ['8', 0] if CFG.get('lora') else ['1', 0], 'positive': ['2', 0], 'negative': ['3', 0], 'latent_image': ['4', 0], 'seed': seed,
               'steps': CFG['steps'], 'cfg': CFG['cfg'], 'sampler_name': CFG['sampler'], 'scheduler': CFG['scheduler'], 'denoise': 1.0}},
         '6': {'class_type': 'VAEDecode', 'inputs': {'samples': ['5', 0], 'vae': ['1', 2]}},
         '7': {'class_type': 'SaveImage', 'inputs': {'images': ['6', 0], 'filename_prefix': f'beast_{seed}'}},
     }
+    if CFG.get('lora'):
+        g['8'] = {'class_type': 'LoraLoaderModelOnly', 'inputs': {'model': ['1', 0], 'lora_name': CFG['lora'], 'strength_model': 1.0}}
     t0 = time.time()
     req = urllib.request.Request(URL + '/prompt', data=json.dumps({'prompt': g}).encode(), headers={'Content-Type': 'application/json'})
     pid = json.loads(urllib.request.urlopen(req, timeout=60).read())['prompt_id']
