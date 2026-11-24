@@ -1,0 +1,5 @@
+FAIL 42 bot sweep 9 runs: 0 broken invariants, every run ends, never-dodge always loses, 0.3 s and 0.15 s reaction each win at least once :: 99/012:lost 7s hp0 demon905 | 99/120:lost 8s hp0 demon915 | 99/210:lost 8s hp0 demon915 | 0.3/012:lost 16s hp0 demon745 | 0.3/120:lost 19s hp0 demon845 | 0.3/210:lost 50s hp0 demon245 | 0.15/012:lost 24s hp0 demon570 | 0.15/120:won 68s hp65 demon0 | 0.15/210:won 64s hp100 demon0
+FAIL 1101 bots: an awake giant in sight is a creature target; a bot's basic attack hurts it; bots dodge its shown slam (inside: danger, 12 m off: none) :: {"picks":1,"tries":1,"botHit":0,"slam":false}
+FAIL 1103 pieces hurt an awake giant: a burning mercury channel it stands in, and a vat's splash (vat.giantDmg) :: {"merc":{"dmg":0.2,"steps":78},"vat":{"st":2,"dmg":60,"hp":334.8}}
+FAIL 1104 giants new run (twice) after a kill: all dormant at home with full health, none lying, counters zero, no bar; a fresh wake has full health :: {"runs":[{"home":false,"kills":0,"downNotes":0,"dmg":0,"bars":0},{"home":false,"kills":0,"downNotes":0,"dmg":0,"bars":0}],"before":{"st":7,"kills":1},"fresh":0}
+RUNTIME 243 of 247 pass
