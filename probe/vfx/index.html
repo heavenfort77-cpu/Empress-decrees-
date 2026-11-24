@@ -119,11 +119,11 @@ const gl = r.getContext(), ext = gl.getExtension('EXT_disjoint_timer_query_webgl
 const progs0 = r.info.programs.length;
 // Per-frame state (no allocations in the loop).
 const FT = new Float32Array(1 << 15), GT = new Float32Array(1 << 15), GC = new Float32Array(1 << 15), LONG = new Float32Array(256), PQ = [], PK = [];
-let nC = 0, nL = 0, t0 = 0, calls = 0, tris = 0;
+let nC = 0, nL = 0, t0 = 0, calls = 0, tris = 0, arm = false, allF = 0, settleF = 0;
 let nF = 0, nG = 0, timing = false, last = performance.now(), simT = 0, q = null;
 window.__probe = {
-  start() { nF = 0; nG = 0; nC = 0; nL = 0; t0 = performance.now(); timing = true; window.__progsAtStart = r.info.programs.length; },
-  stop() { timing = false; return { ft: Array.from(FT.subarray(0, nF)), gt: Array.from(GT.subarray(0, nG)), gc: Array.from(GC.subarray(0, nC)), long: Array.from(LONG.subarray(0, nL)), calls, tris,
+  start() { nF = 0; nG = 0; nC = 0; nL = 0; t0 = performance.now(); settleF = allF; arm = true; window.__progsAtStart = r.info.programs.length; },
+  stop() { timing = false; return { ft: Array.from(FT.subarray(0, nF)), gt: Array.from(GT.subarray(0, nG)), gc: Array.from(GC.subarray(0, nC)), long: Array.from(LONG.subarray(0, nL)), settleFrames: settleF, calls, tris,
     programs: r.info.programs.length, progsAtLoad: progs0, progsAtStart: window.__progsAtStart, textures: r.info.memory.textures, geometries: r.info.memory.geometries,
     cardTexMB: +(cards.reduce((s, c) => s + c.bytes, 0) / 1048576).toFixed(2), floorTexMB: +(1024 * 1024 * 4 * 4 / 3 / 1048576).toFixed(2), timer: !!ext, kind: KIND, n: N }; },
 };
@@ -134,8 +134,11 @@ function frame(now) {
   requestAnimationFrame(frame);
   try {
     const ms = now - last, dt = Math.min(0.05, ms / 1000);
-    if (timing && nF < FT.length) FT[nF++] = ms;
-    if (timing && ms > CONFIG.longMs && nL < LONG.length - 1) { LONG[nL++] = now - t0; LONG[nL++] = ms; }
+    allF++;
+    const skip = arm;
+    if (arm) { arm = false; timing = true; }
+    if (timing && !skip && nF < FT.length) FT[nF++] = ms;
+    if (timing && !skip && ms > CONFIG.longMs && nL < LONG.length - 1) { LONG[nL++] = now - t0; LONG[nL++] = ms; }
     last = now; simT += dt;
     for (let i = 0; i < cards.length; i++) cards[i].mat.uniforms.uTime.value = simT;
     if (ext) {
