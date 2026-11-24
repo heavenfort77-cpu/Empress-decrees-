@@ -3216,8 +3216,14 @@ function palBotDecide(b) {
     const s = SUITS[i]; if (s === b || s.dead) continue;
     const d = Math.hypot(s.x - b.x, s.z - b.z); if (d < bd && botSees(b, s, PC.fowR)) { bd = d; best = s; }
   }
-  const u = palGuardFoe(b);
-  if (u && Math.hypot(u.x - b.x, u.z - b.z) < bd) { if (b.tgt !== u) b.tgtT = 0; b.tgt = u; b.mode = 'creature'; b.direct = true; b.path.n = 0; return; }
+  let u = palGuardFoe(b), ud = u ? Math.hypot(u.x - b.x, u.z - b.z) : 1e9;
+  // An awake bronze giant in sight is a target like a guard unit (ticket 09b, owner 24 Nov 15:41: killable). Integration 24 Nov: palace bots decide
+  // here (BP03), so 09b's giant target in botDecide never ran in the palace.
+  for (let i = 0; i < P2.giants.length; i++) {
+    const g = P2.giants[i]; if (!g.alive || Math.abs(b.y) > 1.5 || !palSight(b.x, b.z, g.x, g.z)) continue;
+    const d = Math.hypot(g.x - b.x, g.z - b.z); if (d < ud && d <= PC.fowR) { ud = d; u = g; }
+  }
+  if (u && ud < bd) { if (b.tgt !== u) b.tgtT = 0; b.tgt = u; b.mode = 'creature'; b.direct = true; b.path.n = 0; return; }
   if (best) { if (b.tgt !== best) b.tgtT = 0; b.tgt = best; b.mode = 'fight'; b.direct = true; b.path.n = 0; return; }
   b.tgt = null; b.direct = false;
   if (b.mode !== 'roam' || b.goalT > CONFIG.BOT.goalHoldS || b.path.i >= b.path.n) palBotRoam(b);
