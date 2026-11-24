@@ -33,6 +33,8 @@ SHOULDER = (0.24, 0, 1.17)
 ELBOW = (0.27, 0.04, 0.95)
 # Track unit: centre offset tw, link width lw (m); end wheel radius, half wheelbase, link thickness are track() defaults.
 TRACK = {'tw': 0.3, 'lw': 0.15}
+# Track link length as a share of the link pitch (round 4 0.74; round 5 0.66: wider gaps read as separate links).
+LINK_FILL = 0.66
 # Mask half-height (chin to crown centre), m; proportion gate: body at least this many heads tall incl. cap (soldier read, not a toy).
 MASK_RZ = 0.12
 HEADS_MIN = 6.0
@@ -44,7 +46,7 @@ Q['zpiv'] = ZPIV
 # Round 4 (lead review 25 Nov: treads read as log rafts): each side is a cast-bronze track unit in the chariot running-gear language:
 # a loop of separate cast links (gaps between them), spoked end wheels with a bronze rim and a dark lacquer web, axle-end caps (軎) standing
 # out of the hubs, small road wheels, and a fender plate with a down-turned flange over the top run.
-def track(d, s, tw, hl=0.32, R=0.12, lw=0.15, lt=0.04, fc=0.0, n=None, spokes=4, cap=0.07, pitch=0.12):
+def track(d, s, tw, hl=0.32, R=0.12, lw=0.15, lt=0.04, fc=0.0, n=None, spokes=4, cap=0.07, pitch=0.12, blades=False):
     """one track unit on side s, centred at x = s * tw, f = fc; end wheels of radius R at f = fc +- hl; link loop lt thick, lw wide."""
     x0 = s * tw; zc = R + lt; Rp = R + lt / 2; arc = math.pi * Rp; tot = 4 * hl + 2 * arc
     n = n or (int(round(tot / pitch)) if d else int(round(tot / (pitch * 2.2))))  # link pitch; LOD1/2 links twice as long
@@ -57,7 +59,9 @@ def track(d, s, tw, hl=0.32, R=0.12, lw=0.15, lt=0.04, fc=0.0, n=None, spokes=4,
         if u < 2 * hl: return (fc + hl - u, zc + Rp), (-1, 0), (0, 1)
         u -= 2 * hl; a = math.pi / 2 + u / Rp
         return (fc - hl + Rp * math.cos(a), zc + Rp * math.sin(a)), (-math.sin(a), math.cos(a)), (math.cos(a), math.sin(a))
-    L = tot / n * 0.74
+    L = tot / n * LINK_FILL
+    # round 5: a dark lacquer core inside the loop, so the gaps between links read dark (segmented) at the fight framing
+    prism(f'core_{s}', rect(lw * 0.8, 2 * R - 0.01), (x0, fc - hl, zc), (x0, fc + hl, zc), LQ, 'hull', 'dark', rnd=True)
     for i in range(n):
         (f, z), (tf, tz), (nf, nz) = at((i + 0.5) * tot / n)
         prism(f'link_{s}{i}', rect(lw, lt), (x0, f - tf * L / 2, z - tz * L / 2), (x0, f + tf * L / 2, z + tz * L / 2), BR, 'hull', 'flange', rnd=True, up=tuple(B.Pd(0, nf, nz)))
@@ -71,17 +75,18 @@ def track(d, s, tw, hl=0.32, R=0.12, lw=0.15, lt=0.04, fc=0.0, n=None, spokes=4,
                 c, sn = math.cos(a), math.sin(a)
                 prism(f'spoke_{s}{f}{k}', rect(0.022, 0.012), (xo + s * 0.012, f + c * 0.03, zc + sn * 0.03), (xo + s * 0.012, f + c * (R - 0.03), zc + sn * (R - 0.03)), BR, 'hull', 'flange', rnd=True, up=tuple(B.Pd(1, 0, 0)))
         tube(f'axcap_{s}{f}', (xo, f, zc), (x0 + s * (lw / 2 + cap), f, zc), 0.036, 0.03, BR, 'hull', 'flange', sides=8)
-        if d: tube(f'axring_{s}{f}', (x0 + s * (lw / 2 + cap - 0.018), f, zc), (x0 + s * (lw / 2 + cap), f, zc), 0.042, 0.042, BR, 'hull', 'plain', sides=8)
+        if d and blades:  # 车 only: bladed axle-end caps (a war chariot's hub blades)
+            prism(f'hblade_{s}{f}', blade(0.07, 0.02), (x0 + s * (lw / 2 + cap - 0.01), f, zc), (x0 + s * (lw / 2 + cap + 0.2), f, zc), BR, 'hull', 'flange', scale_b=0.08, rnd=True)
+        elif d: tube(f'axring_{s}{f}', (x0 + s * (lw / 2 + cap - 0.018), f, zc), (x0 + s * (lw / 2 + cap), f, zc), 0.042, 0.042, BR, 'hull', 'plain', sides=8)
     rr = (zc - lt) * 0.62
     for f in ((fc - hl / 3, fc + hl / 3) if d else ()):  # road wheels on the bottom run (LOD0 only)
         prism(f'rwheel_{s}{f}', ngon(rr, m - 2), (x0 - s * (lw / 2 - 0.02), f, lt + rr), (xo, f, lt + rr), BR, 'hull', 'plain', rnd=True, up=(0, 0, 1))
         if d: prism(f'rhub_{s}{f}', ngon(rr * 0.45, 6), (xo, f, lt + rr), (xo + s * 0.02, f, lt + rr), BR, 'hull', 'flange', rnd=True, up=(0, 0, 1))
-    # fender (the track housing): a plate over the top run with a down-turned outer flange and sloped mudguard ends
-    zf = zc + Rp + lt / 2 + 0.018; fl = hl + R * 0.55
-    prism(f'fender_{s}', rect(lw + 0.05, 0.022), (x0, fc - fl, zf), (x0, fc + fl, zf), BR, 'hull', 'clouds', rnd=True)
-    prism(f'flange_{s}', rect(0.014, 0.075), (x0 + s * (lw / 2 + 0.03), fc - fl, zf - 0.03), (x0 + s * (lw / 2 + 0.03), fc + fl, zf - 0.03), BR, 'hull', 'flange', rnd=True)
-    for e in ((-1, 1) if d else ()):
-        prism(f'guard_{s}{e}', rect(lw + 0.05, 0.02), (x0, fc + e * fl, zf), (x0, fc + e * (fl + R * 0.7), zf - R * 0.75), BR, 'hull', 'clouds', rnd=True)
+    # fender (the track housing): a plate over the top run with a down-turned outer flange; round 5: it stops over the end wheels and the
+    # mudguard ends are gone, so the curved link loop shows at both ends (round 4: from the front the unit read as a bronze block)
+    zf = zc + Rp + lt / 2 + 0.018; fl = hl
+    prism(f'fender_{s}', rect(lw + 0.012, 0.022), (x0, fc - fl, zf), (x0, fc + fl, zf), BR, 'hull', 'clouds', rnd=True)
+    prism(f'flange_{s}', rect(0.014, 0.06), (x0 + s * (lw / 2 + 0.012), fc - fl, zf - 0.022), (x0 + s * (lw / 2 + 0.012), fc + fl, zf - 0.022), BR, 'hull', 'flange', rnd=True)
 
 def sled(d, w=0.3, tw=0.3, lw=0.15):
     """a narrow boxy cast chassis between two track units, a collar plate under the coat and a cast mask on the chassis front."""
@@ -272,23 +277,24 @@ def dun_clips(arm):
 # saddles (轭) and ends in the bronze beast-head ram. Running gear: one long track unit per side with big spoked end wheels and axle caps.
 CHE_TIP = (0, 1.42, 0.62)
 # Chariot track units: centre offset, link width, half wheelbase, end wheel radius, link thickness, centre f, spokes per wheel.
-CHE_TRACK = dict(tw=0.6, lw=0.2, hl=0.7, R=0.2, lt=0.05, fc=-0.05, spokes=6, cap=0.1, pitch=0.18)
+CHE_TRACK = dict(tw=0.6, lw=0.2, hl=0.7, R=0.2, lt=0.05, fc=-0.05, spokes=6, cap=0.1, pitch=0.18, blades=True)
 # Canopy: centre f, underside z, radius (round 3: 0.8 m radius at 2.04 m, read as a blue parasol).
 CHE_CANOPY = dict(f=-0.22, z=1.66, r=0.52)
 def che_build(d):
     T = CHE_TRACK; ci = T['tw'] - T['lw'] / 2 - 0.004
     hloft('hull', [(-0.82, 0.34, ci * 0.9, 0.12, 0), (-0.74, 0.34, ci, 0.17, 0), (0.6, 0.34, ci, 0.17, 0), (0.7, 0.34, ci * 0.85, 0.12, 0)], BR, 'hull', 'plain', n_exp=4.0, M=12)
     for s in (-1, 1):
-        track(d, s, T['tw'], hl=T['hl'], R=T['R'], lw=T['lw'], lt=T['lt'], fc=T['fc'], spokes=T['spokes'], cap=T['cap'], pitch=T['pitch'])
+        track(d, s, T['tw'], hl=T['hl'], R=T['R'], lw=T['lw'], lt=T['lt'], fc=T['fc'], spokes=T['spokes'], cap=T['cap'], pitch=T['pitch'], blades=T['blades'])
     # box (舆): floor, side rails (bronze lattice, black lacquer top rail with a water-blue stripe), high front breastwork, rear corner posts
     prism('floor', rect(1.0, 0.05), (0, -0.8, 0.56), (0, 0.46, 0.56), BR, 'hull', 'plain', rnd=True)
     for s in (-1, 1):
-        prism(f'rail_{s}', rect(0.03, 0.3), (s * 0.5, -0.78, 0.73), (s * 0.5, 0.42, 0.73), BR, 'hull', 'clouds', rnd=True)
-        prism(f'toprail_{s}', rect(0.06, 0.04), (s * 0.5, -0.8, 0.9), (s * 0.5, 0.46, 0.9), LQ, 'hull', 'lacquer', rnd=True)
+        prism(f'rail_{s}', rect(0.03, 0.3), (s * 0.5, -0.78, 0.73), (s * 0.5, 0.42, 0.73), LQ, 'hull', 'lacquer', rnd=True)  # round 5: black lacquer armoured box
+        prism(f'toprail_{s}', rect(0.06, 0.04), (s * 0.5, -0.8, 0.9), (s * 0.5, 0.46, 0.9), BR, 'hull', 'flange', rnd=True)
         prism(f'stripe_{s}', rect(0.065, 0.02), (s * 0.5, -0.8, 0.86), (s * 0.5, 0.46, 0.86), LQ, 'hull', 'blue', rnd=True)
         prism(f'post_{s}', rect(0.06, 0.06), (s * 0.47, -0.76, 0.56), (s * 0.47, -0.76, 1.0), LQ, 'hull', 'lacquer', rnd=True, up=(0, -1, 0))
-    prism('front', [(-0.5, 0), (0.5, 0), (0.46, 0.44), (0.2, 0.5), (-0.2, 0.5), (-0.46, 0.44)], (0, 0.42, 0.58), (0, 0.47, 0.58), BR, 'hull', 'mask')
-    prism('fbar', rect(1.0, 0.05), (0, 0.4, 1.06), (0, 0.5, 1.06), LQ, 'hull', 'lacquer', rnd=True)
+    prism('front', [(-0.5, 0), (0.5, 0), (0.46, 0.44), (0.2, 0.5), (-0.2, 0.5), (-0.46, 0.44)], (0, 0.42, 0.58), (0, 0.47, 0.58), LQ, 'hull', 'lacquer')
+    prism('fplaque', [(-0.16, -0.1), (0.16, -0.1), (0.2, 0.04), (0.08, 0.1), (0, 0.05), (-0.08, 0.1), (-0.2, 0.04)], (0, 0.47, 0.8), (0, 0.5, 0.8), BR, 'hull', 'mask', rnd=True)
+    prism('fbar', rect(1.0, 0.05), (0, 0.4, 1.06), (0, 0.5, 1.06), BR, 'hull', 'flange', rnd=True)
     # canopy: bronze pole and collar, black lacquer dome, water-blue edge band, bronze ribs and finial (smaller and lower than round 3)
     C = CHE_CANOPY; cf, cz, cr = C['f'], C['z'], C['r']
     tube('pole', (0, cf, 0.58), (0, cf, cz + 0.13), 0.03, 0.026, BR, 'canopy', 'plain', sides=6)
