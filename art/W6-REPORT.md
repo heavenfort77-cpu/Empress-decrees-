@@ -1,7 +1,8 @@
 # W6 report: C12 school emblem standard (25 Nov overnight, branch ci-art-w6)
 
 Goal (ASSET-LIST C12, GDD G1): one standard per school hall that tells which school's hall it is. One shared mesh; the nine schools
-differ only by the banner's atlas cell (UV offset). Colours = the owner's 25 Nov mapping (W1a's 鼎 accents, ding_blender.py ACCENTS);
+differ only by the banner's atlas cell (UV offset). Colours = the owner's 25 Nov mapping (W1a's 鼎 accents, ding_blender.py ACCENTS), except the za banner: cooler silver #b2bccb
+(owner 25 Nov 02:4x, banner only);
 bronze = the brass sheet only.
 
 ## Files
@@ -11,11 +12,12 @@ bronze = the brass sheet only.
 - assets/tex/school_standards.png: 1024 atlas, 5 x 2 cells of 0.8 x 2.0 m at 256 px/m, cell 10 empty. Source art/src/school_standards.klad.
 - art/tools/standard_tex.py (klad ops), standard_blender.py (builder + gates), standard_glb.py (re-read), standard_check.py (atlas and
   play-size checks), standard_sheet.py; viewer art/viewer/beast.html `?model=standard&school=0-8&lineup=1&atlas=`.
-- Shots: art/standard/round1/ (run 45457382729), art/standard/round2/ (run 45460704861): standard_play_sheet.png (all nine at
+- Shots: art/standard/round1/ (run 45457382729), round2/ (run 45460704861), round3/ (run 45464846183, the shipped files): standard_play_sheet.png (all nine at
   the play camera, FOV 50, pitch 40, 10.5 m), standard_detail_sheet.png, lineup.png, fa_za_option.png, gate logs.
 
 ## Sigils (original, no characters)
-ru ritual cauldron, dao spiral, fa balance, mo wall with gate, yinyang sun disc beside a moon ring over a horizon bar, za nine dots,
+ru ritual cauldron, dao spiral, fa Qin steelyard weight (权: beam, cord, nose loop, ribbed dome on a foot band; round 3),
+mo rammed-earth wall with a flat-lintel gate under a gate tower with a straight hipped roof (round 3), yinyang sun disc beside a moon ring over a horizon bar, za nine dots,
 ming diamond in diamond, zongheng crossed arrows, nong sprouting plant.
 
 ## Gates, round 2 (run 45460704861, commit 7590d41)
@@ -42,8 +44,17 @@ Reads as a hall standard (lacquer pole, brass finial and foot, banner with tongu
 reads as text. ru, dao, mo, yinyang, ming, zongheng, nong: PASS. fa, za: SHIP WITH NOTES, because their fields are too close in play
 (dE 7.1) and they part only by sigil. The sway is gentle and hard to see in stills (0.19 m at the banner foot).
 
-## Needs owner
+## Round 3 (owner 25 Nov 02:4x; commit 1eea8e5, run 45464846183)
+Changes: the za banner field is #b2bccb. fa is redrawn as a Qin weight (no scales of justice) and mo as a rammed-earth wall under a gate
+tower (no crenellations). The other seven sigils are unchanged (approved).
+Gates: atlas 49 of 49 (fa-za dE 19.0 on the atlas; sigil IoU max fa-mo 0.45 < 0.75); builder 18 of 18; GLB 13 of 13; play 11 of 11
+(fa-za dE 12.2 in play; rectified sigil IoU 0.84-0.92 >= 0.75). Mutations 20 of 20 caught (tex 5, build 7, glb 6, play dup and blur).
+Verdict (my look at round3/standard_play_sheet.png): all nine PASS. fa reads as a hanging domed weight, though it could also pass
+for a bell. mo reads as a stepped gate house; the cut earth courses make the wall look stepped at play size.
+
+## Needs owner (round 2, both answered 02:4x)
 1. fa vs za fields in play: (a) keep #c8ccd0 silver: dE 7.1, the gate stays FAIL, and they part by sigil only; or (b) lay za's banner
    silver cooler at #b2bccb: dE 12.2 in play, play check 11 of 11 (run 45460704861, play_zacool.txt, fa_za_option.png lower row). The
    change is on the banner only, since the 鼎 keeps its metal silver inlay.
 2. Approve the nine sigils, the yinyang one above all.
+3. Round 3: approve the new fa and mo sigils (round3/standard_play_sheet.png).
