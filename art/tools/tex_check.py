@@ -24,6 +24,7 @@ T = {
     'door': (1024 / 4, 1024 / 3.5, (80, 470), 0.6),
     'lion_stone': (1024 / LT, 1024 / LT, (0, 1024), 0.55),
     'bronze_trim': (1024 / 4, 1024 / 4, (0, 384), 0.6),
+    'fodder_trim': (1024 / 4, 1024 / 4, (512, 704), 0.55),
 }
 fails = 0
 checks = 0
@@ -47,6 +48,14 @@ for n, (du, dv, (y0, y1), scap) in T.items():
     ]
     if n == 'bronze_trim':  # bronze value plan (palace study): mean luminance 70-110 on the plain plate
         res.append(('value', 70 <= lum.mean() <= 110, f'mean lum {lum.mean():.0f}'))
+    if n == 'fodder_trim':  # guard and rebel sheet (art/Guard-Rebels-Study.md value plan): mean lum per row band, saturation caps for accents
+        full = np.asarray(im).astype(float)
+        for rn, ya, yb, lo, hi, sc in (('lacquer', 0, 256, 22, 45, 0.6), ('blue cloth', 320, 384, 70, 110, 0.6), ('headband', 448, 512, 140, 180, 0.62),
+                                       ('hemp', 512, 704, 90, 130, 0.55), ('patch', 704, 832, 160, 210, 0.12)):
+            b = full[int(ya / s):int(yb / s)]; bl = 0.2126 * b[..., 0] + 0.7152 * b[..., 1] + 0.0722 * b[..., 2]
+            bx, bn = b.max(2), b.min(2); bs = np.where(bx > 0, (bx - bn) / np.maximum(bx, 1), 0).mean()
+            res.append((f'{rn} value', lo <= bl.mean() <= hi, f'mean lum {bl.mean():.0f} ({lo}-{hi})'))
+            res.append((f'{rn} saturation', bs <= sc, f'{bs:.2f} (cap {sc})'))
     checks += len(res)
     for rule, ok, val in res:
         if not ok:
