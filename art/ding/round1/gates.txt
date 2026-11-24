@@ -1,0 +1,13 @@
+PASS ding_lod0 tris 1972 (budget 2000)
+PASS ding_lod1 tris 556 (budget 600)
+PASS ding_lod2 tris 188 (budget 250)
+state tris: lit 666, dry 336
+PASS footprint 1.63 x 1.61 m (solid 1.8 x 1.8)
+PASS rim height 1.27 m (box ding 1.36; range (1.1, 1.45)); handles to 1.63 m
+PASS lit ember bed seen over the rim from 40 deg: 75% of its width (min 50%)
+PASS dry crust 0.22 m below the lit bed (empty look; min 0.15); seen 54%
+PASS school accent material on LOD0 and LOD1 (one shared mesh, colour per hall)
+PASS nine distinct accent colours in the GLB extras (9)
+PASS lit state glows (ember + glow cards, no light); dry state has no glow
+PASS smooth-shaded share 66% (round vessel, min 50%)
+11 of 11 pass

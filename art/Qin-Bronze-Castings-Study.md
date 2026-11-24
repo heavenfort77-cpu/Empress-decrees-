@@ -136,6 +136,32 @@ art/beast/round4/: round4_sheet.png (concept, 3b, round 4 turns, play size, wind
 - LOD2 (decimated) loses the mane tongues; fine at distance, not checked in the game.
 - Not done tonight: game integration (THREE.LOD, pooled, warmed), phone texture (512), KTX2, real-GPU and phone shots.
 
+## 鼎 cauldron (C2), round 1 (25 Nov 2026, overnight worker W1a; not approved)
+GDD: nine 鼎 replace the healing altars in the palace, one per school hall (the 九鼎 Qin lost); heal by CONFIG.ALTAR; decree "Our altars are dry" makes them look empty (BURNING-PALACE "Palace pieces", asset list G4).
+### Concept (ComfyUI round D, run 45434186975, jobs 0-1, 16 images; reference only)
+- SD 1.5 does not know a ding well: most images are lidded pots, urns or bowls on stands. Picked **4101** (round belly on three legs, lid, proportions closest to a Warring States ding); alternates **4115** (ornament bands, loop handles, legs) and **4106** (ornament band, legs). Files art/ding/concepts/ (picks, round_D_all.jpg).
+- Measured on 4101 (numpy row widths, H = 412 px incl. lid; the right-hand shadow inflates widths): belly widest about 0.9 H at 0.40 H, belly bottom about 0.72 H, legs the lowest 0.28 H, lid the top 0.15 H. Without the lid: legs about 0.33 of the height. Built: rim 1.27 m, belly 1.5 m wide at 0.8 m, legs 0.4 m (0.31 of the rim height).
+### Build (art/tools/ding_blender.py, our own design)
+- Lathe-turned belly and hollow bowl (round), sharp rim lip; bands from the brass trim sheet rows by height: cloud band low, deconstructed taotie mask band at the shoulder divided by six vertical flanges (扉棱), flange row on the rim; two upright handles (附耳) outside the rim with an accent inlay on the bar; three hoof legs with mask knees.
+- School accent: a 6 cm inlay band (material palAccent, one shared mesh; one material per hall) with dark keylines; colours in the GLB extras `accents` / `accentMetal` in CONFIG.SCHOOLS order. The research palette was matched to the game's school colours (CONFIG.COL.schools) by least total Lab distance: ru ochre, dao gold, fa lead white, mo cinnabar, yinyang bone black, za silver, ming Han purple, zongheng malachite, nong azurite (W1a's assignment; owner to confirm). Silver is the one metal finish; gold is laid matte (as metal it measured dE 7.3 from the brass).
+- States: `ding_lit` = coal bed 0.27 m under the rim, 16 coals (every third glowing, palEmber), an additive glow disc and two crossed glow cards (no real light, no neon); `ding_dry` = grey ash crust 0.49 m under the rim with jagged dark cracks (empty, deeper bowl).
+### Checks run
+- ding_blender.py 11 of 11: tris 1972 / 556 / 188 (budget 2000 / 600 / 250; asset list 2k / 600); state objects lit 666, dry 336 tris; footprint 1.63 x 1.61 m (solid 1.8 x 1.8); rim 1.27 m (box ding 1.36), handles to 1.63 m; lit bed seen over the rim from the 40 deg play pitch: 75% of its width (min 50%); dry crust 0.22 m below the lit bed, 54% seen; accent material on LOD0 and LOD1; nine distinct accents in the extras; lit glows, dry has no glow; smooth share 66%.
+- art/tools/accent_check.py on the nine school shots 10 of 10: closest pair ru / dao dE 12.4 (min 10); each accent vs the bronze above it dE 13.5 (ru) to 48.6 (nong) (min 12). The check failed the first draft (lead white / silver dE 6.9, all nine one finish) and the second (gold metal vs bronze dE 7.3), so it catches what it is for.
+### Files
+art/ding/round1/: ding_round1_sheet.png, ding_schools_sheet.png, play_lit.png, play_dry.png, play_lit_default_sheet.png, wide.png, turn_*.png, top_lit.png, top_dry.png, pass_*.png, lods.png, school_0-8.png, gates.txt, accent_check.txt; assets/models/ding.glb.
+### Verdict (lead's read of the shots, software GL)
+| Criterion | Round 1 | Result |
+|---|---|---|
+| Real Warring States proportions (reference only) | lidless ding: wide round belly, three hoof legs, two upright attached handles; leg share 0.31 vs concept 0.33 | PASS |
+| Deconstructed taotie ornament via the trim sheet | mask band between six flanges; at play size it reads as a band of eye marks, the flanges as small pegs | PASS (weak at play size) |
+| Readable as a healing station at play size | lit bowl glows warm in play_lit.png; the game's green altar ring stays the gameplay cue | PASS |
+| Lit state (glow card or ember, no neon) and dry state (empty) | glow cards + coals; dry grey crust deep in the bowl, no glow; clear difference at play size. The crossed cards make a bright vertical spike where they meet (reads like a flame) | PASS |
+| Nine school accents on one shared mesh | one mesh, palAccent per hall; accent_check 10 of 10 | PASS |
+### Open
+- Owner: confirm the school-to-pigment assignment; pick the bronze sheet (shots use the brass variant; play_lit_default_sheet.png shows the current sheet).
+- Integration (not tonight): nine materials (one per hall, each hall is its own room, so no extra calls per room), glow cards pooled and warmed, the state swap on the dry decree, the green ring kept.
+
 ## Open
 - ComfyUI (owner 22:43: use it): CPU job on GitHub runners, branch ci-comfy (ci_comfy/prompts.json, gen.py, .github/workflows/comfy.yml), SD 1.5 emaonly (CreativeML OpenRAIL-M, commercial use allowed), 512 x 768, 28 steps; output to ci-out out/comfy/<run>/. Prompt = this study's values in words (Qin bronze, segmented casting, silver inlay, cloud-scroll bands, brass-gold, fierce face, spiral-curl mane, round masses, sharp claws and fangs, stepped stone plinth) with the avoid list as the negative prompt. Reference only, never shipped or traced.
 - Phone texture set (512) and KTX2 with texture step 3.
