@@ -1,0 +1,214 @@
+[
+ {
+  "i": 0,
+  "fails": [
+   "42",
+   "700",
+   "702"
+  ],
+  "tot": [
+   "RUNTIME 198 of 201 pass"
+  ],
+  "s": 105,
+  "name": "dup-school",
+  "want": "700",
+  "applied": true,
+  "caught_named": true
+ },
+ {
+  "i": 1,
+  "fails": [
+   "42",
+   "701"
+  ],
+  "tot": [
+   "RUNTIME 199 of 201 pass"
+  ],
+  "s": 199,
+  "name": "door-removed",
+  "want": "701",
+  "applied": true,
+  "caught_named": true
+ },
+ {
+  "i": 2,
+  "fails": [
+   "42",
+   "701",
+   "707"
+  ],
+  "tot": [
+   "RUNTIME 198 of 201 pass"
+  ],
+  "s": 141,
+  "name": "depth-off",
+  "want": "701",
+  "applied": true,
+  "caught_named": true
+ },
+ {
+  "i": 3,
+  "fails": [
+   "42",
+   "702"
+  ],
+  "tot": [
+   "RUNTIME 199 of 201 pass"
+  ],
+  "s": 94,
+  "name": "start-default",
+  "want": "702",
+  "applied": true,
+  "caught_named": true
+ },
+ {
+  "i": 4,
+  "fails": [
+   "42",
+   "703"
+  ],
+  "tot": [
+   "RUNTIME 199 of 201 pass"
+  ],
+  "s": 145,
+  "name": "ding-missing",
+  "want": "703",
+  "applied": true,
+  "caught_named": true
+ },
+ {
+  "i": 5,
+  "fails": [
+   "42",
+   "703"
+  ],
+  "tot": [
+   "RUNTIME 199 of 201 pass"
+  ],
+  "s": 180,
+  "name": "pieces-local",
+  "want": "703",
+  "applied": true,
+  "caught_named": true
+ },
+ {
+  "i": 6,
+  "fails": [
+   "42",
+   "706"
+  ],
+  "tot": [
+   "RUNTIME 199 of 201 pass"
+  ],
+  "s": 104,
+  "name": "mini-ignores-state",
+  "want": "706",
+  "applied": true,
+  "caught_named": true
+ },
+ {
+  "i": 7,
+  "fails": [
+   "42",
+   "706"
+  ],
+  "tot": [
+   "RUNTIME 199 of 201 pass"
+  ],
+  "s": 142,
+  "name": "mini-hidden",
+  "want": "706",
+  "applied": true,
+  "caught_named": true
+ },
+ {
+  "i": 8,
+  "fails": [
+   "42",
+   "706"
+  ],
+  "tot": [
+   "RUNTIME 199 of 201 pass"
+  ],
+  "s": 204,
+  "name": "mini-walk-off",
+  "want": "706",
+  "applied": true,
+  "caught_named": true
+ },
+ {
+  "i": 9,
+  "fails": [
+   "42",
+   "707"
+  ],
+  "tot": [
+   "RUNTIME 199 of 201 pass"
+  ],
+  "s": 205,
+  "name": "esc-no-late",
+  "want": "707",
+  "applied": true,
+  "caught_named": true
+ },
+ {
+  "i": 10,
+  "fails": [
+   "42",
+   "707"
+  ],
+  "tot": [
+   "RUNTIME 199 of 201 pass"
+  ],
+  "s": 196,
+  "name": "esc-mix-flat",
+  "want": "707",
+  "applied": true,
+  "caught_named": true
+ },
+ {
+  "i": 11,
+  "fails": [
+   "42",
+   "708"
+  ],
+  "tot": [
+   "RUNTIME 199 of 201 pass"
+  ],
+  "s": 196,
+  "name": "switch-no-leave",
+  "want": "708",
+  "applied": true,
+  "caught_named": true
+ },
+ {
+  "i": 12,
+  "fails": [
+   "42",
+   "708"
+  ],
+  "tot": [
+   "RUNTIME 199 of 201 pass"
+  ],
+  "s": 114,
+  "name": "lake-fixed",
+  "want": "708",
+  "applied": true,
+  "caught_named": true
+ },
+ {
+  "i": 13,
+  "fails": [
+   "42",
+   "709"
+  ],
+  "tot": [
+   "RUNTIME 199 of 201 pass"
+  ],
+  "s": 107,
+  "name": "sun-stays",
+  "want": "709",
+  "applied": true,
+  "caught_named": true
+ }
+]
