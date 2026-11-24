@@ -1,0 +1,128 @@
+MODE vsync off, frame limit off
+STALLS reference30 timed 30s: node gaps >30ms 2 (>50ms 1, max 58ms), worker gaps >30ms 4 (>50ms 1), frames >100ms 0, first CJK text -7.59s BODY 
+
+HP 100
+
+
+
+
+Right-click move / attack · Q W R aim (1), fontWarm chars 0
+DIAG reference30 {"cjkFirst":"-7.59s BODY \n\nHP 100\n\n\n\n\nRight-click move / attack · Q W R aim","cjkN":1,"fontWarm":0,"e0":1795547359262.9,"e1":1795547389288.7,"wGapN":4,"wGap50":1,"evts":[],"loafN":1,"loafN100":0,"domWrites":37,"markT":10910.699999999997,"tStart":10910.699999999997,"longRaw":[],"disj":[],"disjN":0,"caps":"timerQuery true parallelCompile true","gpuN":432,"gpuP50":3.09,"gpuP95":4.8,"gpuMax":15.14,"longs":[],"loaf":[{"at_s":-0.08,"ms":74,"block":0,"preRender":73,"scriptsInRender":1,"styleLayoutPaint":0,"scripts":[]}],"glDelta":"link 0, compile 0, buf 0, bufBytes 0, tex 0","drvSlow":0,"nodeGapN":2,"nodeGap50":1,"nodeGapMax":58}
+ROW {"scene":"reference30","setupMs":26,"errs":0,"err0":"","frames":6477,"fps":215.5,"p50":4,"p95":11.1,"worst":59.5,"over20":0.8,"over33":10,"calls":27,"tris":2842,"programs":8,"geoms":260,"texs":6,"heap0":20,"heap1":20,"longN":1,"longMax":64,"longSum":64,"geo0":260,"tex0":6,"drvErr":"","info":"","info2":"","bots":0,"cubs":1}
+LONG heavy_base at 7.24s 160ms nodeStall 0ms workerStall 0ms profSamples 51 profGapMax 11ms cjk ["12 banner Our 伍长 falls, and his square with him. Our househo","12 banner 伍长 down: the 方阵 breaks (no more buff). +10% damage"] gl 0 dom 0 gpu  loaf [{"ms":184,"preRender":1,"slp":180,"scripts":[]}] top ["49 (program) < (root)","1 guardDown:6776 < killUnit:5783 < hitEnemy:5773 < hitTarget:2072 < basicAttack:4657","1 updateStatus:5544 < step:4074 < frame:7441 < (root)"] st []
+STALLS heavy_base timed 60s: node gaps >30ms 2 (>50ms 0, max 40ms), worker gaps >30ms 4 (>50ms 1), frames >100ms 1, first CJK text -7.25s palace 
+
+HP 100
+
+
+
+
+Right-click move / attack · Q W R aim (15), fontWarm chars 0
+DIAG heavy_base {"cjkFirst":"-7.25s palace \n\nHP 100\n\n\n\n\nRight-click move / attack · Q W R aim","cjkN":15,"fontWarm":0,"e0":1795547399431.5,"e1":1795547459460.8,"wGapN":4,"wGap50":1,"evts":["0.4s room fore burn southeast/2 falls 2 awake 3","1.61s room fore burn southeast/0 falls 2 awake 3","35.6s room fore burn west/1 falls 2 awake 3","40.6s room fore burn west/2 falls 3 awake 4","41.8s room fore burn west/0 falls 3 awake 4"],"loafN":9,"loafN100":4,"domWrites":4683,"markT":8743.699999999983,"tStart":8743.699999999983,"longRaw":[[15827,15987.3]],"disj":[],"disjN":0,"caps":"timerQuery true parallelCompile true","gpuN":1389,"gpuP50":3.4,"gpuP95":7.97,"gpuMax":32.28,"longs":[{"at_s":7.24,"ms":160,"gl":[],"drv":[],"dom":[],"st":[],"gpu":[],"ea":1795547406514.8,"eb":1795547406675.1,"cjk":["12 banner Our 伍长 falls, and his square with him. Our househo","12 banner 伍长 down: the 方阵 breaks (no more buff). +10% damage"],"wGap":[],"loaf":[{"ms":184,"preRender":1,"slp":180,"scripts":[]}],"stNear":[],"nGap":[],"prof":{"ms":160,"samples":51,"profGapMax":11,"top":["49 (program) < (root)","1 guardDown:6776 < killUnit:5783 < hitEnemy:5773 < hitTarget:2072 < basicAttack:4657","1 updateStatus:5544 < step:4074 < frame:7441 < (root)"]}}],"loaf":[{"at_s":-0.87,"ms":502,"block":177,"preRender":275,"scriptsInRender":4,"styleLayoutPaint":223,"scripts":[]},{"at_s":-0.32,"ms":298,"block":0,"preRender":270,"scriptsInRender":28,"styleLayoutPaint":0,"scripts":["28ms user-callback FrameRequestCallback frame @507202"]},{"at_s":0.3,"ms":116,"block":66,"preRender":0,"scriptsInRender":116,"styleLayoutPaint":0,"scripts":["116ms user-callback FrameRequestCallback frame @507202"]},{"at_s":0.42,"ms":92,"block":41,"preRender":1,"scriptsInRender":91,"styleLayoutPaint":0,"scripts":["91ms user-callback FrameRequestCallback frame @507202"]},{"at_s":3.11,"ms":62,"block":12,"preRender":0,"scriptsInRender":62,"styleLayoutPaint":0,"scripts":["62ms user-callback FrameRequestCallback frame @507202"]},{"at_s":7.09,"ms":184,"block":133,"preRender":1,"scriptsInRender":3,"styleLayoutPaint":180,"scripts":[]},{"at_s":22.72,"ms":63,"block":13,"preRender":0,"scriptsInRender":63,"styleLayoutPaint":0,"scripts":["62ms user-callback FrameRequestCallback frame @507202"]}],"glDelta":"link 0, compile 0, buf 0, bufBytes 0, tex 0","drvSlow":0,"nodeGapN":2,"nodeGap50":0,"nodeGapMax":40}
+ROW {"scene":"heavy_base","setupMs":639,"errs":0,"err0":"","frames":12227,"fps":203.7,"p50":3.9,"p95":11.8,"worst":160.3,"over20":1.1,"over33":18,"calls":32,"tris":2218,"programs":8,"geoms":261,"texs":6,"heap0":18,"heap1":18,"longN":6,"longMax":184,"longSum":488,"geo0":261,"tex0":6,"drvErr":"","info":"room fore t 79 burn southwest/0 falls 1 giants awake 2 guards 37","info2":"end room fore t 144 burn west/0 falls 3 guards 19 awake 4","bots":3,"cubs":0}
+STALLS heavy_fix timed 60s: node gaps >30ms 1 (>50ms 0, max 30ms), worker gaps >30ms 3 (>50ms 0), frames >100ms 0, first CJK text -6.77s palace 
+
+HP 100
+
+
+
+
+Right-click move / attack · Q W R aim (16), fontWarm chars 120
+DIAG heavy_fix {"cjkFirst":"-6.77s palace \n\nHP 100\n\n\n\n\nRight-click move / attack · Q W R aim","cjkN":16,"fontWarm":120,"e0":1795547468920,"e1":1795547528957.2,"wGapN":3,"wGap50":0,"evts":["0.29s room fore burn southeast/2 falls 2 awake 3","1.59s room fore burn southeast/0 falls 2 awake 3","35.29s room fore burn west/1 falls 2 awake 3","40.38s room fore burn west/2 falls 3 awake 4","41.59s room fore burn west/0 falls 3 awake 4"],"loafN":3,"loafN100":1,"domWrites":3129,"markT":8351.799999999988,"tStart":8351.699999999983,"longRaw":[],"disj":[],"disjN":0,"caps":"timerQuery true parallelCompile true","gpuN":1440,"gpuP50":3.4,"gpuP95":8.3,"gpuMax":23.36,"longs":[],"loaf":[{"at_s":-0.09,"ms":73,"block":0,"preRender":71,"scriptsInRender":2,"styleLayoutPaint":0,"scripts":[]},{"at_s":40.21,"ms":105,"block":55,"preRender":0,"scriptsInRender":105,"styleLayoutPaint":0,"scripts":["105ms user-callback FrameRequestCallback frame @507916"]}],"glDelta":"link 0, compile 0, buf 0, bufBytes 0, tex 0","drvSlow":1,"nodeGapN":1,"nodeGap50":0,"nodeGapMax":30}
+ROW {"scene":"heavy_fix","setupMs":586,"errs":0,"err0":"","frames":12876,"fps":214.4,"p50":3.9,"p95":11.1,"worst":99.4,"over20":0.8,"over33":14,"calls":22,"tris":1286,"programs":8,"geoms":261,"texs":6,"heap0":17,"heap1":17,"longN":2,"longMax":105,"longSum":158,"geo0":261,"tex0":6,"drvErr":"","info":"room fore t 79 burn southwest/0 falls 1 giants awake 2 guards 37","info2":"end room fore t 145 burn west/0 falls 3 guards 14 awake 4","bots":2,"cubs":0}
+STALLS cjk_base timed 15s: node gaps >30ms 1 (>50ms 0, max 33ms), worker gaps >30ms 1 (>50ms 0), frames >100ms 0, first CJK text -6.75s palace 
+
+HP 100
+
+
+
+
+Right-click move / attack · Q W R aim (17), fontWarm chars 0
+DIAG cjk_base {"cjkFirst":"-6.75s palace \n\nHP 100\n\n\n\n\nRight-click move / attack · Q W R aim","cjkN":17,"fontWarm":0,"e0":1795547537435.9,"e1":1795547552472.5,"wGapN":1,"wGap50":0,"evts":["0.4s room fore burn southeast/2 falls 2 awake 3","1.6s room fore burn southeast/0 falls 2 awake 3"],"loafN":3,"loafN100":1,"domWrites":474,"markT":7820.5,"tStart":7820.5,"longRaw":[],"disj":[],"disjN":0,"caps":"timerQuery true parallelCompile true","gpuN":304,"gpuP50":3.34,"gpuP95":6.17,"gpuMax":12.87,"longs":[],"loaf":[{"at_s":-0.5,"ms":394,"block":0,"preRender":376,"scriptsInRender":5,"styleLayoutPaint":14,"scripts":[]},{"at_s":-0.1,"ms":91,"block":0,"preRender":87,"scriptsInRender":4,"styleLayoutPaint":0,"scripts":[]},{"at_s":3.87,"ms":66,"block":15,"preRender":0,"scriptsInRender":65,"styleLayoutPaint":0,"scripts":["65ms user-callback FrameRequestCallback frame @507202"]}],"glDelta":"link 0, compile 0, buf 0, bufBytes 0, tex 0","drvSlow":0,"nodeGapN":1,"nodeGap50":0,"nodeGapMax":33}
+ROW {"scene":"cjk_base","setupMs":598,"errs":0,"err0":"","frames":3062,"fps":203.7,"p50":3.8,"p95":12.3,"worst":52.7,"over20":1.2,"over33":9,"calls":21,"tris":1362,"programs":8,"geoms":261,"texs":6,"heap0":18,"heap1":18,"longN":2,"longMax":66,"longSum":118,"geo0":261,"tex0":6,"drvErr":"","info":"room fore t 79 burn southwest/0 falls 1 giants awake 2 guards 37","info2":"","bots":1,"cubs":0}
+STALLS latin_base timed 15s: node gaps >30ms 0 (>50ms 0, max 0ms), worker gaps >30ms 1 (>50ms 0), frames >100ms 0, first CJK text -7.06s palace 
+
+HP 100
+
+
+
+
+Right-click move / attack · Q W R aim (15), fontWarm chars 0
+DIAG latin_base {"cjkFirst":"-7.06s palace \n\nHP 100\n\n\n\n\nRight-click move / attack · Q W R aim","cjkN":15,"fontWarm":0,"e0":1795547562046.5,"e1":1795547577084.2,"wGapN":1,"wGap50":0,"evts":["0.39s room fore burn southeast/2 falls 2 awake 3","1.59s room fore burn southeast/0 falls 2 awake 3"],"loafN":3,"loafN100":2,"domWrites":447,"markT":8351.800000000047,"tStart":8351.800000000047,"longRaw":[],"disj":[],"disjN":0,"caps":"timerQuery true parallelCompile true","gpuN":320,"gpuP50":3.3,"gpuP95":6.17,"gpuMax":10.47,"longs":[],"loaf":[{"at_s":-0.53,"ms":395,"block":0,"preRender":366,"scriptsInRender":14,"styleLayoutPaint":15,"scripts":["14ms user-callback FrameRequestCallback frame @507202"]},{"at_s":-0.12,"ms":123,"block":0,"preRender":117,"scriptsInRender":6,"styleLayoutPaint":0,"scripts":["6ms user-callback FrameRequestCallback frame @507202"]},{"at_s":7.05,"ms":67,"block":17,"preRender":0,"scriptsInRender":2,"styleLayoutPaint":64,"scripts":[]}],"glDelta":"link 0, compile 0, buf 0, bufBytes 0, tex 0","drvSlow":0,"nodeGapN":0,"nodeGap50":0,"nodeGapMax":0}
+ROW {"scene":"latin_base","setupMs":869,"errs":0,"err0":"","frames":3231,"fps":214.9,"p50":3.9,"p95":11.4,"worst":48.2,"over20":0.7,"over33":5,"calls":21,"tris":1362,"programs":8,"geoms":261,"texs":6,"heap0":20,"heap1":20,"longN":1,"longMax":68,"longSum":68,"geo0":261,"tex0":6,"drvErr":"","info":"room fore t 79 burn southwest/0 falls 1 giants awake 2 guards 37","info2":"","bots":1,"cubs":0}
+STALLS cjk_fix timed 15s: node gaps >30ms 0 (>50ms 0, max 0ms), worker gaps >30ms 57 (>50ms 0), frames >100ms 0, first CJK text -7.11s palace 
+
+HP 100
+
+
+
+
+Right-click move / attack · Q W R aim (18), fontWarm chars 120
+DIAG cjk_fix {"cjkFirst":"-7.11s palace \n\nHP 100\n\n\n\n\nRight-click move / attack · Q W R aim","cjkN":18,"fontWarm":120,"e0":1795547586729.4,"e1":1795547601759.1,"wGapN":57,"wGap50":0,"evts":["0.29s room fore burn southeast/2 falls 2 awake 3","1.5s room fore burn southeast/0 falls 2 awake 3"],"loafN":2,"loafN100":1,"domWrites":408,"markT":8472,"tStart":8472,"longRaw":[],"disj":[],"disjN":0,"caps":"timerQuery true parallelCompile true","gpuN":256,"gpuP50":3.61,"gpuP95":8.97,"gpuMax":21.42,"longs":[],"loaf":[{"at_s":-0.13,"ms":118,"block":0,"preRender":107,"scriptsInRender":11,"styleLayoutPaint":0,"scripts":["11ms user-callback FrameRequestCallback frame @507916"]}],"glDelta":"link 0, compile 0, buf 0, bufBytes 0, tex 0","drvSlow":0,"nodeGapN":0,"nodeGap50":0,"nodeGapMax":0}
+ROW {"scene":"cjk_fix","setupMs":502,"errs":0,"err0":"","frames":2605,"fps":173.2,"p50":3.8,"p95":17.1,"worst":67.7,"over20":2,"over33":13,"calls":21,"tris":1362,"programs":8,"geoms":261,"texs":6,"heap0":25,"heap1":25,"longN":2,"longMax":54,"longSum":106,"geo0":261,"tex0":6,"drvErr":"","info":"room fore t 79 burn southwest/0 falls 1 giants awake 2 guards 37","info2":"","bots":1,"cubs":0}
+LONG heavy_fix at 41.5s 108ms nodeStall 0ms workerStall 29ms profSamples 3 profGapMax 75ms cjk [] gl 0 dom 0 gpu 3.5/2.6 loaf [{"ms":136,"preRender":1,"slp":1,"scripts":["134ms user-callback frame"]}] top ["2 bufferSubData < (anon):6 < update:6 < update:6 < je:6","1 setFromProjectionMatrix:6 < render:6 < frame:7450 < (root)"] st ["-1001 room fore burn west/2 falls 3 awake 4","523 room fore burn west/0 falls 3 awake 4"]
+LONG heavy_fix at 41.8s 193ms nodeStall 0ms workerStall 39ms profSamples 20 profGapMax 59ms cjk ["155 banner 渠帅 down: Mo suit bootleg move, one use. Press F."] gl 0 dom 0 gpu 3.6/15.0/2.1 loaf [{"ms":199,"preRender":0,"slp":52,"scripts":["146ms user-callback frame"]}] top ["11 (program) < (root)","2 fzHud:6941 < stepCombat:4281 < step:4083 < frame:7450 < (root)","2 floorAt:2161 < canStand:2189 < unitOk:5595 < moveUnit:5601 < stepGuard:6660","1 requestAnimationFrame < frame:7450 < (root)","1 hitSolid:2181 < canStand:2189 < unitOk:5595 < moveUnit:5601 < stepGuard:6660","1 hitTarget:2081 < skillHit:6424 < botSkillHit:6409 < botUseSkills:6264 < botThink:6088"] st ["-1211 room fore burn west/2 falls 3 awake 4","313 room fore burn west/0 falls 3 awake 4"]
+STALLS heavy_fix timed 60s: node gaps >30ms 3 (>50ms 0, max 49ms), worker gaps >30ms 243 (>50ms 2), frames >100ms 2, first CJK text -6.6s palace 
+
+HP 100
+
+
+
+
+Right-click move / attack · Q W R aim (19), fontWarm chars 120
+DIAG heavy_fix {"cjkFirst":"-6.6s palace \n\nHP 100\n\n\n\n\nRight-click move / attack · Q W R aim","cjkN":19,"fontWarm":120,"e0":1795547610882.5,"e1":1795547670909,"wGapN":243,"wGap50":2,"evts":["0.39s room fore burn southeast/2 falls 2 awake 3","1.6s room fore burn southeast/0 falls 2 awake 3","35.39s room fore burn west/1 falls 2 awake 3","40.39s room fore burn west/2 falls 3 awake 4","41.92s room fore burn west/0 falls 3 awake 4"],"loafN":8,"loafN100":3,"domWrites":4636,"markT":8153.900000000023,"tStart":8153.900000000023,"longRaw":[[49549.2,49657.6],[49759.5,49952.9]],"disj":[],"disjN":0,"caps":"timerQuery true parallelCompile true","gpuN":1296,"gpuP50":3.48,"gpuP95":6.8,"gpuMax":34.4,"longs":[{"at_s":41.5,"ms":108,"gl":[],"drv":[],"dom":[],"st":[],"gpu":["3.5","2.6"],"ea":1795547652277.8,"eb":1795547652386.2,"cjk":[],"wGap":[29],"loaf":[{"ms":136,"preRender":1,"slp":1,"scripts":["134ms user-callback frame"]}],"stNear":["-1001 room fore burn west/2 falls 3 awake 4","523 room fore burn west/0 falls 3 awake 4"],"nGap":[],"prof":{"ms":108,"samples":3,"profGapMax":75,"top":["2 bufferSubData < (anon):6 < update:6 < update:6 < je:6","1 setFromProjectionMatrix:6 < render:6 < frame:7450 < (root)"]}},{"at_s":41.8,"ms":193,"gl":[],"drv":[],"dom":[],"st":["313 room fore burn west/0 falls 3 awake 4"],"gpu":["3.6","15.0","2.1"],"ea":1795547652488.1,"eb":1795547652681.5,"cjk":["155 banner 渠帅 down: Mo suit bootleg move, one use. Press F."],"wGap":[39],"loaf":[{"ms":199,"preRender":0,"slp":52,"scripts":["146ms user-callback frame"]}],"stNear":["-1211 room fore burn west/2 falls 3 awake 4","313 room fore burn west/0 falls 3 awake 4"],"nGap":[],"prof":{"ms":193,"samples":20,"profGapMax":59,"top":["11 (program) < (root)","2 fzHud:6941 < stepCombat:4281 < step:4083 < frame:7450 < (root)","2 floorAt:2161 < canStand:2189 < unitOk:5595 < moveUnit:5601 < stepGuard:6660","1 requestAnimationFrame < frame:7450 < (root)","1 hitSolid:2181 < canStand:2189 < unitOk:5595 < moveUnit:5601 < stepGuard:6660","1 hitTarget:2081 < skillHit:6424 < botSkillHit:6409 < botUseSkills:6264 < botThink:6088"]}}],"loaf":[{"at_s":-0.29,"ms":206,"block":0,"preRender":197,"scriptsInRender":7,"styleLayoutPaint":2,"scripts":["7ms user-callback FrameRequestCallback frame @507916"]},{"at_s":-0.06,"ms":62,"block":0,"preRender":61,"scriptsInRender":2,"styleLayoutPaint":0,"scripts":[]},{"at_s":41.39,"ms":136,"block":85,"preRender":1,"scriptsInRender":134,"styleLayoutPaint":1,"scripts":["134ms user-callback FrameRequestCallback frame @507916"]},{"at_s":41.55,"ms":62,"block":11,"preRender":3,"scriptsInRender":42,"styleLayoutPaint":17,"scripts":["38ms user-callback FrameRequestCallback frame @507916"]},{"at_s":41.61,"ms":199,"block":148,"preRender":0,"scriptsInRender":146,"styleLayoutPaint":52,"scripts":["146ms user-callback FrameRequestCallback frame @507916"]},{"at_s":43.69,"ms":60,"block":10,"preRender":1,"scriptsInRender":59,"styleLayoutPaint":0,"scripts":["59ms user-callback FrameRequestCallback frame @507916"]},{"at_s":45.16,"ms":77,"block":28,"preRender":0,"scriptsInRender":77,"styleLayoutPaint":0,"scripts":["77ms user-callback FrameRequestCallback frame @507916"]}],"glDelta":"link 0, compile 0, buf 0, bufBytes 0, tex 0","drvSlow":0,"nodeGapN":3,"nodeGap50":0,"nodeGapMax":49}
+ROW {"scene":"heavy_fix","setupMs":497,"errs":0,"err0":"","frames":10908,"fps":181.7,"p50":3.9,"p95":16.2,"worst":193.4,"over20":1.6,"over33":18,"calls":32,"tris":1810,"programs":8,"geoms":261,"texs":6,"heap0":22,"heap1":22,"longN":7,"longMax":206,"longSum":664,"geo0":261,"tex0":6,"drvErr":"","info":"room fore t 79 burn southwest/0 falls 1 giants awake 2 guards 37","info2":"end room fore t 144 burn west/0 falls 3 guards 22 awake 4","bots":3,"cubs":0}
+STALLS heavy_base timed 60s: node gaps >30ms 1 (>50ms 1, max 51ms), worker gaps >30ms 274 (>50ms 1), frames >100ms 0, first CJK text -6.79s palace 
+
+HP 100
+
+
+
+
+Right-click move / attack · Q W R aim (15), fontWarm chars 0
+DIAG heavy_base {"cjkFirst":"-6.79s palace \n\nHP 100\n\n\n\n\nRight-click move / attack · Q W R aim","cjkN":15,"fontWarm":0,"e0":1795547679794.5,"e1":1795547739830.8,"wGapN":274,"wGap50":1,"evts":["0.4s room fore burn southeast/2 falls 2 awake 3","1.59s room fore burn southeast/0 falls 2 awake 3","35.49s room fore burn west/1 falls 2 awake 3","40.54s room fore burn west/2 falls 3 awake 4","41.7s room fore burn west/0 falls 3 awake 4"],"loafN":8,"loafN100":2,"domWrites":3874,"markT":8067.700000000012,"tStart":8067.700000000012,"longRaw":[],"disj":[],"disjN":0,"caps":"timerQuery true parallelCompile true","gpuN":1247,"gpuP50":3.66,"gpuP95":9.26,"gpuMax":52.1,"longs":[],"loaf":[{"at_s":-0.44,"ms":331,"block":0,"preRender":287,"scriptsInRender":9,"styleLayoutPaint":35,"scripts":["9ms user-callback FrameRequestCallback frame @507202"]},{"at_s":-0.09,"ms":90,"block":0,"preRender":87,"scriptsInRender":3,"styleLayoutPaint":0,"scripts":[]},{"at_s":7.06,"ms":107,"block":57,"preRender":0,"scriptsInRender":7,"styleLayoutPaint":100,"scripts":["7ms user-callback FrameRequestCallback frame @507202"]},{"at_s":17.52,"ms":82,"block":0,"preRender":74,"scriptsInRender":7,"styleLayoutPaint":0,"scripts":["7ms user-callback FrameRequestCallback frame @507202"]},{"at_s":32.56,"ms":62,"block":12,"preRender":0,"scriptsInRender":62,"styleLayoutPaint":0,"scripts":["62ms user-callback FrameRequestCallback frame @507202"]}],"glDelta":"link 0, compile 0, buf 0, bufBytes 0, tex 0","drvSlow":1,"nodeGapN":1,"nodeGap50":1,"nodeGapMax":51}
+ROW {"scene":"heavy_base","setupMs":631,"errs":0,"err0":"","frames":10176,"fps":169.5,"p50":4,"p95":17.2,"worst":93.8,"over20":2.3,"over33":35,"calls":33,"tris":2286,"programs":8,"geoms":261,"texs":6,"heap0":22,"heap1":22,"longN":6,"longMax":108,"longSum":415,"geo0":261,"tex0":6,"drvErr":"","info":"room fore t 79 burn southwest/0 falls 1 giants awake 2 guards 37","info2":"end room fore t 145 burn west/0 falls 3 guards 19 awake 4","bots":3,"cubs":0}
+STALLS cjk_fix timed 15s: node gaps >30ms 2 (>50ms 1, max 56ms), worker gaps >30ms 82 (>50ms 2), frames >100ms 0, first CJK text -6.93s palace 
+
+HP 100
+
+
+
+
+Right-click move / attack · Q W R aim (18), fontWarm chars 120
+DIAG cjk_fix {"cjkFirst":"-6.93s palace \n\nHP 100\n\n\n\n\nRight-click move / attack · Q W R aim","cjkN":18,"fontWarm":120,"e0":1795547749680.6,"e1":1795547764733.6,"wGapN":82,"wGap50":2,"evts":["0.41s room fore burn southeast/2 falls 2 awake 3","1.59s room fore burn southeast/0 falls 2 awake 3"],"loafN":7,"loafN100":1,"domWrites":378,"markT":8395.099999999977,"tStart":8395.099999999977,"longRaw":[],"disj":[],"disjN":0,"caps":"timerQuery true parallelCompile true","gpuN":224,"gpuP50":3.95,"gpuP95":9.74,"gpuMax":23.51,"longs":[],"loaf":[{"at_s":-0.11,"ms":104,"block":0,"preRender":99,"scriptsInRender":5,"styleLayoutPaint":0,"scripts":[]},{"at_s":2.8,"ms":80,"block":26,"preRender":4,"scriptsInRender":76,"styleLayoutPaint":0,"scripts":["76ms user-callback FrameRequestCallback frame @507916"]},{"at_s":11.97,"ms":83,"block":33,"preRender":0,"scriptsInRender":82,"styleLayoutPaint":0,"scripts":["82ms user-callback FrameRequestCallback frame @507916"]}],"glDelta":"link 0, compile 0, buf 0, bufBytes 0, tex 0","drvSlow":0,"nodeGapN":2,"nodeGap50":1,"nodeGapMax":56}
+ROW {"scene":"cjk_fix","setupMs":726,"errs":0,"err0":"","frames":2240,"fps":149,"p50":4.4,"p95":19.1,"worst":63.5,"over20":3.8,"over33":17,"calls":21,"tris":1362,"programs":8,"geoms":261,"texs":6,"heap0":20,"heap1":20,"longN":5,"longMax":82,"longSum":292,"geo0":261,"tex0":6,"drvErr":"","info":"room fore t 79 burn southwest/0 falls 1 giants awake 2 guards 37","info2":"","bots":1,"cubs":0}
+STALLS cjk_base timed 15s: node gaps >30ms 1 (>50ms 0, max 36ms), worker gaps >30ms 55 (>50ms 0), frames >100ms 0, first CJK text -6.88s palace 
+
+HP 100
+
+
+
+
+Right-click move / attack · Q W R aim (17), fontWarm chars 0
+DIAG cjk_base {"cjkFirst":"-6.88s palace \n\nHP 100\n\n\n\n\nRight-click move / attack · Q W R aim","cjkN":17,"fontWarm":0,"e0":1795547773891.5,"e1":1795547788923.2,"wGapN":55,"wGap50":0,"evts":["0.39s room fore burn southeast/2 falls 2 awake 3","1.6s room fore burn southeast/0 falls 2 awake 3"],"loafN":2,"loafN100":1,"domWrites":409,"markT":8349.799999999988,"tStart":8349.799999999988,"longRaw":[],"disj":[],"disjN":0,"caps":"timerQuery true parallelCompile true","gpuN":256,"gpuP50":3.83,"gpuP95":8.12,"gpuMax":42.77,"longs":[],"loaf":[{"at_s":-0.1,"ms":90,"block":0,"preRender":89,"scriptsInRender":1,"styleLayoutPaint":0,"scripts":[]},{"at_s":3.49,"ms":106,"block":46,"preRender":11,"scriptsInRender":1,"styleLayoutPaint":94,"scripts":[]}],"glDelta":"link 0, compile 0, buf 0, bufBytes 0, tex 0","drvSlow":0,"nodeGapN":1,"nodeGap50":0,"nodeGapMax":36}
+ROW {"scene":"cjk_base","setupMs":710,"errs":0,"err0":"","frames":2577,"fps":171.5,"p50":4,"p95":17.4,"worst":90.3,"over20":2.4,"over33":8,"calls":21,"tris":1362,"programs":8,"geoms":261,"texs":6,"heap0":25,"heap1":25,"longN":2,"longMax":95,"longSum":146,"geo0":261,"tex0":6,"drvErr":"","info":"room fore t 79 burn southwest/0 falls 1 giants awake 2 guards 37","info2":"","bots":1,"cubs":0}
+STALLS latin_base timed 15s: node gaps >30ms 0 (>50ms 0, max 0ms), worker gaps >30ms 59 (>50ms 0), frames >100ms 0, first CJK text -7.11s palace 
+
+HP 100
+
+
+
+
+Right-click move / attack · Q W R aim (15), fontWarm chars 0
+DIAG latin_base {"cjkFirst":"-7.11s palace \n\nHP 100\n\n\n\n\nRight-click move / attack · Q W R aim","cjkN":15,"fontWarm":0,"e0":1795547799002.4,"e1":1795547814034.8,"wGapN":59,"wGap50":0,"evts":["0.3s room fore burn southeast/2 falls 2 awake 3","1.62s room fore burn southeast/0 falls 2 awake 3"],"loafN":3,"loafN100":1,"domWrites":436,"markT":8622.5,"tStart":8622.5,"longRaw":[],"disj":[],"disjN":0,"caps":"timerQuery true parallelCompile true","gpuN":272,"gpuP50":3.65,"gpuP95":7.22,"gpuMax":15.07,"longs":[],"loaf":[{"at_s":-0.17,"ms":158,"block":0,"preRender":154,"scriptsInRender":5,"styleLayoutPaint":0,"scripts":[]},{"at_s":7.03,"ms":66,"block":16,"preRender":0,"scriptsInRender":3,"styleLayoutPaint":63,"scripts":[]}],"glDelta":"link 0, compile 0, buf 0, bufBytes 0, tex 0","drvSlow":0,"nodeGapN":0,"nodeGap50":0,"nodeGapMax":0}
+ROW {"scene":"latin_base","setupMs":774,"errs":0,"err0":"","frames":2727,"fps":181.7,"p50":3.9,"p95":16.3,"worst":75.3,"over20":1.5,"over33":3,"calls":21,"tris":1362,"programs":8,"geoms":261,"texs":6,"heap0":20,"heap1":20,"longN":1,"longMax":66,"longSum":66,"geo0":261,"tex0":6,"drvErr":"","info":"room fore t 79 burn southwest/0 falls 1 giants awake 2 guards 37","info2":"","bots":1,"cubs":0}
+RENDERER ANGLE (Apple, ANGLE Metal Renderer: Apple Paravirtual device, Unspecified Version)
+scene       fps    p50   p95   worst  >20ms%  >33ms  calls  tris    prog geo  heap MB  geo/tex start-end  live
+reference30  215.5     4  11.1   59.5    0.8     10     27    2842    8  260     20-20   260-260/6-6  bots 0 cubs 1 long 1/64ms/64ms
+heavy_base  203.7   3.9  11.8  160.3    1.1     18     32    2218    8  261     18-18   261-261/6-6  bots 3 cubs 0 long 6/184ms/488ms
+heavy_fix   214.4   3.9  11.1   99.4    0.8     14     22    1286    8  261     17-17   261-261/6-6  bots 2 cubs 0 long 2/105ms/158ms
+cjk_base    203.7   3.8  12.3   52.7    1.2      9     21    1362    8  261     18-18   261-261/6-6  bots 1 cubs 0 long 2/66ms/118ms
+latin_base  214.9   3.9  11.4   48.2    0.7      5     21    1362    8  261     20-20   261-261/6-6  bots 1 cubs 0 long 1/68ms/68ms
+cjk_fix     173.2   3.8  17.1   67.7      2     13     21    1362    8  261     25-25   261-261/6-6  bots 1 cubs 0 long 2/54ms/106ms
+heavy_fix   181.7   3.9  16.2  193.4    1.6     18     32    1810    8  261     22-22   261-261/6-6  bots 3 cubs 0 long 7/206ms/664ms
+heavy_base  169.5     4  17.2   93.8    2.3     35     33    2286    8  261     22-22   261-261/6-6  bots 3 cubs 0 long 6/108ms/415ms
+cjk_fix       149   4.4  19.1   63.5    3.8     17     21    1362    8  261     20-20   261-261/6-6  bots 1 cubs 0 long 5/82ms/292ms
+cjk_base    171.5     4  17.4   90.3    2.4      8     21    1362    8  261     25-25   261-261/6-6  bots 1 cubs 0 long 2/95ms/146ms
+latin_base  181.7   3.9  16.3   75.3    1.5      3     21    1362    8  261     20-20   261-261/6-6  bots 1 cubs 0 long 1/66ms/66ms
+NODEGAPS total 15 over 50ms 3 max 58ms
