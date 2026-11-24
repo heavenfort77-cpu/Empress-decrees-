@@ -1,5 +1,5 @@
 # 05. The full palace (阿房宫 model) and escalation
-Blocked by: 04
+Blocked by: 04, 08, 09
 
 ## Outcome
 About 25-30 rooms on a platform over the black lake: the nine halls on the rim, courtyards, corridors, gardens (curtains), bridges, the core hall; room types shape fights; squads grow toward the core; door previews and the room minimap complete.

@@ -51,6 +51,17 @@ Rebels of the 太平道 in yellow headbands, wearing bootleg 甲: cheap copies o
 - Placement: some doors show "something stirs" for rebels; more of them near rooms that burn; her announcements name rebel ambushes off-screen.
 - Same rules as the guard: shared spawn API with a faction field, fixed pools, instances, numbers in CONFIG, a CONFIG switch (off in Royal Rumble).
 
+## Palace pieces (owner picks 24 Nov 14:27; 石狮 from 14:24)
+Hazards and tools from traditional palaces (Qin first). Every hit shows a tell >= 0.4 s; they hit every side (player, rivals, 皇家 guard, 反贼), so luring enemies into them is a play. Numbers in CONFIG; one on/off switch each.
+- 石狮 stone lions: a pair beside big hall and gate doors; 0.6 s red ring, strike within 3.5 m (reuses the Royal Rumble lion code).
+- 水银 mercury channels (Qin tomb): silver channels across bridges and halls; standing in them hurts over time; crossed between pulses (shimmer before each pulse).
+- 十二金人 twelve bronze giants (Qin): stand along the approach to the core; she wakes one each time a wing burns; a woken giant slowly hunts the nearest suit (slow, big tells, heavy hits); cap on awake giants in CONFIG.
+- 门海 bronze water vats: break one to flood a spot: douses the burning there for a few seconds and knocks back anyone in it.
+- 铜鹤 / 香炉 bronze cranes and incense burners: smoke clouds that block sight; anyone can hide in them, the 死士 assassins too. Few, small smoke cards (transparency budget).
+- 鼎 cauldrons: replace the healing altars in the palace, nine, one in each school's hall (lore: the 九鼎 Qin lost). Royal Rumble keeps its altars.
+- 铜壶滴漏 water clock: one per wing, its water level counts down to her next burning in that wing (the timer shown in the scene, as well as the HUD).
+- 华表 pillar beasts: the beast on top watches its room; passing it marks you for a few seconds (seen by all, the existing mark).
+
 ## Camera
 - Wide when no enemy is within reach, tighter when one is; eased over about 0.4 s; never jumps. Corridors closer, courtyards wider.
 - A manual zoom key overrides it (MOBA players expect a fixed zoom). Phones start closer.
