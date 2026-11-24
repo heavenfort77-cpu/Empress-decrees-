@@ -1,0 +1,341 @@
+{
+ "zu": {
+  "unit": "zu",
+  "passed": 11,
+  "checks": 11,
+  "gates": [
+   [
+    true,
+    "lod0 tris 3544 (budget 4000)"
+   ],
+   [
+    true,
+    "lod1 tris 1218 (budget 1500)"
+   ],
+   [
+    true,
+    "lod2 tris 320 (budget 500; weapons drop at LOD2)"
+   ],
+   [
+    true,
+    "every lod0 vertex weighted, sum 1 (0 bad)"
+   ],
+   [
+    true,
+    "clips ['attack', 'idle', 'move']"
+   ],
+   [
+    true,
+    "attack windup 0.50 s (tell >= 0.4)"
+   ],
+   [
+    true,
+    "weapon tip peaks at 0.50 s = windup 0.50 s"
+   ],
+   [
+    true,
+    "weapon tip moves 2.66 m by the windup (min 0.3)"
+   ],
+   [
+    true,
+    "body half-width 0.44 m (0.7-1.4 x radius 0.45)"
+   ],
+   [
+    true,
+    "body height 1.78 m (band 1.45-1.90)"
+   ],
+   [
+    true,
+    "body 6.4 heads tall (head 0.28 m incl. cap; min 6.0; round 3 about 4.9)"
+   ]
+  ],
+  "solved": 1.0,
+  "tris": [
+   3544,
+   1218,
+   320
+  ],
+  "weapon_tris": [
+   0,
+   0
+  ],
+  "tip": 2.660805131528516,
+  "windup": 0.5,
+  "heads": 6.415882466477591,
+  "top": 2.6965999603271484,
+  "body_top": 1.7772001028060913,
+  "half_width": 0.4449999928474426,
+  "length": 0.9693516492843628
+ },
+ "nu": {
+  "unit": "nu",
+  "passed": 11,
+  "checks": 11,
+  "gates": [
+   [
+    true,
+    "lod0 tris 3904 (budget 4000)"
+   ],
+   [
+    true,
+    "lod1 tris 1354 (budget 1500)"
+   ],
+   [
+    true,
+    "lod2 tris 360 (budget 500; weapons drop at LOD2)"
+   ],
+   [
+    true,
+    "every lod0 vertex weighted, sum 1 (0 bad)"
+   ],
+   [
+    true,
+    "clips ['attack', 'idle', 'move']"
+   ],
+   [
+    true,
+    "attack windup 0.80 s (tell >= 0.4)"
+   ],
+   [
+    true,
+    "weapon tip peaks at 0.83 s = windup 0.80 s"
+   ],
+   [
+    true,
+    "weapon tip moves 0.91 m by the windup (min 0.3)"
+   ],
+   [
+    true,
+    "body half-width 0.44 m (0.7-1.4 x radius 0.45)"
+   ],
+   [
+    true,
+    "body height 1.71 m (band 1.45-1.90)"
+   ],
+   [
+    true,
+    "body 6.2 heads tall (head 0.28 m incl. cap; min 6.0; round 3 about 4.9)"
+   ]
+  ],
+  "solved": 1.0,
+  "tris": [
+   3904,
+   1354,
+   360
+  ],
+  "weapon_tris": [
+   0,
+   0
+  ],
+  "tip": 0.9073102007070324,
+  "windup": 0.8,
+  "heads": 6.162454553720551,
+  "top": 1.7070000171661377,
+  "body_top": 1.7070000171661377,
+  "half_width": 0.4449999928474426,
+  "length": 1.2357969880104065
+ },
+ "dun": {
+  "unit": "dun",
+  "passed": 11,
+  "checks": 11,
+  "gates": [
+   [
+    true,
+    "lod0 tris 3828 (budget 4000)"
+   ],
+   [
+    true,
+    "lod1 tris 1254 (budget 1500)"
+   ],
+   [
+    true,
+    "lod2 tris 328 (budget 500; weapons drop at LOD2)"
+   ],
+   [
+    true,
+    "every lod0 vertex weighted, sum 1 (0 bad)"
+   ],
+   [
+    true,
+    "clips ['attack', 'idle', 'move']"
+   ],
+   [
+    true,
+    "attack windup 0.50 s (tell >= 0.4)"
+   ],
+   [
+    true,
+    "weapon tip peaks at 0.50 s = windup 0.50 s"
+   ],
+   [
+    true,
+    "weapon tip moves 0.81 m by the windup (min 0.3)"
+   ],
+   [
+    true,
+    "body half-width 0.58 m (0.7-1.4 x radius 0.6)"
+   ],
+   [
+    true,
+    "body height 1.78 m (band 1.45-1.90)"
+   ],
+   [
+    true,
+    "body 6.4 heads tall (head 0.28 m incl. cap; min 6.0; round 3 about 4.9)"
+   ]
+  ],
+  "solved": 1.0,
+  "tris": [
+   3828,
+   1254,
+   328
+  ],
+  "weapon_tris": [
+   0,
+   0
+  ],
+  "tip": 0.8051423530857114,
+  "windup": 0.5,
+  "heads": 6.415882466477591,
+  "top": 1.7772001028060913,
+  "body_top": 1.7772001028060913,
+  "half_width": 0.5849999785423279,
+  "length": 0.9846758246421814
+ },
+ "che": {
+  "unit": "che",
+  "passed": 10,
+  "checks": 10,
+  "gates": [
+   [
+    true,
+    "lod0 tris 3872 (budget 4000)"
+   ],
+   [
+    true,
+    "lod1 tris 1472 (budget 1500)"
+   ],
+   [
+    true,
+    "lod2 tris 381 (budget 500; weapons drop at LOD2)"
+   ],
+   [
+    true,
+    "every lod0 vertex weighted, sum 1 (0 bad)"
+   ],
+   [
+    true,
+    "clips ['attack', 'idle', 'move']"
+   ],
+   [
+    true,
+    "attack windup 0.90 s (tell >= 0.4)"
+   ],
+   [
+    true,
+    "weapon tip peaks at 0.90 s = windup 0.90 s"
+   ],
+   [
+    true,
+    "weapon tip moves 1.05 m by the windup (min 0.3)"
+   ],
+   [
+    true,
+    "body half-width 1.00 m (0.7-1.4 x radius 0.9)"
+   ],
+   [
+    true,
+    "chariot body length 1.92 m (>= 1.9), top 2.08 m (<= 2.2)"
+   ]
+  ],
+  "solved": 1.0,
+  "tris": [
+   3872,
+   1472,
+   381
+  ],
+  "weapon_tris": [
+   0,
+   0
+  ],
+  "tip": 1.0517494959312053,
+  "windup": 0.9,
+  "top": 2.0799999237060547,
+  "body_top": 2.0799999237060547,
+  "half_width": 1.0,
+  "length": 2.456861138343811
+ },
+ "wz": {
+  "unit": "wz",
+  "passed": 12,
+  "checks": 12,
+  "gates": [
+   [
+    true,
+    "lod0 tris 3760 (budget 4000)"
+   ],
+   [
+    true,
+    "lod1 tris 1258 (budget 1500)"
+   ],
+   [
+    true,
+    "lod2 tris 330 (budget 500; weapons drop at LOD2)"
+   ],
+   [
+    true,
+    "every lod0 vertex weighted, sum 1 (0 bad)"
+   ],
+   [
+    true,
+    "clips ['attack', 'idle', 'move']"
+   ],
+   [
+    true,
+    "attack windup 0.50 s (tell >= 0.4)"
+   ],
+   [
+    true,
+    "weapon tip peaks at 0.48 s = windup 0.50 s"
+   ],
+   [
+    true,
+    "weapon tip moves 1.37 m by the windup (min 0.3)"
+   ],
+   [
+    true,
+    "body half-width 0.49 m (0.7-1.4 x radius 0.5)"
+   ],
+   [
+    true,
+    "body height 1.95 m (band 1.45-2.09)"
+   ],
+   [
+    true,
+    "body 6.5 heads tall (head 0.30 m incl. cap; min 6.0; round 3 about 4.9)"
+   ],
+   [
+    true,
+    "leader banner top 3.35 m >= 1.15 x tallest squad member 2.70 m"
+   ]
+  ],
+  "solved": 1.0,
+  "tris": [
+   3760,
+   1258,
+   330
+  ],
+  "weapon_tris": [
+   0,
+   0
+  ],
+  "tip": 1.3735791852602173,
+  "windup": 0.5,
+  "heads": 6.515918530827401,
+  "top": 3.3523600101470947,
+  "body_top": 1.9493941068649292,
+  "half_width": 0.4894999861717224,
+  "length": 1.062448501586914
+ }
+}

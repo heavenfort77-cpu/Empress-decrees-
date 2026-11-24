@@ -1,0 +1,92 @@
+[
+ {
+  "id": "fa",
+  "title": "法甲 廷尉",
+  "tris": null,
+  "glb_kb": 772,
+  "tell": 0.45,
+  "travel": 1.128,
+  "strike_travel": 1.693,
+  "height": 2.252
+ },
+ {
+  "id": "ru",
+  "title": "儒甲 君子",
+  "tris": null,
+  "glb_kb": 838,
+  "tell": 0.5,
+  "travel": 2.703,
+  "strike_travel": 0.795,
+  "height": 2.251
+ },
+ {
+  "id": "dao",
+  "title": "道甲 真人",
+  "tris": null,
+  "glb_kb": 611,
+  "tell": 0.42,
+  "travel": 0.729,
+  "strike_travel": 0.988,
+  "height": 1.891
+ },
+ {
+  "id": "mo",
+  "title": "墨甲 墨守",
+  "tris": null,
+  "glb_kb": 695,
+  "tell": 0.5,
+  "travel": 0.528,
+  "strike_travel": 0.718,
+  "height": 1.726
+ },
+ {
+  "id": "yy",
+  "title": "阴阳甲 太极",
+  "tris": null,
+  "glb_kb": 728,
+  "tell": 0.6,
+  "travel": 1.445,
+  "strike_travel": 0.777,
+  "height": 2.131
+ },
+ {
+  "id": "za",
+  "title": "杂甲 门客",
+  "tris": null,
+  "glb_kb": 786,
+  "tell": 0.45,
+  "travel": 1.333,
+  "strike_travel": 0.898,
+  "height": 1.948
+ },
+ {
+  "id": "ming",
+  "title": "名甲 辩者",
+  "tris": null,
+  "glb_kb": 702,
+  "tell": 0.5,
+  "travel": 1.533,
+  "strike_travel": 1.397,
+  "height": 1.992
+ },
+ {
+  "id": "zh",
+  "title": "纵横甲 说客",
+  "tris": null,
+  "glb_kb": 755,
+  "tell": 0.45,
+  "travel": 1.299,
+  "strike_travel": 2.077,
+  "height": 2.326
+ },
+ {
+  "id": "nong",
+  "title": "农甲 耕者",
+  "tris": null,
+  "glb_kb": 727,
+  "tell": 0.5,
+  "travel": 1.365,
+  "strike_travel": 2.986,
+  "height": 2.281
+ }
+]

@@ -1,0 +1,11 @@
+PASS closest pair ru / dao dE 12.4 (min 10)
+PASS ru vs bronze dE 13.5 (min 12)
+PASS dao vs bronze dE 23.1 (min 12)
+PASS fa vs bronze dE 26.9 (min 12)
+PASS mo vs bronze dE 26.5 (min 12)
+PASS yinyang vs bronze dE 31.8 (min 12)
+PASS za vs bronze dE 23.7 (min 12)
+PASS ming vs bronze dE 48.1 (min 12)
+PASS zongheng vs bronze dE 32.0 (min 12)
+PASS nong vs bronze dE 48.6 (min 12)
+10 of 10 pass

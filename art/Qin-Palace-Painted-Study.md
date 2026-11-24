@@ -49,6 +49,27 @@ Type: single. Where: Empress Decrees, the Burning Palace (three.js, tier medium,
 - Prop candidates from Sketchfab (helper search running): to be listed here with licence and triangle count.
 - KTX2 compression, per-level loading, dispose, LOD (after approval).
 
+## Samples, round 2 (24 Nov 2026, not approved)
+### What changed (study rules + research report docs/research/Qin-palace-medieval-tech-fusion.md)
+| Texture | change |
+|---|---|
+| hall_floor | base #6b3d30 (saturation 0.71 to 0.52); burnish strokes and 520 pebble dabs at 4-15 cm; lum sd 4.7 to 9.1 |
+| hall_wall | 700 oil trowel strokes in the plaster; band strokes wrap mid-stroke (seam fixed: edge step 4.8 to 1.3) |
+| pillar | one repeat around (543 to 272 px/m); smooth oil lacquer strokes 20-45 px (brush scale 1.3 to 11 cm) |
+| door | unchanged look (bands wrap-safe) |
+| lion_stone | 4 m per repeat (640 to 256 px/m); stronger mottling and chisel patches (lum sd 4.0 to 9.6) |
+### Files
+- assets/tex/*.png (round 2), art/src/*.klad, art/tools/palace_tex.py (paint stages), art/tools/paint_palace.py (klad pipeline + passes strips), art/tools/tex_check.py (rules check), art/round2/passes/*_passes.png, art/round1/ (round 1 PNGs and script).
+- Run: python3 art/tools/palace_tex.py OPSDIR 1024; python3 art/tools/paint_palace.py KLAD OPSDIR art/src assets/tex art/round2/passes; python3 art/tools/tex_check.py assets/tex 1 4.
+### Checks run (code tool only)
+- tex_check.py: round 1 10 of 20, round 2 20 of 20 (density 0.8-1.25 x 256 px/m; brush scale 4-15 cm; lum sd 8-30; saturation cap 0.55 / 0.6 accents).
+- Wrap seams (mean step at the edge vs inside): floor 1.4 vs 1.6, lion stone 1.7 vs 2.4, wall 1.3 vs 1.1, pillar 0.4 vs 0.5.
+- Game: CI 45397493782 272 of 273 (only 42, a known balance item); software-GPU screenshots, Hall of the Ru: 12 calls, 842 tris, programs 8, textures 6.
+### Open
+- Lion shape and material: the research says stone lions are post-Qin and recommends segmented bronze guardian beasts with silver inlay; owner to choose (grey stone kept in round 2 for comparison).
+- Not yet painted: corridor floor tiles (lozenge / 米 grid / cloud patterns), hollow-brick steps, rammed-earth terrace faces, grey unglazed roof tile with cloud tile ends, bronze for live machines (brass-gold) and dormant ones (patina), the core.
+- Research suggests walls of white-ground plaster with painted bands and black kept for lacquer and cloth: round 2 already follows it.
+
 ## Draft library entry (proposal until approved)
 ## <N>. Qin Palace Painted (3D architecture, klad-painted materials), proposal
 - Type: single

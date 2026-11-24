@@ -1,0 +1,11 @@
+PASS crane_lod0 tris 1362 (budget 1500)
+PASS crane_lod1 tris 417 (budget 500)
+PASS crane_lod2 tris 161 (budget 200)
+PASS footprint below 1.25 m 1.12 x 1.10 m (solid 1.2 x 1.2); overhang above it 0.40 m (max 0.45)
+PASS height 2.91 m (range (2.6, 3.4); suit 2.05 m, box crane 3.5 m)
+PASS smoke: 3 cards (max 4), material palSmoke, from the beak tip at 2.68 m
+PASS smoke starts 2.68 m up, above a suit's head (2.05 m) by at least 0.4 m
+PASS smooth-shaded share 67% (min 50%: round body, neck, legs)
+PASS sharp faces 260 (beak, toes, feathers, tail, plinth lip; min 100)
+PASS silver inlay (collar, wing edges, eyes) and cinnabar crown on LOD0; inlay collar kept on LOD1
+10 of 10 pass

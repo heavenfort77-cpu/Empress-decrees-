@@ -1,0 +1,41 @@
+PASS suit_lamellar density: 256 px/m
+PASS suit_lamellar plate_black brush scale: 16.4 cm
+PASS suit_lamellar plate_black contrast: lum sd 3.8
+PASS suit_lamellar plate_black saturation: 0.15 (cap 0.6)
+PASS suit_lamellar plate_black value: mean lum 36
+PASS suit_lamellar plate_brown brush scale: 16.0 cm
+FAIL suit_lamellar plate_brown contrast: lum sd 3.9
+PASS suit_lamellar plate_brown saturation: 0.59 (cap 0.6)
+PASS suit_lamellar plate_brown value: mean lum 43
+PASS suit_lamellar plate_cinnabar brush scale: 5.2 cm
+PASS suit_lamellar plate_cinnabar contrast: lum sd 6.3
+PASS suit_lamellar plate_cinnabar saturation: 0.74 (cap 0.8)
+PASS suit_lamellar plate_cinnabar value: mean lum 72
+PASS suit_lamellar plate_white brush scale: 6.3 cm
+PASS suit_lamellar plate_white contrast: lum sd 11.4
+PASS suit_lamellar plate_white saturation: 0.12 (cap 0.2)
+PASS suit_lamellar plate_white value: mean lum 184
+PASS suit_lamellar cord fa colour: median #a63c29 vs #b0402c, distance 11
+PASS suit_lamellar cord ru colour: median #be9c46 vs #c9a54a, distance 15
+PASS suit_lamellar cord dao colour: median #cfcabd vs #e4ded0, distance 35
+PASS suit_lamellar cord mo colour: median #ad7e2b vs #b8862e, distance 14
+PASS suit_lamellar cord yy colour: median #1c1919 vs #1e1b1a, distance 3
+PASS suit_lamellar cord za colour: median #2b5593 vs #2e5a9c, distance 11
+PASS suit_lamellar cord ming colour: median #b4b8bb vs #bfc3c6, distance 19
+PASS suit_lamellar cord zh colour: median #563b84 vs #5b3f8c, distance 10
+PASS suit_lamellar cord nong colour: median #2c8257 vs #2f8a5c, distance 10
+PASS suit_lamellar lamella row 0 width: 7.8 cm
+PASS suit_lamellar lamella row 1 width: 7.8 cm
+PASS suit_lamellar lamella row 2 width: 7.8 cm
+PASS suit_lamellar lamella row 3 width: 7.8 cm
+PASS suit_bronze density: 256 px/m
+FAIL suit_bronze plain brush scale: 3.7 cm
+PASS suit_bronze plain contrast: lum sd 7.1
+PASS suit_bronze plain saturation: 0.56 (cap 0.6)
+PASS suit_bronze plain value: mean lum 109
+PASS suit_cloth density: 256 px/m
+PASS suit_cloth cloth brush scale: 2.1 cm
+PASS suit_cloth cloth contrast: lum sd 6.9
+PASS suit_cloth cloth saturation: 0.05 (cap 0.12)
+PASS suit_cloth cloth value: mean lum 223
+38 of 40 pass

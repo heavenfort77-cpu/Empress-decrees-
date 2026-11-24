@@ -80,3 +80,15 @@ Room graph and doors with previews; room build/detach; door locks; off-screen si
 - Two modes double the test surface: Royal Rumble keeps its current checks; Burning Palace gets its own.
 - Map size and room count change pacing again: balance after it is playable (owner rule: results first).
 - Phone: room-only rendering helps; fodder instancing must hold the budget in the heaviest room.
+
+## Panel note 17: scale, explore, meet (proposal, 24 Nov 22:1x; waiting for the owner's go)
+Owner 24 Nov 22:04-22:0x: "the map is small, not to the scale of palaces"; "the idea is to run, explore and fight. Currently it is small, so you neither explore nor meet the others."
+Measured today: palace 248 x 172 m, 29 rooms of 20-60 m (index.html PAL_FULL_ROOMS); walking across at 6 m/s about 41 s. The real 阿房宫 rammed-earth platform is about 1270 x 426 m, built on a drained lake (excavation reports 2002-04 and 2025).
+Causes (from the design as built, not yet measured in play): only the current room and the one behind an open door are drawn; rivals out of sight are simulated, so most rival fights are announced, not seen; doors lock during fights; a run is about 6-10 small rooms, so there is little to discover.
+Proposal (panel vote pending):
+1. Scale: the platform at the real 1270 x 426 m footprint over the black lake; courts and forecourt 60-120 m, halls 40-60 m on terraces, long corridors and bridges between wings (real proportions, from the research as reference).
+2. Explore: see out. Courts, terraces and bridges are open: neighbouring rooms, rivals moving and fights in progress are visible at a distance (lighter detail far away, same draw budget); side rooms off the main route hold rewards, cubs, school relics and pieces worth a detour; the room map fills in as you see rooms.
+3. Meet: rivals are simulated only when nobody can see them; within sight they are real bots. Routes funnel through shared courts and bridges; the burning drives every suit inward wing by wave, so meetings rise as the palace shrinks (the ring of this royale). Noise of a fight (her announcement plus a sound and a minimap ping) draws you to it.
+4. Pacing (owner to choose): the real footprint makes the shortest route longer. Either keep 4-5 min with faster travel (a run/sprint state out of combat, chariot lanes on the axis) or let a run grow to about 8-10 min.
+5. Performance: build-once rooms stay; far rooms as merged low-detail blocks, near rooms full; heaviest view under 500 calls and 0.5M triangles on medium; the perf gate runs before and after.
+Premortem: larger draw distance is the main perf risk (far LOD and culling first); sim/real hand-over must be seamless when a rival comes into sight; check 65-style pacing gates and the fairness rule (no warned locked room) re-run on the new layout; asset scale (pillars, doors) follows the real proportions, so the bronze beast sample is unaffected.
