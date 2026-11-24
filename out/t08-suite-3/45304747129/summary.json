@@ -1,0 +1,26 @@
+[
+ {
+  "i": 0,
+  "fails": [
+   "83",
+   "127",
+   "144"
+  ],
+  "tot": [
+   "RUNTIME 155 of 158 pass"
+  ],
+  "s": 142,
+  "sims": [
+   "SIM leader win share (longest leader wins) 2 of 12; player >=1 plate 4 of 12; decided 181.1,172.1,190.2,208.1,211.9,198.1,198.9,203.5,203.2,244.9,189.9,203",
+   "SIM per seed decided/place/player out/winner spawn: 12345 181.1/2/fall@181/1; 2 172.1/4/hit@155/1; 3 190.2/8/hit@130/4; 4 208.1/1/won/2; 5 211.9/4/hit@187/0; 6 198.1/2/hit@198/7; 7 198.9/5/hit@142/0; 8 203.5/9/hit@126/7; 9 203.2/6/hit@140/3; 10 244.9/7/hit@136/3; 11 189.9/7/hit@129/8; 12 203/7/hit@126/7",
+   "SIM bounties 1,1,1,0,0,0,1,1,0,1,0,2 paid 0,1,0,0,0,0,1,0,0,0,0,1; fight share on 0.55 off 0.14; bounty-on-player ticks 3807, cap max off 1 on 2",
+   "SIM kennel autopilot (P5 proxy): player >=1 plate 12 of 12 (old autopilot 4 of 12); reached camp 23 of 27 free warnings; leader win share 2 of 12; decided 200.8,216.1,200.4,181.1,190.2,186,181.1,199.9,201.1,190,190.9,219.9; player out 162,149,won,175,76,133,181,125,165,127,186,145",
+   "SIM decrees per match 2,2,3,3,4,3,2,3,3,3,3,3; order 12345:heights,silence,bounty | 2:nodash,heights,bounty | 3:ult2x,heights,bounty,dry | 4:heights,dry,nodash | 5:heights,dry,ult2x,nodash | 6:heights,nodash,silence | 7:ult2x,bounty,heights | 8:nodash,dry,bounty,ult2x | 9:silence,heights,dry | 10:nodash,dry,heights,bounty | 11:nodash,dry,ult2x | 12:silence,bounty,ult2x,bounty,nodash; breaks player 0,0,0,0,0,0,0,0,0,0,0,0 bots 0,2,0,0,0,0,0,0,0,0,0,0; player marked ticks 0, cap max 0; bots on heights max 0 s"
+  ],
+  "faillines": [
+   "FAIL 83 decree pacing: 3-4 decrees told (bounty included) in each of 12 matches, about one a minute (mean warning to warning <= 60 s), no banner over a decree warning, no heights break near a warned section :: told 12345:3,2:3,3:4,4:3,5:4,6:3,7:3,8:4,9:3,10:4,11:3,12:5; mean warning to warning 50.2 s (30 gaps); bannerOv 0; heights breaks 2, near warned 0",
+   "FAIL 127 名甲 in whole matches: on a floor, nobody stuck > 3 s, shadows and lines end on time, hunter cap every tick, the 名甲 bot casts Q, W and R (player 名甲 autopilot reported) :: {\"viol\":[],\"casts\":{\"q\":4,\"w\":3,\"r\":0},\"player\":{\"q\":1,\"w\":1,\"r\":1},\"decided\":[214.4,150.4,174.8,166.8],\"shadowMax\":1,\"hangMax\":1,\"clean\":true}",
+   "FAIL 144 农甲 in whole matches: on a floor, nobody stuck > 3 s, pool <= pool, furrows and rings end on time, hunter cap every tick, the 农甲 bot sows, ploughs, harvests and eats (player 农甲 autopilot reported) :: {\"viol\":[],\"casts\":{\"q\":4,\"w\":2,\"r\":0},\"player\":{\"q\":2,\"w\":0,\"r\":0},\"eat\":0,\"tramp\":1,\"decided\":[197.1,201.3,173.6,190.4],\"poolMax\":3,\"furrowMax\":2.55,\"ringMax\":0,\"clean\":true}"
+  ]
+ }
+]
