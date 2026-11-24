@@ -1,0 +1,77 @@
+[
+ {
+  "i": 0,
+  "fails": [
+   "42",
+   "509"
+  ],
+  "tot": [
+   "RUNTIME 215 of 217 pass"
+  ],
+  "s": 96,
+  "name": "lock-ignores-burn",
+  "want": "509",
+  "applied": true,
+  "caught_named": true
+ },
+ {
+  "i": 1,
+  "fails": [
+   "42",
+   "509"
+  ],
+  "tot": [
+   "RUNTIME 215 of 217 pass"
+  ],
+  "s": 195,
+  "name": "sim-no-fall-death",
+  "want": "509",
+  "applied": true,
+  "caught_named": true
+ },
+ {
+  "i": 2,
+  "fails": [
+   "42",
+   "510"
+  ],
+  "tot": [
+   "RUNTIME 215 of 217 pass"
+  ],
+  "s": 203,
+  "name": "squad-in-start-hall",
+  "want": "510",
+  "applied": true,
+  "caught_named": true
+ },
+ {
+  "i": 3,
+  "fails": [
+   "42",
+   "510"
+  ],
+  "tot": [
+   "RUNTIME 215 of 217 pass"
+  ],
+  "s": 108,
+  "name": "guards-never-lock",
+  "want": "510",
+  "applied": true,
+  "caught_named": true
+ },
+ {
+  "i": 4,
+  "fails": [
+   "42",
+   "510"
+  ],
+  "tot": [
+   "RUNTIME 215 of 217 pass"
+  ],
+  "s": 115,
+  "name": "no-off-screen-farm",
+  "want": "510",
+  "applied": true,
+  "caught_named": true
+ }
+]
