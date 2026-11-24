@@ -1,0 +1,9 @@
+PASS tally_lod0 tris 1460 (budget 1500)
+FAIL tally_lod1 tris 908 (budget 600)
+FAIL tally_lod2 tris 362 (budget 260)
+PASS tally_lod0 uses the raised budget: 1460 tris (min 900; rounds 1-2 had 456)
+PASS split reads: halves 0.24 m apart and offset 0.30 m along the body (min 0.15 each)
+PASS 9 inlaid stripes per half, 6.5 cm wide, on LOD0 and LOD1 (min 8 stripes, 6 cm; no script)
+PASS tiger 0.92 m tall on a 0.55 m stand (min 0.6), footprint 2.86 x 1.07 m (2.0-2.9)
+PASS bronze halves (brass sheet in the viewer) on a lacquer stand at LOD1
+6 of 8 pass

@@ -1,0 +1,21 @@
+FAIL brass only: bronze sheet loaded in mask_merc_play
+PASS shots clean: 76 shots without page errors
+PASS budget: heaviest court_wide 68 calls, 7382 tris (under 500 / 500000)
+PASS garden calls: garden_wide calls 41 -> 41 (no more), tris 3734 -> 6854
+FAIL planting fuller: plant cards cover 0.071 -> 0.124 of the wide shot (x1.73, min x1.8)
+FAIL racks bigger: racks and bundles cover 0.1266 -> 0.1301 of hall_wide (x1.03, min x1.8)
+PASS throne larger: throne above the dais at core_wide 175 x 53 px -> 180 x 73 px (height x1.38, min x1.25)
+PASS pond not a hole: pond mean lum 102 vs ground 92 at garden_wide (max 25 under)
+FAIL pond pale edge: pond margin lum 107 vs open water 100 (min +8)
+PASS inlay keeps floor (wide): core_wide floor colour dE 0.03 (max 4.0), lum +0.0 (max 5.0) with the inlay
+PASS tells kept (wide): hazard ring vs floor dE 67.0 -> 67.0 with the inlay (min x0.9)
+PASS inlay keeps floor (play): core_play floor colour dE 0.12 (max 4.0), lum +0.2 (max 5.0) with the inlay
+PASS tells kept (play): hazard ring vs floor dE 70.7 -> 70.7 with the inlay (min x0.9)
+PASS inlay seen at play: inlay pixels differ by mean lum 27.9 from the bare floor (min 8.0; subtle, still there)
+FAIL mercury warn brighter: mercury mean lum idle 138, warn 162 (+24, min +40), hot 211 (+49 over warn, min +8)
+PASS mercury shimmer: warn still t 0.40 vs 0.55 differs by 41.8 lum (min 4.0); idle 1.2 (calmer)
+11 of 16 pass
+INFO plaster hall_wide: wall lum approved 71 / candidate 62; floor 64; wall-floor dE approved 15.8 / candidate 16.7
+INFO plaster hall_play: wall lum approved 71 / candidate 60; floor 65; wall-floor dE approved 15.8 / candidate 16.9
+INFO plaster corridor_play: mural wall lum approved-matched 48 / candidate 44
+INFO mercury round 1 (same camera and mesh): idle 139, warn 161, hot 196

@@ -1,0 +1,132 @@
+== paint mercury_matcap,signal_flags,pond_water,star_inlay
+mercury_matcap 153 ops
+signal_flags 498 ops
+pond_water 3096 ops
+star_inlay 114 ops
+mercury_matcap passes base > tone > marks > detail
+signal_flags passes base > tone > marks > base > tone > marks > base > tone > marks > base > tone > marks > base > tone > marks > base > tone > marks > base > tone > marks > base > tone > marks > base > tone > marks
+pond_water passes tone > marks > detail
+star_inlay passes marks
+== plaster candidate PLASTER_K=0.83 (hall_wall A2 and mural_wall A10)
+mural_wall 1074 ops
+hall_wall passes tone > marks > detail
+mural_wall passes tone > marks > detail
+== repaint check: approved hall_wall with PLASTER_K unset is unchanged
+Traceback (most recent call last):
+  File "/home/runner/work/Empress-decrees-/Empress-decrees-/art/tools/palace_tex.py", line 285, in <module>
+    t = f(); n = t.write(); print(t.name, n, 'ops')
+                 ~~~~~~~^^
+  File "/home/runner/work/Empress-decrees-/Empress-decrees-/art/tools/palace_tex.py", line 77, in write
+    with open(f'{OUT}/{self.name}.jsonl', 'w') as f:
+         ~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+FileNotFoundError: [Errno 2] No such file or directory: '/tmp/ops0/hall_floor.jsonl'
+Traceback (most recent call last):
+  File "/home/runner/work/Empress-decrees-/Empress-decrees-/art/tools/paint_palace.py", line 18, in <module>
+    bg = open(os.path.join(OPS, name + '.bg')).read().strip()
+         ~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+FileNotFoundError: [Errno 2] No such file or directory: '/tmp/ops0/hall_wall.bg'
+Traceback (most recent call last):
+  File "<stdin>", line 3, in <module>
+  File "/opt/hostedtoolcache/Python/3.13.18/x64/lib/python3.13/site-packages/PIL/Image.py", line 3654, in open
+    fp = builtins.open(filename, "rb")
+FileNotFoundError: [Errno 2] No such file or directory: '/tmp/tex0/hall_wall.png'
+== tex_check
+FAIL signal_flags contrast: lum sd 35.4
+FAIL pond_water repeat: 50 cm block sd 4.7 (max 3.5)
+FAIL star_inlay alpha test: 0.24 of drawn pixels fall under the 0.5 alpha test (max 0.2)
+FAIL suit_bronze plain brush scale: 3.9 cm
+255 of 259 pass
+== tex_check mutation
+MISSED signal_flags nokey -> band reads
+MISSED star_inlay roll20 -> edge clear
+20 of 22 caught
+== tex_check on the plaster candidate (hall_wall, mural_wall swapped in)
+PASS hall_wall density: 256 x 256 px/m
+FAIL hall_wall brush scale: 22.1 cm
+PASS hall_wall contrast: lum sd 8.9
+PASS hall_wall saturation: 0.20 (cap 0.55)
+FAIL mural_wall brush scale: 21.1 cm
+FAIL mural_wall value: mean lum 140 (150-185)
+FAIL signal_flags contrast: lum sd 35.4
+FAIL pond_water repeat: 50 cm block sd 4.7 (max 3.5)
+FAIL star_inlay alpha test: 0.24 of drawn pixels fall under the 0.5 alpha test (max 0.2)
+FAIL suit_bronze plain brush scale: 3.9 cm
+252 of 259 pass
+== meshes
+PASS throne_dais_lod0 tris 434 (budget 7000)
+PASS throne_dais_lod0 texel density 100% of surface in 205-320 px/m (min 95%); range 256-256
+PASS throne_dais_lod1 tris 182 (budget 2500)
+PASS throne_dais_lod1 texel density 100% of surface in 205-320 px/m (min 95%); range 256-256
+PASS throne_dais_lod2 tris 182 (budget 800)
+PASS throne_dais_lod2 texel density 100% of surface in 205-320 px/m (min 95%); range 256-256
+PASS throne_dais dais top 1.50 m on a 12.0 x 6.0 m base (game block 12 x 6 x 1.5 m)
+PASS throne screen top 3.67 m over the dais (2.62 x THRONE_S 1.4), whole prop 12.0 x 6.0 x 5.2 m
+PASS slip_rack tris 100 (budget 300)
+PASS slip_rack texel density 100% of surface in 205-320 px/m (min 95%); range 256-256
+PASS slip_rack 2.50 x 0.80 x 2.80 m, 5 shelves at 0.50 m (min 2.3 wide, 2.6 tall: reads at the wide camera)
+102 of 102 pass
+mesh gate mutation uv: 28 FAIL lines (must be > 0)
+mesh gate mutation budget: 27 FAIL lines (must be > 0)
+mesh gate mutation dims: 3 FAIL lines (must be > 0)
+mesh gate mutation dais: 1 FAIL lines (must be > 0)
+mesh gate mutation rack: 1 FAIL lines (must be > 0)
+PASS tally_lod0 tris 1460 (budget 1500)
+FAIL tally_lod1 tris 908 (budget 600)
+FAIL tally_lod2 tris 362 (budget 260)
+PASS tally_lod0 uses the raised budget: 1460 tris (min 900; rounds 1-2 had 456)
+PASS split reads: halves 0.24 m apart and offset 0.30 m along the body (min 0.15 each)
+PASS 9 inlaid stripes per half, 6.5 cm wide, on LOD0 and LOD1 (min 8 stripes, 6 cm; no script)
+PASS tiger 0.92 m tall on a 0.55 m stand (min 0.6), footprint 2.86 x 1.07 m (2.0-2.9)
+PASS bronze halves (brass sheet in the viewer) on a lacquer stand at LOD1
+6 of 8 pass
+tally gate mutation budget: 3 FAIL lines (must be > 0)
+tally gate mutation stripes: 3 FAIL lines (must be > 0)
+PASS merc_lip tris 28 (piece budget 60, instanced)
+PASS merc_end tris 28 (piece budget 60, instanced)
+PASS merc_post tris 12 (piece budget 60, instanced)
+PASS merc_surface tris 8 (piece budget 60, instanced)
+PASS 2 x 6 m demo channel drawn tris 592 from 32 instances of 4 meshes (budget 600)
+PASS demo uses only the 4 shared meshes, none scaled (tilted normals survive) (['merc_end', 'merc_lip', 'merc_post', 'merc_surface'])
+PASS mercury shading normals tilted 38 deg toward the camera on average (25-50: samples the matcap centre from the 40 deg pitch)
+PASS mercury surface at 0.04 m under the lip top 0.07 m, faces up: True, material palMerc (matcap)
+PASS silver inlay line 6 cm on the bronze lip (min 6)
+9 of 9 pass
+== shots
+76
+== on-screen gates
+FAIL brass only: bronze sheet loaded in mask_merc_play
+PASS shots clean: 76 shots without page errors
+PASS budget: heaviest court_wide 68 calls, 7382 tris (under 500 / 500000)
+PASS garden calls: garden_wide calls 41 -> 41 (no more), tris 3734 -> 6854
+FAIL planting fuller: plant cards cover 0.071 -> 0.124 of the wide shot (x1.73, min x1.8)
+FAIL racks bigger: racks and bundles cover 0.1266 -> 0.1301 of hall_wide (x1.03, min x1.8)
+PASS throne larger: throne above the dais at core_wide 175 x 53 px -> 180 x 73 px (height x1.38, min x1.25)
+PASS pond not a hole: pond mean lum 102 vs ground 92 at garden_wide (max 25 under)
+FAIL pond pale edge: pond margin lum 107 vs open water 100 (min +8)
+PASS inlay keeps floor (wide): core_wide floor colour dE 0.03 (max 4.0), lum +0.0 (max 5.0) with the inlay
+PASS tells kept (wide): hazard ring vs floor dE 67.0 -> 67.0 with the inlay (min x0.9)
+PASS inlay keeps floor (play): core_play floor colour dE 0.12 (max 4.0), lum +0.2 (max 5.0) with the inlay
+PASS tells kept (play): hazard ring vs floor dE 70.7 -> 70.7 with the inlay (min x0.9)
+PASS inlay seen at play: inlay pixels differ by mean lum 27.9 from the bare floor (min 8.0; subtle, still there)
+FAIL mercury warn brighter: mercury mean lum idle 138, warn 162 (+24, min +40), hot 211 (+49 over warn, min +8)
+PASS mercury shimmer: warn still t 0.40 vs 0.55 differs by 41.8 lum (min 4.0); idle 1.2 (calmer)
+11 of 16 pass
+INFO plaster hall_wide: wall lum approved 71 / candidate 62; floor 64; wall-floor dE approved 15.8 / candidate 16.7
+INFO plaster hall_play: wall lum approved 71 / candidate 60; floor 65; wall-floor dE approved 15.8 / candidate 16.9
+INFO plaster corridor_play: mural wall lum approved-matched 48 / candidate 44
+INFO mercury round 1 (same camera and mesh): idle 139, warn 161, hot 196
+== on-screen gate mutations
+MISSED pond not a hole
+11 of 12 caught
+== sheets
+plaster_side_by_side (1920, 1698)
+core_inlay (1920, 1698)
+core_throne (1920, 1312)
+hall_racks (1920, 1878)
+garden (1920, 1132)
+flags_court (1920, 1312)
+brass_pieces (1920, 1312)
+tally_round3 (1600, 5082)
+merc_round2 (1600, 2236)
+textures (1024, 1076)
+RESULT done
