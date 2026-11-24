@@ -1,0 +1,22 @@
+[
+ {
+  "i": 0,
+  "fails": [
+   "42"
+  ],
+  "tot": [
+   "RUNTIME 267 of 268 pass"
+  ],
+  "s": 374,
+  "sims": [
+   "SIM leader win share (longest leader wins) 1 of 12; player >=1 plate 3 of 12; decided 187.9,187.8,198.7,203.1,187.6,179,208,189.5,181.8,180.4,225.8,215.5",
+   "SIM per seed decided/place/player out/winner spawn: 12345 187.9/9/hit@130/8; 2 187.8/5/hit@164/7; 3 198.7/2/bleed@199/6; 4 203.1/1/won/2; 5 187.6/9/hit@123/0; 6 179/2/hit@179/5; 7 208/8/hit@113/6; 8 189.5/4/hit@168/3; 9 181.8/9/hit@129/3; 10 180.4/6/hit@134/8; 11 225.8/9/hit@125/8; 12 215.5/6/hit@143/4",
+   "SIM bounties 0,1,0,1,1,1,2,1,0,0,1,0 paid 0,0,0,0,1,1,2,1,0,0,1,0; fight share on 0.82 off 0.17; bounty-on-player ticks 1974, cap max off 1 on 1",
+   "SIM kennel autopilot (P5 proxy): player >=1 plate 12 of 12 (old autopilot 3 of 12); reached camp 19 of 26 free warnings; leader win share 2 of 12; decided 193.8,191.6,215.3,210.1,181.1,189.4,165.1,198.4,180.9,188.7,172.1,189.3; player out 181,142,139,139,won,171,148,128,145,124,won,144",
+   "SIM decrees per match 3,3,3,3,3,2,2,2,3,3,3,3; order 12345:heights,silence,nodash | 2:nodash,heights,bounty,silence | 3:ult2x,heights,dry | 4:heights,dry,bounty,nodash | 5:heights,dry,bounty,ult2x | 6:heights,nodash,bounty | 7:ult2x,bounty,heights,bounty | 8:nodash,dry,bounty | 9:silence,heights,dry | 10:nodash,dry,heights | 11:nodash,dry,ult2x,bounty | 12:silence,ult2x,nodash; breaks player 0,0,2,0,0,0,0,0,0,0,0,0 bots 0,1,0,0,0,0,1,0,0,0,0,0; player marked ticks 422, cap max 2; bots on heights max 0.02 s"
+  ],
+  "faillines": [
+   "FAIL 42 bot sweep 9 runs: 0 broken invariants, every run ends, never-dodge always loses, 0.3 s and 0.15 s reaction each win at least once :: 99/012:lost 7s hp0 demon905 | 99/120:lost 8s hp0 demon915 | 99/210:lost 8s hp0 demon915 | 0.3/012:lost 16s hp0 demon745 | 0.3/120:lost 19s hp0 demon845 | 0.3/210:lost 50s hp0 demon245 | 0.15/012:lost 24s hp0 demon570 | 0.15/120:won 68s hp65 demon0 | 0.15/210:won 64s hp100 demon0"
+  ]
+ }
+]
