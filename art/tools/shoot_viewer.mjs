@@ -28,6 +28,8 @@ const SHOTS = {
   crane: [['play', 'view=play', 1920, 1080], ['wide', 'view=wide', 1920, 1080], ...TURN(''), ...PASSES, ['lods', 'view=lods', 1280, 640]],
   huabiao: [['play', 'view=play', 1920, 1080], ['play_awake', 'view=play&t=0.5&eye=awake', 1920, 1080], ['wide', 'view=wide', 1920, 1080], ...TURN(''),
     ['head_asleep', 'view=turn&yaw=0&pitch=20', 640, 640], ['head_awake', 'view=turn&yaw=0&pitch=20&t=0.5&eye=awake', 640, 640], ...PASSES, ['lods', 'view=lods', 1280, 640]],
+  clock: [['play_full', 'view=play&level=1', 1920, 1080], ['play_half', 'view=play&level=0.5', 1920, 1080], ['play_empty', 'view=play&level=0.02', 1920, 1080], ['wide', 'view=wide&level=0.7', 1920, 1080],
+    ...TURN('&level=0.7'), ['top', 'view=turn&yaw=20&pitch=55&level=0.5', 640, 640], ...PASSES, ['lods', 'view=lods&level=0.7', 1280, 640]],
   censer: [['play', 'view=play', 1920, 1080], ['wide', 'view=wide', 1920, 1080], ...TURN(''), ...PASSES, ['lods', 'view=lods', 1280, 640]],
 }[MODEL];
 // ONLY (5th argument): a comma list of shot names to take (e.g. play for the one default-sheet shot)

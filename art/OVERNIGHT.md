@@ -24,7 +24,7 @@ Owner 25 Nov 00:08: "use /cocolito along with current procedures to continue wit
 | W1a | C1 guardian beast round 4 (face from ComfyUI round C), C2 鼎 x9 (lit/dry), C3 门海 vat (intact/cracked/shards) | done: C1 round 4 (gates 9 of 9), C2 round 1 (gates 11 of 11, accents 10 of 10), C3 round 1 (gates 10 of 10); all waiting for the owner |
 | W2 | Surfaces A6-A12, A14-A20 (klad), architecture B1-B11 (Blender), one room scene sheet | running (00:25, branch ci-art-w2) |
 | W3 | Nine school suits: study (cocolito), concepts, Blender builder, rig, klad lacquer/lamellar sheet | running (00:25, branch ci-art-w3) |
-| W1b | C4 crane and censer, C5 water clock, C6 华表, C9 lamps, C10 bell stand, C11 tiger tally, C7 mercury channel | running (from 00:46): C4 round 1 (crane 10 of 10, censer 9 of 9, cards 14 of 14), C6 round 1 (10 of 10); waiting for the owner |
+| W1b | C4 crane and censer, C5 water clock, C6 华表, C9 lamps, C10 bell stand, C11 tiger tally, C7 mercury channel | running (from 00:46): C4 round 1 (crane 10 of 10, censer 9 of 9, cards 14 of 14), C5 round 1 (11 of 11), C6 round 1 (10 of 10); waiting for the owner |
 | W1c | C8 twelve bronze giants (shared cast body, 12 heads/beams/motifs, patina dormant / brass awake, rig) | queued (after W1a) |
 | W4 | Apex Tiger Demon (兵家 bronze tiger, patina dormant / brass awake, three inlaid organ weak points, plates that shed) and its cubs Stalker and Howler (four-legged tread machines) | running (00:26, branch ci-art-w4) |
 | W5 | 皇家 guard (卒, 弩手, 盾, 车 chariot, 伍长; bronze on treads, black and water-blue) and 反贼 rebels (黄巾力士, 符水道人, 死士, 渠帅; bootleg suits, yellow headbands, school-colour patches); fodder budget about 4k / 1.5k / 500, instanced | running (00:26, branch ci-art-w5) |
