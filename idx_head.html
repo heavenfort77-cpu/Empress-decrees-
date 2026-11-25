@@ -66,13 +66,17 @@ body.touch #school{left:auto;right:12px;top:124px}
 .sel__btn.is-last{border-color:#c9a040}
 .sel__btn--random{grid-column:1/-1;background:#3a2a1a}
 #mode{position:fixed;inset:0;display:none;background:#120d16;z-index:9;overflow:auto}
+#load{position:fixed;inset:0;display:none;background:#120d16;z-index:9}
+.load__step{font:14px system-ui,sans-serif;color:#ddd;margin-top:10px}
+.load__spin{width:28px;height:28px;margin:18px auto 0;border:3px solid #6a5a7a;border-top-color:#c9a040;border-radius:50%;animation:loadspin 1s linear infinite}
+@keyframes loadspin{to{transform:rotate(360deg)}}
 .sel__btn--mode{margin-top:14px;background:#1a2a3a}
 #door{display:none;pointer-events:none;white-space:pre-line;text-align:center;font:15px system-ui,sans-serif;color:#fff;background:#120d16cc;border:2px solid #c9a040;border-radius:8px;padding:10px 16px;max-width:80vw}
 #bar.silenced .skill{opacity:.35;border-color:#888}
 body.touch #msgs{top:26%}
 #cancel{position:fixed;right:20px;top:90px;width:90px;height:56px;border-radius:10px;background:#5a1a1a;color:#fff;font:15px system-ui;display:none;align-items:center;justify-content:center;border:2px solid #f88}
 </style>
-<script type="importmap">{"imports":{"three":"../lib/three.module.min.js"}}</script>
+<script type="importmap">{"imports":{"three":"./lib/three.module.min.js"}}</script>
 </head>
 <body>
 <div id="hud"></div>
@@ -94,10 +98,12 @@ body.touch #msgs{top:26%}
 <div id="school"></div>
 <div id="select"><div class="sel__box"><div class="sel__title"></div><div class="sel__rule"></div><div class="sel__list"></div><button id="selMode" class="sel__btn sel__btn--mode"></button></div></div>
 <div id="mode"><div class="sel__box"><div class="sel__title"></div><div class="sel__rule"></div><div class="sel__list"></div></div></div>
+<div id="load"><div class="sel__box"><div class="sel__title"></div><div class="load__step"></div><div class="load__spin"></div></div></div>
 <button id="btnHunt"></button>
 <div id="err"></div>
 <script type="module">
 import * as THREE from 'three';
+import { KTX2Loader } from './lib/jsm/loaders/KTX2Loader.js';
 
 // ===================== CONFIG (all tunables) =====================
 const CONFIG = {
@@ -656,16 +662,30 @@ const CONFIG = {
   TEX: {
     // Switch for the palace textures.
     on: true,
-    // Image per palace material (static files beside index.html; PNG for the sample, KTX2 after approval).
-    files: { palFloor: '../assets/tex/hall_floor.png', palWall: '../assets/tex/hall_wall.png', palPillar: '../assets/tex/pillar.png', palDoor: '../assets/tex/door.png', palLion: '../assets/tex/lion_stone.png' },
+    // Image name per palace material (batch 17b): CONFIG.LOAD folders + name + .ktx2 (batch 17a encodes, assets/c/manifest.json), PNG source as fallback.
+    files: { palFloor: 'hall_floor', palWall: 'hall_wall', palPillar: 'pillar', palDoor: 'door', palLion: 'lion_stone' },
     // Metres of floor, wall or lion stone per texture repeat (world-space mapping; 4 m = 256 px/m, style study round 2); the wall image spans the wall height once.
     tileM: { palFloor: 4, palWall: 4, palLion: 4 },
     // Repeats of the pillar image around a pillar (1 = 272 px/m around, style study round 2; it spans the pillar height once).
     pillarU: 1,
     // Anisotropic filtering (owner rule: 4 max).
     aniso: 4,
-    // Longest wait for the images at load, ms; past it the palace keeps its box colours.
-    waitMs: 5000,
+  },
+  // Loading cards (batch 17b, docs/INTEGRATION.md section 3): a set loads under an opaque card (or under the opaque menus), its build steps run
+  // in slices per frame, and the card ends after a warm draw of everything it built, or at the cap (then box colours, never half a set).
+  LOAD: {
+    // Texture route: 'ktx2' (17a encodes, rows top-first) or 'png' (the sources; also every file's fallback).
+    fmt: 'ktx2',
+    // Folders: encoded desktop set, encoded phone set (512 px, used on touch screens), PNG sources, encode manifest.
+    dirDesk: 'assets/c/desk/', dirPhone: 'assets/c/phone/', dirPng: 'assets/tex/', manifest: 'assets/c/manifest.json',
+    // Basis transcoder folder for KTX2Loader (three.js r171, lib/jsm).
+    transcoder: 'lib/jsm/libs/basis/',
+    // Main-thread budget per frame for a card's build steps, ms.
+    sliceMs: 6,
+    // Longest card, seconds of visible time (the clock stops while the tab is hidden): desktop, phone; past it the set keeps box colours.
+    capS: 15, capPhoneS: 25,
+    // Tries per file and route before its fallback (1 = one retry).
+    retry: 1,
   },
   // Context camera in the palace (owner 24 Nov 13:18; ticket 10, owner 24 Nov 15:43-15:46). Field of view and pitch never change (no fisheye, no
   // squashed characters): the camera only moves back/up or in. Wide (no enemy within attack distance) = as far out as the floor allows: a room that
@@ -950,6 +970,15 @@ const TEXT = {
   mode_key: '{n}. {mode}',
   mode_palace: 'The Burning Palace',
   mode_rumble: 'Royal Rumble',
+  load_palace: 'The palace is being raised',
+  load_restore: 'The view returns',
+  load_adjust: 'Adjusting the view',
+  load_step_manifest: 'Reading the list',
+  load_step_fetch: 'Fetching',
+  load_step_apply: 'Laying the surfaces',
+  load_step_compile: 'Preparing the shaders',
+  load_step_upload: 'Uploading',
+  load_step_draw: 'First draw',
   pal5_hall_ru: 'Hall of the Ru', pal5_hall_dao: 'Hall of the Dao', pal5_hall_fa: 'Hall of the Fa', pal5_hall_mo: 'Hall of the Mo', pal5_hall_yinyang: 'Hall of the Yinyang',
   pal5_hall_za: 'Hall of the Za', pal5_hall_ming: 'Hall of the Ming', pal5_hall_zongheng: 'Hall of the Zongheng', pal5_hall_nong: 'Hall of the Nong',
   pal5_room_fore: 'Forecourt of the Twelve', pal5_room_approach: 'Bridge to the throne',
@@ -1230,7 +1259,8 @@ const el = {
   btnMap: $('btnMap'), stick: $('stick'), err: $('err'), hpfill: $('hpfill'), hptext: $('hptext'),
   mini: $('mini'), bar: $('bar'), cancel: $('cancel'), boss: $('boss'), bossname: $('bossname'), bossfill: $('bossfill'),
   bossskills: $('bossskills'), status: $('status'), btnHunt: $('btnHunt'), leader: $('leader'), decree: $('decree'), school: $('school'), select: $('select'),
-  door: $('door'), mode: $('mode'), selMode: $('selMode'),
+  door: $('door'), mode: $('mode'), selMode: $('selMode'), load: $('load'),
+  loadTitle: document.querySelector('#load .sel__title'), loadStep: document.querySelector('#load .load__step'),
   modeTitle: document.querySelector('#mode .sel__title'), modeRule: document.querySelector('#mode .sel__rule'), modeList: document.querySelector('#mode .sel__list'),
   selTitle: document.querySelector('#select .sel__title'), selRule: document.querySelector('#select .sel__rule'), selList: document.querySelector('#select .sel__list'),
   voice: document.querySelector('#banner .voice'), rule: document.querySelector('#banner .rule'),
@@ -1303,28 +1333,17 @@ mat('aim', COL.aim, { emissive: COL.aim, emissiveIntensity: 0.6 }); mat('blob', 
 mat('terrace', COL.court); mat('stone', COL.stone); mat('broken', COL.broken, { roughness: 1 });
 mat('eyes', COL.eyes, { emissive: COL.eyes, emissiveIntensity: 0.4 }); mat('ring', COL.ring, { emissive: COL.ring, emissiveIntensity: 1.2 });
 mat('altarOn', COL.altarOn, { emissive: COL.altarOn, emissiveIntensity: 0.9 }); mat('altarOff', COL.altarOff, { roughness: 1 });
-// Palace textures (CONFIG.TEX): own materials, so Royal Rumble keeps its box colours. The images load before anything is built or drawn (and
-// upload in the load-time warm-up); any image missing or late = every palace material keeps its box colour (never half textured).
+// Palace textures (CONFIG.TEX): own materials, so Royal Rumble keeps its box colours. Batch 17b: they no longer load at page load; the palace set
+// loads under the loading card (section "Loading cards") and is disposed when the player picks Royal Rumble; until it is ready, and if any image
+// fails, every palace material keeps its box colour (never half textured).
 const TEXCOL = { palFloor: COL.coreFloor, palWall: COL.wall, palPillar: COL.pillar, palDoor: COL.bronze, palLion: COL.stone };
 mat('palFloor', TEXCOL.palFloor); mat('palWall', TEXCOL.palWall); mat('palPillar', TEXCOL.palPillar, { roughness: 0.75 });
 mat('palDoor', TEXCOL.palDoor, { metalness: 0.4, roughness: 0.6 }); mat('palLion', TEXCOL.palLion);
 const PTEX = { on: false, list: [] };
-if (CONFIG.TEX.on) {
-  // fetch + createImageBitmap, not <img> (TextureLoader): image elements hold the page's load event until they finish (cause of the CI page.goto
-  // timeouts in runs 45366908283 and 45388273002; proof: textures delayed 8 s held load 8.2 s), fetches do not.
-  const TX = CONFIG.TEX, keys = Object.keys(TX.files);
-  const one = (u) => fetch(u).then((r) => { if (!r.ok) throw new Error(u); return r.blob(); }).then((bl) => createImageBitmap(bl, { imageOrientation: 'flipY' }))
-    .then((bm) => { const t = new THREE.Texture(bm); t.flipY = false; t.needsUpdate = true; return t; });
-  const all = Promise.all(keys.map((k) => one(TX.files[k])));
-  const got = await Promise.race([all.catch(() => null), new Promise((res) => setTimeout(() => res(null), TX.waitMs))]);
-  if (got) {
-    for (let i = 0; i < keys.length; i++) {
-      const t = got[i]; t.colorSpace = THREE.SRGBColorSpace; t.wrapS = t.wrapT = THREE.RepeatWrapping; t.anisotropy = Math.min(TX.aniso, renderer.capabilities.getMaxAnisotropy());
-      M[keys[i]].map = t; M[keys[i]].color.set(0xffffff); PTEX.list.push(t);
-    }
-    PTEX.on = true;
-  }
-}
+// The page's load event fires here, before the map build and the warm-up draws (17b fix; cause: removing the PNG fetch above removed the only
+// top-level await, so the whole boot ran before the load event: 0.93-1.02 s vs 0.16-0.40 s locally, a 30 s page.goto timeout in check 1200 at
+// 2560 px on CI run 45525755282). One macrotask yield, as the fetch gave before.
+await new Promise((res) => setTimeout(res, 0));
 M.rail = M.wall;
 const warnMat = new THREE.MeshStandardMaterial({ color: COL.court, emissive: COL.warn, emissiveIntensity: 0.5, roughness: 0.9 });
 mat('dummy', COL.dummy, { roughness: 0.8 }); mat('hit', COL.hit, { emissive: COL.hit, emissiveIntensity: 1 });
@@ -7127,7 +7146,12 @@ function openMode() {
   G.selecting = true; G.modeOpen = true; clearInput(); setShow(el.select, false); setShow(el.mode, true);
   for (let i = 0; i < MODES.length; i++) G.modeBtns[i].classList.toggle('is-last', MODES[i] === G.mode);
 }
-function pickMode(m) { G.mode = m; saveMode(m); G.modeOpen = false; setShow(el.mode, false); openSelect(); }
+// Batch 17b: picking Royal Rumble disposes the palace set (geometry stays built; textures leave); picking the palace again after a failed load retries it.
+function pickMode(m) {
+  if (m !== 'palace' && LD.palace !== 'none') ldDispose();
+  if (m === 'palace' && LD.palace === 'failed') LD.palace = 'none';
+  G.mode = m; saveMode(m); G.modeOpen = false; setShow(el.mode, false); openSelect();
+}
 // Keys on the mode menu: 1 The Burning Palace, 2 Royal Rumble, Enter the last pick.
 function modeKey(e) {
   const n = e.code.startsWith('Digit') ? parseInt(e.code.slice(5), 10) : -1;
@@ -7352,7 +7376,156 @@ function reset() {
   // BP01: the mode decides the map (Royal Rumble: the royale map as before; The Burning Palace: the rooms).
   if (G.mode === 'palace' && CONFIG.PALACE_ON) enterPalace(); else leavePalace();
   renderer.shadowMap.needsUpdate = true;
+  // Batch 17b: a palace run whose set is not loaded starts its loading card.
+  ldNeed();
 }
+
+// ===================== Loading cards (batch 17b; docs/INTEGRATION.md section 3) =====================
+// One loader for every set and card. A card is a list of jobs; loadTick (every frame) runs jobs until CONFIG.LOAD.sliceMs is spent. A job
+// returns true when done; one waiting on a fetch, a transcode or a parallel compile returns false and is asked again the next frame.
+// The card shows (opaque; the frame draws nothing behind it) while jobs run outside the menus; under the opaque menus they run unseen.
+// Cap: seconds of visible time (no frames run while the tab is hidden); past it the set keeps its box colours (never half a set).
+// Sets: 'palace' (CONFIG.TEX images) loads when a palace run needs it and is disposed when the player picks Royal Rumble (pickMode).
+// Cards 'restore' (graphics context back) and 'adjust' (tier changed in play) re-upload, compile and draw once under the card.
+const ktx2 = new KTX2Loader().setTranscoderPath(CONFIG.LOAD.transcoder).detectSupport(renderer);
+const LD = { kind: '', titleKey: '', jobs: null, ji: 0, gen: 0, visS: 0, card: false, step: '', started: false, man: null, files: null, waitDone: false, warm: false,
+  palace: 'none', led: { kind: '', draws: 0, prog0: 0, prog1: 0, tex0: 0, tex1: 0, fmt: [], failed: [], capped: false, ms: 0, t0: 0, n: 0 } };
+const LD_CAM = { p: new THREE.Vector3(), q: new THREE.Quaternion(), far: 0 };
+// A promise the current job waits on; a promise from an older card (LD.gen moved on) is ignored.
+function ldWait(p) {
+  const g = LD.gen; LD.waitDone = false;
+  p.then(() => { if (g === LD.gen) LD.waitDone = true; }, () => { if (g === LD.gen) LD.waitDone = true; });
+}
+// One palace image: the encoded file (KTX2, or the PNG the 17a manifest ships when no KTX2 mode kept it within the gates), then the PNG source.
+// Every route reads rows top-first; each try is repeated CONFIG.LOAD.retry times before the next route.
+function ldOne(name) {
+  const C = CONFIG.LOAD, dir = TOUCH ? C.dirPhone : C.dirDesk, man = LD.man && LD.man.files, pg = dir + name + '.png';
+  const enc = C.fmt !== 'ktx2' ? null : man && man[pg] ? pg : dir + name + '.ktx2';
+  const tries = (f, n) => f().catch((e) => (n > 0 ? tries(f, n - 1) : Promise.reject(e)));
+  const png = (u) => () => fetch(u).then((r) => { if (!r.ok) throw new Error(u); return r.blob(); }).then((b) => createImageBitmap(b))
+    .then((bm) => { const t = new THREE.Texture(bm); t.flipY = false; t.needsUpdate = true; return t; });
+  const first = !enc ? Promise.reject(new Error('png route')) : enc.endsWith('.ktx2') ? tries(() => ktx2.loadAsync(enc), C.retry) : tries(png(enc), C.retry);
+  return first.then((t) => ({ t, how: enc.endsWith('.ktx2') ? 'ktx2' : 'png-enc' }))
+    .catch(() => tries(png(C.dirPng + name + '.png'), C.retry).then((t) => ({ t, how: 'png' })))
+    .catch(() => ({ t: null, how: 'failed' }));
+}
+function ldFree(t) { if (!t) return; if (t.image && t.image.close) t.image.close(); t.dispose(); }
+// All five images on the palace materials, or none: rows are top-first in every route, and these materials map by world position with v up
+// (before 17b the images were uploaded flipped), so v is flipped by the texture transform here (no cost: every map has a transform).
+function ldApply() {
+  const TX = CONFIG.TEX, keys = Object.keys(TX.files), an = Math.min(TX.aniso, renderer.capabilities.getMaxAnisotropy());
+  for (let i = 0; i < keys.length; i++) {
+    const t = LD.files[i].t, m = M[keys[i]];
+    t.colorSpace = THREE.SRGBColorSpace; t.wrapS = t.wrapT = THREE.RepeatWrapping; t.anisotropy = an; t.repeat.set(1, -1); t.offset.set(0, 1);
+    m.map = t; m.color.set(0xffffff); m.needsUpdate = true; PTEX.list.push(t);
+  }
+  PTEX.on = true;
+}
+// Palace materials back to their box colours and every palace image freed (Royal Rumble picked, a failed or capped load).
+function ldRevert() {
+  for (const k in CONFIG.TEX.files) { const m = M[k]; if (m.map) { m.map = null; m.color.setHex(TEXCOL[k]); m.needsUpdate = true; } }
+  for (const t of PTEX.list) ldFree(t);
+  if (LD.files) for (const f of LD.files) if (f && f.t && PTEX.list.indexOf(f.t) < 0) ldFree(f.t);
+  PTEX.list.length = 0; PTEX.on = false; LD.files = null;
+}
+// Warm draw: every palace room and door in the scene, seen from above the palace with the overview far plane, then the run's own view back.
+function ldWarmOn() {
+  LD_CAM.p.copy(camera.position); LD_CAM.q.copy(camera.quaternion); LD_CAM.far = camera.far; LD.warm = true;
+  for (const r of PAL.rooms) if (!r.group.parent) scene.add(r.group);
+  for (const d of PAL.doors) if (!d.group.parent) scene.add(d.group);
+  camera.far = CONFIG.FAR_OVERVIEW * K; camera.updateProjectionMatrix();
+  camera.position.set(PAL.cx, 90, PAL.cz + 60); camera.lookAt(PAL.cx, 0, PAL.cz); camera.updateMatrixWorld();
+}
+function ldWarmOff() {
+  if (!LD.warm) return;
+  LD.warm = false;
+  if (PAL.on) palSync(); else { for (const r of PAL.rooms) scene.remove(r.group); for (const d of PAL.doors) scene.remove(d.group); }
+  camera.far = LD_CAM.far; camera.updateProjectionMatrix(); camera.position.copy(LD_CAM.p); camera.quaternion.copy(LD_CAM.q); camera.updateMatrixWorld();
+  renderer.shadowMap.needsUpdate = true;
+}
+function ldCompile() {
+  if (!LD.started) { LD.started = true; if (renderer.compileAsync) ldWait(renderer.compileAsync(scene, camera)); else { renderer.compile(scene, camera); LD.waitDone = true; } }
+  return LD.waitDone;
+}
+function ldUpload() { for (const t of PTEX.list) renderer.initTexture(t); return true; }
+function ldDraw() {
+  renderer.render(scene, camera); LD.led.draws += renderer.info.render.calls; LD.led.n++;
+  ldWarmOff(); return true;
+}
+const LD_JOBS = {
+  palace: [
+    { key: 'manifest', run() {
+      if (!LD.started) { LD.started = true; ldWait(fetch(CONFIG.LOAD.manifest).then((r) => (r.ok ? r.json() : null)).catch(() => null).then((j) => { LD.man = j; })); }
+      return LD.waitDone;
+    } },
+    { key: 'fetch', run() {
+      if (!LD.started) {
+        LD.started = true; const g = LD.gen, names = Object.values(CONFIG.TEX.files);
+        ldWait(Promise.all(names.map((n) => ldOne(n))).then((got) => { if (g === LD.gen) LD.files = got; else for (const f of got) ldFree(f.t); }));
+      }
+      return LD.waitDone;
+    } },
+    { key: 'apply', run() {
+      const names = Object.values(CONFIG.TEX.files);
+      for (let i = 0; i < names.length; i++) { const f = LD.files && LD.files[i]; LD.led.fmt.push(names[i] + ':' + (f ? f.how : 'failed')); if (!f || !f.t) LD.led.failed.push(names[i]); }
+      if (LD.led.failed.length) { ldRevert(); ldEnd(false); return false; }
+      ldApply(); ldWarmOn(); return true;
+    } },
+    { key: 'compile', run: ldCompile },
+    { key: 'upload', run: ldUpload },
+    { key: 'draw', run: ldDraw },
+  ],
+  restore: [{ key: 'upload', run: ldUpload }, { key: 'compile', run: ldCompile }, { key: 'draw', run: ldDraw }],
+  adjust: [{ key: 'compile', run: ldCompile }, { key: 'draw', run: ldDraw }],
+};
+function ldStart(kind) {
+  LD.gen++; LD.kind = kind; LD.jobs = LD_JOBS[kind]; LD.ji = 0; LD.started = false; LD.visS = 0; LD.step = ''; LD.titleKey = 'load_' + kind;
+  const L = LD.led; L.kind = kind; L.draws = 0; L.n = 0; L.prog0 = renderer.info.programs.length; L.tex0 = renderer.info.memory.textures;
+  L.fmt.length = 0; L.failed.length = 0; L.capped = false; L.ms = 0; L.t0 = performance.now();
+  if (kind === 'palace') { LD.palace = 'loading'; LD.man = null; LD.files = null; }
+  setText(el.loadTitle, T(LD.titleKey));
+}
+function ldEnd(ok) {
+  const L = LD.led; L.ms = Math.round(performance.now() - L.t0); L.prog1 = renderer.info.programs.length; L.tex1 = renderer.info.memory.textures;
+  if (LD.kind === 'palace') LD.palace = ok ? 'ready' : 'failed';
+  LD.jobs = null; LD.kind = ''; LD.card = false; setShow(el.load, false); renderer.shadowMap.needsUpdate = true;
+}
+// Past the cap: a palace set whose images are not on yet goes back to box colours; one already applied keeps them (its first play frame compiles).
+function ldCapped() {
+  LD.led.capped = true; LD.gen++; ldWarmOff();
+  const applied = PTEX.on;
+  if (LD.kind === 'palace' && !applied) ldRevert();
+  ldEnd(LD.kind !== 'palace' || applied);
+}
+// Royal Rumble picked: the palace set leaves (any palace load in progress stops first).
+function ldDispose() {
+  if (LD.kind === 'palace') { LD.gen++; ldWarmOff(); LD.jobs = null; LD.kind = ''; LD.card = false; setShow(el.load, false); }
+  ldRevert(); LD.palace = 'none';
+}
+// A run that needs a set not loaded yet starts its card (called by reset).
+function ldNeed() {
+  if (G.mode === 'palace' && CONFIG.PALACE_ON && CONFIG.TEX.on && LD.palace === 'none' && !LD.jobs) ldStart('palace');
+}
+// PERFRAME-BEGIN
+// Called by every frame before anything else: shows or hides the card (on change), counts visible time against the cap, runs jobs in a slice.
+function loadTick(realMs) {
+  if (!LD.jobs) return;
+  const show = !G.selecting;
+  if (show !== LD.card) { LD.card = show; setShow(el.load, show); }
+  if (G.paused || G.ctxLost) return;
+  LD.visS += realMs / 1000;
+  if (LD.visS > (TOUCH ? CONFIG.LOAD.capPhoneS : CONFIG.LOAD.capS)) { ldCapped(); return; }
+  const t0 = performance.now();
+  while (LD.jobs && performance.now() - t0 < CONFIG.LOAD.sliceMs) {
+    const j = LD.jobs[LD.ji];
+    if (LD.step !== j.key) { LD.step = j.key; setText(el.loadStep, T('load_step_' + j.key)); }
+    if (!j.run()) break;
+    if (!LD.jobs) break;
+    LD.ji++; LD.started = false;
+    if (LD.ji >= LD.jobs.length) ldEnd(true);
+  }
+}
+// PERFRAME-END
 
 // ===================== View, tier, frame =====================
 const tmpV = new THREE.Vector3();
@@ -7369,7 +7542,8 @@ function setView(v) {
   FOW.uFowR.value = v === 'follow' ? fowR() : 1e5;
   setText(el.btnMap, T(v === 'follow' ? 'btn_map' : 'btn_follow'));
 }
-function applyTier(name) {
+// card true (a change during play): the recompile happens under the 'adjust' card (three.js frees unused programs, so both tiers cannot stay warm).
+function applyTier(name, card) {
   tier = name; const t = CONFIG.TIER[name];
   renderer.setPixelRatio(Math.min(devicePixelRatio, t.pr));
   renderer.setSize(innerWidth, innerHeight);
@@ -7377,6 +7551,7 @@ function applyTier(name) {
   sun.shadow.mapSize.set(t.shadowMap, t.shadowMap);
   if (sun.shadow.map) { sun.shadow.map.dispose(); sun.shadow.map = null; }
   renderer.shadowMap.needsUpdate = true;
+  if (card && !LD.jobs) ldStart('adjust');
 }
 addEventListener('resize', () => {
   renderer.setSize(innerWidth, innerHeight);
@@ -7384,7 +7559,8 @@ addEventListener('resize', () => {
 });
 document.addEventListener('visibilitychange', () => { G.paused = document.hidden; if (G.paused) clearInput(); });
 cv.addEventListener('webglcontextlost', (e) => { e.preventDefault(); G.ctxLost = true; });
-cv.addEventListener('webglcontextrestored', () => { G.ctxLost = false; renderer.shadowMap.needsUpdate = true; });
+// Batch 17b: a restored context re-uploads, compiles and draws once under the 'restore' card (a load in progress carries on and does that itself).
+cv.addEventListener('webglcontextrestored', () => { G.ctxLost = false; renderer.shadowMap.needsUpdate = true; if (!LD.jobs) ldStart('restore'); });
 
 let acc = 0, last = 0, slowT = 0, dbgT = 0, frameMs = 0, errShown = false;
 // PERFRAME-BEGIN
@@ -7452,7 +7628,8 @@ function frame(now) {
   G.frames++;
   try {
     const realMs = last ? now - last : 16; last = now;
-    if (G.paused || G.ctxLost || G.selecting) return;
+    loadTick(realMs);
+    if (G.paused || G.ctxLost || G.selecting || LD.card) return;
     const dt = Math.min(realMs / 1000, CONFIG.MAX_DT);
     acc += dt;
     while (acc >= CONFIG.STEP) { step(CONFIG.STEP); acc -= CONFIG.STEP; }
@@ -7465,7 +7642,7 @@ function frame(now) {
     frameMs += (realMs - frameMs) * 0.1;
     if (!LOCK_TIER && tier !== 'low') {
       slowT = realMs > CONFIG.STEPDOWN_MS ? slowT + realMs / 1000 : Math.max(0, slowT - realMs / 1000);
-      if (slowT > CONFIG.STEPDOWN_HOLD_S) { slowT = 0; applyTier('low'); }
+      if (slowT > CONFIG.STEPDOWN_HOLD_S) { slowT = 0; applyTier('low', true); }
     }
     if (DEBUG) {
       dbgT -= realMs;
@@ -7534,8 +7711,6 @@ for (const h of HAZARDS) h.ring.visible = true;
 for (const b of BOTLIST) if (b.group.parent) b.group.visible = true;
 placeView(1);
 renderer.compile(scene, camera);
-// Palace textures (CONFIG.TEX) upload now, under the load, not on the first palace frame.
-for (const t of PTEX.list) renderer.initTexture(t);
 renderer.render(scene, camera);
 // One draw of the whole map so every section's buffers upload at load, not when first seen.
 setView('overview'); placeView(1); renderer.render(scene, camera);
@@ -7841,6 +8016,13 @@ window.__game = {
   config: CONFIG, text: TEXT, sections: SECTION_IDS, spawns: SPAWNS,
   canvasSize: () => [cv.width, cv.height],
   loseContext() { const x = renderer.getContext().getExtension('WEBGL_lose_context'); x.loseContext(); return x; },
+  // Batch 17b: loader state (read only), the player's mode pick (the real path: Royal Rumble disposes the palace set), a tier change in play.
+  load: () => ({ phase: LD.jobs ? 'busy' : 'idle', kind: LD.kind, step: LD.step, palace: LD.palace, card: LD.card, visS: LD.visS, led: JSON.parse(JSON.stringify(LD.led)),
+    ptex: PTEX.list.length, maps: Object.keys(CONFIG.TEX.files).map((k) => ({ k, map: !!M[k].map, flipV: M[k].map ? M[k].map.repeat.y : 0, compressed: !!(M[k].map && M[k].map.isCompressedTexture), w: M[k].map ? M[k].map.image.width : 0 })),
+    mem: Object.assign({}, renderer.info.memory), programs: renderer.info.programs.length, shown: el.load.style.display !== 'none' && el.load.style.display !== '' }),
+  loadBusy: () => !!LD.jobs,
+  pickMode(m) { pickMode(m); },
+  tierInPlay(name) { applyTier(name, true); },
 };
 // 兵家 apex hooks (batch 16 ticket 11): 攻其无备 state, a suit's escape slot by school, and a slot's cooldown (tests).
 Object.assign(window.__game, {
@@ -7985,6 +8167,8 @@ Object.assign(window.__game, {
   palMarkState() { placeView(1); palMarks(); const out = []; for (let i = 0; i < PMK.n; i++) out.push([PMK.px[i], PMK.py[i], PMK.pa[i] / 100]); return { n: PMK.n, list: out, W: PMK.W, H: PMK.H }; },
   palMiniState: () => ({ draws: PAL.miniDraws, icons: PAL.miniIcons, scale: PAL.mS, ox: PAL.mOx, oy: PAL.mOy, W: MINI.W, H: MINI.H, cur: PAL.cur ? PAL.cur.id : '' }),
 });
+// Batch 17b test mark: when the boot finished (check 1711: the page's load event fires before the warm-up, not after it).
+window.__readyMs = performance.now();
 window.__ready = true;
 requestAnimationFrame(frame);
 </script>
