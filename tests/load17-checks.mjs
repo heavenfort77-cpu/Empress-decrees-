@@ -31,6 +31,7 @@ export async function load17Checks(g, check, page, browser, URL0) {
   // 1702 No shader program and no texture built in play after the card: 600 steps of a palace run (walking the start hall, the HUD and pieces
   // live), drawn every 20 steps, against the counts the card left.
   const p2 = await g(() => {
+    const memNow = () => { const r = __game.render(true); return { geoms: r.geoms, texs: r.texs, programs: r.programs }; };
     const G = __game, o = { at0: memNow(), worst: null };
     const r = G.palace().cur, st = G.state();
     for (let i = 0; i < 30; i++) { G.setMove(Math.sin(i) * 0.7, Math.cos(i * 0.7) * 0.7); G.step(20); const m = memNow(); if (m.programs !== o.at0.programs || m.texs !== o.at0.texs) o.worst = m; }
@@ -135,7 +136,7 @@ export async function load17Checks(g, check, page, browser, URL0) {
   // The run is stepped to the same game time, then the frame loop is held (tab marked hidden) so the shot is the one frame drawn here.
   const hide = (on) => { Object.defineProperty(document, 'hidden', { value: on, configurable: true }); document.dispatchEvent(new Event('visibilitychange')); };
   const shot = async () => {
-    await page.evaluate((hs) => { const hide = eval(hs); const G = __game; G.teleport(G.palace().start.cx, G.palace().start.cz); G.step(120); hide(true); G.render(true); }, hide.toString());
+    await page.evaluate((hs) => { const hide = eval(hs); const G = __game, p = G.player(); G.teleport(p.x, p.z); G.step(120); hide(true); G.render(true); }, hide.toString());
     const b = (await page.screenshot({ type: 'png' })).toString('base64'); await page.evaluate((hs) => eval(hs)(false), hide.toString()); return b;
   };
   await g(toRumble); await g(toPalace); await idle(page); const A = await shot();

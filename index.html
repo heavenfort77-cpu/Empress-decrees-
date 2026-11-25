@@ -1340,6 +1340,10 @@ const TEXCOL = { palFloor: COL.coreFloor, palWall: COL.wall, palPillar: COL.pill
 mat('palFloor', TEXCOL.palFloor); mat('palWall', TEXCOL.palWall); mat('palPillar', TEXCOL.palPillar, { roughness: 0.75 });
 mat('palDoor', TEXCOL.palDoor, { metalness: 0.4, roughness: 0.6 }); mat('palLion', TEXCOL.palLion);
 const PTEX = { on: false, list: [] };
+// The page's load event fires here, before the map build and the warm-up draws (17b fix; cause: removing the PNG fetch above removed the only
+// top-level await, so the whole boot ran before the load event: 0.93-1.02 s vs 0.16-0.40 s locally, a 30 s page.goto timeout in check 1200 at
+// 2560 px on CI run 45525755282). One macrotask yield, as the fetch gave before.
+await new Promise((res) => setTimeout(res, 0));
 M.rail = M.wall;
 const warnMat = new THREE.MeshStandardMaterial({ color: COL.court, emissive: COL.warn, emissiveIntensity: 0.5, roughness: 0.9 });
 mat('dummy', COL.dummy, { roughness: 0.8 }); mat('hit', COL.hit, { emissive: COL.hit, emissiveIntensity: 1 });
