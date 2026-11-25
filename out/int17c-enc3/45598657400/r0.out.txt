@@ -1,0 +1,15 @@
+PREFLIGHT start
+PREFLIGHT PASS
+Not building database; man-db/auto-update is not 'true'.
+toktx v4.3.0~28
+PREP hall_floor RGB (1024, 1024)
+ENC desk hall_floor etc1s 143367 bytes
+ENC phone hall_floor etc1s 47443 bytes
+PREP suit_lamellar_qin RGB (1024, 1024)
+ENC desk suit_lamellar_qin uastc 709107 bytes
+ENC phone suit_lamellar_qin uastc 220084 bytes
+MANIFEST assets/c/desk/hall_floor.ktx2 140667737b3a 7431f57aa101
+MANIFEST assets/c/phone/hall_floor.ktx2 2e1611d6709b 7431f57aa101
+MANIFEST assets/c/desk/suit_lamellar_qin.ktx2 4fd5f7e24dc8 cb505842162b
+MANIFEST assets/c/phone/suit_lamellar_qin.ktx2 8fa621311647 cb505842162b
+PUSHED ci-enc-int 8507954
