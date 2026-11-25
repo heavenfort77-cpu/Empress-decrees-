@@ -1,0 +1,40 @@
+ROW {"scene":"ref","fps":168.2,"p50":6.7,"p95":12.4,"worst":41.8,"over20":21,"frames":3371,"gpuMean":2.071,"cardGpuMean":0,"cardGpuP95":0,"liveMean":0,"liveMax":0,"calls":5,"tris":578,"progNew":0,"progs":3,"sndPerS":0,"evPerS":0,"unknown":0,"ctx":"none","sndReady":0,"sndTotal":0,"heapMB":0.69,"warmed":0,"long":"","loadMs":1499,"timer":true,"gpu":"ANGLE (Apple, ANGLE Metal Renderer: Apple Paravirtual device, Unspecified Version)","errs":0}
+ROW {"scene":"heavy","fps":175.8,"p50":6.2,"p95":11.5,"worst":41.4,"over20":18,"frames":3520,"gpuMean":2.002,"cardGpuMean":1.512,"cardGpuP95":1.831,"liveMean":43,"liveMax":60,"calls":8,"tris":898,"progNew":0,"progs":5,"sndPerS":71,"evPerS":75.3,"unknown":0,"ctx":"running","sndReady":140,"sndTotal":140,"heapMB":-0.88,"warmed":13,"long":"","loadMs":720,"timer":true,"gpu":"ANGLE (Apple, ANGLE Metal Renderer: Apple Paravirtual device, Unspecified Version)","errs":0}
+ROW {"scene":"heavy#2","fps":173.6,"p50":6.2,"p95":11.7,"worst":131.4,"over20":24,"frames":3476,"gpuMean":2.01,"cardGpuMean":1.543,"cardGpuP95":1.995,"liveMean":43.2,"liveMax":71,"calls":8,"tris":898,"progNew":0,"progs":5,"sndPerS":71.2,"evPerS":75.3,"unknown":0,"ctx":"running","sndReady":140,"sndTotal":140,"heapMB":-0.31,"warmed":13,"long":"t8866:131ms heap+0MB ev6","loadMs":279,"timer":true,"gpu":"ANGLE (Apple, ANGLE Metal Renderer: Apple Paravirtual device, Unspecified Version)","errs":0}
+ROW {"scene":"ref#2","fps":176.9,"p50":6.4,"p95":11.8,"worst":35.8,"over20":15,"frames":3540,"gpuMean":1.948,"cardGpuMean":0,"cardGpuP95":0,"liveMean":0,"liveMax":0,"calls":5,"tris":578,"progNew":0,"progs":3,"sndPerS":0,"evPerS":0,"unknown":0,"ctx":"none","sndReady":0,"sndTotal":0,"heapMB":-0.13,"warmed":0,"long":"","loadMs":215,"timer":true,"gpu":"ANGLE (Apple, ANGLE Metal Renderer: Apple Paravirtual device, Unspecified Version)","errs":0}
+
+scene      fps     p50    p95   worst >20ms stageGPU cardGPU cardP95 live(mean/max) calls  tris newProg snd/s ev/s heapMB long
+ref         168.2    6.7   12.4   41.8    21    2.071       0       0            0/0     5    578       0     0     0   0.69  
+heavy       175.8    6.2   11.5   41.4    18    2.002   1.512   1.831          43/60     8    898       0    71  75.3  -0.88  
+heavy#2     173.6    6.2   11.7  131.4    24     2.01   1.543   1.995        43.2/71     8    898       0  71.2  75.3  -0.31  t8866:131ms heap+0MB ev6
+ref#2       176.9    6.4   11.8   35.8    15    1.948       0       0            0/0     5    578       0     0     0  -0.13  
+GATE gpu real renderer "ANGLE (Apple, ANGLE Metal Renderer: Apple Paravirtual device, Unspecified Version)" PASS
+GATE scenes measured rows 4 of 4 PASS
+GATE ref frames measured frames 3371 gpu 2.071 PASS
+GATE heavy frames measured frames 3520 gpu 2.002 PASS
+GATE heavy#2 frames measured frames 3476 gpu 2.01 PASS
+GATE ref#2 frames measured frames 3540 gpu 1.948 PASS
+GATE ref errors errors 0 PASS
+GATE ref budget calls 5 tris 578 PASS
+GATE ref warmup newPrograms 0 PASS
+GATE heavy errors errors 0 PASS
+GATE heavy budget calls 8 tris 898 PASS
+GATE heavy warmup newPrograms 0 PASS
+GATE heavy fps fps 175.8 p95 11.5 worst 41.4 PASS
+GATE heavy live cards 40-60 mean 43 max 60 PASS
+GATE heavy card pass GPU mean 1.512 ms (<= 2.0) PASS
+GATE heavy sounds ctx running ready 140/140 71/s unknown 0 PASS
+GATE heavy draws cards add 3 calls (<= 3) PASS
+GATE heavy#2 errors errors 0 PASS
+GATE heavy#2 budget calls 8 tris 898 PASS
+GATE heavy#2 warmup newPrograms 0 PASS
+GATE heavy#2 fps fps 173.6 p95 11.7 worst 131.4 FAIL
+GATE heavy#2 live cards 40-60 mean 43.2 max 71 PASS
+GATE heavy#2 card pass GPU mean 1.543 ms (<= 2.0) PASS
+GATE heavy#2 sounds ctx running ready 140/140 71.2/s unknown 0 PASS
+GATE heavy#2 draws cards add 3 calls (<= 3) PASS
+GATE ref#2 errors errors 0 PASS
+GATE ref#2 budget calls 5 tris 578 PASS
+GATE ref#2 warmup newPrograms 0 PASS
+GATE heavy vs ref same job fps ratio 1.045 / 0.981 (mean >= 0.85) PASS
+GATES FAIL 1
