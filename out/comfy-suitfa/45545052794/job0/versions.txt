@@ -1,0 +1,1 @@
+torch 2.15.0+cpu diffusers 0.43.0 threads 2
