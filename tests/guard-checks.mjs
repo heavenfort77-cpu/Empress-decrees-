@@ -182,19 +182,19 @@ export async function guardChecks(g, check, base) {
   // no shader compile, geometry flat; after all are broken, no guard mesh stays in the scene.
   const d306 = await g(() => {
     const G = __game, o = {}; const { A } = __gs(0);
-    const empty = G.render(true);
+    const empty = G.render(true), ec = G.census();
     const full = ['wz', 'dun', 'dun', 'zu', 'zu', 'zu', 'zu', 'zu', 'nu', 'nu', 'nu', 'che'];
     o.q = [G.guardSpawn('huangjia', full, A[0], A[1] + 5, { fz: -1, open: true }), G.guardSpawn('huangjia', full, A[0], A[1] - 5, { fz: 1, open: true })];
     let best = null;
     for (let k = 0; k < 8; k++) {
       G.step(10);
-      const r = G.guards(), rr = G.render(true), tells = r.list.filter((u) => u.alive && u.tellStaged).length;
+      const r = G.guards(), rr = G.render(true), cs = G.census(), tells = r.list.filter((u) => u.alive && u.tellStaged).length;
       const seen = r.list.filter((u) => u.seen).length, counts = Object.values(r.draw).reduce((a, d) => a + d.count, 0);
       const row = { calls: rr.calls, tris: rr.tris, programs: rr.programs, geoms: rr.geoms, tells, seen, counts, alive: r.n, extra: rr.calls - empty.calls - tells, batches: rr.crowd, rigs: rr.rigs, fx: rr.fx,
-        other: rr.calls - tells - rr.crowd - rr.rigs - rr.fx };
+        tellsDrawn: cs.tells, other: rr.calls - cs.tells - rr.crowd - rr.rigs - rr.fx, diff: Object.keys(Object.assign({}, cs.other, ec.other)).filter((k) => cs.other[k] !== ec.other[k]).map((k) => k + ':' + (ec.other[k] || 0) + '>' + (cs.other[k] || 0)) };
       if (!best || row.calls > best.calls) best = row;
     }
-    o.best = best; o.empty = { calls: empty.calls, tris: empty.tris, crowd: empty.crowd, rigs: empty.rigs, fx: empty.fx, other: empty.calls - empty.crowd - empty.rigs - empty.fx };
+    o.best = best; o.empty = { calls: empty.calls, tris: empty.tris, crowd: empty.crowd, rigs: empty.rigs, fx: empty.fx, tells: ec.tells, other: empty.calls - ec.tells - empty.crowd - empty.rigs - empty.fx };
     const r = G.guards(); r.list.forEach((u, i) => { if (u.alive) G.guardStrike(-1, i, 1000, false); });
     G.step(1); const after = G.render(true), ra = G.guards();
     o.after = { n: ra.n, staged: Object.values(ra.draw).filter((d) => d.staged).length, tells: ra.list.filter((u) => u.tellStaged).length, geoms: after.geoms, programs: after.programs };

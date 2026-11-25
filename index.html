@@ -7102,6 +7102,8 @@ function clearGuards() {
   for (let i = 0; i < SQUADS.length; i++) { const sq = SQUADS[i]; sq.on = false; sq.leader = null; sq.tgt = null; sq.n = 0; sq.broken = false; FX.fxKill(sq.buffH); sq.buffH = -1; }
   for (let i = 0; i < GUARDS.length; i++) { const u = GUARDS[i]; FX.fxKill(u.fxH); FX.fxKill(u.fxH2); u.fxH = -1; u.fxH2 = -1; }
   for (let k = 0; k < GUARD_TYPES.length; k++) { const im = GDRAW[GUARD_TYPES[k]]; im.count = 0; if (im.parent) scene.remove(im); }
+  // The model batches empty with the box batches (they kept the last guards drawn into the new run: drawGuards is not called with no guard).
+  if (CHRS.ready) { CHRS.crowd.begin(camera); CHRS.crowd.end(); }
   G.guardN = 0; G.guardDrawn = false; G.guardKills = 0; G.guardBreaks = 0; G.guardBlocks = 0; G.guardHits = 0; G.guardMinTell = 99;
   fzClear();
 }
@@ -7963,13 +7965,16 @@ function ldFx() {
 function ldChrFetch() { if (!CONFIG.CHARS.on || CHRS.gl || CHRS.failed.length) return true; if (!LD.started) { LD.started = true; ldWait(chrFetch()); } return LD.waitDone; }
 function ldChrBuild() { if (!CONFIG.CHARS.on || CHRS.ready || !CHRS.gl) return true; return chrBuildStep(); }
 function ldChrWarm() { if (!CONFIG.CHARS.on || CHRS.ready || !CHRS.crowd) return true; LD.led.draws += chrWarm(); return true; }
-// Shadow depth programs (plain and instanced casters) compile here, under a card or at the mode switch, never in a run's first frames:
-// one draw with the shadow pass on through a camera that sees nothing (main pass empty), with two probes (a mesh and a one-instance batch
-// on a shape already on the GPU) standing at the sun's target for that draw only.
+// Shadow depth programs compile here (at boot, under every card and at the mode switch), never in a run's first frames: one draw with the
+// shadow pass on through a camera that sees nothing (main pass empty), with four probes standing at the sun's target for that draw only.
+// three.js picks the depth program again each time the caster kind changes (mesh or instanced batch), with or without a map as that caster
+// has one: the probes alternate kind so all four programs (mesh / batch x map / no map) are built (507: two map variants were built in play).
 const DEPTH_CAM = new THREE.PerspectiveCamera(10, 1, 0.1, 0.2);
 DEPTH_CAM.position.set(0, -500, 0); DEPTH_CAM.lookAt(0, -600, 0); DEPTH_CAM.updateMatrixWorld();
-const DEPTH_PROBE = [new THREE.Mesh(tellLineGeo, M.bronze), new THREE.InstancedMesh(tellLineGeo, M.bronze, 1)];
-DEPTH_PROBE[1].setMatrixAt(0, new THREE.Matrix4());
+const DEPTH_TEX = new THREE.DataTexture(new Uint8Array([255, 255, 255, 255]), 1, 1); DEPTH_TEX.needsUpdate = true;
+const DEPTH_MAPMAT = new THREE.MeshBasicMaterial({ map: DEPTH_TEX });
+const DEPTH_PROBE = [new THREE.Mesh(tellLineGeo, M.bronze), new THREE.InstancedMesh(tellLineGeo, DEPTH_MAPMAT, 1), new THREE.Mesh(tellLineGeo, DEPTH_MAPMAT), new THREE.InstancedMesh(tellLineGeo, M.bronze, 1)];
+DEPTH_PROBE[1].setMatrixAt(0, new THREE.Matrix4()); DEPTH_PROBE[3].setMatrixAt(0, new THREE.Matrix4());
 for (const o of DEPTH_PROBE) { o.castShadow = true; o.scale.setScalar(0.05); }
 function depthWarm() {
   if (G.ctxLost || !renderer.shadowMap.enabled) return 0;
@@ -8392,6 +8397,18 @@ window.__game = {
     walk(scene, 'scene'); for (const r of PAL.rooms) walk(r.group, 'room ' + r.id); for (const d of PAL.doors) walk(d.group, 'door');
     return out;
   },
+  // Read-only, checks 306/907: what the main pass draws besides crowd batches, rig meshes and card batches, with the renderer's own visibility
+  // and frustum test: tells = meshes on the two tell shapes; other = the rest by name or shape and material.
+  census() {
+    const fr = new THREE.Frustum().setFromProjectionMatrix(new THREE.Matrix4().multiplyMatrices(camera.projectionMatrix, camera.matrixWorldInverse)), o = { tells: 0, other: {} };
+    scene.traverseVisible((m) => {
+      if (!(m.isMesh || m.isLine || m.isPoints) || m.onAfterRender === crowdTick || m.onAfterRender === rigTick || m.onAfterRender === fxTick) return;
+      if ((m.isInstancedMesh && m.count === 0) || (m.frustumCulled && !fr.intersectsObject(m))) return;
+      const mats = Array.isArray(m.material) ? m.material : [m.material];
+      for (const mt of mats) { if (!mt.visible) continue; if (m.geometry === tellRingGeo || m.geometry === tellLineGeo) o.tells++; else { const k = (m.name || m.geometry.type) + '/' + (mt.name || mt.type); o.other[k] = (o.other[k] || 0) + 1; } }
+    });
+    return o;
+  },
   // Read-only: the fog-of-war shader patch applied to a stand-in shader (check: it reads each instance's own position).
   fowSrc() { const m = { onBeforeCompile: null }; addFow(m); const sh = { uniforms: {}, vertexShader: '#include <common>\n#include <worldpos_vertex>', fragmentShader: '#include <common>\n#include <dithering_fragment>' }; m.onBeforeCompile(sh); return sh.vertexShader; },
   setMove(x, z) { testMove.on = true; testMove.x = x; testMove.z = z; },
@@ -8812,6 +8829,7 @@ Object.assign(window.__game, {
   palMiniState: () => ({ draws: PAL.miniDraws, icons: PAL.miniIcons, scale: PAL.mS, ox: PAL.mOx, oy: PAL.mOy, W: MINI.W, H: MINI.H, cur: PAL.cur ? PAL.cur.id : '' }),
 });
 // Batch 17b test mark: when the boot finished (check 1711: the page's load event fires before the warm-up, not after it).
+depthWarm();
 window.__readyMs = performance.now();
 window.__ready = true;
 requestAnimationFrame(frame);
