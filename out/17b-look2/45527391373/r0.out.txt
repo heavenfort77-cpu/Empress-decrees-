@@ -1,0 +1,4 @@
+LOOK {"spot":[0,0],"dE2000":1.607,"over10":2.35,"errs":0}
+LOOK {"spot":[-4,3],"dE2000":0.549,"over10":0.01,"errs":0}
+LOOK {"spot":[5,-3],"dE2000":1.569,"over10":2.35,"errs":0}
+LOOK PASS
