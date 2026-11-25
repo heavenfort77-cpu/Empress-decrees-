@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<base href="https://raw.githubusercontent.com/heavenfort77-cpu/Empress-decrees-/cc4ce71/">
-<!-- single-file build of cc4ce71; assets from https://raw.githubusercontent.com/heavenfort77-cpu/Empress-decrees-/cc4ce71/ -->
+<base href="https://raw.githubusercontent.com/heavenfort77-cpu/Empress-decrees-/e36ec33/">
+<!-- single-file build of e36ec33; assets from https://raw.githubusercontent.com/heavenfort77-cpu/Empress-decrees-/e36ec33/ -->
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
 <title>Empress Decrees - box prototype (batch 8)</title>
@@ -33,7 +33,9 @@ body.touch #next{top:10px;right:12px}
 .sk{position:relative;width:52px;height:52px;border-radius:8px;background:#2a2030;border:2px solid #c9a040;color:#fff;font:bold 16px system-ui,sans-serif;display:flex;align-items:center;justify-content:center;pointer-events:none}
 .sk .cd{position:absolute;inset:0;background:#000a;border-radius:6px;display:none;align-items:center;justify-content:center;font:bold 18px system-ui}
 .sk .ch{position:absolute;inset:-6px;border-radius:inherit;z-index:-1;display:none;pointer-events:none}
-.sk .lb{position:absolute;bottom:-15px;font:11px system-ui;color:#ddd;white-space:nowrap}
+.sk .nm{font:bold 11px system-ui;text-align:center;line-height:1.05;padding:0 3px;pointer-events:none}
+.sk .key{position:absolute;left:3px;top:1px;font:10px system-ui;color:#c9a040;pointer-events:none}
+body.touch .sk .key{display:none}
 .sk .zs{position:absolute;top:-17px;left:50%;transform:translateX(-50%);font:10px system-ui;color:#9fe8d8;white-space:nowrap;display:none;pointer-events:none}
 .sk .fzl{display:block;color:#ffd21a}
 .sk.fz{position:fixed;left:calc(50% + 104px);bottom:10px}
@@ -41,7 +43,6 @@ body.touch .sk.fz{left:auto}
 body.touch #bar{left:auto;right:18px;bottom:18px;transform:none;width:230px;height:200px;display:block}
 body.touch .sk{position:absolute;width:64px;height:64px;border-radius:50%;pointer-events:auto;touch-action:none}
 body.touch .sk.atk{width:88px;height:88px;right:0;bottom:0;font-size:15px}
-body.touch .sk .lb{display:none}
 #boss{position:fixed;left:50%;top:8px;transform:translateX(-50%);width:min(46vw,420px);display:none;pointer-events:none;text-align:center;text-shadow:0 1px 2px #000}
 #bossname{font:15px Georgia,serif;color:#ffd98a}
 #bossbar{height:12px;background:#0008;border:1px solid #fff6;border-radius:3px;margin:3px 0}
@@ -17273,7 +17274,7 @@ var Rig = class {
   play(name, rate = 1) {
     const a2 = this.actions[name];
     if (!a2) return false;
-    const f2 = CHR.anim.fade, loop = CHR.loops.includes(name), prev = loop ? this.base : this.once || this.base;
+    const f2 = CHR.anim.fade, loop = CHR.loops.includes(name), prev = this.once || this.base, old = this.base;
     if (loop && this.base === a2 && !this.once) {
       a2.timeScale = rate;
       return true;
@@ -17284,6 +17285,7 @@ var Rig = class {
     a2.play();
     if (prev && prev !== a2) a2.crossFadeFrom(prev, f2, false);
     if (loop) {
+      if (old && old !== a2 && old !== prev) old.stop();
       this.base = a2;
       this.once = null;
     } else this.once = a2;
@@ -18458,6 +18460,8 @@ function buildRoom(kit, r2, rooms, spots) {
     replaces: (C4.replaces[r2.type] || []).slice(),
     burn: [],
     inst: [],
+    cut: [],
+    cutOn: false,
     geos: [],
     props: [],
     doors: [],
@@ -18472,9 +18476,10 @@ function buildRoom(kit, r2, rooms, spots) {
     return art;
   }
   const acc2 = {}, blocked = spots && spots.blocked || [];
-  const put = (piece, mats, over) => {
+  const put = (piece, mats, over, cut) => {
     if (!mats.length || !kit.pieces[piece]) return;
-    (acc2[piece] || (acc2[piece] = { mats: [], over })).mats.push(...mats);
+    const k2 = cut ? piece + "|cut" : piece;
+    (acc2[k2] || (acc2[k2] = { piece, mats: [], over, cut: !!cut })).mats.push(...mats);
   };
   const tall = r2.type === "bridge" ? C4.walls.bridge : C4.walls[r2.type] || C4.walls.hall;
   const doorGaps = (side) => {
@@ -18487,11 +18492,11 @@ function buildRoom(kit, r2, rooms, spots) {
     if (r2.type === "bridge" && (longX && (side === "n" || side === "s") || !longX && (side === "w" || side === "e"))) continue;
     const piece = side === "s" ? C4.walls.low : tall, [lo2, up] = edgeSpan(r2, side), runs = free(lo2, up, doorGaps(side));
     for (const [a2, b2] of runs) {
-      const ms2 = runMats(side, r2, a2, b2, C4.wallIn, C4.segM);
-      put(piece, ms2);
+      const ms2 = runMats(side, r2, a2, b2, C4.wallIn, C4.segM), cut = side === "n";
+      put(piece, ms2, void 0, cut);
       if (C4.on.eaves && side !== "s" && (r2.type === "hall" || r2.type === "corridor")) {
-        put("eave_seg", ms2);
-        if (r2.type === "hall") put("tile_end", tileEndMats(ms2));
+        put("eave_seg", ms2, void 0, cut);
+        if (r2.type === "hall") put("tile_end", tileEndMats(ms2), void 0, cut);
       }
     }
   }
@@ -18539,8 +18544,8 @@ function buildRoom(kit, r2, rooms, spots) {
       put("flag_" + F3.ids[i2], [mat4(x2, F3.y, r2.z0 + F3.z, 0)]);
     }
   }
-  for (const piece in acc2) {
-    const P3 = kit.pieces[piece], ms2 = acc2[piece].mats, cast = !C4.noShadow.some((p2) => piece.startsWith(p2));
+  for (const key in acc2) {
+    const piece = acc2[key].piece, P3 = kit.pieces[piece], ms2 = acc2[key].mats, cast = !C4.noShadow.some((p2) => piece.startsWith(p2));
     for (const part2 of P3.parts) {
       const im = new $o(part2.geo, kit.mats[part2.mat] || kit.mats.palStone, ms2.length);
       for (let i2 = 0; i2 < ms2.length; i2++) im.setMatrixAt(i2, ms2[i2]);
@@ -18549,6 +18554,7 @@ function buildRoom(kit, r2, rooms, spots) {
       im.computeBoundingSphere();
       still(art, im);
       art.inst.push(im);
+      if (acc2[key].cut) art.cut.push(im);
       if (kit.burnt[part2.mat]) art.burn.push(im, kit.mats[part2.mat], kit.burnt[part2.mat]);
     }
   }
@@ -19010,6 +19016,7 @@ function disposeRoom(art) {
   for (const p2 of art.props) if (p2.geos) for (const g4 of p2.geos) g4.dispose();
   if (art.group.parent) art.group.parent.remove(art.group);
   art.inst.length = 0;
+  art.cut.length = 0;
   art.geos.length = 0;
   art.props.length = 0;
   art.doors.length = 0;
@@ -22439,6 +22446,12 @@ var CONFIG2 = {
   // phone = on phones the floor is minPx / phone (characters larger on small screens, so phones sit closer) and close is x phone.
   // stepMax = the most the camera itself moves in one fixed step, m (ease and pan together; BP10M: they added to 0.511 m on a room change into a fight).
   PAL_CAM: { close: 0.75, minPx: 120, refH: 1080, margin: 0.04, easeS: 0.4, backS: 1.5, panS: 0.15, pad: 0.6, lagM: 1, leadMove: 3, leadOpen: 0.25, leadMax: 4, phone: 0.85, stepMax: 0.4 },
+  // Camera-side cut-away (owner 25 Nov 19:45: a wall and a door between the camera and the suit filled the view). The camera looks from the
+  // south: a drawn room's north wall (with its eaves) and a door on an east-west edge are lowered while they stand south of the player.
+  // nearM = lowered while this many metres or less south of the player; hystM = kept lowered this much further (and until the player is
+  // this far past it), so it does not flicker; sideM = only when the player is within the wall's or door's span plus this, m;
+  // lowK = height factor of a lowered wall or door (a stub stays, so a shut door still reads as shut). Collision is unchanged.
+  PAL_OCCL: { on: true, nearM: 10, hystM: 2, sideM: 4, lowK: 0.15 },
   // Dynamic combat framing (owner 24 Nov 19:33): wide while exploring, a two-shot of the player and the threat in a fight, damped spring
   // transitions, hysteresis, a weighted look point, zoom-in capped by the foes' spread, edge markers for foes off screen.
   PAL_FRAME: {
@@ -22726,7 +22739,7 @@ var TEXT = {
   voice_died: "Thou art broken.",
   rule_died: "Respawning in the centre courtyard (map test only)",
   hp: "HP {n}",
-  atk: "ATK",
+  atk: "Attack",
   cancel: "Cancel",
   help_desktop: "Right-click move / attack \xB7 Q W R aim at cursor (release to cast) \xB7 S stop \xB7 N new run \xB7 H hunt (test)",
   help_touch: "Left thumb move \xB7 ATK auto-targets \xB7 tap a skill to auto-aim, drag to aim, drag to Cancel to stop",
@@ -24584,15 +24597,24 @@ el2.mini.addEventListener("pointerdown", (e2) => {
   navSearch(P2.x, P2.z, P2.y, x2, z2, topY(x2, z2), PATH, true);
 });
 function buildBar() {
-  const mk = (label, cls) => {
+  const mk = (label, cls, key) => {
     const b2 = document.createElement("div");
     b2.className = "sk " + cls;
-    b2.textContent = label;
+    const nm = document.createElement("div");
+    nm.className = "nm";
+    nm.textContent = label;
+    b2.appendChild(nm);
+    if (key) {
+      const k2 = document.createElement("div");
+      k2.className = "key";
+      k2.textContent = key;
+      b2.appendChild(k2);
+    }
     const cd2 = document.createElement("div");
     cd2.className = "cd";
     b2.appendChild(cd2);
     el2.bar.appendChild(b2);
-    return { b: b2, cd: cd2 };
+    return { b: b2, cd: cd2, nm };
   };
   if (TOUCH) {
     const a2 = mk(T3("atk"), "atk");
@@ -24610,14 +24632,9 @@ function buildBar() {
   }
   const pos = [[104, 4], [92, 92], [8, 108]];
   CONFIG2.SKILLS.forEach((sk, i2) => {
-    const x2 = mk(TOUCH ? sk.label : sk.label, "skill");
-    if (!TOUCH) {
-      const lb = document.createElement("div");
-      lb.className = "lb";
-      lb.textContent = sk.name;
-      x2.b.appendChild(lb);
-      SK[i2].lb = lb;
-    } else {
+    const x2 = mk(sk.name, "skill", sk.label);
+    SK[i2].lb = x2.nm;
+    if (TOUCH) {
       x2.b.style.right = pos[i2][0] + "px";
       x2.b.style.bottom = pos[i2][1] + "px";
       x2.b.addEventListener("pointerdown", (e2) => {
@@ -24650,6 +24667,13 @@ function buildBar() {
     }
   });
   fzButton();
+  barNames();
+}
+function barNames() {
+  for (let i2 = 0; i2 < SK.length; i2++) if (SK[i2].lb) {
+    const sk = skillOf(P2, i2);
+    setText(SK[i2].lb, sk.nameKey ? T3(sk.nameKey) : sk.name);
+  }
 }
 function fzButton() {
   const b2 = document.createElement("div"), lb = document.createElement("div");
@@ -33549,10 +33573,7 @@ function assignSchools() {
   }
   SCHOOL_VARS.who = T3("school_" + L2[G3.school]);
   setText(el2.school, T3("hud_school", SCHOOL_VARS));
-  for (let i2 = 0; i2 < SK.length; i2++) if (SK[i2].lb) {
-    const sk = skillOf(P2, i2);
-    setText(SK[i2].lb, sk.nameKey ? T3(sk.nameKey) : sk.name);
-  }
+  barNames();
 }
 function loadSchool() {
   try {
@@ -34453,6 +34474,7 @@ function chrWarm() {
 }
 function chrBodies(on2) {
   playerBody.visible = !on2;
+  playerAim.visible = !on2;
   for (const b2 of BOTLIST) b2.body.visible = !on2;
   for (const u3 of CHRS.units) u3.body.visible = !on2;
   for (const t3 of GUARD_TYPES) GDRAW[t3].material = on2 ? CHR_HIDE : guardMat;
@@ -34468,6 +34490,39 @@ function chrUnitClip(u3, k2) {
   if (!CHRS.ready || !u3.rig) return;
   const a2 = u3.rig.actions;
   u3.rig.play(a2[k2] ? k2 : a2.attack ? "attack" : a2.pounce ? "pounce" : "move");
+}
+function palOcclude() {
+  const A3 = LD.art, O2 = CONFIG2.PAL_OCCL;
+  if (!A3 || !A3.on || !O2.on || !PAL.on) return;
+  let ch3 = false;
+  for (let i2 = 0; i2 < A3.rooms.length; i2++) {
+    const r2 = A3.rooms[i2], art = r2.art;
+    if (!art || art.cut.length === 0 || !r2.group.parent) continue;
+    const d2 = r2.z0 - P2.z, inX = P2.x > r2.x0 - O2.sideM && P2.x < r2.x1 + O2.sideM;
+    const low = art.cutOn ? inX && d2 > -O2.hystM && d2 < O2.nearM + O2.hystM : inX && d2 > 0 && d2 < O2.nearM;
+    if (low !== art.cutOn) {
+      art.cutOn = low;
+      for (let k2 = 0; k2 < art.cut.length; k2++) {
+        const m2 = art.cut[k2];
+        m2.scale.y = low ? O2.lowK : 1;
+        m2.updateMatrix();
+      }
+      ch3 = true;
+    }
+  }
+  for (let i2 = 0; i2 < A3.doors.length; i2++) {
+    const q2 = A3.doors[i2];
+    if (!q2.art || q2.vert || !q2.group.parent) continue;
+    const d2 = q2.z - P2.z, inX = Math.abs(P2.x - q2.x) < q2.w / 2 + O2.sideM;
+    const low = q2.cutOn ? inX && d2 > -O2.hystM && d2 < O2.nearM + O2.hystM : inX && d2 > 0 && d2 < O2.nearM;
+    if (low !== !!q2.cutOn) {
+      q2.cutOn = low;
+      q2.art.root.scale.y = low ? O2.lowK : 1;
+      q2.art.root.updateMatrix();
+      ch3 = true;
+    }
+  }
+  if (ch3) renderer.shadowMap.needsUpdate = true;
 }
 function chrFrame(dt2) {
   if (!CHRS.ready) return;
@@ -34580,6 +34635,7 @@ function artRoom(r2) {
 function artDoors() {
   for (const d2 of PAL.doors) if (d2.ra.art) {
     d2.art = door(LD.art.kit, d2);
+    d2.cutOn = false;
     addTo(d2.ra.art, d2.art);
     LD.art.doors.push(d2);
   }
@@ -35297,6 +35353,7 @@ function frame(now) {
     const pC = PERF.on ? performance.now() : 0;
     placeView(acc / CONFIG2.STEP);
     chrFrame(dt2);
+    palOcclude();
     if (LD.art && LD.art.on && PAL.on) tick(LD.art.kit, dt2);
     const pD = PERF.on ? performance.now() : 0;
     palMarks();
@@ -35567,7 +35624,19 @@ window.__game = {
         }
       }
     }
-    return { on: !!(A3 && A3.on), rooms: A3 ? A3.rooms.length : 0, failed: A3 ? A3.failed.slice() : null, doors: A3 ? A3.doors.length : 0, texN: A3 && A3.kit ? new Set(A3.kit.texList).size : 0, lodDropped: A3 && A3.kit ? A3.kit.lodDropped.slice() : [], que };
+    return {
+      on: !!(A3 && A3.on),
+      rooms: A3 ? A3.rooms.length : 0,
+      failed: A3 ? A3.failed.slice() : null,
+      doors: A3 ? A3.doors.length : 0,
+      texN: A3 && A3.kit ? new Set(A3.kit.texList).size : 0,
+      lodDropped: A3 && A3.kit ? A3.kit.lodDropped.slice() : [],
+      que,
+      // Cut-away (check 1738): rooms whose north wall is lowered now (with the wall batches' height factor), doors lowered now.
+      cut: A3 ? A3.rooms.filter((r2) => r2.art && r2.art.cutOn).map((r2) => ({ room: r2.id, n: r2.art.cut.length, k: r2.art.cut.length ? r2.art.cut[0].scale.y : 1 })) : [],
+      cutDoors: A3 ? A3.doors.filter((d2) => d2.cutOn).map((d2) => ({ x: d2.x, z: d2.z, k: d2.art.root.scale.y })) : [],
+      cutRooms: A3 ? A3.rooms.filter((r2) => r2.art && r2.art.cut.length > 0).length : 0
+    };
   },
   // Read-only (memory diagnostics): the art kit's textures, and textures on kit materials that are not in its list.
   artTexIds() {
@@ -35614,6 +35683,17 @@ window.__game = {
     for (const d2 of PAL.doors) walk(d2.group, "door");
     return out;
   },
+  // Read-only (check 1737): the ability bar's shown texts (name and key hint per button) and whether the box body's aim pointer shows.
+  barText: () => ({
+    touch: TOUCH,
+    btns: [...document.querySelectorAll("#bar .sk")].map((b2) => ({ nm: b2.querySelector(".nm") ? b2.querySelector(".nm").textContent : "", key: b2.querySelector(".key") ? b2.querySelector(".key").textContent : "" })),
+    want: SK.map((st2, i2) => {
+      const sk = skillOf(P2, i2);
+      return sk.nameKey ? T3(sk.nameKey) : sk.name;
+    }),
+    aim: playerAim.visible,
+    body: playerBody.visible
+  }),
   // Read-only (check 1736): pieces art: switches, failed keys, hosts carrying a model and how many of them still draw their plain shape, the
   // buff creatures' rigs and box bodies, Kaymuse's rig.
   pcs() {
@@ -36563,6 +36643,7 @@ window.__game = {
     CHRS.fxN = 0;
     placeView(1);
     chrFrame(0);
+    palOcclude();
     renderer.render(scene, camera);
     renderer.shadowMap.needsUpdate = false;
     return {

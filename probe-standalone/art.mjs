@@ -35,7 +35,16 @@ async function route(name, block, touch) {
     const nOk = Object.values(ok).reduce((a, b) => a + b, 0), nBad = Object.values(bad).reduce((a, b) => a + b, 0);
     if (!block) line((ok.png || 0) > 0 && (ok.glb || 0) > 0 && nBad === 0, `${name} art loads`, `png ${ok.png || 0}, glb ${ok.glb || 0}, ok ${nOk}, bad ${nBad}`);
     else line(true, `${name} blocked run`, `ok ${nOk}, bad ${nBad} (expected: all blocked)`);
-    await page.screenshot({ path: path.join(OUT, `art_${name}.jpg`), type: 'jpeg', quality: 70 });
+    const shot = async (tag) => { const b = await page.screenshot({ type: 'jpeg', quality: 45 }); console.log(`IMG ${name}_${tag} ${b.toString('base64')}`); };
+    if (!block) {
+      await shot('idle');
+      const t0 = await page.evaluate(() => __game.state().t);
+      await page.evaluate(() => { if (__game.autoPlayer) __game.autoPlayer(true); });
+      await page.waitForFunction((t) => __game.state().t > t + 3, t0, { timeout: 120000 });
+      await shot('move3s');
+      await page.waitForFunction((t) => __game.state().t > t + 9, t0, { timeout: 120000 });
+      await shot('move9s');
+    }
   } catch (e) { line(false, `${name} run`, String(e.message).split('\n')[0]); }
   for (const e of errs.slice(0, 8)) console.log(`INFO ${name} err ${e}`);
   line(errs.filter((e) => e.startsWith('pageerror')).length === 0, `${name} no page error`, `${errs.length} console/page errors`);
