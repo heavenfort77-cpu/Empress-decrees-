@@ -1,69 +1,56 @@
 {
-  "_about": "Concept references for the 皇家 guard and the 反贼 rebels (worker W5, 25 Nov; docs/BURNING-PALACE.md, art/Guard-Rebels-Study.md). Reference only: never shipped, never traced; models are built in Blender from what is measured on the picked images. Model: SD 1.5 + LCM LoRA as before. Jobs: 0 guard foot soldier on a tread base (front), 1 guard shieldbearer and crossbowman (three quarter), 2 rebel mob fighter (yellow headband, patched lamellar), 3 rebel leader and talisman priest.",
-  "checkpoint": "v1-5-pruned-emaonly.safetensors",
-  "checkpoint_url": "https://huggingface.co/stable-diffusion-v1-5/stable-diffusion-v1-5/resolve/main/v1-5-pruned-emaonly.safetensors",
-  "width": 512,
-  "height": 512,
-  "steps": 6,
-  "cfg": 1.5,
-  "sampler": "lcm",
-  "scheduler": "sgm_uniform",
-  "positive": "{view}, game concept art, full figure, plain grey background",
-  "negative": "text, watermark, samurai, japanese, katana, qing dynasty, queue hairstyle, sci-fi, robot face, neon, glowing, gun, modern, blurry, cropped, multiple figures",
-  "jobs": [
+ "_about": "FACES round 2 concept references (owner GO 25 Nov 10:47, order 10:52; lead 25 Nov: SDXL base 1.0 + SDXL-Lightning 8-step LoRA, not SD1.5/LCM, not SDXL-Turbo). Groups: job 0 guard zu, job 1 giant g00 (suit fa moved to the SUITS worker, lead 25 Nov). One sculpted war mask per group, Qin lacquer/bronze, menacing (theme: the game is out to get you). txt2img 4 seeds per group plus img2img from the owner's own kit masks (armour-suit kit mask_zoom / rogue_head_zoom, cropped to the front view) at strength 0.6. Reference only: never shipped, never traced. Licences: SDXL base 1.0 CreativeML Open RAIL++-M, SDXL-Lightning openrail++ (commercial use allowed). Lightning runs at guidance 0, so the negative prompt is not used.",
+ "width": 768,
+ "height": 768,
+ "steps": 8,
+ "positive": "{view}, game concept art, head and shoulders, plain grey background, dramatic studio light, highly detailed sculpted armour",
+ "negative": "text, watermark, samurai, japanese, oni, kabuki, opera mask, european knight, bucket helmet, medieval visor, sci-fi, robot, neon, glowing, cartoon, smiling, blurry, cropped, multiple figures",
+ "jobs": [
+  {
+   "view": "front view of an ancient chinese qin dynasty bronze guard soldier, cast bronze hood, the face covered by a black lacquer war mask with a heavy flat brow, narrow angry eye slits and a grimacing mouth guard with teeth, menacing",
+   "seeds": [
+    6201,
+    6202,
+    6203,
+    6204
+   ],
+   "img2img": [
     {
-      "view": "front view of an ancient chinese qin soldier statue cast in dark bronze, black lacquered lamellar armour with blue cord bindings, long spear, lower body is a low tank tread base instead of legs",
-      "seeds": [
-        5101,
-        5102,
-        5103,
-        5104,
-        5105,
-        5106,
-        5107,
-        5108
-      ]
+     "init": "ci_comfy/init/kit_mask_front.png",
+     "seed": 6211,
+     "strength": 0.6
     },
     {
-      "view": "three quarter view of a squat ancient chinese bronze shield bearer automaton, big rectangular black lacquered shield, lamellar armour with blue cords, rolling on a low tread base",
-      "seeds": [
-        5109,
-        5110,
-        5111,
-        5112,
-        5113,
-        5114,
-        5115,
-        5116
-      ]
-    },
-    {
-      "view": "three quarter view of a han dynasty peasant rebel warrior, yellow headband, crude patched lamellar armour of mismatched plates tied with rope, one painted red shoulder patch, holding a spear, dusty",
-      "seeds": [
-        5201,
-        5202,
-        5203,
-        5204,
-        5205,
-        5206,
-        5207,
-        5208
-      ]
-    },
-    {
-      "view": "three quarter view of a yellow turban rebel leader, han dynasty, yellow headband and yellow sash, tall banner pole on his back, patched lamellar armour, big dao sabre, fierce",
-      "seeds": [
-        5209,
-        5210,
-        5211,
-        5212,
-        5213,
-        5214,
-        5215,
-        5216
-      ]
+     "init": "ci_comfy/init/kit_rogue_front.png",
+     "seed": 6212,
+     "strength": 0.6
     }
-  ],
-  "lora": "lcm-lora-sdv1-5.safetensors",
-  "lora_url": "https://huggingface.co/latent-consistency/lcm-lora-sdv1-5/resolve/main/pytorch_lora_weights.safetensors"
+   ]
+  },
+  {
+   "view": "front view of the head of a colossal ancient chinese bronze giant statue, its face is a huge cast bronze taotie mask wider than the head, heavy curling brows, deep dark eye sockets, flaring cheek plates, snarling mouth with fangs, ritual bronze ornament, menacing",
+   "seeds": [
+    6301,
+    6302,
+    6303,
+    6304
+   ],
+   "img2img": [
+    {
+     "init": "ci_comfy/init/kit_mask_front.png",
+     "seed": 6311,
+     "strength": 0.6
+    },
+    {
+     "init": "ci_comfy/init/kit_rogue_front.png",
+     "seed": 6312,
+     "strength": 0.6
+    }
+   ]
+  }
+ ],
+ "base": "stabilityai/stable-diffusion-xl-base-1.0",
+ "lora_repo": "ByteDance/SDXL-Lightning",
+ "lora_file": "sdxl_lightning_8step_lora.safetensors",
+ "guidance": 0.0
 }

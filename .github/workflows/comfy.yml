@@ -1,9 +1,9 @@
-# ComfyUI on CPU GitHub runners: concept reference images for palace assets (reference only, never shipped). Triggered by a push to ci-comfy.
-# Each matrix job renders the seeds of one entry in ci_comfy/prompts.json; images are committed to ci-out under out/comfy/<run id>/job<N>/.
+# SDXL base 1.0 + SDXL-Lightning on CPU GitHub runners (FACES round 2 masks, diffusers; job name kept): concept reference images, never shipped. Push to ci-comfy-faces.
+# Each matrix job (0 guard zu, 1 giant g00) runs ci/job.sh for one entry in ci_comfy/prompts.json; images are committed to ci-out under out/comfy/<run id>/job<N>/.
 name: comfy-run
 on:
   push:
-    branches: ['ci-comfy-w5']
+    branches: ['ci-comfy-faces']
 permissions:
   contents: write
 jobs:
@@ -13,45 +13,29 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        job: [0, 1, 2, 3]
+        job: [0, 1]
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
           python-version: '3.11'
+      - name: Free disk (SDXL fp16 files about 7 GB plus the cache archive)
+        run: sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc /opt/hostedtoolcache/CodeQL; df -h / | tail -1
       - name: Model cache
         uses: actions/cache@v4
         with:
           path: ckpt
-          key: sd15-emaonly-lcm-v2
-      - name: Install ComfyUI (CPU torch)
+          key: sdxl-base-fp16-lightning8-v1
+      - name: Job
         run: |
-          python -m pip install --quiet torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cpu
-          git clone --depth 1 https://github.com/comfyanonymous/ComfyUI comfy
-          git -C comfy rev-parse --short HEAD | tee comfy_sha.txt
-          python -m pip install --quiet -r comfy/requirements.txt
-      - name: Checkpoint
-        run: |
-          mkdir -p ckpt
-          F=$(python -c "import json;print(json.load(open('ci_comfy/prompts.json'))['checkpoint'])")
-          U=$(python -c "import json;print(json.load(open('ci_comfy/prompts.json'))['checkpoint_url'])")
-          [ -f ckpt/$F ] || curl -sL -o ckpt/$F "$U"
-          ls -la ckpt
-          ln -s $PWD/ckpt/$F comfy/models/checkpoints/$F
-          L=$(python -c "import json;print(json.load(open('ci_comfy/prompts.json')).get('lora',''))")
-          LU=$(python -c "import json;print(json.load(open('ci_comfy/prompts.json')).get('lora_url',''))")
-          if [ -n "$L" ]; then [ -f ckpt/$L ] || curl -sL -o ckpt/$L "$LU"; ln -s $PWD/ckpt/$L comfy/models/loras/$L; fi
-      - name: Generate
-        run: |
-          (cd comfy && nohup python main.py --cpu --listen 127.0.0.1 --port 8188 > ../server.log 2>&1 &)
-          python ci_comfy/gen.py ci_comfy/prompts.json ${{ matrix.job }} out_img
-          tail -5 server.log
+          mkdir -p out_img; rc=0
+          bash ci/job.sh ${{ matrix.job }} out_img > out_img/job.log 2>&1 || rc=$?
+          tail -40 out_img/job.log; exit $rc
       - name: Commit to ci-out
         if: always()
         run: |
           D=out/comfy/${GITHUB_RUN_ID}/job${{ matrix.job }}
           mkdir -p /tmp/o && cp -r out_img/. /tmp/o/ 2>/dev/null || true
-          cp server.log comfy_sha.txt ci_comfy/prompts.json /tmp/o/ 2>/dev/null || true
           git config user.name Claude && git config user.email noreply@anthropic.com
           git fetch origin ci-out && git checkout -B ci-out origin/ci-out
           mkdir -p $D && cp -r /tmp/o/. $D/
