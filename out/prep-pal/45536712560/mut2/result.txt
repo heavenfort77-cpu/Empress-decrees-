@@ -1,0 +1,6 @@
+FAIL mutant no-warm-rack -> P11: PASS P11 programs after warm 20, links in play 0, programs now 20, 84 play frames
+PASS mutant burn-noop -> P12: FAIL P12 229 state changes; wrong [core burn,approach burn,fore burn,bridge_wf burn,court_w burn,corr_w burn]
+PASS mutant shadow-all -> P15: FAIL P15 1357 meshes, 841 casters; wrong casters [terrace_edge,flag_pole,flag_3,flag_0,flag_6]
+PASS mutant mat-table -> P2: FAIL P2 35 material names, without a table entry: [palRoof]
+PASS mutant merc-off -> P20: FAIL P20 7 channels; off [fore 1.00,1.00,0.00,0.00,fore 1.00,1.00,0.00,0.00,bridge_wf 1.00,1.00,0.00,0.00,bridge_sws 1.00,1.00,0.00,0.00]
+RESULT 4 of 5
