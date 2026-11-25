@@ -49,13 +49,18 @@ const CFG = {
   // Robe flare: max horizontal swing of the lower-garment hem per run cycle vs the rest pose, m. Threshold = the calmest current suit before
   // the robe round (64b7bd5, same measure): fa 0.379 (ru 0.541, dao 0.413, yy 0.690, za 0.454, zh 0.538; mo, ming, nong have no skinned hem).
   flareMax: 0.379,
+  // Recolour + robe fix round (owner 25 Nov): run/hit/death must stay byte-identical to the approved GLBs, except these clips per suit
+  // (za and zh robes re-bound: their death floor solve sees the new weights).
+  clipFree: { za: ['death'], zh: ['death'] },
   // Hem band: garment vertices (>= 2 influences of at least 0.02, all of hips/thigh/shin) within this height of the garment's lowest, m.
   hemBand: 0.06,
 };
 
 const ROOT = new URL('../..', import.meta.url).pathname;
 const args = process.argv.slice(2), MUT = args.includes('--mutate');
-const [NEW, OLD, INFOF, IDARG] = args.filter((a) => a !== '--mutate');
+// --precalm=DIR: GLBs from before the calm robe binding (64b7bd5), for the robe_flare mutant (the approved files are already calm)
+const PRE = (args.find((a) => a.startsWith('--precalm=')) || '').slice(10);
+const [NEW, OLD, INFOF, IDARG] = args.filter((a) => !a.startsWith('--'));
 const INFO = JSON.parse(await readFile(INFOF, 'utf8'));
 const IDS = IDARG ? IDARG.split(',') : INFO.map((s) => s.id);
 
@@ -152,6 +157,12 @@ async function gates(sid, g, old, info, opt = {}) {
   const names = g.json.animations.map((a) => a.name).sort();
   gate('clips', JSON.stringify(names) === JSON.stringify(CFG.clips), `${names.join(',')}`);
   // 2. attack and idle byte-identical to the approved GLB (every channel: times and values)
+  for (const cn of ['run', 'hit', 'death']) {
+    const a = anim(g, cn), b = anim(old, cn); if (!b) continue; const free = (CFG.clipFree[sid] || []).includes(cn); let diff = 0;
+    if (a) { const mb = new Map(b.channels.map((c) => [chanKey(old, c), b.samplers[c.sampler]]));
+      for (const c of a.channels) { const s = a.samplers[c.sampler], t = mb.get(chanKey(g, c)); if (!t || !eqBytes(accBytes(g, s.input), accBytes(old, t.input)) || !eqBytes(accBytes(g, s.output), accBytes(old, t.output))) diff++; } }
+    gate(`${cn}_frozen`, !!a && (free || diff === 0), `${a ? a.channels.length : 0} channels, ${diff} differ from the approved GLB${free ? ' (allowed this round)' : ''}`);
+  }
   for (const cn of ['attack', 'idle']) {
     const a = anim(g, cn), b = anim(old, cn); let ok = !!(a && b) && a.channels.length === b.channels.length, diff = 0;
     if (ok) { const mb = new Map(b.channels.map((c) => [chanKey(old, c), b.samplers[c.sampler]]));
@@ -286,9 +297,10 @@ const MUTS = [
   ['weights_scope', 'one non-robe weight changed (sum kept)', (g) => { const p = g.json.meshes[0].primitives.find((q) => !g.json.materials[q.material].name.startsWith('sCloth'));
     accSet(g, p.attributes.WEIGHTS_0, 0, 0.6); accSet(g, p.attributes.WEIGHTS_0, 1, 0.4); return g; }],
   // robe round fix: on za, whose run did not change in the robe round (dao's calmer run alone kept the old binding under the limit, run 45522030493)
-  ['robe_flare', 'za robe weights put back to the approved (pre-calm) binding', (g, old) => { for (const m of g.json.meshes) { const o = old.json.meshes.find((x) => x.name === m.name);
-    m.primitives.forEach((p, k) => { for (const a of ['JOINTS_0', 'WEIGHTS_0']) { const src = accBytes(old, o.primitives[k].attributes[a]); const ac = g.json.accessors[p.attributes[a]], bv = g.json.bufferViews[ac.bufferView];
+  ['robe_flare', 'za robe weights put back to the pre-calm binding (64b7bd5)', (g, old, pre) => { const src0 = pre || old; for (const m of g.json.meshes) { const o = src0.json.meshes.find((x) => x.name === m.name);
+    m.primitives.forEach((p, k) => { for (const a of ['JOINTS_0', 'WEIGHTS_0']) { const src = accBytes(src0, o.primitives[k].attributes[a]); const ac = g.json.accessors[p.attributes[a]], bv = g.json.bufferViews[ac.bufferView];
       g.bin.set(src, (bv.byteOffset || 0) + (ac.byteOffset || 0)); } }); } return g; }, {}, 'za'],
+  ['hit_frozen', 'one hit key changed', (g) => { const s = chanOf(g, 'hit', 'chest', 'rotation'); accSet(g, s.output, 20, 0.25); return g; }],
   ['hit_length', 'hit stretched to 0.5 s', (g) => { const a = anim(g, 'hit'); const seen = new Set(); for (const s of a.samplers) { if (seen.has(s.input)) continue; seen.add(s.input); const t = accF(g, s.input); t.forEach((x, k) => accSet(g, s.input, k, x * 0.5 / 0.3)); g.json.accessors[s.input].max = [t[t.length - 1] * 0.5 / 0.3]; } return g; }],
 ];
 
@@ -304,7 +316,8 @@ for (const sid of IDS) {
 // each mutation runs on its named suit (robe ones on dao) or the first suit; the named gate must fail
 if (MUT) for (const [name, what, fn, opt, want] of MUTS) {
   const sid = want && DATA[want] ? want : IDS[0]; const { g, old, info } = DATA[sid];
-  let caught; try { const r = await gates(sid, fn(clone(g), old), old, info, opt); caught = r.R[name] === false; } catch (e) { caught = true; }
+  const pre = PRE ? parseGLB(new Uint8Array(await readFile(join(PRE, `${sid}.glb`)))) : null;
+  let caught; try { const r = await gates(sid, fn(clone(g), old, pre), old, info, opt); caught = r.R[name] === false; } catch (e) { caught = true; }
   mres.push(caught); console.log(`MUT ${caught ? 'caught' : 'MISSED'} ${sid} ${name}: ${what}`);
 }
 const nf = all.filter(([ok]) => !ok).length;

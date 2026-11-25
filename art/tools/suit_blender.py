@@ -127,47 +127,55 @@ DEATH_T, LIE_GAP = (0.12, 0.42, 0.72, 0.85), 0.002
 # each robe vertex's shin weight moves to the thigh of the same side, mix = share of the leg weight spread evenly over both thighs (the
 # scissor cancels out), K = share of the leg weight kept (the rest goes to the hips). Estimate on the approved GLBs
 # (/home/claude/suitanim/robecalm.py): hem swing per run cycle dao 0.413 -> 0.151 m, za 0.454 -> 0.210 m, zh 0.538 -> 0.220 m.
-ROBE_CALM = {'dao': (0.2, 0.7), 'za': (0.4, 0.5), 'zh': (0.4, 0.5)}
+# za/zh (owner 25 Nov "small fix": the front thigh poked out at full stride): K ramps from K at the back to Kf at the front (and the
+# sides over the thighs, lat x |side offset|), mix fades out toward the front, so the front panel follows its own thigh. Estimate
+# (robecalm.py + a poke measure): thigh out through the robe front za 26.6 -> 15.7 cm, zh 27.1 -> 15.7 cm (approved binding 16.8 / 15.0),
+# hem swing za 0.284, zh 0.341 m (gate 0.379). dao unchanged.
+ROBE_CALM = {'dao': dict(K=0.2, mix=0.7), 'za': dict(K=0.4, Kf=0.8, mix=0.5, lat=0.25), 'zh': dict(K=0.35, Kf=0.8, mix=0.5, lat=0.35)}
 # Armour tier per school (index.html kits) for HIT_K.
 ARMOUR = {'ru': 'High', 'dao': 'Low', 'fa': 'Mid', 'mo': 'High', 'yy': 'Low', 'za': 'Mid', 'ming': 'Low', 'zh': 'Mid', 'nong': 'High'}
 
+# School colours (owner 25 Nov: ONE mapping everywhere = W1a's 鼎 pigments, art/tools/ding_blender.py ACCENTS, with the lead's reading
+# that suits use the banner/effect separation: 儒 the browner ochre #94622c, 杂 the cooler silver #b2bccb). Cloth tint (sRGB) per suit is
+# school colour / the cloth sheet's median (linear, per channel), so tint x sheet has its median on the school colour (was: study tints).
+SCHOOL = {'ru': '#94622c', 'dao': '#e2b84a', 'fa': '#d9d2c3', 'mo': '#a8321e', 'yy': '#1a1614', 'za': '#b2bccb', 'ming': '#5b3f8c', 'zh': '#2f8a5c', 'nong': '#2e5a9c'}
 # The nine suits as data (docs/SUITS.md; outline cues and colours from the study, art/Qin-Lamellar-Suits-Study.md).
 # H height scale, W shoulder width scale, G girth scale, L limb thickness scale. lac = plate lacquer (sheet rows), cord = binding row,
 # cloth = cloth tint (sRGB hex), trim = inlay row on the bronze sheet. Parts name a component and its parameters.
 SUITS = {
-    'fa': dict(eyes=(0.55, 0.465, 0.017, 0.009, True), title='法甲 廷尉', H=1.0, W=0.92, G=0.9, L=0.9, lac='black', cord='fa', cloth='#2b2422', trim='silver',
+    'fa': dict(eyes=(0.55, 0.465, 0.017, 0.009, True), title='法甲 廷尉', H=1.0, W=0.92, G=0.9, L=0.9, lac='black', cord='fa', cloth='#f2eee5', trim='silver',
                helm=('horn', {}), shoulders=('cap', {}), torso=('lam', {'rows': 3}), lower=('tassets', {'rows': 4, 'split': True, 'apron': True}),
                legs='greaves', arms='bracers', weapon=('jian', {'len': 0.95}), back=None,
                attack=dict(windup=0.45, strike=0.12, back=0.45, kind='thrust')),
-    'ru': dict(eyes=(0.5, 0.5, 0.018, 0.008, False), title='儒甲 君子', H=1.02, W=1.1, G=1.05, L=1.05, lac='brown', cord='ru', cloth='#ddd5c3', trim='gold',
+    'ru': dict(eyes=(0.5, 0.5, 0.018, 0.008, False), title='儒甲 君子', H=1.02, W=1.1, G=1.05, L=1.05, lac='brown', cord='ru', cloth='#a57036', trim='gold',
                helm=('board', {}), shoulders=('layered', {'rows': 3}), torso=('lam', {'rows': 3}), lower=('skirt', {'rows': 5}),
                legs='greaves', arms='bracers', weapon=('jian', {'len': 0.8}), back=('bowhand', {}),
                attack=dict(windup=0.5, strike=0.14, back=0.45, kind='overhead')),
-    'dao': dict(eyes=(0.47, 0.52, 0.02, 0.006, False), title='道甲 真人', H=0.98, W=0.9, G=0.88, L=0.88, lac='white', cord='dao', cloth='#d9d3c4', trim='silver',
+    'dao': dict(eyes=(0.47, 0.52, 0.02, 0.006, False), title='道甲 真人', H=0.98, W=0.9, G=0.88, L=0.88, lac='white', cord='dao', cloth='#fcd158', trim='silver',
                 helm=('topknot', {}), shoulders=('none', {}), torso=('lam', {'rows': 2}), lower=('robe', {'hem': 0.06, 'flare': 0.34}),
                 legs='robe', arms='sleeves', weapon=None, back=None,
                 attack=dict(windup=0.42, strike=0.1, back=0.45, kind='palm')),
-    'mo': dict(eyes=(0.5, 0.5, 0.014, 0.011, True), title='墨甲 墨守', H=0.9, W=1.3, G=1.3, L=1.3, lac='brown', cord='mo', cloth='#6b5634', trim='gold',
+    'mo': dict(eyes=(0.5, 0.5, 0.014, 0.011, True), title='墨甲 墨守', H=0.9, W=1.3, G=1.3, L=1.3, lac='brown', cord='mo', cloth='#bb3a25', trim='gold',
                helm=('dome', {}), shoulders=('dome', {'size': 1.0}), torso=('lam', {'rows': 3}), lower=('skirt', {'rows': 2}),
                legs='greaves', arms='bracers', weapon=('crossbow', {}), back=None,
                attack=dict(windup=0.5, strike=0.1, back=0.4, kind='aim')),
-    'yy': dict(eyes=(0.52, 0.48, 0.022, 0.012, False), title='阴阳甲 太极', H=1.0, W=1.0, G=0.95, L=0.92, lac='black', cord='yy', cloth='#26232a', trim='silver',
+    'yy': dict(eyes=(0.52, 0.48, 0.022, 0.012, False), title='阴阳甲 太极', H=1.0, W=1.0, G=0.95, L=0.92, lac='black', cord='yy', cloth='#1e1b1a', trim='silver',
                helm=('crescent', {}), shoulders=('yinyang', {}), torso=('lam', {'rows': 2}), lower=('robe', {'hem': 0.08, 'flare': 0.08}),
                legs='robe', arms='sleeves', weapon=('orbs', {}), back=None,
                attack=dict(windup=0.6, strike=0.12, back=0.45, kind='raise')),
-    'za': dict(eyes=(0.48, 0.5, 0.018, 0.007, True), title='杂甲 门客', H=1.0, W=1.0, G=1.0, L=1.0, lac='brown', cord='za', cloth='#2e5a9c', trim='gold',
+    'za': dict(eyes=(0.48, 0.5, 0.018, 0.007, True), title='杂甲 门客', H=1.0, W=1.0, G=1.0, L=1.0, lac='brown', cord='za', cloth='#c7d5ef', trim='gold',
                helm=('flapcap', {}), shoulders=('mixed', {}), torso=('lam', {'rows': 2}), lower=('robe', {'hem': 0.42, 'flare': 0.2}),
                legs='greaves', arms='bracers', weapon=('orb', {}), back=('slips', {}),
                attack=dict(windup=0.45, strike=0.12, back=0.45, kind='cast')),
-    'ming': dict(eyes=(0.54, 0.5, 0.024, 0.005, False), title='名甲 辩者', H=1.0, W=0.95, G=0.88, L=0.88, lac='brown', cord='ming', cloth='#4a4440', trim='silver',
+    'ming': dict(eyes=(0.54, 0.5, 0.024, 0.005, False), title='名甲 辩者', H=1.0, W=0.95, G=0.88, L=0.88, lac='brown', cord='ming', cloth='#6649a5', trim='silver',
                  helm=('plume', {}), shoulders=('disc', {}), torso=('lam', {'rows': 3}), lower=('tassets', {'rows': 2, 'split': False}),
                  legs='greaves', arms='bracers', weapon=('wheel', {}), back=None,
                  attack=dict(windup=0.5, strike=0.1, back=0.45, kind='throw')),
-    'zh': dict(eyes=(0.46, 0.53, 0.018, 0.007, False), title='纵横甲 说客', H=1.0, W=1.0, G=0.98, L=0.95, lac='black', cord='zh', cloth='#5b3f8c', trim='gold',
+    'zh': dict(eyes=(0.46, 0.53, 0.018, 0.007, False), title='纵横甲 说客', H=1.0, W=1.0, G=0.98, L=0.95, lac='black', cord='zh', cloth='#369d6d', trim='gold',
                helm=('twinplume', {}), shoulders=('cape', {}), torso=('lam', {'rows': 3}), lower=('robe', {'hem': 0.4, 'flare': 0.18}),
                legs='greaves', arms='bracers', weapon=('staff', {}), back=None,
                attack=dict(windup=0.45, strike=0.12, back=0.45, kind='point')),
-    'nong': dict(eyes=(0.5, 0.5, 0.012, 0.012, False), title='农甲 耕者', H=0.96, W=1.15, G=1.15, L=1.15, lac='brown', cord='nong', cloth='#6e6a4a', trim='gold',
+    'nong': dict(eyes=(0.5, 0.5, 0.012, 0.012, False), title='农甲 耕者', H=0.96, W=1.15, G=1.15, L=1.15, lac='brown', cord='nong', cloth='#3467b8', trim='gold',
                  helm=('cone', {}), shoulders=('dome', {'size': 0.75}), torso=('lam', {'rows': 3}), lower=('skirt', {'rows': 2}),
                  legs='greaves', arms='bracers', weapon=('hoe', {}), back=('basket', {}),
                  attack=dict(windup=0.5, strike=0.14, back=0.45, kind='chop')),
@@ -1148,15 +1156,18 @@ def heat_weights(ob, arm, allow):
     ob.parent = None
     return ok
 
-def calm_weights(ob, K, mix):
-    """robe round: stiffer robe binding on one robe part (see ROBE_CALM); only weights change, never positions."""
-    g = {vg.index: vg.name for vg in ob.vertex_groups}
+def calm_weights(ob, K, mix, Kf=None, lat=0.0, r=1.0):
+    """robe round: stiffer robe binding on one robe part (see ROBE_CALM); only weights change, never positions. With Kf, K and mix
+    ramp toward the front by s = smoothstep((forward + lat x |side|) / r), r = the robe's front-most reach."""
+    g = {vg.index: vg.name for vg in ob.vertex_groups}; K0, M0 = K, mix
     for n in ('hips', 'thigh.R', 'thigh.L'):
         if n not in ob.vertex_groups: ob.vertex_groups.new(name=n)
     for v in ob.data.vertices:
         w = {}
         for e in v.groups: w[g[e.group]] = w.get(g[e.group], 0.0) + e.weight
         tot = sum(w.values()) or 1.0
+        if Kf is not None:
+            sm_ = smooth((-v.co.y + lat * abs(v.co.x)) / r); K = K0 + (Kf - K0) * sm_; mix = M0 * (1 - sm_)
         tR = (w.get('thigh.R', 0) + w.get('shin.R', 0)) / tot; tL = (w.get('thigh.L', 0) + w.get('shin.L', 0)) / tot; legs = tR + tL
         tR, tL = ((1 - mix) * tR + mix * legs / 2) * K, ((1 - mix) * tL + mix * legs / 2) * K
         for e in list(v.groups): ob.vertex_groups[g[e.group]].remove([v.index])
@@ -1165,11 +1176,12 @@ def calm_weights(ob, K, mix):
 
 def finish_lod0(sid, S, arm):
     heat_fail = []
+    robe_r = max([-v.co.y for P_ in PARTS if P_['ob'].name in ('robe', 'robe_in') for v in P_['ob'].data.vertices] or [1.0])
     for P_ in PARTS:
         ob = P_['ob']; ob.data.materials.append(material(P_['mat'] if P_['mat'] != 'sCloth' else f'sCloth_{sid}', S))
         if P_['kind'] == 'cloth':
             if not heat_weights(ob, arm, P_['allow']): heat_fail.append(ob.name)
-            if sid in ROBE_CALM and ob.name in ('robe', 'robe_in'): calm_weights(ob, *ROBE_CALM[sid])
+            if sid in ROBE_CALM and ob.name in ('robe', 'robe_in'): calm_weights(ob, r=robe_r, **ROBE_CALM[sid])
         else:
             vg = ob.vertex_groups.new(name=P_['bone']); vg.add(list(range(len(ob.data.vertices))), 1.0, 'REPLACE')
     bpy.ops.object.select_all(action='DESELECT')

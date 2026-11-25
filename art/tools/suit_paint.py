@@ -7,8 +7,10 @@ import json, os, shutil, subprocess, sys
 from PIL import Image
 
 K, OPS, SRC, OUT, STRIP = sys.argv[1:6]
+# optional 6th argument: comma list of sheets to paint (default all three)
+NAMES = sys.argv[6].split(',') if len(sys.argv) > 6 else ['suit_lamellar', 'suit_bronze', 'suit_cloth']
 for d in (SRC, OUT, STRIP): os.makedirs(d, exist_ok=True)
-for name in ('suit_lamellar', 'suit_bronze', 'suit_cloth'):
+for name in NAMES:
     size = open(os.path.join(OPS, name + '.size')).read().strip()
     bundle = os.path.join(SRC, name + '.klad'); shutil.rmtree(bundle, ignore_errors=True)
     bg = open(os.path.join(OPS, name + '.bg')).read().strip()
