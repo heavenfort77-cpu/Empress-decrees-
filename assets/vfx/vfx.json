@@ -5,12 +5,12 @@
    "file": "vfx_soft_a.png",
    "size": [
     1024,
-    880
+    956
    ],
    "blend": "blend",
    "cut": null,
    "format": "RG8 (R value, G alpha), linear filter, no mipmaps",
-   "gpuMB": 1.72
+   "gpuMB": 1.87
   },
   "soft_b": {
    "file": "vfx_soft_b.png",
@@ -90,7 +90,7 @@
    "anchorHeightM": 0.0,
    "atlasSize": [
     1024,
-    880
+    956
    ]
   },
   "impact": {
@@ -144,7 +144,7 @@
    "anchorHeightM": 1.0,
    "atlasSize": [
     1024,
-    880
+    956
    ]
   },
   "bolt": {
@@ -159,47 +159,47 @@
     8
    ],
    "cellPx": [
-    116,
-    48
+    136,
+    60
    ],
    "originPx": [
     2,
     742
    ],
    "stridePx": [
-    120,
-    52
+    140,
+    64
    ],
-   "cols": 8,
+   "cols": 7,
    "pivotPx": [
-    94,
-    24
+    108,
+    30
    ],
    "texelM": 0.03,
    "sizeM": [
-    3.48,
-    1.44
+    4.08,
+    1.8
    ],
    "pivotM": [
-    2.82,
-    0.72
+    3.24,
+    0.9
    ],
    "durationS": 0.333,
    "alphaSum": [
-    277.1,
-    280.5,
-    279.8,
-    278.4,
-    279.6,
-    280.0,
-    277.7,
-    276.0
+    469.9,
+    474.7,
+    473.1,
+    471.3,
+    473.2,
+    474.2,
+    470.4,
+    467.8
    ],
    "ref": "pixelfx projectiles/magic-missile (shape and timing only)",
    "anchorHeightM": 1.0,
    "atlasSize": [
     1024,
-    880
+    956
    ]
   },
   "thrust": {
@@ -216,7 +216,7 @@
    ],
    "originPx": [
     2,
-    794
+    870
    ],
    "stridePx": [
     148,
@@ -256,7 +256,7 @@
    "unitLenM": 4.0,
    "atlasSize": [
     1024,
-    880
+    956
    ]
   },
   "shield": {
