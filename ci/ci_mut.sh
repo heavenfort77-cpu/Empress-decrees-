@@ -6,6 +6,11 @@
 # Result: prints summary.txt; files in out/<label>/<run id>/ on branch ci-out. Never pushes to main or batches-3-5.
 set -euo pipefail
 LABEL=$1; JOB=$2; REPO=${3:-/home/claude/empress-decrees-}; LANE=${CI_LANE:-ci-run}; GH=heavenfort77-cpu/Empress-decrees-
+# PREFLIGHT (RUNNERS.md RULE): tools, the job file and the tree to test are checked before anything is pushed.
+for t in git gh python3 tar flock; do command -v $t >/dev/null || { echo "PREFLIGHT missing tool $t"; exit 2; }; done
+[ -f "$JOB" ] || { echo "PREFLIGHT missing job file $JOB"; exit 2; }
+[ -f "$REPO/index.html" ] && [ -f "$REPO/tests/run.mjs" ] || { echo "PREFLIGHT missing index.html or tests/run.mjs in $REPO"; exit 2; }
+python3 -c "import json,sys; json.load(open(sys.argv[1]))" "$JOB" || { echo "PREFLIGHT job file is not JSON"; exit 2; }
 # CI_LANE=ci-run-<name> gives a parallel lane (own branch, own worktree, own lock); default lane ci-run.
 WT=/home/claude/ci-wt; [ "$LANE" != ci-run ] && WT=/home/claude/ci-wt-$LANE
 [ -d "$WT" ] || git -C /home/claude/ci-wt worktree add -q -f "$WT" -B "$LANE" origin/ci-run
@@ -13,7 +18,7 @@ exec 9>/home/claude/citools/.lock-$LANE; flock 9
 cd "$WT"; git fetch -q origin +refs/heads/ci-run:refs/remotes/origin/ci-run
 git reset -q --hard origin/ci-run
 KEEP=$(mktemp -d); cp -r .github ci "$KEEP"/
-find "$WT" -mindepth 1 -maxdepth 1 ! -name .git -exec rm -rf {} +; (cd "$REPO" && tar --exclude=.git --exclude=node_modules --exclude=backup --exclude="*_before_*" -cf - .) | (cd "$WT" && tar -xf -)
+find "$WT" -mindepth 1 -maxdepth 1 ! -name .git -exec rm -rf {} +; (cd "$REPO" && tar --exclude=.git --exclude=node_modules --exclude=backup --exclude="*_before_*" --exclude=__pycache__ --exclude="*.pyc" --exclude=tests/run_shard.mjs -cf - .) | (cd "$WT" && tar -xf -)
 cp -r "$KEEP"/.github "$KEEP"/ci "$WT"/; python3 - "$JOB" "$LABEL" <<'PY'
 import json,sys; j=json.load(open(sys.argv[1],encoding='utf-8')); j['label']=sys.argv[2]; json.dump(j,open('ci/job.json','w',encoding='utf-8'),ensure_ascii=False)
 PY
