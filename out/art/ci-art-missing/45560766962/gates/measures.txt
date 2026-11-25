@@ -1,0 +1,25 @@
+INFO floor on screen (lineup, relative luminance, median of the lower third): lighter candidate 0.143, current 0.060
+PASS crab at play size (CAM_DIST 14, 1080p; 93 px high, 11036 px): 89% of outline pixels >= 3.0:1 against what is beside it on the lighter floor candidate (min 50%); body median 2.8:1
+INFO crab on the current hall floor: outline 0%, body median 1.5:1
+PASS wanderer at play size (CAM_DIST 14, 1080p; 196 px high, 7721 px): 85% of outline pixels >= 3.0:1 against what is beside it on the lighter floor candidate (min 50%); body median 3.3:1
+INFO wanderer on the current hall floor: outline 0%, body median 1.8:1
+PASS plate at play size (CAM_DIST 14, 1080p; 56 px high, 2656 px): 64% of outline pixels >= 3.0:1 against what is beside it on the lighter floor candidate (min 50%); body median 2.3:1
+INFO plate on the current hall floor: outline 0%, body median 1.2:1
+PASS leader_crown at play size (CAM_DIST 14, 1080p; 45 px high, 2281 px): 83% of outline pixels >= 3.0:1 against what is beside it on the lighter floor candidate (min 50%); body median 2.3:1
+INFO leader_crown on the current hall floor: outline 0%, body median 1.3:1
+PASS mo_wall at play size (CAM_DIST 14, 1080p; 173 px high, 51209 px): 99% of outline pixels >= 3.0:1 against what is beside it on the lighter floor candidate (min 50%); body median 3.1:1
+INFO mo_wall on the current hall floor: outline 0%, body median 1.7:1
+PASS decree_mark at play size (CAM_DIST 14, 1080p; 78 px high, 2009 px): 74% of outline pixels >= 3.0:1 against what is beside it on the lighter floor candidate (min 50%); body median 3.4:1
+INFO decree_mark on the current hall floor: outline 0%, body median 2.0:1
+INFO kaymuse play framing with the current floor on the dais top: outline 54%, body median 1.0:1
+PASS kaymuse on the throne, play framing (178 px high, 20677 px): 54% of outline pixels >= 3.0:1 against the throne behind her (min 50%); body median 1.0:1
+INFO kaymuse approach framing with the current floor on the dais top: outline 48%, body median 1.0:1
+FAIL kaymuse on the throne, approach framing (140 px high, 12337 px): 48% of outline pixels >= 3.0:1 against the throne behind her (min 50%); body median 1.0:1
+PASS crab against wanderer, game camera yaw 0: silhouette IoU 0.10 at the same scale, 0.13 scaled to one height (max 0.6)
+PASS crab against wanderer, game camera yaw 90: silhouette IoU 0.24 at the same scale, 0.32 scaled to one height (max 0.6)
+9 of 10 pass
+MUT caught: contrast gate against the wanderer repainted in its surround colour -> outline 0% (unmutated 85%)
+MUT caught: visibility gate against an empty mask -> 0 px
+MUT caught: silhouette gate against the crab compared with itself -> IoU 1.00
+MUT caught: scaled silhouette gate against the crab compared with itself -> IoU 1.00
+4 of 4 mutations caught

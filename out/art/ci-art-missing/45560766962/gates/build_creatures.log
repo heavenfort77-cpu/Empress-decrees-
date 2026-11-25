@@ -1,0 +1,62 @@
+INFO crab_lod1 outline shell: 35 of 40 parts, 1792 tris in all (limit 1800)
+INFO crab_lod2 outline shell: 7 of 28 parts, 596 tris in all (limit 600)
+INFO crab_lod0 outline shell: 40 of 40 parts, 2940 tris in all (limit 3000)
+PASS crab_lod0 tris 2940 (budget 3000)
+PASS crab_lod1 tris 1792 (budget 1800)
+PASS crab_lod2 tris 596 (budget 600)
+PASS crab skin: every lod0 vertex on one rig bone (0 bad, stray groups [])
+PASS crab clip idle: 2.4 s, claw_L travels 0.077 m (min 0.02)
+PASS crab clip move: 0.6 s, leg_L0 travels 0.111 m (min 0.08)
+PASS crab 1.94 m wide x 1.02 m high (width (1.6, 2.2), height <= 1.2, width >= 1.6 x height): low and wide
+PASS crab hull half width 0.62 m inside the game radius 0.7 (legs reach 0.97)
+PASS crab feet on the ground (lowest z -0.000, outline shell left out)
+PASS crab is bronze: 76% of its surface brass (min 55%), dark bronze on the underside, joints and lower legs; materials ['palBronze', 'palInlay', 'pcDarkBronze', 'pcOutline']
+PASS crab_lod0 tris 2940 (min 1500)
+PASS crab lid relief: 2 raised bands (1.2 cm proud), 12 cast studs
+PASS crab pincers: two fingers each, tips 0.21 m apart (min 0.12), fingers 14 cm broad at the root (min 10 cm)
+PASS crab move reads apart from idle: a leg travels 0.111 m in move against 0.006 m in idle (at least 3.0 x)
+PASS crab legs 11 cm wide (min 4.5 cm = 3 px at play size)
+PASS crab LOD1 keeps the dark outline shell
+16 of 16 pass
+ERROR Draco is not available because library could not be found at /opt/hostedtoolcache/Python/3.13.18/x64/lib/python3.13/site-packages/bpy/lib/libbf_intern_draco_bridge.so
+ERROR MeshOptimizer is not available because library could not be found at /opt/hostedtoolcache/Python/3.13.18/x64/lib/python3.13/site-packages/bpy/lib/libbf_intern_meshopt_bridge.so
+06:28:40 | INFO: Starting glTF 2.0 export
+06:28:40 | INFO: Extracting primitive: crab_lod1
+06:28:40 | INFO: Primitives created: 4
+06:28:40 | INFO: Extracting primitive: crab_lod2
+06:28:40 | INFO: Primitives created: 3
+06:28:40 | INFO: Extracting primitive: crab_lod0
+06:28:40 | INFO: Primitives created: 4
+06:28:40 | INFO: Finished glTF 2.0 export in 0.10607123374938965 s
+
+wrote /tmp/pieces/crab.glb 483168 bytes
+INFO wanderer_lod1 outline shell: 22 of 22 parts, 1440 tris in all (limit 1800)
+INFO wanderer_lod2 outline shell: 13 of 14 parts, 596 tris in all (limit 600)
+INFO wanderer_lod0 outline shell: 22 of 22 parts, 2700 tris in all (limit 3000)
+PASS wanderer_lod0 tris 2700 (budget 3000)
+PASS wanderer_lod1 tris 1440 (budget 1800)
+PASS wanderer_lod2 tris 596 (budget 600)
+PASS wanderer skin: every lod0 vertex on one rig bone (0 bad, stray groups [])
+PASS wanderer clip idle: 3.2 s, head travels 0.036 m (min 0.03)
+PASS wanderer clip move: 1.6 s, shin_L travels 0.256 m (min 0.1)
+PASS wanderer 2.82 m high x 1.21 m wide (height (2.2, 2.9), height >= 2.0 x width): tall and narrow
+PASS wanderer jar radius 0.35 m inside the game radius 0.5 (legs at 0.50)
+PASS wanderer feet on the ground (lowest z 0.002, outline shell left out)
+PASS wanderer is bronze: 69% of its surface brass (min 55%), dark bronze on the underside, joints and lower legs; materials ['palBronze', 'palCinnabar', 'palGold', 'palInlay', 'pcDarkBronze', 'pcOutline']
+PASS wanderer_lod0 tris 2700 (min 1500)
+PASS wanderer limbs: thinnest of legs, neck and bill base 7.5 cm (min 4.5 cm = 3 px at play size)
+PASS wanderer LOD1 and LOD2 keep the legs and the head: lowest z 0.002 / 0.002, LOD2 top 2.82 m (LOD0 2.82)
+PASS wanderer bill 0.55 m long (min 0.45), dropping 0.27 m (so it shows when it faces the camera); neck S swings 0.25 m forward of its ends (min 0.15)
+PASS wanderer hip wheels: radius 0.3 m (min 0.25), camber 15 deg, hub caps 0.16 m long
+PASS wanderer LOD1 keeps the dark outline shell
+16 of 16 pass
+06:28:40 | INFO: Starting glTF 2.0 export
+06:28:40 | INFO: Extracting primitive: wanderer_lod1
+06:28:40 | INFO: Primitives created: 5
+06:28:40 | INFO: Extracting primitive: wanderer_lod2
+06:28:40 | INFO: Primitives created: 4
+06:28:40 | INFO: Extracting primitive: wanderer_lod0
+06:28:40 | INFO: Primitives created: 6
+06:28:40 | INFO: Finished glTF 2.0 export in 0.09448003768920898 s
+
+wrote /tmp/pieces/wanderer.glb 415320 bytes

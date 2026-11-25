@@ -1,0 +1,14 @@
+FAIL kaymuse 冕 veil: 12 + 12 bead strings, front span 0.30 m (head 0.21), 1.0 cm clear between strings, ends at z 1.398: below the eyes (1.452) and above the lips (1.35)
+14 of 15 pass
+16 of 16 pass
+16 of 16 pass
+8 of 8 pass
+7 of 7 pass
+8 of 8 pass
+7 of 7 pass
+40 of 40 pass
+9 of 9 mutations caught
+FAIL kaymuse on the throne, approach framing (140 px high, 12337 px): 48% of outline pixels >= 3.0:1 against the throne behind her (min 50%); body median 1.0:1
+9 of 10 pass
+4 of 4 mutations caught
+FAIL lines: 2
