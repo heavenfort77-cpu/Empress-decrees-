@@ -1,0 +1,108 @@
+SHARD 1 of 5: statements 495, prelude 13, always 18, valid cuts 205, cuts at lines 853,1661,2469,3299; weight lines
+RUNTIME 42 of 42 pass
+SIM leader win share (longest leader wins) 1 of 12; player >=1 plate 3 of 12; decided 187.9,187.8,198.7,203.1,187.6,179,208,189.5,181.8,180.4,225.8,215.5
+SIM per seed decided/place/player out/winner spawn: 12345 187.9/9/hit@130/8; 2 187.8/5/hit@164/7; 3 198.7/2/bleed@199/6; 4 203.1/1/won/2; 5 187.6/9/hit@123/0; 6 179/2/hit@179/5; 7 208/8/hit@113/6; 8 189.5/4/hit@168/3; 9 181.8/9/hit@129/3; 10 180.4/6/hit@134/8; 11 225.8/9/hit@125/8; 12 215.5/6/hit@143/4
+SIM bounties 0,1,0,1,1,1,2,1,0,0,1,0 paid 0,0,0,0,1,1,2,1,0,0,1,0; fight share on 0.82 off 0.17; bounty-on-player ticks 1974, cap max off 1 on 1
+SIM kennel autopilot (P5 proxy): player >=1 plate 12 of 12 (old autopilot 3 of 12); reached camp 19 of 26 free warnings; leader win share 2 of 12; decided 193.8,191.6,215.3,210.1,181.1,189.4,165.1,198.4,180.9,188.7,172.1,189.3; player out 181,142,139,139,won,171,148,128,145,124,won,144
+SIM decrees per match 3,3,3,3,3,2,2,2,3,3,3,3; order 12345:heights,silence,nodash | 2:nodash,heights,bounty,silence | 3:ult2x,heights,dry | 4:heights,dry,bounty,nodash | 5:heights,dry,bounty,ult2x | 6:heights,nodash,bounty | 7:ult2x,bounty,heights,bounty | 8:nodash,dry,bounty | 9:silence,heights,dry | 10:nodash,dry,heights | 11:nodash,dry,ult2x,bounty | 12:silence,ult2x,nodash; breaks player 0,0,2,0,0,0,0,0,0,0,0,0 bots 0,1,0,0,0,0,1,0,0,0,0,0; player marked ticks 422, cap max 2; bots on heights max 0.02 s
+ok   01 load without errors 
+ok   02 budget follow view (calls<500, tris<500k) :: calls 27, tris 2842
+ok   03 budget overview, all sections (calls<500, tris<500k) :: calls 76, tris 8434
+ok   58 new run x3 with bots: fresh bots, memory and shaders flat :: [{"fresh":true,"geoms":162,"texs":1,"programs":7},{"fresh":true,"geoms":162,"texs":1,"programs":7},{"fresh":true,"geoms":162,"texs":1,"programs":7}]
+ok   59 bot target: answers its attacker, switches to the player on sight, keeps the player while seen, lets go out of sight :: {"first":2,"onSight":0,"kept":true,"away":2}
+ok   60 bots take plates and boons: plate to the bot that broke the cub (slot, ultimate charge), boon to the last hitter, none to the player :: {"plates":1,"slot":"stalker","gain":30,"playerPlates":0,"boons":1,"power":true,"playerBoons":0}
+ok   61 dodge: bot by a stone lion 8 s, lion tells at least twice, bot takes no damage :: {"tells":2,"hp":100,"dead":false}
+ok   62 flee: two bots fighting on the roof leave it within the 5 s warning and live :: {"start":["ROOF","ROOF"],"fight":["fight","fight"],"dead":[false,false],"zone":["C2","C2"]}
+ok   63 heal: a bot at 30 health walks to a charged altar and heals past 60 :: {"mode":"heal","hp":70,"near":32.4}
+ok   64 royale end: H off in a match, broken player = frozen loss with place and New run, New run restores bots, void fall = loss, last suit standing starts the hunt :: {"btnHidden":true,"hNoop":true,"lost":true,"place":"Your suit is broken. Place 9 of 9. N: new run","voice":"Broken before Our eyes. We shall not trouble to remember thy school.","btn":"block","btnText
+ok   65 whole matches x12: decided in 150-255 s, 0 broken invariants, every out has a cause, bots take plates and boons, no spawn wins more than 3 of 6 :: {"out":[{"seed":12345,"decided":187.9,"winner":8,"player":"hit@130","place":9,"playerFirst":true,"nocause":0},{"seed":2,"decided":187.8,"winner":7,"player":"hit@164","place":5,"playerFirst":false,"noc
+ok   67 hunter slot: at most maxHunters bots switch to the player at any tick over 6 matches (3+ bots seeing the player happened) :: {"hv":[],"see3":18768,"maxOnP":5,"maxHunt":1} places 9,5,2,1,9,2,8,4,9,6,9,6
+ok   68 hunter slot: one of 3 switches; frees on hunter death and another claims it; held until hunterLoseS out of sight, then freed; claimed again in sight :: {"before":{"slots":0,"flagged":0,"huntOnP":0,"capOnP":0,"onP":0,"seeP":0,"id":-1,"claims":0,"frees":0,"max":1,"bountyP":false,"markP":false},"one":{"slots":1,"flagged":1,"huntOnP":1,"capOnP":1,"onP":1
+ok   69 leader: matches the rule every tick over 6 matches, no flip on a tie, none before the first plate or kill, crown on the leader only :: {"lv":[],"lchanges":43,"leadersSeen":63253,"preLeadBad":0}
+ok   72 cap and bounty in matches: player cap holds every tick (1, or 3 under a bounty on the player), bots fight a seen leader more under the bounty :: {"cv":[],"capOff":1,"capOn":1,"bountyPTicks":1974,"capMark":2,"markPTicks":422} share on 0.82 (733) off 0.17 (8474) controlled {"bounty":{"on":true,"t":117,"share":0.249},"control":{"on":true,"t":117,
+ok   70 crown and HUD: none at start; plate = leader with crown shown only in vision; tie keeps; kill breaks the tie; player leader; HUD written only on change :: {"start":{"id":-1,"leadT":0,"changes":0,"writes":1,"hud":"Leader: Dao suit  (bounty 40 s)","hudShown":"none","crownOn":false,"crownId":-1,"crownShown":false,"mini":false,"dec":0,"decKey":"","decT":0,"
+ok   71 bounty: queued off collapse banners, told >= 5 s after 25 s of lead, lasts 40 s, pays only for breaking the leader in force, ends on leader out and at the wake, none in the hunt, new run x3 resets, keys :: {"queued":1,"warn":{"at":60.01666666666454,"voice":"A bounty lieth upon the leader.","rule":"Bounty on the leader (Dao suit) in 5 s: break them for a full ultimate.","shown":"block","sinceLead":33.02}
+ok   84 bounty paced like a decree: due during the gap it waits for it; a drawn gap follows it before the next decree :: {"due":86,"early":-1,"warnAt":100.02,"key":"bounty","endAt":145.03,"why":"time","next":160.03,"nextWarn":160.03,"gapMin":5}
+ok   73 player cap: 1 bot by any rule but hitting back, 2 answer the player's hits, up to 3 under a bounty on the player and back to 1 after :: {"near":0,"nearMax":1,"hitMax":2,"onMax":3,"afterMax":1,"afterBad":0,"onP":true}
+ok   74 budget with the crown: 9 suits + cubs + tells + crown (calls<500, tris<500k), no shader compile, geometry flat :: {"tells":3,"crown":true,"cubs":7,"calls":50,"tris":2562,"programs":7,"geoms":162}
+ok   75 decree bags: full cycles without repeats, seeded, gone places skipped (no bridge, heights or fallen zone after their collapse) :: {"cycles":true,"same":true,"differs":true,"picks":"dry nodash:C1 nodash:C2 nodash:CORE ult2x","goneOk":true}
+ok   76 decrees: dry, ultimates 2x, bridge silence, heights, no dash each do what their line says and only while in force :: {"warnHeal":true,"dryHeal":0,"dryLook":true,"hud":"Decree: altars do not heal (2 s)","hudShown":"block","endSt":0,"afterHeal":true,"afterLook":true,"hudGone":"none","ultWarn":1,"ultOn":2,"botWarn":1,"
+ok   77 penalty and mark: 30% slow 2 s, mark 5 s seen by every bot and by the player, marker hides at the end, cap 2 while the player is marked and 1 after :: {"capMax":2,"afterBad":0,"seesBefore":false,"slow":[2,0.3],"mark":5,"marker":true,"seesAfter":true,"cap":2,"dx":2.1,"want":2.1,"botSeen":true,"botVis":true,"botMini":true,"markEnd":0,"markerEnd":false
+ok   78 decrees in 12 matches: told >= 5 s, not under a collapse banner, never two at once, HUD only on change, bots off the heights, decrees every match :: {"dv":[],"hiStay":0.02,"dsum":[{"seed":12345,"told":3,"w":[47.03,102.07,150.02],"n":3,"keys":"heights,silence,nodash","brkP":0,"brkB":0,"writes":100},{"seed":2,"told":4,"w":[45.02,105.05,155.07,166.37
+ok   83 decree pacing: 3-4 decrees told (bounty included) in each of 12 matches, about one a minute (mean warning to warning <= 60 s), no banner over a decree warning, no heights break near a warned section :: told 12345:3,2:4,3:3,4:4,5:4,6:3,7:4,8:3,9:3,10:3,11:4,12:3; mean warning to warning 51.5 s (29 gaps); bannerOv 0; heights breaks 4, near warned 0
+ok   85 kennel autopilot (test proxy): reaches an announced camp in at least half of its free warnings and takes a plate in more of 12 matches than the old autopilot :: {"out":[{"seed":12345,"decided":193.8,"pPlates":3,"out":181,"topLeader":0,"winId":7},{"seed":2,"decided":191.6,"pPlates":3,"out":142,"topLeader":0,"winId":8},{"seed":3,"decided":215.3,"pPlates":2,"out
+ok   86 kennel autopilot fixed scene: walks to the announced camp, fights the cub there and takes its plate before 75 s :: {"modes":{"":1440,"roam":102,"camp":336,"creature":309,"dodge":87},"plates":1,"dead":false,"t":37.9}
+ok   79 W dash: 4 m on open ground, stops at a rail and a wall without falling, never off a sloped bridge, burst lands on landing :: {"open":4,"openZone":"C1","rail":{"z":8.5,"falling":false,"zone":"WB2","hp":1000000000},"wall":{"x":-19.5,"zone":"CORE","falling":false},"slope":{"z":-15.67,"falling":false,"zone":"WB1"},"burst":[100,
+ok   80 wake ends the decree, tint, marks and HUD; none in the hunt; new run x3 resets slot, bags and counts; zone named; text keys :: {"dryOn":true,"wake":{"st":0,"zone":null,"tint":false,"marks":0,"hud":"none","altars":true},"hunt":{"st":0,"n":0},"runs":[{"st":0,"n":0,"next":35,"brk":0,"log":0,"marks":0,"hud":"none"},{"st":0,"n":0,
+ok   81 budget with 9 marks, the crown and the zone tint: 9 suits + cubs + tells (calls<500, tris<500k), no shader compile, geometry flat :: {"tells":3,"marks":9,"crown":true,"calls":59,"tris":2670,"programs":7,"geoms":162}
+ok   82 replay: a run starts from the same state and one seed played twice in a row gives the same match :: [0,35,0,-60,18,-1,-99,-99,0,0,false,false,false] vs [208.03,112.62,[5,37.03,42.03,-1,82.05,0,4,127.63,132.63,-1,177.65,0],0,1] vs [0,35,0,-60,18,-1,-99,-99,0,0,false,false,false] vs [208.03,112.62,[5,
+ok   87 charge sources: passive per second, per health dealt and taken (capped at health lost), kill bonus, player and bot, nothing while broken (CONFIG.ULT) :: {"passive":[1.9999999999999953,1.9999999999999953,1.9999999999999953],"wantPassive":2,"pDealt":2.5,"bTaken":1,"bDealt":2,"pTaken":0.8,"pTakenNoHitter":0.6000000000000001,"bKill":21.25,"bKillWant":21.2
+ok   88 charge wording: boon, plate and 2x decree lines say charge, not cooldown :: [["boon_ult","Boon: +{v} ultimate charge."],["rule_plate_s","Stalker plate: your hits cause bleeding for {s} s. +{c} ultimate charge."],["rule_plate_h","Howler plate: +{p}% speed for {s} s. +{c} ultim
+ok   89 meter gate: no R under a full meter (player and bot); the cast empties it and starts no cooldown in the royale :: {"pUnder":false,"pUnderCh":99.9,"pUnderN":0,"pFull":true,"pAfterCh":0,"pCd":0,"pN":1,"pAgain":false,"bFought":true,"bUnderN":0,"bUnderCd":0,"bTgt":2,"bN":1,"bCastCh":0,"bCd":0,"ok":true}
+ok   90 wake and hunt: the wake fills the meter; in the hunt R keeps its 30 s cooldown, the meter does not gate or gain, ring hidden :: {"wake":{"p":100,"ultN":0,"meter":false,"ready":true,"writes":3246,"text":"0","cover":"block","ring":"conic-gradient(rgb(255, 208, 96) 0%, rgba(0, 0, 0, 0) 0deg)","ringShown":"block","bots":[]},"hunt"
+ok   91 new run x3: every suit's meter and ultimate count reset (after a charged royale and after a hunt) :: [{"p":0.008333333333333333,"n":0,"bots":[0,0.008333333333333333,0.008333333333333333,0,0.008333333333333333,0.008333333333333333,0.008333333333333333,0.008333333333333333],"bn":[0,0,0,0,0,0,0,0],"text
+ok   92 HUD charge: written only on change (0 writes while full, one per whole number gained), text and ring match the meter; budget, programs and geometry flat :: {"fullWrites":0,"fullText":"","fullCover":"none","writes":3,"changes":3,"text":"12","ring":"conic-gradient(rgb(255, 208, 96) 12%, rgba(0, 0, 0, 0) 0deg)","ringShown":"block","p":12.199999999999886,"ca
+ok   93 suit stats: armor on hits and bleed (Low takes more, High less, Mid unchanged), statue/lion, drop and test damage fixed, speed tiers in m/s, a new run back to its kit :: {"mid":true,"low":29.1667,"high":20.5882,"midHit":25,"wantLow":29.1667,"wantHigh":20.5882,"testFixed":10,"bleed":3.294,"wantBleed":3.294,"lion":20,"drop":8,"vLow":2.8,"vMid":3,"vHigh":3.2,"want":[2.8,
+ok   94 school select: 9 schools + random (44 px), frozen while open, keys 1-9 / 0 / Enter, pick stored, bots take the other eight with names and colours, HUD line, New run opens it :: {"open":true,"n":10,"small":0,"last0":true,"frozen":true,"keysIgnored":true,"pick":2,"closed":true,"hud":"Your school: Fa suit","player":"fa","bots":"ru,dao,mo,yinyang,za,ming,zongheng,nong","wantBots
+ok   95 unseen: hidden from the player and bots beyond 3 m, shimmer within it, mark wins, ends on being hit, casting and its timer, new run clears it; programs and geometry flat :: {"before":{"seen":true,"sees":true},"on":{"t":2,"shimmer":true},"far":{"seen":false,"vis":false,"sees":false},"near":{"seen":true,"vis":true},"programs":7,"geoms":162,"hit":{"t":0,"seen":true,"shimmer
+ok   96 kit framework: nine schools in order with their stat tiers, all on the placeholder kit at Mid until built, default pick keeps the bots' order, skill tags, text keys :: {"order":"ru,dao,fa,mo,yinyang,za,ming,zongheng,nong","tiers":true,"unbuilt":true,"placeholder":true,"player":"ru","bots":"Dao suit,Fa suit,Mo suit,Yinyang suit,Za suit,Ming suit,Zongheng suit,Nong su
+ok   97 法甲 passive: +bonus on the leader and on a marked suit, no stacking, only 法甲 gets it :: {"player":"fa","plain":10,"leaderId":2,"leader":12,"marked":12,"both":12,"other":10,"bonus":0.2}
+STMT 41 177
+STMT 42 2085
+STMT 45 44
+STMT 47 16
+STMT 49 6
+STMT 51 13
+STMT 52 9
+STMT 54 11
+STMT 56 6
+STMT 364 7
+STMT 625 4
+STMT 853 1449
+STMT 862 42
+STMT 875 78
+STMT 877 134
+STMT 891 67
+STMT 902 303
+STMT 918 48
+STMT 929 47
+STMT 945 17517
+STMT 1056 24
+STMT 1081 967
+STMT 1110 527
+STMT 1132 1871
+STMT 1182 769
+STMT 1201 659
+STMT 1228 538
+STMT 1247 6
+STMT 1253 371
+STMT 1270 1403
+STMT 1317 606
+STMT 1342 1
+STMT 1349 11622
+STMT 1379 106
+STMT 1399 38
+STMT 1412 130
+STMT 1427 514
+STMT 1446 2812
+STMT 1460 29
+STMT 1478 6
+STMT 1483 21
+STMT 1501 73
+STMT 1513 721
+STMT 1529 37
+STMT 1546 42
+STMT 1574 352
+STMT 1597 57
+STMT 1615 11
+STMT 1640 8
+STMT 1647 8
+STMT 1780 9
+STMT 1941 8
+STMT 2120 9
+STMT 2275 7
+STMT 2469 10
+STMT 2647 8
+STMT 2828 9
+STMT 3037 5
+STMT 4081 4385

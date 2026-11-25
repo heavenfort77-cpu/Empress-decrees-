@@ -1,0 +1,155 @@
+SHARD 0 of 5: statements 495, prelude 13, always 18, valid cuts 205, cuts at lines 853,1661,2469,3299; weight lines
+FAIL 42 bot sweep 9 runs: 0 broken invariants, every run ends, never-dodge always loses, 0.3 s and 0.15 s reaction each win at least once :: 99/012:lost 7s hp0 demon905 | 99/120:lost 8s hp0 demon915 | 99/210:lost 8s hp0 demon915 | 0.3/012:lost 16s hp0 demon745 | 0.3/120:lost 19s hp0 demon845 | 0.3/210:lost 50s hp0 demon245 | 0.15/012:lost 24s hp0 demon570 | 0.15/120:won 68s hp65 demon0 | 0.15/210:won 64s hp100 demon0
+RUNTIME 60 of 61 pass
+ok   01 load without errors 
+ok   02 budget follow view (calls<500, tris<500k) :: calls 27, tris 2842
+ok   03 budget overview, all sections (calls<500, tris<500k) :: calls 76, tris 8434
+ok   04 every floor (both layers) reachable from the spawn 
+ok   04b void points are not standable (8 points) :: []
+ok   04c terrace and ramp sides are walls from below (4 points) :: []
+ok   05 bot walk spawn -> bridge -> core hall :: {"reached":6,"of":6,"steps":1143,"x":0,"y":0,"z":-48.96,"zone":"CORE","falling":false,"hp":100}
+ok   06 roof route up and down :: {"up":{"reached":2,"of":2,"steps":264,"x":0,"y":4,"z":32.4,"zone":"ROOF","falling":false,"hp":100},"down":{"reached":2,"of":2,"steps":509,"x":-50.43,"y":0,"z":27,"zone":"W2","falling":false,"hp":100}}
+ok   06b drop from terrace to courtyard (lands, takes drop damage) :: {"y":0,"zone":"W2","hp":92,"falling":false}
+ok   06c courtyard ramp up to the terrace :: {"reached":1,"of":1,"steps":190,"x":-64.5,"y":4,"z":-4,"zone":"W1","falling":false,"hp":100}
+ok   06d sloped bridge centre -> terrace :: {"reached":1,"of":1,"steps":264,"x":-44.4,"y":4,"z":-18,"zone":"W1","falling":false,"hp":100}
+ok   07 edge clamp (6 edges incl. 3 broken-rail gaps) :: [{"x":-30,"z":3.5,"falling":false,"ok":true},{"x":-30,"z":8.5,"falling":false,"ok":true},{"x":-68.5,"z":-15,"falling":false,"ok":true},{"x":-54,"z":-29.5,"falling":false,"ok":true},{"x":0,"z":41.5,"fa
+ok   08 collapse warning and removal per wave :: {"warnS":5,"out":[{"i":0,"ok":true},{"i":1,"ok":true},{"i":2,"ok":true},{"i":3,"ok":true},{"i":4,"ok":true}]}
+ok   09 final arena = CORE + C1, reachable :: {"left":["C1","CORE"],"reachCore":true}
+ok   11 fall at collapse then respawn :: {"fellAtCollapse":true,"respawnZone":"C1","fallingAfter":false}
+ok   12 new run x3: restored, memory flat :: [{"restored":true,"geoms":162,"texs":1},{"restored":true,"geoms":162,"texs":1},{"restored":true,"geoms":162,"texs":1}]
+ok   18 statue: tell, strike, knockback, idle out of range :: {"windup":0.6,"idle":0,"tellState":1,"tellRing":true,"midHp":100,"midRing":true,"hpAfter":70,"pushed":true,"ringAfter":false}
+ok   19 stone lion: tell then strike :: {"windup":0.6,"tell":1,"hp":80}
+ok   20 knockback: broken gaps (z and x) drop into void, rail holds :: {"gapFell":true,"gapRespawn":"C1","railFell":false,"railZone":"ROOF","xStart":"W1","xFell":true}
+ok   21 altar: heal, hit pause, empty, refill :: {"h1":66,"h2":61,"h3":61,"h4":64.1,"emptyOn":false,"emptyCharge":0,"refilledOn":true}
+ok   22 death then respawn at full health :: {"d":true,"dead":false,"hp":100,"zone":"C1"}
+ok   23 vision: seen inside radius, hidden outside, fog follows player :: {"nearSeen":true,"nearVis":true,"farSeen":false,"farVis":false,"fow":true}
+ok   24 auto-target: nearest visible in range, none beyond :: {"inRange":1,"beyond":-1}
+ok   25 attack: chase, hit on interval, dummy stands again :: {"hp3":60,"dist":2.9,"deadHp":100,"back":100}
+ok   26 skills: hit, cooldown, delayed ultimate, no hit on hidden :: {"q1":true,"afterQ":75,"q2":false,"cdQ":6,"q3":true,"afterQ2":50,"w":true,"afterW":30,"r":true,"pendNow":true,"beforeR":30,"afterR":0,"pendAfter":false,"hidden":100}
+ok   27 pathfinding: core hall, terrace (y 4), roof (y 4); void target ends near it :: [{"found":true,"n":5,"x":-0.1,"z":-49.1,"y":0,"zone":"CORE","d":0.41},{"found":true,"n":1,"x":-44.5,"z":-15.1,"y":4,"zone":"W1","d":0.47},{"found":true,"n":4,"x":-0.1,"z":32.6,"y":4,"zone":"ROOF","d":
+ok   28 cursor ground pick: roof, ramp, courtyard (error < 0.1 m) :: [{"ok":true,"err":0},{"ok":true,"err":0},{"ok":true,"err":0}]
+ok   29 desktop key aim: indicators, release casts at cursor :: {"q":[true,true,false],"hpQ":75,"w":[true,false,true],"hpW":55}
+ok   30 minimap: size, player, seen dummy only, fallen roof cleared :: {"size":[200,169],"you":[58,155,255],"dum":[255,64,64],"dumHidden":[102,97,90],"roofBefore":[244,141,55],"roofAfter":[12,10,16],"want":200}
+ok   31 desktop: ability bar, no overview for players :: {"bar":3,"btnMap":"none","touch":false,"view":"follow"}
+ok   32 phone: MLBB buttons, tap auto-aim hits, cancel zone, drag aim casts :: {"bar":4,"mini":140,"touch":true,"tapHp":75,"cancelShown":true,"cdW":0,"hpAfterCancel":75,"chBefore":100,"chR":0,"pend":true} 
+ok   44 phone: Hunt button 44 px, tap starts the hunt :: {"shown":true,"w":135.09375,"h":44,"phase":"wake","hidden":true}
+ok   33 hunt start: collapse called off, statue wakes, gate sealed, wake is safe :: {"warned":1,"blockedBefore":true,"phase0":"wake","roofAfter":0,"wave0":0,"statue":false,"solid":false,"openNow":true,"seal":true,"atEntry":true,"hp0":100,"canTarget":false,"hpWake":1000,"full":1000,"b
+ok   34 tell before the hit (claw): ring for the whole windup >= 0.4 s, stand = hit, step out = no hit :: {"stand":{"wait":1,"move":"claw","look":"D","windupS":0.4666666666666667,"early":false,"shownAll":true,"hp":88,"hits":1,"minTell":0.4666666666666666},"dodge":{"wait":1,"move":"claw","look":"D","windup
+ok   35 player attack and skill hit hunt units; unseen unit cannot be ordered :: {"far":false,"near":true,"afterAtk":90,"afterQ":65,"cast":true,"full":120,"q":25}
+ok   36 skill transfer: plate flight shown, demon gains 2 skills per minion (6 total), stolen tell keeps the minion colour :: {"deadNow":true,"plateFlying":true,"before":"pounce,roar","platesBefore":0,"afterA":"pounce,roar,lunge,rend","plateGone":true,"textA":"Skills: Claw swipe, Swift as Wind (其疾如风), Thunder Roar (动如雷震), Lu
+ok   37 status: roar slow, flank stun (no move, no cast), rend bleed with a stack cap, HUD text :: {"slowK":0.4,"slowText":"Slowed","slowDx":1.8000000000000003,"flankShape":"spot","stun":0.6,"stunText":"Stunned","stunDx":0,"stunCast":false,"freeDx":0.9999999999999999,"bleed1":1,"bleedText":"Bleedin
+ok   38 demon ultimate: told, frenzy lasts its length, single use :: {"before":0,"n1":1,"voice":"It raideth like fire. It standeth like the mountain.","tellS":0.8,"f0":8,"lasted":8.016666666666666,"again":-0.016666666666643248,"dur":8,"windup":0.8,"mode":"once50"}
+ok   39 gate seal: no way out in the hunt (walk, path order), open after a new run :: {"z1":-39.99999999999995,"z2":-39.99999999999995,"z3":-23.499999999999716,"gz":-39.900000000000006}
+ok   40 win: frozen, closing line, retry gives a clean hunt :: {"phase":"won","voice":"Heaven chose thee. We chose what thou wouldst become.","rule":"Victory. The Tiger Demon fell in 1 s. H: hunt again · N: new run","btn":"block","btnText":"Retry hunt","boss":"bl
+ok   41 loss, new run x3: defeat frozen, royale state back, statue hazard live, memory and shaders flat :: {"out":[{"n":101,"lost":true,"back":true,"geoms":162,"texs":1,"programs":7},{"n":101,"lost":true,"back":true,"geoms":162,"texs":1,"programs":7},{"n":101,"lost":true,"back":true,"geoms":162,"texs":1,"p
+FAIL 42 bot sweep 9 runs: 0 broken invariants, every run ends, never-dodge always loses, 0.3 s and 0.15 s reaction each win at least once :: 99/012:lost 7s hp0 demon905 | 99/120:lost 8s hp0 demon915 | 99/210:lost 8s hp0 demon915 | 0.3/012:lost 16s hp0 demon745 | 0.3/120:lost 19s hp0 demon845 | 0.3/210:lost 50s hp0 demon245 | 0.15/012:lost 
+ok   43 hunt budget (calls<500, tris<500k) and no shader compile, units and tells drawn :: {"tells":3,"calls":17,"tris":930,"programs":7,"geoms":162} base calls 27
+ok   45 text keys for every move 
+ok   200 兵家 names: 其疾如风, 动如雷震, 侵掠如火，不动如山, 奇正相生, 正/奇 minions; boss name stays Tiger Demon; boss panel lists them :: {"pounce":"Swift as Wind (其疾如风)","roar":"Thunder Roar (动如雷震)","frenzy":"Fire and Mountain (侵掠如火，不动如山) for {s} s: faster, hits harder.","plate":"Straight and surprise beget each other (奇正相生): the plate
+ok   201 攻其无备 (demon claw): normal damage with the dash ready, x(1 + bonus) with it on cooldown; boss note only while unprepared :: {"hits":[12,14.4],"un0":false,"note0":"none","un30":true,"note30":"block","want":12,"k":1.2,"noteText":"Unprepared (攻其无备): your escape is on cooldown, it hits 20% harder"}
+ok   202 攻其无备 (Stalker bite): normal damage with the dash ready, x(1 + bonus) with it on cooldown; boss note only while unprepared :: {"hits":[5,6],"un0":false,"note0":"none","un30":true,"note30":"block","want":5,"k":1.2,"noteText":"Unprepared (攻其无备): your escape is on cooldown, it hits 20% harder"}
+ok   203 攻其无备 under frenzy: capped at BONUS_CAP together with the frenzy :: {"hits":[15.6,16.8],"frenzy":5.633333333333342,"wantReady":15.600000000000001,"wantUn":16.799999999999997,"capBites":true}
+ok   204 攻其无备 escape per kit (dash; 墨甲 wall; 阴阳 step back; 道 flow); 墨甲 unprepared only with his wall on cooldown; statue and royale cubs unchanged :: {"esc":{"ru":0,"dao":1,"fa":0,"mo":0,"yinyang":0,"za":1,"ming":0,"zongheng":1,"nong":1},"moSlot":0,"moWReady":false,"moQcd":true,"statueHit":30,"statueWant":30,"cubHit":3,"cubWant":3} built {"ru":true
+ok   46 kennel wave: warning with zone, Stalker at the camp, rests outside aggro; switch off = none :: {"early":false,"warned":true,"banner":"block","voiceOk":true,"rule":"Cubs appear in 5 s at: West courtyard, north. Kill one to take its plate.","noneYet":true,"n":1,"kind":"stalker","atCamp":true,"hp"
+ok   47 cub rules: aggro, told bite (>= 0.4 s) at scaled damage, leash home and heal, no flank over a drop :: {"hot":true,"move":"bite","windupS":0.4166666666666667,"early":false,"hp":97,"wantHp":97,"minTell":0.41666666666666663,"home":true,"back":true,"healed":true,"flank":"flank","edge":{"z":-0.8,"y":4,"flo
+ok   48 plate: flight shown, buff slot, ultimate charge, bleed on hits, speed, oldest slot replaced, expiry :: {"dead":true,"flying":true,"takenBefore":0,"slot0":"stalker","t0":44.96666666666667,"status":"Stalker plate 45s","rule":"Stalker plate: your hits cause bleeding for 45 s. +30 ultimate charge.","plateG
+ok   49 collapse: cub lost with its section, no plate; fallen camp spawns nothing and is not announced :: {"onRoof":1,"lost":true,"taken":0,"slots":"","wave":2,"noSpawn":true,"banner2":false}
+ok   50 wake: live cubs fly home as plates and are gone by the hunt, new run restarts waves; 7 cubs with tells inside budget, no shader compile, memory flat :: {"before":3,"cleared":true,"fusing":3,"fusePlates":3,"noneInHunt":true,"reset":true,"best":{"tells":3,"alive":7,"calls":33,"tris":2250,"programs":7,"geoms":162}}
+ok   51 bot farms the west camp 170 s: 0 broken invariants, takes plates, never dies :: {"viol":[],"taken":2,"minHp":100,"deaths":0,"hits":0,"wave":3}
+ok   52 marble bags: full cycles without repeats, seeded, all spots standable; cubs and minions faster than the suit :: {"cycles":true,"same":true,"differs":true,"spotsOk":true,"speeds":[6.6,6.6,6]}
+ok   53 buff creature: bag-drawn time, place, boon and size; announced; passive; next time drawn at the kill :: {"first":[35,45],"noneAt0":true,"kind":"crab","alive":true,"rule":"A crab is in: Centre courtyard, south. Kill it for a boon.","voice":"Something scuttleth in Our courts.","atSpot":true,"boon":"ult","
+ok   54 boons: ultimate charge, heal, power, regen, vision, speed at the drawn size; under the cap; they end; HUD text :: {"ult":30,"wantUlt":30,"ultRule":"Boon: +30 ultimate charge.","heal":10,"wantHeal":10,"powerHit":27.5,"wantHit":27.500000000000004,"status":"Power 40s","regen":1.9999999999998863,"wantRegen":2,"visR":
+ok   55 buff creatures: lost with a fallen section (no boon, drawn again), cleared by the wake, switch off, memory and shaders flat :: {"lost":true,"boons":0,"redrawn":true,"backOnLiveGround":true,"geoms":162,"programs":7,"wake":true,"off":true}
+ok   56 bots: 8 at the other spawns, roam 230 s: on a floor every tick, never stuck > 3 s, <= 1 path search per step, seen only in vision, every out has a cause :: {"n":8,"distinct":true,"inScene":true,"navPeak":1,"navPerStep":0.0427,"stuck":0.77,"out":["bleed","hit","hit","hit","hit","hit"],"noCause":0,"navMs":{"median":0,"max":6.7},"viol":[]}
+ok   57 budget: 9 suits + 7 cubs + tells drawn (calls<500, tris<500k), no shader compile, geometry flat :: {"tells":3,"bots":8,"cubs":7,"calls":49,"tris":2538,"programs":7,"geoms":162}
+STMT 41 129
+STMT 42 674
+STMT 45 7
+STMT 47 10
+STMT 49 6
+STMT 51 8
+STMT 52 7
+STMT 54 3
+STMT 56 3
+STMT 60 310
+STMT 80 1355
+STMT 83 14
+STMT 99 9
+STMT 100 73
+STMT 104 7
+STMT 105 21
+STMT 106 38
+STMT 110 8
+STMT 111 13
+STMT 112 6
+STMT 115 3
+STMT 116 8
+STMT 119 8
+STMT 120 11
+STMT 124 41
+STMT 137 12
+STMT 138 324
+STMT 155 10
+STMT 165 7
+STMT 166 64
+STMT 175 737
+STMT 188 11
+STMT 201 4
+STMT 208 20
+STMT 223 32
+STMT 234 11
+STMT 237 4
+STMT 245 6
+STMT 253 24
+STMT 261 17
+STMT 277 87
+STMT 293 7
+STMT 304 4
+STMT 314 4400
+STMT 327 6
+STMT 328 5
+STMT 331 12149
+STMT 364 1075
+STMT 373 120
+STMT 388 46
+STMT 406 27
+STMT 415 26
+STMT 428 82
+STMT 448 43
+STMT 460 41
+STMT 469 19
+STMT 482 38
+STMT 500 592
+STMT 552 40
+STMT 560 18
+STMT 565 8
+STMT 585 29
+STMT 590 30
+STMT 605 53
+STMT 619 15
+STMT 625 20
+STMT 628 66
+STMT 642 111
+STMT 664 110
+STMT 684 179
+STMT 695 230
+STMT 712 457
+STMT 743 12
+STMT 758 33
+STMT 772 53
+STMT 791 348
+STMT 807 2153
+STMT 836 509
+STMT 875 53
+STMT 1247 5
+STMT 1478 4
+STMT 1640 8
+STMT 1780 3
+STMT 1941 3
+STMT 2120 7
+STMT 2275 4
+STMT 2469 3
+STMT 2647 3
+STMT 2828 3
+STMT 3037 5
+STMT 4081 3430
