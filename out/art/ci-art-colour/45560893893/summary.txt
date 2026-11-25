@@ -1,0 +1,38 @@
+FAIL hall_floor calibration: targets not met in 10 passes with FLOOR_G=1.0369 FLOOR_C=0.2742 FLOOR_B=0.36 FLOOR_N=1910 FLOOR_D=6.0 FLOOR_H=1600
+FAIL hall_floor brush scale: 2311.9 cm
+FAIL hall_floor contrast: lum sd 5.2
+FAIL signal_flags contrast: lum sd 30.5
+FAIL suit_bronze plain brush scale: 3.9 cm
+256 of 260 pass
+23 of 23 caught
+FAIL hall_floor contrast: lum sd 5.2 (8.0-12.0)
+16 of 20 pass
+4 of 4 mutations caught
+13 of 13 pass
+3 of 3 mutations caught
+FAIL new_a hall 10.5 m fa school colour: 4% of the figure's pixels (min 8%)
+FAIL new_a hall 10.5 m dao outline >= 3.0:1 vs floor behind: 45% (min 50%); ring formula 53%; body median 1.31:1; area >= 3:1 9%; school colour px 83%
+FAIL new_a hall 10.5 m dao body median vs floor: 1.31:1 (min 2.5:1)
+FAIL new_a hall 10.5 m mo outline >= 3.0:1 vs floor behind: 47% (min 50%); ring formula 75%; body median 3.03:1; area >= 3:1 53%; school colour px 9%
+FAIL new_a hall 10.5 m ming outline >= 3.0:1 vs floor behind: 43% (min 50%); ring formula 75%; body median 3.00:1; area >= 3:1 50%; school colour px 5%
+FAIL new_a hall 10.5 m ming school colour: 5% of the figure's pixels (min 8%)
+FAIL new_a hall 10.5 m zu outline >= 3.0:1 vs floor behind: 50% (min 50%); ring formula 57%; body median 2.65:1; area >= 3:1 36%
+FAIL new_a hall 10.5 m ls outline >= 3.0:1 vs floor behind: 48% (min 50%); ring formula 56%; body median 2.52:1; area >= 3:1 22%
+FAIL new_a hall 14 m fa school colour: 5% of the figure's pixels (min 8%)
+FAIL new_a hall 14 m dao outline >= 3.0:1 vs floor behind: 43% (min 50%); ring formula 49%; body median 1.36:1; area >= 3:1 11%; school colour px 83%
+FAIL new_a hall 14 m dao body median vs floor: 1.36:1 (min 2.5:1)
+FAIL new_a hall 14 m mo outline >= 3.0:1 vs floor behind: 45% (min 50%); ring formula 74%; body median 3.03:1; area >= 3:1 52%; school colour px 8%
+FAIL new_a hall 14 m ming outline >= 3.0:1 vs floor behind: 44% (min 50%); ring formula 75%; body median 3.05:1; area >= 3:1 54%; school colour px 4%
+FAIL new_a hall 14 m ming school colour: 4% of the figure's pixels (min 8%)
+FAIL new_a hall 14 m zu outline >= 3.0:1 vs floor behind: 49% (min 50%); ring formula 57%; body median 2.67:1; area >= 3:1 36%
+FAIL new_a hall 14 m ls outline >= 3.0:1 vs floor behind: 43% (min 50%); ring formula 57%; body median 2.61:1; area >= 3:1 26%
+TABLE variant | dist | figures >= 50% | min outline share | mean outline share | median body contrast | floor Y | floor marks | min school colour px
+TABLE old_cur hall | 10.5 | 0 of 11 | 0% | 1% | 1.65:1 | 0.058 | 1.41:1 | 2%
+TABLE old_cur hall | 14 | 0 of 11 | 0% | 1% | 1.70:1 | 0.060 | 1.41:1 | 1%
+TABLE even_a hall | 10.5 | 8 of 11 | 44% | 54% | 3.05:1 | 0.138 | 1.22:1 | 4%
+TABLE even_a hall | 14 | 6 of 11 | 44% | 52% | 3.09:1 | 0.138 | 1.22:1 | 4%
+TABLE new_a hall | 10.5 | 6 of 11 | 43% | 53% | 3.00:1 | 0.142 | 1.22:1 | 4%
+TABLE new_a hall | 14 | 6 of 11 | 43% | 52% | 3.03:1 | 0.140 | 1.26:1 | 4%
+FAIL new floor vs even floor at 10.5 m: figures passing the outline rule 6 (even floor 8), median body 3.00:1 (even floor 3.05:1, min 3.0:1)
+FAIL lines: 17
+FAIL lines: 24

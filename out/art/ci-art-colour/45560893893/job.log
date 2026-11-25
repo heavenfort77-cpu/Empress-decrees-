@@ -1,0 +1,174 @@
+== preflight 06:29:27
+NOTE tex_check.py identity not checked on the runner (shallow clone): see the commit
+PREFLIGHT PASS
+== hall floor (klad, calibrated to the study targets) 06:29:29
+pass 1: G 0.9787 C 0.8589 D 1.000 H 420 -> Y 0.1809 marks in 1 m 1.212 (tile 1.240) sd 4.30 (without drift 3.83) run 50.6 cm ac 13 x 7 px blk 1.84 sat 0.523 pale 0.0013 dark 0.0047 
+pass 2: G 1.0115 C 1.0145 D 2.000 H 840 -> Y 0.1789 marks in 1 m 1.393 (tile 1.441) sd 7.53 (without drift 5.81) run 18.1 cm ac 13 x 8 px blk 4.45 sat 0.524 pale 0.0002 dark 0.0012 
+pass 3: G 1.0575 C 0.6447 D 2.813 H 1382 -> Y 0.1894 marks in 1 m 1.304 (tile 1.358) sd 6.23 (without drift 4.51) run 58.3 cm ac 13 x 9 px blk 4.00 sat 0.523 pale 0.0001 dark 0.0002 
+pass 4: G 1.0575 C 0.5305 D 5.015 H 1600 -> Y 0.1792 marks in 1 m 1.470 (tile 1.568) sd 9.22 (without drift 6.08) run 51.7 cm ac 13 x 11 px blk 6.44 sat 0.524 pale 0.0000 dark 0.0001 
+pass 5: G 1.1035 C 0.3183 D 5.015 H 1600 -> Y 0.1990 marks in 1 m 1.243 (tile 1.281) sd 5.20 (without drift 3.47) run 1118.0 cm ac 13 x 10 px blk 3.60 sat 0.521 pale 0.0000 dark 0.0001 
+pass 6: G 1.0369 C 0.3183 D 6.000 H 1600 -> Y 0.1842 marks in 1 m 1.290 (tile 1.353) sd 6.07 (without drift 3.98) run 714.1 cm ac 13 x 11 px blk 4.26 sat 0.523 pale 0.0000 dark 0.0001 
+pass 7: G 1.0369 C 0.2742 D 6.000 H 1600 -> Y 0.1866 marks in 1 m 1.245 (tile 1.286) sd 5.18 (without drift 3.39) run 2311.9 cm ac 13 x 11 px blk 3.64 sat 0.522 pale 0.0000 dark 0.0001 
+pass 8: G 1.0369 C 0.2742 D 6.000 H 1600 -> Y 0.1866 marks in 1 m 1.245 (tile 1.286) sd 5.18 (without drift 3.39) run 2311.9 cm ac 13 x 11 px blk 3.64 sat 0.522 pale 0.0000 dark 0.0001 
+pass 9: G 1.0369 C 0.2742 D 6.000 H 1600 -> Y 0.1866 marks in 1 m 1.245 (tile 1.286) sd 5.18 (without drift 3.39) run 2311.9 cm ac 13 x 11 px blk 3.64 sat 0.522 pale 0.0000 dark 0.0001 
+pass 10: G 1.0369 C 0.2742 D 6.000 H 1600 -> Y 0.1866 marks in 1 m 1.245 (tile 1.286) sd 5.18 (without drift 3.39) run 2311.9 cm ac 13 x 11 px blk 3.64 sat 0.522 pale 0.0000 dark 0.0001 
+FAIL hall_floor calibration: targets not met in 10 passes with FLOOR_G=1.0369 FLOOR_C=0.2742 FLOOR_B=0.36 FLOOR_N=1910 FLOOR_D=6.0 FLOOR_H=1600
+== proposals as delivered in run 45559220231 (not repainted in the floor-only round) 06:29:55
+== gates (the proposals under their final names) 06:29:55
+PASS hall_floor density: 256 x 256 px/m
+FAIL hall_floor brush scale: 2311.9 cm
+FAIL hall_floor contrast: lum sd 5.2
+PASS hall_floor saturation: 0.52 (cap 0.55)
+PASS floor_tiles density: 256 x 256 px/m
+PASS floor_tiles brush scale: 4.2 cm
+PASS floor_tiles contrast: lum sd 8.7
+PASS floor_tiles saturation: 0.10 (cap 0.55)
+PASS floor_tiles value: mean lum 122 (95-130)
+PASS floor_tiles seam x: edge step 0.2 vs inside mean 1.8, p99 21.1
+PASS floor_tiles seam y: edge step 0.2 vs inside mean 2.7, p99 22.1
+PASS floor_tiles repeat: 50 cm block sd 1.8 (max 3.5)
+PASS garden_ground density: 256 x 256 px/m
+PASS garden_ground brush scale: 8.4 cm
+PASS garden_ground contrast: lum sd 9.7
+PASS garden_ground saturation: 0.33 (cap 0.55)
+PASS garden_ground value: mean lum 122 (85-125)
+PASS garden_ground seam x: edge step 1.8 vs inside mean 1.6, p99 2.3
+PASS garden_ground seam y: edge step 1.5 vs inside mean 1.7, p99 2.5
+PASS garden_ground repeat: 50 cm block sd 2.1 (max 3.5)
+FAIL signal_flags contrast: lum sd 30.5
+PASS star_inlay density: 256 x 256 px/m
+PASS star_inlay saturation: 0.48 (cap 0.6)
+PASS star_inlay coverage: opaque share per cell 0.02-0.06 (0.01-0.08)
+PASS star_inlay alpha test: 0.17 of drawn pixels fall under the 0.5 alpha test (max 0.2)
+PASS star_inlay floor read: mean lum +2.5 (max 8), mean hue shift 1.3 deg (max 6) over hall_floor
+PASS star_inlay subtle: inlay minus floor lum 64 (25-75: seen, not loud)
+PASS star_inlay not hazard ring: nearest inlay pixel to #ff2a10 at 155 (min 120)
+PASS star_inlay not warned: nearest inlay pixel to #b33a2a at 116 (min 60)
+PASS star_inlay edge clear: opaque share in the 24 px border 0.0000 (0: cells turn without a seam)
+FAIL suit_bronze plain brush scale: 3.9 cm
+PASS mercury_matcap brightest highlights: p95 221 vs next star_inlay 190 (min +10)
+256 of 260 pass
+23 of 23 caught
+PASS hall_floor floor luminance: texture relative luminance 0.187 (0.167-0.26); mean lum 113
+PASS hall_floor own marks: p95/p5 contrast inside 1 m 1.25:1 (max 1.3); whole tile 1.29:1
+FAIL hall_floor contrast: lum sd 5.2 (8.0-12.0)
+PASS hall_floor stroke scale: autocorrelation half-width without the drift 13 x 11 px (max 20, x:y max 2.0)
+PASS hall_floor saturation: 0.52 (0.48-0.55)
+PASS hall_floor no pale marks: pale 0.00% (max 0.3%), dark 0.01% (max 1%) beyond 2 sd of the 32 px mean
+PASS stone_paving floor luminance: texture relative luminance 0.249 (0.167-0.26); mean lum 136
+PASS stone_paving saturation: 0.10 (cap 0.55)
+NOTE stone_paving own marks p95/p5 1.31:1, lum sd 9.1, autocorrelation 5 x 3 px
+PASS floor_tiles floor luminance: texture relative luminance 0.197 (0.167-0.26); mean lum 122
+PASS floor_tiles saturation: 0.10 (cap 0.55)
+NOTE floor_tiles own marks p95/p5 1.70:1, lum sd 8.7, autocorrelation 4 x 4 px
+PASS garden_ground floor luminance: texture relative luminance 0.198 (0.167-0.26); mean lum 122
+PASS garden_ground saturation: 0.33 (cap 0.55)
+NOTE garden_ground own marks p95/p5 1.28:1, lum sd 9.7, autocorrelation 3 x 3 px
+PASS bridge_deck floor luminance: texture relative luminance 0.198 (0.167-0.26); mean lum 121
+PASS bridge_deck saturation: 0.45 (cap 0.55)
+NOTE bridge_deck own marks p95/p5 1.33:1, lum sd 6.5, autocorrelation 7 x 59 px
+CONTROL round 2 hall floor fails floor luminance: texture relative luminance 0.081 (0.167-0.26); mean lum 77
+CONTROL round 2 hall floor fails own marks: p95/p5 contrast inside 1 m 1.56:1 (max 1.3); whole tile 1.55:1
+PASS hall_floor_cand contrast: lum sd 9.1 (8.0-12.0)
+CONTROL round 2 hall floor fails stroke scale: autocorrelation half-width without the drift 33 x 8 px (max 20, x:y max 2.0)
+PASS hall_floor_cand saturation: 0.52 (0.48-0.55)
+PASS hall_floor_cand no pale marks: pale 0.10% (max 0.3%), dark 0.04% (max 1%) beyond 2 sd of the 32 px mean
+16 of 20 pass
+MUT caught hall_floor dark -> floor luminance
+MUT caught hall_floor noisy -> own marks
+MUT caught hall_floor streak -> stroke scale
+MUT caught hall_floor spots -> no pale marks
+4 of 4 mutations caught
+PASS suit_lamellar_qin fa cord: p70 relative luminance 0.568 (min 0.21)
+PASS suit_lamellar_qin ru cord: p70 relative luminance 0.241 (min 0.21)
+PASS suit_lamellar_qin dao cord: p70 relative luminance 0.466 (min 0.21)
+PASS suit_lamellar_qin mo cord: p70 relative luminance 0.223 (min 0.21)
+PASS suit_lamellar_qin za cord: p70 relative luminance 0.463 (min 0.21)
+PASS suit_lamellar_qin ming cord: p70 relative luminance 0.237 (min 0.21)
+PASS suit_lamellar_qin zh cord: p70 relative luminance 0.245 (min 0.21)
+PASS suit_lamellar_qin nong cord: p70 relative luminance 0.216 (min 0.21)
+PASS suit_lamellar_qin lam_black no stripe: median relative luminance 0.016 (max 0.1)
+PASS suit_lamellar_qin lam_brown no stripe: median relative luminance 0.014 (max 0.1)
+PASS suit_lamellar_qin plate_brown lacquer value: mean lum 34 (20-45), saturation 0.35 (max 0.42)
+PASS suit_lamellar_qin lam_brown lacquer value: mean lum 31 (20-45), saturation 0.36 (max 0.42)
+PASS suit_lamellar_qin plate_black value: mean lum 36 (20-60)
+13 of 13 pass
+MUT caught approved sheet -> mo cord
+MUT caught approved sheet -> ming cord
+MUT caught approved sheet -> plate_brown lacquer value
+3 of 3 mutations caught
+floor texture sheets written
+== shots 06:31:40
+PASS colour shots: all rendered
+== measures and sheets 06:32:23
+MUT caught old_cur hall 10.5 m: 11 of 11 figures fail the outline rule on the old floor with the dark outline (control, min 6)
+MUT caught old_cur hall 14 m: 11 of 11 figures fail the outline rule on the old floor with the dark outline (control, min 6)
+FAIL new_a hall 10.5 m fa school colour: 4% of the figure's pixels (min 8%)
+FAIL new_a hall 10.5 m dao outline >= 3.0:1 vs floor behind: 45% (min 50%); ring formula 53%; body median 1.31:1; area >= 3:1 9%; school colour px 83%
+FAIL new_a hall 10.5 m dao body median vs floor: 1.31:1 (min 2.5:1)
+FAIL new_a hall 10.5 m mo outline >= 3.0:1 vs floor behind: 47% (min 50%); ring formula 75%; body median 3.03:1; area >= 3:1 53%; school colour px 9%
+FAIL new_a hall 10.5 m ming outline >= 3.0:1 vs floor behind: 43% (min 50%); ring formula 75%; body median 3.00:1; area >= 3:1 50%; school colour px 5%
+FAIL new_a hall 10.5 m ming school colour: 5% of the figure's pixels (min 8%)
+FAIL new_a hall 10.5 m zu outline >= 3.0:1 vs floor behind: 50% (min 50%); ring formula 57%; body median 2.65:1; area >= 3:1 36%
+FAIL new_a hall 10.5 m ls outline >= 3.0:1 vs floor behind: 48% (min 50%); ring formula 56%; body median 2.52:1; area >= 3:1 22%
+FAIL new_a hall 14 m fa school colour: 5% of the figure's pixels (min 8%)
+FAIL new_a hall 14 m dao outline >= 3.0:1 vs floor behind: 43% (min 50%); ring formula 49%; body median 1.36:1; area >= 3:1 11%; school colour px 83%
+FAIL new_a hall 14 m dao body median vs floor: 1.36:1 (min 2.5:1)
+FAIL new_a hall 14 m mo outline >= 3.0:1 vs floor behind: 45% (min 50%); ring formula 74%; body median 3.03:1; area >= 3:1 52%; school colour px 8%
+FAIL new_a hall 14 m ming outline >= 3.0:1 vs floor behind: 44% (min 50%); ring formula 75%; body median 3.05:1; area >= 3:1 54%; school colour px 4%
+FAIL new_a hall 14 m ming school colour: 4% of the figure's pixels (min 8%)
+FAIL new_a hall 14 m zu outline >= 3.0:1 vs floor behind: 49% (min 50%); ring formula 57%; body median 2.67:1; area >= 3:1 36%
+FAIL new_a hall 14 m ls outline >= 3.0:1 vs floor behind: 43% (min 50%); ring formula 57%; body median 2.61:1; area >= 3:1 26%
+TABLE variant | dist | figures >= 50% | min outline share | mean outline share | median body contrast | floor Y | floor marks | min school colour px
+TABLE old_cur hall | 10.5 | 0 of 11 | 0% | 1% | 1.65:1 | 0.058 | 1.41:1 | 2%
+TABLE old_cur hall | 14 | 0 of 11 | 0% | 1% | 1.70:1 | 0.060 | 1.41:1 | 1%
+TABLE even_a hall | 10.5 | 8 of 11 | 44% | 54% | 3.05:1 | 0.138 | 1.22:1 | 4%
+TABLE even_a hall | 14 | 6 of 11 | 44% | 52% | 3.09:1 | 0.138 | 1.22:1 | 4%
+TABLE new_a hall | 10.5 | 6 of 11 | 43% | 53% | 3.00:1 | 0.142 | 1.22:1 | 4%
+TABLE new_a hall | 14 | 6 of 11 | 43% | 52% | 3.03:1 | 0.140 | 1.26:1 | 4%
+FAIL new floor vs even floor at 10.5 m: figures passing the outline rule 6 (even floor 8), median body 3.00:1 (even floor 3.05:1, min 3.0:1)
+FAIL lines: 17
+?? ci_art_out/
+?? kladbin/
+?? node_modules/
+== summary
+FAIL hall_floor calibration: targets not met in 10 passes with FLOOR_G=1.0369 FLOOR_C=0.2742 FLOOR_B=0.36 FLOOR_N=1910 FLOOR_D=6.0 FLOOR_H=1600
+FAIL hall_floor brush scale: 2311.9 cm
+FAIL hall_floor contrast: lum sd 5.2
+FAIL signal_flags contrast: lum sd 30.5
+FAIL suit_bronze plain brush scale: 3.9 cm
+256 of 260 pass
+23 of 23 caught
+FAIL hall_floor contrast: lum sd 5.2 (8.0-12.0)
+16 of 20 pass
+4 of 4 mutations caught
+13 of 13 pass
+3 of 3 mutations caught
+FAIL new_a hall 10.5 m fa school colour: 4% of the figure's pixels (min 8%)
+FAIL new_a hall 10.5 m dao outline >= 3.0:1 vs floor behind: 45% (min 50%); ring formula 53%; body median 1.31:1; area >= 3:1 9%; school colour px 83%
+FAIL new_a hall 10.5 m dao body median vs floor: 1.31:1 (min 2.5:1)
+FAIL new_a hall 10.5 m mo outline >= 3.0:1 vs floor behind: 47% (min 50%); ring formula 75%; body median 3.03:1; area >= 3:1 53%; school colour px 9%
+FAIL new_a hall 10.5 m ming outline >= 3.0:1 vs floor behind: 43% (min 50%); ring formula 75%; body median 3.00:1; area >= 3:1 50%; school colour px 5%
+FAIL new_a hall 10.5 m ming school colour: 5% of the figure's pixels (min 8%)
+FAIL new_a hall 10.5 m zu outline >= 3.0:1 vs floor behind: 50% (min 50%); ring formula 57%; body median 2.65:1; area >= 3:1 36%
+FAIL new_a hall 10.5 m ls outline >= 3.0:1 vs floor behind: 48% (min 50%); ring formula 56%; body median 2.52:1; area >= 3:1 22%
+FAIL new_a hall 14 m fa school colour: 5% of the figure's pixels (min 8%)
+FAIL new_a hall 14 m dao outline >= 3.0:1 vs floor behind: 43% (min 50%); ring formula 49%; body median 1.36:1; area >= 3:1 11%; school colour px 83%
+FAIL new_a hall 14 m dao body median vs floor: 1.36:1 (min 2.5:1)
+FAIL new_a hall 14 m mo outline >= 3.0:1 vs floor behind: 45% (min 50%); ring formula 74%; body median 3.03:1; area >= 3:1 52%; school colour px 8%
+FAIL new_a hall 14 m ming outline >= 3.0:1 vs floor behind: 44% (min 50%); ring formula 75%; body median 3.05:1; area >= 3:1 54%; school colour px 4%
+FAIL new_a hall 14 m ming school colour: 4% of the figure's pixels (min 8%)
+FAIL new_a hall 14 m zu outline >= 3.0:1 vs floor behind: 49% (min 50%); ring formula 57%; body median 2.67:1; area >= 3:1 36%
+FAIL new_a hall 14 m ls outline >= 3.0:1 vs floor behind: 43% (min 50%); ring formula 57%; body median 2.61:1; area >= 3:1 26%
+TABLE variant | dist | figures >= 50% | min outline share | mean outline share | median body contrast | floor Y | floor marks | min school colour px
+TABLE old_cur hall | 10.5 | 0 of 11 | 0% | 1% | 1.65:1 | 0.058 | 1.41:1 | 2%
+TABLE old_cur hall | 14 | 0 of 11 | 0% | 1% | 1.70:1 | 0.060 | 1.41:1 | 1%
+TABLE even_a hall | 10.5 | 8 of 11 | 44% | 54% | 3.05:1 | 0.138 | 1.22:1 | 4%
+TABLE even_a hall | 14 | 6 of 11 | 44% | 52% | 3.09:1 | 0.138 | 1.22:1 | 4%
+TABLE new_a hall | 10.5 | 6 of 11 | 43% | 53% | 3.00:1 | 0.142 | 1.22:1 | 4%
+TABLE new_a hall | 14 | 6 of 11 | 43% | 52% | 3.03:1 | 0.140 | 1.26:1 | 4%
+FAIL new floor vs even floor at 10.5 m: figures passing the outline rule 6 (even floor 8), median body 3.00:1 (even floor 3.05:1, min 3.0:1)
+FAIL lines: 17
+FAIL lines: 24
+9.3M	/home/runner/work/Empress-decrees-/Empress-decrees-/ci_art_out
+RESULT done

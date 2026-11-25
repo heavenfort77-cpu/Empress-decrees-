@@ -1,0 +1,11 @@
+pass 1: G 0.9787 C 0.8589 D 1.000 H 420 -> Y 0.1809 marks in 1 m 1.212 (tile 1.240) sd 4.30 (without drift 3.83) run 50.6 cm ac 13 x 7 px blk 1.84 sat 0.523 pale 0.0013 dark 0.0047 
+pass 2: G 1.0115 C 1.0145 D 2.000 H 840 -> Y 0.1789 marks in 1 m 1.393 (tile 1.441) sd 7.53 (without drift 5.81) run 18.1 cm ac 13 x 8 px blk 4.45 sat 0.524 pale 0.0002 dark 0.0012 
+pass 3: G 1.0575 C 0.6447 D 2.813 H 1382 -> Y 0.1894 marks in 1 m 1.304 (tile 1.358) sd 6.23 (without drift 4.51) run 58.3 cm ac 13 x 9 px blk 4.00 sat 0.523 pale 0.0001 dark 0.0002 
+pass 4: G 1.0575 C 0.5305 D 5.015 H 1600 -> Y 0.1792 marks in 1 m 1.470 (tile 1.568) sd 9.22 (without drift 6.08) run 51.7 cm ac 13 x 11 px blk 6.44 sat 0.524 pale 0.0000 dark 0.0001 
+pass 5: G 1.1035 C 0.3183 D 5.015 H 1600 -> Y 0.1990 marks in 1 m 1.243 (tile 1.281) sd 5.20 (without drift 3.47) run 1118.0 cm ac 13 x 10 px blk 3.60 sat 0.521 pale 0.0000 dark 0.0001 
+pass 6: G 1.0369 C 0.3183 D 6.000 H 1600 -> Y 0.1842 marks in 1 m 1.290 (tile 1.353) sd 6.07 (without drift 3.98) run 714.1 cm ac 13 x 11 px blk 4.26 sat 0.523 pale 0.0000 dark 0.0001 
+pass 7: G 1.0369 C 0.2742 D 6.000 H 1600 -> Y 0.1866 marks in 1 m 1.245 (tile 1.286) sd 5.18 (without drift 3.39) run 2311.9 cm ac 13 x 11 px blk 3.64 sat 0.522 pale 0.0000 dark 0.0001 
+pass 8: G 1.0369 C 0.2742 D 6.000 H 1600 -> Y 0.1866 marks in 1 m 1.245 (tile 1.286) sd 5.18 (without drift 3.39) run 2311.9 cm ac 13 x 11 px blk 3.64 sat 0.522 pale 0.0000 dark 0.0001 
+pass 9: G 1.0369 C 0.2742 D 6.000 H 1600 -> Y 0.1866 marks in 1 m 1.245 (tile 1.286) sd 5.18 (without drift 3.39) run 2311.9 cm ac 13 x 11 px blk 3.64 sat 0.522 pale 0.0000 dark 0.0001 
+pass 10: G 1.0369 C 0.2742 D 6.000 H 1600 -> Y 0.1866 marks in 1 m 1.245 (tile 1.286) sd 5.18 (without drift 3.39) run 2311.9 cm ac 13 x 11 px blk 3.64 sat 0.522 pale 0.0000 dark 0.0001 
+FAIL hall_floor calibration: targets not met in 10 passes with FLOOR_G=1.0369 FLOOR_C=0.2742 FLOOR_B=0.36 FLOOR_N=1910 FLOOR_D=6.0 FLOOR_H=1600

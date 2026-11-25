@@ -1,0 +1,20 @@
+id_d10.5 ok
+id_d14 ok
+old_cur_d10.5 ok
+old_cur_d14 ok
+even_a_d10.5 ok
+even_a_d14 ok
+new_a_d10.5 ok
+new_a_d14 ok
+close_old_cur_0 ok
+close_old_cur_1 ok
+close_old_cur_2 ok
+hall_old_cur ok
+hall_low_old_cur ok
+close_new_a_0 ok
+close_new_a_1 ok
+close_new_a_2 ok
+hall_new_a ok
+hall_low_new_a ok
+shots 18 of 18 ok
+PASS colour shots: all rendered
