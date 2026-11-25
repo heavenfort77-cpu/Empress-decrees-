@@ -42,7 +42,8 @@ for (const [name, qs] of SCENES) {
     over20: s.ft.filter((x) => x > 20).length, frames: s.ft.length, gpuMean: gt.length ? +mean(gt).toFixed(3) : null, cardGpuMean: gc.length ? +mean(gc).toFixed(3) : null, cardGpuP95: gc.length ? +qn(gc, 0.95).toFixed(3) : null,
     liveMean: s.live.length ? +mean(s.live).toFixed(1) : 0, liveMax: s.live.length ? Math.max(...s.live) : 0, calls: s.calls, tris: s.tris, progNew: s.programs - s.progsAtStart, progs: s.programs,
     sndPerS: s.simS > 0 ? +(s.sounds / s.simS).toFixed(1) : 0, evPerS: s.simS > 0 ? +(s.events / s.simS).toFixed(1) : 0, unknown: s.unknown, ctx: s.ctx, sndReady: s.sndReady, sndTotal: s.sndTotal,
-    heapMB: +s.heapMB.toFixed(2), warmed: s.warmed, long: s.long.reduce((o, x, i) => (i % 4 === 0 ? o.push([]) : 0, o[o.length - 1].push(+x.toFixed(i % 4 === 2 ? 2 : 0)), o), []).map((q) => `t${q[0]}:${q[1]}ms heap${q[2] >= 0 ? '+' : ''}${q[2]}MB ev${q[3]}`).join(' '), loadMs, timer: s.timer, gpu: s.gpu, errs: errs.length };
+    heapMB: +s.heapMB.toFixed(2), warmed: s.warmed, long: s.long.reduce((o, x, i) => (i % 6 === 0 ? o.push([]) : 0, o[o.length - 1].push(+x.toFixed(i % 6 === 2 ? 2 : 1)), o), []).map((q) => `t${q[0]}:${q[1]}ms heap${q[2] >= 0 ? '+' : ''}${q[2]}MB ev${q[3]} workPrev${q[4]}ms late${q[5]}ms`).join(' '),
+    gpuWorst: gt.length ? +gt[gt.length - 1].toFixed(2) : null, cardGpuWorst: gc.length ? +gc[gc.length - 1].toFixed(2) : null, longTasks: s.longTasks, longTaskMax: +s.longTaskMax.toFixed(1), longTaskList: s.longTaskList.map((x) => +x.toFixed(0)).join(','), loadMs, timer: s.timer, gpu: s.gpu, errs: errs.length };
   rows.push(row); console.log('ROW ' + JSON.stringify(row)); if (errs.length) console.log('ERRS ' + name + ' ' + errs.slice(0, 5).join(' | '));
   if (qs.includes('heavy') && !name.includes('#2')) await page.screenshot({ path: `${OUT}/heavy.jpg`, type: 'jpeg', quality: 80 });
   await page.close();

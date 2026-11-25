@@ -24,8 +24,8 @@ const CONFIG = {
   atkS: 0.55, skillS: 3.0, unitS: 1.5, apexS: 1.6, giantS: 4.5, burnS: 0.6,
   // Units fighting at once (of the 37 drawn), bolt flight s.
   unitsActive: 20, boltS: 0.45,
-  // Frames longer than this (ms) are logged.
-  longMs: 100,
+  // Frames longer than this (ms) are logged (50: the reference scenes' spikes are logged too, as the control for the heavy ones).
+  longMs: 50,
 };
 const Q = new URLSearchParams(location.search), MODE = Q.get('mode') || 'ref', K = Math.max(0.25, +(Q.get('k') || 1)), TIER = Q.get('tier') || 'medium';
 const W = innerWidth, H = innerHeight;
@@ -170,14 +170,19 @@ const FT = new Float32Array(1 << 15), GT = new Float32Array(1 << 15), GC = new F
 let nC = 0, nL = 0, nLive = 0, t0 = 0, calls = 0, tris = 0, arm = false, allF = 0, nF = 0, nG = 0, timing = false, last = performance.now(), simT = 0, q = null, liveAcc = 0;
 let snd0 = 0, ev0 = 0, heap0 = 0, simStart = 0, heapPrev = 0, evI = 0, evCount = 0;
 const evRing = new Float64Array(64).fill(-1), evT = new Float64Array(64);
+// Main-thread work of each frame callback (ms, from its first line to after its renders) and long tasks seen by the browser (> 50 ms):
+// a long frame whose own and previous work are short, with no long task, was not spent in this page's JavaScript.
+let workPrev = 0, ltN = 0, ltMax = 0, ltAt = -1;
+const LT = new Float32Array(64);
+try { new PerformanceObserver((l) => { if (!timing) return; for (const e of l.getEntries()) { ltN++; if (e.duration > ltMax) ltMax = e.duration; if (ltAt < 62) { LT[++ltAt] = e.startTime - t0; LT[++ltAt] = e.duration; } } }).observe({ type: 'longtask', buffered: false }); } catch (e) { }
 const heap = () => (performance.memory ? performance.memory.usedJSHeapSize : 0);
 window.__probe = {
-  start() { nF = 0; nG = 0; nC = 0; nL = 0; nLive = 0; t0 = performance.now(); arm = true; window.__progsAtStart = r.info.programs.length; snd0 = MODE === 'ref' ? 0 : SND.status().played; ev0 = MODE === 'ref' ? 0 : FX.fxStatus().events; heap0 = heap(); simStart = simT; },
+  start() { ltN = 0; ltMax = 0; ltAt = -1; nF = 0; nG = 0; nC = 0; nL = 0; nLive = 0; t0 = performance.now(); arm = true; window.__progsAtStart = r.info.programs.length; snd0 = MODE === 'ref' ? 0 : SND.status().played; ev0 = MODE === 'ref' ? 0 : FX.fxStatus().events; heap0 = heap(); simStart = simT; },
   stop() {
     timing = false; const fs = MODE === 'ref' ? null : FX.fxStatus(), ss = MODE === 'ref' ? null : SND.status();
     return { ft: Array.from(FT.subarray(0, nF)), gt: Array.from(GT.subarray(0, nG)), gc: Array.from(GC.subarray(0, nC)), long: Array.from(LONG.subarray(0, nL)), live: Array.from(LIVE.subarray(0, nLive)),
       calls, tris, programs: r.info.programs.length, progsAtLoad: progs0, progsAtStart: window.__progsAtStart, textures: r.info.memory.textures, geometries: r.info.memory.geometries,
-      sounds: ss ? ss.played - snd0 : 0, events: fs ? fs.events - ev0 : 0, unknown: fs ? fs.unknown : 0, simS: simT - simStart, heapMB: (heap() - heap0) / 1048576, warmed, sndReady: ss ? ss.ready : 0, sndTotal: ss ? ss.total : 0, ctx: ss ? ss.ctx : 'none', timer: !!ext, gpu: GPU, mode: MODE, k: K };
+      sounds: ss ? ss.played - snd0 : 0, events: fs ? fs.events - ev0 : 0, unknown: fs ? fs.unknown : 0, simS: simT - simStart, heapMB: (heap() - heap0) / 1048576, warmed, sndReady: ss ? ss.ready : 0, sndTotal: ss ? ss.total : 0, ctx: ss ? ss.ctx : 'none', timer: !!ext, gpu: GPU, longTasks: ltN, longTaskMax: ltMax, longTaskList: Array.from(LT.subarray(0, ltAt + 1)), mode: MODE, k: K };
   },
 };
 // ---- runtime checks hook (test mode only): small, read-only where possible ----
@@ -188,18 +193,20 @@ function query(kind) { if (ext && PQ.length < 32) { q = gl.createQuery(); gl.beg
 function endQuery() { if (q) { gl.endQuery(ext.TIME_ELAPSED_EXT); PQ.push(q); q = null; } }
 function frame(now) {
   requestAnimationFrame(frame);
+  const w0 = performance.now();
   try {
     const ms = now - last, dt = Math.min(0.05, ms / 1000);
     allF++;
     const skip = arm;
     if (arm) { arm = false; timing = true; }
     if (timing && !skip && nF < FT.length) FT[nF++] = ms;
-    // Long frames: time from start, ms, the heap change across that frame (MB; a large drop = a GC in it), events fired in the 200 ms before.
+    // Long frames: time from start, ms, the heap change across that frame (MB; a large drop = a GC in it), events fired in the 200 ms before,
+    // the work of the frame before the gap (ms) and how late this callback started after the rAF time (ms).
     const hp = heap();
     if (MODE !== 'ref') evCount = FX.fxEvents();
-    if (timing && !skip && ms > CONFIG.longMs && nL < LONG.length - 4) {
+    if (timing && !skip && ms > CONFIG.longMs && nL < LONG.length - 6) {
       let e0 = -1; for (let j = 0; j < 64; j++) { const k = (evI - j + 64) % 64; if (evT[k] > 0 && now - evT[k] >= 200) { e0 = evRing[k]; break; } }
-      LONG[nL++] = now - t0; LONG[nL++] = ms; LONG[nL++] = (hp - heapPrev) / 1048576; LONG[nL++] = e0 >= 0 ? evCount - e0 : -1;
+      LONG[nL++] = now - t0; LONG[nL++] = ms; LONG[nL++] = (hp - heapPrev) / 1048576; LONG[nL++] = e0 >= 0 ? evCount - e0 : -1; LONG[nL++] = workPrev; LONG[nL++] = w0 - now;
     }
     heapPrev = hp; evI = (evI + 1) % 64; evRing[evI] = evCount; evT[evI] = now;
     last = now;
@@ -223,6 +230,7 @@ function frame(now) {
     calls = r.info.render.calls; tris = r.info.render.triangles;
     query(1); r.render(fxScene, cam); endQuery();
     calls += r.info.render.calls; tris += r.info.render.triangles;
+    workPrev = performance.now() - w0;
   } catch (e) { document.title = 'ERR ' + e.message; console.error(e); }
 }
 // PERFRAME-END
