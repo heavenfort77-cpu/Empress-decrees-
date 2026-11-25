@@ -1,0 +1,150 @@
+{
+  "frames": [
+    {
+      "duration": 125,
+      "filename": "knight_front_walk 0",
+      "frame": {
+        "h": 60,
+        "w": 32,
+        "x": 2,
+        "y": 2
+      },
+      "rotated": false,
+      "sourceSize": {
+        "h": 64,
+        "w": 64
+      },
+      "spriteSourceSize": {
+        "h": 60,
+        "w": 32,
+        "x": 16,
+        "y": 2
+      },
+      "trimmed": true
+    },
+    {
+      "duration": 125,
+      "filename": "knight_front_walk 1",
+      "frame": {
+        "h": 59,
+        "w": 32,
+        "x": 36,
+        "y": 2
+      },
+      "rotated": false,
+      "sourceSize": {
+        "h": 64,
+        "w": 64
+      },
+      "spriteSourceSize": {
+        "h": 59,
+        "w": 32,
+        "x": 15,
+        "y": 3
+      },
+      "trimmed": true
+    },
+    {
+      "duration": 125,
+      "filename": "knight_front_walk 2",
+      "frame": {
+        "h": 61,
+        "w": 32,
+        "x": 70,
+        "y": 2
+      },
+      "rotated": false,
+      "sourceSize": {
+        "h": 64,
+        "w": 64
+      },
+      "spriteSourceSize": {
+        "h": 61,
+        "w": 32,
+        "x": 15,
+        "y": 1
+      },
+      "trimmed": true
+    },
+    {
+      "duration": 125,
+      "filename": "knight_front_walk 3",
+      "frame": {
+        "h": 60,
+        "w": 32,
+        "x": 2,
+        "y": 65
+      },
+      "rotated": false,
+      "sourceSize": {
+        "h": 64,
+        "w": 64
+      },
+      "spriteSourceSize": {
+        "h": 60,
+        "w": 32,
+        "x": 16,
+        "y": 2
+      },
+      "trimmed": true
+    },
+    {
+      "duration": 125,
+      "filename": "knight_front_walk 4",
+      "frame": {
+        "h": 59,
+        "w": 32,
+        "x": 36,
+        "y": 65
+      },
+      "rotated": false,
+      "sourceSize": {
+        "h": 64,
+        "w": 64
+      },
+      "spriteSourceSize": {
+        "h": 59,
+        "w": 32,
+        "x": 17,
+        "y": 3
+      },
+      "trimmed": true
+    },
+    {
+      "duration": 125,
+      "filename": "knight_front_walk 5",
+      "frame": {
+        "h": 61,
+        "w": 32,
+        "x": 70,
+        "y": 65
+      },
+      "rotated": false,
+      "sourceSize": {
+        "h": 64,
+        "w": 64
+      },
+      "spriteSourceSize": {
+        "h": 61,
+        "w": 32,
+        "x": 17,
+        "y": 1
+      },
+      "trimmed": true
+    }
+  ],
+  "meta": {
+    "app": "klad",
+    "format": "RGBA8888",
+    "frameTags": [],
+    "image": "knight_front_walk_sheet.png",
+    "layers": [],
+    "scale": "1",
+    "size": {
+      "h": 128,
+      "w": 104
+    },
+    "slices": [],
+    "version": "0.1.19"
+  }
+}
