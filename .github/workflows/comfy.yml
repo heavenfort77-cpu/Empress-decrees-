@@ -1,9 +1,9 @@
-# SDXL base 1.0 + SDXL-Lightning on CPU GitHub runners (FACES round 2 masks, diffusers; job name kept): concept reference images, never shipped. Push to ci-comfy-faces.
-# Each matrix job (0 guard zu, 1 giant g00) runs ci/job.sh for one entry in ci_comfy/prompts.json; images are committed to ci-out under out/comfy/<run id>/job<N>/.
+# SDXL base 1.0 + SDXL-Lightning on CPU GitHub runners (SUITS fa round 5, diffusers): full-figure concept reference images, never shipped. Push to ci-comfy-suitfa.
+# Each matrix job (0-1 txt2img seeds, 2 img2img kit knight, 3 img2img kit rogue) runs ci/job.sh for one entry in ci_comfy/prompts.json; images are committed to ci-out under out/comfy/<run id>/job<N>/.
 name: comfy-run
 on:
   push:
-    branches: ['ci-comfy-faces']
+    branches: ['ci-comfy-suitfa']
 permissions:
   contents: write
 jobs:
@@ -13,7 +13,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        job: [0, 1]
+        job: [0, 1, 2, 3]
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -34,7 +34,7 @@ jobs:
       - name: Commit to ci-out
         if: always()
         run: |
-          D=out/comfy/${GITHUB_RUN_ID}/job${{ matrix.job }}
+          D=out/comfy-suitfa/${GITHUB_RUN_ID}/job${{ matrix.job }}
           mkdir -p /tmp/o && cp -r out_img/. /tmp/o/ 2>/dev/null || true
           git config user.name Claude && git config user.email noreply@anthropic.com
           git fetch origin ci-out && git checkout -B ci-out origin/ci-out

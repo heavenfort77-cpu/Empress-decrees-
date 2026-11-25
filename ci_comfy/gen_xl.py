@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""FACES concept references: SDXL base 1.0 + SDXL-Lightning 8-step LoRA on a CPU runner (diffusers, fp32), txt2img per seed plus img2img
+"""SUITS fa concept references: SDXL base 1.0 + SDXL-Lightning 8-step LoRA on a CPU runner (diffusers, fp32), txt2img per seed plus img2img
 from the owner's kit masks. Reference only, never shipped. Usage: python gen_xl.py PROMPTS.json JOB OUTDIR [--probe-only]
 Memory plan (16 GB runner): text encoders load first, encode the job's prompt, are freed; then UNet + VAE + fused LoRA run the images.
 Stage 1 (part of the job's PREFLIGHT): download, encode, one 1-step 768 image (prints PROBE PASS with its time)."""
@@ -28,8 +28,8 @@ print(f'prompt encoded {time.time() - t0:.0f} s', flush=True)
 pipe = StableDiffusionXLPipeline.from_pretrained(base, text_encoder=None, text_encoder_2=None, tokenizer=None, tokenizer_2=None,
                                                  variant='fp16', torch_dtype=torch.float32, use_safetensors=True)
 pipe.scheduler = EulerDiscreteScheduler.from_config(pipe.scheduler.config, timestep_spacing='trailing')
-pipe.load_lora_weights(lora); pipe.fuse_lora(); pipe.set_progress_bar_config(disable=True)
-W, H = CFG['width'], CFG['height']
+pipe.load_lora_weights(lora); pipe.fuse_lora(); pipe.set_progress_bar_config(disable=True); pipe.enable_vae_tiling()
+W, H = JOB.get('width', CFG['width']), JOB.get('height', CFG['height'])
 def run(name, steps, seed, init=None, strength=1.0):
     t = time.time(); g = torch.Generator('cpu').manual_seed(seed)
     kw = dict(prompt_embeds=pe, pooled_prompt_embeds=ppe, num_inference_steps=steps, guidance_scale=CFG['guidance'], generator=g)
@@ -42,7 +42,7 @@ log = [run('probe_1step.png', 1, 1)]
 print(f'PROBE PASS 1-step {W}x{H} image rendered, total {time.time() - t0:.0f} s', flush=True)
 if PROBE_ONLY: sys.exit(0)
 i2i = StableDiffusionXLImg2ImgPipeline(**pipe.components)
-for s in JOB['seeds']: log.append(run(f'face_{s}.png', CFG['steps'], s))
-for e in JOB.get('img2img', []): log.append(run(f'face_{e["seed"]}_i2i_{os.path.basename(e["init"])[:-4]}.png', CFG['steps'], e['seed'], e['init'], e['strength']))
+for s in JOB['seeds']: log.append(run(f'fa_{s}.png', CFG['steps'], s))
+for e in JOB.get('img2img', []): log.append(run(f'fa_{e["seed"]}_i2i_{os.path.basename(e["init"])[:-4]}.png', CFG['steps'], e['seed'], e['init'], e['strength']))
 open(os.path.join(OUT, 'gen.log'), 'w').write(f'prompt: {prompt}\n' + '\n'.join(log) + '\n')
 print('GEN DONE', len(log) - 1, 'images')

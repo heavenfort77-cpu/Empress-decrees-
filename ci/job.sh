@@ -1,5 +1,5 @@
 #!/bin/bash
-# FACES concept job (branch ci-comfy-faces): SDXL base 1.0 + SDXL-Lightning 8-step LoRA (diffusers, CPU) renders one prompts.json entry:
+# SUITS fa concept job (branch ci-comfy-suitfa): SDXL base 1.0 + SDXL-Lightning 8-step LoRA (diffusers, CPU) renders one prompts.json entry:
 # txt2img per seed plus img2img from the owner's kit masks. Reference only. Usage: bash ci/job.sh JOB_INDEX OUTDIR
 # PREFLIGHT (lead 25 Nov): stage A tools, prompts, scripts, init images, output folder; stage B installs, downloads the models and renders
 # one 1-step image (PROBE PASS). ci/PREFLIGHT_ONLY stops after stage B.
@@ -10,7 +10,7 @@ echo "== preflight A $(date +%H:%M:%S)"
 for t in python curl git; do command -v $t >/dev/null || die "tool $t"; done
 python -c "
 import json,sys,os; c=json.load(open('ci_comfy/prompts.json')); j=c['jobs'][int(sys.argv[1])]
-assert j['seeds'] and j['view']; [c[k] for k in ('base','lora_repo','lora_file','positive','width','height','steps','guidance')]
+assert (j['seeds'] or j.get('img2img')) and j['view']; [c[k] for k in ('base','lora_repo','lora_file','positive','width','height','steps','guidance')]
 for e in j.get('img2img',[]): assert os.path.getsize(e['init'])>0 and 0<e['strength']<1, e" "$J" || die "prompts.json job $J"
 python -m py_compile ci_comfy/gen_xl.py || die "gen_xl.py compiles"
 mkdir -p "$O" || die "mkdir $O"
@@ -27,5 +27,5 @@ if [ -f ci/PREFLIGHT_ONLY ]; then
 fi
 echo "== generate $(date +%H:%M:%S)"
 python ci_comfy/gen_xl.py ci_comfy/prompts.json "$J" "$O" 2>&1 | grep -v Warning; rc=${PIPESTATUS[0]}
-n=$(ls "$O"/face_*.png 2>/dev/null | wc -l); echo "RESULT job $J images $n (exit $rc)"
+n=$(ls "$O"/fa_*.png 2>/dev/null | wc -l); echo "RESULT job $J images $n (exit $rc)"
 [ $rc -eq 0 ] && [ "$n" -gt 0 ]

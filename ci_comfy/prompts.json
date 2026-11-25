@@ -1,49 +1,45 @@
 {
- "_about": "FACES round 2 concept references (owner GO 25 Nov 10:47, order 10:52; lead 25 Nov: SDXL base 1.0 + SDXL-Lightning 8-step LoRA, not SD1.5/LCM, not SDXL-Turbo). Groups: job 0 guard zu, job 1 giant g00 (suit fa moved to the SUITS worker, lead 25 Nov). One sculpted war mask per group, Qin lacquer/bronze, menacing (theme: the game is out to get you). txt2img 4 seeds per group plus img2img from the owner's own kit masks (armour-suit kit mask_zoom / rogue_head_zoom, cropped to the front view) at strength 0.6. Reference only: never shipped, never traced. Licences: SDXL base 1.0 CreativeML Open RAIL++-M, SDXL-Lightning openrail++ (commercial use allowed). Lightning runs at guidance 0, so the negative prompt is not used.",
- "width": 768,
- "height": 768,
+ "_about": "SUITS fa round 5 concept references (owner GO 25 Nov 10:55): suit 法甲 廷尉 (Legalist law officer, assassin, bronze jian, pursuit). SDXL base 1.0 + SDXL-Lightning 8-step LoRA (diffusers, CPU), not SD1.5/LCM, not SDXL-Turbo. Full figure 832x1216. Jobs 0-1: txt2img 2 seeds each (4 seeds); jobs 2-3: img2img from the owner's armour-suit kit (sheet_knight front, sheet_rogue front) at strength 0.6 with the same Qin lamellar prompt. Reference only: never shipped, never traced. Licences: SDXL base 1.0 CreativeML Open RAIL++-M, SDXL-Lightning openrail++ (commercial use allowed). Guidance 0, so no negative prompt.",
+ "width": 832,
+ "height": 1216,
  "steps": 8,
- "positive": "{view}, game concept art, head and shoulders, plain grey background, dramatic studio light, highly detailed sculpted armour",
+ "positive": "full body concept art, head to feet, {view}, grey background, studio light",
  "negative": "text, watermark, samurai, japanese, oni, kabuki, opera mask, european knight, bucket helmet, medieval visor, sci-fi, robot, neon, glowing, cartoon, smiling, blurry, cropped, multiple figures",
  "jobs": [
   {
-   "view": "front view of an ancient chinese qin dynasty bronze guard soldier, cast bronze hood, the face covered by a black lacquer war mask with a heavy flat brow, narrow angry eye slits and a grimacing mouth guard with teeth, menacing",
+   "view": "ancient chinese qin warrior, lamellar armour of small pale polished bronze plates laced with white silk cord, gold inlay edges, broad shoulder guards, black lacquer helmet with one forward-curving horn, pale white war mask with narrow slanted eye slits, bronze sword held low",
    "seeds": [
-    6201,
-    6202,
-    6203,
-    6204
+    7101,
+    7102
    ],
+   "img2img": []
+  },
+  {
+   "view": "ancient chinese qin warrior, lamellar armour of small pale polished bronze plates laced with white silk cord, gold inlay edges, broad shoulder guards, black lacquer helmet with one forward-curving horn, pale white war mask with narrow slanted eye slits, bronze sword held low",
+   "seeds": [
+    7103,
+    7104
+   ],
+   "img2img": []
+  },
+  {
+   "view": "ancient chinese qin warrior, lamellar armour of small pale polished bronze plates laced with white silk cord, gold inlay edges, broad shoulder guards, black lacquer helmet with one forward-curving horn, pale white war mask with narrow slanted eye slits, bronze sword held low",
+   "seeds": [],
    "img2img": [
     {
-     "init": "ci_comfy/init/kit_mask_front.png",
-     "seed": 6211,
-     "strength": 0.6
-    },
-    {
-     "init": "ci_comfy/init/kit_rogue_front.png",
-     "seed": 6212,
+     "init": "ci_comfy/init/kit_knight_front.png",
+     "seed": 7111,
      "strength": 0.6
     }
    ]
   },
   {
-   "view": "front view of the head of a colossal ancient chinese bronze giant statue, its face is a huge cast bronze taotie mask wider than the head, heavy curling brows, deep dark eye sockets, flaring cheek plates, snarling mouth with fangs, ritual bronze ornament, menacing",
-   "seeds": [
-    6301,
-    6302,
-    6303,
-    6304
-   ],
+   "view": "ancient chinese qin warrior, lamellar armour of small pale polished bronze plates laced with white silk cord, gold inlay edges, broad shoulder guards, black lacquer helmet with one forward-curving horn, pale white war mask with narrow slanted eye slits, bronze sword held low",
+   "seeds": [],
    "img2img": [
     {
-     "init": "ci_comfy/init/kit_mask_front.png",
-     "seed": 6311,
-     "strength": 0.6
-    },
-    {
-     "init": "ci_comfy/init/kit_rogue_front.png",
-     "seed": 6312,
+     "init": "ci_comfy/init/kit_rogue_full.png",
+     "seed": 7112,
      "strength": 0.6
     }
    ]
