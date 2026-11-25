@@ -1,0 +1,39 @@
+PASS zu 0 build stats present
+PASS zu M build stats present
+PASS zu 0 LOD0 tris 3400 (budget 4000)
+PASS zu 0 LOD1 tris 1186 (budget 1500)
+PASS zu 0 materials ['gdBronze', 'gdLacquer', 'treadBelt'] (no new one over now ['gdBronze', 'gdLacquer', 'treadBelt'])
+INFO zu 0 play contrast mask 0.0408 vs above 0.1739: ratio 2.47 (min 3.0) under the line (mutation case caught)
+PASS zu M LOD0 tris 3844 (budget 4000)
+PASS zu M LOD1 tris 1478 (budget 1500)
+PASS zu M materials ['gdBronze', 'gdLacquer', 'treadBelt'] (no new one over now ['gdBronze', 'gdLacquer', 'treadBelt'])
+PASS zu M mask built, 608 tris at LOD0, probes ['eye', 'helm', 'mask']
+FAIL zu M play contrast eye 0.0453 vs mask 0.019: ratio 1.38 (min 3.0)
+PASS zu M play contrast mask 0.019 vs above 0.1739: ratio 3.24 (min 3.0)
+PASS zu play shots measured 2 of 2
+PASS zu 0 close and play shots present
+PASS zu M close and play shots present
+PASS g00 0 build stats present
+PASS g00 M build stats present
+PASS g00 T build stats present
+PASS g00 0 LOD0 tris 6516 (budget 15000)
+PASS g00 0 LOD1 tris 2752 (budget 3000)
+PASS g00 0 materials ['palBronze', 'palTin'] (no new one over now ['palBronze', 'palTin'])
+INFO g00 0 play contrast mask 0.0187 vs above 0.1171: ratio 2.43 (min 3.0) under the line (mutation case caught)
+PASS g00 M LOD0 tris 10392 (budget 15000)
+PASS g00 M LOD1 tris 2969 (budget 3000)
+PASS g00 M materials ['palBronze', 'palLacquer', 'palTin'] (no new one over now ['palBronze', 'palTin']; allowed ['palLacquer']: +1 draw call per unit, owner decision)
+PASS g00 M mask built, 4620 tris at LOD0, probes ['eye', 'helm', 'mask']
+FAIL g00 M play contrast eye 0.0534 vs mask 0.0026: ratio 1.97 (min 3.0)
+PASS g00 M play contrast mask 0.0026 vs above 0.1171: ratio 3.18 (min 3.0)
+PASS g00 T LOD0 tris 10392 (budget 15000)
+PASS g00 T LOD1 tris 2969 (budget 3000)
+PASS g00 T materials ['palBronze', 'palTin'] (no new one over now ['palBronze', 'palTin'])
+PASS g00 T mask built, 4620 tris at LOD0, probes ['eye', 'helm', 'mask']
+FAIL g00 T play contrast eye 0.0081 vs mask 0.0318: ratio 1.41 (min 3.0)
+FAIL g00 T play contrast mask 0.0318 vs above 0.1171: ratio 2.04 (min 3.0)
+PASS g00 play shots measured 3 of 3
+PASS g00 0 close and play shots present
+PASS g00 M close and play shots present
+PASS g00 T close and play shots present
+32 of 36 pass

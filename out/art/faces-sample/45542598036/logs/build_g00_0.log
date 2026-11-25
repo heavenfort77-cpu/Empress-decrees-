@@ -1,0 +1,47 @@
+pre-decimation tris lod1/lod2: body 1504 652 giants [(1248, 678)]
+PASS g00 lod0 tris 6516 (budget 15000)
+PASS g00 lod1 tris 2752 (budget 3000)
+PASS g00 lod2 tris 992 (budget 1000)
+PASS g00 carried height 4.63 m (4.5-5.3; health bar at 5.4)
+PASS g00 width 4.25 m (max 4.4; giants stand 5 m apart)
+PASS g00 body radius below 2.6 m: 0.74 (max 1.12; CONFIG giant.r 1.1)
+PASS g00 dormant height 5.48 m (max 5.8, beam overhead)
+PASS g00 fall end lies down: top 1.43 m (max 1.7), lowest -0.16 (min -0.25)
+PASS every vertex of every mesh on exactly one bone (rigid)
+PASS hands on the beam: worst 0.004 m at slam t 1.00 R (max 0.08)
+PASS feet planted (ankle drift 0.000 m, max 0.05) in dormant, carry, slam, sweep, hit, wake
+PASS walk stance foot speed 3.20 m/s (game speed 3.2, +-10%)
+PASS walk feet reach their gait targets (worst 0.000 m, max 0.05)
+PASS slam tell: beam moved 0.67 m by 0.4 s (min 0.5), risen 1.05 m by the 1.0 s windup (min 0.9)
+PASS slam hit: beam drops 3.39 m (min 2.0) to 1.32 m, 0.82 m in front (min 0.8)
+PASS sweep tell: beam end moved 1.47 m by 0.4 s (min 0.5), turned 80 deg by the 1.2 s windup (min 60)
+PASS sweep swing 175 deg in 0.28 s (min 120)
+PASS hit react: chest top moves 0.32 m (min 0.15)
+PASS wake: every patina flake on the floor by 1.5 s (highest 0.05 m, max 0.3)
+PASS wake ends in the carried pose (beam 0.000 m from it; walk, slam and sweep start there)
+PASS Blender pose matches the solver at slam 0.6 s (0.0 mm, max 10)
+bones 28, clips dormant, wake, carry, walk, slam, sweep, hit, fall
+21 of 21 pass
+FACES stats g00 0 face tris lod0 0 probes {}
+ERROR Draco is not available because library could not be found at /opt/hostedtoolcache/Python/3.13.18/x64/lib/python3.13/site-packages/bpy/lib/libbf_intern_draco_bridge.so
+ERROR MeshOptimizer is not available because library could not be found at /opt/hostedtoolcache/Python/3.13.18/x64/lib/python3.13/site-packages/bpy/lib/libbf_intern_meshopt_bridge.so
+03:50:13 | INFO: Starting glTF 2.0 export
+03:50:13 | INFO: Extracting primitive: giant_body_lod0
+03:50:13 | INFO: Primitives created: 2
+03:50:13 | INFO: Extracting primitive: giant_body_lod1
+03:50:13 | INFO: Primitives created: 2
+03:50:13 | INFO: Extracting primitive: giant_body_lod2
+03:50:13 | INFO: Primitives created: 1
+03:50:13 | INFO: Extracting primitive: giant_flakes
+03:50:13 | INFO: Primitives created: 1
+03:50:13 | INFO: Extracting primitive: giant_g00_lod0
+03:50:13 | INFO: Primitives created: 2
+03:50:13 | INFO: Extracting primitive: giant_g00_lod1
+03:50:13 | INFO: Primitives created: 2
+03:50:13 | WARNING: Mesh giant_g00_lod2 is not valid, and may be exported wrongly
+03:50:13 | INFO: Extracting primitive: giant_g00_lod2
+03:50:13 | INFO: Primitives created: 2
+03:50:14 | INFO: Finished glTF 2.0 export in 1.1502368450164795 s
+
+wrote art/faces/glb/g00_0.glb 1314728 bytes
+FACES done g00 0

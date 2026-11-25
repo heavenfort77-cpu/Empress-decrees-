@@ -1,0 +1,56 @@
+{
+ "char": "g00",
+ "opt": "0",
+ "face_tris_lod0": 0,
+ "face_parts": [],
+ "probes": {},
+ "meshes": {
+  "giant_body_lod0": {
+   "tris": 3640,
+   "mats": [
+    "palBronze",
+    "palTin"
+   ]
+  },
+  "giant_body_lod1": {
+   "tris": 1504,
+   "mats": [
+    "palBronze",
+    "palTin"
+   ]
+  },
+  "giant_body_lod2": {
+   "tris": 606,
+   "mats": [
+    "palBronze"
+   ]
+  },
+  "giant_flakes": {
+   "tris": 288,
+   "mats": [
+    "palPatina"
+   ]
+  },
+  "giant_g00_lod0": {
+   "tris": 2876,
+   "mats": [
+    "palBronze",
+    "palTin"
+   ]
+  },
+  "giant_g00_lod1": {
+   "tris": 1248,
+   "mats": [
+    "palBronze",
+    "palTin"
+   ]
+  },
+  "giant_g00_lod2": {
+   "tris": 386,
+   "mats": [
+    "palBronze",
+    "palTin"
+   ]
+  }
+ }
+}

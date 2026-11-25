@@ -1,0 +1,41 @@
+PASS zu lod0 tris 3844 (budget 4000)
+PASS zu lod1 tris 1478 (budget 1500)
+PASS zu lod2 tris 436 (budget 500; weapons drop at LOD2)
+PASS zu every lod0 vertex weighted, sum 1 (0 bad)
+PASS zu clips ['attack', 'idle', 'move']
+PASS zu attack windup 0.50 s (tell >= 0.4)
+PASS zu weapon tip peaks at 0.50 s = windup 0.50 s
+PASS zu weapon tip moves 2.66 m by the windup (min 0.3)
+PASS zu body half-width 0.44 m (0.7-1.4 x radius 0.45)
+PASS zu body height 1.78 m (band 1.45-1.90)
+PASS zu body 6.4 heads tall (head 0.28 m incl. cap; min 6.0; round 3 about 4.9)
+PASS zu tread belts scroll: treadBelt U at 0.540 m per repeat (U rate spread 0.0%), loop U span 4.00 (whole); game: map.offset.x += metres forward / 0.540
+zu: 12 of 12 pass
+FACES stats zu M face tris lod0 608 probes {'mask': [-0.03814, 1.5845, 0.11229], 'helm': [-0.0, 1.7202, 0.066], 'eye': [-0.02949, 1.61172, 0.10907]}
+ERROR Draco is not available because library could not be found at /opt/hostedtoolcache/Python/3.13.18/x64/lib/python3.13/site-packages/bpy/lib/libbf_intern_draco_bridge.so
+ERROR MeshOptimizer is not available because library could not be found at /opt/hostedtoolcache/Python/3.13.18/x64/lib/python3.13/site-packages/bpy/lib/libbf_intern_meshopt_bridge.so
+03:50:16 | INFO: Starting glTF 2.0 export
+03:50:16 | INFO: Extracting primitive: zu_lod1
+03:50:16 | INFO: Primitives created: 3
+03:50:16 | WARNING: Mesh zu_lod2 is not valid, and may be exported wrongly
+03:50:16 | INFO: Extracting primitive: zu_lod2
+03:50:16 | INFO: Primitives created: 3
+03:50:16 | INFO: Extracting primitive: zu_lod0
+03:50:16 | INFO: Primitives created: 3
+03:50:16 | INFO: Finished glTF 2.0 export in 0.11651182174682617 s
+
+wrote art/faces/glb/tmp_zu_M/zu_M.glb 487864 bytes
+PASS zu lod0 tris 3844 (budget 4000)
+PASS zu lod1 tris 1478 (budget 1500)
+PASS zu lod2 tris 436 (budget 500; weapons drop at LOD2)
+PASS zu every lod0 vertex weighted, sum 1 (0 bad)
+PASS zu clips ['attack', 'idle', 'move']
+PASS zu attack windup 0.50 s (tell >= 0.4)
+PASS zu weapon tip peaks at 0.50 s = windup 0.50 s
+PASS zu weapon tip moves 2.66 m by the windup (min 0.3)
+PASS zu body half-width 0.44 m (0.7-1.4 x radius 0.45)
+PASS zu body height 1.78 m (band 1.45-1.90)
+PASS zu body 6.4 heads tall (head 0.28 m incl. cap; min 6.0; round 3 about 4.9)
+PASS zu tread belts scroll: treadBelt U at 0.540 m per repeat (U rate spread 0.0%), loop U span 4.00 (whole); game: map.offset.x += metres forward / 0.540
+SUMMARY zu M 12 of 12 tris [3844, 1478, 436]
+FACES done zu M

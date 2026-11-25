@@ -1,0 +1,11 @@
+zu_0_close ok {"calls":3,"triangles":3114,"bbox":[-330,-3477,771,2243],"head":[320,298],"probe":{"mask":{"px":[249,280],"L":0.0722},"helm":{"px":[292,178],"L":0.1845},"eye":{"px":[255,260],"L":0.0733},"ratio":1.92,"eye_ratio":1.01}}
+zu_0_play ok {"calls":4,"triangles":3402,"bbox":[877,340,1030,665],"head":[960,492],"probe":{"mask":{"px":[951,495],"L":0.0408},"helm":{"px":[957,481],"L":0.1739},"eye":{"px":[952,493],"L":0.0771},"ratio":2.47,"eye_ratio":1.4}}
+zu_M_close ok {"calls":3,"triangles":3558,"bbox":[-330,-3477,771,2243],"head":[320,298],"probe":{"mask":{"px":[249,280],"L":0.0088},"helm":{"px":[292,178],"L":0.1845},"eye":{"px":[255,260],"L":0.081},"ratio":3.99,"eye_ratio":2.23}}
+zu_M_play ok {"calls":4,"triangles":3846,"bbox":[877,340,1030,665],"head":[960,492],"probe":{"mask":{"px":[951,495],"L":0.019},"helm":{"px":[957,481],"L":0.1739},"eye":{"px":[952,493],"L":0.0453},"ratio":3.24,"eye_ratio":1.38}}
+g00_0_close ok {"calls":5,"triangles":6518,"bbox":[-61,60,931,1618],"head":[320,299],"probe":{"mask":{"px":[314,309],"L":0.0479},"helm":{"px":[300,204],"L":0.1305},"eye":{"px":[299,282],"L":0.0413},"ratio":1.84,"eye_ratio":1.07}}
+g00_0_play ok {"calls":5,"triangles":6518,"bbox":[708,200,1261,770],"head":[984,343],"probe":{"mask":{"px":[995,369],"L":0.0187},"helm":{"px":[978,303],"L":0.1171},"eye":{"px":[985,353],"L":0.0439},"ratio":2.43,"eye_ratio":1.37}}
+g00_M_close ok {"calls":6,"triangles":10394,"bbox":[-61,60,931,1618],"head":[320,299],"probe":{"mask":{"px":[314,309],"L":0.0027},"helm":{"px":[300,204],"L":0.1305},"eye":{"px":[299,282],"L":0.0469},"ratio":3.43,"eye_ratio":1.84}}
+g00_M_play ok {"calls":6,"triangles":10394,"bbox":[708,200,1261,770],"head":[984,343],"probe":{"mask":{"px":[995,369],"L":0.0026},"helm":{"px":[978,303],"L":0.1171},"eye":{"px":[985,353],"L":0.0534},"ratio":3.18,"eye_ratio":1.97}}
+g00_T_close ok {"calls":5,"triangles":10394,"bbox":[-61,60,931,1618],"head":[320,299],"probe":{"mask":{"px":[314,309],"L":0.0328},"helm":{"px":[300,204],"L":0.1305},"eye":{"px":[299,282],"L":0.0087},"ratio":2.18,"eye_ratio":1.41}}
+g00_T_play ok {"calls":5,"triangles":10394,"bbox":[708,200,1261,770],"head":[984,343],"probe":{"mask":{"px":[995,369],"L":0.0318},"helm":{"px":[978,303],"L":0.1171},"eye":{"px":[985,353],"L":0.0081},"ratio":2.04,"eye_ratio":1.41}}
+PASS shots 10 of 10
