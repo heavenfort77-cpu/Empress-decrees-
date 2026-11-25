@@ -18,12 +18,19 @@ LOOP_KEEP, INTRO_MAX, MIN_WINDUP = 0.25, 0.2, 0.4
 READ_RATIO, READ_SHARE = 3.0, 0.25
 # Face clearance for cards drawn round a body (feet at the pivot): max alpha inside the face box (x +-FACE_X m, FACE_Y m above the feet).
 FACE_X, FACE_Y, FACE_MAX, FACE_FAMS = 0.22, (1.5, 1.95), 0.5, ('aura', 'heal', 'shield', 'smoke')
+# Distinct effects (owner 25 Nov): every pair of these rows at least PAIR_DE apart (CIE76 Lab, D65, as art/tools/standard_check.py) in play:
+# the mean colour of each PAIR_CARDS card at its peak frame blended over the 丹 floor (pixels with alpha >= PAIR_ALPHA).
+PAIR_ROWS, PAIR_DE, PAIR_CARDS, PAIR_ALPHA = ('ru', 'dao', 'fa', 'mo', 'yinyang', 'za', 'ming', 'zongheng', 'nong', 'apex'), 10, ('slash', 'burst', 'impact', 'bolt'), 0.5
 # Floor texture metres per tile (CONFIG.TEX.tileM.palFloor), for sampling the floor at the card's scale.
 FLOOR_TILE_M = 4
 
 A, FLOOR, MAP = sys.argv[1], sys.argv[2], sys.argv[3]
 M = json.load(open(f'{A}/vfx.json')); MP = json.load(open(MAP))
 ATL = {n: np.array(Image.open(f'{A}/{a["file"]}')).astype(float) / 255 for n, a in M['atlases'].items()}
+# the shipped ramp texture (what the game samples), as 256-entry sRGB lookups per row
+RT = np.array(Image.open(f'{A}/{M["ramps"]["file"]}').convert('RGB')).astype(float) / 255
+def lutp(row):
+    x = np.linspace(0, 1, RT.shape[1]); v = np.linspace(0, 1, 256); return np.stack([np.interp(v, x, RT[row, :, c]) for c in range(3)], -1)
 res = []
 def gate(name, ok, info, fails=()):
     res.append(ok); print(f'GATE {name} {"PASS" if ok else "FAIL"} {info}')
@@ -93,7 +100,7 @@ def rowsof(r): return rows[:9] if r == 'caster' else [x for x in rows if x.start
 pairs = sorted({(it['tell'], r) for it in MP['items'] if it.get('tell') for r in rowsof(it['ramp'])})
 worst = (9, ''); pairw = {}
 for k, r in pairs:
-    e = M['effects'][k]; L = ramps.lut(rows.index(r)); fpx = fl.shape[0] / FLOOR_TILE_M * e['texelM']
+    e = M['effects'][k]; am = e.get('ashMix', 0); L = lutp(rows.index(r)) * (1 - am) + lutp(rows.index('ash')) * am; fpx = fl.shape[0] / FLOOR_TILE_M * e['texelM']
     fr = range(e['loop'][0], e['loop'][1]) if e['loop'] else [i for i, x in enumerate(sums[k]) if x >= 0.5 * max(sums[k])]
     for i in fr:
         v, al, _ = frame(e, i); m = al >= (0.5 if e['blend'] == 'cut' else 0.35)
@@ -116,6 +123,26 @@ for k in FACE_FAMS:
         al = frame(e, i)[1][max(0, y0):y1, max(0, x0):x1]
         if al.size and al.max() > FACE_MAX: bad.append(f'{k} f{i} face box alpha {al.max():.2f}')
 gate('face', not bad, f'{len(FACE_FAMS)} body cards, face box alpha <= {FACE_MAX}', bad)
+
+# 8. the nine schools and the apex stay apart on the effects, in play on the floor
+def lab(c):
+    c = ramps.s2l(np.asarray(c, float)); M_ = np.array([[0.4124, 0.3576, 0.1805], [0.2126, 0.7152, 0.0722], [0.0193, 0.1192, 0.9505]])
+    x = c @ M_.T / np.array([0.95047, 1, 1.08883]); f = np.where(x > 0.008856, np.cbrt(x), 7.787 * x + 16 / 116)
+    return np.stack([116 * f[..., 1] - 16, 500 * (f[..., 0] - f[..., 1]), 200 * (f[..., 1] - f[..., 2])], -1)
+bad = []; worst = (999, '')
+for k in PAIR_CARDS:
+    e = M['effects'][k]; i = int(np.argmax(sums[k])); v, al, _ = frame(e, i); m = al >= PAIR_ALPHA; ys, xs = np.nonzero(m)
+    fpx = fl.shape[0] / FLOOR_TILE_M * e['texelM']; fb = fl[(ys * fpx).astype(int) % fl.shape[0], (xs * fpx).astype(int) % fl.shape[1]]
+    means = {}
+    for r in PAIR_ROWS:
+        L = lutp(rows.index(r)); c = L[np.round(v[ys, xs] * 255).astype(int)]; a = al[ys, xs][:, None]
+        means[r] = lab(ramps.l2s(ramps.s2l(c) * a + ramps.s2l(fb) * (1 - a))).mean(0)
+    for x_ in range(len(PAIR_ROWS)):
+        for y_ in range(x_ + 1, len(PAIR_ROWS)):
+            a_, b_ = PAIR_ROWS[x_], PAIR_ROWS[y_]; d = float(np.linalg.norm(means[a_] - means[b_]))
+            if d < worst[0]: worst = (d, f'{a_}/{b_} on {k}')
+            if d < PAIR_DE: bad.append(f'{a_} vs {b_} on {k}: dE {d:.1f}')
+gate('school_pairs', not bad, f'{len(PAIR_ROWS)} rows, {len(PAIR_CARDS)} cards, worst dE {worst[0]:.1f} ({worst[1]}), need {PAIR_DE}', bad)
 
 print(f'SUMMARY {sum(res)} of {len(res)} PASS')
 sys.exit(0 if all(res) else 1)

@@ -12,7 +12,7 @@ Status: proposal. Not in the game: INT (the only index.html writer) wires it in.
 - `assets/vfx/vfx_ground.png` 1024 x 1020 (ring, mark, strip, crack): alpha-tested at 0.5 with alpha to coverage (MSAA is on in the game). Ground tells and cracks lie flat on the floor, need hard edges to read, and need no sorting.
 - Atlas texels: R = value, G = alpha, B = 0, stored as opaque RGB PNGs and uploaded as RG8 (2 bytes per texel, linear filter, no mipmaps; the cards are magnified 3-5x at the play camera, so no minification happens). GPU: 1.87 + 1.92 + 1.99 MB, plus the ramp texture `vfx_ramps.png` (64 x 18, sRGB). Total 5.79 MB on the GPU (runner rows, run 45517911042).
 - `assets/vfx/vfx.json` = everything the game needs (atlases, ramp rows and hex, per effect: atlas, blend, faces, frames, fps, tell loop, cell, origin, stride, columns, pivot, texel m, size m, pivot m, anchor height m, unit sizes, alpha per frame). `fx_<card>.json` = the same per card.
-- `art/vfx/`: the generator (`gen_cards.py`, its round-1 copy `gen_cards_round1.py`), ramps (`ramps.py`), klad painting (`paint.sh`), packing (`pack.py`), contact sheets (`sheets.py`), gates (`checks.py`), the gate mutation round (`mutate.py`), the effect map (`vfx_map.py` -> `vfx_map.json`), these tables (`doc_tables.py`), the klad sources (`klad/<card>.klad`), the reference card system (`cards_reference.js`), and the peak-frame sheet of every card in every ramp row (`peaks_all_rows.jpg`).
+- `art/vfx/`: the generator (`gen_cards.py`, its round-1 and round-2 copies `gen_cards_round1.py`, `gen_cards_round2.py`), ramps (`ramps.py`), klad painting (`paint.sh`), packing (`pack.py`), contact sheets (`sheets.py`), gates (`checks.py`), the gate mutation round (`mutate.py`), the effect map (`vfx_map.py` -> `vfx_map.json`), these tables (`doc_tables.py`), the klad sources (`klad/<card>.klad`), the reference card system (`cards_reference.js`), and the peak-frame sheet of every card in every ramp row (`peaks_all_rows.jpg`).
 - Branch ci-vfxp (CI only, never merged): the probe `probe/vfxp/index.html` + `cards.js`, `ci_vfxp/perfvfxp.mjs`, workflow `vfxp-run.yml`. Results go to ci-out `out/vfxp/<run>/` (perf.txt, rows.json, shots/ with 72 gallery shots, the B pair and the heavy fight).
 
 Rebuild: build klad (klad-headless-cli skill; klad 0.4.0, 5c60e1d), then `KLAD=<klad> OUT=<work> art/vfx/paint.sh`, `python3 -I art/vfx/pack.py <work>/frames <work>/ops/families.json assets/vfx`, `python3 -I art/vfx/checks.py assets/vfx assets/tex/hall_floor.png art/vfx/vfx_map.json`. A repaint gives byte-identical atlases (checked: soft_a md5 before and after a repaint of thrust).
@@ -34,19 +34,21 @@ Rebuild: build klad (klad-headless-cli skill; klad 0.4.0, 5c60e1d), then `KLAD=<
 | crack | ground (cut) | ground | 10 @ 20 (0.5) | - | 2.405 x 2.405 (unitRadiusM 1.0) | 1.202, 1.202 | 0.0 | impacts/ground-slam |
 | mark | ground (cut) | ground | 10 @ 30 (0.333) | [3, 7] | 2.43 x 2.43 (unitRadiusM 1.0) | 1.215, 1.215 | 0.0 | holy/smite |
 
+smoke has ashMix 0.75 (vfx.json): the ash row is mixed over the caster's row, so smoke is a grey body with the school colour as a tint (owner 25 Nov).
+
 ## Ramp rows (vfx_ramps.png; stops at value 0 / .25 / .5 / .75 / 1 = deep, dark, pigment, light, pale, mixed in OKLab toward #0e0b0a and #fffaf0)
 | Row | Name | Pigment | Used by |
 |---|---|---|---|
-| 0 | ru | #b8862e | the ru suit (player or bot) |
+| 0 | ru | #94622c | the ru suit (player or bot) |
 | 1 | dao | #e2b84a | the dao suit (player or bot) |
 | 2 | fa | #d9d2c3 | the fa suit (player or bot) |
 | 3 | mo | #a8321e | the mo suit (player or bot) |
 | 4 | yinyang | #1a1614 | the yinyang suit (player or bot) |
-| 5 | za | #c8ccd0 | the za suit (player or bot) |
+| 5 | za | #b2bccb | the za suit (player or bot) |
 | 6 | ming | #5b3f8c | the ming suit (player or bot) |
 | 7 | zongheng | #2f8a5c | the zongheng suit (player or bot) |
 | 8 | nong | #2e5a9c | the nong suit (player or bot) |
-| 9 | apex | #3a8fd0 | Tiger Demon, Stalker, Howler, cubs, plates |
+| 9 | apex | #2ea8e8 | Tiger Demon, Stalker, Howler, cubs, plates |
 | 10 | rebel_olive | #6f6a34 | 反贼 variant 0 |
 | 11 | rebel_umber | #6a4a32 | 反贼 variant 1 |
 | 12 | rebel_madder | #8e5a52 | 反贼 variant 2 |
@@ -56,17 +58,19 @@ Rebuild: build klad (klad-headless-cli skill; klad 0.4.0, 5c60e1d), then `KLAD=<
 | 16 | water | #2a6a9a | 门海 vats |
 | 17 | ash | #8c8a86 | burning wings, dust |
 
+Effects only (owner 25 Nov; the 鼎 inlays, suits and banners keep W1a's mapping): ru a browner ochre #94622c (W1a #b8862e), za the cooler banner silver #b2bccb with its light and pale stops mixed toward a cool white #e6eefa (W1a #c8ccd0), apex a brighter cyan-leaning water-blue #2ea8e8 (was #3a8fd0, still bluer and darker than the reserved hazard hue #3FE6F0). Gate school_pairs: every pair of the nine school rows and the apex at least dE 10 (CIE76 Lab, D65, as art/tools/standard_check.py) in play, i.e. the mean colour of the slash, burst, impact and bolt at their peak frames blended over the 丹 floor; worst pair ming / nong 10.5 on the slash (before: fa / za 4.6, ru / dao 8.4, nong / apex 8.8).
+
 ## Tells (windups)
 - A tell card plays its intro (3 frames, 0.1 s), then loops frames [3, 7) for exactly the move's windup (`hold` = the CONFIG windup, e.g. MOVES.claw.windup 0.45), then plays its release frames (7-9) and ends empty. So the tell is visible for the whole windup, never shorter; every windup in the map is >= 0.4 s (gate `map`).
 - The tell card sits on top of the game's own tell shape (the coloured ring or strip the code draws today) and is sized from the same CONFIG numbers. INT decides whether the old flat tell mesh stays under it.
-- Floor read: on the 丹 floor (relative luminance 0.08) no dark colour can reach 3:1, so every tell is a pale brush line (the ramp's pale stop, painted twice so it keeps its value) with a thin dark keyline outside it and the pigment inside. Gate `floor_read`: in every tell card x ramp row that uses it (48 pairs), at least 25% of the drawn pixels reach 3:1 against the floor under them (worst 0.29, smoke on ash). The school colour therefore shows mostly in the inner strokes of a tell and fully in the release and hit cards.
+- Floor read: on the 丹 floor (relative luminance 0.08) no dark colour can reach 3:1, so every tell is a pale brush line (the ramp's pale stop, painted twice so it keeps its value) with a thin dark keyline outside it and the pigment inside. Gate `floor_read`: in every tell card x ramp row that uses it (48 pairs), at least 25% of the drawn pixels reach 3:1 against the floor under them (worst 0.38, mark on yinyang). The school colour therefore shows mostly in the inner strokes of a tell and fully in the release and hit cards.
 - The burning wing's 5 s warning uses smoke one-shots repeated every 0.6 s at the wing's doors (smoke is not a loop).
 
 ## Card system (spec for the game writer; reference code art/vfx/cards_reference.js, measured on ci-vfxp)
 1. Load (under the loading card, with the other textures): fetch + createImageBitmap(blob, { premultiplyAlpha: 'none', colorSpaceConversion: 'none' }) per atlas (no <img>: it holds the page load event); THREE.Texture with format RGFormat, flipY false, generateMipmaps false, Linear min/mag, NoColorSpace. The ramp PNG: sRGB, Linear, no mipmaps. Then renderer.initTexture for all four and renderer.compile with the three card meshes in the scene (warm-up proven by "new programs during play = 0" in every runner row).
 2. Pools, built once: one InstancedBufferGeometry (a unit quad, 4 vertices) + one ShaderMaterial + one Mesh per atlas, instanceCount fixed = the pool (soft_a 64, soft_b 48, ground 48 in the probe; the heavy fight peaked at 100 live, the 4x stress at 130, of 160). Three draw calls in all, whatever the number of live cards. Per instance three vec4 attributes (DynamicDrawUsage): iA = anchor x y z + start time; iB = hold end time, rotation, width m, height m; iC = card index, ramp row v, alpha, spare. Per card constants (atlas origin, cell, stride, columns, frames, pivot, fps, loop) are uniform vec4 arrays indexed by the card index (13 entries).
 3. Vertex shader does the work: frame = floor((uTime - start) x fps); inside the hold it wraps in the tell loop; after the hold it plays the release frames; past the last frame (or alpha 0) the vertex is pushed outside the clip box, so a finished card costs four vertices and no fragments. Upright cards are offset in view space (always face the camera, rotation in the screen plane); ground cards are laid on the floor 2 cm up, yaw rot, forward = (sin rot, 0, -cos rot).
-4. Fragment: va = texture(atlas).rg; colour = ramp(va.r, row) (fog mixed in before the output conversion); soft atlases output premultiplied (colour x a, a) with NormalBlending + premultipliedAlpha, depthWrite off, depthTest on, renderOrder 3; the ground atlas alpha-tests at 0.5 with alphaToCoverage (fwidth band), depthWrite on, polygonOffset -2, renderOrder 1. side DoubleSide (negative width mirrors a card).
+4. Fragment: va = texture(atlas).rg; colour = ramp(va.r, row), mixed toward ramp(va.r, ash row) by the card's ashMix (uFxD.z; smoke 0.75, others 0) (fog mixed in before the output conversion); soft atlases output premultiplied (colour x a, a) with NormalBlending + premultipliedAlpha, depthWrite off, depthTest on, renderOrder 3; the ground atlas alpha-tests at 0.5 with alphaToCoverage (fwidth band), depthWrite on, polygonOffset -2, renderOrder 1. side DoubleSide (negative width mirrors a card).
 5. spawn(name, x, y, z, row, sx, sy, rot, hold, alpha) writes one instance (no allocation; first free slot after a moving cursor, else the oldest) and calls addUpdateRange for those 12 floats. Sizes: upright sx = sy = scale (sx < 0 mirrors); ring / mark / crack sx = sy = radius / unitRadiusM; strip sx = width / unitWidthM, sy = length / unitLenM; thrust sx = range / unitLenM. Upright cards sit `cardFwd` 0.6 m toward the camera from their anchor so the swing draws in front of its own caster; the anchor height (vfx.json anchorHeightM: hit cards 1.0 m, thrust 1.1 m) is added by spawn.
 6. Per frame: one uniform (uTime = game time, so pause freezes every card and dt 0 holds them); move(handle, x, y, z) only for cards that follow something (a bolt in flight, an aura or shield on a walking suit, 法's 势 ring); release(handle) when a tell ends early (stance broken, caster killed); kill(handle) for loops (auras, heals) when the state ends. Nothing else runs per frame: no traversal, no allocation, no DOM.
 7. Culling stays on: each card geometry gets a bounding sphere round the current room (set on a room change), never frustumCulled = false. Dispose the three geometries, materials and four textures only when the palace is left for good (they are shared, keep-flagged otherwise). Context loss: the textures are re-uploaded by three; the pools keep their arrays.
@@ -80,12 +84,24 @@ Rebuild: build klad (klad-headless-cli skill; klad 0.4.0, 5c60e1d), then `KLAD=<
 | json | 16 fields x 13 cards, fx_<card>.json present | PASS |
 | timing | one-shots end empty (last frame <= 3% of the peak's alpha), tell loop frames >= 25% of the peak, intro <= 0.2 s | PASS |
 | map | every item's cards and ramp row exist; every tell has windup >= 0.4 s and a looping (or repeated) card | PASS: 86 items, 40 tells |
-| floor_read | tell cards >= 25% of pixels at 3:1 on the 丹 floor, every ramp row that uses them | PASS: 48 pairs, worst 0.29 |
+| floor_read | tell cards >= 25% of pixels at 3:1 on the 丹 floor, every ramp row that uses them | PASS: 48 pairs, worst 0.38 |
 | face | aura / heal / shield / smoke: alpha <= 0.5 inside the face box (x +-0.22 m, 1.5-1.95 m) | PASS |
-Mutation round (art/vfx/mutate.py): 8 of 8 caught (blank loop frame, alpha on a cell border, windup 0.3, darkened tell, alpha on the face, smoke not ending empty, a missing fx json, a tell without a card).
+| school_pairs | 9 school rows + apex pairwise dE >= 10 in play on the floor (slash, burst, impact, bolt), read from the shipped ramp texture | PASS: worst 10.5 (ming / nong, slash) |
+Mutation round (art/vfx/mutate.py): 9 of 9 caught (za's ramp row put back on the old silver: fa / za collapses; blank loop frame, alpha on a cell border, windup 0.3, darkened tell, alpha on the face, smoke not ending empty, a missing fx json, a tell without a card).
 
 ## Real-GPU measurement (macOS runner, Apple M1 (Virtual), ANGLE Metal, 1920 x 1080, pixel ratio 1.25, vsync off; 6 s settle + 20 s timed per scene; scenes run forward then reversed in one job)
-Run 45517911042 on ci-vfxp 2f37a6e (the final atlases). Stage = the game camera (FOV 50, pitch 40, 10.5 m), the 丹 floor, hemi + sun with a 2048 shadow map, fog 45-85 m, 10 suit boxes + 37 fodder boxes + the apex box. heavy = every suit attacking (slash + impact or a flying bolt + impact every 0.6 s, a ring / strip / mark tell held 0.6-0.8 s then its release every 3 s), 20 fodder units with strip tells and thrusts, the apex with its aura, claw rings and pounce strips, smoke: 42 live cards on average (peak 100). heavy_x4 = 4x the rate (114-117 live, peak 130), a stress case.
+Final: run 45520502493 on ci-vfxp e45b13a (round 3 atlases and ramps). 19 PASS, 0 FAIL; 0 new programs; 7 calls, 898 tris; 0 page errors in 81 shots. This VM was slower (its reference stage took 2.2-2.4 ms of GPU against 1.8-1.9 in the run below), so compare inside the job:
+| Scene | fps | p95 ms | worst ms | frames > 20 ms | card pass GPU ms mean / p95 | stage GPU ms | live cards mean / max |
+|---|---|---|---|---|---|---|---|
+| ref | 160.3 | 13.4 | 68.6 | 51 | - | 2.23 | 0 |
+| heavy | 153.3 | 13.3 | 50.5 | 21 | 1.21 / 2.32 | 2.41 | 42 / 100 |
+| heavy_x4 | 149.6 | 14.1 | 50.8 | 34 | 1.50 / 1.91 | 2.31 | 116 / 129 |
+| heavy_x4 #2 | 123.9 | 19.1 | 64.9 | 116 | 2.04 / 4.84 | 2.66 | 116 / 130 |
+| heavy #2 | 126.9 | 19.5 | 76.0 | 113 | 1.22 / 2.12 | 2.50 | 42 / 92 |
+| ref #2 | 160.4 | 18.9 | 57.9 | 109 | - | 2.41 | 0 |
+- Card pass 1.21-1.22 ms at 42 live cards (the larger aura, heal and smoke of round 3; 0.99-1.08 ms before on a faster VM, about half the stage's GPU time in both runs). No frame over 100 ms in any scene. heavy #2 ran 21% under ref #2 while heavy ran 4% under ref; the second half of this job was noisy for every scene (ref #2 had 109 frames over 20 ms), so the rAF fps here does not separate the cards from the VM.
+
+Round 2 run (kept for comparison): run 45517911042 on ci-vfxp 2f37a6e. Stage = the game camera (FOV 50, pitch 40, 10.5 m), the 丹 floor, hemi + sun with a 2048 shadow map, fog 45-85 m, 10 suit boxes + 37 fodder boxes + the apex box. heavy = every suit attacking (slash + impact or a flying bolt + impact every 0.6 s, a ring / strip / mark tell held 0.6-0.8 s then its release every 3 s), 20 fodder units with strip tells and thrusts, the apex with its aura, claw rings and pounce strips, smoke: 42 live cards on average (peak 100). heavy_x4 = 4x the rate (114-117 live, peak 130), a stress case.
 | Scene | fps | p95 ms | worst ms | frames > 20 ms | card pass GPU ms mean / p95 | stage GPU ms | live cards mean / max | calls | tris | new programs | card textures MB |
 |---|---|---|---|---|---|---|---|---|---|---|---|
 | ref | 178.4 | 11.8 | 43.2 | 44 | - | 1.82 | 0 | 4 | 578 | 0 | - |
@@ -97,15 +113,15 @@ Run 45517911042 on ci-vfxp 2f37a6e (the final atlases). Stage = the game camera 
 - 19 of 19 gates PASS, 0 FAIL lines (warm-up: 0 new programs in every scene; budget: 7 calls, 898 tris; 0 page errors in 6 scenes and 81 shots).
 - Read: the heavy fight costs about 1.0-1.1 ms of GPU per frame for its cards (three draws). Its fps (183.7 / 151.1) sits around the reference's (178.4 / 175.0) inside this runner's spread (the reference alone read 149.7-200.7 fps in runs 45514584178 and 45516360904), so the rAF numbers show no cost beyond the noise; the card pass GPU time is the number to trust. No frame over 100 ms in heavy. The x4 stress had two frames of 111 and 118 ms (at 1.4 s and 6.5 s into timing) and none in its second pass; not traced (stress case, 2.7x the realistic card count).
 - For comparison (ci-vfx, run 45467292518): 40 approved B slashes alone cost 1.59 ms with a 4.48 MB RGBA atlas for one effect; the 13 cards here cost 0.99-1.08 ms at 42 mixed cards with 5.79 MB for all of them.
-- Runs on ci-vfxp: 45514584178 (first build: 31 live cards, small bolt / impact / aura / heal / smoke), 45516360904 (round 2: 42.6 live), 45517911042 (final, above).
+- Runs on ci-vfxp: 45514584178 (first build: 31 live cards, small bolt / impact / aura / heal / smoke), 45516360904 (round 2: 42.6 live), 45517911042 (round 2b), 45520502493 (round 3, final).
 
-## Look (honest, from the play-size shots of run 45517911042 and the contact sheets; not seen by the owner)
+## Look (honest, from the play-size shots of runs 45517911042 and 45520502493 and the contact sheets)
 - Slash: reads as the approved B. Side by side at play size (shots pairB_f00-f12) the new value-plus-ramp slash in the fa row matches B's shape, timing and tone; its sparks are fainter than B's.
 - Impact, thrust, burst, shield: read at play size in every row. The burst (a broken ring with radial strokes) is the weakest painted shape: it reads a little like a gear or a clock face, and in the heavy fight the overlapping bursts are the busiest thing on screen.
 - Bolt: small in round 1; round 2 (its last) made it readable as an orb with a trail.
-- Aura, heal, smoke: thin and small in round 1; round 2 (their last) made them larger and denser. They still read modestly at play size, mostly at the sides of a body. The smoke puffs in a school colour look like three coloured balls rather than smoke; smoke is meant for the ash row and dust, where it reads as a soft puff.
+- Owner 25 Nov approved burst and the rest as they are and asked for smoke, aura and heal again (round 3, one round): aura now has a soft glow up both sides, flame tongues with pale cores and a bright ring, and reads clearly at play size; heal has two ribbons spiralling up the body, larger motes and leaves and a bright ring, and reads, though less than the aura. Smoke is now soft curling wisps with a grey body (ash mixed 0.75 over the school row, a tint only, no balls); at play size it is still faint, a soft grey smudge at the feet: PARKED as still weak (the round is used).
 - Ground tells (ring, mark, strip): read strongly in all 18 rows, but they are the least "painted": the 3:1 floor rule makes them pale brush lines with a dark keyline, and the alpha test gives them hard edges, so they look graphic next to the soft upright cards. Their school colour shows only in the inner strokes.
-- Colours: every school is distinct except fa (lead white) vs za (silver), which are nearly the same on every card (the known dE 7 pair from the banners). Bone black (阴阳) reads as an ink-wash style, dark body with pale cores.
+- Colours (round 3): the three look-alike pairs are apart on the effects (za cool silver, ru browner ochre, apex bright sky-blue; gate school_pairs). Bone black (阴阳) reads as an ink-wash style, dark body with pale cores.
 - Not done: no in-game check (INT wires it in); no phone run; no animation viewed at play size other than single frozen frames on the runner (the local contact sheets show every frame).
 
 ## Effect map
@@ -224,6 +240,5 @@ Items: 86; tells (windup): 40; no card: 4
 - klad (klad.studio, klad-app/klad 0.4.0): all cards painted with its CLI; only the exported PNGs ship (klad itself is not distributed).
 
 ## Needs owner
-1. Look of the full set: the slash matches B; bursts read like a gear, smoke in school colours reads as coloured balls, aura / heal are modest; ground tells are graphic (pale lines, hard edges) because of the 3:1 floor rule. Approve, or name the cards to redo.
-2. fa (lead white) and za (silver) cards are nearly identical: keep the mapping, or use a cooler silver for za's effects (like the banner-only #b2bccb).
-3. Tells: keep the game's flat tell mesh under the painted tell card, or replace it (INT's integration choice).
+1. Smoke is still faint at play size after its round (soft grey wisps, no balls now): accept, or name what it should read as (a bigger dust cloud, a denser column).
+2. The effect colours for ru, za and apex now differ from the 鼎 / suit / banner mapping on purpose (owner 25 Nov): nothing else to decide unless the owner wants them carried over.

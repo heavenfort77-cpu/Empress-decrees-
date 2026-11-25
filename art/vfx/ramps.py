@@ -7,10 +7,12 @@ import numpy as np
 # ---- CONFIG ----
 # Row order of the ramp texture (the game passes the row index per card).
 ROWS = [
-    ('ru', '#b8862e'), ('dao', '#e2b84a'), ('fa', '#d9d2c3'), ('mo', '#a8321e'), ('yinyang', '#1a1614'), ('za', '#c8ccd0'),
+    # effects only (owner 25 Nov, the look-alike pairs): ru a browner ochre (#94622c, apart from dao gold), za the cooler banner silver
+    # #b2bccb with a cool white end (PALE_ROW), apex a brighter cyan-leaning water-blue (#2ea8e8, apart from nong azurite); the 鼎 and suits keep W1a's.
+    ('ru', '#94622c'), ('dao', '#e2b84a'), ('fa', '#d9d2c3'), ('mo', '#a8321e'), ('yinyang', '#1a1614'), ('za', '#b2bccb'),
     ('ming', '#5b3f8c'), ('zongheng', '#2f8a5c'), ('nong', '#2e5a9c'),
-    # apex Tiger Demon and its cubs/minions (owner 25 Nov 02:2x: apex glow water-blue)
-    ('apex', '#3a8fd0'),
+    # apex Tiger Demon and its cubs/minions (owner 25 Nov 02:2x: apex glow water-blue; brighter, cyan-leaning on the effects, owner 25 Nov)
+    ('apex', '#2ea8e8'),
     # 反贼 rebels: olive, umber, madder (non-school; variant i wears [i % 3])
     ('rebel_olive', '#6f6a34'), ('rebel_umber', '#6a4a32'), ('rebel_madder', '#8e5a52'),
     # 皇家 guard: iron (no school, no rebel colour; a cool dark grey that the pale stops keep readable)
@@ -27,6 +29,8 @@ ROWS = [
 # Endpoints the dark and light stops mix toward (OKLab), and how far.
 DEEP, PALE = '#0e0b0a', '#fffaf0'
 MIX = {'K': 0.85, 'D': 0.45, 'L': 0.5, 'P': 0.85}
+# Rows whose light and pale stops mix toward their own white (effects only; owner 25 Nov: separate the look-alike pairs).
+PALE_ROW = {'za': '#e6eefa'}
 # Width of the ramp texture (samples along v).
 WIDTH = 64
 
@@ -40,18 +44,18 @@ def oklab(rgb_s):
 def from_oklab(lab):
     l = np.asarray(lab) @ np.linalg.inv(M2).T; return l2s((l ** 3) @ np.linalg.inv(M1).T)
 
-def stops(hexc):
-    p = oklab(hex2rgb(hexc)); d = oklab(hex2rgb(DEEP)); w = oklab(hex2rgb(PALE))
+def stops(hexc, pale=None):
+    p = oklab(hex2rgb(hexc)); d = oklab(hex2rgb(DEEP)); w = oklab(hex2rgb(pale or PALE))
     return [p + (d - p) * MIX['K'], p + (d - p) * MIX['D'], p, p + (w - p) * MIX['L'], p + (w - p) * MIX['P']]
 
-def ramp_rgb(hexc, n=WIDTH):
-    S = stops(hexc); out = []
+def ramp_rgb(hexc, n=WIDTH, pale=None):
+    S = stops(hexc, pale); out = []
     for i in range(n):
         v = i / (n - 1) * 4; k = min(3, int(v)); u = v - k; out.append(from_oklab(S[k] + (S[k + 1] - S[k]) * u))
     return np.array(out)
 
 def ramp_table():
-    return np.stack([ramp_rgb(h) for _, h in ROWS])  # rows x WIDTH x 3, sRGB 0..1
+    return np.stack([ramp_rgb(r[1], pale=PALE_ROW.get(r[0])) for r in ROWS])  # rows x WIDTH x 3, sRGB 0..1
 
 def lut(row):
     """256-entry sRGB lookup for value bytes (for previews)."""

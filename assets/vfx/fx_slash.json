@@ -50,6 +50,7 @@
  ],
  "ref": "pixelfx melee/sword-slash (shape and timing only)",
  "anchorHeightM": 0.0,
+ "ashMix": 0.0,
  "atlasSize": [
   1024,
   956

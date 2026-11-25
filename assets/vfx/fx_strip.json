@@ -50,6 +50,7 @@
  ],
  "ref": "pixelfx melee/thrust (shape and timing only)",
  "anchorHeightM": 0.0,
+ "ashMix": 0.0,
  "unitLenM": 2.35,
  "unitWidthM": 0.6,
  "atlasSize": [
