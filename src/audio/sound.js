@@ -2,7 +2,7 @@
 // At the first tap every effect is rendered once with OfflineAudioContext into a buffer; music and ambience are
 // pre-rendered seamless loops. During play only one-shot buffer sources are started (no live synthesis).
 // API: init(opts), unlock(), play(name, x, z, rate), setListener(x, z), setIntensity(v), setAmb(fire, wind),
-// setMode(m), cycleMode(), setReduce(on), setVolume(bus, v), pause(), resume(), status().
+// setMode(m), cycleMode(), setReduce(on), setVolume(bus, v, noSave), getVolume(bus), setMute(on), pause(), resume(), status().
 
 export const CONFIG = {
   // Master gain after the limiter, 0-1 (13d: default reduced; the player raises it).
@@ -523,12 +523,12 @@ export async function renderRamp(sr, seconds, profile, loops) {
 // Empty catch blocks below are on purpose: audio must never stop the game; a failure leaves that sound silent.
 const S = { ctx: null, G: null, profile: 'desktop', sr: 0, buf: Object.create(null), rec: Object.create(null), loops: null, voices: [], vvoices: [],
   mode: 'on', reduce: false, vol: { sfx: 1, music: 1, amb: 1, voice: 1, master: 1 }, paused: false, hidden: false, intensity: 0, fire: 0, wind: 0.7,
-  lx: 0, lz: 0, t0: -1, rendering: false, ready: 0, total: 0, unlocked: false, silent: null, inited: false };
+  lx: 0, lz: 0, t0: -1, rendering: false, ready: 0, total: 0, unlocked: false, silent: null, inited: false, mute: false, played: 0 };
 
 function loadSettings() {
-  try { const j = JSON.parse(localStorage.getItem(CONFIG.saveKey) || 'null'); if (j) { if (CONFIG.modes.indexOf(j.mode) >= 0) S.mode = j.mode; S.reduce = !!j.reduce; if (j.vol) for (const k in S.vol) if (typeof j.vol[k] === 'number') S.vol[k] = j.vol[k]; } } catch (e) { }
+  try { const j = JSON.parse(localStorage.getItem(CONFIG.saveKey) || 'null'); if (j) { if (CONFIG.modes.indexOf(j.mode) >= 0) S.mode = j.mode; S.reduce = !!j.reduce; S.mute = !!j.mute; if (j.vol) for (const k in S.vol) if (typeof j.vol[k] === 'number') S.vol[k] = j.vol[k]; } } catch (e) { }
 }
-function saveSettings() { try { localStorage.setItem(CONFIG.saveKey, JSON.stringify({ mode: S.mode, reduce: S.reduce, vol: S.vol })); } catch (e) { } }
+function saveSettings() { try { localStorage.setItem(CONFIG.saveKey, JSON.stringify({ mode: S.mode, reduce: S.reduce, vol: S.vol, mute: S.mute })); } catch (e) { } }
 
 export function init(opts) {
   if (S.inited) return;
@@ -603,7 +603,7 @@ function applyBuses() {
   if (!S.G) return;
   const t = S.ctx.currentTime, tau = CONFIG.busTau;
   for (const k in S.G.bus) S.G.bus[k].gain.setTargetAtTime(busTarget(k), t, tau);
-  S.G.master.gain.setTargetAtTime(CONFIG.master * S.vol.master, t, tau);
+  S.G.master.gain.setTargetAtTime(S.mute ? 0 : CONFIG.master * S.vol.master, t, tau);
 }
 function runState() {
   if (!S.ctx) return;
@@ -615,7 +615,7 @@ function newSource() { return S.ctx.createBufferSource(); }
 export function setListener(x, z) { S.lx = x; S.lz = z; }
 // Plays a rendered sound. x, z = world position (omit for a sound at the listener); rate = playback rate (bootleg copies use 0.85).
 export function play(name, x, z, rate) {
-  if (!S.ctx || S.paused || S.hidden || S.mode === 'off') return false;
+  if (!S.ctx || S.paused || S.hidden || S.mute || S.mode === 'off') return false;
   const b = S.buf[name], rec = S.rec[name]; if (!b) return false;
   const now = S.ctx.currentTime, cat = rec.cat, isVoice = cat === 'voice';
   let gain = 1, pan = 0;
@@ -639,7 +639,7 @@ export function play(name, x, z, rate) {
   const src = newSource(), r = rate || 1;
   src.buffer = b; src.playbackRate.value = r; src.connect(v.g);
   v.g.gain.setValueAtTime(gain, when); if (v.p) v.p.pan.setValueAtTime(pan, when);
-  src.start(when); v.src = src; v.end = when + b.duration / r; v.tell = cat === 'tell' || isVoice;
+  src.start(when); S.played++; v.src = src; v.end = when + b.duration / r; v.tell = cat === 'tell' || isVoice;
   if (isVoice) { const D = CONFIG.music.duck; S.G.duck.gain.setTargetAtTime(db(S.reduce ? D.db / 2 : D.db), Math.max(now, when - 0.03), D.inTau); S.G.duck.gain.setTargetAtTime(1, when + b.duration * 0.8, D.outTau); }
   return true;
 }
@@ -661,10 +661,13 @@ export function setMode(m) { if (CONFIG.modes.indexOf(m) < 0) return; S.mode = m
 export function cycleMode() { const i = CONFIG.modes.indexOf(S.mode); setMode(CONFIG.modes[(i + 1) % CONFIG.modes.length]); return S.mode; }
 // Reduce intensity (13d): stingers and heavy hits quieter, music capped, no beat-wait before stingers. Saved.
 export function setReduce(on) { S.reduce = !!on; applyBuses(); const v = S.intensity; S.intensity = -1; setIntensity(v); saveSettings(); }
-// Volume 0-1 per bus: 'master', 'sfx', 'music', 'amb', 'voice'. Saved.
-export function setVolume(bus, v) { if (!(bus in S.vol)) return; S.vol[bus] = Math.max(0, Math.min(1, v)); applyBuses(); saveSettings(); }
+// Volume 0-1 per bus: 'master', 'sfx', 'music', 'amb', 'voice'. Saved unless noSave (a slider being dragged saves on release).
+export function setVolume(bus, v, noSave) { if (!(bus in S.vol)) return; S.vol[bus] = Math.max(0, Math.min(1, v)); applyBuses(); if (!noSave) saveSettings(); }
+export function getVolume(bus) { return bus in S.vol ? S.vol[bus] : 0; }
+// Mute all (options menu): the master goes to 0 and no sound starts; the volumes are kept. Saved.
+export function setMute(on) { S.mute = !!on; applyBuses(); saveSettings(); }
 // Game pause and menus: the audio clock stops, so loops, ramps and queued sounds all freeze.
 export function pause() { S.paused = true; runState(); }
 export function resume() { S.paused = false; runState(); }
 // Read-only state for tests and the settings menu.
-export function status() { return { ctx: S.ctx ? S.ctx.state : 'none', profile: S.profile, mode: S.mode, reduce: S.reduce, ready: S.ready, total: S.total, music: S.t0 >= 0, intensity: S.intensity }; }
+export function status() { return { ctx: S.ctx ? S.ctx.state : 'none', profile: S.profile, mode: S.mode, reduce: S.reduce, ready: S.ready, total: S.total, music: S.t0 >= 0, intensity: S.intensity, mute: S.mute, played: S.played, vol: { master: S.vol.master, sfx: S.vol.sfx, music: S.vol.music, amb: S.vol.amb, voice: S.vol.voice } }; }

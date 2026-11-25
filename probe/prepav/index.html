@@ -1,0 +1,220 @@
+<!doctype html>
+<!-- PREP-AV probe (not shipped, not the game; CI only, branch prep-av). The fxEvent dispatcher (src/fx/fxevent.js) with the painted cards and
+     sound.js on the game's stage (camera FOV 50, pitch 40, 10.5 m; the 丹 hall floor; hemi + sun with a 2048 shadow map; fog 45-85 m).
+     ?mode=ref           the stage with no cards and no sounds (reference)
+     ?mode=heavy[&k=1]   a scripted fight through fxEvent only: 9 suits (all schools), 20 guard and rebel units, the apex, a giant, the burn
+     ?mode=test[&tier=]  the stage plus the modules on window.__t for the runtime checks (tests_draft/fx-runtime.mjs) -->
+<html><head><meta charset="utf-8"><title>prepav probe</title>
+<style>html,body{margin:0;height:100%;overflow:hidden;background:#120d16;color:#f3e6c8}canvas{display:block}</style>
+<script type="importmap">{"imports":{"three":"../../lib/three.module.min.js"}}</script></head><body>
+<script type="module">
+import * as THREE from 'three';
+import * as SND from '../../src/audio/sound.js';
+import * as FX from '../../src/fx/fxevent.js';
+import { IN, stepIntensity, levelOf, resetIntensity, INT_CONFIG } from '../../src/fx/intensity.js';
+import { buildOptions, OPT_TEXT, OPT_CSS } from '../../src/audio/options.js';
+const CONFIG = {
+  // Camera: FOV deg, pitch deg, distance m, look-at height m (the game's play camera).
+  cam: { fov: 50, pitch: 40, dist: 10.5, lookY: 1.0 },
+  // Pixel ratio cap of the medium tier.
+  pixelRatio: 1.25,
+  // Suit, fodder and apex box sizes m.
+  suit: [0.9, 2.05, 0.9], fodder: [0.7, 1.6, 0.7], apex: [1.5, 1.6, 4.0],
+  // Fight script: s between a suit's attacks and its skills, a unit's moves, the apex's moves, the giant's slam, burn smoke.
+  atkS: 0.8, skillS: 3.2, unitS: 2.0, apexS: 1.7, giantS: 4.5, burnS: 0.6,
+  // Units fighting at once (of the 37 drawn), bolt flight s.
+  unitsActive: 20, boltS: 0.45,
+  // Frames longer than this (ms) are logged.
+  longMs: 100,
+};
+const Q = new URLSearchParams(location.search), MODE = Q.get('mode') || 'ref', K = Math.max(0.25, +(Q.get('k') || 1)), TIER = Q.get('tier') || 'medium';
+const W = innerWidth, H = innerHeight;
+const r = new THREE.WebGLRenderer({ antialias: true, powerPreference: 'high-performance' });
+r.setPixelRatio(Math.min(devicePixelRatio, CONFIG.pixelRatio)); r.setSize(W, H); r.shadowMap.enabled = true; document.body.appendChild(r.domElement);
+const scene = new THREE.Scene(); scene.background = new THREE.Color(0x2a2233); scene.fog = new THREE.Fog(0x2a2233, 45, 85); scene.matrixAutoUpdate = false;
+const cam = new THREE.PerspectiveCamera(CONFIG.cam.fov, W / H, 0.5, 90);
+const pitch = CONFIG.cam.pitch * Math.PI / 180;
+cam.position.set(0, CONFIG.cam.lookY + Math.sin(pitch) * CONFIG.cam.dist, Math.cos(pitch) * CONFIG.cam.dist); cam.lookAt(0, CONFIG.cam.lookY, 0); cam.updateMatrixWorld();
+scene.add(new THREE.HemisphereLight(0xd9c9ff, 0x3a2a22, 1.1));
+const sun = new THREE.DirectionalLight(0xffe2b8, 2.2); sun.position.set(-30, 60, 25); sun.target.position.set(0, 0, -12); sun.castShadow = true;
+Object.assign(sun.shadow.camera, { left: -12, right: 12, top: 12, bottom: -12, near: 10, far: 150 }); sun.shadow.mapSize.set(2048, 2048);
+scene.add(sun, sun.target);
+const bm = async (u, o) => createImageBitmap(await (await fetch(u)).blob(), o || {});
+const floorTex = new THREE.Texture(await bm('../../assets/tex/hall_floor.png', { imageOrientation: 'flipY' })); floorTex.flipY = false; floorTex.needsUpdate = true;
+floorTex.colorSpace = THREE.SRGBColorSpace; floorTex.wrapS = floorTex.wrapT = THREE.RepeatWrapping; floorTex.anisotropy = 4; floorTex.repeat.set(10, 10);
+const floor = new THREE.Mesh(new THREE.PlaneGeometry(40, 40), new THREE.MeshStandardMaterial({ map: floorTex, roughness: 0.9 }));
+floor.rotation.x = -Math.PI / 2; floor.receiveShadow = true; scene.add(floor);
+function boxes(size, color, pts) {
+  const m = new THREE.InstancedMesh(new THREE.BoxGeometry(...size), new THREE.MeshStandardMaterial({ color, roughness: 0.6 }), pts.length), o = new THREE.Object3D();
+  pts.forEach((p, i) => { o.position.set(p[0], size[1] / 2, p[1]); o.updateMatrix(); m.setMatrixAt(i, o.matrix); });
+  m.castShadow = m.receiveShadow = true; m.computeBoundingSphere(); scene.add(m); return m;
+}
+let rnd = 12345; const rand = () => ((rnd = (rnd * 1103515245 + 12345) & 0x7fffffff) / 0x7fffffff);
+const SP = [], FP = [], APEX = [0, -3.2], GIANT = [6.5, -5];
+for (let i = 0; i < 9; i++) SP.push([(i % 5) * 2.6 - 5.2, Math.floor(i / 5) * 2.4 - 1.2]);
+for (let i = 0; i < 37; i++) FP.push([rand() * 15 - 7.5, rand() * 8 - 4.5]);
+boxes(CONFIG.suit, 0x3a7bd5, SP); boxes(CONFIG.fodder, 0x8a6a4a, FP); boxes(CONFIG.apex, 0x9a5a22, [APEX]); boxes([1.6, 5, 1.6], 0xb08a3a, [GIANT]);
+// Card pass in its own scene (timed by its own GPU query; the reference draws the same empty pass).
+const fxScene = new THREE.Scene(); fxScene.matrixAutoUpdate = false; fxScene.fog = scene.fog;
+const T = (k) => { if (!(k in OPT_TEXT)) throw new Error('missing TEXT key ' + k); return OPT_TEXT[k]; };
+if (MODE !== 'ref') {
+  SND.init({ unlockEl: window, profile: Q.get('profile') || 'desktop' });
+  FX.initFx({ THREE, scene: fxScene, snd: SND, tier: TIER, base: '../../assets/vfx/' });
+  const errs = await FX.loadFx(); if (errs.length) throw new Error('fx table: ' + errs.join('; '));
+  FX.fxSetRoom(0, 0, 40); FX.fxSetCamera(0, 1);
+}
+// ---- options menu (test mode): the game wiring in miniature: Esc toggles it, open pauses (cards and sound), close resumes ----
+const G = { paused: false, menu: null };
+function setPaused(on) { G.paused = on || document.hidden; FX.fxPause(G.paused); }
+if (MODE === 'test') {
+  const st = document.createElement('style'); st.textContent = OPT_CSS; document.head.appendChild(st);
+  if (Q.get('touch')) document.body.classList.add('touch');
+  G.menu = buildOptions(document.body, T, SND, () => { G.menu.close(); setPaused(false); });
+  G.menu.openBtn.addEventListener('click', () => { G.menu.open(); setPaused(true); });
+  addEventListener('keydown', (e) => { if (e.code !== 'Escape' || e.repeat) return; if (G.menu.isOpen()) { G.menu.close(); setPaused(false); } else { G.menu.open(); setPaused(true); } });
+}
+// ---- the fight (heavy): every call goes through fxEvent; delayed phases sit in fixed typed rings (no allocation per frame) ----
+const SCH = ['ru', 'dao', 'fa', 'mo', 'yinyang', 'za', 'ming', 'zongheng', 'nong'], PRE = ['ru', 'dao', 'fa', 'mo', 'yy', 'za', 'ming', 'zh', 'nong'];
+const MELEE = [1, 1, 1, 0, 0, 0, 0, 0, 1];
+// Skill plan per school: [item, has a tell, tell hold s, then a ground target 'self' or 'aim'].
+const SKILL = [['ru_r', 0.6], ['dao_q', 0], ['fa_q', 0], ['mo_w', 0.6], ['yy_w', 0.8], ['za_q', 0], ['ming_w', 1.0], ['zh_r', 0], ['nong_w', 0]];
+const UNITS = ['g_thrust', 'g_cut', 'g_shove', 'g_volley', 'g_charge', 'r_lunge', 'r_cleave', 'bl_ru', 'bl_mo', 'bl_dao'];
+const UHOLD = [0.5, 0.5, 0.5, 0.8, 0.9, 0.6, 0.6, 0.8, 1.0, 0.8];
+const UROW = ['guard', 'guard', 'guard', 'guard', 'guard', 'rebel_umber', 'rebel_madder', 'rebel_olive', 'rebel_olive', 'rebel_olive'];
+const APEXM = ['claw', 'pounce', 'roar', 'claw'], APEXH = [0.45, 0.5, 0.7, 0.45];
+// All event names used, built once (a name index goes into the rings).
+const NAMES = [], NI = {};
+function nm(s) { if (!(s in NI)) { NI[s] = NAMES.length; NAMES.push(s); } return NI[s]; }
+const ATK_REL = PRE.map((p) => nm(p + '_atk:rel')), ATK_TRAIL = PRE.map((p) => nm(p + '_atk:trail')), ATK_HIT = PRE.map((p) => nm(p + '_atk:hit'));
+const SK_TELL = SKILL.map((s) => nm(s[0] + ':tell')), SK_REL = SKILL.map((s) => nm(s[0] + ':rel')), SK_HIT = SKILL.map((s) => nm(s[0] + ':hit')), SK_STATE = SKILL.map((s) => nm(s[0] + ':state'));
+const U_TELL = UNITS.map((u) => nm(u + ':tell')), U_REL = UNITS.map((u) => nm(u + ':rel')), U_HIT = UNITS.map((u) => nm(u + ':hit'));
+const A_TELL = APEXM.map((u) => nm(u + ':tell')), A_REL = APEXM.map((u) => nm(u + ':rel')), A_HIT = APEXM.map((u) => nm(u + ':hit'));
+const N_ULT = nm('demon_ult:state'), N_GT = nm('giant_slam:tell'), N_GR = nm('giant_slam:rel'), N_GS = nm('giant_slam:state'), N_BURN = nm('burn_warn:state'), N_BURN0 = nm('burn_warn:tell');
+const NEV = 1024, eT = new Float64Array(NEV), eN = new Int32Array(NEV), eX = new Float32Array(NEV), eZ = new Float32Array(NEV), eDX = new Float32Array(NEV), eDZ = new Float32Array(NEV), eS = new Int8Array(NEV); let evN = 0;
+const NB = 64, bH = new Int32Array(NB), bT = new Float64Array(NB), bP = new Float32Array(NB * 4), bS = new Int8Array(NB); let bN = 0;
+const nextAtk = new Float64Array(64), nextSk = new Float64Array(64), aN = new Int32Array(1);
+let nextApex = 0, nextGiant = 1, nextBurn = 0, burnLeft = 0, ultH = -1;
+const ROWOF = (i) => i < 0 ? '' : SCH[i];
+function later(t, n, x, z, dx, dz, s) { if (evN >= NEV) return; eT[evN] = t; eN[evN] = n; eX[evN] = x; eZ[evN] = z; eDX[evN] = dx; eDZ[evN] = dz; eS[evN] = s; evN++; }
+function rowName(s) { return s >= 0 ? SCH[s] : s === -2 ? 'apex' : s <= -10 ? UROW[-s - 10] : ''; }
+function fight(t) {
+  for (let i = 0; i < 9; i++) {
+    const x = SP[i][0], z = SP[i][1], sc = SCH[i];
+    if (t >= nextAtk[i]) {
+      nextAtk[i] = t + CONFIG.atkS / K;
+      if (MELEE[i]) { FX.fxEvent(NAMES[ATK_REL[i]], x, z, sc, FX.fxO(1, 0)); later(t + 0.12, ATK_HIT[i], x + 1.2, z + 0.2, 1, 0, i); }
+      else if (bN < NB) {
+        const dx = i % 2 ? 0.8 : -0.8, dz = -0.6;
+        bH[bN] = FX.fxEvent(NAMES[ATK_TRAIL[i]], x, z, sc, FX.fxO(dx, dz)); bT[bN] = t; bP[bN * 4] = x; bP[bN * 4 + 1] = z; bP[bN * 4 + 2] = dx * 6; bP[bN * 4 + 3] = dz * 6; bS[bN] = i; bN++;
+      }
+    }
+    if (t >= nextSk[i]) {
+      nextSk[i] = t + (CONFIG.skillS + i * 0.13) / K;
+      const h = SKILL[i][1];
+      if (h > 0) { FX.fxEvent(NAMES[SK_TELL[i]], x + 1.5, z - 1, sc, FX.fxO(1, 0, 0, 0, h)); later(t + h, SK_REL[i], x + 1.5, z - 1, 1, 0, i); later(t + h + 0.05, SK_HIT[i], x + 1.8, z - 1, 1, 0, i); }
+      else { FX.fxEvent(NAMES[SK_REL[i]], x, z, sc, FX.fxO(0.7, -0.7)); FX.fxEvent(NAMES[SK_STATE[i]], x, z, sc, FX.fxO(0.7, -0.7)); later(t + 0.2, SK_HIT[i], x + 2, z - 2, 1, 0, i); }
+    }
+  }
+  for (let j = 0; j < CONFIG.unitsActive; j++) {
+    const i = 16 + j, x = FP[j][0], z = FP[j][1], u = j % UNITS.length;
+    if (t < nextAtk[i]) continue;
+    nextAtk[i] = t + (CONFIG.unitS + (j % 5) * 0.21) / K;
+    const dx = (j % 4) < 2 ? 1 : -1, dz = (j % 3) - 1;
+    const l = Math.hypot(dx, dz);
+    FX.fxEvent(NAMES[U_TELL[u]], x, z, UROW[u], FX.fxO(dx / l, dz / l, 0, 0, UHOLD[u]));
+    later(t + UHOLD[u], U_REL[u], x, z, dx / l, dz / l, -10 - u); later(t + UHOLD[u] + 0.08, U_HIT[u], x + dx * 1.5, z + dz * 1.5, dx, dz, -10 - u);
+  }
+  if (ultH < 0) ultH = FX.fxEvent(NAMES[N_ULT], APEX[0], APEX[1], 'apex', FX.fxO(0, 1, 0, 0, 1e6));
+  if (t >= nextApex) {
+    nextApex = t + CONFIG.apexS / K; const m = aN[0]++ % APEXM.length;
+    FX.fxEvent(NAMES[A_TELL[m]], APEX[0], APEX[1], 'apex', FX.fxO(0, 1, 0, 0, APEXH[m]));
+    later(t + APEXH[m], A_REL[m], APEX[0], APEX[1], 0, 1, -2); later(t + APEXH[m] + 0.1, A_HIT[m], APEX[0], APEX[1] + 2, 0, 1, -2);
+  }
+  if (t >= nextGiant) { nextGiant = t + CONFIG.giantS / K; FX.fxEvent(NAMES[N_GT], GIANT[0], GIANT[1], '', FX.fxO(0, 1, 0, 0, 1)); later(t + 1, N_GR, GIANT[0], GIANT[1], 0, 1, -1); later(t + 1, N_GS, GIANT[0], GIANT[1], 0, 1, -1); }
+  if (t >= nextBurn) {
+    nextBurn = t + CONFIG.burnS / K;
+    if (burnLeft <= 0) { burnLeft = 8; FX.fxEvent(NAMES[N_BURN0], -7, -5, '', FX.fxO()); } else { burnLeft--; FX.fxEvent(NAMES[N_BURN], -7 + (burnLeft % 3) * 1.5, -5, '', FX.fxO()); }
+  }
+}
+function runEvents(t) {
+  let w = 0;
+  for (let i = 0; i < evN; i++) {
+    if (eT[i] > t) { if (w !== i) { eT[w] = eT[i]; eN[w] = eN[i]; eX[w] = eX[i]; eZ[w] = eZ[i]; eDX[w] = eDX[i]; eDZ[w] = eDZ[i]; eS[w] = eS[i]; } w++; continue; }
+    FX.fxEvent(NAMES[eN[i]], eX[i], eZ[i], rowName(eS[i]), FX.fxO(eDX[i], eDZ[i]));
+  }
+  evN = w;
+}
+function flyBolts(t) {
+  let w = 0;
+  for (let i = 0; i < bN; i++) {
+    const u = (t - bT[i]) / CONFIG.boltS, x = bP[i * 4] + bP[i * 4 + 2] * u, z = bP[i * 4 + 1] + bP[i * 4 + 3] * u;
+    if (u >= 1) { FX.fxKill(bH[i]); FX.fxEvent(NAMES[ATK_HIT[bS[i]]], x, z, SCH[bS[i]], FX.fxO()); continue; }
+    FX.fxMove(bH[i], x, z, 0);
+    if (w !== i) { bH[w] = bH[i]; bT[w] = bT[i]; bS[w] = bS[i]; bP[w * 4] = bP[i * 4]; bP[w * 4 + 1] = bP[i * 4 + 1]; bP[w * 4 + 2] = bP[i * 4 + 2]; bP[w * 4 + 3] = bP[i * 4 + 3]; }
+    w++;
+  }
+  bN = w;
+}
+// ---- loading: textures, programs and one warm draw of both passes before ready ----
+r.initTexture(floorTex);
+r.autoClear = false;
+r.compile(scene, cam); r.clear(); r.render(scene, cam);
+const warmed = MODE === 'ref' ? 0 : FX.fxWarm(r, cam);
+r.clear(); r.render(scene, cam); r.render(fxScene, cam);
+const gl = r.getContext(), ext = gl.getExtension('EXT_disjoint_timer_query_webgl2');
+const progs0 = r.info.programs.length;
+const FT = new Float32Array(1 << 15), GT = new Float32Array(1 << 15), GC = new Float32Array(1 << 15), LONG = new Float32Array(256), LIVE = new Float32Array(1024), PQ = [], PK = [];
+let nC = 0, nL = 0, nLive = 0, t0 = 0, calls = 0, tris = 0, arm = false, allF = 0, nF = 0, nG = 0, timing = false, last = performance.now(), simT = 0, q = null, liveAcc = 0;
+let snd0 = 0, ev0 = 0, heap0 = 0, simStart = 0;
+const heap = () => (performance.memory ? performance.memory.usedJSHeapSize : 0);
+window.__probe = {
+  start() { nF = 0; nG = 0; nC = 0; nL = 0; nLive = 0; t0 = performance.now(); arm = true; window.__progsAtStart = r.info.programs.length; snd0 = MODE === 'ref' ? 0 : SND.status().played; ev0 = MODE === 'ref' ? 0 : FX.fxStatus().events; heap0 = heap(); simStart = simT; },
+  stop() {
+    timing = false; const fs = MODE === 'ref' ? null : FX.fxStatus(), ss = MODE === 'ref' ? null : SND.status();
+    return { ft: Array.from(FT.subarray(0, nF)), gt: Array.from(GT.subarray(0, nG)), gc: Array.from(GC.subarray(0, nC)), long: Array.from(LONG.subarray(0, nL)), live: Array.from(LIVE.subarray(0, nLive)),
+      calls, tris, programs: r.info.programs.length, progsAtLoad: progs0, progsAtStart: window.__progsAtStart, textures: r.info.memory.textures, geometries: r.info.memory.geometries,
+      sounds: ss ? ss.played - snd0 : 0, events: fs ? fs.events - ev0 : 0, unknown: fs ? fs.unknown : 0, simS: simT - simStart, heapMB: (heap() - heap0) / 1048576, warmed, sndReady: ss ? ss.ready : 0, sndTotal: ss ? ss.total : 0, ctx: ss ? ss.ctx : 'none', timer: !!ext, mode: MODE, k: K };
+  },
+};
+// ---- runtime checks hook (test mode only): small, read-only where possible ----
+if (MODE === 'test') window.__t = { FX, SND, G, IN, levelOf, stepIntensity, resetIntensity, INT_CONFIG, setPaused, progs: () => r.info.programs.length, progs0, warmed,
+  renderOnce() { r.clear(); r.render(scene, cam); r.render(fxScene, cam); }, simT: () => simT };
+// PERFRAME-BEGIN
+function query(kind) { if (ext && PQ.length < 32) { q = gl.createQuery(); gl.beginQuery(ext.TIME_ELAPSED_EXT, q); PK.push(kind); } }
+function endQuery() { if (q) { gl.endQuery(ext.TIME_ELAPSED_EXT); PQ.push(q); q = null; } }
+function frame(now) {
+  requestAnimationFrame(frame);
+  try {
+    const ms = now - last, dt = Math.min(0.05, ms / 1000);
+    allF++;
+    const skip = arm;
+    if (arm) { arm = false; timing = true; }
+    if (timing && !skip && nF < FT.length) FT[nF++] = ms;
+    if (timing && !skip && ms > CONFIG.longMs && nL < LONG.length - 1) { LONG[nL++] = now - t0; LONG[nL++] = ms; }
+    last = now;
+    if (MODE !== 'ref') {
+      FX.fxStep(dt, G.paused);
+      if (!G.paused) simT += dt;
+      if (MODE === 'heavy') {
+        fight(simT); runEvents(simT); flyBolts(simT);
+        liveAcc += dt; if (liveAcc >= 0.5) { liveAcc = 0; if (timing && nLive < LIVE.length) LIVE[nLive++] = FX.fxStatus().live; }
+      }
+    }
+    if (ext) {
+      while (PQ.length && gl.getQueryParameter(PQ[0], gl.QUERY_RESULT_AVAILABLE)) {
+        const pq = PQ.shift(), k = PK.shift(), ns = gl.getQueryParameter(pq, gl.QUERY_RESULT), dis = gl.getParameter(ext.GPU_DISJOINT_EXT);
+        if (timing && !dis) { if (k === 0 && nG < GT.length) GT[nG++] = ns / 1e6; else if (k === 1 && nC < GC.length) GC[nC++] = ns / 1e6; }
+        gl.deleteQuery(pq);
+      }
+    }
+    r.clear();
+    query(0); r.render(scene, cam); endQuery();
+    calls = r.info.render.calls; tris = r.info.render.triangles;
+    query(1); r.render(fxScene, cam); endQuery();
+    calls += r.info.render.calls; tris += r.info.render.triangles;
+  } catch (e) { document.title = 'ERR ' + e.message; console.error(e); }
+}
+// PERFRAME-END
+requestAnimationFrame(frame);
+window.__ready = true;
+</script></body></html>
