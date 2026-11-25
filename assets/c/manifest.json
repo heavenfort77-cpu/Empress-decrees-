@@ -288,10 +288,10 @@
    }
   },
   "assets/c/desk/hall_floor.ktx2": {
-   "bytes": 175538,
-   "sha256": "9512962ff735122a23cf6d33acec27e42b7292931eb57b011a8d5e6278c27b62",
+   "bytes": 143367,
+   "sha256": "140667737b3a28d594c954432d7f8663b27aac09d79a817a9f50c52adbde6c8a",
    "source": "assets/tex/hall_floor.png",
-   "source_sha256": "118c4a2aa785809e83478f5c5e778b389a22300db56d7147dcb811c2d6eec497",
+   "source_sha256": "7431f57aa101098e25d7682d7b9b433c9f0da4a20f193160b2647221ec4cbdbb",
    "mode": "etc1s",
    "psnr": 40.34,
    "de": 1.732,
@@ -311,7 +311,8 @@
      0.24,
      0
     ]
-   }
+   },
+   "stale_metrics": true
   },
   "assets/c/desk/hall_wall.ktx2": {
    "bytes": 832499,
@@ -1277,10 +1278,10 @@
    }
   },
   "assets/c/phone/hall_floor.ktx2": {
-   "bytes": 61921,
-   "sha256": "018df38b0838c8ece4e1a723cc6e923fac0d5e52eecec346adec5899e52f92a5",
+   "bytes": 47443,
+   "sha256": "2e1611d6709b8024261ae8f5edbc7ff19554b92cdc12d8a2a5c91e40dbab1654",
    "source": "assets/tex/hall_floor.png",
-   "source_sha256": "118c4a2aa785809e83478f5c5e778b389a22300db56d7147dcb811c2d6eec497",
+   "source_sha256": "7431f57aa101098e25d7682d7b9b433c9f0da4a20f193160b2647221ec4cbdbb",
    "mode": "etc1s",
    "psnr": 39.96,
    "de": 1.802,
@@ -1300,7 +1301,8 @@
      0.3,
      0
     ]
-   }
+   },
+   "stale_metrics": true
   },
   "assets/c/phone/hall_wall.ktx2": {
    "bytes": 248699,
@@ -2400,10 +2402,10 @@
    "mode": "meshopt"
   },
   "assets/c/desk/suit_lamellar_qin.ktx2": {
-   "bytes": 719667,
-   "sha256": "c38b4d38e1ab8b023011c6d1255800379ee5392b8e6cab5caf49b05a952cd0ce",
+   "bytes": 709107,
+   "sha256": "4fd5f7e24dc87fa9de02d6cc4512e98442375ed7295c93879ac312056f537061",
    "source": "assets/tex/suit_lamellar_qin.png",
-   "source_sha256": "1eba06bd129417ec9fa242da7232384e15295ed1498c5d8db1474190552346e8",
+   "source_sha256": "cb505842162b158bd79ef998f8ee755dc7fd06688e205f981a7c298b4d13e583",
    "mode": "uastc",
    "psnr": 50.21,
    "de": 0.419,
@@ -2427,10 +2429,10 @@
    "stale_metrics": true
   },
   "assets/c/phone/suit_lamellar_qin.ktx2": {
-   "bytes": 222145,
-   "sha256": "86e3fe4d2b2e444659c89948ea6f31d81c6267c4c59fd287cf91a7f99bc85842",
+   "bytes": 220084,
+   "sha256": "8fa6213116472c88c04ebfe1f0a1968a58a9ee0d3ab7dbac3b5457624c200b09",
    "source": "assets/tex/suit_lamellar_qin.png",
-   "source_sha256": "1eba06bd129417ec9fa242da7232384e15295ed1498c5d8db1474190552346e8",
+   "source_sha256": "cb505842162b158bd79ef998f8ee755dc7fd06688e205f981a7c298b4d13e583",
    "mode": "uastc",
    "psnr": 47.22,
    "de": 0.583,
