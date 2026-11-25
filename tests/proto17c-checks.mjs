@@ -134,7 +134,7 @@ export async function proto17cChecks(g, check, page, browser, URL0) {
   await idle(page);
   const q4 = await g(() => { const a = __game.art(), ap = __game.palPlan().rooms.find((r) => r.id === 'approach'); return { que: a.que, on: a.on, dropped: a.lodDropped, half: ap ? (ap.x1 - ap.x0) / 2 : -1 }; });
   check('1734 阙 pair north of the forecourt, centred on the north gate, passage clear of the bridge (inner face >= bridge half + 0.6 m), LOD2 left out',
-    q4.on && q4.half > 0 && q4.que.length === 1 && q4.que.every((q) => q.room === 'fore' && q.z < q.z0 && Math.abs(q.x - q.cx) < 1e-6 && q.inner >= q.half + 0.6 - 1e-4 && q.inner < q.half + 0.6 + 0.05 && q.shift > 0 && q.levels === 2)
+    q4.on && q4.half > 0 && q4.que.length === 1 && q4.que.every((q) => q.room === 'fore' && q.z < q.z0 && Math.abs(q.x - q.cx) < 1e-6 && q.inner >= q4.half + 0.6 - 1e-4 && q.inner < q4.half + 0.6 + 0.05 && q.shift > 0 && q.levels === 2)
     && q4.dropped.some((d) => d.startsWith('que_pair:2')), JSON.stringify(q4));
   await g(() => { const G = __game; G.setLayout('proto'); G.pickMode('rumble'); G.pickSchool(0); });
   await idle(page);

@@ -7867,7 +7867,7 @@ function artRevert() {
 // Cards 'restore' (graphics context back) and 'adjust' (tier changed in play) re-upload, compile and draw once under the card.
 const ktx2 = new KTX2Loader().setTranscoderPath(CONFIG.LOAD.transcoder).detectSupport(renderer);
 const LD = { kind: '', titleKey: '', jobs: null, ji: 0, gen: 0, visS: 0, card: false, step: '', started: false, man: null, files: null, waitDone: false, warm: false,
-  palace: 'none', fx: false, fxDrawn: 0, art: null, led: { kind: '', draws: 0, prog0: 0, prog1: 0, tex0: 0, tex1: 0, fmt: [], failed: [], capped: false, ms: 0, t0: 0, n: 0 } };
+  palace: 'none', fx: false, fxDrawn: 0, art: null, progAt: [], led: { kind: '', draws: 0, prog0: 0, prog1: 0, tex0: 0, tex1: 0, fmt: [], failed: [], capped: false, ms: 0, t0: 0, n: 0 } };
 const LD_CAM = { p: new THREE.Vector3(), q: new THREE.Quaternion(), far: 0 };
 // A promise the current job waits on; a promise from an older card (LD.gen moved on) is ignored.
 function ldWait(p) {
@@ -8041,6 +8041,8 @@ const LD_JOBS = {
   restore: [{ key: 'chr_warm', run: ldChrRewarm }, { key: 'art_rooms', run: ldPalRewarm }, { key: 'upload', run: ldUpload }, { key: 'compile', run: ldCompile }, { key: 'draw', run: ldDraw }, { key: 'fx', run: ldFx }],
   adjust: [{ key: 'compile', run: ldCompile }, { key: 'draw', run: ldDraw }],
 };
+// Checks only: the shader programs in use by name and the start of their key (kept at each card's end; load().progNew lists the ones built since).
+function progNames() { return renderer.info.programs.map((q) => q.name + '|' + String(q.cacheKey).slice(0, 90)); }
 function ldStart(kind) {
   LD.gen++; LD.kind = kind; LD.jobs = LD_JOBS[kind]; LD.ji = 0; LD.started = false; LD.visS = 0; LD.step = ''; LD.titleKey = 'load_' + kind;
   const L = LD.led; L.kind = kind; L.draws = 0; L.n = 0; L.prog0 = renderer.info.programs.length; L.tex0 = renderer.info.memory.textures;
@@ -8050,6 +8052,7 @@ function ldStart(kind) {
 }
 function ldEnd(ok) {
   const L = LD.led; L.ms = Math.round(performance.now() - L.t0); L.prog1 = renderer.info.programs.length; L.tex1 = renderer.info.memory.textures;
+  LD.progAt = progNames();
   if (LD.kind === 'palace') LD.palace = ok ? 'ready' : 'failed';
   LD.jobs = null; LD.kind = ''; LD.card = false; setShow(el.load, false); renderer.shadowMap.needsUpdate = true;
   // Prototype: a set asked for while another card ran (the palace picked during the shared card) starts its card now.
@@ -8590,7 +8593,9 @@ window.__game = {
   canStand, walkable: (x, z, y) => !!floorAt(x, z, y === undefined ? 99 : y),
   render(forceShadow) {
     if (forceShadow) renderer.shadowMap.needsUpdate = true;
-    CHRS.drawN = 0; placeView(1); renderer.render(scene, camera); renderer.shadowMap.needsUpdate = false;
+    // The draw the frame makes: placeView, then the character rigs shown, hidden and placed (chrFrame; dt 0 = no animation step), then the render.
+    // Without chrFrame a rig left by the run before stayed in this draw until the next real frame (check 907 counted it).
+    CHRS.drawN = 0; placeView(1); chrFrame(0); renderer.render(scene, camera); renderer.shadowMap.needsUpdate = false;
     return { calls: renderer.info.render.calls, tris: renderer.info.render.triangles, programs: renderer.info.programs.length,
       geoms: renderer.info.memory.geometries, texs: renderer.info.memory.textures };
   },
@@ -8635,7 +8640,7 @@ window.__game = {
   zaWorthOf(school, slot, d) { const b = { storeSk: CONFIG.KITS[school].skills[slot] }; return zaWorth(b, { r: 0 }, d); },
   // Batch 17b: loader state (read only), the player's mode pick (the real path: Royal Rumble disposes the palace set), a tier change in play.
   load: () => ({ phase: LD.jobs ? 'busy' : 'idle', kind: LD.kind, step: LD.step, palace: LD.palace, card: LD.card, visS: LD.visS, led: JSON.parse(JSON.stringify(LD.led)),
-    ptex: PTEX.list.length, pset: palSetTexN(), maps: Object.keys(CONFIG.TEX.files).map((k) => ({ k, map: !!M[k].map, flipV: M[k].map ? M[k].map.repeat.y : 0, compressed: !!(M[k].map && M[k].map.isCompressedTexture), w: M[k].map ? M[k].map.image.width : 0 })),
+    ptex: PTEX.list.length, pset: palSetTexN(), progNew: progNames().filter((n) => LD.progAt.indexOf(n) < 0), maps: Object.keys(CONFIG.TEX.files).map((k) => ({ k, map: !!M[k].map, flipV: M[k].map ? M[k].map.repeat.y : 0, compressed: !!(M[k].map && M[k].map.isCompressedTexture), w: M[k].map ? M[k].map.image.width : 0 })),
     mem: Object.assign({}, renderer.info.memory), programs: renderer.info.programs.length, shown: el.load.style.display !== 'none' && el.load.style.display !== '' }),
   loadBusy: () => !!LD.jobs,
   pickMode(m) { pickMode(m); },

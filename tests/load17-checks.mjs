@@ -81,7 +81,7 @@ export async function load17Checks(g, check, page, browser, URL0) {
     f1.palace === 'ready' && f1.led.fmt.includes('door:png') && f1.led.fmt.filter((x) => x.endsWith(':ktx2')).length === 4
     && f2.palace === 'failed' && f2.led.failed.join() === 'door' && f2.maps.every((m) => !m.map) && f2.ptex === 0
     && f3.palace === 'ready' && f3.maps.every((m) => m.map) && f4.errs.length === 0 && f4.blocked > 0,
-    JSON.stringify({ f1: [f1.palace, f1.led.fmt], f2: [f2.palace, f2.led.failed, f2.maps.map((m) => m.map)], f3: f3.palace, errs: f4.errs, blocked: f4.blocked }));
+    JSON.stringify({ f1: [f1.palace, f1.led.fmt, f1.led.capped, f1.led.ms, f1.led.kind, f1.visS], f2: [f2.palace, f2.led.failed, f2.maps.map((m) => m.map)], f3: f3.palace, errs: f4.errs, blocked: f4.blocked }));
 
   // 1711 The page's load event fires before the boot's warm-up (a top-level yield): load event start < the boot's end mark, in a fresh page.
   {
@@ -138,7 +138,7 @@ export async function load17Checks(g, check, page, browser, URL0) {
     await pg.addInitScript((sv) => { for (const k in sv) localStorage.setItem(k, sv[k]); }, sv);
     await pg.goto(URL0, { timeout: 120000 }); await pg.waitForFunction(() => window.__ready === true, null, { timeout: 120000 });
     await pg.evaluate(toPalace); await idle(pg);
-    s8.push({ errs: e, palace: await pg.evaluate(() => __game.load().palace) }); await ctx.close();
+    s8.push({ errs: e, palace: await pg.evaluate(() => __game.load().palace), led: await pg.evaluate(() => { const l = __game.load(); return [l.led.kind, l.led.capped, l.led.ms, l.led.failed.join(), l.led.fmt.length]; }) }); await ctx.close();
   }
   check('1708 old saves and garbage saves: page loads with no error, the palace set loads', s8.every((x) => x.errs.length === 0 && x.palace === 'ready'), JSON.stringify(s8));
 

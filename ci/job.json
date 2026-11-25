@@ -1,1 +1,1 @@
-{"mode": "cmd", "label": "int17c-diag11", "cmd": "node tests/diag17g.mjs"}
+{"mode": "cmd", "label": "int17c-part1", "cmd": "for i in 6 9 10 11; do node ci/shard.mjs $i 12 -v 2>&1 | grep -E \"^(FAIL|RUNTIME|ok   (507|907|306|1704|1708|1734|1701|1703|1705) )\" | cut -c1-2500; done"}

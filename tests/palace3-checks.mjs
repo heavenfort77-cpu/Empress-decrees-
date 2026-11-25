@@ -148,7 +148,7 @@ export async function palace3Checks(g, check, base) {
     const G = __game, o = {}; const { R } = __p3(8);
     G.setHp(1e9); G.teleport(R.court.cx, R.court.cz); G.step(1);
     for (let i = 0; i < G.palSim().recs.length; i++) G.palSimSet(i, 'court', 100, 0);
-    o.pre = G.render(true).programs; o.card = G.load().led.prog1; o.cardKind = G.load().led.kind; G.step(120); const a = G.render(true); G.step(180); const b = G.render(true);
+    o.pre = G.render(true).programs; o.card = G.load().led.prog1; o.cardKind = G.load().led.kind; o.progNew = G.load().progNew; G.step(120); const a = G.render(true); G.step(180); const b = G.render(true);
     o.live = G.palSim().recs.filter((r) => r.st === 'live').length; o.locked = G.palSim().locked.join();
     o.calls = Math.max(a.calls, b.calls); o.tris = Math.max(a.tris, b.tris); o.programs = [a.programs, b.programs]; o.geoms = [a.geoms, b.geoms];
     __p3end(); return o;
