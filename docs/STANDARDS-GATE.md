@@ -16,6 +16,7 @@ Every deliverable (build, art sample, report) is checked line by line against th
 - [ ] The job targets the real problem (premortem: "can this change fix what the owner hates?").
 - [ ] Side-by-side with the reference at the same scale, by measurement, close-up AND play size.
 - [ ] Lead verdict per option: would the lead ship it at a AAA desktop bar? If no option passes, nothing is sent.
+- [ ] Suits (owner 25 Nov 12:1x): Qin court look (black lacquer), each suit distinct for its school (outline first, then the school colour on bindings/trim/accents); the techno-plate kit sets construction quality only, not its steel colour.
 - [ ] Distinct characters, not recolours; Qin materials; reads at play size (value contrast >= 3:1 where measured).
 - [ ] One round, then the lead looks, before any further round.
 - [ ] Never replace an approved asset without telling the owner; sources kept.
