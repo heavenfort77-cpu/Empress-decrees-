@@ -23,4 +23,4 @@ for k in $(seq 1 30); do ID=$(gh api "repos/$GH/actions/runs?branch=$LANE&head_s
 echo "run $ID sha ${SHA:0:7}"
 for k in $(seq 1 120); do S=$(gh api "repos/$GH/actions/runs/$ID" --jq .status); [ "$S" = completed ] && break; sleep 20; done
 gh api "repos/$GH/actions/runs/$ID" --jq '"\(.conclusion) wall \((((.updated_at|fromdate)-(.run_started_at|fromdate))/60)|floor) min"'
-git fetch -q --depth=1 origin ci-out; git show "origin/ci-out:out/$LABEL/$ID/summary.txt"
+git fetch -q --depth=1 origin +refs/heads/ci-out:refs/remotes/origin/ci-out; git show "origin/ci-out:out/$LABEL/$ID/summary.txt"

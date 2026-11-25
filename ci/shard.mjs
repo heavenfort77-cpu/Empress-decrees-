@@ -31,6 +31,8 @@ const P = Math.max(0, D.findIndex((n) => n.includes('S')));
 // ALWAYS: one-line declarations read from the config or text tables (no reset, no stepping), used across a cut.
 const pure = (s) => /^\s*const \w+(, \w+ = [^,]+)? = (await g\(\(\) => (__game\.(config|text|K)\b|\[.*__game\.text)|C0\.|Array\(C0\.)/.test(text(s)) || /^const \w+ = C0\./.test(text(s));
 const ALWAYS = new Set(); for (let i = P + 1; i < st.length; i++) if (D[i].length && st[i].loc.start.line === st[i].loc.end.line && lastUse[i] > i + 1 && pure(st[i])) ALWAYS.add(i);
+// Page helpers (window.__x = {...} set up by one statement and used by later ones) are page state: their statements run in every shard too.
+for (let i = P + 1; i < st.length; i++) if (/window\.__\w+\s*=(?!=)/.test(text(st[i])) && st[i].loc.end.line - st[i].loc.start.line < 40 && !D[i].length) ALWAYS.add(i);
 const cuts = []; for (let c = P + 2; c < st.length; c++) { let ok = true; for (let i = P + 1; i < c; i++) if (!ALWAYS.has(i) && lastUse[i] >= c) { ok = false; break; } if (ok) cuts.push(c); }
 // Weights: measured statement times (ci/shard_times.json, line -> ms) if present, else lines of code.
 const TW = existsSync('ci/shard_times.json') ? JSON.parse(readFileSync('ci/shard_times.json', 'utf8')) : null;
