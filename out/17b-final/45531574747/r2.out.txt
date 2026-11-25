@@ -1,0 +1,78 @@
+SHARD 2 of 6: statements 495, prelude 13, always 18, valid cuts 205, cuts at lines 2322,3789,4018,4036,4072; weight ms
+RUNTIME 36 of 36 pass
+ok   01 load without errors 
+ok   02 budget follow view (calls<500, tris<500k) :: calls 27, tris 2842
+ok   03 budget overview, all sections (calls<500, tris<500k) :: calls 76, tris 8434
+ok   707 palace guard escalation: core 0 always; approach 2, forecourt 3 (cap 3 late); rim hall 1, 2 after lateAt[0], 3 after lateAt[1]; unit lists by depth band :: {"core":[0,0],"approach":2,"fore":[3,3],"hall":[1,2,3,3],"mix":["zu,zu,zu","dun,zu,zu,nu,nu,wz","dun,dun,zu,zu,nu,nu,che,wz"],"want":["zu,zu,zu","dun,zu,zu,nu,nu,wz","dun,dun,zu,zu,nu,nu,che,wz"]}
+ok   708 plan switch full > proto > full and back to Rumble: floors, solids, rooms drawn, lake as a fresh start of each; new full run in the start hall, doors shut; Rumble unchanged :: {"full1":{"layout":"full","rooms":29,"floors":29,"solids":364,"palSolids":323,"attached":"hall_ru","lake":true,"lakeW":368,"scene":12},"proto":{"layout":"proto","rooms":6,"floors":6,"solids":113,"palS
+ok   709 palace sun follows the room you enter (shadow box on the current room), largest room fits the shadow box :: {"bad":[],"fit":true}
+ok   800 palace pieces built in the BP01 rooms (2 lions, 1 华表, 3 mercury, 3 smoke, 1 鼎, 1 side list), at rest; Royal Rumble: own 5 hazards (4 lions) and 3 altars, pieces never stepped :: {"n":{"lions":2,"hb":1,"merc":3,"smoke":3,"ding":1,"sides":3},"rest":true,"rooms":"bridge,court,garden,hall","rumbleStill":true,"rumbleHaz":5,"rumbleAltars":3,"rumbleLions":4}
+ok   801 palace lions: tell (ring) >= 0.4 s with nobody hurt; the strike hits player, bot and another side (damage, knockback out); cooldown :: {"tell":{"state":1,"ring":true},"mid":{"hp":100,"bot":100,"probe":100,"state":1},"after":{"state":2,"ring":false,"hp":80,"bot":{"hp":80,"dead":false,"markT":0,"marker":false,"kx":-9.432422182837987,"k
+ok   802 mercury: shimmer tell >= 0.4 s and harmless, then the burn hurts player, bot and another side in the channel (~dps x on); 2 m off the channel nothing; look follows state :: {"atBurn":{"warnHp":100,"hp":100,"bot":100,"probe":100},"warnLen":0.6000000000000002,"end":{"hp":85.5999999999998,"bot":85.5999999999998,"probe":85.5999999999998},"off":100,"looksOk":true}
+ok   803 smoke blocks sight both ways through a cloud (palSight, bot vision of the player); within revealM or beside the cloud sight is clear :: {"through":{"blocks":true,"sight":false,"back":false},"beside":{"blocks":false,"sight":true},"close":{"blocks":false,"sight":true},"hidden":false,"near":true,"clear":true}
+ok   804 华表: suits wake it (tell >= 0.4 s, ring and eyes, nobody marked yet), its look marks suits in reach (her line); marked = seen through a shut door until it ends; other sides never wake it; cooldown :: {"probeOnly":0,"tell":{"state":1,"ring":true,"eyes":true},"mid":{"pMark":0,"bot":0},"look":{"state":2,"eyes":false,"pMark":4.966666666666667,"marker":true,"bot":4.966666666666667,"botMarker":true,"rul
+ok   805 鼎 cauldron heals player, bot and another side at the altar rate from its charge; empty look; refills after emptyS; Royal Rumble altars untouched :: {"oneS":{"hp":57.99999999999997,"bot":57.99999999999997,"probe":57.99999999999997,"charge":16.000000000000085},"empty":{"room":"hall","x":405,"z":41.5,"charge":0,"on":false},"refill":{"room":"hall","x
+ok   806 bot danger from the pieces after its reaction time: lion tell (out away from the lion), mercury shimmer (out across the channel); none at rest or before reacting :: {"lionEarly":false,"lionLate":true,"lionOut":true,"rest":false,"shimEarly":false,"shimLate":true,"across":true}
+ok   807 pieces budget (every room and the busiest, calls<500, tris<500k), all mercury looks drawn with programs flat (warmed at load), new run back to rest :: {"rooms":{"hall":[14,706],"court":[8,314],"corridor":[10,322],"garden":[16,1050],"bridge":[9,1086],"core":[14,1218]},"busy":[15,1086],"looks":"0,1,2","programs":[8,8],"rest":true,"maxCalls":16,"maxTri
+ok   808 full palace pieces built from the plan (counts match), every lion in a pair beside a door of its room, only the plan in use listed, guard is a side :: {"want":{"lion":20,"huabiao":6,"ding":9,"mercury":7,"smoke":6},"got":{"lion":20,"huabiao":6,"ding":9,"mercury":7,"smoke":6},"layout":"full","sides":3,"far":[],"protoLions":2}
+ok   1000 water clocks: one per wing in its room; level = time left to that wing's burning (the burning's clock, 40/80/120/160 s within 4 steps), same seconds as the next-to-burn line; written only on a level-step change :: {"bad":[],"hud":[],"n":700,"rooms":"hall:outer,court:court,corridor:west,garden:east","start":[48,48,48,48],"writes":[49,49,49,49]}
+ok   1001 vat in the burning wing: crack ring >= 0.4 s, splash pushes the player back, the wing falls warnS + douseS (9 s) after its warning; monitor clean :: {"room":"hall","crack":0.517,"ring":true,"push":1.82,"vat":{"st":2,"solidOff":true,"body":false,"flood":true},"douses":1,"rule":"the outer hall falls into the lake in 7 s. Get out.","fallGap":9.017,"b
+ok   1002 vat outside the burning wing: no douse, burn clock unchanged; flood shows 3 s then goes; solid off, body gone; new run (twice) restores every vat :: {"room":"court","st":1,"flood":true,"floodAfter":false,"floodS":3.017,"warnAt":[40.01666666666568,40.01666666666568],"douses":0,"after":{"solidOff":true,"body":false,"seen":false,"hp":0},"runs":[true,
+ok   1003 giants: one woken per fall (nearest the core first), wake tell >= 0.4 s before moving, her line per wake; never more than cap awake :: {"wakesAt":[[1,1],[2,2],[3,3],[4,4]],"wakeHold":[2,2,2,2],"firstHome":3,"firstWant":3,"awake":3,"wakes":4,"notes":4,"phase":"palace","pdead":false,"capAwake":4,"capLast":false,"cap":4}
+ok   1004 giant moves: routes through doors to the player's room (opens shut doors, they shut after); shape shown the whole windup (>= 0.4 s) and only a suit inside is hit; its blow breaks a vat :: {"hit":{"hits":1,"minTell":1.0000000000000013,"lost":30,"tellSeen":true},"dodge":{"shown":true,"hits":0,"lost":0},"route":{"rooms":"bridge,corridor,court","opened":true,"tReach":19.01666666666687,"vat
+ok   1005 pieces budget (tier medium): bridge with 8 dormant + 4 awake giants and tells < 500 calls / 0.5M tris; programs, geometries, textures flat; no instance writes while still; Rumble unchanged :: {"still":0,"dorm":12,"heavy":[12,1246,8,4,true],"prog":[8,8],"geo":[298,298],"tex":[6,6],"rIn":false,"rumble":[27,27,2842,2842]}
+ok   1006 pieces new run (twice): giants dormant at home, counters zero, clocks full and rewritten, vats whole, no tell or flood left :: {"runs":[{"home":true,"awake":0,"wakes":0,"douses":0,"notes":0,"clocks":true,"vats":true,"inScene":true},{"home":true,"awake":0,"wakes":0,"douses":0,"notes":0,"clocks":true,"vats":true,"inScene":true}
+ok   1200 palace camera at 4 sizes: the player is at least the floor (120 px at 1080p; phones /phone) in every room of the full plan (core: hands over to the apex), lens 50 and tilt 40 unchanged :: phoneP: core wake rooms 29 spots 140 minPx 156.5 floor 141.2 fit 0 shown 0 bad [] fitBad [] lens [] resets 0 errs  || phoneL: core wake rooms 29 spots 140 minPx 156.5 floor 141.2 fit 0 shown 0 bad [] 
+ok   1201 rooms that fit whole are shown whole: none fit at the 120 px floor (4 sizes, in the detail); with a 36 px fixture floor every room that fits is whole on screen, player >= floor, >= 1 fits :: phoneP fit@floor 0 shown 0 | phoneL fit@floor 0 shown 0 | laptop fit@floor 0 shown 0 | ultrawide fit@floor 0 shown 0 || fixture {"fitN":28,"shown":28,"bad":[],"low":[],"restored":true}
+ok   1202 big room revealed as you walk: smooth follow (no camera step over 0.5 m), player above the floor, framing leans ahead (> 0.5 m), lens fixed; Rumble camK 1 :: {"steps":240,"maxStep":0.40259344314283746,"minPx":134.9869035403674,"off":0,"ahead":[1.61,1.24],"lens":0,"room":"fore","floor":120,"rumbleK":1}
+ok   1203 room change pans (hall -> court through the door): no camera step over 0.5 m; with 03's real court squad too, and it closes on the squad :: {"steps":150,"maxStep":0.42346092321011497,"rooms":["hall","court"],"sq":{"maxStep":0.42346092321011497,"guards":6,"closeB":0.9952202717659583,"rooms":["hall","court"],"court":0}}
+ok   1204 fight framing for rival, guard, rebel and woken giant (enterR: b >= 0.9 in 0.6 s, >= 0.99 by 1.5 s; look point 30% to the foe; distance close..wide; held backS; back to wide); not between enterR and exitR, not a lurking 死士 :: {"kinds":{"rival":{"b0":0,"b06":0.907,"b15":0.999,"foc":1,"dIn":true,"at":6,"hold":1,"back":0.001},"guard":{"b0":0,"b06":0.907,"b15":0.999,"foc":1,"dIn":true,"at":6,"hold":1,"back":0.001},"rebel":{"b0
+ok   1205 Z override: wide stays wide with an enemy in reach, close stays close with none, auto returns to the enemy rule :: {"wide":{"man":1,"b":0},"close":{"man":2,"b":0.9989280419932106},"auto":{"man":0,"b":4.138963164251194e-9}}
+ok   1206 minimap room layout: centred and enlarged on the current room, its pieces as icons; no redraw on idle frames; one redraw per room change, warned, fallen, giant woken :: {"rooms":{"hall":{"cur":"hall","icons":3,"want":3,"scaleOk":true,"centred":true},"court":{"cur":"court","icons":4,"want":4,"scaleOk":true,"centred":true},"bridge":{"cur":"bridge","icons":14,"want":14,
+ok   1207 budget with the room-fit camera: every room of the full plan wide and close under 500 calls / 0.5M tris, programs flat, close adds no geometry over wide :: {"calls":15,"tris":1254,"prog":[],"geo":[],"base":{"programs":8,"geoms":298}}
+ok   1208 palace new run: camera snaps to the start framing (same position as the first run), wide, no hold, Z auto :: {"same":true,"b":0,"hold":0,"man":0}
+ok   1209 explore safe zone at 4 sizes (autopilot 40 s, full palace): exploring <= 0.55 of the half-screen, fighting <= 0.85, never off screen :: {"phoneP":{"ex":0.502,"fi":0,"exN":160,"fiN":0,"all":0.502,"n":160,"worst":[28,"hall_ru",0,0.5,-0.44],"errs":[]},"phoneL":{"ex":0.45,"fi":0,"exN":160,"fiN":0,"all":0.45,"n":160,"worst":[11,"hall_ru",0
+ok   1210 fight framing hysteresis: no start between enterR and exitR, start at 6 m, holds between the radii, <= 1 switch while crossing enterR back and forth, ends backS after leaving exitR :: {"mid0":false,"in":true,"held":true,"flips":0,"before":true,"after":false}
+ok   1211 zoom-in capped by the foes' spread: 3 foes framed, distance > close and <= wide, player and foes inside safeFight + 0.05 :: {"fn":3,"ftd":14.42,"close":10.5,"wd":14.42,"b":1,"ndc":[[0,-0.07984137248167404],[-0.6110622239848754,-0.07984137248167404],[0.6110622239848754,-0.07984137248167404],[0,0.49773640438041294]]} max 0.6
+ok   1212 edge markers: off-screen foe -> one marker at the right edge pointing right; on-screen foe -> none; Royal Rumble -> none :: {"off":{"n":1,"list":[[1331,335,1.52]],"W":1366},"on":0,"rumble":0}
+ok   1213 announcement and door card stacked at 4 sizes: no overlap, both on screen :: {"phoneP":{"overlap":false,"a":[219,288],"b":[296,356],"inside":true},"phoneL":{"overlap":false,"a":[101,152],"b":[160,220],"inside":true},"laptop":{"overlap":false,"a":[100,151],"b":[159,219],"inside
+STMT 41 150
+STMT 42 2313
+STMT 45 32
+STMT 47 9
+STMT 49 5
+STMT 51 18
+STMT 52 20
+STMT 54 14
+STMT 56 7
+STMT 364 11
+STMT 625 10
+STMT 875 49
+STMT 1247 7
+STMT 1478 9
+STMT 1640 4
+STMT 1780 4
+STMT 1941 12
+STMT 2120 4
+STMT 2275 4
+STMT 2469 4
+STMT 2647 5
+STMT 2828 4
+STMT 3037 4
+STMT 3789 15
+STMT 3803 631
+STMT 3823 299
+STMT 3838 16
+STMT 3841 9
+STMT 3856 30
+STMT 3874 41
+STMT 3899 10
+STMT 3915 54
+STMT 3934 157
+STMT 3952 28
+STMT 3970 128
+STMT 3990 13
+STMT 4012 5
+STMT 4013 2051
+STMT 4015 295453
+STMT 4081 3502

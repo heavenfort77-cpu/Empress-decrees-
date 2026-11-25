@@ -1,0 +1,32 @@
+SHARD 5 of 6: statements 495, prelude 13, always 18, valid cuts 205, cuts at lines 2322,3789,4018,4036,4072; weight ms
+RUNTIME 5 of 5 pass
+ok   01 load without errors 
+ok   02 budget follow view (calls<500, tris<500k) :: calls 27, tris 2842
+ok   03 budget overview, all sections (calls<500, tris<500k) :: calls 76, tris 8434
+ok   16 resize across 5 OpenGame sizes 
+ok   17 no page errors in whole run 
+STMT 41 116
+STMT 42 652
+STMT 45 10
+STMT 47 13
+STMT 49 5
+STMT 51 6
+STMT 52 6
+STMT 54 3
+STMT 56 3
+STMT 364 3
+STMT 625 3
+STMT 875 34
+STMT 1247 10
+STMT 1478 12
+STMT 1640 13
+STMT 1780 30
+STMT 1941 12
+STMT 2120 7
+STMT 2275 3
+STMT 2469 5
+STMT 2647 5
+STMT 2828 9
+STMT 3037 13
+STMT 4073 3149
+STMT 4081 5324

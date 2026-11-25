@@ -1,0 +1,192 @@
+SHARD 1 of 6: statements 495, prelude 13, always 18, valid cuts 205, cuts at lines 2322,3789,4018,4036,4072; weight ms
+RUNTIME 89 of 89 pass
+ok   01 load without errors 
+ok   02 budget follow view (calls<500, tris<500k) :: calls 27, tris 2842
+ok   03 budget overview, all sections (calls<500, tris<500k) :: calls 76, tris 8434
+ok   131 阴阳甲 Q: an orb that hits nothing fills nothing; he steps back back m as it leaves; it lands about distance / speed s later: dmg, slow on the suit, drain to him, dark half filled; cooldown :: {"empty":[false,false],"cast":true,"back":1.2,"cd":true,"landS":0.783,"wantS":0.771,"dmg":14,"slow":[true,1.5],"hp":85,"dark":true}
+ok   132 阴阳甲 W: a sunburst on nothing fills nothing; at a suit it is shown delay s (>= 0.4) with no damage before, then dmg inside its radius, none outside; light half filled; cooldown :: {"empty":[false,false],"cast":true,"cd":true,"toldS":0.8,"early":false,"hit":24,"off":0,"light":true}
+ok   133 阴阳甲 R: locked without both halves; the disk is shown in full tellS s (>= 0.4) with no burn or pull; then dark half pulls and slows, light half burns; the halves swap; gone after; lock emptied, cooldown :: {"tellHit":false,"steps":[59,90,90],"pullD":[0,90,0],"pullL":[0,0,90],"slowD":[0,90,12],"locked":false,"cast":true,"lock":[false,false,30],"disk":{"in":true,"vis":true,"r":5},"toldS":1,"seg":3,"dmg":[
+ok   134 阴阳甲 lock rules: "Ultimates 2x" runs only the cooldown after use 2x (1x in the warning) and R stays locked at cooldown 0; no meter; a 阴 landing while he stands silenced on a bridge fills nothing, off the bridge it fills :: {"warnRate":1,"onRate":2,"cd0Locked":false,"ch":0,"silOk":true,"bridge":{"cast":true,"hit":14,"zone":"WB2","yin":false},"ground":{"cast":true,"hit":14,"zone":"C2","yin":true}}
+ok   135 阴阳甲 in the hunt: the wake fills the lock (R ready at the start); R empties it and starts its cooldown; 阴 on a minion fills the dark half :: {"start":[true,true,true,"hunt"],"cast":true,"after":[false,false,30],"dark":true,"minion":true}
+ok   136 阴阳甲 in whole matches: on a floor, nobody stuck > 3 s, orbs and disks end on time, hunter cap every tick, the 阴阳甲 bot casts Q and W and unlocks and casts R (player 阴阳甲 autopilot reported) :: {"viol":[],"casts":{"q":10,"w":5,"r":2},"player":{"q":2,"w":1,"r":0},"decided":[202.6,202.4,181.1,165],"orbMax":1.117,"diskMax":4,"clean":true,"orbLife":1.111,"diskLife":4}
+ok   137 budget with 阴阳甲 effects: every suit + cubs + tells + both orbs + 太极 (calls<500, tris<500k), no shader compile, geometry flat :: {"tells":4,"calls":54,"tris":2754,"programs":7,"geoms":162}
+ok   138 农甲 passive and attack: High armor, Low speed; plough-hoe melee dmg; a grown sprout he walks over heals him and feeds him (bonus, then gone); a seed is not eaten; a bot tramples one and gains nothing :: {"armorK":0.8235294117647058,"spd":5.6,"seeds":3,"seedEaten":0,"seedStill":3,"grown":3,"green":true,"hp":58,"eat":1,"feedT":4,"fedHit":11.5,"fedEnd":0,"plainHit":10,"trampled":[1,1,50],"dummy":10}
+ok   139 农甲 Q: seeds dark at a point (spread m), cooldown; green after growS s, gone lastS s later; the pool never exceeds pool and replaces the oldest; seeds over the void are lost :: {"maxPlanted":9,"cast":true,"cd":true,"planted":3,"ring":true,"growS":4.033,"lastS":20.017,"sproutN":0,"after4":9,"oldestGone":true,"sproutN4":9,"void":0}
+ok   140 农甲 W: the plough dashes range m and lays a furrow (width) along it; a bot on it is slowed, one beside it is not; seeds on it grow growK times as fast; no damage; the furrow ends after furrowS s :: {"cast":true,"dash":5,"furrow":{"t":3.9000000000000004,"inScene":true,"vis":true,"len":5,"ox":5,"oz":-24,"dx":1,"dz":0,"w":1.6},"hits":[0,0],"slow":[true,false,0.7],"onN":1,"grow":[2.02,4.02],"gone":t
+ok   141 农甲 R: locked without a full meter; seeds ripen, grown sprouts within radius eaten (heal each, a dmg pulse each within pulseR), those beyond stay grown; ring ringS s; meter emptied :: {"locked":false,"before":[9,3],"cast":true,"harvN":6,"hp":76,"left":[3,3],"bots":[72,0],"ring":[true,8],"ch":18,"ultN":1,"ringS":0.433}
+ok   142 农甲 plays with altars and collapses: under the dry decree an altar does not heal him but an eaten sprout does; a field on a section that falls is lost with it :: {"dry":true,"altar":50,"eat":58,"roof":[3,true],"roofAfter":[0,0,3]}
+ok   143 农甲 in the hunt: the wake clears the royale field; R ready at the start; it eats the grown sprouts near and pulses a minion within pulseR; then the 30 s cooldown :: {"royale":3,"wake":0,"cast":true,"harvN":3,"minion":36,"cd":30}
+ok   144 农甲 in whole matches: on a floor, nobody stuck > 3 s, pool <= pool, furrows and rings end on time, hunter cap every tick, the 农甲 bot sows, ploughs, harvests and eats (player 农甲 autopilot reported) :: {"viol":[],"casts":{"q":70,"w":5,"r":2},"player":{"q":18,"w":0,"r":0},"eat":40,"tramp":54,"decided":[202.6,202.4,181.1,193.7],"poolMax":9,"furrowMax":4.017,"ringMax":0.417,"clean":true}
+ok   145 budget with 农甲 effects: every suit + cubs + tells + seeds, sprouts, furrow and harvest ring (calls<500, tris<500k), no shader compile, geometry flat :: {"tells":3,"planted":6,"grown":3,"ring":true,"calls":51,"tris":2422,"programs":7,"geoms":162}
+ok   146 道甲 passive and attack: Low armor, High speed; open-hand melee dmg; still stillS s without acting = unseen (a bot in vision beyond the shimmer does not see him), not before; an attack restarts the wait; a step ends it :: {"armorK":1.1666666666666667,"spd":6.4,"early":[false,true],"on":[true,true,false],"moved":[false,0,true],"afterAtk":false,"afterAtk2":true,"dummy":10}
+ok   147 道甲 Q 柔: stance and shimmer for stance s, cooldown; the first basic attack does him nothing, the attacker takes it and is pushed away, +1 counter, half the cooldown back; the next lands; a skill is not countered :: {"stance":[0.8,true,1.1,1,6],"first":{"lost":0,"botLost":10,"push":12,"daoN":1,"rouT":0,"ring":false,"cd":3},"second":11.666666626930237,"skill":[23.333333373069763,1,true],"last":[true,true,0,false]}
+ok   148 道甲 W 不争: the first skill misses (no damage), he flows to beside m short of the caster, +1 counter, half the cooldown back; flowMax m at most; a basic attack in it lands; no move without a counter :: {"stance":[0.8,true,8],"hit":{"lost":0,"daoN":1,"zhengT":0,"dash":4.8,"cd":4},"endX":18.8,"farZ":-20,"basic":[11.666666626930237,true],"quiet":[0,2]}
+ok   149 道甲 R 反: damage, speed and armor x (1 + step x counters) for dur s, counters to 0; capped at maxN (1.4x); 0 counters = nothing; R button shows the counters; cooldown 1x in the 2x warning, 2x in force :: {"btn":"3","three":{"k":1.24,"daoN":0,"fanT":8,"armorK":1.1217948717948718,"spd":7.936,"cd":30,"hit":12.4,"on":true,"after":[0,1,6.4,1.1666666666666667]},"cap":1.4,"zero":[1,6.4],"zeroHit":10,"keep":5
+ok   150 道甲 in the hunt: 柔 counters the claw (demon takes it, shoved), 不争 counters Pounce (he flows) and Roar (no slow; slowed without it); counters build R (ready at the start); a stone lion strikes through both stances, no counter :: {"claw":{"hp":100,"demonLost":12,"shove":0.75,"daoN":1},"pounce":{"hp":100,"daoN":2,"dash":true,"flowed":4.8},"roar":{"slow":0,"daoN":3},"roarPlain":true,"rReady":true,"rK":1.24,"lion":{"hp":80,"daoN"
+ok   151 道甲 the shimmer is the tell: a bot in reach holds its basic attack while 柔 has been up for its reaction time (no counter, no damage), and swings again after the stance; the shimmer is drawn :: {"ring":[true,true],"held":{"swing":false,"lost":0,"daoN":0,"react":0.3},"after":{"swing":true,"lost":11.6667}}
+ok   152 道甲 in whole matches: on a floor, nobody stuck > 3 s, no shimmer outlives its stance, 反 within the cap, hunter cap every tick; the 道甲 bot raises 柔 and makes counters (不争, R and the player autopilot reported) :: {"viol":[],"casts":{"q":6,"w":3,"r":1},"player":{"q":4,"w":1,"r":0},"counters":6,"playerCounters":3,"decided":[187.9,187.8,198.7,185.5],"ringMax":0,"fanMax":1.32,"clean":true}
+ok   153 budget with 道甲 effects: every suit + cubs + tells + stance shimmer + 反 (calls<500, tris<500k), no shader compile, geometry flat :: {"tells":5,"ring":true,"fanK":1.4,"stanceN":1,"calls":52,"tris":3074,"programs":7,"geoms":162}
+ok   154 纵横甲 passive 事一强: a bot turns from him to the nearest other suit in reach (once per bot every everyS s); never the player without a hunter slot; with a slot, claimed within the cap; the player never steered :: {"noSlot":{"tgt":2,"why":"persuade","persN":1,"capOk":true},"back":7,"early":7,"late":[2,true],"slot":{"tgt":0,"hunter":true,"capOk":true},"player":[0,true]}
+ok   155 纵横甲 attack 符节 and stats: Mid armor and speed; a token shot hits 5 m away for dmg :: {"armorK":1,"spd":6,"ultMode":"zongheng","dummy":8,"dist":5}
+ok   156 纵横甲 Q 合纵: no second enemy = no cast, no cooldown; a cord for dur s, cooldown; half of the loss dealt to the other end (its armor), both ways, not passed back; snaps past snapM (both slowed) :: {"none":[false,0,0],"cast":true,"cord":{"t":5,"a":1,"b":2,"inScene":true,"len":2,"cd":10,"cordN":1,"linkN":1},"share1":[20,10,1],"share2":[5,10,1],"on":[true,true,true],"ended":[-1,false,0],"snap":{"t
+ok   157 纵横甲 W 连横: the player swaps into a warned section (positions traded, cooldown); 不争 counters it; the 纵横甲 bot swaps out of a warned section only with an enemy clear of it, never the player without a slot :: {"cast":true,"swap":{"p":[6,-8,"C2",1],"b":[6,-15],"cd":12,"n":1},"dao":{"cast":true,"p":[6,-15],"n":0,"cd":12,"daoN":1},"stay":{"n":0,"hunter":false},"bot":{"n":1,"z":-10.9,"zone":"C1","b0z":-4,"cd":
+ok   158 纵横甲 R 不攻自破: circle drawn for its whole dur s; bots inside turn on another suit (not him); damage between suits inside x (1 + bonus); HUD line; removed at the end :: {"cast":true,"circle":{"t":4.983333333333333,"r":6,"inScene":true,"vis":true,"status":true},"turned":[2,"persuade",1],"inside":26,"outside":20,"k1":1,"late":[true,true],"ended":[-1,false,0,false]}
+ok   159 纵横甲 in the hunt: a minion that sees him waits huntWaitS s (once per everyS s; not the demon); 合纵 ties the demon and a minion; 连横 swaps with a minion; in the circle the demon breaks the minion, whose plate still flies home :: {"wait":{"gap":1,"at":0,"demon":-99},"within":true,"after":true,"link":true,"share":["demon","stalker",20,10],"swap":true,"swapAt":[0,0,0,-50],"circle":true,"fight":{"tgtD":"stalker","pers":2,"stalker
+ok   160 纵横甲 in whole matches: on a floor, nobody stuck > 3 s, hunter cap every tick, no cord past snapM, counts never below 0; the 纵横甲 bot casts R (links, swaps, steers and the player autopilot reported) :: {"viol":[],"bot":{"q":6,"w":6,"r":1,"pers":9},"player":{"q":2,"w":3,"r":0},"decided":[187.9,187.8,198.7,200.2],"clean":true}
+ok   162 a 名甲 bot broken mid-strike by his own hanging line (share through the cord): no error, the next target in the line is still hit :: {"kit":"ming","cast":true,"tie":[1,7],"after":{"mingDead":true,"b0":20,"b1":20}}
+ok   161 budget with 纵横甲 effects: every suit + cubs + tells + cord + circle (calls<500, tris<500k), no shader compile, geometry flat :: {"tells":3,"cord":true,"circle":true,"calls":47,"tris":2790,"programs":7,"geoms":162}
+ok   163 杂甲 passive 兼收并蓄: the skill that hit him is stored and named above R (written on change only); a basic attack changes nothing; a new run clears it :: {"empty":["","none"],"orb":["yinyang:0",true,"block"],"basic":"yinyang:0","again":["yinyang:0",0],"ru":["ru:0",true,1],"reset":["","none"]}
+ok   164 杂甲 attack 议 and stats: Mid armor and speed, charge ultimate; the orb hits 5 m away for dmg :: {"armorK":1,"spd":6,"kit":"za","ultMode":"charge","dummy":8,"dist":5}
+ok   165 杂甲 Q 兼儒墨: dmg and a seal of seal s (< 儒甲 W); 墨 slow only on a bot that attacked within aggroS s; cooldown cd; the sealed leader keeps the crown :: {"cast":true,"plain":{"lost":12,"seal":1.983,"slow":0,"cd":7.983},"aggro":{"seal":1.983,"slow":1.483},"old":{"seal":1.983,"slow":0},"leader0":4,"leader":[4,1.983]}
+ok   166 杂甲 W 合名法: blinks to the aimed point (at most range m); the nearest enemy within exposeM of the landing is exposed exposeS s, one farther is not; no shadow; cooldown cd :: {"cast":true,"near":{"moved":4,"e0":2.68,"e1":0,"cd":7.6,"expN":1,"shadow":0},"far":6}
+ok   167 杂甲 R 一字千金: nothing stored = no cast, no cost; a stored 儒甲 seal is cast at full strength (its dmg and seal), the meter empties, Q and W cooldowns reset :: {"none":[false,100,0],"cdBefore":[true,true],"cast":true,"after":{"copy":"ru:1","copyN":1,"ch":3.7583333333333333,"cd":[0,0],"lost":15,"seal":3.983}}
+ok   168 杂甲 copy table: 22 stored skills (8 kits, his own Q, 6 unit moves) cast through 一字千金 do what their own kit does; unit moves keep their tell and colour >= 0.4 s :: all ok
+ok   169 杂甲 in the hunt: stores Pounce (not the claw) and casts it back (demon colour, its windup, full dmg) and Roar (slowed); 正名 seals the demon's stolen skills (Pounce still starts), 墨 always slows it except in frenzy; on a minion one skill sealed, slowed only if it attacked :: {"pounce":"move:pounce","claw":[12,"move:pounce"],"castP":true,"tell":{"on":true,"mat":"D","t":0.5},"back":{"lost":18,"cdR":29.47},"roar":[1.98,0.4],"skills":"pounce,roar,lunge,rend","demon":{"seal":1
+ok   170 杂甲 in whole matches: on a floor, nobody stuck > 3 s, hunter cap every tick, counts never below 0; the 杂甲 bot casts R as a copy (stores, copies, exposures and the player autopilot reported) :: {"viol":[],"bot":{"copies":6,"ult":0,"exp":28,"stored":6},"player":{"copies":25,"exp":1},"decided":[187.9,187.8,198.7,186.5],"clean":true}
+ok   171 budget with 杂甲 effects: every suit + cubs + tells + a copied move tell (calls<500, tris<500k), no shader compile, geometry flat :: {"tells":3,"zm":true,"calls":52,"tris":3490,"programs":7,"geoms":162}
+ok   300 guard spawn API: pools fixed (zu 10, nu 6, dun 4, che 2, wz 2); one 伍长 leads; no 车 unless open; cap 12 per squad; unknown faction, full pools and the hunt refuse :: {"pool":{"zu":10,"nu":6,"dun":4,"che":2,"wz":2,"ls":12,"fs":2,"ss":4,"qs":2},"open":{"id":0,"n":12,"che":2},"closed":{"id":0,"n":11,"che":0,"wz":1,"lead":22,"leadType":"wz","broken":false},"badFaction
+ok   301 guard moves: 卒 thrust, 弩手 volley on a ground marker, 盾 shove, 车 line charge (open only), 伍长 cut; red tell for the whole windup (>= 0.4 s), exact damage :: {"zu":{"q":0,"move":"thrust","windup":0.5,"dmg":4,"tell":{"shape":"line","shown":true,"red":true,"x":-7,"z":-3.6200000000000023,"px":-7,"pz":-6,"left":0.5},"hp":96,"hitAt":78,"x0":-3.6200000000000023,
+ok   302 盾 block: front basic blow x block.k; from behind and skills full; 卒 full; one block counted :: {"front":2,"skill":10,"back":10,"zu":10,"blocks":1,"k":0.2}
+ok   303 方阵: slots (盾 ahead, 弩手 behind), 伍长 buff on dealt and taken, a buffed thrust; 伍长 down breaks it (no buff), note, charge, heal, boon; no own-unit damage :: {"form":true,"buff":true,"dunAhead":true,"nuBehind":true,"thrust":5,"want":5,"ownHurt":false,"after":{"broken":true,"breaks":1,"form":false,"buff":false,"n":7,"ch":15,"hp":56,"bT":11.983333333333333,"
+ok   304 guard rewards: player kills give charge and health per type, a bot kill gives the bot its charge, no plate; a fall gives nothing :: {"player":{"ch":19,"hp":58,"plates":0,"pk":["",""],"kills":3},"wantCh":19,"wantHp":58,"botCh0":0,"botDead":false,"botCh":5,"wantBot":5,"fall":{"alive":false,"ch":0.01666666666666572,"kills":0,"n":0}}
+ok   305 rival bots farm the 皇家 guard: a bot goes for a squad in sight and breaks guards (kills >= 1) :: {"modes":{"roam":28,"creature":165,"dodge":85},"q":0,"at":0.2,"kills":2,"hurt":2,"botDead":false,"t":4.6}
+ok   306 budget two full squads: calls<500, tris<500k, <=5 calls for 24 instanced guards, all seen drawn, no shader compile, geometry flat; none staged after :: {"q":[0,1],"best":{"calls":43,"tris":5778,"programs":7,"geoms":162,"tells":12,"seen":24,"counts":24,"alive":24,"extra":5},"empty":{"calls":26,"tris":3562},"after":{"n":0,"staged":0,"tells":0,"geoms":1
+ok   307 Royal Rumble spawns no guard (60 s bot match); a new run and the wake clear squads, meshes and tells :: {"match":{"mx":0,"staged":false},"reset":{"n":0,"staged":false,"tells":false,"squads":false},"wake":{"n":0,"staged":false,"tells":false,"squads":false}}
+ok   308 guard factions: a squad hits the other faction and never its own; a faction not hostile to suits leaves the player alone :: {"hurtA":0,"hurtB":3,"playerHp":100,"tgt":["",""]}
+ok   900 反贼 spawn: own four types only (皇家 none of them); 渠帅 leads; 力士 bootleg move and school colour; 死士 lurk (yellow), 符水 green; pools; cap 12; seeded school; switch :: {"pool":{"zu":10,"nu":6,"dun":4,"che":2,"wz":2,"ls":12,"fs":2,"ss":4,"qs":2},"q":0,"n":9,"types":"fs,ls,ls,ls,ls,ls,qs,ss,ss","lead":"qs","broken":false,"school":3,"ls":true,"ss":true,"fs":true,"wrong
+ok   901 力士 bootleg moves (9 schools): red tell of its shape for the whole windup (>= 0.8 s, longer than the 皇家 foot moves), then exactly its damage :: {"guardMax":0.5,"ru":{"q":0,"shape":"line","windup":0.8,"dmg":5,"tell":{"shape":"line","shown":true,"red":true,"move":"bl_ru"},"hp":95,"hitAt":48,"minTell":0.8000000000000008},"dao":{"q":0,"shape":"ci
+ok   902 bootleg 甲 stalls: after stallN moves the next waits cd + stallS (others about cd); a stall counted :: {"starts":[0,3.417,6.833,14.25,17.667],"gaps":[3.417,3.416,7.417,3.417],"stalls":1,"cd":3.4,"stallS":4,"N":3}
+ok   903 符水道人 mends a hurt ally (heal after a green tell at it), never a 皇家 unit beside it :: {"tell":{"shape":"mark","shown":true,"green":true,"atHurt":true},"ls":12,"zu":4,"heals":2,"want":12,"playerHp":100}
+ok   904 死士 lurks unseen (not drawn, not seen) outside lurkR, shows inside it; lunges at the bot leader over the nearer player (yellow glint >= 0.4 s first); no leader: the player :: {"far":{"hid":true,"seen":false,"count":0,"reveals":0,"st":0},"near":{"hid":false,"seen":true,"reveals":1},"lead":"b0","botTgt0":-1,"tell":{"at":0,"fx":1,"toBot":1,"yellow":true,"shown":true,"windup":
+ok   905 渠帅 down: squad broken, killer gets its school charge (note, charge, health, no boon); F button named; F casts once: yellow tell for the windup, then chargeK x damage; button hides :: {"kill":{"broken":true,"n":1,"sk":"bl_yinyang","charges":1,"ch":15,"hp":56,"bT":0,"voice":"Thou hast taken a rebel art. Use it, and become what they are.","rule":"渠帅 down: Yinyang suit bootleg move, o
+ok   906 three sides: 反贼 and 皇家 squads hurt each other; a bot with a bootleg charge uses it in a fight :: {"hurtA":4,"hurtB":4,"kills":0,"playerHp":100,"bot":{"casts":1,"n":0,"copy":"bl_fa","t":0.45}}
+ok   907 budget 皇家 + 反贼 full squads: calls<500, tris<500k, <=9 calls beyond tells, seen units drawn, no shader compile, geometry flat; none staged after :: {"q":[0,1],"best":{"calls":47,"tris":5234,"programs":7,"geoms":162,"tells":13,"seen":22,"counts":22,"alive":24,"extra":8},"after":{"n":0,"staged":0,"tells":0,"geoms":162,"programs":7}}
+ok   908 new run and wake clear the rebels: no charges, no lurking or worn units, squads and meshes gone, button hidden; the drawn school replays per seed :: {"s1":6,"before":"flex","reset":{"n":false,"hid":false,"sq":false,"staged":false,"btn":false},"s2":6,"wake":{"n":false,"hid":false,"sq":false,"staged":false}}
+ok   66 idle player loses the royale (frozen loss, cause recorded) within 260 s :: {"phase":"lost","lostIn":"royale","at":141.1,"cause":"fall"}
+ok   10 no shader compile during play :: programs load 7, after 7
+ok   13 runtime text keys 
+ok   14 pause when tab hidden :: {"frozen":true,"resumed":true}
+ok   400 mode menu: The Burning Palace / Royal Rumble (44 px, keys 1-2, Enter last), frozen while open, then the school select (M returns); Rumble = royale map, Palace = rooms; pick stored :: {"open":true,"n":2,"small":0,"texts":"1. The Burning Palace|2. Royal Rumble","lastRumble":true,"frozen":true,"keysIgnored":true,"toSelect":true,"rumble":{"phase":"royale","on":false,"floors":true,"roy
+ok   401 palace rooms attach/detach: start = hall only (doors shut, solid); door opens within reach and draws the room behind; shut behind you, old room out; calls follow; 5 round trips flat :: {"start":{"attached":"hall","doorsIn":1,"open":0,"inSolids":true},"far":false,"near":{"open":true,"solid":false,"panel":false,"attached":"hall,court"},"inCourt":{"cur":"court","attached":"hall,court",
+ok   402 door travel: hall > court > garden, and hall > court > corridor > bridge > core; the core hall wakes the apex (palace out, wake banner); H does nothing in the palace :: {"hNoop":true,"ok":true,"garden":"hall>court>garden","ok2":true,"core":"hall>court>corridor>bridge","end":{"phase":"wake","on":false,"n":5,"banner":"block","voice":true}}
+ok   403 door previews: the card names the room behind (type, decree, reward, stirs/quiet) near a door only; every room text key exists; hidden in Royal Rumble :: {"hallStart":"none","hall":true,"mid":"none","corridor":true,"cardC":"Corridor\nDecree: no dashing\nReward: ultimate charge\nAll is quiet.","garden":true,"cardG":"Garden\nDecree: none\nReward: a boon\
+ok   404 walls block sight in the palace: shut door blocks; open door in line sees; off the opening blocked; same room sees; palace fog radius :: {"shut":{"sight":false,"sees":false},"open":{"door":true,"sight":true,"sees":true},"off":{"sight":false,"sees":false},"same":{"sight":true,"sees":true},"fow":true}
+ok   405 context camera: wide idle, blends to the fight framing with an enemy within enterR (between at 0.2 s, >= 0.98 by 1.0 s, close..wide), Z = auto/wide/close, beyond exitR stays wide, Rumble at 1 :: {"start":{"b":0,"k":1.0303328051231802,"wd":14.424659271724522},"idle":{"b":0,"k":1.0303328051231802,"wd":14.424659271724522},"mid":{"b":0.4191935937754514,"k":0.9262167032866033,"wd":14.4246592717245
+ok   405b phone: a palace run starts wide with the phone floor (minPx / phone, player at least that), touch help, no page errors :: {"on":true,"px":167.45890190141586,"floor":141.1764705882353,"want":141.1764705882353,"b":0,"help":true} 
+ok   406 Royal Rumble unchanged after a palace run (floors, solids, sections, abyss, sun, fog, help, camera 1, same draw counts) :: {"palFloors":true,"palSolids":true,"floors":true,"solids":true,"on":false,"phase":"royale","attached":0,"doorsIn":0,"lake":false,"abyss":true,"royaleIn":12,"camK":1,"fow":true,"sun":true,"help":true,"
+ok   407 palace budget per room, tier medium (calls<500, tris<500k; one room drawn per room) :: {"rooms":{"hall+court":[22,1158,2],"hall":[14,706,1],"court":[8,314,1],"corridor":[10,322,1],"garden":[16,1050,1],"bridge":[9,1086,1],"bridge+core":[12,1382,2]},"maxCalls":22,"maxTris":1382,"oneRoom":
+ok   408 palace new run in the same page: start hall, doors shut, hall only, camera, Z and card reset; New run from the end screen starts again :: {"reset":{"cur":"hall","attached":"hall","shut":true,"man":0,"camK":true,"card":"none","n":1,"phase":"palace","banner":"none","x":true},"ended":"palend","again":{"phase":"palace","cur":"hall","banner"
+ok   600 burning waves: wings named at 40/80/120/160 s in order, each falls 5 s after its naming and leaves the scene; warned floors glow; her line + countdown; next-to-burn line on change; fallen door stays shut, card says so :: {"warn":[["outer",40.01666666666568],["court",80.03333333333008],["west",120.04999999999447],["east",160.0500000000195]],"fall":[["outer",45.03333333333206],["court",85.04999999999646],["west",125.066
+ok   601 no fall death without the 5 s warning: told at 40 s (banner, countdown to 1 s), falls only after 45 s (cause fall); a late entrant also dies only after the fall; monitor clean :: {"t40":{"voice":"Let the outer hall burn.","banner":"block","st":1,"alive":true},"t44":{"rule":"the outer hall falls into the lake in 1 s. Get out.","alive":true,"phase":"palace"},"a":{"phase":"palend
+ok   602 a locked room is never warned: the wave waits (HUD says so), is named when it unlocks, falls 5 s later; next wing 40 s after that naming; warned/fallen rooms may not lock :: {"canBefore":true,"locked":{"st":0,"waiting":true,"waits":1,"warned":false,"next":"Next to burn: the outer hall, when the fight there ends","bad":0},"named":{"st":1,"warnAt":60.04999999999787,"t0":60.
+ok   603 fairness monitor every tick: a warned room that gets locked is counted at once (locked / hall) :: {"clean":0,"after":{"bad":3,"why":"locked","room":"hall","ticks":3}}
+ok   604 Royal Rumble never burns; new run (twice) restores every room (standing, level, floors, materials, hall only, clock); Rumble counts/floors same after a burned palace :: {"rumble":{"i":0,"st":0,"checks":0,"rooms":true},"runs":[{"burned":4,"i":0,"st":0,"bad":0,"nextAt":40,"rooms":true,"attached":"hall","cur":"hall","next":"Next to burn: the outer hall in 40 s"},{"burne
+ok   605 burning budget (tier medium): warned hall + court, falling room in view under 500 calls / 0.5M tris; programs, geometries, textures flat after a full burn + new run :: {"warned":[17,1010,"hall,court",1],"fall":[15,726,"court"],"prog":[8,8,8,8],"geo":[164,164],"tex":[6,6]}
+ok   700 full palace plan: default layout full; 25-30 rooms; 9 school halls, one per school; all room types; 6 wings, every room in one; hall names from TEXT :: {"cfg":"full","layout":"full","n":29,"halls":9,"schools":"dao,fa,ming,mo,nong,ru,yinyang,za,zongheng","want":"dao,fa,ming,mo,nong,ru,yinyang,za,zongheng","types":"bridge,core,corridor,court,garden,hal
+ok   701 full palace reachability: every room reaches the core; every school hall passes >= 5 rooms to the core; one wing burnt cuts no other hall off; depth = doors from the core :: {"reach":true,"depthOk":true,"passed":{"hall_ru":5,"hall_dao":5,"hall_yinyang":7,"hall_fa":7,"hall_ming":5,"hall_za":5,"hall_nong":5,"hall_zongheng":7,"hall_mo":7},"minPassed":5,"cfgMin":5,"cut":{"wes
+ok   702 a palace run starts in the player's own school hall (all nine schools): on its spawn, that hall alone drawn, doors shut :: {"bad":[]}
+ok   703 palace pieces: lions in pairs at hall/gate doors, mercury on bridges + forecourt, smoke in gardens, 华表 in courts, 鼎 in all 9 halls, a clock per burning wing, vats, giants 0-11 on the approach; all inside their rooms :: {"count":{"giant":12,"lion":20,"mercury":7,"huabiao":6,"vat":7,"clock":5,"ding":9,"smoke":6},"inside":true,"lionsAtDoors":true,"lionHalls":9,"ding":true,"clock":"east,south,southeast,southwest,west","
+ok   704 full palace walk: Ru hall > corridor > courtyard > bridge > forecourt > bridge > core (5 rooms between), only the current room + rooms behind its open doors drawn, the core wakes the apex :: {"bad":0,"maxAtt":2,"ok":true,"route":"hall_ru>corr_w>court_w>bridge_wf>fore>approach>","phase":"wake","n":7}
+ok   705 full palace budget per room, tier medium, each door open in turn (calls<500, tris<500k, at most 2 rooms drawn) :: {"maxCalls":23,"maxTris":2982,"worst":"core+approach","maxAtt":2}
+ok   706 palace room minimap: shown; your dot; type colours; warned room red, fallen room an outline, back again; current room outlined; right-click walks there; Rumble minimap back :: {"shown":true,"you":true,"garden":true,"court":true,"warned":true,"fallen":true,"back":true,"curEdge":true,"walked":"corr_w","rumbleMini":true}
+STMT 41 116
+STMT 42 567
+STMT 45 15
+STMT 47 8
+STMT 49 4
+STMT 51 9
+STMT 52 5
+STMT 54 4
+STMT 56 3
+STMT 364 3
+STMT 625 3
+STMT 875 20
+STMT 1247 3
+STMT 1478 6
+STMT 1640 8
+STMT 1780 21
+STMT 1941 18
+STMT 2120 12
+STMT 2275 8
+STMT 2322 51
+STMT 2337 46
+STMT 2352 30
+STMT 2386 43
+STMT 2408 22
+STMT 2421 6040
+STMT 2450 240
+STMT 2469 19
+STMT 2476 39
+STMT 2498 40
+STMT 2518 39
+STMT 2543 33
+STMT 2560 56
+STMT 2575 29
+STMT 2589 4297
+STMT 2621 364
+STMT 2647 14
+STMT 2654 23
+STMT 2673 10
+STMT 2693 10
+STMT 2712 22
+STMT 2740 33
+STMT 2765 11
+STMT 2780 4420
+STMT 2808 253
+STMT 2828 11
+STMT 2837 68
+STMT 2864 6
+STMT 2875 21
+STMT 2901 17
+STMT 2927 21
+STMT 2947 29
+STMT 2975 4661
+STMT 3002 22
+STMT 3017 254
+STMT 3037 9
+STMT 3046 14
+STMT 3063 6
+STMT 3073 22
+STMT 3091 10
+STMT 3106 7
+STMT 3128 312
+STMT 3173 2
+STMT 3179 21
+STMT 3214 4460
+STMT 3241 260
+STMT 3259 601
+STMT 3261 201
+STMT 3263 846
+STMT 3272 5
+STMT 3276 4
+STMT 3285 11540
+STMT 3299 11
+STMT 3302 495
+STMT 3330 559
+STMT 3356 67
+STMT 3375 7
+STMT 3393 6
+STMT 3411 17
+STMT 3430 12175
+STMT 3440 554
+STMT 3454 35
+STMT 3470 12
+STMT 3487 10
+STMT 3491 181
+STMT 3515 22
+STMT 3529 98
+STMT 3546 12
+STMT 3556 79
+STMT 3573 11
+STMT 3582 36
+STMT 3596 318
+STMT 3616 12
+STMT 3625 166
+STMT 3648 8
+STMT 3663 6
+STMT 3684 9
+STMT 3699 6
+STMT 3723 101
+STMT 3740 51
+STMT 3758 14667
+STMT 4081 252
