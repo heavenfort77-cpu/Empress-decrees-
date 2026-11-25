@@ -168,11 +168,15 @@ def assign(arm, act):
     except Exception as e: print('slot note:', e)
 
 def motion(arm, act, bname, dur):
-    """how far the bone's tail travels from its rest place over the clip (max, m), sampled every other frame, before the NLA push."""
-    sc = bpy.context.scene; assign(arm, act); rest = arm.matrix_world @ arm.data.bones[bname].tail_local; best = 0.0
+    """how far the bone's tail travels from its rest place over the clip (max, m), measured in its parent bone's space (so a moving body
+    alone does not count as the limb moving: run 45554531198, the crab's legs frozen still passed on the body's sway), sampled every
+    other frame, before the NLA push. A bone without a parent is measured in the armature's space."""
+    sc = bpy.context.scene; assign(arm, act); b = arm.data.bones[bname]; best = 0.0
+    rest = (b.parent.matrix_local.inverted() @ b.tail_local) if b.parent else b.tail_local.copy()
     for fr in range(1, 2 + round(dur * FPS), 2):
-        sc.frame_set(fr); bpy.context.view_layer.update()
-        best = max(best, ((arm.matrix_world @ arm.pose.bones[bname].tail) - rest).length)
+        sc.frame_set(fr); bpy.context.view_layer.update(); pb = arm.pose.bones[bname]
+        cur = (pb.parent.matrix.inverted() @ pb.tail) if pb.parent else pb.tail
+        best = max(best, (cur - rest).length)
     sc.frame_set(1)
     return best
 

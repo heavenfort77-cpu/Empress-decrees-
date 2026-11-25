@@ -42,6 +42,7 @@ def sil(name): return np.asarray(Image.open(f'{S}/{name}.png').convert('L')) < 1
 
 def fit(m, h=400):
     """crop to the outline, scale to height h, paste bottom-centre on a wide canvas."""
+    if not m.any(): return np.zeros((h, 4 * h), bool)
     ys, xs = np.where(m); c = m[ys.min():ys.max() + 1, xs.min():xs.max() + 1]; w = max(1, round(c.shape[1] * h / c.shape[0]))
     im = np.asarray(Image.fromarray((c * 255).astype(np.uint8)).resize((w, h), Image.NEAREST)) > 128; out = np.zeros((h, 4 * h), bool)
     w = min(w, 4 * h); x0 = (4 * h - w) // 2; out[:, x0:x0 + w] = im[:, :w]; return out

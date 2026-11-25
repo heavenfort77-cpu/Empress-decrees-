@@ -51,10 +51,15 @@ const loader = new GLTFLoader(), mixers = [];
 function place(url, id, x, y, z, { lod = '0', clip = null, t = 0, yaw = 0 } = {}) {
   return new Promise((res, rej) => loader.load(url, (g) => {
     const root = g.scene; root.position.set(x, y, z); root.rotation.y = yaw;
+    // LOD nodes are named <id>_lod0/1/2; a mesh with several materials loads as a group of that name with child meshes (run 45554531198:
+    // the filter looked at the child names and hid everything). Top-level objects without a LOD name (state objects) are hidden.
+    if (lod !== 'all') root.traverse((o) => {
+      const l = /_lod([012])$/.exec(o.name);
+      if (l) { if (l[1] !== lod) o.visible = false; else if (l[1] !== '0') o.position.x = 0; }
+      else if (o.isMesh && !/_lod[012]$/.test(o.parent ? o.parent.name : '')) o.visible = false;
+    });
     root.traverse((o) => {
       if (!o.isMesh) return;
-      const l = /_lod([012])$/.exec(o.name), li = l ? l[1] : null;
-      if (lod !== 'all') { if (li !== lod) { o.visible = false; return; } if (li !== '0') o.position.x = 0; }
       o.frustumCulled = false; o.castShadow = o.receiveShadow = LIT;
       o.material = MODE === 'sil' ? BLACK : MODE === 'mask' ? (id === MASK ? WHITE : BLACK) : mat(o.material);
     });
