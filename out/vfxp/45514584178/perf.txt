@@ -1,0 +1,35 @@
+ROW {"scene":"ref","fps":149.7,"p50":6.9,"p95":15.5,"worst":66.9,"over20":63,"frames":2997,"liveMean":0,"liveMax":0,"gpuMean":2.607,"gpuP50":2.153,"cardGpuMean":0,"cardGpuP95":0,"cardGpuN":64,"long":"","settleFrames":1630,"gpuP95":5.805,"gpuN":64,"calls":4,"tris":578,"progNew":0,"progs":3,"texs":6,"cardTexMB":5.43,"loadMs":1528,"timer":true,"errs":0}
+ROW {"scene":"heavy","fps":159,"p50":7,"p95":13,"worst":50.3,"over20":41,"frames":3185,"liveMean":31,"liveMax":73,"gpuMean":2.372,"gpuP50":2.129,"cardGpuMean":1.02,"cardGpuP95":2.322,"cardGpuN":146,"long":"","settleFrames":1077,"gpuP95":4.638,"gpuN":270,"calls":7,"tris":898,"progNew":0,"progs":5,"texs":6,"cardTexMB":5.43,"loadMs":519,"timer":true,"errs":0}
+ROW {"scene":"heavy_x4","fps":139,"p50":7.3,"p95":16.2,"worst":143.5,"over20":83,"frames":2784,"liveMean":101.8,"liveMax":127,"gpuMean":2.525,"gpuP50":2.134,"cardGpuMean":1.543,"cardGpuP95":3.427,"cardGpuN":122,"long":"12076,144,13505,143","settleFrames":1141,"gpuP95":5.068,"gpuN":261,"calls":7,"tris":898,"progNew":0,"progs":5,"texs":6,"cardTexMB":5.43,"loadMs":440,"timer":true,"errs":0}
+ROW {"scene":"heavy_x4#2","fps":167.2,"p50":6.6,"p95":12.5,"worst":50,"over20":22,"frames":3348,"liveMean":104.5,"liveMax":128,"gpuMean":2.076,"gpuP50":2.066,"cardGpuMean":1.362,"cardGpuP95":1.955,"cardGpuN":177,"long":"","settleFrames":945,"gpuP95":3.212,"gpuN":295,"calls":7,"tris":898,"progNew":0,"progs":5,"texs":6,"cardTexMB":5.43,"loadMs":270,"timer":true,"errs":0}
+ROW {"scene":"heavy#2","fps":160.8,"p50":6.9,"p95":13,"worst":46.9,"over20":46,"frames":3220,"liveMean":31.8,"liveMax":63,"gpuMean":2.451,"gpuP50":2.133,"cardGpuMean":1.103,"cardGpuP95":2.182,"cardGpuN":179,"long":"","settleFrames":1219,"gpuP95":5.557,"gpuN":239,"calls":7,"tris":898,"progNew":0,"progs":5,"texs":6,"cardTexMB":5.43,"loadMs":221,"timer":true,"errs":0}
+ROW {"scene":"ref#2","fps":200.7,"p50":2.8,"p95":12.5,"worst":56.6,"over20":50,"frames":4019,"liveMean":0,"liveMax":0,"gpuMean":2.444,"gpuP50":2.088,"cardGpuMean":0,"cardGpuP95":0,"cardGpuN":102,"long":"","settleFrames":846,"gpuP95":3.78,"gpuN":102,"calls":4,"tris":578,"progNew":0,"progs":3,"texs":6,"cardTexMB":5.43,"loadMs":310,"timer":true,"errs":0}
+
+live cards (mean/max): ref 0/0, heavy 31/73, heavy_x4 101.8/127, heavy_x4#2 104.5/128, heavy#2 31.8/63, ref#2 0/0
+
+scene       fps     p50    p95   worst  >20ms  stageGPU stageP95 cardGPU cardP95 calls  tris   newProg texMB(cards) settleF long frames [t ms from start, ms]
+ref          149.7    6.9   15.5   66.9     63    2.607    5.805       0       0     4    578        0     5.43    1630  
+heavy          159      7     13   50.3     41    2.372    4.638    1.02   2.322     7    898        0     5.43    1077  
+heavy_x4       139    7.3   16.2  143.5     83    2.525    5.068   1.543   3.427     7    898        0     5.43    1141  12076,144,13505,143
+heavy_x4#2   167.2    6.6   12.5     50     22    2.076    3.212   1.362   1.955     7    898        0     5.43     945  
+heavy#2      160.8    6.9     13   46.9     46    2.451    5.557   1.103   2.182     7    898        0     5.43    1219  
+ref#2        200.7    2.8   12.5   56.6     50    2.444     3.78       0       0     4    578        0     5.43     846  
+GATE ref warmup newPrograms 0 PASS
+GATE ref budget calls 4 tris 578 PASS
+GATE ref errors 0 PASS
+GATE heavy warmup newPrograms 0 PASS
+GATE heavy budget calls 7 tris 898 PASS
+GATE heavy errors 0 PASS
+GATE heavy_x4 warmup newPrograms 0 PASS
+GATE heavy_x4 budget calls 7 tris 898 PASS
+GATE heavy_x4 errors 0 PASS
+GATE heavy_x4#2 warmup newPrograms 0 PASS
+GATE heavy_x4#2 budget calls 7 tris 898 PASS
+GATE heavy_x4#2 errors 0 PASS
+GATE heavy#2 warmup newPrograms 0 PASS
+GATE heavy#2 budget calls 7 tris 898 PASS
+GATE heavy#2 errors 0 PASS
+GATE ref#2 warmup newPrograms 0 PASS
+GATE ref#2 budget calls 4 tris 578 PASS
+GATE ref#2 errors 0 PASS
+GATE shots errors 0 PASS 
