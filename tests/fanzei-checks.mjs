@@ -213,7 +213,7 @@ export async function fanzeiChecks(g, check, base) {
       G.step(10);
       const r = G.guards(), rr = G.render(true), tells = r.list.filter((u) => u.alive && u.tellStaged).length + (G.fz().suits[0].zm.on ? 1 : 0);
       const seen = r.list.filter((u) => u.seen).length, counts = Object.values(r.draw).reduce((a, d) => a + d.count, 0);
-      const row = { calls: rr.calls, tris: rr.tris, programs: rr.programs, geoms: rr.geoms, tells, seen, counts, alive: r.n, extra: rr.calls - empty.calls - tells, batches: G.chars().crowdMeshes };
+      const row = { calls: rr.calls, tris: rr.tris, programs: rr.programs, geoms: rr.geoms, tells, seen, counts, alive: r.n, extra: rr.calls - empty.calls - tells, batches: G.chars().crowdDrawn };
       if (!best || row.calls > best.calls) best = row;
     }
     o.best = best;
