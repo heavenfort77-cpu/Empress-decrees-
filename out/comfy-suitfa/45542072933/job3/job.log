@@ -1,0 +1,6 @@
+== preflight A 03:45:43
+PREFLIGHT A PASS
+== preflight B (install, models, 1-step probe) 03:45:43
+torch 2.15.0+cpu diffusers 0.43.0 threads 2
+               total        used        free      shared  buff/cache   available
+Mem:              15           1          11           0           3          14
