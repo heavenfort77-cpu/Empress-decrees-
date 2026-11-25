@@ -1,0 +1,3 @@
+== static
+STATIC PASS (13 perframe blocks, 284 text keys; src: 2 modules, 2 perframe blocks)
+PASS P0 static-check (src/palace_art.js PERFRAME rules)
