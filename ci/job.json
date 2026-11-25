@@ -1,1 +1,1 @@
-{"mode": "shard", "shards": 12, "label": "int17c-r5"}
+{"mode": "cmd", "label": "int17c-diag13", "cmd": "for i in 1 2 3 4; do node ci/shard.mjs 6 12 -v 2>&1 | grep -E \"^(FAIL 306|ok   306|RUNTIME)\" | head -2 | cut -c1-1600; done"}

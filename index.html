@@ -8405,7 +8405,7 @@ window.__game = {
       if (!(m.isMesh || m.isLine || m.isPoints) || m.onAfterRender === crowdTick || m.onAfterRender === rigTick || m.onAfterRender === fxTick) return;
       if ((m.isInstancedMesh && m.count === 0) || (m.frustumCulled && !fr.intersectsObject(m))) return;
       const mats = Array.isArray(m.material) ? m.material : [m.material];
-      for (const mt of mats) { if (!mt.visible) continue; if (m.geometry === tellRingGeo || m.geometry === tellLineGeo) o.tells++; else { const k = (m.name || m.geometry.type) + '/' + (mt.name || mt.type); o.other[k] = (o.other[k] || 0) + 1; } }
+      for (const mt of mats) { if (!mt.visible) continue; if (m.geometry === tellRingGeo || m.geometry === tellLineGeo) o.tells++; else { let mk = mt.name || ''; if (!mk) for (const q in M) if (M[q] === mt) mk = 'M.' + q; const k = (m.name || m.geometry.type) + '/' + (mk || mt.type) + '@' + Math.round(m.matrixWorld.elements[12]) + ',' + Math.round(m.matrixWorld.elements[14]) + '<' + (m.parent ? m.parent.name || m.parent.type : ''); o.other[k] = (o.other[k] || 0) + 1; } }
     });
     return o;
   },
