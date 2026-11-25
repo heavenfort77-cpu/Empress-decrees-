@@ -92,7 +92,9 @@ export async function run(P, X) {
     ok('P10', near > 0 && far < near * 0.6 && mnear > 0 && mfar < mnear * 0.6, `instanced plaster at fog centre ${near}, 60 m out ${far}; mercury ${mnear} / ${mfar} (dim must be < 0.6 x)`); }
   // P11 0 programs in play: warm (rack plus every state) under the card, then every state of every prop, door and burnt swap drawn in the
   // heaviest view: no program is linked after the warm draw.
-  if (W('P11')) { const H = X.heaviest(); const rm = L.byId[H.best.id]; X.attachView(rm, true);
+  if (W('P11')) { const H = X.heaviest(); const rm = L.byId[H.best.id];
+    // A fresh kit: every art program was released at teardown, so only the warm can have compiled what play draws.
+    P.teardown(); X.frame(false); P.build(); kit = P.kit; arts = P.arts; X.attachView(rm, true);
     PA.warmOn(kit, scene, P.cam, arts); r.compile(scene, P.cam); X.frame(true); PA.warmOff(kit, scene, arts); X.frame(true);
     const l0 = window.__gl.link, p0 = r.info.programs.length; let frames = 0;
     for (let k = 0; k < 6; k++) {

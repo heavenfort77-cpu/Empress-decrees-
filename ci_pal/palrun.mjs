@@ -90,9 +90,11 @@ if (MODE === 'checks') {
   MUT = null;
 } else if (MODE === 'perf') {
   // Real GPU: the game's reference scene (as prep-chr / perfgpu: lock, tier medium, no bots) twice around the palace art views.
-  const scenes = (process.env.SCENES || 'reference,pal_med,pal_low,webglmin,reference').split(','), rows = [];
+  const scenes = (process.env.SCENES || 'reference,pal_med,pal_low,pal_quiet,pal_noglc,webglmin,reference').split(','), rows = [];
   for (const name of scenes) {
-    const q = name === 'reference' ? '?lock&tier=medium&bots=0' : name === 'pal_med' ? 'ci_pal/pal.html?mode=perf&tier=medium' : name === 'pal_low' ? 'ci_pal/pal.html?mode=perf&tier=low' : 'ci_pal/webglmin.html';
+    // pal_quiet (no state toggles, so no shadow redraws) and pal_noglc (no GL call counters) are diagnostics: heap and timing only.
+    const q = { reference: '?lock&tier=medium&bots=0', pal_med: 'ci_pal/pal.html?mode=perf&tier=medium', pal_low: 'ci_pal/pal.html?mode=perf&tier=low',
+      pal_quiet: 'ci_pal/pal.html?mode=perf&tier=medium&toggles=0', pal_noglc: 'ci_pal/pal.html?mode=perf&tier=medium&glc=0' }[name] || 'ci_pal/webglmin.html';
     const o = await open(q);
     if (o.err) { gate(false, `${name}: page error ${o.err.slice(0, 200)}`); await o.browser.close(); continue; }
     if (name === 'reference') await o.page.evaluate(() => { if (window.__game && __game.setSeed) { __game.setSeed(12345); __game.reset(); } });
@@ -101,9 +103,10 @@ if (MODE === 'checks') {
       const heap = () => (performance.memory ? +(performance.memory.usedJSHeapSize / 1048576).toFixed(1) : -1), G = window.__gl || null;
       const l0 = G ? G.link : 0, h0 = heap(), d = []; let last = 0, run = true;
       await new Promise((res) => { const f = (t) => { if (last) d.push(t - last); last = t; if (run) requestAnimationFrame(f); else res(); }; requestAnimationFrame(f); setTimeout(() => { run = false; }, TIMED * 1000); });
+      const raw = heap(); if (window.gc) window.gc(); await wait(0.2);
       d.sort((a, b) => a - b); const F = d.length, sum = d.reduce((a, b) => a + b, 0), V = window.__probe && window.__probe.view;
       return { frames: F, fps: F ? +(F / (sum / 1000)).toFixed(1) : 0, p50: F ? +d[Math.floor(F * 0.5)].toFixed(1) : 0, p95: F ? +d[Math.floor(F * 0.95)].toFixed(1) : 0, worst: F ? +d[F - 1].toFixed(1) : 0,
-        over20: F ? +(100 * d.filter((x) => x > 20).length / F).toFixed(1) : 0, links: G ? G.link - l0 : -1, heap0: h0, heap1: heap(),
+        over20: F ? +(100 * d.filter((x) => x > 20).length / F).toFixed(1) : 0, links: G && !G.off ? G.link - l0 : -1, heap0: h0, heapRaw: raw, heap1: heap(),
         view: V ? { id: V.id, counts: V.counts, steady: V.steady, prog0: V.prog0, prog1: V.programs(), props: V.propsN, doors: V.doorsN } : null };
     }, { SETTLE, TIMED });
     const row = { scene: name, loadMs: o.loadMs, errs: o.errs.length, gpu: await renderer(o.page), ...r }; rows.push(row); console.log('ROW ' + JSON.stringify(row));
@@ -113,11 +116,12 @@ if (MODE === 'checks') {
   const gpu = rows[0] ? rows[0].gpu : 'none'; console.log('RENDERER ' + gpu + (/swiftshader|llvmpipe|software/i.test(gpu) ? '  (NOT a real GPU)' : ''));
   const refs = rows.filter((x) => x.scene === 'reference' && x.frames > 0), refP95 = refs.length ? refs.reduce((a, x) => a + x.p95, 0) / refs.length : 0, refFps = refs.length ? refs.reduce((a, x) => a + x.fps, 0) / refs.length : 0;
   gate(refs.length === 2 && !/swiftshader|llvmpipe|software/i.test(gpu), `reference measured twice on a real GPU: ${refs.map((x) => x.fps + ' fps p95 ' + x.p95).join(' / ')} (${gpu})`);
-  for (const x of rows.filter((y) => y.scene.startsWith('pal_'))) {
+  for (const x of rows.filter((y) => y.scene === 'pal_med' || y.scene === 'pal_low')) {
     const lim = Math.max(refP95 * 1.25, refP95 + 2), V = x.view || {};
     gate(x.frames > 0 && V.props > 0 && refP95 > 0 && x.p95 <= lim && x.p95 <= 16.7, `${x.scene} ${V.id}: ${x.fps} fps p95 ${x.p95} ms (limit ${lim.toFixed(1)} = max(1.25 x ref ${refP95.toFixed(1)}, ref + 2), and 16.7) worst ${x.worst} ms; ref ${refFps.toFixed(1)} fps`);
     gate(x.frames > 0 && x.worst < 100, `${x.scene}: worst frame ${x.worst} ms < 100 (over 20 ms: ${x.over20} %)`);
     gate(x.frames > 0 && x.links === 0 && V.prog0 > 0 && V.prog1 === V.prog0, `${x.scene}: programs linked in play ${x.links} (programs ${V.prog0} -> ${V.prog1}), ${V.props} props and ${V.doors} doors toggling every 0.5 s`);
+    gate(x.frames > 0 && x.heap0 > 0 && x.heap1 - x.heap0 < 2, `${x.scene}: JS heap after GC ${x.heap0} -> ${x.heap1} MB over ${TIMED} s of play (< 2 MB; before GC ${x.heapRaw} MB)`);
     gate(V.counts && V.counts.calls > 0 && V.counts.calls < 500 && V.counts.tris < 500000, `${x.scene}: GL draws ${V.counts && V.counts.calls} (steady ${V.steady && V.steady.calls}), triangles ${V.counts && V.counts.tris} (shadow frame) < 500 / 0.5M`);
   }
   // Memory cycles on the real GPU (P14) with the JS heap.
@@ -125,9 +129,10 @@ if (MODE === 'checks') {
   const cs = o.err ? [] : await o.page.evaluate(() => window.__checks || []), c = cs.find((y) => y.id === 'P14');
   gate(!o.err && c && c.ok, 'real GPU ' + (c ? c.line.slice(0, 400) : o.err || 'P14 did not run'));
   await o.browser.close();
-  const t = ['scene        fps     p50   p95   worst  >20ms%  draws  tris     links heapMB'];
+  for (const x of rows.filter((y) => y.scene === 'pal_quiet' || y.scene === 'pal_noglc')) console.log(`INFO ${x.scene}: ${x.fps} fps p95 ${x.p95} heap ${x.heap0} -> raw ${x.heapRaw} -> after GC ${x.heap1} MB`);
+  const t = ['scene        fps     p50   p95   worst  >20ms%  draws  tris     links heapMB (start-raw-afterGC)'];
   for (const x of rows) t.push([x.scene.padEnd(12), String(x.fps).padStart(6), String(x.p50).padStart(6), String(x.p95).padStart(5), String(x.worst).padStart(6), String(x.over20).padStart(6),
-    String(x.view && x.view.counts ? x.view.counts.calls : '').padStart(6), String(x.view && x.view.counts ? x.view.counts.tris : '').padStart(8), String(x.links).padStart(5), (x.heap0 + '-' + x.heap1).padStart(11)].join(' '));
+    String(x.view && x.view.counts ? x.view.counts.calls : '').padStart(6), String(x.view && x.view.counts ? x.view.counts.tris : '').padStart(8), String(x.links).padStart(5), (x.heap0 + '-' + x.heapRaw + '-' + x.heap1).padStart(17)].join(' '));
   console.log(t.join('\n')); await writeFile(OUT + '/perf_table.txt', t.join('\n') + '\n');
 }
 console.log(`RESULT ${pass} of ${pass + fail}${fail ? ' (FAIL)' : ''}`);
