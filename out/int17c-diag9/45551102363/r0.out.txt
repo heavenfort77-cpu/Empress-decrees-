@@ -1,0 +1,76 @@
+PATCHED_EARLY true
+A rumble0 {"geoms":454,"texs":53,"programs":17} live GL textures 57
+A cycle 0 palace {"geoms":543,"texs":87,"programs":46} live 91 rumble {"geoms":455,"texs":54,"programs":22} left 1
+  LEFT #92 Xa name= u=fd49b60e src=c620b7a9 1024x1024 wrap=1000 an=4 cs=srgb fmt=36492 min=1008 flipY=false disposed=1 | first draw by Scene
+A cycle 1 palace {"geoms":543,"texs":88,"programs":46} live 92 rumble {"geoms":455,"texs":55,"programs":22} left 1
+  LEFT #127 Xa name= u=b9d7a036 src=81e58907 1024x1024 wrap=1000 an=4 cs=srgb fmt=36492 min=1008 flipY=false disposed=1 | first draw by Scene
+A cycle 2 palace {"geoms":543,"texs":89,"programs":46} live 93 rumble {"geoms":455,"texs":56,"programs":22} left 1
+  LEFT #162 Xa name= u=5d9735b0 src=aec7988d 1024x1024 wrap=1000 an=4 cs=srgb fmt=36492 min=1008 flipY=false disposed=1 | first draw by Scene
+B pg [46,46,543,556]
+B near: 13 new geometries
+  NEWGEO 1x BufferGeometry verts 2148 r 1.37 by Scene mat ?
+  NEWGEO 1x BufferGeometry verts 32 r 0.84 by Scene mat ?
+  NEWGEO 1x BufferGeometry verts 48 r 0.41 by Scene mat ?
+  NEWGEO 1x BufferGeometry verts 60 r 0.82 by Scene mat ?
+  NEWGEO 1x BufferGeometry verts 577 r 0.96 by Scene mat ?
+  NEWGEO 1x BufferGeometry verts 1866 r 2.88 by Scene mat ?
+  NEWGEO 1x BufferGeometry verts 132 r 2.60 by Scene mat ?
+  NEWGEO 1x BufferGeometry verts 34 r 2.27 by Scene mat ?
+  NEWGEO 1x BufferGeometry verts 107 r 0.72 by Scene mat ?
+  NEWGEO 1x BufferGeometry verts 754 r 1.04 by Scene mat ?
+  NEWGEO 1x BufferGeometry verts 50 r 0.56 by Scene mat ?
+  NEWGEO 1x BufferGeometry verts 24 r 0.11 by Scene mat ?
+  NEWGEO 1x BufferGeometry verts 86 r 0.15 by Scene mat ?
+B court: 0 new geometries
+B trips: 0 new geometries
+C before {"calls":46,"tris":38700,"programs":46,"geoms":556,"texs":90} live 94; after {"calls":46,"tris":38700,"programs":22,"geoms":43,"texs":48} live 52; led {"kind":"restore","draws":92,"prog0":0,"prog1":22,"tex0":0,"tex1":48,"fmt":[],"failed":[],"capped":false,"ms":448,"t0":35194.2,"n":1}
+  NOTBACK NO-THREE-TEXTURE (render target or other) | by ?
+  NOTBACK NO-THREE-TEXTURE (render target or other) | by ?
+  NOTBACK NO-THREE-TEXTURE (render target or other) | by ?
+  NOTBACK NO-THREE-TEXTURE (render target or other) | by ?
+  NOTBACK NO-THREE-TEXTURE (render target or other) | by Scene
+  NOTBACK Vo name= u=6bd20e2d src=18cbac77 12x12 wrap=1001 an=1 cs= fmt=1023 min=1003 flipY=false | by nong_l2_sLam<Group<LOD<nong_rig<chr_nong
+  NOTBACK Vo name= u=597574ff src=715cb282 12x12 wrap=1001 an=1 cs= fmt=1023 min=1003 flipY=false | by fa_l2_sLam<Group<LOD<fa_rig<chr_fa
+  NOTBACK Vo name= u=b0f88f95 src=1d1a6719 12x12 wrap=1001 an=1 cs= fmt=1023 min=1003 flipY=false | by yy_l2_sLam<Group<LOD<yy_rig<chr_yy
+  NOTBACK Vo name= u=4bd18697 src=fa836651 12x12 wrap=1001 an=1 cs= fmt=1023 min=1003 flipY=false | by zh_l0_sLam<Group<LOD<zh_rig<chr_zh
+  NOTBACK Vo name= u=7f0862c2 src=66386919 12x12 wrap=1001 an=1 cs= fmt=1023 min=1003 flipY=false | by mo_l1_sLam<Group<LOD<mo_rig<chr_mo
+  NOTBACK Vo name= u=51b0135d src=d27d7e46 12x12 wrap=1001 an=1 cs= fmt=1023 min=1003 flipY=false | by za_l2_sLam<Group<LOD<za_rig<chr_za
+  NOTBACK Vo name= u=a4164fc9 src=e7733e85 12x12 wrap=1001 an=1 cs= fmt=1023 min=1003 flipY=false | by dao_l0_sLam<Group<LOD<dao_rig<chr_dao
+  NOTBACK Vo name= u=3814acd6 src=337e097e 12x12 wrap=1001 an=1 cs= fmt=1023 min=1003 flipY=false | by ming_l2_sLam<Group<LOD<ming_rig<chr_ming
+  NOTBACK Vo name= u=261557f8 src=d8668360 12x12 wrap=1001 an=1 cs= fmt=1023 min=1003 flipY=false | by howler_l0_apexBronze<Group<LOD<howler_rig<chr_howler
+  NOTBACK Vo name= u=877e9f3c src=a4a0f043 12x12 wrap=1001 an=1 cs= fmt=1023 min=1003 flipY=false | by howler_l0_apexBronze<Group<LOD<howler_rig<chr_howler
+  NOTBACK Vo name= u=b0054598 src=58bdf110 12x12 wrap=1001 an=1 cs= fmt=1023 min=1003 flipY=false | by howler_l0_apexBronze<Group<LOD<howler_rig<chr_howler
+  NOTBACK Vo name= u=de16b9f1 src=ddf2acb8 12x12 wrap=1001 an=1 cs= fmt=1023 min=1003 flipY=false | by tiger_l1_apexBronze<Group<LOD<tiger_rig<chr_tiger
+  NOTBACK Vo name= u=949a3a03 src=21728c28 12x12 wrap=1001 an=1 cs= fmt=1023 min=1003 flipY=false | by howler_l0_apexBronze<Group<LOD<howler_rig<chr_howler
+  NOTBACK Vo name= u=f7dcd877 src=ea85f55b 12x12 wrap=1001 an=1 cs= fmt=1023 min=1003 flipY=false | by stalker_l1_apexBronze<Group<LOD<stalker_rig<chr_stalker
+  NOTBACK Vo name= u=6c239114 src=bcc2a416 12x12 wrap=1001 an=1 cs= fmt=1023 min=1003 flipY=false | by stalker_l1_apexBronze<Group<LOD<stalker_rig<chr_stalker
+  NOTBACK Vo name= u=111b4ea9 src=27a19a87 12x12 wrap=1001 an=1 cs= fmt=1023 min=1003 flipY=false | by stalker_l1_apexBronze<Group<LOD<stalker_rig<chr_stalker
+  NOTBACK Vo name= u=a1d491ac src=557e411d 12x12 wrap=1001 an=1 cs= fmt=1023 min=1003 flipY=false | by stalker_l1_apexBronze<Group<LOD<stalker_rig<chr_stalker
+  NOTBACK Vo name= u=d0fe0d96 src=e28852e7 12x12 wrap=1001 an=1 cs= fmt=1023 min=1003 flipY=false | by stalker_l1_apexBronze<Group<LOD<stalker_rig<chr_stalker
+  NOTBACK Vo name= u=c1a9ad91 src=e12533e5 12x12 wrap=1001 an=1 cs= fmt=1023 min=1003 flipY=false | by g5_l1_palBronze<Group<LOD<giant_rig<chr_g5
+  NOTBACK Vo name= u=331c8273 src=a29226c9 12x12 wrap=1001 an=1 cs= fmt=1023 min=1003 flipY=false | by g7_l0_palBronze<Group<LOD<giant_rig<chr_g7
+  NOTBACK Vo name= u=7fbd16ea src=ead84b74 12x12 wrap=1001 an=1 cs= fmt=1023 min=1003 flipY=false | by g6_l0_palBronze<Group<LOD<giant_rig<chr_g6
+  NOTBACK Vo name= u=f296fd96 src=d9d2165c 12x12 wrap=1001 an=1 cs= fmt=1023 min=1003 flipY=false | by g11_l0_palBronze<Group<LOD<giant_rig<chr_g11
+  NOTBACK Vo name= u=303c0530 src=17e28d46 12x12 wrap=1001 an=1 cs= fmt=1023 min=1003 flipY=false | by g8_l0_palBronze<Group<LOD<giant_rig<chr_g8
+  NOTBACK Vo name= u=fb503e72 src=9c8d41d4 12x12 wrap=1001 an=1 cs= fmt=1023 min=1003 flipY=false | by g10_l0_palBronze<Group<LOD<giant_rig<chr_g10
+  NOTBACK Vo name= u=b1189d1a src=4df3a8bf 12x12 wrap=1001 an=1 cs= fmt=1023 min=1003 flipY=false | by g9_l0_palBronze<Group<LOD<giant_rig<chr_g9
+  NOTBACK Vo name= u=5f4e6c91 src=d5fec677 12x12 wrap=1001 an=1 cs= fmt=1023 min=1003 flipY=false | by g4_l1_palBronze<Group<LOD<giant_rig<chr_g4
+  NOTBACK Vo name= u=615eab6c src=85d82a9c 12x12 wrap=1001 an=1 cs= fmt=1023 min=1003 flipY=false | by g1_l0_palBronze<Group<LOD<giant_rig<chr_g1
+  NOTBACK Vo name= u=af2c8e58 src=f78c26d1 12x12 wrap=1001 an=1 cs= fmt=1023 min=1003 flipY=false | by g3_l0_palBronze<Group<LOD<giant_rig<chr_g3
+  NOTBACK Vo name= u=8d0e53dd src=317c5bfe 12x12 wrap=1001 an=1 cs= fmt=1023 min=1003 flipY=false | by g0_l2_palBronze<Group<LOD<giant_rig<chr_g0
+  NOTBACK Vo name= u=869e2a6e src=7d9415e6 12x12 wrap=1001 an=1 cs= fmt=1023 min=1003 flipY=false | by g2_l1_palBronze<Group<LOD<giant_rig<chr_g2
+  NOTBACK Vo name= u=855f6d36 src=ffb43751 36x248 wrap=1001 an=1 cs= fmt=1023 min=1003 flipY=false | by zu_l0_gdBronze<Scene
+  NOTBACK Vo name= u=9fe2b597 src=ce7608f4 36x266 wrap=1001 an=1 cs= fmt=1023 min=1003 flipY=false | by nu_l0_gdBronze<Scene
+  NOTBACK Vo name= u=9c4c9ba6 src=abe1838f 36x248 wrap=1001 an=1 cs= fmt=1023 min=1003 flipY=false | by dun_l0_gdBronze<Scene
+  NOTBACK Vo name= u=36013540 src=af0b2c58 16x282 wrap=1001 an=1 cs= fmt=1023 min=1003 flipY=false | by che_l0_gdBronze<Scene
+  NOTBACK Vo name= u=ea0aeaca src=4a2211f5 40x248 wrap=1001 an=1 cs= fmt=1023 min=1003 flipY=false | by wz_l0_gdBronze<Scene
+  NOTBACK Vo name= u=f0a4e1f7 src=4f7b153c 64x271 wrap=1001 an=1 cs= fmt=1023 min=1003 flipY=false | by ls_l0_rbCloth<Scene
+  NOTBACK Vo name= u=4fa0187b src=3d7f07f4 64x271 wrap=1001 an=1 cs= fmt=1023 min=1003 flipY=false | by fs_l0_rbCloth<Scene
+  NOTBACK Vo name= u=bc63ed15 src=337b0db3 72x256 wrap=1001 an=1 cs= fmt=1023 min=1003 flipY=false | by ss_l0_rbCloth<Scene
+  NOTBACK Vo name= u=02c297de src=498aaf4e 68x259 wrap=1001 an=1 cs= fmt=1023 min=1003 flipY=false | by qs_l0_rbCloth<Scene
+  NOTBACK Xa name= u=fd49b60e src=c620b7a9 1024x1024 wrap=1000 an=4 cs=srgb fmt=36492 min=1008 flipY=false | by Scene
+  NOTBACK Xa name= u=b9d7a036 src=81e58907 1024x1024 wrap=1000 an=4 cs=srgb fmt=36492 min=1008 flipY=false | by Scene
+  NOTBACK Xa name= u=5d9735b0 src=aec7988d 1024x1024 wrap=1000 an=4 cs=srgb fmt=36492 min=1008 flipY=false | by Scene
+D {"seed":12345,"zi":4,"copyAtStart":0,"alive":9622,"store":5471,"full":555,"both":555,"chMax":100,"chEnd":100,"ultMode":"","stores":["zongheng:1@69 ch37","ming:1@150 ch92"],"copies":0,"full100":100}
+D {"seed":2,"zi":4,"copyAtStart":0,"alive":10314,"store":2631,"full":2210,"both":2210,"chMax":100,"chEnd":100,"ultMode":"","stores":["fa:2@128 ch66","?@152 ch100","zongheng:0@171 ch100"],"copies":0,"full100":100}
+D {"seed":3,"zi":4,"copyAtStart":0,"alive":10089,"store":198,"full":383,"both":198,"chMax":100,"chEnd":100,"ultMode":"","stores":["nong:2@165 ch100"],"copies":0,"full100":100}
