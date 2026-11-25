@@ -62,7 +62,7 @@ for st in ('desk', 'phone'):
             c['ok'] = c['psnr'] >= 35 and c['de'] <= 2 and c['aflip'] <= 0.01; res[mode] = c
         m = 'etc1s' if res.get('etc1s', {}).get('ok') else 'uastc'
         c = res.get(m)
-        if c is None: continue
+        if c is None: (t2bad if st == 'desk' else t3bad).append(f'{n} not decoded'); continue
         pick[f'{st}/{n}'] = {'mode': m, 'psnr': round(c['psnr'], 2), 'de': round(c['de'], 3), 'de95': round(c['de95'], 2), 'aflip': round(c['aflip'], 4), 'orient': c['orient'], 'bytes': os.path.getsize(f'{S}/{st}/{m}/{n}.ktx2'),
                              'etc1s': {k: round(v, 3) for k, v in res.get('etc1s', {}).items() if k in ('psnr', 'de', 'aflip')}}
         if not (c['psnr'] >= 35 and c['de'] <= 2): (t2bad if st == 'desk' else t3bad).append(f'{n} {m} psnr {c["psnr"]:.1f} dE {c["de"]:.2f}')
@@ -72,13 +72,14 @@ gate('T1 encode + load (rgba route)', not t1bad, f'{sum(len(v) for v in src.valu
 gate('T2 desk PSNR >= 35 and dE <= 2', not t2bad, f'{len(src["desk"]) - len(t2bad)} of {len(src["desk"])}' + (' bad ' + '; '.join(t2bad) if t2bad else ''))
 gate('T3 phone PSNR >= 35 and dE <= 2', not t3bad, f'{len(src["phone"]) - len(t3bad)} of {len(src["phone"])}' + (' bad ' + '; '.join(t3bad) if t3bad else ''))
 na = sum(1 for k, v in pick.items() if v['aflip'] > 0 or 'card' in k or k.split('/')[1] in ('garden_plants', 'school_standards', 'signal_flags', 'star_inlay'))
-gate('T4 alpha flips <= 1%', not t4bad, 'alpha textures checked; worst ' + str(max([v['aflip'] for v in pick.values()] + [0])) + (' bad ' + ' '.join(t4bad) if t4bad else ''))
+nalpha = sum(1 for k, v in pick.items() if k.startswith('desk/') and np.asarray(Image.open(f'{S}/src/desk/{k[5:]}.png').convert('RGBA'))[..., 3].min() < 255)
+gate('T4 alpha flips <= 1%', not t4bad and nalpha >= 6, f'{nalpha} alpha textures (desk) checked; worst ' + str(max([v['aflip'] for v in pick.values()] + [0])) + (' bad ' + ' '.join(t4bad) if t4bad else ''))
 def texcheck(d):
     r = subprocess.run([sys.executable, f'{R}/art/tools/tex_check.py', d], capture_output=True, text=True); return set(l.strip() for l in r.stdout.splitlines() if l.startswith('FAIL')), r.stdout
 srcdir = f'{O}/srcpng'; os.makedirs(srcdir, exist_ok=True)
 for n in src['desk']: shutil.copy(f'{S}/src/desk/{n}.png', f'{srcdir}/{n}.png')
 fs, _ = texcheck(srcdir); fd, outd = texcheck(f'{O}/decoded'); new = sorted(fd - fs)
-gate('T5 tex_check ratchet (decoded vs source)', not new, f'source FAIL lines {len(fs)}, decoded {len(fd)}, new {len(new)}' + (' : ' + ' | '.join(new[:6]) if new else ''))
+gate('T5 tex_check ratchet (decoded vs source)', not new and len(os.listdir(f'{O}/decoded')) == len(src['desk']) and len(src['desk']) > 0, f'source FAIL lines {len(fs)}, decoded {len(fd)}, new {len(new)}' + (' : ' + ' | '.join(new[:6]) if new else ''))
 t6bad = []
 for k, v in pick.items():
     st, n = k.split('/'); g = gpu.get(f'gpu/{st}/{v["mode"]}/{n}')
@@ -86,7 +87,7 @@ for k, v in pick.items():
     if not g or not g.get('ok') or g.get('mips', 0) < want or g.get('err'): t6bad.append(f'{k} {g and (g.get("mips"), g.get("err"), g.get("ok"))}')
 caps = json.load(open(f'{O}/caps_gpu.json'))
 fmts = sorted(set(str(gpu[t]['format']) for t in gpu if gpu[t].get('ok')))
-gate('T6 GPU route loads every picked file with full mips', not t6bad, f'{len(pick) - len(t6bad)} of {len(pick)}; formats {fmts}; caps ' + json.dumps({k: caps[k] for k in caps if k != 'workerConfig'}) + (' bad ' + '; '.join(t6bad[:6]) if t6bad else ''))
+gate('T6 GPU route loads every picked file with full mips', not t6bad and len(pick) == len(src['desk']) + len(src['phone']) and len(pick) > 0, f'{len(pick) - len(t6bad)} of {len(pick)}; formats {fmts}; caps ' + json.dumps({k: caps[k] for k in caps if k != 'workerConfig'}) + (' bad ' + '; '.join(t6bad[:6]) if t6bad else ''))
 # Texture mutants
 mm = {}
 for f in sorted(glob.glob(f'{S}/mut/*.ktx2')):
@@ -106,7 +107,7 @@ real = [t for t in rows if not t.startswith('mut/')]
 def mgates(r):
     if not r.get('ok'): return {'M1': False}
     a, b = r['a'], r['b']; g = {'M1': True}
-    g['M2'] = len(a['meshes']) == len(b['meshes']) and all(x['tris'] == y['tris'] and x['name'] == y['name'] for x, y in zip(a['meshes'], b['meshes']))
+    g['M2'] = len(a['meshes']) == len(b['meshes']) and all(x['tris'] == y['tris'] for x, y in zip(a['meshes'], b['meshes']))
     g['M3'] = len(a['meshes']) == len(b['meshes']) and all(max(abs(p - q) for p, q in zip(x['min'] + x['max'], y['min'] + y['max'])) <= 0.002 for x, y in zip(a['meshes'], b['meshes']))
     g['M4'] = len(a['clips']) == len(b['clips']) and all(x[0] == y[0] and abs(x[1] - y[1]) <= 0.001 for x, y in zip(a['clips'], b['clips']))
     g['M5'] = all(x['joints'] == y['joints'] for x, y in zip(a['meshes'], b['meshes']))

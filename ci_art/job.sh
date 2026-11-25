@@ -3,7 +3,7 @@
 set -uo pipefail
 R=$PWD; S=$R/stage; mkdir -p "$S/mutsrc"
 echo "== tools"
-URL=$(curl -fsSL https://api.github.com/repos/KhronosGroup/KTX-Software/releases/latest | python3 -c "import json,sys; a=json.load(sys.stdin)['assets']; print(next(x['browser_download_url'] for x in a if x['name'].endswith('Linux-x86_64.deb')))")
+URL=https://github.com/KhronosGroup/KTX-Software/releases/download/v4.3.2/KTX-Software-4.3.2-Linux-x86_64.deb
 echo "KTX deb $URL"; curl -fsSL -o /tmp/ktx.deb "$URL" && sudo apt-get install -y -qq /tmp/ktx.deb >/dev/null 2>&1; toktx --version || echo "TOKTX MISSING"
 mkdir -p /tmp/gt && (cd /tmp/gt && npm init -y >/dev/null && npm install --no-audit --no-fund @gltf-transform/cli@4 @gltf-transform/core@4 >/dev/null 2>&1); export GT=/tmp/gt/node_modules/.bin/gltf-transform; $GT --version || echo "GT MISSING"
 cp art/tools/int17/mut_models.mjs /tmp/gt/ && (cd /tmp/gt && node mut_models.mjs "$R" "$S/mutsrc")

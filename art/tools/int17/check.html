@@ -85,7 +85,13 @@ window.runModels = async (list) => {
   for (const [src, comp, tag] of list) {
     try {
       const t0 = performance.now(); const a = await gltf.loadAsync(src); const b = await gltf.loadAsync(comp); const ms = Math.round(performance.now() - t0);
-      const fa = facts(a), fb = facts(b), pa = poses(a), pb = poses(b), ma = meshesOf(a.scene), mb = meshesOf(b.scene);
+      // Meshes are paired by name, not by order: the encoder may reorder children and wraps a quantised mesh's object as <name>_1.
+      const ma = meshesOf(a.scene), mb0 = meshesOf(b.scene), byName = new Map(mb0.map((m) => [m.name, m]));
+      const mb = ma.map((m) => byName.get(m.name) || byName.get(m.name + '_1') || byName.get(m.name.replace(/_1$/, '')) || null);
+      if (mb.some((m) => !m) || mb0.length !== ma.length) throw new Error('mesh names differ: ' + ma.map((m) => m.name).join(',') + ' vs ' + mb0.map((m) => m.name).join(','));
+      const order = (g, list) => { const all = meshesOf(g.scene); return list.map((m) => all.indexOf(m)); };
+      const fa = facts(a), fb0 = facts(b), ob = order(b, mb), fb = { meshes: ob.map((i) => fb0.meshes[i]), clips: fb0.clips };
+      const pa = poses(a), pb0 = poses(b), pb = pb0.map((p) => ({ pose: p.pose, pos: ob.map((i) => p.pos[i]) }));
       let wpos = 0, wpose = '', wuv = 0;
       if (ma.length === mb.length) {
         for (let p = 0; p < pa.length && p < pb.length; p++) for (let i = 0; i < ma.length; i++) { const d = worst(pa[p].pos[i], pb[p].pos[i]); if (d > wpos) { wpos = d; wpose = pa[p].pose + ' ' + ma[i].name; } }
