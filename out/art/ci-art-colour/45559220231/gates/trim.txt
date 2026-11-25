@@ -1,0 +1,18 @@
+PASS suit_lamellar_qin fa cord: p70 relative luminance 0.568 (min 0.21)
+PASS suit_lamellar_qin ru cord: p70 relative luminance 0.241 (min 0.21)
+PASS suit_lamellar_qin dao cord: p70 relative luminance 0.466 (min 0.21)
+PASS suit_lamellar_qin mo cord: p70 relative luminance 0.223 (min 0.21)
+PASS suit_lamellar_qin za cord: p70 relative luminance 0.463 (min 0.21)
+PASS suit_lamellar_qin ming cord: p70 relative luminance 0.237 (min 0.21)
+PASS suit_lamellar_qin zh cord: p70 relative luminance 0.245 (min 0.21)
+PASS suit_lamellar_qin nong cord: p70 relative luminance 0.216 (min 0.21)
+PASS suit_lamellar_qin lam_black no stripe: median relative luminance 0.016 (max 0.1)
+PASS suit_lamellar_qin lam_brown no stripe: median relative luminance 0.014 (max 0.1)
+PASS suit_lamellar_qin plate_brown lacquer value: mean lum 34 (20-45), saturation 0.35 (max 0.42)
+PASS suit_lamellar_qin lam_brown lacquer value: mean lum 31 (20-45), saturation 0.36 (max 0.42)
+PASS suit_lamellar_qin plate_black value: mean lum 36 (20-60)
+13 of 13 pass
+MUT caught approved sheet -> mo cord
+MUT caught approved sheet -> ming cord
+MUT caught approved sheet -> plate_brown lacquer value
+3 of 3 mutations caught

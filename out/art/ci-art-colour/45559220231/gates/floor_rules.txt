@@ -1,0 +1,29 @@
+PASS hall_floor floor luminance: texture relative luminance 0.190 (0.167-0.26); mean lum 114
+PASS hall_floor own marks: p95/p5 contrast 1.25:1 (max 1.3)
+PASS hall_floor contrast: lum sd 8.6 (8.0-12.0)
+PASS hall_floor stroke scale: autocorrelation half-width 12 x 10 px (max 20, x:y max 2.0)
+PASS hall_floor saturation: 0.52 (0.48-0.55)
+PASS hall_floor outliers: dark 0.0% (max 2.5%), light 2.5% (max 5%)
+PASS stone_paving floor luminance: texture relative luminance 0.249 (0.167-0.26); mean lum 136
+PASS stone_paving saturation: 0.10 (cap 0.55)
+NOTE stone_paving own marks p95/p5 1.31:1, lum sd 9.1, autocorrelation 6 x 3 px
+PASS floor_tiles floor luminance: texture relative luminance 0.197 (0.167-0.26); mean lum 122
+PASS floor_tiles saturation: 0.10 (cap 0.55)
+NOTE floor_tiles own marks p95/p5 1.70:1, lum sd 8.7, autocorrelation 4 x 7 px
+PASS garden_ground floor luminance: texture relative luminance 0.198 (0.167-0.26); mean lum 122
+PASS garden_ground saturation: 0.33 (cap 0.55)
+NOTE garden_ground own marks p95/p5 1.28:1, lum sd 9.7, autocorrelation 4 x 3 px
+PASS bridge_deck floor luminance: texture relative luminance 0.198 (0.167-0.26); mean lum 121
+PASS bridge_deck saturation: 0.45 (cap 0.55)
+NOTE bridge_deck own marks p95/p5 1.33:1, lum sd 6.5, autocorrelation 8 x 65 px
+CONTROL round 2 hall floor fails floor luminance: texture relative luminance 0.081 (0.167-0.26); mean lum 77
+CONTROL round 2 hall floor fails own marks: p95/p5 contrast 1.55:1 (max 1.3)
+PASS hall_floor_cand contrast: lum sd 9.1 (8.0-12.0)
+CONTROL round 2 hall floor fails stroke scale: autocorrelation half-width 39 x 10 px (max 20, x:y max 2.0)
+PASS hall_floor_cand saturation: 0.52 (0.48-0.55)
+PASS hall_floor_cand outliers: dark 0.0% (max 2.5%), light 0.3% (max 5%)
+17 of 20 pass
+MUT caught hall_floor dark -> floor luminance
+MUT caught hall_floor noisy -> own marks
+MUT caught hall_floor streak -> stroke scale
+3 of 3 mutations caught

@@ -1,0 +1,26 @@
+id_d10.5 ok
+id_d14 ok
+old_cur_d10.5 ok
+old_cur_d14 ok
+new_cur_d10.5 ok
+new_cur_d14 ok
+new_a_d10.5 ok
+new_a_d14 ok
+new_b_d10.5 ok
+new_b_d14 ok
+close_old_cur_0 ok
+close_old_cur_1 ok
+close_old_cur_2 ok
+hall_old_cur ok
+hall_low_old_cur ok
+close_new_a_0 ok
+close_new_a_1 ok
+close_new_a_2 ok
+hall_new_a ok
+hall_low_new_a ok
+floor_stone_paving ok
+floor_floor_tiles_prop ok
+floor_garden_ground_prop ok
+floor_bridge_deck_prop ok
+shots 24 of 24 ok
+PASS colour shots: all rendered
