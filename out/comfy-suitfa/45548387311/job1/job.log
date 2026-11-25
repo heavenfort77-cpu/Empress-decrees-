@@ -1,0 +1,7 @@
+== preflight A 04:41:10
+PREFLIGHT A PASS
+== preflight B (install, models, 1-step probe) 04:41:51
+torch 2.15.0+cpu diffusers 0.43.0 threads 2
+               total        used        free      shared  buff/cache   available
+Mem:              15           1          11           0           3          14
+cpu: AMD EPYC 9V74 80-Core Processor, nproc 4, bf16 flags:  (none = no native bf16), avx512f: 0
