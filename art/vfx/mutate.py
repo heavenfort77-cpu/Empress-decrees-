@@ -3,7 +3,7 @@
 import sys, json, os, shutil, subprocess, tempfile
 import numpy as np
 from PIL import Image
-A, FLOOR, MAP = sys.argv[1:4]; HERE = os.path.dirname(os.path.abspath(__file__))
+A, FLOOR, MAP = sys.argv[1:4]; HERE = os.path.dirname(os.path.abspath(__file__)); sys.path.insert(0, HERE)
 M = json.load(open(f'{A}/vfx.json'))
 
 def cell(e, i):
@@ -35,7 +35,13 @@ def m_not_empty(d, m):
 def m_json(d, m): os.remove(f'{d}/fx_thrust.json')
 def m_no_tell(d, m): m['items'][[i['id'] for i in m['items']].index('g_volley')].pop('tell')
 
-MUTS = [('timing', m_loop_blank), ('cells', m_border), ('map', m_windup), ('floor_read', m_dark_tell), ('face', m_face), ('timing', m_not_empty), ('json', m_json), ('map', m_no_tell)]
+def m_pair(d, m):
+    # za back on the old silver with the warm white: the fa / za pair collapses on the ramp texture the game samples
+    import ramps as R
+    rows = M['ramps']['rows']; p = f'{d}/{M["ramps"]["file"]}'; a = np.array(Image.open(p))
+    a[rows.index('za')] = np.round(R.ramp_rgb('#c8ccd0') * 255).astype(np.uint8); Image.fromarray(a).save(p)
+
+MUTS = [('school_pairs', m_pair), ('timing', m_loop_blank), ('cells', m_border), ('map', m_windup), ('floor_read', m_dark_tell), ('face', m_face), ('timing', m_not_empty), ('json', m_json), ('map', m_no_tell)]
 caught = 0
 for want, fn in MUTS:
     d = tempfile.mkdtemp(); shutil.copytree(A, d, dirs_exist_ok=True); m = json.load(open(MAP)); fn(d, m); mp = f'{d}/map.json'; json.dump(m, open(mp, 'w'))

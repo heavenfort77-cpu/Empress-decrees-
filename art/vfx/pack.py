@@ -73,6 +73,8 @@ for name, ks in atl.items():
              'pivotM': [round(piv[0] * tex, 3), round((ch - piv[1]) * tex, 3)], 'durationS': round(fam['frames'] / fam['fps'], 3),
              'alphaSum': [round(s, 1) for s in empty], 'ref': 'pixelfx ' + fam['ref'] + ' (shape and timing only)'}
         e['anchorHeightM'] = fam.get('anchorM', 0.0)
+        # share of the ash row mixed over the caster's row (smoke: a grey body with the school colour as a tint; owner 25 Nov)
+        e['ashMix'] = fam.get('ashMix', 0.0)
         for u in ('unitLenM', 'unitWidthM', 'unitRadiusM'):
             if u in fam: e[u] = fam[u]
         meta_all['effects'][k] = e

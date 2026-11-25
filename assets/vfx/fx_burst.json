@@ -49,6 +49,7 @@
  ],
  "ref": "pixelfx arcane/mana-burst (shape and timing only)",
  "anchorHeightM": 1.0,
+ "ashMix": 0.0,
  "atlasSize": [
   1024,
   984

@@ -23,7 +23,8 @@ def frame(e, i):
     return a[y:y + ch, x:x + cw, 0], a[y:y + ch, x:x + cw, 1]
 
 def card_img(e, i, row):
-    v, al = frame(e, i); L = ramps.lut(row); rgb = L[np.clip(np.round(v * 255), 0, 255).astype(int)]
+    v, al = frame(e, i); am = e.get('ashMix', 0); L = ramps.lut(row) * (1 - am) + ramps.lut(M['ramps']['rows'].index('ash')) * am
+    rgb = L[np.clip(np.round(v * 255), 0, 255).astype(int)]
     if e['blend'] == 'cut': al = (al >= M['atlases'][e['atlas']]['cut']).astype(float)
     s = e['texelM'] * PX_PER_M; w, h = max(1, round(v.shape[1] * s)), max(1, round(v.shape[0] * s * (math.sin(math.radians(PITCH)) if e['orient'] == 'ground' else 1)))
     im = Image.fromarray(np.uint8(np.clip(np.dstack([rgb, al]), 0, 1) * 255), 'RGBA').resize((w, h), Image.BILINEAR)

@@ -43,7 +43,7 @@ FAM = {
     # heal: pixelfx holy/heal: a soft column, motes and small leaf-shaped dabs rising and fading; loops for regen.
     'heal':   dict(cell=[80, 112], texel=0.03, pivot=[40, 98], frames=12, fps=20, atlas='soft_b', orient='bill', ref='holy/heal', loop=[0, 12]),
     # smoke: pixelfx explosions/smoke-bomb: puffs that swell, drift up and thin out.
-    'smoke':  dict(cell=[94, 84], texel=0.04, pivot=[47, 78], frames=12, fps=15, atlas='soft_b', orient='bill', ref='explosions/smoke-bomb'),
+    'smoke':  dict(cell=[94, 84], texel=0.04, pivot=[47, 78], frames=12, fps=15, ashMix=0.75, atlas='soft_b', orient='bill', ref='explosions/smoke-bomb'),
     # ring: pixelfx arcane/magic-circle-cast (circle only, no glyphs): a brush circle drawn round, held with a pulse, a flash on release.
     'ring':   dict(cell=[144, 144], texel=0.0167, pivot=[72, 72], frames=10, fps=30, atlas='ground', orient='ground', ref='arcane/magic-circle-cast', loop=[3, 7], unitRadiusM=1.0),
     # mark: pixelfx holy/smite (target mark): a filled painted disc with a rim and cross strokes, held, a flash on release.
@@ -244,50 +244,70 @@ def fam_shield(Pn, rng):
                 gx, gy = cx + R[0] * 0.8 * math.cos(a + j * 3.1), cy + R[1] * 0.8 * math.sin(a + j * 3.1) * 0.9
                 Pn.st(f, 'ink', 0.04, V['P'], [(gx - 0.09, gy, 0.1), (gx, gy, 1), (gx + 0.09, gy, 0.1)]); Pn.st(f, 'ink', 0.04, V['P'], [(gx, gy - 0.09, 0.1), (gx, gy, 1), (gx, gy + 0.09, 0.1)])
 
-# ---- aura: wisps rising up both sides of the body, ring at the feet; 12-frame loop; nothing over the head/face (x within +-0.35 above 1.4 m)
+# ---- aura (round 3, owner 25 Nov: stronger read, still soft): a glow hugging both sides of the body, flame tongues rising up the sides,
+# a bright ring at the feet; 12-frame loop; the face box (x +-0.22 m, 1.5-1.95 m) stays clear ----
 def fam_aura(Pn, rng):
-    n = Pn.fam['frames']; W = [(s, rng.uniform(0.45, 0.85), rng.uniform(0, 1), rng.uniform(1.0, 1.8), rng.uniform(0.14, 0.22)) for s in (-1, 1) for _ in range(7)]
+    n = Pn.fam['frames']; T = [(s, rng.uniform(0.38, 0.75), rng.uniform(0, 1), rng.uniform(1.3, 2.2), rng.uniform(0.2, 0.32)) for s in (-1, 1) for _ in range(6)]
     for f in range(n):
-        u = f / n
-        Pn.st(f, 'airbrush', 0.22, V['K'], arcpts(0, -0.02, 0.85, 0, 2 * math.pi, 28, sy=0.32), 0.4)
-        Pn.st(f, 'marker', 0.09, V['B'], arcpts(0, 0.02, 0.8, 0, 2 * math.pi, 28, sy=0.3, press=lambda s: 0.5 + 0.5 * math.sin(s * 6.28 * 3 + u * 6.28)), 0.9)
-        for s, x0, ph, h, w in W:
-            p = (u + ph) % 1; y0 = p * h; y1 = y0 + 0.55; op = math.sin(math.pi * p)
-            pts = [(s * (x0 + 0.08 * math.sin(6.28 * (p + i / 6))), y0 + (y1 - y0) * i / 6, (1 - i / 6) ** 0.8) for i in range(7)]
-            Pn.st(f, 'marker', w, V['B'], pts, 0.85 * op)
-            Pn.st(f, 'airbrush', w * 2, V['L'], pts, 0.25 * op)
-            Pn.st(f, 'ink', w * 0.5, V['P'] if p < 0.6 else V['L'], [(x + s * 0.01, y, q) for x, y, q in pts], op)
+        u = f / n; pul = 0.5 + 0.5 * math.sin(2 * math.pi * u)
+        for s_ in (-1, 1):
+            Pn.st(f, 'airbrush', 0.75, V['L'], [(s_ * 0.5, 0.1, 1), (s_ * 0.52, 0.8, 0.9), (s_ * 0.45, 1.4, 0.5)], 0.28 + 0.08 * pul)
+        Pn.st(f, 'airbrush', 0.9, V['B'], [(-0.3, 0.15, 1), (0.3, 0.15, 1)], 0.3)
+        Pn.st(f, 'airbrush', 0.3, V['K'], arcpts(0, -0.03, 0.92, 0, 2 * math.pi, 28, sy=0.32), 0.45)
+        Pn.st(f, 'marker', 0.14, V['L'], arcpts(0, 0.02, 0.85, 0, 2 * math.pi, 28, sy=0.3, press=lambda q: 0.6 + 0.4 * math.sin(q * 6.28 * 3 + u * 6.28)), 0.95)
+        Pn.st(f, 'ink', 0.06, V['P'], arcpts(0, 0.02, 0.85, math.pi * 1.05, math.pi * 1.95, 14, sy=0.3), 0.9)
+        for s_, x0, ph, h, w in T:
+            p = (u + ph) % 1; y0 = p * h * 0.7; y1 = y0 + 0.5 + 0.4 * p; op = math.sin(math.pi * p) ** 0.8
+            pts = [(s_ * (x0 + 0.07 * math.sin(6.28 * (p + i / 6))), y0 + (y1 - y0) * i / 6, (1 - i / 6) ** 0.7) for i in range(7)]
+            Pn.st(f, 'airbrush', w * 2.2, V['B'], pts, 0.35 * op)
+            Pn.st(f, 'marker', w, V['L'], pts, 0.85 * op)
+            Pn.st2(f, 'ink', w * 0.42, V['P'], [(x + s_ * 0.015, y, q) for x, y, q in pts], op)
 
-# ---- heal: column glow, motes and leaf dabs rising; loop 12 frames ----------------------------------------------------------------
+# ---- heal (round 3, owner 25 Nov: stronger read, still soft): a soft column, two ribbons spiralling up round the body (below the face in
+# front), large motes and leaf dabs rising at the sides, a bright ring at the feet; loop 12 frames ----
 def fam_heal(Pn, rng):
-    n = Pn.fam['frames']; M = [((1 if i % 2 else -1) * rng.uniform(0.38, 0.8), rng.uniform(0, 1), rng.uniform(1.4, 2.3), rng.uniform(0.18, 0.28), i % 3 == 0) for i in range(16)]
+    n = Pn.fam['frames']; M = [((1 if i % 2 else -1) * rng.uniform(0.58 if i % 3 == 0 else 0.36, 0.8), rng.uniform(0, 1), rng.uniform(1.5, 2.4), rng.uniform(0.22, 0.32), i % 3 == 0) for i in range(14)]
     for f in range(n):
         u = f / n
-        Pn.st(f, 'airbrush', 1.3, V['L'], [(0, 0.05, 1), (0, 1.7, 0.3)], 0.32)
-        Pn.st(f, 'marker', 0.08, V['L'], arcpts(0, 0.02, 0.7, 0, 2 * math.pi, 24, sy=0.3, press=lambda s: 0.6 + 0.4 * math.sin(s * 6.28 * 2 - u * 6.28)), 0.8)
+        Pn.st(f, 'airbrush', 1.4, V['L'], [(0, 0.05, 1), (0, 1.3, 0.5)], 0.3)
+        Pn.st(f, 'airbrush', 0.3, V['K'], arcpts(0, -0.03, 0.78, 0, 2 * math.pi, 24, sy=0.32), 0.45)
+        Pn.st(f, 'marker', 0.12, V['L'], arcpts(0, 0.02, 0.72, 0, 2 * math.pi, 24, sy=0.3, press=lambda q: 0.6 + 0.4 * math.sin(q * 6.28 * 2 - u * 6.28)), 0.95)
+        for j in range(2):
+            pts = []
+            for i in range(18):
+                q = i / 17; y = 0.1 + 1.35 * q; a = 2 * math.pi * (1.6 * q + u + j * 0.5)
+                pts.append((0.6 * math.cos(a), y, 0.35 + 0.65 * math.sin(math.pi * q) * (0.5 + 0.5 * math.sin(a))))
+            Pn.st(f, 'airbrush', 0.3, V['B'], pts, 0.45)
+            Pn.st(f, 'marker', 0.09, V['L'], pts, 0.8)
         for x, ph, h, sz, leaf in M:
-            p = (u + ph) % 1; y = p * h; op = math.sin(math.pi * p) ** 0.7; xx = x * (1 - 0.3 * p) + 0.06 * math.sin(6.28 * (p * 2 + ph))
+            p = (u + ph) % 1; y = 0.2 + p * h; op = math.sin(math.pi * p) ** 0.7; xx = x * (1 - 0.15 * p) + 0.06 * math.sin(6.28 * (p * 2 + ph))
             if leaf:
                 a = 0.6 * math.sin(6.28 * (p + ph)); dx, dy = math.cos(a) * sz, math.sin(a) * sz
-                Pn.st(f, 'marker', sz * 0.7, V['B'], [(xx - dx, y - dy, 0.2), (xx, y, 1), (xx + dx, y + dy, 0.2)], op)
-                Pn.st(f, 'ink', sz * 0.2, V['L'], [(xx - dx * 0.8, y - dy * 0.8, 0.2), (xx + dx * 0.8, y + dy * 0.8, 0.2)], op)
+                Pn.st(f, 'marker', sz * 0.75, V['B'], [(xx - dx, y - dy, 0.2), (xx, y, 1), (xx + dx, y + dy, 0.2)], op)
+                Pn.st(f, 'ink', sz * 0.25, V['P'], [(xx - dx * 0.8, y - dy * 0.8, 0.2), (xx + dx * 0.8, y + dy * 0.8, 0.2)], op)
             else:
-                Pn.dab(f, 'airbrush', sz * 2.2, V['B'], xx, y, 0.5 * op); Pn.dab(f, 'marker', sz * 0.7, V['P'], xx, y, op)
+                Pn.dab(f, 'airbrush', sz * 2.4, V['L'], xx, y, 0.5 * op); Pn.dab(f, 'marker', sz * 0.75, V['P'], xx, y, op); Pn.dab(f, 'marker', sz * 0.75, V['P'], xx, y, op)
 
-# ---- smoke: puffs swell, drift up, thin; one-shot 12 frames at 15 fps --------------------------------------------------------------
+# ---- smoke (round 3, owner 25 Nov): soft curling wisps, grey body (the game mixes the ash row over the school row, ashMix), no balls ----
 def fam_smoke(Pn, rng):
-    B_ = [(rng.uniform(-0.8, 0.8), rng.uniform(0.0, 0.4), rng.uniform(0.55, 0.85), rng.uniform(0, 0.12)) for _ in range(11)]
+    Wp = [(rng.uniform(-0.65, 0.65), rng.uniform(0, 0.14), rng.uniform(1.0, 1.5), rng.uniform(0.32, 0.46), rng.uniform(0, 6.28), rng.choice([-1, 1])) for _ in range(7)]
     for f in range(Pn.fam['frames']):
         t = f / 15
-        for x, y, r, tb in B_:
-            u = clamp((t - tb) / 0.6)
+        if t < 0.3:
+            k = 1 - t / 0.3; Pn.st(f, 'airbrush', 0.5 + 0.6 * (1 - k), V['D'], [(-1.0 * (1.2 - 0.4 * k), 0.12, 0.6), (1.0 * (1.2 - 0.4 * k), 0.12, 0.6)], 0.45 * k)
+        for x0, tb, h, w, ph, sd in Wp:
+            u = clamp((t - tb) / 0.55)
             if t < tb or u >= 1: continue
-            rr = r * (0.4 + 0.8 * outCubic(u)); yy = y + 0.6 * u + rr * 0.6; op = (1 - u) ** 1.2
-            Pn.dab(f, 'airbrush', rr * 2.4, V['D'], x * (1 + 0.5 * u), yy, 0.55 * op)
-            Pn.dab(f, 'marker', rr * 1.3, V['B'], x * (1 + 0.5 * u), yy + rr * 0.1, 0.75 * op)
-            Pn.dab(f, 'marker', rr * 0.8, V['L'], x * (1 + 0.5 * u) - rr * 0.15, yy + rr * 0.3, 0.8 * op)
-            Pn.dab(f, 'marker', rr * 0.4, V['P'], x * (1 + 0.5 * u) - rr * 0.25, yy + rr * 0.4, 0.7 * op)
-            Pn.st(f, 'airbrush', rr * 0.4, V['K'], arcpts(x * (1 + 0.5 * u), yy, rr * 0.75, -2.6, -0.5, 8), 0.35 * op)
+            top = 0.25 + h * outCubic(u); op = (1 - u) ** 1.3; n = 9; ww = w * (0.6 + 1.2 * u)
+            pts = []
+            for i in range(n):
+                q = i / (n - 1); y = 0.1 + (top - 0.1) * q
+                x = x0 * (1 + 0.6 * u) + sd * (0.12 + 0.35 * u) * math.sin(ph + q * 3.2 + u * 2) * q
+                pts.append((x, y, math.sin(math.pi * (0.15 + 0.85 * q)) ** 0.8))
+            Pn.st(f, 'fog', ww * 2.8, V['D'], pts, 0.6 * op)
+            Pn.st(f, 'airbrush', ww * 1.8, V['B'], pts, 0.75 * op)
+            hl = [(x - sd * ww * 0.25, y + ww * 0.2, p * 0.9) for x, y, p in pts[2:]]
+            Pn.st2(f, 'airbrush', ww * 1.0, V['P'], hl, 0.85 * op)
 
 # ---- ground: ring (unit radius 1 m), mark (unit radius 1 m), strip (unit length along +y from the caster), crack (unit radius 1 m) -
 def fam_ring(Pn, rng):

@@ -211,7 +211,45 @@ Every number below carries its run, file or measurement; anything else is marked
 | 17h | Tiger, cubs, giants (compressed); fitted hit areas; sweep arc | hit-area checks (hit at the model edge, miss 0.3 m beside it); sweep only inside the drawn arc; 42 re-run and reported; fairness invariants (tell >= 0.4 s) |
 | 17i | Close-out: whole journey on the Mac runner (page load, menus, card P, every room type, heavy fight, apex, end, new run, Rumble switch, returning player) on medium and low, twice; full suite; soak; release zip with a blocked file; phone link republish; HANDOFF; shots from the exact build for the owner | 0 FAIL lines in every log; verdict SHIP / SHIP WITH NOTES / NO-SHIP |
 
-## 12. Owner picks needed (defaults go in, behind switches, until he answers)
-1. Giant sweep arc radius within "about 2.2-3 m" (default 3.0 m, 150 deg).
-2. Suits have no walk, hit or death clips: an art round (Blender) or glide for now (default: glide, flagged).
-3. Sound-mode key B in play plus a menu button (default as written).
+## 12. Owner answers (25 Nov, go for 17a-17i in order; each batch passes its gate before the next; report to the lead after each)
+1. Giant sweep hit area = 2.5 m radius over 120 deg in front of the giant (CONFIG comment with the date). Replaces the 3.0 m / 150 deg default above.
+2. Suit walk/hit/death clips: an art round runs on a separate branch; 17f waits for its GLBs (the lead says when). 17a-17e go first.
+3. Sound: no hotkey ("follow lol or dota"). Sound lives in an options/pause menu (Esc) as in LoL/Dota: master, music, effects, voice/ambience sliders plus mute, saved in try/catch storage, 44 px targets on phone. Key B dropped (section 8 changes accordingly).
+4. Section 0 readings confirmed: new art behind switches; suits also in Royal Rumble.
+5. Tell the owner when the bronze beast replaces the approved stone lion (17e).
+
+## 13. Batch 17a results (25 Nov; route proofs, no game code)
+- Encoder route: KTX-Software toktx 4.3 on the art runner (release .deb by fixed URL; the GitHub API answered 403 on the runner). glTF-Transform 4.5.1 meshopt (position 14, normal 10, texcoord 14 bits (it skips UVs outside 0-1), weights 16).
+- Final gates: run 45523438520, 15 of 15, a re-check of round 3's exact files (run 45516776477).
+  - T1: 228 of 228 encodes load.
+  - T2: desk 38 of 38 within PSNR >= 35 dB and dE2000 <= 2.
+  - T3: phone 38 of 38. phone/garden_plants ships as its 512 px PNG because no KTX2 mode kept it within the gate (ETC1S 26.8 dB, UASTC 31.8, UASTC q4 32.0; dE 1.04-1.32).
+  - T4: alpha flips at most 0.26 %.
+  - T5: no new tex_check rule fails on any pick.
+  - T6: 75 of 75 KTX2 picks load through KTX2Loader with full mips (SwiftShader picks BC7 and ASTC).
+  - Models M1-M7: 60 of 60 files. Worst vertex 1.54 mm in any pose; worst UV 0.00004.
+  - Mutants caught: textures 5 of 5 by their named gate; models 3 of 3.
+  - The quality-1 ETC1S mutant on hall_floor is NOT caught: 38.8 dB, dE 1.83, against 40.3 dB, dE 1.73 at quality 255. The gates cannot tell those two apart on that texture; reported, not hidden.
+- Picks:
+  - 28 textures ETC1S, 47 UASTC, 1 PNG.
+  - UASTC wherever ETC1S broke a tex_check rule (brush runs and seams) or the PSNR/dE gate.
+  - Sizes: desk 16.8 MB, phone 5.55 MB, against 27.8 MB of PNG. Models 22.72 MB to 6.19 MB without the suits; giants 6.57 MB to 2.24 MB.
+- Orientation: KTX2 rows are top-first (glTF convention). The palace materials mapped by world UVs (palFloor, palWall, palPillar, palDoor, palLion) flip v by texture repeat.y = -1, offset.y = 1 (17b). The PNG fallback is loaded top-first as well, so both routes map the same.
+- Files: assets/c/desk, assets/c/phone, assets/c/models.
+  - assets/c/manifest.json holds bytes, sha256, source and source sha256 for each file. A stale encode will fail a 17b check.
+  - Tools in art/tools/int17/: prep, encode, check page and driver, metrics, mutants, assemble.
+  - Suits are left out: SUITANIM (64b7bd5) changed their sources, so they are encoded in 17f with these tools.
+- Capabilities (macOS runner, run 45514003926): KHR_parallel_shader_compile yes; KTX2 targets ASTC, BC7, ETC2, S3TC. SwiftShader: no parallel compile.
+- Guards and rebels: Arm B is chosen, by measurement on the macOS runner (run 45514003926, 37 units, reference in the same job, two passes):
+
+  | Arm | fps | p95 (ms) | calls | tris |
+  |---|---|---|---|---|
+  | Reference | 205.2 / 163.4 | 12.1 / 17.7 | | |
+  | A0 (per-unit skinned clones) | 64.1 / 59.8 | 33.1 / 36.3 | 105 | 105.9k |
+  | B0 (baked bone texture, one InstancedMesh per type and material) | 189.5 / 155.3 | 12.1 / 17.8 | 23 | 105.9k (same geometry) |
+  | Alod (skinned within 20 m, else the art's static LOD1) | 141.4 | 15.3 | 45 | |
+
+  - Cause of A0's cost: SkeletonUtils.clone gives every primitive its own skeleton. That makes 105 bone textures uploaded per frame, plus 37 mixers and 705 scene nodes against B0's 27.
+  - Arm A misses the gate (p95 2x the reference). B0 matches the reference within its spread.
+  - The guard and rebel art has static LOD1 and LOD2 (only LOD0 is skinned), so B0's baked clips carry the animation.
+- Note for suits, tiger and giants (17f/17h): a per-unit skinned clone must share one skeleton across its primitives (one bone texture per unit), and the cost is measured in that batch.

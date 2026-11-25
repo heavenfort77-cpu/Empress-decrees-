@@ -47,6 +47,7 @@
  ],
  "ref": "pixelfx impacts/ground-slam (shape and timing only)",
  "anchorHeightM": 0.0,
+ "ashMix": 0.0,
  "unitRadiusM": 1.0,
  "atlasSize": [
   1024,

@@ -48,6 +48,7 @@
  ],
  "ref": "pixelfx projectiles/magic-missile (shape and timing only)",
  "anchorHeightM": 1.0,
+ "ashMix": 0.0,
  "atlasSize": [
   1024,
   956

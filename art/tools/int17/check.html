@@ -1,0 +1,111 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><title>17a decode check</title>
+<script type="importmap">{"imports":{"three":"/lib/three.module.min.js"}}</script></head>
+<body>
+<script type="module">
+// Batch 17a decode check: loads KTX2 files and compressed GLBs through the game's vendored loaders (lib/jsm) and reports raw texels and model facts.
+// ?mode=rgba forces the transcoder's RGBA32 output (encoder quality); ?mode=gpu lets KTX2Loader pick the GPU format this browser supports (the game route).
+import * as THREE from 'three';
+import { KTX2Loader } from '/lib/jsm/loaders/KTX2Loader.js';
+import { GLTFLoader } from '/lib/jsm/loaders/GLTFLoader.js';
+import { MeshoptDecoder } from '/lib/jsm/libs/meshopt_decoder.module.js';
+const Q = new URLSearchParams(location.search), MODE = Q.get('mode') || 'gpu';
+const renderer = new THREE.WebGLRenderer({ antialias: false });
+renderer.setSize(64, 64); document.body.appendChild(renderer.domElement);
+const gl = renderer.getContext();
+const ktx = new KTX2Loader().setTranscoderPath('/lib/jsm/libs/basis/').detectSupport(renderer);
+if (MODE === 'rgba') ktx.workerConfig = { astcSupported: false, astcHDRSupported: false, etc1Supported: false, etc2Supported: false, dxtSupported: false, bptcSupported: false, pvrtcSupported: false };
+const caps = { renderer: (() => { const e = gl.getExtension('WEBGL_debug_renderer_info'); return e ? gl.getParameter(e.UNMASKED_RENDERER_WEBGL) : gl.getParameter(gl.RENDERER); })(),
+  parallelCompile: !!gl.getExtension('KHR_parallel_shader_compile'), astc: !!gl.getExtension('WEBGL_compressed_texture_astc'), bptc: !!gl.getExtension('EXT_texture_compression_bptc'),
+  s3tc: !!gl.getExtension('WEBGL_compressed_texture_s3tc'), etc: !!gl.getExtension('WEBGL_compressed_texture_etc'), etc1: !!gl.getExtension('WEBGL_compressed_texture_etc1'),
+  maxTex: gl.getParameter(gl.MAX_TEXTURE_SIZE), aniso: renderer.capabilities.getMaxAnisotropy(), workerConfig: ktx.workerConfig };
+const scene = new THREE.Scene(), cam = new THREE.Camera();
+const tri = new THREE.BufferGeometry(); tri.setAttribute('position', new THREE.Float32BufferAttribute([-1, -1, 0, 3, -1, 0, -1, 3, 0], 3));
+const mat = new THREE.RawShaderMaterial({ glslVersion: THREE.GLSL3, uniforms: { map: { value: null } },
+  vertexShader: 'in vec3 position; void main() { gl_Position = vec4(position.xy, 0.0, 1.0); }',
+  fragmentShader: 'precision highp float; uniform sampler2D map; out vec4 o; void main() { o = texelFetch(map, ivec2(gl_FragCoord.xy), 0); }' });
+const quad = new THREE.Mesh(tri, mat); quad.frustumCulled = false; scene.add(quad);
+async function put(path, buf, w, h) { await fetch('/__out/' + path + '?w=' + w + '&h=' + h, { method: 'PUT', body: buf }); }
+// Every file: load, read texel level 0 back exactly (texelFetch, no filtering, no colour conversion), send the raw RGBA bytes to the driver.
+window.runTex = async (list) => {
+  const out = [];
+  for (const [url, tag] of list) {
+    const t0 = performance.now();
+    try {
+      const tex = await ktx.loadAsync(url); const ms = performance.now() - t0;
+      tex.colorSpace = THREE.NoColorSpace; tex.generateMipmaps = false;
+      const w = tex.image.width, h = tex.image.height, rt = new THREE.WebGLRenderTarget(w, h, { type: THREE.UnsignedByteType, depthBuffer: false });
+      mat.uniforms.map.value = tex; renderer.setRenderTarget(rt); renderer.render(scene, cam);
+      const px = new Uint8Array(w * h * 4); renderer.readRenderTargetPixels(rt, 0, 0, w, h, px); renderer.setRenderTarget(null);
+      await put(tag + '.rgba', px, w, h);
+      out.push({ tag, ok: true, w, h, format: tex.format, mips: tex.mipmaps ? tex.mipmaps.length : 0, ms: Math.round(ms), err: gl.getError() });
+      tex.dispose(); rt.dispose();
+    } catch (e) { out.push({ tag, ok: false, err: String(e).slice(0, 160) }); }
+  }
+  return out;
+};
+const gltf = new GLTFLoader().setMeshoptDecoder(MeshoptDecoder);
+// Model facts: per mesh (traverse order) name, triangles, world bounds; clips (name, duration); joints; world positions of every vertex
+// in the rest pose and at 0 and half of each clip (skinned meshes skinned on the CPU with three's own applyBoneTransform), plus UVs in the rest pose.
+function meshesOf(root) { const a = []; root.traverse((o) => { if (o.isMesh) a.push(o); }); return a; }
+function posAll(m) { const p = m.geometry.attributes.position, n = p.count, out = new Float32Array(n * 3), v = new THREE.Vector3();
+  for (let i = 0; i < n; i++) { if (m.isSkinnedMesh) m.getVertexPosition(i, v); else v.fromBufferAttribute(p, i); v.applyMatrix4(m.matrixWorld); out[i * 3] = v.x; out[i * 3 + 1] = v.y; out[i * 3 + 2] = v.z; }
+  return out; }
+function facts(g) {
+  g.scene.updateMatrixWorld(true); const ms = meshesOf(g.scene);
+  return { meshes: ms.map((m) => { const b = new THREE.Box3().setFromObject(m); const idx = m.geometry.index; return { name: m.name, tris: (idx ? idx.count : m.geometry.attributes.position.count) / 3, min: b.min.toArray(), max: b.max.toArray(), skinned: !!m.isSkinnedMesh, joints: m.isSkinnedMesh ? m.skeleton.bones.map((b) => b.name) : [] }; }),
+    clips: g.animations.map((c) => [c.name, +c.duration.toFixed(4)]) };
+}
+function poses(g) {
+  const ms = meshesOf(g.scene), res = [], mixer = new THREE.AnimationMixer(g.scene);
+  g.scene.updateMatrixWorld(true); for (const m of ms) if (m.isSkinnedMesh) m.skeleton.update();
+  res.push({ pose: 'rest', pos: ms.map(posAll) });
+  for (const c of g.animations) for (const k of [0, 0.5]) {
+    mixer.stopAllAction(); const a = mixer.clipAction(c); a.reset().play(); mixer.setTime(c.duration * k); g.scene.updateMatrixWorld(true);
+    for (const m of ms) if (m.isSkinnedMesh) m.skeleton.update();
+    res.push({ pose: c.name + '@' + k, pos: ms.map(posAll) });
+  }
+  mixer.stopAllAction(); return res;
+}
+// Largest distance from a sampled source vertex (200 per mesh, fixed stride) to the nearest vertex of the compressed mesh, metres.
+function worst(sp, cp) { let w = 0; const n = sp.length / 3, st = Math.max(1, Math.floor(n / 200));
+  for (let i = 0; i < n; i += st) { let best = 1e9; const x = sp[i * 3], y = sp[i * 3 + 1], z = sp[i * 3 + 2];
+    for (let j = 0; j < cp.length; j += 3) { const dx = cp[j] - x, dy = cp[j + 1] - y, dz = cp[j + 2] - z, d = dx * dx + dy * dy + dz * dz; if (d < best) best = d; }
+    if (best > w) w = best; }
+  return Math.sqrt(w); }
+// Largest UV error: for each sampled source vertex, the smallest UV difference among compressed vertices within 0.5 mm of it (rest pose).
+function uvWorst(sm, cm, sp, cp) { const su = sm.geometry.attributes.uv, cu = cm.geometry.attributes.uv; if (!su || !cu) return 0;
+  let w = 0; const n = sp.length / 3, st = Math.max(1, Math.floor(n / 200));
+  for (let i = 0; i < n; i += st) { let best = 1e9; const x = sp[i * 3], y = sp[i * 3 + 1], z = sp[i * 3 + 2], u = su.getX(i), v = su.getY(i);
+    for (let j = 0; j < cp.length / 3; j++) { const dx = cp[j * 3] - x, dy = cp[j * 3 + 1] - y, dz = cp[j * 3 + 2] - z; if (dx * dx + dy * dy + dz * dz > 2.5e-7) continue; const e = Math.max(Math.abs(cu.getX(j) - u), Math.abs(cu.getY(j) - v)); if (e < best) best = e; }
+    if (best < 1e9 && best > w) w = best; }
+  return w; }
+window.runModels = async (list) => {
+  const out = [];
+  for (const [src, comp, tag] of list) {
+    try {
+      const t0 = performance.now(); const a = await gltf.loadAsync(src); const b = await gltf.loadAsync(comp); const ms = Math.round(performance.now() - t0);
+      // Meshes are paired by name, not by order: the encoder may reorder children and wraps a quantised mesh's object as <name>_1.
+      const ma = meshesOf(a.scene), mb0 = meshesOf(b.scene), byName = new Map(mb0.map((m) => [m.name, m]));
+      // Same-name meshes (a layout with repeated parts) are paired by the nearest world-bounds centre among the unused candidates.
+      const base = (n) => n.replace(/_1$/, ''), ctr = (m) => new THREE.Box3().setFromObject(m).getCenter(new THREE.Vector3()), used = new Set();
+      a.scene.updateMatrixWorld(true); b.scene.updateMatrixWorld(true);
+      const mb = ma.map((m) => { const c = ctr(m); let best = null, bd = 1e9; for (const x of mb0) { if (used.has(x) || (x.name !== m.name && base(x.name) !== base(m.name))) continue; const d = ctr(x).distanceTo(c); if (d < bd) { bd = d; best = x; } } if (best) used.add(best); return best; });
+      void byName;
+      if (mb.some((m) => !m) || mb0.length !== ma.length) throw new Error('mesh names differ: ' + ma.map((m) => m.name).join(',') + ' vs ' + mb0.map((m) => m.name).join(','));
+      const order = (g, list) => { const all = meshesOf(g.scene); return list.map((m) => all.indexOf(m)); };
+      const fa = facts(a), fb0 = facts(b), ob = order(b, mb), fb = { meshes: ob.map((i) => fb0.meshes[i]), clips: fb0.clips };
+      const pa = poses(a), pb0 = poses(b), pb = pb0.map((p) => ({ pose: p.pose, pos: ob.map((i) => p.pos[i]) }));
+      let wpos = 0, wpose = '', wuv = 0;
+      if (ma.length === mb.length) {
+        for (let p = 0; p < pa.length && p < pb.length; p++) for (let i = 0; i < ma.length; i++) { const d = worst(pa[p].pos[i], pb[p].pos[i]); if (d > wpos) { wpos = d; wpose = pa[p].pose + ' ' + ma[i].name; } }
+        for (let i = 0; i < ma.length; i++) wuv = Math.max(wuv, uvWorst(ma[i], mb[i], pa[0].pos[i], pb[0].pos[i]));
+      }
+      out.push({ tag, ok: true, ms, a: fa, b: fb, wpos, wpose, wuv });
+    } catch (e) { out.push({ tag, ok: false, err: String(e).slice(0, 200) }); }
+  }
+  return out;
+};
+window.__caps = caps; window.__ready = true;
+</script>
+</body></html>
