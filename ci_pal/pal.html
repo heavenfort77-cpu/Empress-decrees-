@@ -1,0 +1,140 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><title>PREP-PAL probe 17d-17e</title>
+<script type="importmap">{"imports":{"three":"/lib/three.module.min.js"}}</script>
+<style>body{margin:0;background:#2a2233;overflow:hidden}</style>
+<script>addEventListener("error", (e) => { window.__err = String(e.message); }); addEventListener("unhandledrejection", (e) => { window.__err = String(e.reason && e.reason.stack || e.reason); });
+// GL counters (before any context exists): draws and triangles per frame (shadow pass included), live buffers, textures and programs, links.
+(() => { const C = window.__gl = { draws: 0, tris: 0, buf: 0, tex: 0, prog: 0, link: 0 };
+  const wrap = (P, n, f) => { const o = P[n]; if (!o) return; P[n] = function (...a) { f(a); return o.apply(this, a); }; };
+  for (const P of [WebGL2RenderingContext.prototype, WebGLRenderingContext.prototype]) {
+    wrap(P, 'drawElements', (a) => { C.draws++; if (a[0] === 4) C.tris += a[1] / 3; });
+    wrap(P, 'drawArrays', (a) => { C.draws++; if (a[0] === 4) C.tris += a[2] / 3; });
+    wrap(P, 'drawElementsInstanced', (a) => { C.draws++; if (a[0] === 4) C.tris += a[1] / 3 * a[4]; });
+    wrap(P, 'drawArraysInstanced', (a) => { C.draws++; if (a[0] === 4) C.tris += a[2] / 3 * a[3]; });
+    wrap(P, 'createBuffer', () => C.buf++); wrap(P, 'deleteBuffer', (a) => { if (a[0]) C.buf--; });
+    wrap(P, 'createTexture', () => C.tex++); wrap(P, 'deleteTexture', (a) => { if (a[0]) C.tex--; });
+    wrap(P, 'createProgram', () => C.prog++); wrap(P, 'deleteProgram', (a) => { if (a[0]) C.prog--; });
+    wrap(P, 'linkProgram', () => C.link++);
+  } })();</script></head>
+<body>
+<script type="module">
+// PREP-PAL probe (CI only, never in the game): src/palace_art.js on the game's full palace plan (read from index.html), the game's camera
+// (FOV 50, pitch 40, the 120 px floor = 19.8 m, far 90, fog 45-85), lights (hemi 1.1, sun 2.2 with one 2048 shadow map on medium) and tiers.
+// ?mode=checks (window.__checks) | perf&view=heavy|<room id>&tier=medium|low (window.__probe) | build (counts only). The game's box pieces that
+// the art does not replace (hall/core floors, stone blocks, planters, giants) stand in as plain boxes so counts include them.
+import * as THREE from 'three';
+import { GLTFLoader } from '/lib/jsm/loaders/GLTFLoader.js';
+import { KTX2Loader } from '/lib/jsm/loaders/KTX2Loader.js';
+import { MeshoptDecoder } from '/lib/jsm/libs/meshopt_decoder.module.js';
+import * as PA from '/src/palace_art.js';
+import { layoutFrom, buildAll } from '/ci_pal/layout.mjs';
+const Q = new URLSearchParams(location.search), MODE = Q.get('mode') || 'checks', TIER = Q.get('tier') || 'medium', VIEW = Q.get('view') || 'heavy';
+const TIERS = { medium: { pr: 1.25, shadows: true, map: 2048 }, low: { pr: 1.0, shadows: false, map: 512 } }, TI = TIERS[TIER];
+const r = new THREE.WebGLRenderer({ antialias: false, powerPreference: 'high-performance' }); r.setPixelRatio(TI.pr); r.setSize(innerWidth, innerHeight);
+r.shadowMap.enabled = TI.shadows; r.shadowMap.autoUpdate = false; r.shadowMap.needsUpdate = true; document.body.appendChild(r.domElement);
+const scene = new THREE.Scene(); scene.background = new THREE.Color(0x2a2233); scene.fog = new THREE.Fog(0x2a2233, 45, 85);
+const cam = new THREE.PerspectiveCamera(50, innerWidth / innerHeight, 0.5, 90);
+const hemi = new THREE.HemisphereLight(0xd9c9ff, 0x3a2a22, 1.1), sun = new THREE.DirectionalLight(0xffe2b8, 2.2);
+sun.castShadow = true; sun.shadow.mapSize.set(TI.map, TI.map); Object.assign(sun.shadow.camera, { left: -87, right: 87, top: 72, bottom: -72, near: 10, far: 225 });
+scene.add(hemi, sun, sun.target);
+const SUN_POS = new THREE.Vector3(-45, 90, 37.5), SUN_TGT = new THREE.Vector3(0, 0, -18);
+const FOW = { uFowC: { value: new THREE.Vector3() }, uFowR: { value: 30 }, uFowDim: { value: 0.35 } };
+const html = await (await fetch('/index.html')).text(), L = layoutFrom(html);
+// Load: GLBs (meshopt) and textures (KTX2 desk set, the manifest's PNG where it ships one, then the PNG source).
+const T0 = performance.now(), ktx = new KTX2Loader().setTranscoderPath('/lib/jsm/libs/basis/').detectSupport(r);
+const man = await (await fetch('/assets/c/manifest.json')).json(), TEX = {}, HOW = {};
+async function loadTex(name) {
+  const png = (u) => new THREE.TextureLoader().loadAsync(u).then((t) => { t.flipY = false; return t; });
+  const enc = man.files['assets/c/desk/' + name + '.png'] ? '/assets/c/desk/' + name + '.png' : '/assets/c/desk/' + name + '.ktx2';
+  try { TEX[name] = enc.endsWith('.ktx2') ? await ktx.loadAsync(enc) : await png(enc); HOW[name] = enc.endsWith('.ktx2') ? 'ktx2' : 'png-enc'; }
+  catch (e) { try { TEX[name] = await png('/assets/tex/' + name + '.png'); HOW[name] = 'png'; } catch (e2) { HOW[name] = 'failed'; } }
+}
+await Promise.all(PA.textureNames().map(loadTex));
+const loader = new GLTFLoader(); loader.setMeshoptDecoder(MeshoptDecoder);
+const GL = {}, FILEERR = [];
+await Promise.all(PA.files('/').map(async (f) => { try { GL[f.key] = await loader.loadAsync(f.url); } catch (e) { FILEERR.push(f.key); } }));
+const loadMs = performance.now() - T0;
+// Box stand-ins for the game's own remaining pieces (built once, not part of the art's build and dispose cycles).
+const BOX = {}, boxMat = new THREE.MeshStandardMaterial({ color: 0x8a8378, roughness: 0.9 }), floorMat = new THREE.MeshStandardMaterial({ color: 0x5a4632, roughness: 0.9 });
+for (const rm of L.rooms) {
+  const g = new THREE.Group(); BOX[rm.id] = g;
+  if (rm.type === 'hall' || rm.type === 'core') { const f = new THREE.Mesh(new THREE.BoxGeometry(rm.x1 - rm.x0, 1.2, rm.z1 - rm.z0), floorMat); f.position.set(rm.cx, -0.6, rm.cz); f.receiveShadow = true; g.add(f); }
+  for (const s of rm.solids) if (s.kind === 'stone' || s.kind === 'planter') { const b = new THREE.Mesh(new THREE.BoxGeometry(s.x1 - s.x0, 1, s.z1 - s.z0), boxMat); b.position.set((s.x0 + s.x1) / 2, 0.5, (s.z0 + s.z1) / 2); b.castShadow = b.receiveShadow = true; g.add(b); }
+  const gi = rm.pieces.filter((p) => p.type === 'giant');
+  if (gi.length) { const im = new THREE.InstancedMesh(new THREE.BoxGeometry(2.4, 4.8, 1.6), boxMat, gi.length); gi.forEach((p, i) => im.setMatrixAt(i, new THREE.Matrix4().makeTranslation(p.x, 2.4, p.z))); im.computeBoundingSphere(); im.castShadow = false; g.add(im); }
+  g.traverse((o) => { o.matrixAutoUpdate = false; o.updateMatrix(); });
+}
+const lake = new THREE.Mesh(new THREE.PlaneGeometry(L.size + 120, L.size + 120), new THREE.MeshStandardMaterial({ color: 0x0f0b12, roughness: 1 }));
+lake.rotation.x = -Math.PI / 2; lake.position.set(L.cx, -6, L.cz); lake.matrixAutoUpdate = false; lake.updateMatrix(); scene.add(lake);
+let kit = null, arts = null;
+function build() {
+  const t = performance.now();
+  kit = PA.makeKit(GL, (n) => TEX[n] || null, { fow: FOW, schools: L.schools, maxAniso: r.capabilities.getMaxAnisotropy() });
+  arts = buildAll(PA, kit, L); PA.lakeApply(kit, lake);
+  return performance.now() - t;
+}
+function teardown() { for (const a of arts) { detachRoom(a); PA.disposeRoom(a); } for (const d of L.doors) { if (d.art) scene.remove(d.art.root); d.art = null; } PA.disposeKit(kit); kit = null; arts = null; }
+const attached = new Set();
+function attachRoom(a) { scene.add(a.group); scene.add(BOX[a.room.id]); attached.add(a); }
+function detachRoom(a) { scene.remove(a.group); scene.remove(BOX[a.room.id]); attached.delete(a); }
+function attachView(rm, all) {
+  for (const a of [...attached]) detachRoom(a);
+  for (const d of L.doors) if (d.art) scene.remove(d.art.root);
+  const want = new Set([rm]); if (all) for (const d of rm.doors) want.add(d.ra === rm ? d.rb : d.ra);
+  for (const a of arts) if (want.has(a.room)) attachRoom(a);
+  for (const d of L.doors) if (d.art && (want.has(d.ra) || want.has(d.rb))) scene.add(d.art.root);
+  camAt(rm.cx, rm.cz); sun.position.set(SUN_POS.x + rm.cx - SUN_TGT.x, SUN_POS.y, SUN_POS.z + rm.cz - SUN_TGT.z); sun.target.position.set(rm.cx, 0, rm.cz); sun.target.updateMatrixWorld();
+  FOW.uFowC.value.set(rm.cx, 0, rm.cz); r.shadowMap.needsUpdate = true;
+}
+// The game's wide camera at the 120 px floor: 2.05 m body x 1158 px / 120 px = 19.8 m, pitch 40 deg, from the south.
+const CAM_D = 2.05 * 1158 / 120, PITCH = THREE.MathUtils.degToRad(40);
+function camAt(x, z) { cam.position.set(x, Math.sin(PITCH) * CAM_D, z + Math.cos(PITCH) * CAM_D); cam.lookAt(x, 0, z); cam.updateMatrixWorld(); }
+// One frame's GL truth: draws and triangles (shadow pass included when shadow is true), and three's main-pass numbers.
+function frame(shadow) {
+  r.shadowMap.needsUpdate = !!shadow; const G = window.__gl, d0 = G.draws, t0 = G.tris;
+  r.render(scene, cam);
+  return { calls: G.draws - d0, tris: Math.round(G.tris - t0), mainCalls: r.info.render.calls, mainTris: r.info.render.triangles };
+}
+function heaviest() {
+  let best = null; const rows = [];
+  for (const rm of L.rooms) { attachView(rm, true); const f = frame(TI.shadows); rows.push({ id: rm.id, ...f }); if (!best || f.calls > best.calls || (f.calls === best.calls && f.tris > best.tris)) best = { id: rm.id, ...f }; }
+  let bt = rows[0]; for (const x of rows) if (x.tris > bt.tris) bt = x;
+  return { best, byTris: bt, rows };
+}
+const buildMs = build();
+window.__probe = { L, PA, get kit() { return kit; }, get arts() { return arts; }, r, scene, cam, frame, attachView, build, teardown, loadMs, buildMs, HOW, FILEERR, GL, TEX, FOW, sun };
+if (MODE === 'checks') { const m = await import('/ci_pal/checks.mjs'); window.__checks = await m.run(window.__probe, { heaviest, frame, attachView, html, TIER, only: Q.get('only') || '' }); }
+else if (MODE === 'build') { window.__build = { loadMs, buildMs, info: PA.info(kit), heavy: heaviest() }; }
+else {
+  // perf: the heaviest room view (by GL draws with the shadow frame), or a named room, with its neighbours attached; warm under a card first.
+  const H = heaviest(), id = VIEW === 'heavy' ? H.best.id : VIEW, rm = L.byId[id];
+  attachView(rm, true);
+  PA.warmOn(kit, scene, cam, arts); r.compile(scene, cam); frame(TI.shadows); PA.warmOff(kit, scene, arts);
+  frame(TI.shadows);
+  const prog0 = r.info.programs.length, counts = frame(TI.shadows), steady = frame(false);
+  // Play loop: the camera drifts across the room (LOD levels change), states toggle every 0.5 s (doors, vats, 鼎, clocks, beasts, mercury,
+  // burnt), the mercury shimmer ticks; the shadow map is redrawn only on a state change (as the game).
+  const props = []; for (const a of arts) if (attached.has(a)) for (const p of a.props) props.push(p);
+  const doorsIn = []; for (const d of L.doors) if (d.art && d.art.root.parent) doorsIn.push(d.art);
+  let t = 0, k = 0, last = performance.now(), stT = 0;
+  const loop = () => {
+    requestAnimationFrame(loop);
+    const now = performance.now(), dt = Math.min(0.05, (now - last) / 1000); last = now; t += dt; stT += dt;
+    camAt(rm.cx + Math.sin(t * 0.4) * (rm.x1 - rm.x0) * 0.35, rm.cz + Math.cos(t * 0.3) * (rm.z1 - rm.z0) * 0.35);
+    if (stT > 0.5) {
+      stT = 0; k++;
+      for (let i = 0; i < props.length; i++) { const p = props[i];
+        if (p.kind === 'vat') PA.setVat(p, k % 3); else if (p.kind === 'ding') PA.setDing(p, k % 2 === 0); else if (p.kind === 'clock') PA.setClock(p, 1 - (k % 10) / 10);
+        else if (p.kind === 'beast') PA.setBeast(p, k % 2 === 1); else if (p.kind === 'merc') PA.setMerc(kit, p, k % 3 === 0 ? 'idle' : k % 3 === 1 ? 'warn' : 'hot'); }
+      for (let i = 0; i < doorsIn.length; i++) PA.setDoor(doorsIn[i], k % 2 === 1, k % 4 === 3);
+      for (const a of attached) PA.setBurnt(a, k % 6 >= 3);
+      r.shadowMap.needsUpdate = true;
+    }
+    PA.tick(kit, dt);
+    r.render(scene, cam);
+  };
+  requestAnimationFrame(loop);
+  window.__probe.view = { id, heavy: H.best, heavyTris: H.byTris, counts, steady, prog0, programs: () => r.info.programs.length, propsN: props.length, doorsN: doorsIn.length };
+}
+window.__ready = true;
+</script></body></html>

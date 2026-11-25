@@ -1,0 +1,14 @@
+<!doctype html><html><head><meta charset="utf-8"><title>PREP-PAL control</title>
+<script type="importmap">{"imports":{"three":"/lib/three.module.min.js"}}</script></head><body style="margin:0;background:#120d16">
+<script type="module">
+// Control scene (CI only; as chrperf.mjs webglmin): plain three.js r171, 30 boxes, one 2048 shadow sun redrawn every frame.
+import * as THREE from 'three';
+const r = new THREE.WebGLRenderer({ antialias: false }); r.setPixelRatio(1); r.setSize(innerWidth, innerHeight); r.shadowMap.enabled = true; document.body.appendChild(r.domElement);
+const sc = new THREE.Scene(), cam = new THREE.PerspectiveCamera(50, innerWidth / innerHeight, 0.5, 120); cam.position.set(0, 14, 16); cam.lookAt(0, 0, 0);
+sc.add(new THREE.HemisphereLight(0xffffff, 0x222233, 0.8)); const sun = new THREE.DirectionalLight(0xffffff, 1.5); sun.position.set(8, 16, 6); sun.castShadow = true; sun.shadow.mapSize.set(2048, 2048); sc.add(sun);
+const fl = new THREE.Mesh(new THREE.PlaneGeometry(40, 40), new THREE.MeshStandardMaterial({ color: 0x665544 })); fl.rotation.x = -Math.PI / 2; fl.receiveShadow = true; sc.add(fl);
+const g = new THREE.BoxGeometry(1, 2, 1), bs = [];
+for (let i = 0; i < 30; i++) { const m = new THREE.Mesh(g, new THREE.MeshStandardMaterial({ color: 0x8899aa + i * 997 })); m.position.set((i % 6) * 3 - 7.5, 1, Math.floor(i / 6) * 3 - 6); m.castShadow = m.receiveShadow = true; sc.add(m); bs.push(m); }
+const f = (t) => { requestAnimationFrame(f); for (let i = 0; i < bs.length; i++) bs[i].rotation.y = t * 0.001 + i; r.render(sc, cam); };
+r.compile(sc, cam); requestAnimationFrame(f); window.__ready = true;
+</script></body></html>
