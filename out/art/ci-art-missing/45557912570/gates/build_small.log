@@ -1,0 +1,76 @@
+PASS plate_lod0 tris 476 (budget 499)
+PASS plate_lod1 tris 340 (budget 400)
+PASS plate_lod2 tris 140 (budget 220)
+PASS plate LODs ordered: 476 > 340 > 140 tris
+PASS plate 0.72 x 0.72 m, 0.16 m high (game pickup 0.7 m)
+PASS plate lies on the ground, dome 0.18 m high (0.08-0.2)
+PASS plate materials ['palBronze', 'palInlay', 'pcBlack']
+PASS plate reads as armour: 3 lames, 4 rivets, 3 claw stripes, narrow end 15 deg against 37 deg
+8 of 8 pass
+ERROR Draco is not available because library could not be found at /opt/hostedtoolcache/Python/3.13.18/x64/lib/python3.13/site-packages/bpy/lib/libbf_intern_draco_bridge.so
+ERROR MeshOptimizer is not available because library could not be found at /opt/hostedtoolcache/Python/3.13.18/x64/lib/python3.13/site-packages/bpy/lib/libbf_intern_meshopt_bridge.so
+06:05:17 | INFO: Starting glTF 2.0 export
+06:05:17 | INFO: Extracting primitive: plate_lod0
+06:05:17 | INFO: Primitives created: 3
+06:05:17 | INFO: Extracting primitive: plate_lod1
+06:05:17 | INFO: Primitives created: 3
+06:05:17 | INFO: Extracting primitive: plate_lod2
+06:05:17 | INFO: Primitives created: 2
+06:05:17 | INFO: Finished glTF 2.0 export in 0.019617557525634766 s
+
+wrote /tmp/pieces/plate.glb 68580 bytes
+PASS leader_crown_lod0 tris 464 (budget 499)
+PASS leader_crown_lod1 tris 260 (budget 400)
+PASS leader_crown_lod2 tris 112 (budget 220)
+PASS leader_crown LODs ordered: 464 > 260 > 112 tris
+PASS leader crown 0.62 x 0.71 m, 0.24 m high (height 0.2-0.5, width <= 0.7, length <= 0.75; ring radius 0.3 as CONFIG.LEADER.crownR): a compact token, no long blades
+PASS leader crown materials ['kmJade', 'palCinnabar', 'palGold', 'pcBlack'] (black lacquer, gold inlay, cinnabar, jade beads)
+PASS leader crown: a board 0.66 x 0.38 m with 3 + 3 bead strings
+7 of 7 pass
+06:05:17 | INFO: Starting glTF 2.0 export
+06:05:17 | INFO: Extracting primitive: leader_crown_lod0
+06:05:17 | INFO: Primitives created: 4
+06:05:17 | INFO: Extracting primitive: leader_crown_lod1
+06:05:17 | INFO: Primitives created: 4
+06:05:17 | INFO: Extracting primitive: leader_crown_lod2
+06:05:17 | INFO: Primitives created: 3
+06:05:17 | INFO: Finished glTF 2.0 export in 0.016391754150390625 s
+
+wrote /tmp/pieces/leader_crown.glb 62484 bytes
+PASS mo_wall_lod0 tris 388 (budget 499)
+PASS mo_wall_lod1 tris 268 (budget 400)
+PASS mo_wall_lod2 tris 128 (budget 220)
+PASS mo_wall LODs ordered: 388 > 268 > 128 tris
+PASS 墨 wall 4.12 x 2.40 x 0.88 m (game cast 4.0 x 2.4 x 0.6; the timber and footing stand proud of the solid)
+PASS 墨 wall materials ['moEarth', 'moStone', 'moTimber', 'palBronze', 'palCinnabar', 'palLacquerPlain'] (rammed earth, timber, river stone, bronze sleeves, cinnabar plaque)
+PASS 墨 wall frame: 5 upright posts, 2 horizontal rails a face, 0 diagonal braces (must be 0)
+PASS 墨 wall LOD2 keeps the posts (timber from the footing to the ridge, end to end; 12 vertices on the middle post below 1 m)
+8 of 8 pass
+06:05:17 | INFO: Starting glTF 2.0 export
+06:05:17 | INFO: Extracting primitive: mo_wall_lod0
+06:05:17 | INFO: Primitives created: 6
+06:05:17 | INFO: Extracting primitive: mo_wall_lod1
+06:05:17 | INFO: Primitives created: 5
+06:05:17 | INFO: Extracting primitive: mo_wall_lod2
+06:05:17 | INFO: Primitives created: 3
+06:05:17 | INFO: Finished glTF 2.0 export in 0.018002033233642578 s
+
+wrote /tmp/pieces/mo_wall.glb 63304 bytes
+PASS decree_mark_lod0 tris 220 (budget 499)
+PASS decree_mark_lod1 tris 108 (budget 400)
+PASS decree_mark_lod2 tris 56 (budget 220)
+PASS decree_mark LODs ordered: 220 > 108 > 56 tris
+PASS decree mark 0.30 m wide x 0.90 m high (game marker 0.3 x 0.9), tip down at z 0.00
+PASS decree mark materials ['palBronze', 'palCinnabar', 'palGold', 'pcBlack'] (black lacquer, gold, cinnabar seal)
+PASS decree seal sigil: 8 strokes, 2 turned, 2 square eyes (a mask, not a letter shape)
+7 of 7 pass
+06:05:17 | INFO: Starting glTF 2.0 export
+06:05:17 | INFO: Extracting primitive: decree_mark_lod0
+06:05:17 | INFO: Primitives created: 4
+06:05:17 | INFO: Extracting primitive: decree_mark_lod1
+06:05:17 | INFO: Primitives created: 4
+06:05:17 | INFO: Extracting primitive: decree_mark_lod2
+06:05:17 | INFO: Primitives created: 4
+06:05:17 | INFO: Finished glTF 2.0 export in 0.014643192291259766 s
+
+wrote /tmp/pieces/decree_mark.glb 34684 bytes

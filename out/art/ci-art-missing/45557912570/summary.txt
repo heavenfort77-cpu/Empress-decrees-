@@ -1,0 +1,13 @@
+13 of 13 pass
+14 of 14 pass
+14 of 14 pass
+8 of 8 pass
+7 of 7 pass
+8 of 8 pass
+7 of 7 pass
+40 of 40 pass
+9 of 9 mutations caught
+FAIL kaymuse on the throne, approach framing (139 px high, 13751 px): 43% of outline pixels >= 3.0:1 against the throne behind her (min 50%); body median 1.1:1
+9 of 10 pass
+4 of 4 mutations caught
+FAIL lines: 1

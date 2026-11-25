@@ -1,0 +1,212 @@
+== preflight 06:05:12
+PREFLIGHT PASS
+== build 06:05:14
+PASS kaymuse_lod0 tris 6672 (budget 10000)
+PASS kaymuse_lod1 tris 2146 (budget 2600)
+PASS kaymuse_lod2 tris 838 (budget 900)
+PASS kaymuse skin: every lod0 vertex on one rig bone (0 bad, stray groups [])
+PASS kaymuse clip idle: 4.0 s, beads_f1 travels 0.029 m (min 0.01)
+PASS kaymuse_lod0 tris 6672 (min 5000: bead strings and folds modelled)
+PASS kaymuse sits within the throne seat: 2.87 m wide (seat 4.06), f -0.64..0.85 m (seat half depth 0.91), base z -0.00
+PASS kaymuse crown top 1.75 m over the seat (range 1.5-2.1; a suit stands 2.05-2.4 m)
+PASS kaymuse 冕: 12 + 12 bead strings, front span 0.35 m (head 0.24), length 0.35 m (head 0.33), 1.4 cm clear between strings, bead pitch 4.6 radii (strings, not a cage)
+PASS kaymuse head dark from every side: 0 light faces within 0.2 m of the head (head material pcBlack; no face modelled)
+PASS kaymuse 冕 board 0.95 m long x 0.46 m wide (length >= 1.8 x width)
+PASS kaymuse materials ['kmJade', 'kmRobe', 'palBronze', 'palCinnabar', 'palGold', 'palLacquerPlain', 'pcBlack'] (black robe, cinnabar, gold, white inner layer; no skin)
+PASS kaymuse LOD1 keeps cinnabar, gold and the white layer; LOD2 keeps gold and white
+13 of 13 pass
+PASS crab_lod0 tris 2168 (budget 3000)
+PASS crab_lod1 tris 1116 (budget 1200)
+PASS crab_lod2 tris 428 (budget 450)
+PASS crab skin: every lod0 vertex on one rig bone (0 bad, stray groups [])
+PASS crab clip idle: 2.4 s, claw_L travels 0.077 m (min 0.02)
+PASS crab clip move: 0.6 s, leg_L0 travels 0.111 m (min 0.08)
+PASS crab 1.94 m wide x 1.04 m high (width (1.6, 2.2), height <= 1.2, width >= 1.6 x height): low and wide
+PASS crab hull half width 0.62 m inside the game radius 0.7 (legs reach 0.97)
+PASS crab feet on the ground (lowest z -0.000)
+PASS crab materials ['palBronze', 'palGold', 'pcBlack'] (brass hull, black-lacquered limbs, gold inlay; no ball eyes)
+PASS crab_lod0 tris 2168 (min 1500)
+PASS crab lid relief: 2 raised bands (1.2 cm proud), 16 cast studs
+PASS crab move reads apart from idle: a leg travels 0.111 m in move against 0.006 m in idle (at least 3.0 x)
+PASS crab legs 11 cm wide (min 4.5 cm = 3 px at play size)
+14 of 14 pass
+PASS wanderer_lod0 tris 2148 (budget 3000)
+PASS wanderer_lod1 tris 880 (budget 1200)
+PASS wanderer_lod2 tris 362 (budget 450)
+PASS wanderer skin: every lod0 vertex on one rig bone (0 bad, stray groups [])
+PASS wanderer clip idle: 3.2 s, head travels 0.038 m (min 0.03)
+PASS wanderer clip move: 1.6 s, shin_L travels 0.256 m (min 0.1)
+PASS wanderer 2.81 m high x 1.15 m wide (height (2.2, 2.9), height >= 2.0 x width): tall and narrow
+PASS wanderer jar radius 0.35 m inside the game radius 0.5 (legs at 0.44)
+PASS wanderer feet on the ground (lowest z 0.002)
+PASS wanderer materials ['palBronze', 'palCinnabar', 'palGold', 'palInlay', 'pcBlack'] (black-lacquered limbs and jar, brass belt and lip, silver inlay, cinnabar crest)
+PASS wanderer_lod0 tris 2148 (min 1500)
+PASS wanderer limbs: thinnest of legs, neck and bill base 7.5 cm (min 4.5 cm = 3 px at play size)
+PASS wanderer LOD1 and LOD2 keep the legs and the head: lowest z 0.002 / 0.002, LOD2 top 2.81 m (LOD0 2.81)
+PASS wanderer: nothing over the back above 2.0 m (the parasol is gone; found 0.00): the neck and bill read from the game camera
+14 of 14 pass
+PASS plate_lod0 tris 476 (budget 499)
+PASS plate_lod1 tris 340 (budget 400)
+PASS plate_lod2 tris 140 (budget 220)
+PASS plate LODs ordered: 476 > 340 > 140 tris
+PASS plate 0.72 x 0.72 m, 0.16 m high (game pickup 0.7 m)
+PASS plate lies on the ground, dome 0.18 m high (0.08-0.2)
+PASS plate materials ['palBronze', 'palInlay', 'pcBlack']
+PASS plate reads as armour: 3 lames, 4 rivets, 3 claw stripes, narrow end 15 deg against 37 deg
+8 of 8 pass
+PASS leader_crown_lod0 tris 464 (budget 499)
+PASS leader_crown_lod1 tris 260 (budget 400)
+PASS leader_crown_lod2 tris 112 (budget 220)
+PASS leader_crown LODs ordered: 464 > 260 > 112 tris
+PASS leader crown 0.62 x 0.71 m, 0.24 m high (height 0.2-0.5, width <= 0.7, length <= 0.75; ring radius 0.3 as CONFIG.LEADER.crownR): a compact token, no long blades
+PASS leader crown materials ['kmJade', 'palCinnabar', 'palGold', 'pcBlack'] (black lacquer, gold inlay, cinnabar, jade beads)
+PASS leader crown: a board 0.66 x 0.38 m with 3 + 3 bead strings
+7 of 7 pass
+PASS mo_wall_lod0 tris 388 (budget 499)
+PASS mo_wall_lod1 tris 268 (budget 400)
+PASS mo_wall_lod2 tris 128 (budget 220)
+PASS mo_wall LODs ordered: 388 > 268 > 128 tris
+PASS 墨 wall 4.12 x 2.40 x 0.88 m (game cast 4.0 x 2.4 x 0.6; the timber and footing stand proud of the solid)
+PASS 墨 wall materials ['moEarth', 'moStone', 'moTimber', 'palBronze', 'palCinnabar', 'palLacquerPlain'] (rammed earth, timber, river stone, bronze sleeves, cinnabar plaque)
+PASS 墨 wall frame: 5 upright posts, 2 horizontal rails a face, 0 diagonal braces (must be 0)
+PASS 墨 wall LOD2 keeps the posts (timber from the footing to the ridge, end to end; 12 vertices on the middle post below 1 m)
+8 of 8 pass
+PASS decree_mark_lod0 tris 220 (budget 499)
+PASS decree_mark_lod1 tris 108 (budget 400)
+PASS decree_mark_lod2 tris 56 (budget 220)
+PASS decree_mark LODs ordered: 220 > 108 > 56 tris
+PASS decree mark 0.30 m wide x 0.90 m high (game marker 0.3 x 0.9), tip down at z 0.00
+PASS decree mark materials ['palBronze', 'palCinnabar', 'palGold', 'pcBlack'] (black lacquer, gold, cinnabar seal)
+PASS decree seal sigil: 8 strokes, 2 turned, 2 square eyes (a mask, not a letter shape)
+7 of 7 pass
+total 1768
+drwxr-xr-x  2 runner runner   4096 Nov 25 06:05 .
+drwxrwxrwt 16 root   root     4096 Nov 25 06:05 ..
+-rw-r--r--  1 runner runner 361184 Nov 25 06:05 crab.glb
+-rw-r--r--  1 runner runner  34684 Nov 25 06:05 decree_mark.glb
+-rw-r--r--  1 runner runner 869600 Nov 25 06:05 kaymuse.glb
+-rw-r--r--  1 runner runner  62484 Nov 25 06:05 leader_crown.glb
+-rw-r--r--  1 runner runner  63304 Nov 25 06:05 mo_wall.glb
+-rw-r--r--  1 runner runner  68580 Nov 25 06:05 plate.glb
+-rw-r--r--  1 runner runner 327076 Nov 25 06:05 wanderer.glb
+== builder mutations 06:05:17
+MUT caught: pieces_kaymuse.py with HEAD_MAT='kmJade' -> FAIL kaymuse head dark from every side: 72 light faces within 0.2 m of the head (head material kmJade; no face modelled)
+MUT caught: pieces_kaymuse.py with STR_DEG=3 -> FAIL kaymuse 冕: 12 + 12 bead strings, front span 0.12 m (head 0.24), length 0.35 m (head 0.33), -1.3 cm clear between st
+MUT caught: pieces_kaymuse.py with BUDGET=(1000,2600,900) -> FAIL kaymuse_lod0 tris 6672 (budget 1000)
+MUT caught: pieces_kaymuse.py with REST_X=2.4 -> FAIL kaymuse sits within the throne seat: 4.95 m wide (seat 4.06), f -0.64..0.85 m (seat half depth 0.91), base z -0.00
+MUT caught: pieces_creatures.py with C_KNEE=(0.84,1.35) -> FAIL crab 1.95 m wide x 1.40 m high (width (1.6, 2.2), height <= 1.2, width >= 1.6 x height): low and wide
+MUT caught: pieces_creatures.py with W_HIP=(1.0,-0.05,1.40) -> FAIL wanderer 2.81 m high x 2.13 m wide (height (2.2, 2.9), height >= 2.0 x width): tall and narrow
+MUT caught: pieces_creatures.py with C_MOVE=(0.6,0.0,0.0,0.0,0.0,0.0) -> FAIL crab clip move: 0.6 s, leg_L0 travels 0.000 m (min 0.08)
+MUT caught: pieces_creatures.py with C_MOVE=(0.6,2.0,1.0,0.0,0.0,16.0) -> FAIL crab move reads apart from idle: a leg travels 0.010 m in move against 0.006 m in idle (at least 3.0 x)
+MUT caught: pieces_creatures.py with C_STUDS=(4,0.665,0.03) -> FAIL crab lid relief: 2 raised bands (1.2 cm proud), 4 cast studs
+MUT caught: pieces_creatures.py with W_LEG_W=(0.16,0.03,0.075) -> FAIL wanderer limbs: thinnest of legs, neck and bill base 3.0 cm (min 4.5 cm = 3 px at play size)
+MUT caught: pieces_small.py with PL_LEN=1.2 -> FAIL plate 0.73 x 1.28 m, 0.16 m high (game pickup 0.7 m)
+MUT caught: pieces_small.py with PL_LAMES=1 -> FAIL plate reads as armour: 1 lames, 4 rivets, 3 claw stripes, narrow end 15 deg against 37 deg
+MUT caught: pieces_small.py with CR_BOARD_Z=0.9 -> FAIL leader crown 0.62 x 0.71 m, 0.93 m high (height 0.2-0.5, width <= 0.7, length <= 0.75; ring radius 0.3 as CONFIG.LE
+MUT caught: pieces_small.py with MW_BRACES=4 -> FAIL 墨 wall frame: 5 upright posts, 2 horizontal rails a face, 4 diagonal braces (must be 0)
+MUT caught: pieces_small.py with MW_POSTS=(-2.7,-0.94,0.0,0.94,2.7) -> FAIL 墨 wall 5.66 x 2.40 x 0.88 m (game cast 4.0 x 2.4 x 0.6; the timber and footing stand proud of the solid)
+MUT caught: pieces_small.py with DM_SIGIL=[(0,0,0.02,0.12,0),(0.04,0.05,0.08,0.02,0),(0.04,0,0.08,0.02,0),(0.04,-0.05,0.08,0.02,0)] -> FAIL decree seal sigil: 4 strokes, 0 turned, 0 square eyes (a mask, not a letter shape)
+== glb gates 06:05:35
+PASS kaymuse glTF valid: 869600 bytes, 3 meshes, 115 accessors inside the buffer
+PASS kaymuse LODs present and ordered: lod0 6672, lod1 2146, lod2 838 tris
+PASS kaymuse tris [6672, 2146, 838] inside the budgets [10000, 2600, 900]
+PASS kaymuse materials ['kmJade', 'kmRobe', 'palBronze', 'palCinnabar', 'palGold', 'palLacquerPlain', 'pcBlack'] all in pieces_mats.json
+PASS kaymuse_lod0 skinned, weights sum 1 (0 bad vertices)
+PASS kaymuse clips ['idle'] (needs ['idle'])
+PASS kaymuse clips move: idle 15 channels 4.03 s, key range 2.000, loop gap 0.0000
+PASS kaymuse clips loop (first key = last key within 0.002)
+PASS crab glTF valid: 361184 bytes, 3 meshes, 81 accessors inside the buffer
+PASS crab LODs present and ordered: lod0 2168, lod1 1116, lod2 428 tris
+PASS crab tris [2168, 1116, 428] inside the budgets [3000, 1200, 450]
+PASS crab materials ['palBronze', 'palGold', 'pcBlack'] all in pieces_mats.json
+PASS crab_lod0 skinned, weights sum 1 (0 bad vertices)
+PASS crab clips ['idle', 'move'] (needs ['idle', 'move'])
+PASS crab clips move: idle 30 channels 2.43 s, key range 0.037, loop gap 0.0000; move 30 channels 0.63 s, key range 0.216, loop gap 0.0000
+PASS crab clips loop (first key = last key within 0.002)
+PASS wanderer glTF valid: 327076 bytes, 3 meshes, 93 accessors inside the buffer
+PASS wanderer LODs present and ordered: lod0 2148, lod1 880, lod2 362 tris
+PASS wanderer tris [2148, 880, 362] inside the budgets [3000, 1200, 450]
+PASS wanderer materials ['palBronze', 'palCinnabar', 'palGold', 'palInlay', 'pcBlack'] all in pieces_mats.json
+PASS wanderer_lod0 skinned, weights sum 1 (0 bad vertices)
+PASS wanderer clips ['idle', 'move'] (needs ['idle', 'move'])
+PASS wanderer clips move: idle 24 channels 3.23 s, key range 0.093, loop gap 0.0000; move 24 channels 1.63 s, key range 0.169, loop gap 0.0000
+PASS wanderer clips loop (first key = last key within 0.002)
+PASS plate glTF valid: 68580 bytes, 3 meshes, 31 accessors inside the buffer
+PASS plate LODs present and ordered: lod0 476, lod1 340, lod2 140 tris
+PASS plate tris [476, 340, 140] inside the budgets [499, 400, 220]
+PASS plate materials ['palBronze', 'palInlay', 'pcBlack'] all in pieces_mats.json
+PASS leader_crown glTF valid: 62484 bytes, 3 meshes, 42 accessors inside the buffer
+PASS leader_crown LODs present and ordered: lod0 464, lod1 260, lod2 112 tris
+PASS leader_crown tris [464, 260, 112] inside the budgets [499, 400, 220]
+PASS leader_crown materials ['kmJade', 'palCinnabar', 'palGold', 'pcBlack'] all in pieces_mats.json
+PASS mo_wall glTF valid: 63304 bytes, 3 meshes, 49 accessors inside the buffer
+PASS mo_wall LODs present and ordered: lod0 388, lod1 268, lod2 128 tris
+PASS mo_wall tris [388, 268, 128] inside the budgets [499, 400, 220]
+PASS mo_wall materials ['moEarth', 'moStone', 'moTimber', 'palBronze', 'palCinnabar', 'palLacquerPlain'] all in pieces_mats.json
+PASS decree_mark glTF valid: 34684 bytes, 3 meshes, 42 accessors inside the buffer
+PASS decree_mark LODs present and ordered: lod0 220, lod1 108, lod2 56 tris
+PASS decree_mark tris [220, 108, 56] inside the budgets [499, 400, 220]
+PASS decree_mark materials ['palBronze', 'palCinnabar', 'palGold', 'pcBlack'] all in pieces_mats.json
+40 of 40 pass
+MUT caught: valid gate against file cut by 120 bytes -> crab glTF valid: ValueError header: version 2, length 361184 against 361064 bytes
+MUT caught: valid gate against an index past the vertex count -> crab glTF valid: ValueError crab_lod0: index 65535 past 1710 vertices
+MUT caught: lods gate against LOD2 renamed away -> crab LODs present and ordered: lod0 2168, lod1 1116, lod2 0 tris
+MUT caught: tris gate against LOD1 carrying twice the LOD0 mesh -> crab tris [1116, 4336, 428] inside the budgets [3000, 1200, 450]
+MUT caught: mats gate against a material not in the table -> crab materials ['palGold', 'palMystery', 'pcBlack'] all in pieces_mats.json (unknown ['palMystery'])
+MUT caught: skin gate against LOD0 skin removed -> crab_lod0 skinned, weights sum 1 (-1 bad vertices)
+MUT caught: clips gate against move clip removed -> crab clips ['idle'] (needs ['idle', 'move'])
+MUT caught: moves gate against move clip frozen on its first key -> crab clips move: idle 30 channels 2.43 s, key range 0.037, loop gap 0.0000; move 30 channels 0.63 s, key range
+MUT caught: loops gate against move clip ends on another pose -> crab clips loop (first key = last key within 0.002)
+9 of 9 mutations caught
+== shots 06:05:35
+PASS shots: 96 of 96 rendered in three's GLTFLoader without errors
+== measures and sheets 06:08:26
+INFO floor on screen (lineup, relative luminance, median of the lower third): lighter candidate 0.143, current 0.060
+PASS crab at play size (CAM_DIST 14, 1080p; 89 px high, 8599 px): 57% of outline pixels >= 3.0:1 against what is beside it on the lighter floor candidate (min 50%); body median 2.1:1
+INFO crab on the current hall floor: outline 1%, body median 1.2:1
+PASS wanderer at play size (CAM_DIST 14, 1080p; 193 px high, 5311 px): 74% of outline pixels >= 3.0:1 against what is beside it on the lighter floor candidate (min 50%); body median 3.3:1
+INFO wanderer on the current hall floor: outline 0%, body median 1.9:1
+PASS plate at play size (CAM_DIST 14, 1080p; 45 px high, 1892 px): 79% of outline pixels >= 3.0:1 against what is beside it on the lighter floor candidate (min 50%); body median 1.4:1
+INFO plate on the current hall floor: outline 0%, body median 1.3:1
+PASS leader_crown at play size (CAM_DIST 14, 1080p; 53 px high, 2169 px): 69% of outline pixels >= 3.0:1 against what is beside it on the lighter floor candidate (min 50%); body median 2.6:1
+INFO leader_crown on the current hall floor: outline 0%, body median 1.6:1
+PASS mo_wall at play size (CAM_DIST 14, 1080p; 171 px high, 50316 px): 58% of outline pixels >= 3.0:1 against what is beside it on the lighter floor candidate (min 50%); body median 3.0:1
+INFO mo_wall on the current hall floor: outline 0%, body median 1.7:1
+PASS decree_mark at play size (CAM_DIST 14, 1080p; 78 px high, 2009 px): 74% of outline pixels >= 3.0:1 against what is beside it on the lighter floor candidate (min 50%); body median 3.4:1
+INFO decree_mark on the current hall floor: outline 0%, body median 2.0:1
+INFO kaymuse play framing with the current floor on the dais top: outline 61%, body median 1.1:1
+PASS kaymuse on the throne, play framing (178 px high, 23031 px): 61% of outline pixels >= 3.0:1 against the throne behind her (min 50%); body median 1.1:1
+INFO kaymuse approach framing with the current floor on the dais top: outline 43%, body median 1.1:1
+FAIL kaymuse on the throne, approach framing (139 px high, 13751 px): 43% of outline pixels >= 3.0:1 against the throne behind her (min 50%); body median 1.1:1
+PASS crab against wanderer, game camera yaw 0: silhouette IoU 0.05 at the same scale, 0.11 scaled to one height (max 0.6)
+PASS crab against wanderer, game camera yaw 90: silhouette IoU 0.16 at the same scale, 0.27 scaled to one height (max 0.6)
+9 of 10 pass
+MUT caught: contrast gate against the wanderer repainted in its surround colour -> outline 0% (unmutated 74%)
+MUT caught: visibility gate against an empty mask -> 0 px
+MUT caught: silhouette gate against the crab compared with itself -> IoU 1.00
+MUT caught: scaled silhouette gate against the crab compared with itself -> IoU 1.00
+4 of 4 mutations caught
+sheet kaymuse_close (2400, 1008)
+sheet kaymuse_play (1280, 2976)
+sheet kaymuse_play_crop (2524, 624)
+sheet crab_close (1680, 1776)
+sheet wanderer_close (1680, 1776)
+sheet small_close (2280, 1616)
+sheet play_lineup (1280, 2976)
+sheet play_crops (1488, 928)
+== summary
+13 of 13 pass
+14 of 14 pass
+14 of 14 pass
+8 of 8 pass
+7 of 7 pass
+8 of 8 pass
+7 of 7 pass
+40 of 40 pass
+9 of 9 mutations caught
+FAIL kaymuse on the throne, approach framing (139 px high, 13751 px): 43% of outline pixels >= 3.0:1 against the throne behind her (min 50%); body median 1.1:1
+9 of 10 pass
+4 of 4 mutations caught
+FAIL lines: 1
+4.4M	/home/runner/work/Empress-decrees-/Empress-decrees-/ci_art_out
+RESULT done

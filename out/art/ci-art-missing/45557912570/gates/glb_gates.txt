@@ -1,0 +1,51 @@
+PASS kaymuse glTF valid: 869600 bytes, 3 meshes, 115 accessors inside the buffer
+PASS kaymuse LODs present and ordered: lod0 6672, lod1 2146, lod2 838 tris
+PASS kaymuse tris [6672, 2146, 838] inside the budgets [10000, 2600, 900]
+PASS kaymuse materials ['kmJade', 'kmRobe', 'palBronze', 'palCinnabar', 'palGold', 'palLacquerPlain', 'pcBlack'] all in pieces_mats.json
+PASS kaymuse_lod0 skinned, weights sum 1 (0 bad vertices)
+PASS kaymuse clips ['idle'] (needs ['idle'])
+PASS kaymuse clips move: idle 15 channels 4.03 s, key range 2.000, loop gap 0.0000
+PASS kaymuse clips loop (first key = last key within 0.002)
+PASS crab glTF valid: 361184 bytes, 3 meshes, 81 accessors inside the buffer
+PASS crab LODs present and ordered: lod0 2168, lod1 1116, lod2 428 tris
+PASS crab tris [2168, 1116, 428] inside the budgets [3000, 1200, 450]
+PASS crab materials ['palBronze', 'palGold', 'pcBlack'] all in pieces_mats.json
+PASS crab_lod0 skinned, weights sum 1 (0 bad vertices)
+PASS crab clips ['idle', 'move'] (needs ['idle', 'move'])
+PASS crab clips move: idle 30 channels 2.43 s, key range 0.037, loop gap 0.0000; move 30 channels 0.63 s, key range 0.216, loop gap 0.0000
+PASS crab clips loop (first key = last key within 0.002)
+PASS wanderer glTF valid: 327076 bytes, 3 meshes, 93 accessors inside the buffer
+PASS wanderer LODs present and ordered: lod0 2148, lod1 880, lod2 362 tris
+PASS wanderer tris [2148, 880, 362] inside the budgets [3000, 1200, 450]
+PASS wanderer materials ['palBronze', 'palCinnabar', 'palGold', 'palInlay', 'pcBlack'] all in pieces_mats.json
+PASS wanderer_lod0 skinned, weights sum 1 (0 bad vertices)
+PASS wanderer clips ['idle', 'move'] (needs ['idle', 'move'])
+PASS wanderer clips move: idle 24 channels 3.23 s, key range 0.093, loop gap 0.0000; move 24 channels 1.63 s, key range 0.169, loop gap 0.0000
+PASS wanderer clips loop (first key = last key within 0.002)
+PASS plate glTF valid: 68580 bytes, 3 meshes, 31 accessors inside the buffer
+PASS plate LODs present and ordered: lod0 476, lod1 340, lod2 140 tris
+PASS plate tris [476, 340, 140] inside the budgets [499, 400, 220]
+PASS plate materials ['palBronze', 'palInlay', 'pcBlack'] all in pieces_mats.json
+PASS leader_crown glTF valid: 62484 bytes, 3 meshes, 42 accessors inside the buffer
+PASS leader_crown LODs present and ordered: lod0 464, lod1 260, lod2 112 tris
+PASS leader_crown tris [464, 260, 112] inside the budgets [499, 400, 220]
+PASS leader_crown materials ['kmJade', 'palCinnabar', 'palGold', 'pcBlack'] all in pieces_mats.json
+PASS mo_wall glTF valid: 63304 bytes, 3 meshes, 49 accessors inside the buffer
+PASS mo_wall LODs present and ordered: lod0 388, lod1 268, lod2 128 tris
+PASS mo_wall tris [388, 268, 128] inside the budgets [499, 400, 220]
+PASS mo_wall materials ['moEarth', 'moStone', 'moTimber', 'palBronze', 'palCinnabar', 'palLacquerPlain'] all in pieces_mats.json
+PASS decree_mark glTF valid: 34684 bytes, 3 meshes, 42 accessors inside the buffer
+PASS decree_mark LODs present and ordered: lod0 220, lod1 108, lod2 56 tris
+PASS decree_mark tris [220, 108, 56] inside the budgets [499, 400, 220]
+PASS decree_mark materials ['palBronze', 'palCinnabar', 'palGold', 'pcBlack'] all in pieces_mats.json
+40 of 40 pass
+MUT caught: valid gate against file cut by 120 bytes -> crab glTF valid: ValueError header: version 2, length 361184 against 361064 bytes
+MUT caught: valid gate against an index past the vertex count -> crab glTF valid: ValueError crab_lod0: index 65535 past 1710 vertices
+MUT caught: lods gate against LOD2 renamed away -> crab LODs present and ordered: lod0 2168, lod1 1116, lod2 0 tris
+MUT caught: tris gate against LOD1 carrying twice the LOD0 mesh -> crab tris [1116, 4336, 428] inside the budgets [3000, 1200, 450]
+MUT caught: mats gate against a material not in the table -> crab materials ['palGold', 'palMystery', 'pcBlack'] all in pieces_mats.json (unknown ['palMystery'])
+MUT caught: skin gate against LOD0 skin removed -> crab_lod0 skinned, weights sum 1 (-1 bad vertices)
+MUT caught: clips gate against move clip removed -> crab clips ['idle'] (needs ['idle', 'move'])
+MUT caught: moves gate against move clip frozen on its first key -> crab clips move: idle 30 channels 2.43 s, key range 0.037, loop gap 0.0000; move 30 channels 0.63 s, key range
+MUT caught: loops gate against move clip ends on another pose -> crab clips loop (first key = last key within 0.002)
+9 of 9 mutations caught
