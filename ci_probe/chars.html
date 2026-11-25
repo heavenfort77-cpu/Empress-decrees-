@@ -130,7 +130,7 @@ async function cycles(n) {
 }
 const tris = (tp) => tp.lods.map((L) => L.parts.reduce((s, p) => s + p.geo.index.count / 3, 0));
 window.__game = { render: () => ({ calls: r.info.render.calls, tris: r.info.render.triangles, programs: r.info.programs.length, geoms: r.info.memory.geometries, texs: r.info.memory.textures }) };
-window.__probe = { fileCloth, CH, THREE, r, sc, cam, crowd, RIGS, UNITS, TPL, GI, INFO, S, cycles, progWarm, STATUES,
+window.__probe = { fileCloth, GL, CH, THREE, r, sc, cam, crowd, RIGS, UNITS, TPL, GI, INFO, S, cycles, progWarm, STATUES,
   info: () => ({ load: Math.round(LT.load), templates: Math.round(LT.templates), spawn: Math.round(LT.spawn), progWarm, mixers: CH.stats().mixers, offscreen: CH.stats().offscreen, crowdDrawn: crowd.drawn,
     bindErr: Math.max(...Object.values(TPL).map((t) => t.bindErr), ...GI.map((t) => t.bindErr)).toExponential(2), weightGapCm: +(Math.max(...Object.values(TPL).map((t) => t.weightGap)) * 100).toFixed(2),
     tris: Object.fromEntries([...Object.entries(TPL), ['giant0', GI[0]]].map(([k2, t]) => [k2, tris(t).map(Math.round).join('/')])) }) };

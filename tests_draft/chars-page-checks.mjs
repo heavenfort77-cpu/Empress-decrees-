@@ -3,7 +3,7 @@
 const frames = (n) => new Promise((res) => { let c = 0; const f = () => { if (++c >= n) res(); else requestAnimationFrame(f); }; requestAnimationFrame(f); });
 
 export async function run(P) {
-  const { CH, THREE, r, sc, cam, crowd, RIGS, TPL, GI, INFO } = P, out = [];
+  const { CH, THREE, r, sc, cam, crowd, RIGS, TPL, GI, INFO, GL } = P, out = [];
   const add = (name, pass, detail) => out.push({ name, pass: !!pass, detail: String(detail).slice(0, 300) });
   const tpls = [...Object.values(TPL), ...GI];
   await frames(20);
@@ -162,5 +162,28 @@ export async function run(P) {
   c2.warmAll(0, 0, -3); r.render(sc, cam); const m1 = { g: r.info.memory.geometries, t: r.info.memory.textures };
   c2.dispose(); r.render(sc, cam); const m2 = { g: r.info.memory.geometries, t: r.info.memory.textures };
   add('C20_dispose', m1.g > m0.g && m1.t > m0.t && m2.g === m0.g && m2.t === m0.t && c2.meshes.length === 0, `before ${m0.g}/${m0.t}, drawn ${m1.g}/${m1.t}, disposed ${m2.g}/${m2.t} (geometries/textures)`);
+  // C21 faces stay swappable (owner picking A-D): an fc* material in a suit file is built from the file's own values (never another
+  // sheet), CHR.face.mat overrides it, Rig.setFace swaps only the face parts, the face part has its outline hull, an unknown name stops the load.
+  let base21 = null; GL.suit_fa.scene.traverse((o) => { if (!base21 && o.isSkinnedMesh && CH.lodOf(CH.nodeName(o)) === 0) base21 = o; });
+  const fm = new THREE.MeshStandardMaterial({ color: 0x123456, metalness: 0.7, roughness: 0.3 }); fm.name = 'fcFace';
+  const f21 = new THREE.SkinnedMesh(base21.geometry, fm); f21.name = 'fa_fcTest';
+  try {
+  f21.position.copy(base21.position); f21.quaternion.copy(base21.quaternion); f21.scale.copy(base21.scale); base21.parent.add(f21); f21.bind(base21.skeleton, base21.bindMatrix);
+  const mk21 = (mat) => CH.makeTemplate(GL.suit_fa, { kind: 'suit', id: 'fa', mat, outline: true, floorY: INFO.fa.floor_y, runV: INFO.fa.run_v, lodDist: CH.CHR.lod.suit });
+  const facePart = (t) => t.lods[0].parts.find((p) => p.matName === 'fcFace');
+  const tA = mk21(CH.charMaterials(() => null)), mA = facePart(tA) && facePart(tA).mats[0];
+  const fileOk = !!mA && mA.isMeshStandardMaterial && mA.color.getHex() === 0x123456 && Math.abs(mA.metalness - 0.7) < 1e-6 && Math.abs(mA.roughness - 0.3) < 1e-6;
+  const mark = new THREE.MeshStandardMaterial({ color: 0xff00ff }); mark.name = 'fcFace';
+  CH.CHR.face.mat = (n) => (n === 'fcFace' ? mark : null); const tB = mk21(CH.charMaterials(() => null)); CH.CHR.face.mat = null;
+  const overOk = !!facePart(tB) && facePart(tB).mats[0] === mark;
+  const rg = CH.spawnRig(tA), nFace = rg.parts.filter((p) => p.matName === 'fcFace').length, swapped = rg.setFace(mark);
+  const swapOk = nFace > 0 && swapped === nFace && rg.parts.every((p) => (p.matName === 'fcFace') === (p.mesh.material === mark));
+  const hullOk = !!rg.lod.levels[0].object.getObjectByName('fa_l0_fcFace_ol');
+  fm.name = 'zzUnknown'; let threw = false;
+  try { CH.disposeTemplate(mk21(CH.charMaterials(() => null))); } catch (e) { threw = String(e).includes('zzUnknown'); }
+  fm.name = 'fcFace'; rg.dispose(); CH.disposeTemplate(tA); CH.disposeTemplate(tB); mark.dispose();
+  add('C21_face_swap', fileOk && overOk && swapOk && hullOk && threw, `file values ${fileOk}, override ${overOk}, setFace ${swapped} of ${nFace} face parts only ${swapOk}, hull ${hullOk}, unknown name stops ${threw}`);
+  } catch (e) { add('C21_face_swap', false, 'threw ' + String(e).slice(0, 200)); }
+  f21.removeFromParent(); fm.dispose(); CH.CHR.face.mat = null;
   return out;
 }

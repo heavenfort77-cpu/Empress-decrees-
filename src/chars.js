@@ -13,9 +13,10 @@
 // FILES     charFiles(base)
 // GEOMETRY  nodeName(), lodOf(), rigSpaceGeo(), mergeGeos(), transferWeights(), fitSphere()
 // TEMPLATE  makeTemplate(gltf, opts): rig-space parts per LOD and material, one bone list, clips starting at 0 s
-// MATERIALS charMaterials(tex): the name table (brass sheet, apex glow, suit cloth from the file), .dispose(); chainCompile(); disposeTemplate()
+// MATERIALS charMaterials(tex): the name table (brass sheet, apex glow, suit cloth and faces from the file; unknown names stop the load),
+//           .dispose(); chainCompile(); disposeTemplate()
 // OUTLINE   outlineMaterial(), setOutlineSize(w, h, pr)   suits: 2 px inverted hull, one extra draw per suit material
-// RIGS      spawnRig(tpl, opts) -> rig: place(), show(), hide(), play(), setRun(), setState(), addTread(), update() [PERFRAME]; lodHold()
+// RIGS      spawnRig(tpl, opts) -> rig: place(), show(), hide(), play(), setRun(), setState(), setFace(), addTread(), update() [PERFRAME]; lodHold()
 // STATUE    makeStatue(tpl, clip, t): a skinned pose frozen into static meshes (dormant giants)
 // CROWD     makeCrowd(tpls, opts) -> crowd: makeState(), setClip(), setTime(), begin(), put(), end() [PERFRAME]
 // HIT       HIT.dist(), HIT.line(), HIT.sector() [PERFRAME]; sectorGeometry(R, deg)
@@ -62,6 +63,10 @@ export const CHR = {
   patch: [0x6f6a34, 0x6a4a32, 0x8e5a52],
   // Suit outline (owner pick 25 Nov 02:1x: 2 px on screen, renderer-side): inverted hull, one extra draw per suit material.
   outline: { on: true, px: 2, color: 0x0b0908 },
+  // Faces (owner picking A-D, 25 Nov): suit materials named with this prefix (fcBrass, fcFace in the face samples run 45533099431).
+  // No face is chosen here: the suit file carries the face and its material is built from the file's own values, unless INT sets
+  // mat = (name, srcMaterial, tex, state) -> Material before charMaterials builds; Rig.setFace(material) swaps it on a spawned rig.
+  face: { prefix: 'fc', mat: null },
   // Characters cast shadows (false = as today: blob shadows only; the shadow map is not re-rendered per frame).
   shadows: false,
   // Tread belts (ASSET-LIST H, FIX-A run 45471050221): metres of travel per texture repeat; map.offset.x += metres / mpr.
@@ -280,9 +285,15 @@ export function charMaterials(tex) {
     palPatina: () => std({ map: tex('bronze_trim_patina'), metalness: 0.15, roughness: 0.8 }),
   };
   const get = (name, src, state) => {
-    const cloth = name.startsWith('sCloth'), key = name + '|' + (state || 'awake') + (cloth ? '|' + src.color.getHexString() : '');
+    const cloth = name.startsWith('sCloth'), face = name.startsWith(CHR.face.prefix);
+    const key = name + '|' + (state || 'awake') + (cloth ? '|' + src.color.getHexString() : '') + (face ? '|' + src.uuid : '');
     if (cache.has(key)) return cache.get(key);
-    const m = cloth ? std({ map: tex('suit_cloth'), color: src.color.clone(), metalness: 0, roughness: 0.85 }) : (T[name] || T.rbCloth)(state);
+    let m;
+    if (cloth) m = std({ map: tex('suit_cloth'), color: src.color.clone(), metalness: 0, roughness: 0.85 });
+    else if (face) m = (CHR.face.mat && CHR.face.mat(name, src, tex, state || 'awake')) || std({ map: src.map || null, color: src.color.clone(),
+      metalness: src.metalness !== undefined ? src.metalness : 0, roughness: src.roughness !== undefined ? src.roughness : 0.5, side: src.side });
+    else if (T[name]) m = T[name](state);
+    else throw new Error('chars.js charMaterials: no material for "' + name + '" (add it to the table in charMaterials)');
     m.name = name; cache.set(key, m);
     return m;
   };
@@ -344,7 +355,7 @@ export function spawnRig(tpl, opts = {}) {
       const mats = p.mats.map((m) => p.matName === 'treadBelt' ? chainCompile(m, 'chrTread', TREAD_INJECT(tread)) : m);
       const sm = new THREE.SkinnedMesh(p.geo, mats[0]);
       sm.bind(skel, I4); sm.boundingSphere = L.sphere; sm.castShadow = !!opts.castShadow; sm.receiveShadow = false; sm.name = tpl.id + '_l' + i + '_' + p.matName;
-      grp.add(sm); parts.push({ mesh: sm, mats });
+      grp.add(sm); parts.push({ mesh: sm, mats, matName: p.matName });
       if (outline) { const o = new THREE.SkinnedMesh(p.geo, outlineMaterial()); o.bind(skel, I4); o.boundingSphere = L.sphere; o.name = sm.name + '_ol'; grp.add(o); }
     }
     lod.addLevel(grp, i === 0 ? 0 : tpl.lodDist[i - 1] * k, CHR.lodHyst);
@@ -387,6 +398,13 @@ class Rig {
   }
   // Material state (0 = first state in tpl.states, e.g. dormant; 1 = awake): swaps the prebuilt, warmed materials, no new program.
   setState(i) { if (this.state === i) return; this.state = i; for (const p of this.parts) p.mesh.material = p.mats[i] || p.mats[0]; }
+  // Face swap (event only, never per frame): every face part (material name starts with CHR.face.prefix) wears m in every state.
+  // Draw m once under a loading card first (a new material can be a new program). Returns the number of face parts swapped.
+  setFace(m) {
+    let n = 0;
+    for (const p of this.parts) if (p.matName.startsWith(CHR.face.prefix)) { for (let i = 0; i < p.mats.length; i++) p.mats[i] = m; p.mesh.material = m; n++; }
+    return n;
+  }
   // Tread belts: map.offset.x += metres / mpr (ASSET-LIST H), kept in [0, 1).
   addTread(m) { if (!this.tpl.tread) return; this.treadM = (this.treadM + m / this.tpl.tread) % 1; if (this.treadM < 0) this.treadM += 1; this.tread.value = this.treadM; }
   // Leaving for good (palace set): out of the graph, bone texture and per-unit tread materials released.

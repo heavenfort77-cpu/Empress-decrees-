@@ -33,6 +33,9 @@ export const MUTANTS = [
   ['memory grows per spawn', 'C15_memory_flat', 'show(scene) { if (!this.root.parent) scene.add(this.root); this.on = true; }', 'show(scene) { if (!this.root.parent) scene.add(this.root); this.on = true; this.root.add(new THREE.Mesh(new THREE.BoxGeometry(0.01, 0.01, 0.01), outlineMaterial())); }'],
   ['cloth colour hard-coded', 'C16_cloth_from_file', "color: src.color.clone(), metalness: 0, roughness: 0.85", "color: new THREE.Color(0xb8862e), metalness: 0, roughness: 0.85"],
   ['statue skinned', 'C18_statue_static', "const g = poseGeo(p.geo, M), m = new THREE.Mesh(g, p.mats[0]);", "const g = p.geo, m = new THREE.SkinnedMesh(g, p.mats[0]); m.bind(new THREE.Skeleton(bones, tpl.boneInv), I4);"],
+  ['face from another sheet', 'C21_face_swap', "else if (face) m = (CHR.face.mat", "else if (!face) m = (CHR.face.mat"],
+  ['unknown name silent', 'C21_face_swap', "else throw new Error('chars.js charMaterials: no material for", "else m = T.rbCloth(state); if (0) throw new Error('chars.js charMaterials: no material for"],
+  ['setFace swaps every part', 'C21_face_swap', "for (const p of this.parts) if (p.matName.startsWith(CHR.face.prefix)) {", "for (const p of this.parts) if (p.matName) {"],
   ['bake texture kept on dispose', 'C20_dispose', 'for (const t in this.types) this.types[t].bake.tex.dispose();', 'for (const t in this.types) this.types[t].bake.tex.name += "";'],
 ];
 function serve(srcOverride) {
