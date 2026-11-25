@@ -12,4 +12,4 @@ bash art/tools/int17/encode.sh "$R" "$S" mut 2>&1 | grep -v "^PREP" | tail -60
 echo "encode wall $(( $(date +%s) - T0 )) s"; tail -20 "$S/gt.log" 2>/dev/null
 echo "== decode"; node art/tools/int17/check.mjs "$R" "$S" "$S/dec" 2>&1 | tail -20
 echo "== gates"; python3 art/tools/int17/metrics.py "$R" "$S" "$S/dec" 2>&1 | tail -40
-mkdir -p "$OUT/c" && cp -r "$S/desk" "$S/phone" "$S/models" "$OUT/c/" && cp "$S/dec"/*.json "$OUT/" 2>/dev/null; cp -r "$S/dec/decoded" "$OUT/decoded_desk" 2>/dev/null; true
+mkdir -p "$OUT/c" && cp -r "$S/desk" "$S/phone" "$S/models" "$OUT/c/" && cp "$S/dec"/*.json "$OUT/" 2>/dev/null; true

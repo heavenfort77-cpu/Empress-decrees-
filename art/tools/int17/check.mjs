@@ -18,7 +18,7 @@ const BASE = `http://127.0.0.1:${server.address().port}`;
 const browser = await chromium.launch({ args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--ignore-gpu-blocklist'] });
 await mkdir(OUT, { recursive: true });
 const list = [];
-for (const set of ['desk', 'phone']) for (const mode of ['etc1s', 'uastc']) {
+for (const set of ['desk', 'phone']) for (const mode of ['etc1s', 'uastc', 'uastc4']) {
   const d = join(STAGE, set, mode); if (!existsSync(d)) continue;
   for (const f of (await readdir(d)).filter((x) => x.endsWith('.ktx2')).sort()) list.push([`/__stage/${set}/${mode}/${f}`, `${set}/${mode}/${f.slice(0, -5)}`]);
 }

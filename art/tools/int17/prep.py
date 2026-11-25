@@ -18,3 +18,5 @@ for f in sorted(glob.glob(T + '/*.png')):
 a = np.asarray(Image.open(f'{S}/desk/hall_wall.png').convert('RGB')).copy(); Image.fromarray(a[..., ::-1].copy()).save(f'{S}/mut/swap__hall_wall.png')
 Image.open(f'{S}/desk/smoke_card.png').convert('RGB').save(f'{S}/mut/noalpha__smoke_card.png')
 p = np.asarray(Image.open(f'{S}/desk/hall_floor.png').convert('RGB')).astype(int); Image.fromarray(((p // 64) * 64 + 32).astype(np.uint8)).save(f'{S}/mut/poster__hall_floor.png')
+from PIL import ImageFilter
+Image.open(f'{S}/desk/hall_wall.png').convert('RGB').filter(ImageFilter.BoxBlur(3)).save(f'{S}/mut/blur__hall_wall.png')

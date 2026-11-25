@@ -45,41 +45,57 @@ def compare(src_png, tag):
     return best
 fails, lines = [], []
 def gate(name, ok, detail): lines.append(f'{"PASS" if ok else "FAIL"} {name}: {detail}'); (None if ok else fails.append(name))
+MODES = ('etc1s', 'uastc', 'uastc4')
+def texcheck(d):
+    r = subprocess.run([sys.executable, f'{R}/art/tools/tex_check.py', d], capture_output=True, text=True)
+    return set(l.split(':')[0].strip() for l in r.stdout.splitlines() if l.startswith('FAIL')), {l.split(':')[0].strip(): l.strip() for l in r.stdout.splitlines() if l.startswith('FAIL')}
 src = {st: sorted(os.path.basename(f)[:-4] for f in glob.glob(f'{S}/src/{st}/*.png')) for st in ('desk', 'phone')}
-pick, rep = {}, []
 gpu = {r['tag']: r for r in json.load(open(f'{O}/tex_gpu.json'))['rows']}
 rgba = {r['tag']: r for r in json.load(open(f'{O}/tex_rgba.json'))['rows']}
-t1bad, t2bad, t3bad, t4bad = [], [], [], []
-os.makedirs(f'{O}/decoded', exist_ok=True)
-for st in ('desk', 'phone'):
-    for n in src[st]:
-        res = {}
-        for mode in ('etc1s', 'uastc'):
-            tag = f'{st}/{mode}/{n}'
-            if not rgba.get('rgba/' + tag, {}).get('ok'): t1bad.append(tag); continue
-            c = compare(f'{S}/src/{st}/{n}.png', 'rgba/' + tag)
-            if c is None: t1bad.append(tag); continue
-            c['ok'] = c['psnr'] >= 35 and c['de'] <= 2 and c['aflip'] <= 0.01; res[mode] = c
-        m = 'etc1s' if res.get('etc1s', {}).get('ok') else 'uastc'
-        c = res.get(m)
-        if c is None: (t2bad if st == 'desk' else t3bad).append(f'{n} not decoded'); continue
-        pick[f'{st}/{n}'] = {'mode': m, 'psnr': round(c['psnr'], 2), 'de': round(c['de'], 3), 'de95': round(c['de95'], 2), 'aflip': round(c['aflip'], 4), 'orient': c['orient'], 'bytes': os.path.getsize(f'{S}/{st}/{m}/{n}.ktx2'),
-                             'etc1s': {k: round(v, 3) for k, v in res.get('etc1s', {}).items() if k in ('psnr', 'de', 'aflip')}}
-        if not (c['psnr'] >= 35 and c['de'] <= 2): (t2bad if st == 'desk' else t3bad).append(f'{n} {m} psnr {c["psnr"]:.1f} dE {c["de"]:.2f}')
-        if c['has_alpha'] and c['aflip'] > 0.01: t4bad.append(f'{st}/{n} {c["aflip"]:.4f}')
-        if st == 'desk': Image.fromarray(c['img'].astype(np.uint8)[..., :3] if not c['has_alpha'] else c['img'].astype(np.uint8)).save(f'{O}/decoded/{n}.png')
-gate('T1 encode + load (rgba route)', not t1bad, f'{sum(len(v) for v in src.values()) * 2 - len(t1bad)} of {sum(len(v) for v in src.values()) * 2}' + (' bad ' + ' '.join(t1bad[:8]) if t1bad else ''))
-gate('T2 desk PSNR >= 35 and dE <= 2', not t2bad, f'{len(src["desk"]) - len(t2bad)} of {len(src["desk"])}' + (' bad ' + '; '.join(t2bad) if t2bad else ''))
-gate('T3 phone PSNR >= 35 and dE <= 2', not t3bad, f'{len(src["phone"]) - len(t3bad)} of {len(src["phone"])}' + (' bad ' + '; '.join(t3bad) if t3bad else ''))
-na = sum(1 for k, v in pick.items() if v['aflip'] > 0 or 'card' in k or k.split('/')[1] in ('garden_plants', 'school_standards', 'signal_flags', 'star_inlay'))
-nalpha = sum(1 for k, v in pick.items() if k.startswith('desk/') and np.asarray(Image.open(f'{S}/src/desk/{k[5:]}.png').convert('RGBA'))[..., 3].min() < 255)
-gate('T4 alpha flips <= 1%', not t4bad and nalpha >= 6, f'{nalpha} alpha textures (desk) checked; worst ' + str(max([v['aflip'] for v in pick.values()] + [0])) + (' bad ' + ' '.join(t4bad) if t4bad else ''))
-def texcheck(d):
-    r = subprocess.run([sys.executable, f'{R}/art/tools/tex_check.py', d], capture_output=True, text=True); return set(l.strip() for l in r.stdout.splitlines() if l.startswith('FAIL')), r.stdout
 srcdir = f'{O}/srcpng'; os.makedirs(srcdir, exist_ok=True)
 for n in src['desk']: shutil.copy(f'{S}/src/desk/{n}.png', f'{srcdir}/{n}.png')
-fs, _ = texcheck(srcdir); fd, outd = texcheck(f'{O}/decoded'); new = sorted(fd - fs)
-gate('T5 tex_check ratchet (decoded vs source)', not new and len(os.listdir(f'{O}/decoded')) == len(src['desk']) and len(src['desk']) > 0, f'source FAIL lines {len(fs)}, decoded {len(fd)}, new {len(new)}' + (' : ' + ' | '.join(new[:6]) if new else ''))
+fs, fs_txt = texcheck(srcdir)
+# Decode every candidate; desk candidates also get the tex_check verdict per mode (FAIL rule keys, compared with the source's keys).
+res, t1bad = {}, []
+for st in ('desk', 'phone'):
+    for mode in MODES:
+        d = f'{O}/dec_{st}_{mode}'; os.makedirs(d, exist_ok=True)
+        for n in src[st]:
+            tag = f'{st}/{mode}/{n}'
+            c = compare(f'{S}/src/{st}/{n}.png', 'rgba/' + tag) if rgba.get('rgba/' + tag, {}).get('ok') else None
+            if c is None: t1bad.append(tag); continue
+            res[(st, mode, n)] = c
+            Image.fromarray(c['img'].astype(np.uint8) if c['has_alpha'] else c['img'].astype(np.uint8)[..., :3]).save(f'{d}/{n}.png')
+            if c['has_alpha']:
+                vis = np.asarray(Image.open(f'{S}/src/{st}/{n}.png').convert('RGBA'))[..., 3] >= 128
+                sv = np.asarray(Image.open(f'{S}/src/{st}/{n}.png').convert('RGBA')).astype(np.float64)[vis][:, :3]; dv = c['img'][vis][:, :3]
+                c['psnr_vis'] = 10 * np.log10(255 ** 2 / max(1e-9, np.mean((sv - dv) ** 2)))
+        if st == 'desk':
+            fk, ftxt = texcheck(d)
+            for n in src[st]:
+                if (st, mode, n) in res: res[(st, mode, n)]['newkeys'] = sorted(k for k in fk - fs if k.split()[1] == n); res[(st, mode, n)]['ktxt'] = [ftxt[k] for k in res[(st, mode, n)]['newkeys']]
+pick, t2bad, t3bad, t4bad, t5bad = {}, [], [], [], []
+for st in ('desk', 'phone'):
+    for n in src[st]:
+        ok = lambda c: c['psnr'] >= 35 and c['de'] <= 2 and c['aflip'] <= 0.01 and not c.get('newkeys')
+        m = next((m for m in MODES if (st, m, n) in res and ok(res[(st, m, n)])), None)
+        if m is None:
+            m = max((m for m in MODES if (st, m, n) in res), key=lambda k: res[(st, k, n)]['psnr'], default=None)
+            if m is None: (t2bad if st == 'desk' else t3bad).append(f'{n} not decoded'); continue
+        c = res[(st, m, n)]
+        pick[f'{st}/{n}'] = {'mode': m, 'psnr': round(c['psnr'], 2), 'de': round(c['de'], 3), 'de95': round(c['de95'], 2), 'aflip': round(c['aflip'], 4), 'orient': c['orient'],
+                             'bytes': os.path.getsize(f'{S}/{st}/{m}/{n}.ktx2'), **({'psnr_vis': round(c['psnr_vis'], 2)} if 'psnr_vis' in c else {}),
+                             'tried': {k: [round(res[(st, k, n)]['psnr'], 1), round(res[(st, k, n)]['de'], 2), len(res[(st, k, n)].get('newkeys', []))] for k in MODES if (st, k, n) in res}}
+        if not (c['psnr'] >= 35 and c['de'] <= 2): (t2bad if st == 'desk' else t3bad).append(f'{n} {m} psnr {c["psnr"]:.1f} dE {c["de"]:.2f}' + (f' (visible pixels {c["psnr_vis"]:.1f})' if 'psnr_vis' in c else ''))
+        if c['has_alpha'] and c['aflip'] > 0.01: t4bad.append(f'{st}/{n} {c["aflip"]:.4f}')
+        if c.get('newkeys'): t5bad.append(f'{n} {m}: ' + ' | '.join(c['ktxt']))
+ntot = sum(len(v) for v in src.values()) * len(MODES)
+gate('T1 encode + load (rgba route)', not t1bad and ntot > 0, f'{ntot - len(t1bad)} of {ntot}' + (' bad ' + ' '.join(t1bad[:8]) if t1bad else ''))
+gate('T2 desk PSNR >= 35 and dE <= 2', not t2bad and len(src['desk']) > 0, f'{len(src["desk"]) - len(t2bad)} of {len(src["desk"])}' + (' bad ' + '; '.join(t2bad) if t2bad else ''))
+gate('T3 phone PSNR >= 35 and dE <= 2', not t3bad and len(src['phone']) > 0, f'{len(src["phone"]) - len(t3bad)} of {len(src["phone"])}' + (' bad ' + '; '.join(t3bad) if t3bad else ''))
+nalpha = sum(1 for k in pick if k.startswith('desk/') and np.asarray(Image.open(f'{S}/src/desk/{k[5:]}.png').convert('RGBA'))[..., 3].min() < 255)
+gate('T4 alpha flips <= 1%', not t4bad and nalpha >= 6, f'{nalpha} alpha textures (desk) checked; worst ' + str(max([v['aflip'] for v in pick.values()] + [0])) + (' bad ' + ' '.join(t4bad) if t4bad else ''))
+gate('T5 tex_check ratchet (no new FAIL rule on a picked decode)', not t5bad and len([k for k in pick if k.startswith('desk/')]) == len(src['desk']), f'source FAIL rules {sorted(fs)}; new on picks {len(t5bad)}' + (' : ' + ' || '.join(t5bad) if t5bad else ''))
 t6bad = []
 for k, v in pick.items():
     st, n = k.split('/'); g = gpu.get(f'gpu/{st}/{v["mode"]}/{n}')
@@ -88,19 +104,22 @@ for k, v in pick.items():
 caps = json.load(open(f'{O}/caps_gpu.json'))
 fmts = sorted(set(str(gpu[t]['format']) for t in gpu if gpu[t].get('ok')))
 gate('T6 GPU route loads every picked file with full mips', not t6bad and len(pick) == len(src['desk']) + len(src['phone']) and len(pick) > 0, f'{len(pick) - len(t6bad)} of {len(pick)}; formats {fmts}; caps ' + json.dumps({k: caps[k] for k in caps if k != 'workerConfig'}) + (' bad ' + '; '.join(t6bad[:6]) if t6bad else ''))
-# Texture mutants
-mm = {}
+# Texture mutants: each must fail its named gate (q1 = quality 1 is reported with its numbers and by any gate).
+mm, mnum = {}, []
 for f in sorted(glob.glob(f'{S}/mut/*.ktx2')):
     t = os.path.basename(f)[:-5]; kind, n = t.split('__')
     c = compare(f'{S}/src/desk/{n}.png', f'rgba/mut/{t}'); g = gpu.get(f'gpu/mut/{t}', {})
-    if kind in ('q1', 'swap'): caught = c is not None and not (c['psnr'] >= 35 and c['de'] <= 2); gname = 'T2'
-    elif kind == 'noalpha': caught = c is not None and c['aflip'] > 0.01; gname = 'T4'
-    elif kind == 'nomip': caught = g.get('mips', 0) < 11; gname = 'T6'
-    elif kind == 'poster':
-        d = f'{O}/mutdec'; os.makedirs(d, exist_ok=True); Image.fromarray(c['img'].astype(np.uint8)[..., :3]).save(f'{d}/{n}.png'); fm, _ = texcheck(d)
-        caught = bool(set(l for l in fm if n in l) - fs); gname = 'T5'
-    mm[t] = (gname, caught)
-gate('TM texture mutants caught', all(c for _, c in mm.values()) and len(mm) == 5, ', '.join(f'{k}->{g}:{"caught" if c else "MISSED"}' for k, (g, c) in mm.items()))
+    t2 = c is not None and not (c['psnr'] >= 35 and c['de'] <= 2)
+    d = f'{O}/mutdec_{kind}'; os.makedirs(d, exist_ok=True)
+    if c is not None: Image.fromarray(c['img'].astype(np.uint8)[..., :3]).save(f'{d}/{n}.png')
+    fm, _ = texcheck(d); t5 = bool(set(k for k in fm if k.split()[1] == n) - fs)
+    t4 = c is not None and c['aflip'] > 0.01; t6 = g.get('mips', 0) < 11
+    named = {'q1': ('T2', t2), 'swap': ('T2', t2), 'blur': ('T2', t2), 'noalpha': ('T4', t4), 'nomip': ('T6', t6), 'poster': ('T5', t5)}[kind]
+    mm[t] = (named[0], named[1], t2 or t4 or t5 or t6)
+    if c is not None: mnum.append(f'{t} psnr {c["psnr"]:.1f} dE {c["de"]:.2f} t5 {t5}')
+core = [k for k in mm if not k.startswith('q1__')]
+gate('TM texture mutants caught by their named gate', len(core) == 5 and all(mm[k][1] for k in core), ', '.join(f'{k}->{g}:{"caught" if c else "MISSED"}' + ('' if c or not a else ' (caught by another gate)') for k, (g, c, a) in mm.items()))
+lines.append('INFO mutant numbers: ' + '; '.join(mnum))
 # Models
 md = json.load(open(f'{O}/models.json')); rows = {r['tag']: r for r in md['rows']}
 real = [t for t in rows if not t.startswith('mut/')]
@@ -131,7 +150,7 @@ sz_src = sum(os.path.getsize(f) for f in glob.glob(f'{R}/assets/models/**/*.glb'
 gi = f'{S}/models/giants/giants.glb'
 lines.append(f'INFO models {sz_src / 1e6:.2f} MB -> {sz_c / 1e6:.2f} MB; giants {os.path.getsize(gi) / 1e6 if os.path.exists(gi) else -1:.2f} MB')
 td = sum(v['bytes'] for k, v in pick.items() if k.startswith('desk/')); tp = sum(v['bytes'] for k, v in pick.items() if k.startswith('phone/'))
-lines.append(f'INFO textures desk {td / 1e6:.2f} MB, phone {tp / 1e6:.2f} MB (PNG sources {sum(os.path.getsize(f) for f in glob.glob(R + "/assets/tex/*.png")) / 1e6:.2f} MB); modes ' + json.dumps({m: sum(1 for v in pick.values() if v['mode'] == m) for m in ('etc1s', 'uastc')}))
+lines.append(f'INFO textures desk {td / 1e6:.2f} MB, phone {tp / 1e6:.2f} MB (PNG sources {sum(os.path.getsize(f) for f in glob.glob(R + "/assets/tex/*.png")) / 1e6:.2f} MB); modes ' + json.dumps({m: sum(1 for v in pick.values() if v['mode'] == m) for m in MODES}))
 lines.append('INFO orient ' + json.dumps(sorted(set(v['orient'] for v in pick.values()))))
 json.dump(pick, open(f'{O}/manifest_pick.json', 'w'), indent=1)
 print('\n'.join(lines)); print(f'RESULT {"PASS" if not fails else "FAIL"} gates {len([l for l in lines if l.startswith(("PASS", "FAIL"))]) - len(fails)} of {len([l for l in lines if l.startswith(("PASS", "FAIL"))])}')

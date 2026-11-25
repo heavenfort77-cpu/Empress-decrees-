@@ -87,7 +87,11 @@ window.runModels = async (list) => {
       const t0 = performance.now(); const a = await gltf.loadAsync(src); const b = await gltf.loadAsync(comp); const ms = Math.round(performance.now() - t0);
       // Meshes are paired by name, not by order: the encoder may reorder children and wraps a quantised mesh's object as <name>_1.
       const ma = meshesOf(a.scene), mb0 = meshesOf(b.scene), byName = new Map(mb0.map((m) => [m.name, m]));
-      const mb = ma.map((m) => byName.get(m.name) || byName.get(m.name + '_1') || byName.get(m.name.replace(/_1$/, '')) || null);
+      // Same-name meshes (a layout with repeated parts) are paired by the nearest world-bounds centre among the unused candidates.
+      const base = (n) => n.replace(/_1$/, ''), ctr = (m) => new THREE.Box3().setFromObject(m).getCenter(new THREE.Vector3()), used = new Set();
+      a.scene.updateMatrixWorld(true); b.scene.updateMatrixWorld(true);
+      const mb = ma.map((m) => { const c = ctr(m); let best = null, bd = 1e9; for (const x of mb0) { if (used.has(x) || (x.name !== m.name && base(x.name) !== base(m.name))) continue; const d = ctr(x).distanceTo(c); if (d < bd) { bd = d; best = x; } } if (best) used.add(best); return best; });
+      void byName;
       if (mb.some((m) => !m) || mb0.length !== ma.length) throw new Error('mesh names differ: ' + ma.map((m) => m.name).join(',') + ' vs ' + mb0.map((m) => m.name).join(','));
       const order = (g, list) => { const all = meshesOf(g.scene); return list.map((m) => all.indexOf(m)); };
       const fa = facts(a), fb0 = facts(b), ob = order(b, mb), fb = { meshes: ob.map((i) => fb0.meshes[i]), clips: fb0.clips };
