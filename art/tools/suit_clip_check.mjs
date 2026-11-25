@@ -55,6 +55,10 @@ const CFG = {
   clipFree: { za: ['death'], zh: ['death'], fa: ['death'], ru: ['death'], mo: ['death'], nong: ['death'] },
   // Trim round (owner 25 Nov: school-colour sash and cuffs): suits whose cloth primitives may grow, with the approved data an exact prefix.
   added: ['fa', 'ru', 'mo', 'nong'],
+  // SUITS fa round 5 (owner GO 25 Nov 10:55): suits rebuilt from scratch (new mesh, proportions, rig and clips). The byte-identity gates
+  // against the approved GLB (run/hit/death frozen, attack/idle identical, mesh identical, weights scope) do not apply to them; every
+  // clip, motion, floor, budget and weight gate does. Mutations of a gate that is not applied are reported n/a and not counted.
+  rebuilt: ['fa'],
   // Hem band: garment vertices (>= 2 influences of at least 0.02, all of hips/thigh/shin) within this height of the garment's lowest, m.
   hemBand: 0.06,
 };
@@ -160,13 +164,15 @@ async function gates(sid, g, old, info, opt = {}) {
   const names = g.json.animations.map((a) => a.name).sort();
   gate('clips', JSON.stringify(names) === JSON.stringify(CFG.clips), `${names.join(',')}`);
   // 2. attack and idle byte-identical to the approved GLB (every channel: times and values)
-  for (const cn of ['run', 'hit', 'death']) {
+  const rebuilt = CFG.rebuilt.includes(sid);
+  if (rebuilt) G.push([true, `${sid} identity_info: rebuilt suit (CFG.rebuilt): approved-GLB identity gates not applied`]);
+  if (!rebuilt) for (const cn of ['run', 'hit', 'death']) {
     const a = anim(g, cn), b = anim(old, cn); if (!b) continue; const free = (CFG.clipFree[sid] || []).includes(cn); let diff = 0;
     if (a) { const mb = new Map(b.channels.map((c) => [chanKey(old, c), b.samplers[c.sampler]]));
       for (const c of a.channels) { const s = a.samplers[c.sampler], t = mb.get(chanKey(g, c)); if (!t || !eqBytes(accBytes(g, s.input), accBytes(old, t.input)) || !eqBytes(accBytes(g, s.output), accBytes(old, t.output))) diff++; } }
     gate(`${cn}_frozen`, !!a && (free || diff === 0), `${a ? a.channels.length : 0} channels, ${diff} differ from the approved GLB${free ? ' (allowed this round)' : ''}`);
   }
-  for (const cn of ['attack', 'idle']) {
+  if (!rebuilt) for (const cn of ['attack', 'idle']) {
     const a = anim(g, cn), b = anim(old, cn); let ok = !!(a && b) && a.channels.length === b.channels.length, diff = 0;
     if (ok) { const mb = new Map(b.channels.map((c) => [chanKey(old, c), b.samplers[c.sampler]]));
       for (const c of a.channels) { const s = a.samplers[c.sampler], t = mb.get(chanKey(g, c));
@@ -175,6 +181,7 @@ async function gates(sid, g, old, info, opt = {}) {
   }
   // 3. meshes byte-identical (positions, normals, UVs, joints, weights, indices) and the skin (joint names, inverse binds)
   let md = 0, mc = 0, wch = 0, wout = 0, added = 0;
+  if (!rebuilt) {
   const jn = old.json.skins[0].joints.map((j) => old.json.nodes[j].name), legB = (n) => n === 'hips' || /^(thigh|shin)\./.test(n);
   for (const m of g.json.meshes) { const o = old.json.meshes.find((x) => x.name === m.name); if (!o || o.primitives.length !== m.primitives.length) { md++; continue; }
     m.primitives.forEach((p, k) => { const q = o.primitives[k];
@@ -195,6 +202,7 @@ async function gates(sid, g, old, info, opt = {}) {
   const ibm = eqBytes(accBytes(g, g.json.skins[0].inverseBindMatrices), accBytes(old, old.json.skins[0].inverseBindMatrices));
   gate('mesh_identical', md === 0 && sj(g) === sj(old) && ibm, `${mc} accessors, ${md} differ${CFG.added.includes(sid) ? ` (trim suit: approved cloth data an exact prefix, ${added} vertices appended)` : ''}; joints ${sj(g) === sj(old) ? 'same' : 'DIFFER'}; inverse binds ${ibm ? 'same' : 'DIFFER'}`);
   gate('weights_scope', wout === 0, `${wch} vertices with changed skin weights, ${wout} outside the robe of a calm suit (${CFG.calm.includes(sid) ? 'calm suit' : 'no change allowed'})`);
+  }
   // 4. budgets and weights (from the GLB)
   for (const m of g.json.meshes) { const L = +/_lod(\d)/.exec(m.name)[1]; const tri = m.primitives.reduce((s, p) => s + g.json.accessors[p.indices].count / 3, 0);
     const [lo, hi] = CFG.budget[L]; gate(`lod${L}_tris`, tri >= lo && tri <= hi, `${tri} (budget ${lo}-${hi})`); }
@@ -316,14 +324,15 @@ let all = []; const mres = []; const DATA = {};
 for (const sid of IDS) {
   const info = INFO.find((s) => s.id === sid);
   const g = parseGLB(new Uint8Array(await readFile(join(NEW, `${sid}.glb`)))), old = parseGLB(new Uint8Array(await readFile(join(OLD, `${sid}.glb`))));
-  DATA[sid] = { g, old, info };
-  const { G } = await gates(sid, g, old, info);
+  const { G, R } = await gates(sid, g, old, info);
+  DATA[sid] = { g, old, info, R };
   for (const [ok, l] of G) console.log((ok ? 'PASS ' : 'FAIL ') + l);
   all = all.concat(G.filter(([ok, l]) => !l.includes('_info:')));
 }
 // each mutation runs on its named suit (robe ones on dao) or the first suit; the named gate must fail
 if (MUT) for (const [name, what, fn, opt, want] of MUTS) {
-  const sid = want && DATA[want] ? want : IDS[0]; const { g, old, info } = DATA[sid];
+  const sid = want && DATA[want] ? want : IDS[0]; const { g, old, info, R: R0 } = DATA[sid];
+  if (R0[name] === undefined) { console.log(`MUT n/a ${sid} ${name}: gate not applied to this suit (${what})`); continue; }
   const pre = PRE && existsSync(join(PRE, `${sid}.glb`)) ? parseGLB(new Uint8Array(await readFile(join(PRE, `${sid}.glb`)))) : null;   // only the robe mutant's suit is needed
   let caught; try { const r = await gates(sid, fn(clone(g), old, pre), old, info, opt); caught = r.R[name] === false; } catch (e) { caught = true; }
   mres.push(caught); console.log(`MUT ${caught ? 'caught' : 'MISSED'} ${sid} ${name}: ${what}`);

@@ -1,0 +1,10 @@
+{
+ "_about": "SUITS fa round 5: UV rows (px from the top, top to bottom) of the three fa atlases, shared by art/tools/fa_tex.py (draws them) and art/tools/fa_r5.py (maps parts onto them). sizes = width px, height px, metres across (256 px/m).",
+ "sizes": {"faA": [1024, 1024, 4.0], "faM": [512, 512, 2.0], "faC": [512, 512, 2.0]},
+ "rows": {
+  "faA": {"lam": [0, 40], "plate": [40, 296], "lacq": [296, 488], "cord": [488, 512], "mask": [512, 768], "plate2": [768, 984], "lamu": [984, 1024]},
+  "faM": {"gold": [0, 32], "goldp": [32, 160], "blade": [160, 224], "bronze": [224, 352], "goldb": [352, 512]},
+  "faC": {"silk_w": [0, 256], "silk_b": [256, 512]}
+ },
+ "files": {"faA": "suit_fa_armour", "faM": "suit_fa_metal", "faC": "suit_fa_cloth"}
+}

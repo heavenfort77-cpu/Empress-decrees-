@@ -1,0 +1,41 @@
+# SUITS fa round 5 (owner GO 25 Nov 10:55): heavy art work on a GitHub runner (Blender via pip bpy, headless Chromium renders), copied from the
+# SUITANIM pattern (ci-art-suitanim: art-run.yml + ci_art/job.sh with PREFLIGHT, results to ci-out). Triggered by a push to suit-fa-r5.
+# Results are committed to ci-out under out/art/suit-fa-r5/<run id>/.
+name: art-fa-r5
+on:
+  push:
+    branches: ['suit-fa-r5']
+permissions:
+  contents: write
+jobs:
+  art:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Tools
+        run: |
+          python -m pip install -q bpy==5.3.0 pillow numpy scipy
+          npm install --no-save --no-audit --no-fund playwright@1.63.0 >/dev/null && npx playwright install --with-deps chromium >/dev/null
+      - name: Job
+        env:
+          BPY: python
+          OUT: ${{ github.workspace }}/ci_art_out
+        run: mkdir -p "$OUT" && bash ci_art/job.sh 2>&1 | tee "$OUT/job.log"
+      - name: Commit to ci-out
+        if: always()
+        run: |
+          B=${GITHUB_REF_NAME}; D=out/art/$B/${GITHUB_RUN_ID}
+          mkdir -p /tmp/o && cp -r ci_art_out/. /tmp/o/ 2>/dev/null || true
+          git config user.name Claude && git config user.email noreply@anthropic.com
+          git fetch -q origin ci-out && git checkout -q -B ci-out origin/ci-out
+          mkdir -p $D && cp -r /tmp/o/. $D/
+          git add out && git commit -qm "art $B ${GITHUB_RUN_ID}" || true
+          ok=0; for k in 1 2 3 4 5 6 7 8 9 10; do if git push -q origin ci-out; then ok=1; break; fi; s=$(( (k < 6 ? 2 ** k : 60) + RANDOM % 10 )); echo "ci-out push failed (try $k), retry in $s s"; sleep $s; git pull -q --rebase origin ci-out; done
+          if [ $ok = 0 ]; then for k in 1 2 3 4 5; do git push -q origin HEAD:refs/heads/ci-out-$B-${GITHUB_RUN_ID} && { echo "results on branch ci-out-$B-${GITHUB_RUN_ID}"; break; }; sleep $((20 * k)); done; fi
