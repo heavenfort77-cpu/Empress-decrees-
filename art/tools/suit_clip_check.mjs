@@ -193,14 +193,15 @@ async function gates(sid, g, old, info, opt = {}) {
         if (same) continue; wch++; let robe = cloth && CFG.calm.includes(sid); for (let c = 0; c < 4; c++) if (W0[i + c] > 0 && !legB(jn[J0[i + c]])) robe = false; if (!robe) wout++; } }); }
   const sj = (x) => x.json.skins[0].joints.map((j) => x.json.nodes[j].name).join(',');
   const ibm = eqBytes(accBytes(g, g.json.skins[0].inverseBindMatrices), accBytes(old, old.json.skins[0].inverseBindMatrices));
-  gate('mesh_identical', md === 0 && sj(g) === sj(old) && ibm, `${mc} accessors, ${md} differ${CFG.added.includes(sid) ? ` (trim suit: approved cloth data an exact prefix, ${added} vertices appended)` : ''}; joints ${sj(g) === sj(old) ? 'same' : 'DIFFER'}; inverse binds ${ibm ? 'same' : 'DIFFER'}`);
+  gate('mesh_identical', mc > 0 && md === 0 && sj(g) === sj(old) && ibm, `${mc} accessors, ${md} differ${CFG.added.includes(sid) ? ` (trim suit: approved cloth data an exact prefix, ${added} vertices appended)` : ''}; joints ${sj(g) === sj(old) ? 'same' : 'DIFFER'}; inverse binds ${ibm ? 'same' : 'DIFFER'}`);
   gate('weights_scope', wout === 0, `${wch} vertices with changed skin weights, ${wout} outside the robe of a calm suit (${CFG.calm.includes(sid) ? 'calm suit' : 'no change allowed'})`);
   // 4. budgets and weights (from the GLB)
   for (const m of g.json.meshes) { const L = +/_lod(\d)/.exec(m.name)[1]; const tri = m.primitives.reduce((s, p) => s + g.json.accessors[p.indices].count / 3, 0);
     const [lo, hi] = CFG.budget[L]; gate(`lod${L}_tris`, tri >= lo && tri <= hi, `${tri} (budget ${lo}-${hi})`); }
   let wbad = 0, wn = 0;
   for (const m of g.json.meshes) for (const p of m.primitives) { const w = accF(g, p.attributes.WEIGHTS_0); for (let i = 0; i < w.length; i += 4) { wn++; const s = w[i] + w[i + 1] + w[i + 2] + w[i + 3]; if (Math.abs(s - 1) > CFG.wTol) wbad++; } }
-  gate('weights', wbad === 0 && !g.json.meshes.some((m) => m.primitives.some((p) => p.attributes.JOINTS_1)), `${wn} vertices, ${wbad} sums off 1 (tol ${CFG.wTol}), max 4 influences (JOINTS_1 absent)`);
+  gate('lods', g.json.meshes.length === 3, `${g.json.meshes.length} LOD meshes (3 needed; a gate that measured nothing fails)`);
+  gate('weights', wn > 0 && wbad === 0 && !g.json.meshes.some((m) => m.primitives.some((p) => p.attributes.JOINTS_1)), `${wn} vertices, ${wbad} sums off 1 (tol ${CFG.wTol}), max 4 influences (JOINTS_1 absent)`);
   // 5. raw keys of the new clips: start at 0, quaternion flips 0, max joint step per frame
   for (const cn of ['run', 'hit', 'death']) { const a = anim(g, cn); if (!a) { gate(`${cn}_keys`, false, 'missing'); continue; }
     let t0 = 1e9, flips = 0, step = 0, where = '';
@@ -325,8 +326,10 @@ for (const sid of IDS) {
 if (MUT) for (const [name, what, fn, opt, want] of MUTS) {
   const sid = want && DATA[want] ? want : IDS[0]; const { g, old, info } = DATA[sid];
   const pre = PRE && existsSync(join(PRE, `${sid}.glb`)) ? parseGLB(new Uint8Array(await readFile(join(PRE, `${sid}.glb`)))) : null;   // only the robe mutant's suit is needed
-  let caught; try { const r = await gates(sid, fn(clone(g), old, pre), old, info, opt); caught = r.R[name] === false; } catch (e) { caught = true; }
-  mres.push(caught); console.log(`MUT ${caught ? 'caught' : 'MISSED'} ${sid} ${name}: ${what}`);
+  // lead RULE: a mutant whose target is missing (it throws while building) is MISSED, never counted as caught
+  let caught, why = ''; let mg = null; try { mg = fn(clone(g), old, pre); } catch (e) { why = ' (target missing: ' + String(e).slice(0, 60) + ')'; }
+  if (mg) { try { const r = await gates(sid, mg, old, info, opt); caught = r.R[name] === false; } catch (e) { caught = true; } } else caught = false;
+  mres.push(caught); console.log(`MUT ${caught ? 'caught' : 'MISSED'} ${sid} ${name}: ${what}${why}`);
 }
 const nf = all.filter(([ok]) => !ok).length;
 console.log(`${all.length - nf} of ${all.length} pass`);

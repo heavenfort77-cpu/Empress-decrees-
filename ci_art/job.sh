@@ -7,9 +7,27 @@ export PYTHONDONTWRITEBYTECODE=1
 cd "$(dirname "$0")/.."
 O=$OUT; mkdir -p $O/suits $O/models/suits $O/tex $O/src
 step() { echo "== $1 $(date +%H:%M:%S)"; }
+step "preflight"
+# lead RULE 25 Nov (RUNNERS.md): tools, imports, inputs, output folders and a clean tree, checked in the first minute; any miss fails the job
+PF=0; miss() { echo "PREFLIGHT FAIL: $1"; PF=1; }
+for t in node python3 git; do command -v $t >/dev/null || miss "tool $t"; done
+[ -x "$KLAD" ] || miss "klad binary $KLAD"
+$BPY -c "import bpy, numpy, PIL" 2>/dev/null || miss "bpy python imports (bpy numpy PIL)"
+python3 -c "import numpy, PIL, json, struct, colorsys" 2>/dev/null || miss "python3 imports (numpy PIL)"
+node -e "import('playwright').then(m=>m.chromium.executablePath()).then(p=>require('fs').existsSync(p)||process.exit(1)).catch(()=>process.exit(1))" || miss "playwright chromium"
+for f in art/tools/suit_blender.py art/tools/suit_tex.py art/tools/suit_paint.py art/tools/suit_sil.py art/tools/tex_check.py art/tools/suit_clip_signfix.mjs \
+         art/tools/suit_clip_check.mjs art/tools/suit_colour_check.py art/tools/suitanim_shoot.mjs art/tools/suitanim_sheet.py art/viewer/suits.html \
+         art/viewer/vendor/loaders/GLTFLoader.js art/viewer/vendor/utils/BufferGeometryUtils.js lib/three.module.min.js lib/three.core.min.js \
+         assets/tex/suit_lamellar.png assets/tex/suit_cloth.png assets/tex/suit_bronze.png assets/tex/hall_floor.png ci_art/precalm/za.glb; do [ -s "$f" ] || miss "input $f"; done
+for id in fa ru dao mo yy za ming zh nong; do [ -s assets/models/suits/$id.glb ] || miss "input assets/models/suits/$id.glb"; done
+mkdir -p /tmp/sops /tmp/ssrc /tmp/stex /tmp/sstrip /tmp/suits /tmp/ashots /tmp/approved_tex $O/suits/strips $O/models/suits $O/tex $O/src || miss "mkdir outputs"
+[ -z "$(git ls-files '*.pyc' '__pycache__/*')" ] || miss "tracked .pyc files"
+[ -z "$(git status --porcelain --untracked-files=no)" ] || miss "tracked files modified before the job"
+[ $PF = 0 ] && echo "PREFLIGHT PASS" || { echo "RESULT preflight failed"; exit 1; }
+if [ -f ci_art/PREFLIGHT_ONLY ]; then echo "RESULT preflight only (proof run)"; exit 0; fi
 step "textures (klad)"
 mkdir -p /tmp/approved_tex && cp assets/tex/suit_lamellar.png assets/tex/suit_cloth.png assets/tex/suit_bronze.png /tmp/approved_tex/
-mkdir -p /tmp/sops && python3 art/tools/suit_tex.py /tmp/sops > /dev/null
+python3 art/tools/suit_tex.py /tmp/sops > /dev/null
 python3 art/tools/suit_paint.py $KLAD /tmp/sops /tmp/ssrc /tmp/stex /tmp/sstrip suit_lamellar 2>&1 | tail -2
 python3 - <<'PY'
 import numpy as np

@@ -84,7 +84,10 @@ def g_sheets(L):
 
 tints = {sid: tint(sid) for sid in IDS}
 Lam = np.asarray(Image.open(os.path.join(T, 'suit_lamellar.png')).convert('RGB'))
-res = [('cloth', g_cloth(tints)), ('floor', g_pairs(lit_medians(os.path.join(S, 'lineup_colour.png'), os.path.join(S, 'lineup_clothid.png')))),
+# lead RULE: gates that measure nothing fail (9 tints, a 1024 px sheet with all cord rows, a non-empty cloth sheet)
+pre = [(len(tints) == len(IDS), f'{len(tints)} cloth tints read (9 needed)'), (Lam.shape[0] >= CORD_Y0 + CORD_H * len(CORD_ORDER), f'suit_lamellar {Lam.shape[0]} px tall (cord rows need {CORD_Y0 + CORD_H * len(CORD_ORDER)})'),
+       (bool(np.isfinite(cloth_med).all()), 'cloth sheet median measured')]
+res = [('inputs', pre), ('cloth', g_cloth(tints)), ('floor', g_pairs(lit_medians(os.path.join(S, 'lineup_colour.png'), os.path.join(S, 'lineup_clothid.png')))),
        ('cords', g_cords(Lam)), ('sheets', g_sheets(Lam))]
 allr = [r for _, rs in res for r in rs]
 for _, rs in res:
@@ -93,7 +96,9 @@ print(f'{sum(ok for ok, _ in allr)} of {len(allr)} pass')
 if MUT:
     caught = []
     t2 = dict(tints); t2['za'] = tints['fa']; caught.append(('cloth', 'za tint = fa tint', not all(ok for ok, _ in g_cloth(t2))))
-    caught.append(('floor', 'shot with za cloth tinted as fa', not all(ok for ok, _ in g_pairs(lit_medians(os.path.join(S, 'lineup_colour_mut.png'), os.path.join(S, 'lineup_clothid.png'))))))
+    mp = os.path.join(S, 'lineup_colour_mut.png')   # lead RULE: a missing mutant target is MISSED
+    caught.append(('floor', 'shot with za cloth tinted as fa' + ('' if os.path.exists(mp) else ' (target missing)'),
+                   os.path.exists(mp) and not all(ok for ok, _ in g_pairs(lit_medians(mp, os.path.join(S, 'lineup_clothid.png'))))))
     L2 = Lam.copy(); i_fa, i_za = CORD_ORDER.index('fa'), CORD_ORDER.index('za'); L2[CORD_Y0 + CORD_H * i_za:CORD_Y0 + CORD_H * (i_za + 1)] = Lam[CORD_Y0 + CORD_H * i_fa:CORD_Y0 + CORD_H * (i_fa + 1)]
     caught.append(('cords', 'za cord row copied from fa', not all(ok for ok, _ in g_cords(L2))))
     L3 = Lam.copy(); L3[10, 10] = (L3[10, 10].astype(int) + 40) % 256; caught.append(('sheets', 'one pixel outside the cord rows changed', not all(ok for ok, _ in g_sheets(L3))))

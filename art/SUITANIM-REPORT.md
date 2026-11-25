@@ -95,3 +95,31 @@ Look (strips):
 
 dao play-size strip: art/suits/anim/dao_strip_play_run.jpg (also on ci-out under out/art/ci-art-suitanim/45523064942/suits/strips/).
 Backup of the previous GLBs (64b7bd5): /home/claude/suitanim/backup_suits_before_robecalm.
+
+## Trim + recolour round - DELIVERED
+Run 45529217658 (ci-art-suitanim 9649120; code = f186409 plus the fa tint).
+
+Gates:
+- Builder 153 of 153
+- Silhouettes 30 of 30
+- Clip gates 273 of 273, mutations 15 of 15
+- tex_check suit_lamellar: all pass
+- Colour gates 22 of 22, colour mutations 4 of 4
+
+Robe binding (za, zh):
+- The front of each robe follows its own thigh: za Kb .4 Kf .8, zh Kb .35 Kf .8.
+- Hem swing: za 0.286 m, zh 0.341 m (gate 0.379).
+
+Colour:
+- One school colour mapping. Cloth tints are adjusted for the cloth sheet; each suit's cloth median is within dE 0.4 of its school colour (fa 6.6, see below).
+- 法 cloth is a brighter, creamier lead white, #ffffed (owner).
+- Cord rows repainted in klad. Shipped sheet = the approved rows 0-735 plus the klad cord rows. The full klad repaint (art/src/suit_lamellar.klad) differed in 226 pixels outside the cords, so those rows were not taken from it.
+
+School-colour sash and sleeve cuffs for fa, ru, mo, nong:
+- New cloth parts appended to every LOD. The approved mesh data is an exact prefix of the new data.
+- Tris: LOD0 11,940-14,124; LOD1 about 2,664; LOD2 910-917.
+- Cloth visible at play size: ru 813 px, fa 870, mo 1,190, nong 1,755.
+
+Red-floor pairs: the closest pair is fa-za at dE 11.9.
+
+Heads not touched. Lineup shot: art/suits/anim/lineup_colour.jpg.
