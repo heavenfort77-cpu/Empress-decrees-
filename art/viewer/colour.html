@@ -1,0 +1,104 @@
+<!doctype html>
+<!-- COLOUR review viewer (art tool, not shipped; art/Colour-Clarity-Study.md). Characters on a floor with the game's two lights
+     (index.html: hemi 1.1, sun 2.2 from (-30, 60, 25)), FOV 50, pitch 40. Suits, guards and rebels in one row.
+     ?ids=fa,ru,...,zu,ls   suits (assets/models/suits), guards (zu nu dun che wz), rebels (ls fs ss qs), &gap=m between figures (1.5)
+     &view=play (pitch 40, &dist= m: 10.5 = the game's close framing, 14 = CAM_DIST) | turn (pitch 15, close-up, &dist=)
+     &floor=path from the repo root (default assets/tex/hall_floor.png), &rep=repeats over the 30 m plane (7, as suits.html)
+     &lam=sheet name for the suits' sLam material (default suit_lamellar; proposal suit_lamellar_qin)
+     &ol=hex outline colour (inverted hull as src/chars.js outlineMaterial: back faces pushed out along the normal in clip space), &olpx=px
+       (omit ol = no outline), drawn on every figure
+     &fres=strength (0-1) of a view-facing pale rim term added to lit materials, &fresc=hex (default e6dfcc)
+     &mode=tex | id (each figure and its outline flat in an ID colour, red = 20 x (index + 1), no floor, black ground, no AA: masks) -->
+<html><head><meta charset="utf-8"><style>html,body{margin:0;background:#120d16;overflow:hidden}</style>
+<script type="importmap">{"imports":{"three":"../../lib/three.module.min.js"}}</script></head><body>
+<script type="module">
+import * as THREE from 'three';
+import { GLTFLoader } from './vendor/loaders/GLTFLoader.js';
+const Q = new URLSearchParams(location.search), VIEW = Q.get('view') || 'play', MODE = Q.get('mode') || 'tex';
+const IDS = (Q.get('ids') || 'fa').split(','), GAP = +(Q.get('gap') || 1.5), LAM = Q.get('lam') || 'suit_lamellar';
+const OL = Q.get('ol'), OLPX = +(Q.get('olpx') || 2), FRES = +(Q.get('fres') || 0), FRESC = new THREE.Color('#' + (Q.get('fresc') || 'e6dfcc'));
+const W = innerWidth, H = innerHeight, ID = MODE === 'id';
+const r = new THREE.WebGLRenderer({ antialias: !ID }); r.setPixelRatio(1); r.setSize(W, H); r.shadowMap.enabled = !ID; document.body.appendChild(r.domElement);
+const scene = new THREE.Scene(); scene.background = new THREE.Color(ID ? 0x000000 : 0x120d16);
+const cam = new THREE.PerspectiveCamera(50, W / H, 0.5, 200);
+scene.add(new THREE.HemisphereLight(0xd9c9ff, 0x3a2a22, 1.1));
+const sun = new THREE.DirectionalLight(0xffe2b8, 2.2); sun.position.set(-30, 60, 25); sun.target.position.set(0, 0, -12); sun.castShadow = true;
+Object.assign(sun.shadow.camera, { left: -14, right: 14, top: 14, bottom: -14, near: 10, far: 150 }); sun.shadow.mapSize.set(2048, 2048);
+scene.add(sun, sun.target);
+const tl = new THREE.TextureLoader(); let texPending = 0;
+const tex = (f, rep, flip = true) => { texPending++; const t = tl.load(f, () => texPending--, undefined, () => { texPending--; window.__texErr = f; }); t.colorSpace = THREE.SRGBColorSpace; t.wrapS = t.wrapT = THREE.RepeatWrapping; t.anisotropy = 4; t.flipY = flip; if (rep) t.repeat.set(rep, rep); return t; };
+if (!ID) { const floor = new THREE.Mesh(new THREE.PlaneGeometry(30, 30), new THREE.MeshStandardMaterial({ map: tex('../../' + (Q.get('floor') || 'assets/tex/hall_floor.png'), +(Q.get('rep') || 7)), roughness: 0.9 }));
+  floor.rotation.x = -Math.PI / 2; floor.receiveShadow = true; scene.add(floor); }
+const GUARD = ['zu', 'nu', 'dun', 'che', 'wz'], REBEL = ['ls', 'fs', 'ss', 'qs'];
+// material values as src/chars.js charMaterials (suits, guards, rebels) and art/viewer/suits.html / fodder.html
+const DEF = { sLam: [LAM, 0, 0.5], sBronze: ['suit_bronze', 0.5, 0.45], sCloth: ['suit_cloth', 0, 0.85], gdBronze: ['bronze_trim_brass', 0.4, 0.6], gdLacquer: ['fodder_trim', 0.05, 0.8],
+  treadBelt: ['tread_belt', 0.4, 0.6], rbCloth: ['fodder_trim', 0, 0.85], rbPatch: ['fodder_trim', 0, 0.85] };
+const maps = {}, cache = {};
+function rimTerm(m) {
+  if (FRES > 0) m.onBeforeCompile = (sh) => { sh.uniforms.uFres = { value: FRES }; sh.uniforms.uFresC = { value: FRESC };
+    sh.fragmentShader = sh.fragmentShader.replace('#include <common>', '#include <common>\nuniform float uFres;\nuniform vec3 uFresC;')
+      .replace('#include <opaque_fragment>', '#include <opaque_fragment>\n  { float f = 1.0 - abs(dot(normalize(normal), normalize(vViewPosition))); gl_FragColor.rgb += uFresC * smoothstep(0.55, 0.95, f) * uFres; }'); };
+  return m;
+}
+function mat(src, idCol) {
+  if (ID) return new THREE.MeshBasicMaterial({ color: idCol });
+  const name = src.name, base = name.startsWith('sCloth') ? 'sCloth' : name, key = name + (base === 'sCloth' ? src.color.getHexString() : '');
+  if (cache[key]) return cache[key];
+  if (name === 'rbGlint') return (cache[key] = new THREE.MeshBasicMaterial({ color: 0xffe066 }));
+  const [file, metal, rough] = DEF[base] || DEF.rbCloth;
+  const map = maps[file] || (maps[file] = tex(`../../assets/tex/${file}.png`, 0, false));
+  const color = base === 'sCloth' ? src.color.clone() : name === 'rbPatch' ? new THREE.Color(0x6f6a34) : new THREE.Color(1, 1, 1);
+  return (cache[key] = rimTerm(new THREE.MeshStandardMaterial({ map, color, metalness: metal, roughness: rough })));
+}
+// inverted hull, as src/chars.js outlineMaterial(): one material, back faces pushed out by uOPx device pixels
+const OUT = { px: { value: OLPX }, res: { value: new THREE.Vector2(W, H) } }, olCache = {};
+function outlineMat(color) {
+  const k = color.getHexString(); if (olCache[k]) return olCache[k];
+  const m = new THREE.MeshBasicMaterial({ color, side: THREE.BackSide });
+  m.onBeforeCompile = (sh) => {
+    sh.uniforms.uOPx = OUT.px; sh.uniforms.uORes = OUT.res;
+    sh.vertexShader = sh.vertexShader.replace('#include <common>', '#include <common>\nuniform float uOPx;\nuniform vec2 uORes;')
+      .replace('#include <project_vertex>', `#include <project_vertex>
+#ifdef USE_SKINNING
+vec3 chrN = normalize( normalMatrix * objectNormal );
+#else
+vec3 chrN = normalize( normalMatrix * normal );
+#endif
+vec2 chrD = ( projectionMatrix * vec4( chrN, 0.0 ) ).xy;
+gl_Position.xy += normalize( chrD + vec2( 1e-6 ) ) * uOPx * 2.0 / uORes * gl_Position.w;`);
+  };
+  return (olCache[k] = m);
+}
+const loader = new GLTFLoader(); let pending = 0;
+function place(u, x, idx) {
+  pending++;
+  const dir = GUARD.includes(u) ? 'guard' : REBEL.includes(u) ? 'rebels' : 'suits', idCol = new THREE.Color().setRGB((20 * (idx + 1)) / 255, 0, 0, THREE.SRGBColorSpace);
+  loader.load(`../../assets/models/${dir}/${u}.glb`, (g) => {
+    const root = g.scene, add = [];
+    root.traverse((o) => {
+      if (!o.isMesh) return;
+      o.material = mat(o.material, idCol); o.castShadow = o.receiveShadow = true;
+      if (dir === 'suits') { const m = /_lod(\d)$/.exec(o.name); if (m) o.visible = +m[1] === 0; }
+      else { let n = o.name; if (!/(_lod[0-2]|_w_[a-z]+(_lod1)?)$/.test(n) && o.parent) n = o.parent.name;   // multi-material meshes load as a group of primitives
+        if (n.includes('_w_')) o.visible = n === `${u}_w_ru`; else if (/_lod[12]$/.test(n)) o.visible = false; }
+      if (OL && o.visible) add.push(o);
+    });
+    for (const o of add) {   // the outline draw: same geometry and skeleton, back faces only
+      const om = outlineMat(ID ? idCol : new THREE.Color('#' + OL));
+      const h = o.isSkinnedMesh ? new THREE.SkinnedMesh(o.geometry, om) : new THREE.Mesh(o.geometry, om);
+      if (o.isSkinnedMesh) h.bind(o.skeleton, o.bindMatrix);
+      h.position.copy(o.position); h.quaternion.copy(o.quaternion); h.scale.copy(o.scale); h.frustumCulled = o.frustumCulled; o.parent.add(h);
+    }
+    root.position.x = x; scene.add(root);
+    if (--pending === 0) shoot();
+  }, undefined, () => { window.__loadErr = u; if (--pending === 0) shoot(); });
+}
+IDS.forEach((id, i) => place(id, (i - (IDS.length - 1) / 2) * GAP, i));
+const pitch = (Q.get('pitch') ? +Q.get('pitch') : VIEW === 'turn' ? 15 : 40) * Math.PI / 180, look = new THREE.Vector3(0, VIEW === 'turn' ? 1.05 : 1.0, 0);
+const dist = Q.get('dist') ? +Q.get('dist') : VIEW === 'turn' ? 5 : 10.5;
+cam.position.set(look.x, look.y + Math.sin(pitch) * dist, look.z + Math.cos(pitch) * dist); cam.lookAt(look);
+function shoot() {
+  const go = () => { if (texPending > 0) { setTimeout(go, 100); return; } setTimeout(() => { r.render(scene, cam); window.__ready = true; }, 600); };
+  go();
+}
+</script></body></html>

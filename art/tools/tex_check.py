@@ -65,6 +65,9 @@ X = {
     'garden_ground': dict(repeat=True, value=(85, 125), wrap='xy'), 'garden_plants': dict(alpha=(0.06, 0.6), cells=4),
     'star_ceiling': dict(value=(22, 50), wrap='xy'), 'signal_flags': dict(alpha=(0.25, 0.7), cells=3), 'slips': dict(value=(120, 165), wrap='x'),
     'slips_burnt': dict(value=(28, 70), wrap='x'),
+    # COLOUR 25 Nov (owner 13:1x; art/Colour-Clarity-Study.md): the hall floor is repainted calm at a mid value on purpose: contrast band 5.5-8
+    # (was the study's 8-30), value band, seams and repeat added. The other walkable-floor rules live in floor_rule_check.py.
+    'hall_floor': dict(walk=True, value=(114, 130), wrap='xy', repeat=True),
     'hall_wall': dict(value=(150, 185)),   # FIXB 25 Nov: approved A2 plaster value kept (owner 02:2x), study range updated to it
     'pond_water': dict(repeat=True, value=(115, 155), wrap='xy', teal=True), 'star_inlay': dict(alpha=(0.01, 0.08), cells=2, decal='hall_floor'),
 }
@@ -123,7 +126,7 @@ for n, (du, dv, (y0, y1), scap) in T.items():
         res = [
             ('density', 0.8 * 256 <= du <= 1.25 * 256 and 0.8 * 256 <= dv <= 1.25 * 256, f'{du:.0f} x {dv:.0f} px/m'),
             ('brush scale', 4 <= run_cm <= 15, f'{run_cm:.1f} cm'),
-            ('contrast', 8 <= sd <= 30, f'lum sd {sd:.1f}'),
+            ('contrast', (5.5 <= sd <= 8) if x.get('walk') else (8 <= sd <= 30), f'lum sd {sd:.1f}' + (' (walkable floor: 5.5-8)' if x.get('walk') else '')),
             ('saturation', sat <= scap, f'{sat:.2f} (cap {scap})'),
         ]
     if 'value' in x:

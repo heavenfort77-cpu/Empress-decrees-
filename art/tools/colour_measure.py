@@ -1,0 +1,105 @@
+#!/usr/bin/env python3
+"""COLOUR measures and sheets (art/Colour-Clarity-Study.md) on the shots of colour_shoot.mjs.
+Per figure and shot: share of outline pixels (the 2 px border of the figure's ID mask, outline hull included) whose contrast against the
+floor right behind them (floor pixels within about 10 px, shadows included) is >= 3:1 (WCAG relative luminance), the same share against the
+ring median (the suit_contrast.py formula), the body median contrast against the floor ring, and the share of school-coloured pixels.
+Per shot: the floor's on-screen luminance and its own p95/p5 contrast in the figure-free lower band.
+Gates (PASS/FAIL): the proposal (variant new_rim) at both distances, per figure; the floor on-screen rules per floor.
+Control (the measure's mutation): the old floor with the game's current dark outline must fail the outline rule, else MUT MISSED.
+Usage: python3 colour_measure.py SHOTDIR SHEETDIR"""
+import json, sys
+import numpy as np
+from PIL import Image, ImageDraw
+from scipy import ndimage
+# CONFIG
+# Contrast ratio an outline pixel must reach against the floor behind it.
+RATIO = 3.0
+# Share of a figure's outline pixels that must reach RATIO.
+EDGE_SHARE = 0.5
+# On-screen floor luminance band (study: black body >= 2.5:1 needs >= 0.125; pale rim >= 3:1 with margin needs <= 0.20).
+FLOOR_Y = (0.125, 0.20)
+# Largest contrast between the floor's own light and dark marks on screen (p95 against p5).
+FLOOR_MARKS = 1.30
+# Variant that is the proposal (gated); the control that must fail.
+PROPOSAL, CONTROL = 'new_rim', 'old_cur'
+S, OUT = sys.argv[1], sys.argv[2]
+man = json.load(open(f'{S}/manifest.json')); IDS = man['ids']
+def load(n): return np.asarray(Image.open(f'{S}/{n}.png').convert('RGB')).astype(float) / 255
+def relY(img): lin = np.where(img <= 0.04045, img / 12.92, ((img + 0.055) / 1.055) ** 2.4); return lin @ [0.2126, 0.7152, 0.0722]
+def cr(a, b): return (np.maximum(a, b) + 0.05) / (np.minimum(a, b) + 0.05)
+idc = {}
+def idmask(n):
+    if n not in idc: idc[n] = np.rint(load(n)[..., 0] * 255 / 20).astype(int)
+    return idc[n]
+fails = 0; rows = {}; floorrows = {}
+for sh in man['shots']:
+    img = load(sh['shot']); Y = relY(img); lab = idmask(sh['id']); fig = lab > 0
+    notfig = ~ndimage.binary_dilation(fig, iterations=2) & (Y > 0.012)
+    w = ndimage.gaussian_filter(notfig.astype(float), 5); loc = ndimage.gaussian_filter(np.where(notfig, Y, 0.0), 5) / np.maximum(w, 1e-6)
+    band = np.zeros_like(fig); band[int(Y.shape[0] * 0.78):int(Y.shape[0] * 0.97)] = True; fb = band & ~ndimage.binary_dilation(fig, iterations=12) & (Y > 0.012)
+    fy = float(np.median(Y[fb])); marks = float((np.percentile(Y[fb], 95) + 0.05) / (np.percentile(Y[fb], 5) + 0.05))
+    mx, mn = img.max(2), img.min(2)
+    floorrows[sh['shot']] = (fy, marks, float(((mx - mn) / np.maximum(mx, 1e-6))[fb].mean()))
+    res = []
+    for i, sid in enumerate(IDS):
+        m = lab == i + 1
+        if m.sum() < 200: res.append((sid, None)); continue
+        ring = ndimage.binary_dilation(m, iterations=8) & notfig
+        fl = float(np.median(Y[ring])) if ring.any() else fy
+        edge = m & ~ndimage.binary_erosion(m, iterations=2)
+        lf = np.where(w[edge] > 0.02, loc[edge], fl)
+        share = float((cr(Y[edge], lf) >= RATIO).mean()); legacy = float((cr(Y[edge], fl) >= RATIO).mean())
+        body = float(cr(np.median(Y[m]), fl)); area = float((cr(Y[m], fl) >= RATIO).mean())
+        col = float((((mx - mn)[m] >= 0.25) & (Y[m] >= 0.08)).mean())
+        res.append((sid, dict(share=share, legacy=legacy, body=body, area=area, col=col, px=int(m.sum()))))
+    rows[sh['shot']] = res
+    tag = f"{sh['variant']} {sh['kind']} {sh['dist']} m"
+    gate = sh['variant'] == PROPOSAL
+    for sid, d in res:
+        if d is None:
+            if gate: fails += 1; print(f'FAIL {tag} {sid}: figure not found in the ID mask')
+            continue
+        ok = d['share'] >= EDGE_SHARE
+        head = ('PASS' if ok else 'FAIL') if gate else ('CONTROL' if sh['variant'] == CONTROL else 'OPTION')
+        if gate and not ok: fails += 1
+        print(f"{head} {tag} {sid} outline >= {RATIO}:1 vs floor behind: {d['share']:.0%} (min {EDGE_SHARE:.0%}); ring formula {d['legacy']:.0%}; body median {d['body']:.2f}:1; area >= 3:1 {d['area']:.0%}; coloured px {d['col']:.0%}")
+    if sh['variant'] == CONTROL:
+        nf = sum(1 for _, d in res if d and d['share'] < EDGE_SHARE)
+        ok = nf >= 6   # the owner's screenshot case: most figures must fail on the old floor with the dark outline
+        if not ok: fails += 1
+        print(f"{'MUT caught' if ok else 'MUT MISSED'} {tag}: {nf} of {len(res)} figures fail the outline rule on the old floor with the dark outline (control, min 6)")
+    if gate or sh['variant'] == CONTROL:
+        isnew = gate
+        oky = FLOOR_Y[0] <= fy <= FLOOR_Y[1]; okm = marks <= FLOOR_MARKS
+        if isnew and not oky: fails += 1
+        if isnew and not okm: fails += 1
+        h = (lambda ok: 'PASS' if ok else 'FAIL') if isnew else (lambda ok: 'CONTROL')
+        print(f"{h(oky)} {tag} floor on-screen luminance {fy:.3f} ({FLOOR_Y[0]}-{FLOOR_Y[1]})")
+        print(f"{h(okm)} {tag} floor own marks p95/p5 contrast {marks:.2f}:1 (max {FLOOR_MARKS}); on-screen saturation {floorrows[sh['shot']][2]:.2f}")
+def summ(shot):
+    r = [d for _, d in rows[shot] if d]
+    return (min(d['share'] for d in r), float(np.mean([d['share'] for d in r])), float(np.median([d['body'] for d in r])), sum(d['share'] >= EDGE_SHARE for d in r), len(r))
+print('TABLE variant | dist | figures >= 50% | min outline share | mean outline share | median body contrast | floor Y | floor marks')
+for sh in man['shots']:
+    a = summ(sh['shot']); f = floorrows[sh['shot']]
+    print(f"TABLE {sh['variant']} {sh['kind']} | {sh['dist']} | {a[3]} of {a[4]} | {a[0]:.0%} | {a[1]:.0%} | {a[2]:.2f}:1 | {f[0]:.3f} | {f[1]:.2f}:1")
+# sheets (JPEG): same scale, same camera, stacked
+def bandcrop(shot, idn, pad=40):
+    lab = idmask(idn); ys = np.where((lab > 0).any(1))[0]; y0, y1 = max(0, ys[0] - pad), min(lab.shape[0], ys[-1] + pad + 60)
+    return Image.open(f'{S}/{shot}.png').convert('RGB').crop((0, y0, lab.shape[1], y1))
+def stack(items, path):
+    ims = [(t, im) for t, im in items]; Wd = max(im.width for _, im in ims); Ht = sum(im.height + 26 for _, im in ims)
+    sheet = Image.new('RGB', (Wd, Ht), (255, 255, 255)); d = ImageDraw.Draw(sheet); y = 0
+    for t, im in ims: d.text((6, y + 6), t, fill=(0, 0, 0)); sheet.paste(im, (0, y + 26)); y += im.height + 26
+    sheet.save(path, quality=88)
+def label(sh):
+    a = summ(sh['shot']); f = floorrows[sh['shot']]
+    return f"{sh['variant']} ({sh['kind']}) at {sh['dist']} m: {a[3]} of {a[4]} figures pass, min outline share {a[0]:.0%}, median body {a[2]:.2f}:1, floor Y {f[0]:.3f}, marks {f[1]:.2f}:1"
+by = {(s['variant'], s['kind'], s['dist']): s for s in man['shots']}
+for d in (10.5, 14):
+    stack([(label(by[(v, 'hall', d)]), bandcrop(by[(v, 'hall', d)]['shot'], by[(v, 'hall', d)]['id'])) for v in (CONTROL, PROPOSAL)], f'{OUT}/sheet_play{d}_old_vs_new.jpg')
+    stack([(label(s), bandcrop(s['shot'], s['id'])) for s in man['shots'] if s['kind'] == 'hall' and s['dist'] == d], f'{OUT}/sheet_play{d}_all_variants.jpg')
+stack([(label(s), bandcrop(s['shot'], s['id'])) for s in man['shots'] if s['kind'] != 'hall'], f'{OUT}/sheet_play10.5_other_floors.jpg')
+for i in range(len(man['groups'])):
+    stack([(f'close-up, {v}: ' + ' '.join(man['groups'][i]), Image.open(f'{S}/close_{v}_{i}.png').convert('RGB').crop((0, 120, 1920, 1000))) for v in (CONTROL, PROPOSAL)], f'{OUT}/sheet_close_old_vs_new_{i}.jpg')
+print(f'FAIL lines: {fails}' if fails else 'all colour gates pass')

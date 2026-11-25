@@ -26,7 +26,9 @@ def roll20(a): b = a.copy(); b[500:520, 4:16] = np.array([168, 134, 76, 255]); r
 def tellred(a): b = a.copy(); b[a[..., 3] > 127, :3] = np.array([224, 48, 26]); return b
 def white(a): b = a.copy(); b[a[..., 3] > 127, :3] = 245; return b
 def r3(a): b = a.copy(); b[..., :3] = a[..., :3] * 0.82; return b
+def busy(a): b = a.copy(); yy, xx = np.mgrid[0:a.shape[0], 0:a.shape[1]]; b[..., :3] += (26 * (((xx // 24) + (yy // 24)) % 2) - 13)[..., None]; return b
 M = [  # (texture, mutation, rule that must fail)
+    ('hall_floor', dull, 'value'), ('hall_floor', busy, 'contrast'), ('hall_floor', flat, 'contrast'), ('hall_floor', shear, 'seam x'),   # COLOUR 25 Nov: the re-based hall floor row
     ('hall_wall', dull, 'value'), ('signal_flags', swap01, 'school colours'), ('signal_flags', nokey, 'band reads'), ('star_inlay', roll20, 'edge clear'), ('star_inlay', tellred, 'not hazard ring'),
     ('star_inlay', white, 'subtle'), ('pond_water', dull, 'value'), ('pond_water', grey, 'teal tint'), ('mercury_matcap', r3, 'value'),
     ('rammed_earth', flat, 'brush scale'), ('rammed_earth', flat, 'contrast'), ('rammed_earth', shear, 'seam x'),
