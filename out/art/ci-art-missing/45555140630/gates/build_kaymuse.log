@@ -1,0 +1,24 @@
+PASS kaymuse_lod0 tris 7044 (budget 10000)
+PASS kaymuse_lod1 tris 1386 (budget 2600)
+PASS kaymuse_lod2 tris 638 (budget 900)
+PASS kaymuse skin: every lod0 vertex on one rig bone (0 bad, stray groups [])
+PASS kaymuse clip idle: 4.0 s, beads_f1 travels 0.025 m (min 0.01)
+PASS kaymuse_lod0 tris 7044 (min 5000: beads and folds modelled)
+PASS kaymuse sits within the throne seat: 2.81 m wide (seat 4.06), f -0.60..0.80 m (seat half depth 0.91), base z -0.00
+PASS kaymuse crown top 1.73 m over the seat (range 1.5-2.1; a suit stands 2.05-2.4 m)
+PASS kaymuse bead curtain covers 83% of the head front, level view (min 55%); no face modelled
+PASS kaymuse materials ['kmJade', 'kmRobe', 'kmSkin', 'palBronze', 'palCinnabar', 'palGold', 'palLacquerPlain'] (black robe, cinnabar, gold, jade, lacquer)
+PASS kaymuse LOD1 keeps cinnabar and gold
+11 of 11 pass
+ERROR Draco is not available because library could not be found at /opt/hostedtoolcache/Python/3.13.18/x64/lib/python3.13/site-packages/bpy/lib/libbf_intern_draco_bridge.so
+ERROR MeshOptimizer is not available because library could not be found at /opt/hostedtoolcache/Python/3.13.18/x64/lib/python3.13/site-packages/bpy/lib/libbf_intern_meshopt_bridge.so
+05:40:50 | INFO: Starting glTF 2.0 export
+05:40:50 | INFO: Extracting primitive: kaymuse_lod1
+05:40:50 | INFO: Primitives created: 7
+05:40:50 | INFO: Extracting primitive: kaymuse_lod2
+05:40:50 | INFO: Primitives created: 7
+05:40:50 | INFO: Extracting primitive: kaymuse_lod0
+05:40:50 | INFO: Primitives created: 7
+05:40:50 | INFO: Finished glTF 2.0 export in 0.09047913551330566 s
+
+wrote /tmp/pieces/kaymuse.glb 830452 bytes

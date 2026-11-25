@@ -1,0 +1,22 @@
+11 of 11 pass
+11 of 11 pass
+FAIL wanderer feet on the ground (lowest z 0.017)
+10 of 11 pass
+6 of 6 pass
+6 of 6 pass
+5 of 5 pass
+5 of 5 pass
+FAIL decree_mark LODs present and ordered: lod0 168, lod1 168, lod2 74 tris
+39 of 40 pass
+9 of 9 mutations caught
+FAIL crab at play size (CAM_DIST 14, 1080p; 87 px high, 8151 px): 0% of outline pixels >= 3.0:1 against what is beside it on the hall floor (min 50%); body median 1.4:1
+FAIL wanderer at play size (CAM_DIST 14, 1080p; 201 px high, 7159 px): 0% of outline pixels >= 3.0:1 against what is beside it on the hall floor (min 50%); body median 1.2:1
+FAIL plate at play size (CAM_DIST 14, 1080p; 46 px high, 2320 px): 5% of outline pixels >= 3.0:1 against what is beside it on the hall floor (min 50%); body median 1.5:1
+FAIL leader_crown at play size (CAM_DIST 14, 1080p; 91 px high, 2769 px): 0% of outline pixels >= 3.0:1 against what is beside it on the hall floor (min 50%); body median 1.9:1
+FAIL mo_wall at play size (CAM_DIST 14, 1080p; 171 px high, 49329 px): 0% of outline pixels >= 3.0:1 against what is beside it on the hall floor (min 50%); body median 1.0:1
+FAIL decree_mark at play size (CAM_DIST 14, 1080p; 77 px high, 1933 px): 0% of outline pixels >= 3.0:1 against what is beside it on the hall floor (min 50%); body median 2.0:1
+FAIL kaymuse on the throne, play framing (166 px high, 21130 px): 15% of outline pixels >= 3.0:1 against the throne behind her (min 50%); body median 1.0:1
+FAIL kaymuse on the throne, approach framing (132 px high, 12930 px): 17% of outline pixels >= 3.0:1 against the throne behind her (min 50%); body median 1.0:1
+2 of 10 pass
+4 of 4 mutations caught
+FAIL lines: 10

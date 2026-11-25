@@ -1,0 +1,1 @@
+PASS shots: 92 of 92 rendered in three's GLTFLoader without errors
