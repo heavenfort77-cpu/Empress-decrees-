@@ -88,6 +88,24 @@ if (MODE === 'checks') {
     await o.browser.close();
   }
   MUT = null;
+} else if (MODE === 'heap') {
+  // Diagnostic (INFO only, no gate): what stays alive after GC during play. Sampling heap profiler over the timed window of the quiet palace
+  // view; allocation sites of objects still alive at the end, summed by function, top 30.
+  const q = ARG || 'ci_pal/pal.html?mode=perf&tier=low&toggles=0', o = await open(q, { width: 1280, height: 720 });
+  if (o.err) console.log('INFO heap: page error ' + o.err.slice(0, 200));
+  else {
+    const cdp = await o.page.context().newCDPSession(o.page), heap = () => o.page.evaluate(() => { window.gc(); return +(performance.memory.usedJSHeapSize / 1048576).toFixed(2); });
+    await o.page.waitForTimeout(SETTLE * 1000); const h0 = await heap(); const f0 = await o.page.evaluate(() => window.__frames || 0);
+    await cdp.send('HeapProfiler.enable'); await cdp.send('HeapProfiler.startSampling', { samplingInterval: 16384 });
+    await o.page.waitForTimeout(TIMED * 1000); const h1 = await heap();
+    const { profile } = await cdp.send('HeapProfiler.stopSampling'), agg = {};
+    const walk = (n, path) => { const f = n.callFrame, k = `${f.functionName || '(anon)'} ${f.url.replace(/^.*\//, '')}:${f.lineNumber + 1}:${f.columnNumber + 1}`; agg[k] = (agg[k] || 0) + n.selfSize; for (const c of n.children || []) walk(c); };
+    walk(profile.head);
+    const top = Object.entries(agg).sort((a, b) => b[1] - a[1]).slice(0, 30), tot = Object.values(agg).reduce((a, b) => a + b, 0);
+    console.log(`INFO heap ${q}: after GC ${h0} -> ${h1} MB in ${TIMED} s; sampled live allocations ${(tot / 1048576).toFixed(2)} MB`);
+    for (const [k, v] of top) console.log(`INFO   ${(v / 1024).toFixed(0).padStart(7)} KB  ${k}`);
+  }
+  await o.browser.close();
 } else if (MODE === 'perf') {
   // Real GPU: the game's reference scene (as prep-chr / perfgpu: lock, tier medium, no bots) twice around the palace art views.
   const scenes = (process.env.SCENES || 'reference,pal_med,pal_low,pal_quiet,pal_noglc,webglmin,reference').split(','), rows = [];

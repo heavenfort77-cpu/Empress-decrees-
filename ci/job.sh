@@ -26,8 +26,10 @@ echo "PREFLIGHT PASS"
 case "$MODE" in
   preflight) exit 0 ;;
   checks) { echo "== static"; node tests/static-check.mjs; s=$?; [ $s -eq 0 ] && echo "PASS P0 static-check (src/palace_art.js PERFRAME rules)" || echo "FAIL P0 static-check"; } 2>&1 | tee "$OUT/static.txt"
-          OUT=$OUT node ci_pal/palrun.mjs checks 2>&1 | tee "$OUT/checks.txt"; c=$?; grep -q "^PASS P0" "$OUT/static.txt" || c=1; exit $c ;;
+          OUT=$OUT node ci_pal/palrun.mjs checks 2>&1 | tee "$OUT/checks.txt"; c=$?; grep -q "^PASS P0" "$OUT/static.txt" || c=1
+          OUT=$OUT node ci_pal/palrun.mjs heap 2>&1 | tee "$OUT/heap.txt"; exit $c ;;
   mutants) OUT=$OUT node ci_pal/palrun.mjs mutants "$ARG" 2>&1 | tee "$OUT/mutants.txt" ;;
-  perf) OUT=$OUT node ci_pal/palrun.mjs perf 2>&1 | tee "$OUT/perf.txt" ;;
+  perf) OUT=$OUT node ci_pal/palrun.mjs perf 2>&1 | tee "$OUT/perf.txt"; c=$?
+        OUT=$OUT node ci_pal/palrun.mjs heap 'ci_pal/pal.html?mode=perf&tier=medium&toggles=0' 2>&1 | tee "$OUT/heap.txt"; exit $c ;;
   *) echo "unknown mode $MODE"; exit 2 ;;
 esac
