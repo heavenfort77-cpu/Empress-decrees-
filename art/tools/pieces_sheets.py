@@ -31,13 +31,16 @@ def box(mask_name, pad=60):
     return (max(0, xs.min() - pad), max(0, ys.min() - pad), min(W, xs.max() + pad), min(H, ys.max() + pad))
 
 turn = lambda i: [(f'{i} close: {n}', f'{i}_turn_{n}', None) for n in ('front', '34', 'side', 'back')]
-sheet('kaymuse_close', [[('on the throne: front', 'throne_close_front', None), ('3/4', 'throne_close_34', None), ('side', 'throne_close_side', None), ('from behind', 'throne_close_back', None), ('at the game pitch (40 deg)', 'throne_close_cam', None)],
-                        [('bead strings: front', 'beads_front', None), ('3/4', 'beads_34', None), ('side', 'beads_side', None), ('idle t=1 s', 'beads_idle_1', None), ('idle t=3 s', 'beads_idle_3', None)]])
+sheet('kaymuse_close', [[('on the throne: front', 'throne_close_front', None), ('3/4', 'throne_close_34', None), ('side', 'throne_close_side', None), ('at the game pitch (40 deg)', 'throne_close_cam', None)],
+                        [('off the throne: side', 'alone_side', None), ('from behind 3/4', 'alone_back34', None), ('from behind', 'alone_back', None), ('outline', 'kaymuse_sil', None)]])
+sheet('kaymuse_head', [[('head: front', 'head_front', None), ('3/4', 'head_34', None), ('side', 'head_side', None), ('behind', 'head_back', None), ('game pitch', 'head_cam', None)],
+                       [('hand on the armrest', 'hand', None), ('veil idle t=1 s', 'beads_idle_1', None), ('veil idle t=3 s', 'beads_idle_3', None), ('veil on the throne: front', 'beads_front', None), ('side', 'beads_side', None)]], h=440)
 sheet('kaymuse_play', [[('PLAY SIZE, lighter floor candidate: game camera 14 m, looking at the dais (suit and guard at its foot, same scale)', 'throne_play_light', None)],
                        [('PLAY SIZE, lighter floor candidate: a player 7 m south of the throne', 'throne_approach_light', None)],
                        [('PLAY SIZE, current floor: a player 7 m south of the throne', 'throne_approach', None)], [('wide 24 m', 'throne_wide', None)]], h=720)
 kb = box('mask_kaymuse_approach', 90)
-sheet('kaymuse_play_crop', [[('approach framing, 2x pixels', 'throne_approach_light', kb), ('outline', 'kaymuse_sil', None), ('LOD0 / LOD1 / LOD2', 'kaymuse_lods', None)]], h=600)
+kb2 = box('mask_kaymuse_play', 90)
+sheet('kaymuse_play_crop', [[('approach framing, 2x pixels', 'throne_approach_light', kb), ('play framing, 2x pixels', 'throne_play_light', kb2), ('LOD0 / LOD1 / LOD2', 'kaymuse_lods', None)]], h=600)
 for i in ('crab', 'wanderer'):
     sheet(f'{i}_close', [turn(i), [(f'{i} at the game pitch', f'{i}_top', None), ('outline', f'{i}_sil', None), ('LOD0 / LOD1 / LOD2', f'{i}_lods', None)],
                          [(f'move pose {k}', f'{i}_move_{k}', None) for k in range(4)], [(f'idle pose {k}', f'{i}_idle_{k}', None) for k in range(4)]], h=420)

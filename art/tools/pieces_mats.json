@@ -1,5 +1,5 @@
 {
-  "_note": "Material table for the PIECES GLBs (PIECES round 2). The GLBs carry material names only (no images), as the other props. tex = file in assets/tex (glTF UVs: flipY false, repeat wrap); color = sRGB multiplier. kmRobe is the neutral cloth sheet under a Qin-black tint; pcBlack is black lacquer (matte, the outline colour of every piece); moTimber and moStone are the timber and river-stone sheets under a dark stain.",
+  "_note": "Material table for the PIECES GLBs (PIECES round 3). The GLBs carry material names only (no images), as the other props. tex = file in assets/tex (glTF UVs: flipY false, repeat wrap); color = sRGB multiplier. pcOutline is the baked dark outline shell (inside-out faces: draw it with front faces only, the three.js default, never DoubleSide). pcDarkBronze is the brass sheet under a dark tint (undersides, joints, lower legs). kmRobe is the neutral cloth sheet under a Qin-black tint.",
   "palBronze": {
     "tex": "bronze_trim_brass",
     "metalness": 0.4,
@@ -27,9 +27,9 @@
   },
   "kmRobe": {
     "tex": "suit_cloth",
-    "color": "#2b2523",
+    "color": "#1e1a18",
     "metalness": 0,
-    "roughness": 0.85
+    "roughness": 0.9
   },
   "kmJade": {
     "color": "#d9d2c3",
@@ -55,6 +55,34 @@
   },
   "pcBlack": {
     "color": "#100c0b",
+    "metalness": 0,
+    "roughness": 0.85
+  },
+  "pcOutline": {
+    "color": "#0b0908",
+    "metalness": 0,
+    "roughness": 1.0
+  },
+  "pcDarkBronze": {
+    "tex": "bronze_trim_brass",
+    "color": "#4a3f36",
+    "metalness": 0.3,
+    "roughness": 0.7
+  },
+  "kmSkin": {
+    "color": "#e9cfb6",
+    "metalness": 0,
+    "roughness": 0.75
+  },
+  "moEarthLine": {
+    "tex": "rammed_earth",
+    "color": "#7a6a58",
+    "metalness": 0,
+    "roughness": 0.95
+  },
+  "moTimberLight": {
+    "tex": "timber",
+    "color": "#c8b8a4",
     "metalness": 0,
     "roughness": 0.85
   }

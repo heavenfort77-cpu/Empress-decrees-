@@ -1,18 +1,19 @@
-# Small objects (PIECES round 2; owner 25 Nov 13:08), each under 500 triangles, static, LOD0/1/2 built per level (index.html draws all
-# four as plain shapes). Round 2 follows the lead's verdict on run 45555140630; every outline is black lacquer so it reads on the floor.
-#   plate        the plate pickup: a shed armour plate of the tiger, 0.7 m (flat box today). Three overlapping curved lames narrowing to
-#                one end (a segmented edge), a black flange rim, a row of rivets on the wide end, three silver claw-stripe inlays, two
-#                torn strap lugs. Lies dome up.
-#   leader_crown the leader's marker (gold hexagon at CONFIG.LEADER crownY 2.95, crownR 0.3 today): a small court crown token, read
-#                from above: a black lacquer ring with a gold line, a short flat board on four posts (black border, gold inlay field,
-#                cinnabar underside), three short bead strings in front and three behind. No long blades. Origin = the ring's base centre.
-#   mo_wall      the 墨 wall a suit raises (unit box scaled to len 4 x h 2.4 x thick 0.6 today), at true size: a rammed-earth panel with
-#                its horizontal layer lines between upright dark timber posts and horizontal rails, a river-stone footing, a timber
-#                cap, bronze sleeves at the joints, a cinnabar school plaque with a carpenter's-square sigil. No diagonal braces.
-#                Extras give its size so the game can scale per cast.
+# Small objects (PIECES round 3; owner 25 Nov 13:08 and 14:13 "fix them"), each under 500 triangles with its outline shell, static,
+# LOD0/1/2 built per level (index.html draws all four as plain shapes). Round 3 follows the lead's notes on run 45557912570. Outlines on
+# the floor come from the baked dark outline shell (pieces_kit.outline; owner option A) or from black lacquer.
+#   plate        the plate pickup: a shed armour plate of the tiger, 0.7 m (flat box today). One thick lamellar plate: a long trapezoid,
+#                gently domed, a raised brass border, pairs of lacing holes down both sides and across the top, three gold tiger-stripe
+#                inlays, a workshop boss, a torn cinnabar lacing strap trailing from it; it lies tilted, one end off the ground.
+#   leader_crown the leader's marker (gold hexagon at CONFIG.LEADER crownY 2.95, crownR 0.3 today): a gold crown read from above: a ring
+#                with five rising cloud / mountain points leaning outward (tallest in front), a cinnabar stone on the front point, jade
+#                studs beside it. No lid, no blades. Origin = the ring's base centre.
+#   mo_wall      the 墨 wall a suit raises (unit box scaled to len 4 x h 2.4 x thick 0.6 today), at true size: rammed-earth panels with
+#                modelled layer lines between four upright dark posts at three uneven spacings, one rail, a river-stone footing, a
+#                lighter timber cap, bronze sleeves on the posts, the school's cinnabar plaque with a carpenter's-square sigil on the
+#                widest panel. No braces, no even lattice. Extras give its size so the game can scale per cast.
 #   decree_mark  the marker over a marked suit (0.3 x 0.9 box at markY 3.5 today): a hanging black lacquer tally tablet pointing down, a
-#                gold inlay line inside its edge, a square cinnabar seal cut with an abstract beast mask (two eyes, brow horns, nose,
-#                jaw, fangs: no script, no letter shape), a ring on top. Origin = the tip.
+#                gold inlay line inside its edge, a square cinnabar seal cut with a squared thunder-scroll (雷纹 idea, own strokes: one
+#                unequal spiral, not mirrored, no script, no face), a ring on top. Origin = the tip.
 # Usage: python pieces_small.py OUTDIR
 import sys, os, math
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
@@ -24,128 +25,141 @@ from prop_kit import lathe, spheroid, sweep, prism, torus, ngon, rect, blade
 OUTDIR = sys.argv[-1] if os.path.isdir(sys.argv[-1]) else '/tmp/pieces'
 
 # CONFIG ---------------------------------------------------------------------------------------------------------------
-# Triangle budgets LOD0/1/2 (task: under 500 each).
+# Triangle budgets LOD0/1/2 with the outline shell (task: under 500 each).
 BUDGET = (499, 400, 220)
-# Plate: shell radius m, half arc deg at the wide and narrow end, length m, thickness m; size the game expects (index.html plateGeo).
-PL_R, PL_ARC, PL_LEN, PL_TH, PL_SIZE = 0.56, (37, 15), 0.64, 0.035, 0.7
-# Plate lames: count, overlap (share of the length), step down per lame m; rivets on the wide end; claw stripes.
-PL_LAMES, PL_LAP, PL_STEP, PL_RIVETS, PL_CLAWS = 3, 0.035, 0.014, 4, 3
-# Leader crown: ring radius (index.html CONFIG.LEADER.crownR), ring height, board height over the base, board half width and half length, m.
-CR_R, CR_BAND, CR_BOARD_Z, CR_BOARD = 0.30, 0.12, 0.21, (0.19, 0.33)
-# Leader crown: bead strings per end, string length m. Size gates: height range, most width and length, m.
-CR_STRINGS, CR_STR_LEN, CR_SIZE = 3, 0.15, ((0.2, 0.5), 0.7, 0.75)
-# 墨 wall at true size (index.html mo Q: len 4, h 2.4, thick 0.6), m; post x places; rail heights.
+# Dark outline shell width per piece, m (plate, crown, wall).
+SHELL_W = {'plate': 0.03, 'leader_crown': 0.03, 'mo_wall': 0.045, 'decree_mark': 0.0}
+# Plate: half width at the wide and narrow end, length, thickness, dome height m; tilt deg (one end off the ground); the game's size.
+PL_HW, PL_LEN, PL_TH, PL_DOME, PL_TILT, PL_SIZE = (0.29, 0.22), 0.68, 0.06, 0.03, 12, 0.7
+# Plate: lacing hole pairs down each side, holes across the top, tiger stripes.
+PL_HOLES, PL_TOP_HOLES, PL_STRIPES = 2, 2, 3
+# Leader crown: ring radius (index.html CONFIG.LEADER.crownR), ring height m; points as (angle from the front deg, width, height) m; outward lean deg.
+CR_R, CR_BAND = 0.30, 0.12
+CR_POINTS, CR_LEAN = [(0, 0.17, 0.30), (-38, 0.14, 0.22), (38, 0.14, 0.22), (-66, 0.10, 0.14), (66, 0.10, 0.14)], 12
+# Leader crown size gates: height range, most width and length, m. A lid is not allowed (CR_LID must stay 0: a lid reads as a tray).
+CR_SIZE, CR_LID = ((0.3, 0.5), 0.7, 0.75), 0
+# 墨 wall at true size (index.html mo Q: len 4, h 2.4, thick 0.6), m; post x places (uneven spacings); rail height; layer line heights.
 MW_LEN, MW_H, MW_T = 4.0, 2.4, 0.6
-MW_POSTS, MW_RAILS = (-1.88, -0.94, 0.0, 0.94, 1.88), (0.85, 1.45)
-# 墨 wall: diagonal braces (must stay 0: a brace reads as European half-timber).
-MW_BRACES = 0
+MW_POSTS, MW_RAILS, MW_LINES = (-1.88, -0.9, 0.55, 1.88), (1.3,), (0.62, 0.95, 1.62, 1.92)
+# 墨 wall: diagonal braces (must stay 0: a brace reads as European half-timber). Spacings must differ by at least MW_UNEVEN m.
+MW_BRACES, MW_UNEVEN = 0, 0.1
 # Decree mark: width and height m (index.html CONFIG.DECREES markW 0.3, markH 0.9); gold line and inner panel as a share of the tablet.
 DM_W, DM_H, DM_LINE, DM_INNER = 0.30, 0.90, 0.80, 0.69
-# Decree seal: side m; sigil parts as (centre x, centre z, width, height, turn deg) in the seal's own square, m: eyes, brow horns, nose, jaw, fangs.
+# Decree seal: side m; strokes as (centre x, centre z, width, height, turn deg) in the seal's own square, m: one squared spiral
+# (top, right, bottom, left, inner top, inner right, inner bottom), unequal arms.
 DM_SEAL = 0.19
-DM_SIGIL = [(-0.045, 0.028, 0.034, 0.034, 0), (0.045, 0.028, 0.034, 0.034, 0), (-0.052, 0.066, 0.06, 0.018, 28), (0.052, 0.066, 0.06, 0.018, -28),
-            (0.0, -0.006, 0.02, 0.07, 0), (0.0, -0.066, 0.13, 0.02, 0), (-0.05, -0.042, 0.02, 0.03, 0), (0.05, -0.042, 0.02, 0.03, 0)]
+DM_SIGIL = [(0.0, 0.066, 0.15, 0.018, 0), (0.066, 0.0, 0.018, 0.15, 0), (0.0, -0.066, 0.15, 0.018, 0), (-0.066, -0.018, 0.018, 0.114, 0),
+            (-0.018, 0.03, 0.114, 0.018, 0), (0.03, 0.0, 0.018, 0.078, 0), (0.004, -0.03, 0.07, 0.018, 0)]
+# Most strokes that may have a mirror twin across the seal's middle (a mirrored sigil reads as a face).
+DM_MIRROR_MAX = 0.5
 BR, INL, CIN, GOLD, LAC, BLK, JADE = 'palBronze', 'palInlay', 'palCinnabar', 'palGold', 'palLacquerPlain', 'pcBlack', 'kmJade'
-EARTH, TIMBER, STONE = 'moEarth', 'moTimber', 'moStone'
+EARTH, EARTH_LINE, TIMBER, TIMBER_LT, STONE = 'moEarth', 'moEarthLine', 'moTimber', 'moTimberLight', 'moStone'
 PK.mutate(globals())
 
 
-def plate_pt(u, v, k, dr=0.0):
-    arc = math.radians(PL_ARC[0] + (PL_ARC[1] - PL_ARC[0]) * v); ph = (u - 0.5) * 2 * arc; r = PL_R - k * PL_TH - dr
-    return (r * math.sin(ph), (v - 0.5) * PL_LEN, r * math.cos(ph) - (PL_R - PL_TH) * math.cos(math.radians(PL_ARC[0])) + 0.012)
+def plate_pt(u, v, k, lift=0.0):
+    """the plate before it is tilted: u across, v along (0 = wide end), k 0 top face, 1 bottom face."""
+    hw = PL_HW[0] + (PL_HW[1] - PL_HW[0]) * v; x = (2 * u - 1) * hw; b = PL_DOME * (1 - (2 * u - 1) ** 2)
+    return (x, (v - 0.5) * PL_LEN, (b * 0.7 if k else PL_TH + b) + lift)
 
 def plate_build(detail):
-    lv = PK.LEVEL['n']; n = PL_LAMES if lv < 2 else 1
-    for j in range(n):  # overlapping lames, each a step lower, narrowing toward the far end
-        v0, v1 = max(0.0, j / n - PL_LAP), (j + 1) / n
-        PK.shell(f'lame_{j}', lambda u, v, k, v0=v0, v1=v1, j=j: plate_pt(u, v0 + (v1 - v0) * v, k, PL_STEP * j), 6 if lv == 0 else 8, 1, BR, 'plain')
-        for q, u in enumerate((0.0, 1.0)):  # black flange along each lame's side: the stepped, segmented edge
-            prism(f'side_{j}{q}', ngon(0.022, 4), plate_pt(u, v0, -0.2, PL_STEP * j), plate_pt(u, v1, -0.2, PL_STEP * j), BLK, 'plain', rnd=True)
-    for q, (v, dr) in enumerate(((0.0, 0.0), (1.0, PL_STEP * (n - 1)))):  # black flange rim along the two curved ends
-        sweep(f'rim_{q}', [plate_pt(i / 5, v, -0.2, dr) for i in range(6)], [0.022] * 6, BLK, 'plain', n=3)
+    lv = PK.LEVEL['n']; n0 = len(K.PARTS); PK.outline(0)
+    PK.shell('body', plate_pt, 6 if lv == 0 else 8, 2, BR, 'plain')
+    PK.outline(-1)
     if lv < 2:
-        for q in range(PL_CLAWS):  # claw-stripe inlays raking down the plate, as the tiger's own stripes
-            u0 = 0.26 + 0.24 * q; pts = [plate_pt(u0 + 0.06 * t, 0.12 + 0.76 * t, -0.12, PL_STEP * min(int((0.12 + 0.76 * t) * n), n - 1)) for t in (0.0, 0.5, 1.0)]
-            for j, (a, b) in enumerate(zip(pts, pts[1:])): prism(f'claw_{q}{j}', rect(0.034 - 0.012 * j, 0.012), a, b, INL, 'plain', scale_b=0.6, rnd=True, up=(a[0], 0, 0.56))
+        for q, u in enumerate((0.0, 1.0)):  # raised border down both sides and across both ends
+            prism(f'border_{q}', rect(0.045, 0.03), plate_pt(u * 0.94 + 0.03, 0.0, 0, 0.004), plate_pt(u * 0.94 + 0.03, 1.0, 0, 0.004), BR, 'flange', rnd=True, up=(0, 0, 1))
+        for q, v in enumerate((0.03, 0.97)): prism(f'end_{q}', rect(0.045, 0.03), plate_pt(0.03, v, 0, 0.004), plate_pt(0.97, v, 0, 0.004), BR, 'flange', rnd=True, up=(0, 0, 1))
+        for q in range(PL_STRIPES):  # tiger stripes: gold inlays raking across, each thinning to a point
+            v0 = 0.24 + 0.24 * q; a, m, b = plate_pt(0.14, v0 + 0.07, 0, 0.002), plate_pt(0.5, v0 - 0.03, 0, 0.002), plate_pt(0.86 - 0.1 * (q % 2), v0 + 0.09, 0, 0.002)
+            prism(f'stripe_{q}a', rect(0.02, 0.012), a, m, GOLD, 'plain', scale_b=2.4, rnd=True, up=(0, 0, 1))
+            prism(f'stripe_{q}b', rect(0.048, 0.012), m, b, GOLD, 'plain', scale_b=0.3, rnd=True, up=(0, 0, 1))
     if detail:
-        for q in range(PL_RIVETS):  # rivets along the wide end
-            a = plate_pt(0.14 + 0.72 * q / (PL_RIVETS - 1), 0.07, 0.0); prism(f'rivet_{q}', ngon(0.022, 5), a, (a[0] * 1.03, a[1], a[2] + 0.018), INL, 'plain', scale_b=0.6, rnd=True)
-        for q, u in enumerate((0.25, 0.75)):  # torn strap lugs on the wide end
-            a = plate_pt(u, 0.0, 0.2); prism(f'lug_{q}', rect(0.07, 0.03), a, (a[0], a[1] - 0.06, a[2] - 0.012), BR, 'flange', scale_b=0.6, rnd=True, up=(0, 0, 1))
+        holes = [(u, 0.3 + 0.4 * i / max(PL_HOLES - 1, 1) + dv) for u in (0.11, 0.89) for i in range(PL_HOLES) for dv in (-0.035, 0.035)] + [(0.36 + 0.28 * i / max(PL_TOP_HOLES - 1, 1), 0.11) for i in range(PL_TOP_HOLES)]
+        for q, (u, v) in enumerate(holes):  # lacing holes
+            c = plate_pt(u, v, 0, -0.004); prism(f'hole_{q}', ngon(0.017, 4), c, (c[0], c[1], c[2] + 0.008), BLK, 'plain', rnd=True)
+        c = plate_pt(0.5, 0.9, 0, -0.002); prism('boss', rect(0.08, 0.05), c, (c[0], c[1], c[2] + 0.012), BR, 'mark', rnd=True)
+    parts = [p[0] for p in K.PARTS[n0:]]; PK.tilt(parts, (0.0, 0.5 * PL_LEN, 0.0), (1, 0, 0), PL_TILT)   # the narrow end stays down, the wide end lifts
+    if lv < 2:  # the torn lacing strap: from a hole on the raised end down onto the floor
+        lift = PL_LEN * math.sin(math.radians(PL_TILT)); a = (-0.2, -0.30, lift * 0.9 + PL_TH)
+        sweep('strap', [a, (-0.33, -0.36, 0.05), (-0.42, -0.26, 0.016), (-0.36, -0.12, 0.014)], [0.014, 0.014, 0.014, 0.012], CIN, 'plain', n=4, flat=(1.0, 0.45))
 
 def plate_gates(G, l0):
-    (x0, x1), (y0, y1), (z0, z1) = K.bounds(l0)
-    G(abs(max(x1 - x0, y1 - y0) - PL_SIZE) <= 0.06 and min(x1 - x0, y1 - y0) >= 0.55, f'plate {x1 - x0:.2f} x {y1 - y0:.2f} m, {z1 - z0:.2f} m high (game pickup {PL_SIZE} m)')
-    G(z0 >= -0.01 and 0.08 <= z1 <= 0.2, f'plate lies on the ground, dome {z1:.2f} m high (0.08-0.2)')
-    G({BR, INL, BLK} <= K.mats(l0), f'plate materials {sorted(K.mats(l0))}')
-    G(PL_LAMES >= 3 and PL_RIVETS >= 4 and PL_CLAWS >= 3 and PL_ARC[1] <= 0.5 * PL_ARC[0], f'plate reads as armour: {PL_LAMES} lames, {PL_RIVETS} rivets, {PL_CLAWS} claw stripes, narrow end {PL_ARC[1]} deg against {PL_ARC[0]} deg')
+    (x0, x1), (y0, y1), (z0, z1) = PK.bounds(l0)
+    G(abs(max(x1 - x0, y1 - y0) - PL_SIZE) <= 0.06 and min(x1 - x0, y1 - y0) >= 0.5, f'plate {x1 - x0:.2f} x {y1 - y0:.2f} m, {z1 - z0:.2f} m high (game pickup {PL_SIZE} m)')
+    G(z0 >= -0.012 and 0.14 <= z1 <= 0.32, f'plate lies tilted on the ground: lowest z {z0:.3f}, raised end {z1:.2f} m high (0.14-0.32)')
+    G({BR, GOLD, CIN, BLK, PK.OUTLINE} <= K.mats(l0), f'plate materials {sorted(K.mats(l0))} (brass, gold stripes, cinnabar strap, lacing holes, outline)')
+    G(PL_HW[1] >= 0.7 * PL_HW[0] and PL_TH >= 0.05 and 2 * PL_HOLES * 2 + PL_TOP_HOLES >= 8 and PL_STRIPES >= 3 and PL_TILT >= 8,
+      f'plate reads as armour, not a fan: trapezoid {2 * PL_HW[0]:.2f} to {2 * PL_HW[1]:.2f} m (narrow end >= 70% of the wide), {PL_TH * 100:.0f} cm thick, {2 * PL_HOLES * 2 + PL_TOP_HOLES} lacing holes, {PL_STRIPES} tiger stripes, a torn strap, tilted {PL_TILT} deg')
 
 
 def crown_build(detail):
-    lv = PK.LEVEL['n']; hw, hl = CR_BOARD
-    lathe('ring', [(CR_R - 0.03, 0.0), (CR_R, 0.0), (CR_R, CR_BAND), (CR_R - 0.03, CR_BAND), (CR_R - 0.03, 0.0)], BLK, 'plain', n=12)
-    if lv < 2: lathe('ring_line', [(CR_R + 0.008, 0.04), (CR_R + 0.008, 0.08)], GOLD, 'plain', n=12)
-    # the short board: square behind, cut corners in front; black border, a gold inlay field on top, cinnabar underneath
-    prof = [(-hw, hl), (hw, hl), (hw, -hl * 0.6), (hw * 0.5, -hl), (-hw * 0.5, -hl), (-hw, -hl * 0.6)]
-    for nm, mat, z0, z1, k in (('board', BLK, 0.0, 0.024, 1.0), ('board_field', GOLD, 0.02, 0.03, 0.72), ('board_under', CIN, -0.012, 0.0, 0.9)):
-        if lv == 2 and nm == 'board_under': continue
-        prism(nm, [(a * k, b * k) for a, b in prof], (0, 0, CR_BOARD_Z + z0), (0, 0, CR_BOARD_Z + z1), mat, 'plain', rnd=True)
-    if lv < 2:
-        for sx in (-1, 1):
-            for sf in (-1, 1): prism(f'post_{sx}{sf}', ngon(0.02, 4), (sx * 0.2, sf * 0.2, CR_BAND - 0.01), (sx * 0.14, sf * 0.2, CR_BOARD_Z), GOLD, 'plain', rnd=True)
-        prism('stone', ngon(0.035, 6), (0.0, CR_R - 0.005, CR_BAND * 0.5), (0.0, CR_R + 0.025, CR_BAND * 0.5), CIN, 'plain', rnd=True)
-    for sf in (1, -1):  # bead strings front and back: a cord, a jade bead, a gold end bead
-        for q in range(CR_STRINGS):
-            x = (q - (CR_STRINGS - 1) / 2) * 0.09 * (1.0 if sf > 0 else 1.6); f = sf * (hl - 0.005); top = (x, f, CR_BOARD_Z - 0.01)
-            if lv == 2:
-                if q == 1: prism(f'strip_{sf}', rect(0.2, 0.012), top, (x, f, top[2] - CR_STR_LEN), JADE, 'plain', rnd=True, up=(0, sf, 0))
-                continue
-            prism(f'cord_{sf}{q}', rect(0.014, 0.014), top, (x, f, top[2] - CR_STR_LEN), JADE, 'plain', rnd=True, up=(0, sf, 0))
-            if detail:
-                prism(f'bead_{sf}{q}', ngon(0.024, 4), (x, f, top[2] - 0.05), (x, f, top[2] - 0.09), JADE, 'plain', rnd=True, up=(0, sf, 0))
-                prism(f'end_{sf}{q}', ngon(0.028, 4), (x, f, top[2] - CR_STR_LEN + 0.01), (x, f, top[2] - CR_STR_LEN - 0.03), GOLD, 'plain', rnd=True, up=(0, sf, 0))
+    lv = PK.LEVEL['n']; PK.outline(1)
+    lathe('ring', [(CR_R - 0.03, 0.0), (CR_R, 0.0), (CR_R, CR_BAND), (CR_R - 0.03, CR_BAND), (CR_R - 0.03, 0.0)], GOLD, 'plain', n=10)
+    PK.outline(-1)
+    if lv < 2: lathe('ring_line', [(CR_R + 0.006, 0.045), (CR_R + 0.006, 0.07)], LAC, 'plain', n=10)
+    for q in range(CR_LID): prism(f'lid_{q}', ngon(CR_R, 8), (0, 0, CR_BAND + 0.08), (0, 0, CR_BAND + 0.1), GOLD, 'plain', rnd=True)   # CONFIG keeps this at 0 (mutation only)
+    le = math.radians(CR_LEAN)
+    for q, (deg, w, h) in enumerate(CR_POINTS):  # rising cloud / mountain points, leaning outward
+        if lv == 2 and q > 2: continue
+        a = math.radians(deg); rx, rf = math.sin(a), math.cos(a); r0 = CR_R - 0.012
+        pr = [(-w / 2, 0.0), (w / 2, 0.0), (w * 0.65, h * 0.6), (0.0, h), (-w * 0.65, h * 0.6)]
+        d = (rx * math.cos(le), rf * math.cos(le), -math.sin(le)); base = (rx * r0, rf * r0, CR_BAND - 0.03)
+        PK.outline(0)
+        prism(f'point_{q}', pr, base, tuple(base[i] + d[i] * 0.024 for i in range(3)), GOLD, 'plain', rnd=True, up=(0, 0, 1))
+        PK.outline(-1)
+        if lv < 2 and q < 3:  # a cinnabar stone on the front point, jade studs on the two beside it
+            sz = 0.04 if q == 0 else 0.028; zc = CR_BAND - 0.03 + h * 0.52; out = math.sin(le) * h * 0.52
+            c = (rx * (r0 + 0.024 + out), rf * (r0 + 0.024 + out), zc)
+            prism(f'stone_{q}', ngon(sz, 6), c, (c[0] + rx * 0.02, c[1] + rf * 0.02, c[2]), CIN if q == 0 else JADE, 'plain', scale_b=0.6, rnd=True)
 
 def crown_gates(G, l0):
-    (x0, x1), (y0, y1), (z0, z1) = K.bounds(l0); (h0, h1), wmax, lmax = CR_SIZE
+    (x0, x1), (y0, y1), (z0, z1) = PK.bounds(l0); (h0, h1), wmax, lmax = CR_SIZE
     G(abs(z0) <= 0.01 and h0 <= z1 <= h1 and x1 - x0 <= wmax and y1 - y0 <= lmax,
-      f'leader crown {x1 - x0:.2f} x {y1 - y0:.2f} m, {z1:.2f} m high (height {h0}-{h1}, width <= {wmax}, length <= {lmax}; ring radius {CR_R} as CONFIG.LEADER.crownR): a compact token, no long blades')
-    G({GOLD, CIN, BLK, JADE} <= K.mats(l0), f'leader crown materials {sorted(K.mats(l0))} (black lacquer, gold inlay, cinnabar, jade beads)')
-    G(CR_STRINGS >= 3 and 2 * CR_BOARD[1] >= 1.5 * 2 * CR_BOARD[0], f'leader crown: a board {2 * CR_BOARD[1]:.2f} x {2 * CR_BOARD[0]:.2f} m with {CR_STRINGS} + {CR_STRINGS} bead strings')
+      f'leader crown {x1 - x0:.2f} x {y1 - y0:.2f} m, {z1:.2f} m high (height {h0}-{h1}, width <= {wmax}, length <= {lmax}; ring radius {CR_R} as CONFIG.LEADER.crownR)')
+    G({GOLD, CIN, JADE, PK.OUTLINE} <= K.mats(l0), f'leader crown materials {sorted(K.mats(l0))} (gold, cinnabar stone, jade studs, outline)')
+    hs = [p[2] for p in CR_POINTS]
+    G(len(CR_POINTS) >= 5 and CR_LID == 0 and hs[0] == max(hs) and hs[0] >= 2 * CR_BAND and CR_LEAN >= 8, f'leader crown reads as a crown from above: an open ring, {len(CR_POINTS)} points leaning out {CR_LEAN} deg, the front one tallest ({hs[0]} m over a {CR_BAND} m ring), no lid ({CR_LID})')
 
 
 def wall_build(detail):
-    lv = PK.LEVEL['n']; h = MW_LEN / 2
+    lv = PK.LEVEL['n']; h = MW_LEN / 2; PK.outline(0)
     prism('footing', [(-0.36, 0.0), (0.36, 0.0), (0.33, 0.30), (-0.33, 0.30)], (-h, 0, 0), (h, 0, 0), STONE, 'tile4', rnd=True)
     prism('earth', [(-0.30, 0.30), (0.30, 0.30), (0.24, 2.16), (-0.24, 2.16)], (-h + 0.04, 0, 0), (h - 0.04, 0, 0), EARTH, 'tile4', rnd=True)
+    prism('cap', [(-0.40, 2.16), (0.40, 2.16), (0.40, 2.31), (-0.40, 2.31)], (-h - 0.04, 0, 0), (h + 0.04, 0, 0), TIMBER_LT, 'tile4', rnd=True)
+    prism('ridge', [(-0.44, 2.305), (0.44, 2.305), (0.0, MW_H)], (-h - 0.06, 0, 0), (h + 0.06, 0, 0), TIMBER_LT, 'tile4', rnd=True)
     for q, x in enumerate(MW_POSTS):  # upright posts clasp the panel through its thickness; a bronze sleeve under the cap
+        PK.outline(0)
         prism(f'post_{q}', rect(0.2, 0.72), (x, 0, 0.26), (x, 0, 2.2), TIMBER, 'tile4', scale_b=0.86, rnd=True)
-        if lv < 2: prism(f'sleeve_{q}', rect(0.25, 0.70), (x, 0, 1.95), (x, 0, 2.1), BR, 'lozenge', scale_b=0.97, rnd=True)
-    prism('cap', [(-0.40, 2.16), (0.40, 2.16), (0.40, 2.31), (-0.40, 2.31)], (-h - 0.04, 0, 0), (h + 0.04, 0, 0), TIMBER, 'tile4', rnd=True)
-    prism('ridge', [(-0.44, 2.305), (0.44, 2.305), (0.0, MW_H)], (-h - 0.06, 0, 0), (h + 0.06, 0, 0), TIMBER, 'tile4', rnd=True)
+        PK.outline(-1)
+        if lv < 2: prism(f'sleeve_{q}', rect(0.25, 0.70), (x, 0, 1.97), (x, 0, 2.1), BR, 'lozenge', scale_b=0.97, rnd=True)
     for s in (-1, 1):
-        for q, z in enumerate(MW_RAILS):  # horizontal rails, front and back
-            if lv < 2 or q == 1: prism(f'rail_{s}{q}', rect(0.1, 0.13), (-h, s * 0.345, z), (h, s * 0.345, z), TIMBER, 'tile4', rnd=True)
+        for q, z in enumerate(MW_RAILS): prism(f'rail_{s}{q}', rect(0.1, 0.13), (-h, s * 0.345, z), (h, s * 0.345, z), TIMBER, 'tile4', rnd=True)
+        if lv < 2:
+            for q, z in enumerate(MW_LINES):  # rammed layer lines: thin darker courses standing just proud of the earth
+                f = 0.30 - 0.06 * (z - 0.30) / 1.86 + 0.004
+                if detail or q % 2 == 0: prism(f'line_{s}{q}', rect(0.012, 0.03), (-h + 0.05, s * f, z), (h - 0.05, s * f, z), EARTH_LINE, 'tile4', rnd=True)
         for q in range(MW_BRACES):  # CONFIG keeps this at 0 (mutation only)
             prism(f'brace_{s}{q}', rect(0.09, 0.05), (MW_POSTS[q] + 0.1, s * 0.335, 0.42), (MW_POSTS[q + 1] - 0.1, s * 0.3, 2.02), TIMBER, 'tile4', rnd=True, up=(0, s, 0))
+        px = (MW_POSTS[1] + MW_POSTS[2]) / 2   # the school's plaque on the widest panel, both faces: cinnabar disc, black carpenter's square
+        if lv < 2: prism(f'plaque_{s}', ngon(0.24, 8, math.pi / 8), (px, s * 0.25, 1.75), (px, s * 0.335, 1.75), CIN, 'plain', rnd=True)
         if detail:
-            for q in (0, 2, 4):  # bronze sleeves where the upper rail crosses the end and middle posts
-                prism(f'joint_{s}{q}', rect(0.26, 0.19), (MW_POSTS[q], s * 0.385, MW_RAILS[1]), (MW_POSTS[q], s * 0.41, MW_RAILS[1]), BR, 'lozenge', rnd=True)
-        if lv < 2:  # the school's plaque on both faces: cinnabar disc, black carpenter's square
-            prism(f'plaque_{s}', ngon(0.19, 8, math.pi / 8), (0, s * 0.355, 1.8), (0, s * 0.395, 1.8), CIN, 'plain', rnd=True)
-        if detail:
-            prism(f'sq_a_{s}', rect(0.05, 0.2), (0.065, s * 0.39, 1.81), (0.065, s * 0.405, 1.81), LAC, 'plain', rnd=True)
-            prism(f'sq_b_{s}', rect(0.18, 0.05), (0.0, s * 0.39, 1.735), (0.0, s * 0.405, 1.735), LAC, 'plain', rnd=True)
+            prism(f'sq_a_{s}', rect(0.06, 0.26), (px + 0.085, s * 0.33, 1.76), (px + 0.085, s * 0.346, 1.76), LAC, 'plain', rnd=True)
+            prism(f'sq_b_{s}', rect(0.23, 0.06), (px, s * 0.33, 1.66), (px, s * 0.346, 1.66), LAC, 'plain', rnd=True)
+    PK.outline(-1)
 
 def wall_gates(G, l0, l2=None):
-    (x0, x1), (y0, y1), (z0, z1) = K.bounds(l0)
+    (x0, x1), (y0, y1), (z0, z1) = PK.bounds(l0)
     G(abs((x1 - x0) - MW_LEN) <= 0.15 and abs(z1 - MW_H) <= 0.02 and MW_T <= y1 - y0 <= MW_T + 0.3, f'墨 wall {x1 - x0:.2f} x {z1:.2f} x {y1 - y0:.2f} m (game cast {MW_LEN} x {MW_H} x {MW_T}; the timber and footing stand proud of the solid)')
-    G({EARTH, TIMBER, STONE, BR, CIN} <= K.mats(l0), f'墨 wall materials {sorted(K.mats(l0))} (rammed earth, timber, river stone, bronze sleeves, cinnabar plaque)')
-    G(MW_BRACES == 0 and len(MW_RAILS) >= 2 and len(MW_POSTS) >= 4, f'墨 wall frame: {len(MW_POSTS)} upright posts, {len(MW_RAILS)} horizontal rails a face, {MW_BRACES} diagonal braces (must be 0)')
-    if l2 is not None:  # LOD2 keeps the posts: timber still spans the wall's height and both ends
+    G({EARTH, EARTH_LINE, TIMBER, TIMBER_LT, STONE, BR, CIN, PK.OUTLINE} <= K.mats(l0), f'墨 wall materials {sorted(K.mats(l0))} (rammed earth with layer lines, dark posts, lighter cap, river stone, bronze sleeves, cinnabar plaque, outline)')
+    gaps = [b - a for a, b in zip(MW_POSTS, MW_POSTS[1:])]; un = min(abs(a - b) for i, a in enumerate(gaps) for b in gaps[i + 1:])
+    G(MW_BRACES == 0 and len(gaps) == 3 and un >= MW_UNEVEN and len(MW_RAILS) <= 1 and len(MW_LINES) >= 3,
+      f'墨 wall frame: posts at spacings {[round(g, 2) for g in gaps]} m (3, uneven by at least {MW_UNEVEN}: {un:.2f}), {len(MW_RAILS)} rail, {len(MW_LINES)} layer lines a face, {MW_BRACES} diagonal braces (must be 0): no even lattice')
+    if l2 is not None:  # LOD2 keeps the posts
         tm = [i for i, m in enumerate(l2.data.materials) if m.name == TIMBER]; vs = [l2.data.vertices[v].co for p in l2.data.polygons if p.material_index in tm for v in p.vertices]
-        ok = bool(vs) and min(c.z for c in vs) <= 0.3 and max(c.z for c in vs) >= MW_H - 0.02 and min(c.x for c in vs) <= MW_POSTS[0] and max(c.x for c in vs) >= MW_POSTS[-1]
-        mid = sum(1 for c in vs if abs(c.x - MW_POSTS[2]) <= 0.11 and c.z < 1.0)
-        G(ok and mid > 0, f'墨 wall LOD2 keeps the posts (timber from the footing to the ridge, end to end; {mid} vertices on the middle post below 1 m)')
+        ok = bool(vs) and min(c.z for c in vs) <= 0.3 and max(c.z for c in vs) >= 2.15 and min(c.x for c in vs) <= MW_POSTS[0] and max(c.x for c in vs) >= MW_POSTS[-1]
+        mid = sum(1 for c in vs if abs(c.x - MW_POSTS[1]) <= 0.11 and c.z < 1.0)
+        G(ok and mid > 0, f'墨 wall LOD2 keeps the posts (dark timber from the footing to the cap, end to end; {mid} vertices on an inner post below 1 m)')
 
 
 def turned(cx, cz, w, h, deg):
@@ -160,23 +174,22 @@ def mark_build(detail):
     prism('line', scaled(DM_LINE), (0, -0.035, 0), (0, 0.035, 0), GOLD, 'plain', rnd=True)   # a gold inlay line inside the black edge
     if lv < 2: prism('inner', scaled(DM_INNER), (0, -0.04, 0), (0, 0.04, 0), BLK, 'plain', rnd=True)
     prism('seal', rect(DM_SEAL, DM_SEAL), (0, -0.047, zc), (0, 0.047, zc), CIN, 'plain', rnd=True)
-    for q, (cx, dz, bw, bh, deg) in enumerate(DM_SIGIL):  # the beast mask cut in the seal (gold, through both faces); far LODs keep less
-        if lv == 2 or (lv == 1 and q not in (0, 1, 5)): continue
+    for q, (cx, dz, bw, bh, deg) in enumerate(DM_SIGIL):  # the seal's scroll (gold, through both faces); far LODs keep less
+        if lv == 2 or (lv == 1 and q > 3): continue
         prism(f'sigil_{q}', turned(cx, dz, bw, bh, deg), (0, -0.054, zc), (0, 0.054, zc), GOLD, 'plain', rnd=True)
     if detail: torus('ring', (0.0, 0.0, DM_H - 0.062), (0, 1, 0), 0.044, 0.017, BR, 'flange', sg=(8, 4))
     else: prism('ring', rect(0.09, 0.07), (0, -0.012, DM_H - 0.045), (0, 0.012, DM_H - 0.045), BR, 'flange', rnd=True)
 
-def sigil_like_letter():
-    """True when the sigil could pass for a Latin letter: fewer than 6 strokes, or all strokes axis-aligned bars joined to one stem
-    (E, F, H, I, L, T, U shapes: one upright and its cross bars). A mask needs separate eyes and turned brow strokes."""
-    turned_n = sum(1 for p in DM_SIGIL if p[4] % 90 != 0); squares = sum(1 for p in DM_SIGIL if abs(p[2] - p[3]) < 0.005)
-    return len(DM_SIGIL) < 6 or turned_n < 2 or squares < 2
+def mirrored_share():
+    """share of the sigil's strokes with a mirror twin across the seal's middle (a stroke on the middle line is its own twin)."""
+    def twin(p): return any(abs(q[0] + p[0]) < 0.006 and abs(q[1] - p[1]) < 0.006 and abs(q[2] - p[2]) < 0.006 and abs(q[3] - p[3]) < 0.006 and (q[4] + p[4]) % 180 == 0 for q in DM_SIGIL)
+    return sum(1 for p in DM_SIGIL if twin(p)) / max(len(DM_SIGIL), 1)
 
 def mark_gates(G, l0):
-    (x0, x1), (y0, y1), (z0, z1) = K.bounds(l0)
+    (x0, x1), (y0, y1), (z0, z1) = PK.bounds(l0)
     G(abs(z1 - DM_H) <= 0.03 and abs((x1 - x0) - DM_W) <= 0.04 and z0 >= -0.001, f'decree mark {x1 - x0:.2f} m wide x {z1:.2f} m high (game marker {DM_W} x {DM_H}), tip down at z {z0:.2f}')
     G({BLK, GOLD, CIN} <= K.mats(l0), f'decree mark materials {sorted(K.mats(l0))} (black lacquer, gold, cinnabar seal)')
-    G(not sigil_like_letter(), f'decree seal sigil: {len(DM_SIGIL)} strokes, {sum(1 for p in DM_SIGIL if p[4] % 90 != 0)} turned, {sum(1 for p in DM_SIGIL if abs(p[2] - p[3]) < 0.005)} square eyes (a mask, not a letter shape)')
+    ms = mirrored_share(); G(len(DM_SIGIL) >= 6 and ms <= DM_MIRROR_MAX, f'decree seal sigil: {len(DM_SIGIL)} strokes, {ms:.0%} with a mirror twin (max {DM_MIRROR_MAX:.0%}): one unequal scroll, not a face (whether it reads as a letter is judged on the sheet, not here)')
 
 
 PIECES = [('plate', plate_build, plate_gates, 1.2, {'size': PL_SIZE}), ('leader_crown', crown_build, crown_gates, 1.4, {'r': CR_R}),
@@ -185,7 +198,7 @@ PIECES = [('plate', plate_build, plate_gates, 1.2, {'size': PL_SIZE}), ('leader_
 if __name__ == '__main__':
     for key, build, gates, gap, extras in PIECES:
         K.reset(); K.PARTS.clear()
-        l0, l1, l2 = PK.lods_static(key, build, BUDGET)
+        l0, l1, l2 = PK.lods_static(key, build, BUDGET, SHELL_W[key])
         G = K.Gates()
         for ob, lim in zip((l0, l1, l2), BUDGET): G(K.tris(ob) <= lim, f'{ob.name} tris {K.tris(ob)} (budget {lim})')
         G(K.tris(l0) > K.tris(l1) > K.tris(l2) > 0, f'{key} LODs ordered: {K.tris(l0)} > {K.tris(l1)} > {K.tris(l2)} tris')

@@ -1,5 +1,5 @@
 #!/bin/bash
-# PIECES round 2 (owner 25 Nov 13:08; lead verdict on run 45555140630): art for everything still drawn as plain shapes: Kaymuse (pieces_kaymuse.py), the crab and the wanderer
+# PIECES round 3 (owner 25 Nov 13:08 and 14:13; lead notes on run 45557912570): art for everything still drawn as plain shapes: Kaymuse (pieces_kaymuse.py), the crab and the wanderer
 # (pieces_creatures.py), the plate pickup, leader crown, 墨 wall and decree mark (pieces_small.py). Steps: build (Blender gates), builder
 # mutations (wrong CONFIG values must fail their gates), GLB gates with mutations (pieces_check.py), review shots in three (pieces_shoot.mjs:
 # close-ups, play size beside in-game art, masks, silhouettes), play-size measures with mutations (pieces_measure.py) and sheets
@@ -38,22 +38,32 @@ cp /tmp/pieces/*.glb $O/models/ 2>/dev/null; ls -la /tmp/pieces
 step "builder mutations"
 # a wrong CONFIG value must fail its gate: (builder, output, PIECES_MUT, the FAIL line expected)
 mut() { PIECES_MUT="$3" $BPY $T/$1 $2 > /tmp/pmut/log.txt 2>&1; if grep -q "^FAIL $4" /tmp/pmut/log.txt; then echo "MUT caught: $1 with $3 -> $(grep -m1 "^FAIL $4" /tmp/pmut/log.txt | cut -c1-120)"; else echo "MUT MISSED: $1 with $3 (no line 'FAIL $4')"; fi; }
-{ mut pieces_kaymuse.py /tmp/pmut/kaymuse.glb "HEAD_MAT='kmJade'" "kaymuse head dark"
-  mut pieces_kaymuse.py /tmp/pmut/kaymuse.glb "STR_DEG=3" "kaymuse 冕: "
+{ mut pieces_kaymuse.py /tmp/pmut/kaymuse.glb "LIPS_MAT='kmSkin'" "kaymuse lower face"
+  mut pieces_kaymuse.py /tmp/pmut/kaymuse.glb "STR_LEN=0.35" "kaymuse 冕 veil"
+  mut pieces_kaymuse.py /tmp/pmut/kaymuse.glb "TORSO=[(0.60,0.0,0.37,0.27),(0.72,-0.01,0.39,0.27),(0.95,-0.02,0.45,0.26),(1.10,-0.02,0.47,0.24),(1.18,-0.02,0.40,0.21),(1.23,-0.02,0.20,0.15)]" "kaymuse reads as a woman"
+  mut pieces_kaymuse.py /tmp/pmut/kaymuse.glb "BOARD_REAR=0.50" "kaymuse crown: board"
+  mut pieces_kaymuse.py /tmp/pmut/kaymuse.glb "FINGER=0.0001;HAND_C=(0.3,0.1,0.9)" "kaymuse hands"
   mut pieces_kaymuse.py /tmp/pmut/kaymuse.glb "BUDGET=(1000,2600,900)" "kaymuse_lod0 tris"
   mut pieces_kaymuse.py /tmp/pmut/kaymuse.glb "REST_X=2.4" "kaymuse sits within"
   mut pieces_creatures.py /tmp/pmut "C_KNEE=(0.84,1.35)" "crab .* low and wide"
-  mut pieces_creatures.py /tmp/pmut "W_HIP=(1.0,-0.05,1.40)" "wanderer .* tall and narrow"
+  mut pieces_creatures.py /tmp/pmut "W_HIP=(1.1,-0.05,1.40)" "wanderer .* tall and narrow"
   mut pieces_creatures.py /tmp/pmut "C_MOVE=(0.6,0.0,0.0,0.0,0.0,0.0)" "crab clip move"
   mut pieces_creatures.py /tmp/pmut "C_MOVE=(0.6,2.0,1.0,0.0,0.0,16.0)" "crab move reads apart"
   mut pieces_creatures.py /tmp/pmut "C_STUDS=(4,0.665,0.03)" "crab lid relief"
+  mut pieces_creatures.py /tmp/pmut "DK='pcBlack'" "crab is bronze"
+  mut pieces_creatures.py /tmp/pmut "C_FINGER_B=[(0.63,0.78,0.83),(0.60,0.96,0.85),(0.52,1.06,0.83)]" "crab pincers"
   mut pieces_creatures.py /tmp/pmut "W_LEG_W=(0.16,0.03,0.075)" "wanderer limbs"
-  mut pieces_small.py /tmp/pmut "PL_LEN=1.2" "plate 0"
-  mut pieces_small.py /tmp/pmut "PL_LAMES=1" "plate reads as armour"
-  mut pieces_small.py /tmp/pmut "CR_BOARD_Z=0.9" "leader crown 0"
-  mut pieces_small.py /tmp/pmut "MW_BRACES=4" "墨 wall frame"
-  mut pieces_small.py /tmp/pmut "MW_POSTS=(-2.7,-0.94,0.0,0.94,2.7)" "墨 wall [0-9]"
-  mut pieces_small.py /tmp/pmut "DM_SIGIL=[(0,0,0.02,0.12,0),(0.04,0.05,0.08,0.02,0),(0.04,0,0.08,0.02,0),(0.04,-0.05,0.08,0.02,0)]" "decree seal sigil"; } 2>&1 | tee $O/gates/build_mutations.txt
+  mut pieces_creatures.py /tmp/pmut "W_BILL=((0.0,0.58,2.585),(0.0,0.8,2.56))" "wanderer bill"
+  mut pieces_creatures.py /tmp/pmut "W_WHEEL=(0.40,0.12,0.04,15,6,0.16)" "wanderer hip wheels"
+  mut pieces_creatures.py /tmp/pmut "SHELL_W=0.0" "crab is bronze"
+  mut pieces_small.py /tmp/pmut "PL_LEN=1.2" "plate [0-9]"
+  mut pieces_small.py /tmp/pmut "PL_HW=(0.29,0.08)" "plate reads as armour"
+  mut pieces_small.py /tmp/pmut "CR_LID=1" "leader crown reads"
+  mut pieces_small.py /tmp/pmut "CR_POINTS=[(0,0.17,0.9),(-38,0.14,0.22),(38,0.14,0.22),(-66,0.10,0.14),(66,0.10,0.14)]" "leader crown [0-9]"
+  mut pieces_small.py /tmp/pmut "MW_BRACES=3" "墨 wall frame"
+  mut pieces_small.py /tmp/pmut "MW_POSTS=(-1.88,-0.63,0.63,1.88)" "墨 wall frame"
+  mut pieces_small.py /tmp/pmut "MW_POSTS=(-2.7,-0.9,0.55,2.7)" "墨 wall [0-9]"
+  mut pieces_small.py /tmp/pmut "DM_SIGIL=[(-0.045,0.028,0.034,0.034,0),(0.045,0.028,0.034,0.034,0),(-0.052,0.066,0.06,0.018,28),(0.052,0.066,0.06,0.018,-28),(0.0,-0.006,0.02,0.07,0),(0.0,-0.066,0.13,0.02,0),(-0.05,-0.042,0.02,0.03,0),(0.05,-0.042,0.02,0.03,0)]" "decree seal sigil"; } 2>&1 | tee $O/gates/build_mutations.txt
 step "glb gates"
 python3 $T/pieces_check.py /tmp/pieces --mutate 2>&1 | tee $O/gates/glb_gates.txt
 step "shots"

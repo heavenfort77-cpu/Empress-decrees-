@@ -36,7 +36,9 @@ shots.push(['lineup_light', 'scene=lineup&floor=light', ...FULL], ['lineup_play'
 for (const id of ['crab', 'wanderer', 'plate', 'leader_crown', 'mo_wall', 'decree_mark']) shots.push([`mask_${id}`, `scene=lineup&mode=mask&mask=${id}`, ...FULL]);
 // Kaymuse on the throne: play size (three framings), close-ups, the bead curtain, idle poses, masks
 shots.push(['throne_play', 'scene=throne&view=play', ...FULL], ['throne_approach', 'scene=throne&view=approach', ...FULL], ['throne_wide', 'scene=throne&view=wide&floor=light', ...FULL],
-  ['throne_play_light', 'scene=throne&view=play&floor=light', ...FULL], ['throne_approach_light', 'scene=throne&view=approach&floor=light', ...FULL], ['throne_close_back', 'scene=throne&view=close&yaw=150&dist=4', 960, 960],
+  ['throne_play_light', 'scene=throne&view=play&floor=light', ...FULL], ['throne_approach_light', 'scene=throne&view=approach&floor=light', ...FULL], ['alone_back', 'scene=one&model=kaymuse&dist=4.2&ly=0.9&pitch=12&yaw=180', 960, 960], ['alone_back34', 'scene=one&model=kaymuse&dist=4.2&ly=0.9&pitch=12&yaw=140', 960, 960], ['alone_side', 'scene=one&model=kaymuse&dist=4.2&ly=0.9&pitch=12&yaw=90', 960, 960],
+  ['head_front', 'scene=one&model=kaymuse&dist=1.5&ly=1.5&pitch=4&yaw=0', S, S], ['head_34', 'scene=one&model=kaymuse&dist=1.5&ly=1.5&pitch=4&yaw=40', S, S], ['head_side', 'scene=one&model=kaymuse&dist=1.5&ly=1.5&pitch=4&yaw=90', S, S], ['head_back', 'scene=one&model=kaymuse&dist=1.5&ly=1.5&pitch=10&yaw=160', S, S],
+  ['head_cam', 'scene=one&model=kaymuse&dist=2.2&ly=1.45&pitch=40&yaw=0', S, S], ['hand', 'scene=one&model=kaymuse&dist=1.3&ly=0.45&lx=0.9&pitch=30&yaw=25', S, S],
   ['mask_kaymuse_play', 'scene=throne&view=play&mode=mask&mask=kaymuse', ...FULL], ['mask_kaymuse_approach', 'scene=throne&view=approach&mode=mask&mask=kaymuse', ...FULL],
   ['throne_close_front', 'scene=throne&view=close&yaw=0', 960, 960], ['throne_close_34', 'scene=throne&view=close&yaw=35', 960, 960], ['throne_close_side', 'scene=throne&view=close&yaw=80', 960, 960],
   ['throne_close_cam', 'scene=throne&view=close&yaw=0&pitch=40&dist=6', 960, 960],
