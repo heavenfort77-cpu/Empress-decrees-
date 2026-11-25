@@ -147,12 +147,15 @@ ARMOUR = {'ru': 'High', 'dao': 'Low', 'fa': 'Mid', 'mo': 'High', 'yy': 'Low', 'z
 # School colours (owner 25 Nov: ONE mapping everywhere = W1a's 鼎 pigments, art/tools/ding_blender.py ACCENTS, with the lead's reading
 # that suits use the banner/effect separation: 儒 the browner ochre #94622c, 杂 the cooler silver #b2bccb). Cloth tint (sRGB) per suit is
 # school colour / the cloth sheet's median (linear, per channel), so tint x sheet has its median on the school colour (was: study tints).
+# 法 (owner 25 Nov "brighter 法 white", suits only): tint #ffffed (sheet median x tint = #e5e1ca, L 89 vs 84, a little creamier; dE 6.6 from
+# lead white). Brightening alone moves the lit cloth toward za's silver (estimate dE 7.9); the cream keeps it lead white and apart
+# (estimate on run 45528255605's lit medians: fa-za 12.2, was 9.4).
 SCHOOL = {'ru': '#94622c', 'dao': '#e2b84a', 'fa': '#d9d2c3', 'mo': '#a8321e', 'yy': '#1a1614', 'za': '#b2bccb', 'ming': '#5b3f8c', 'zh': '#2f8a5c', 'nong': '#2e5a9c'}
 # The nine suits as data (docs/SUITS.md; outline cues and colours from the study, art/Qin-Lamellar-Suits-Study.md).
 # H height scale, W shoulder width scale, G girth scale, L limb thickness scale. lac = plate lacquer (sheet rows), cord = binding row,
 # cloth = cloth tint (sRGB hex), trim = inlay row on the bronze sheet. Parts name a component and its parameters.
 SUITS = {
-    'fa': dict(eyes=(0.55, 0.465, 0.017, 0.009, True), title='法甲 廷尉', H=1.0, W=0.92, G=0.9, L=0.9, lac='black', cord='fa', cloth='#f2eee5', trim='silver',
+    'fa': dict(eyes=(0.55, 0.465, 0.017, 0.009, True), title='法甲 廷尉', H=1.0, W=0.92, G=0.9, L=0.9, lac='black', cord='fa', cloth='#ffffed', trim='silver',
                helm=('horn', {}), shoulders=('cap', {}), torso=('lam', {'rows': 3}), lower=('tassets', {'rows': 4, 'split': True, 'apron': True}),
                legs='greaves', arms='bracers', weapon=('jian', {'len': 0.95}), back=None,
                attack=dict(windup=0.45, strike=0.12, back=0.45, kind='thrust')),
