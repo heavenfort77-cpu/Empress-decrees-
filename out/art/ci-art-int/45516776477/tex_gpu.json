@@ -1,0 +1,2345 @@
+{
+ "errs": [],
+ "rows": [
+  {
+   "tag": "gpu/desk/etc1s/apex_patina",
+   "ok": true,
+   "w": 1024,
+   "h": 1024,
+   "format": 36492,
+   "mips": 11,
+   "ms": 86,
+   "err": 0
+  },
+  {
+   "tag": "gpu/desk/etc1s/black_lake",
+   "ok": true,
+   "w": 1024,
+   "h": 1024,
+   "format": 36492,
+   "mips": 11,
+   "ms": 105,
+   "err": 0
+  },
+  {
+   "tag": "gpu/desk/etc1s/bronze_trim_brass",
+   "ok": true,
+   "w": 1024,
+   "h": 1024,
+   "format": 36492,
+   "mips": 11,
+   "ms": 125,
+   "err": 0
+  },
+  {
+   "tag": "gpu/desk/etc1s/bronze_trim_patina",
+   "ok": true,
+   "w": 1024,
+   "h": 1024,
+   "format": 36492,
+   "mips": 11,
+   "ms": 117,
+   "err": 0
+  },
+  {
+   "tag": "gpu/desk/etc1s/door",
+   "ok": true,
+   "w": 1024,
+   "h": 1024,
+   "format": 36492,
+   "mips": 11,
+   "ms": 100,
+   "err": 0
+  },
+  {
+   "tag": "gpu/desk/etc1s/earth_burnt",
+   "ok": true,
+   "w": 1024,
+   "h": 1024,
+   "format": 36492,
+   "mips": 11,
+   "ms": 140,
+   "err": 0
+  },
+  {
+   "tag": "gpu/desk/etc1s/flame_card",
+   "ok": true,
+   "w": 256,
+   "h": 256,
+   "format": 36492,
+   "mips": 9,
+   "ms": 102,
+   "err": 0
+  },
+  {
+   "tag": "gpu/desk/etc1s/floor_tiles",
+   "ok": true,
+   "w": 1024,
+   "h": 1024,
+   "format": 36492,
+   "mips": 11,
+   "ms": 12,
+   "err": 0
+  },
+  {
+   "tag": "gpu/desk/etc1s/fodder_trim",
+   "ok": true,
+   "w": 1024,
+   "h": 1024,
+   "format": 36492,
+   "mips": 11,
+   "ms": 13,
+   "err": 0
+  },
+  {
+   "tag": "gpu/desk/etc1s/garden_ground",
+   "ok": true,
+   "w": 1024,
+   "h": 1024,
+   "format": 36492,
+   "mips": 11,
+   "ms": 118,
+   "err": 0
+  },
+  {
+   "tag": "gpu/desk/etc1s/garden_plants",
+   "ok": true,
+   "w": 1024,
+   "h": 1024,
+   "format": 36492,
+   "mips": 11,
+   "ms": 95,
+   "err": 0
+  },
+  {
+   "tag": "gpu/desk/etc1s/hall_floor",
+   "ok": true,
+   "w": 1024,
+   "h": 1024,
+   "format": 36492,
+   "mips": 11,
+   "ms": 125,
+   "err": 0
+  },
+  {
+   "tag": "gpu/desk/etc1s/hall_wall",
+   "ok": true,
+   "w": 1024,
+   "h": 1024,
+   "format": 36492,
+   "mips": 11,
+   "ms": 106,
+   "err": 0
+  },
+  {
+   "tag": "gpu/desk/etc1s/hollow_brick",
+   "ok": true,
+   "w": 1024,
+   "h": 1024,
+   "format": 36492,
+   "mips": 11,
+   "ms": 141,
+   "err": 0
+  },
+  {
+   "tag": "gpu/desk/etc1s/lion_stone",
+   "ok": true,
+   "w": 1024,
+   "h": 1024,
+   "format": 36492,
+   "mips": 11,
+   "ms": 117,
+   "err": 0
+  },
+  {
+   "tag": "gpu/desk/etc1s/mercury_matcap",
+   "ok": true,
+   "w": 1024,
+   "h": 1024,
+   "format": 36492,
+   "mips": 11,
+   "ms": 121,
+   "err": 0
+  },
+  {
+   "tag": "gpu/desk/etc1s/mural_wall",
+   "ok": true,
+   "w": 1024,
+   "h": 1024,
+   "format": 36492,
+   "mips": 11,
+   "ms": 12,
+   "err": 0
+  },
+  {
+   "tag": "gpu/desk/etc1s/pillar",
+   "ok": true,
+   "w": 1024,
+   "h": 1024,
+   "format": 36492,
+   "mips": 11,
+   "ms": 127,
+   "err": 0
+  },
+  {
+   "tag": "gpu/desk/etc1s/pond_water",
+   "ok": true,
+   "w": 1024,
+   "h": 1024,
+   "format": 36492,
+   "mips": 11,
+   "ms": 124,
+   "err": 0
+  },
+  {
+   "tag": "gpu/desk/etc1s/rammed_earth",
+   "ok": true,
+   "w": 1024,
+   "h": 1024,
+   "format": 36492,
+   "mips": 11,
+   "ms": 129,
+   "err": 0
+  },
+  {
+   "tag": "gpu/desk/etc1s/rammed_earth_core",
+   "ok": true,
+   "w": 1024,
+   "h": 1024,
+   "format": 36492,
+   "mips": 11,
+   "ms": 129,
+   "err": 0
+  },
+  {
+   "tag": "gpu/desk/etc1s/river_stone",
+   "ok": true,
+   "w": 1024,
+   "h": 1024,
+   "format": 36492,
+   "mips": 11,
+   "ms": 118,
+   "err": 0
+  },
+  {
+   "tag": "gpu/desk/etc1s/roof_tile",
+   "ok": true,
+   "w": 1024,
+   "h": 1024,
+   "format": 36492,
+   "mips": 11,
+   "ms": 111,
+   "err": 0
+  },
+  {
+   "tag": "gpu/desk/etc1s/school_standards",
+   "ok": true,
+   "w": 1024,
+   "h": 1024,
+   "format": 36492,
+   "mips": 11,
+   "ms": 99,
+   "err": 0
+  },
+  {
+   "tag": "gpu/desk/etc1s/signal_flags",
+   "ok": true,
+   "w": 1024,
+   "h": 1024,
+   "format": 36492,
+   "mips": 11,
+   "ms": 11,
+   "err": 0
+  },
+  {
+   "tag": "gpu/desk/etc1s/slips",
+   "ok": true,
+   "w": 1024,
+   "h": 1024,
+   "format": 36492,
+   "mips": 11,
+   "ms": 116,
+   "err": 0
+  },
+  {
+   "tag": "gpu/desk/etc1s/slips_burnt",
+   "ok": true,
+   "w": 1024,
+   "h": 1024,
+   "format": 36492,
+   "mips": 11,
+   "ms": 116,
+   "err": 0
+  },
+  {
+   "tag": "gpu/desk/etc1s/smoke_card",
+   "ok": true,
+   "w": 256,
+   "h": 256,
+   "format": 36492,
+   "mips": 9,
+   "ms": 104,
+   "err": 0
+  },
+  {
+   "tag": "gpu/desk/etc1s/star_inlay",
+   "ok": true,
+   "w": 1024,
+   "h": 1024,
+   "format": 36492,
+   "mips": 11,
+   "ms": 10,
+   "err": 0
+  },
+  {
+   "tag": "gpu/desk/etc1s/stone_paving",
+   "ok": true,
+   "w": 1024,
+   "h": 1024,
+   "format": 36492,
+   "mips": 11,
+   "ms": 132,
+   "err": 0
+  },
+  {
+   "tag": "gpu/desk/etc1s/suit_bronze",
+   "ok": true,
+   "w": 512,
+   "h": 512,
+   "format": 36492,
+   "mips": 10,
+   "ms": 117,
+   "err": 0
+  },
+  {
+   "tag": "gpu/desk/etc1s/suit_cloth",
+   "ok": true,
+   "w": 512,
+   "h": 512,
+   "format": 36492,
+   "mips": 10,
+   "ms": 11,
+   "err": 0
+  },
+  {
+   "tag": "gpu/desk/etc1s/suit_lamellar",
+   "ok": true,
+   "w": 1024,
+   "h": 1024,
+   "format": 36492,
+   "mips": 11,
+   "ms": 11,
+   "err": 0
+  },
+  {
+   "tag": "gpu/desk/etc1s/tile_ends",
+   "ok": true,
+   "w": 1024,
+   "h": 1024,
+   "format": 36492,
+   "mips": 11,
+   "ms": 102,
+   "err": 0
+  },
+  {
+   "tag": "gpu/desk/etc1s/timber",
+   "ok": true,
+   "w": 1024,
+   "h": 1024,
+   "format": 36492,
+   "mips": 11,
+   "ms": 101,
+   "err": 0
+  },
+  {
+   "tag": "gpu/desk/etc1s/timber_burnt",
+   "ok": true,
+   "w": 1024,
+   "h": 1024,
+   "format": 36492,
+   "mips": 11,
+   "ms": 91,
+   "err": 0
+  },
+  {
+   "tag": "gpu/desk/etc1s/tread_belt",
+   "ok": true,
+   "w": 128,
+   "h": 64,
+   "format": 36492,
+   "mips": 8,
+   "ms": 92,
+   "err": 0
+  },
+  {
+   "tag": "gpu/desk/etc1s/wall_burnt",
+   "ok": true,
+   "w": 1024,
+   "h": 1024,
+   "format": 36492,
+   "mips": 11,
+   "ms": 11,
+   "err": 0
+  },
+  {
+   "tag": "gpu/desk/uastc/apex_patina",
+   "ok": true,
+   "w": 1024,
+   "h": 1024,
+   "format": 37808,
+   "mips": 11,
+   "ms": 134,
+   "err": 0
+  },
+  {
+   "tag": "gpu/desk/uastc/black_lake",
+   "ok": true,
+   "w": 1024,
+   "h": 1024,
+   "format": 37808,
+   "mips": 11,
+   "ms": 105,
+   "err": 0
+  },
+  {
+   "tag": "gpu/desk/uastc/bronze_trim_brass",
+   "ok": true,
+   "w": 1024,
+   "h": 1024,
+   "format": 37808,
+   "mips": 11,
+   "ms": 20,
+   "err": 0
+  },
+  {
+   "tag": "gpu/desk/uastc/bronze_trim_patina",
+   "ok": true,
+   "w": 1024,
+   "h": 1024,
+   "format": 37808,
+   "mips": 11,
+   "ms": 114,
+   "err": 0
+  },
+  {
+   "tag": "gpu/desk/uastc/door",
+   "ok": true,
+   "w": 1024,
+   "h": 1024,
+   "format": 37808,
+   "mips": 11,
+   "ms": 99,
+   "err": 0
+  },
+  {
+   "tag": "gpu/desk/uastc/earth_burnt",
+   "ok": true,
+   "w": 1024,
+   "h": 1024,
+   "format": 37808,
+   "mips": 11,
+   "ms": 141,
+   "err": 0
+  },
+  {
+   "tag": "gpu/desk/uastc/flame_card",
+   "ok": true,
+   "w": 256,
+   "h": 256,
+   "format": 37808,
+   "mips": 9,
+   "ms": 100,
+   "err": 0
+  },
+  {
+   "tag": "gpu/desk/uastc/floor_tiles",
+   "ok": true,
+   "w": 1024,
+   "h": 1024,
+   "format": 37808,
+   "mips": 11,
+   "ms": 22,
+   "err": 0
+  },
+  {
+   "tag": "gpu/desk/uastc/fodder_trim",
+   "ok": true,
+   "w": 1024,
+   "h": 1024,
+   "format": 37808,
+   "mips": 11,
+   "ms": 105,
+   "err": 0
+  },
+  {
+   "tag": "gpu/desk/uastc/garden_ground",
+   "ok": true,
+   "w": 1024,
+   "h": 1024,
+   "format": 37808,
+   "mips": 11,
+   "ms": 130,
+   "err": 0
+  },
+  {
+   "tag": "gpu/desk/uastc/garden_plants",
+   "ok": true,
+   "w": 1024,
+   "h": 1024,
+   "format": 37808,
+   "mips": 11,
+   "ms": 11,
+   "err": 0
+  },
+  {
+   "tag": "gpu/desk/uastc/hall_floor",
+   "ok": true,
+   "w": 1024,
+   "h": 1024,
+   "format": 37808,
+   "mips": 11,
+   "ms": 146,
+   "err": 0
+  },
+  {
+   "tag": "gpu/desk/uastc/hall_wall",
+   "ok": true,
+   "w": 1024,
+   "h": 1024,
+   "format": 37808,
+   "mips": 11,
+   "ms": 111,
+   "err": 0
+  },
+  {
+   "tag": "gpu/desk/uastc/hollow_brick",
+   "ok": true,
+   "w": 1024,
+   "h": 1024,
+   "format": 37808,
+   "mips": 11,
+   "ms": 143,
+   "err": 0
+  },
+  {
+   "tag": "gpu/desk/uastc/lion_stone",
+   "ok": true,
+   "w": 1024,
+   "h": 1024,
+   "format": 37808,
+   "mips": 11,
+   "ms": 123,
+   "err": 0
+  },
+  {
+   "tag": "gpu/desk/uastc/mercury_matcap",
+   "ok": true,
+   "w": 1024,
+   "h": 1024,
+   "format": 37808,
+   "mips": 11,
+   "ms": 144,
+   "err": 0
+  },
+  {
+   "tag": "gpu/desk/uastc/mural_wall",
+   "ok": true,
+   "w": 1024,
+   "h": 1024,
+   "format": 37808,
+   "mips": 11,
+   "ms": 131,
+   "err": 0
+  },
+  {
+   "tag": "gpu/desk/uastc/pillar",
+   "ok": true,
+   "w": 1024,
+   "h": 1024,
+   "format": 37808,
+   "mips": 11,
+   "ms": 147,
+   "err": 0
+  },
+  {
+   "tag": "gpu/desk/uastc/pond_water",
+   "ok": true,
+   "w": 1024,
+   "h": 1024,
+   "format": 37808,
+   "mips": 11,
+   "ms": 23,
+   "err": 0
+  },
+  {
+   "tag": "gpu/desk/uastc/rammed_earth",
+   "ok": true,
+   "w": 1024,
+   "h": 1024,
+   "format": 37808,
+   "mips": 11,
+   "ms": 136,
+   "err": 0
+  },
+  {
+   "tag": "gpu/desk/uastc/rammed_earth_core",
+   "ok": true,
+   "w": 1024,
+   "h": 1024,
+   "format": 37808,
+   "mips": 11,
+   "ms": 138,
+   "err": 0
+  },
+  {
+   "tag": "gpu/desk/uastc/river_stone",
+   "ok": true,
+   "w": 1024,
+   "h": 1024,
+   "format": 37808,
+   "mips": 11,
+   "ms": 111,
+   "err": 0
+  },
+  {
+   "tag": "gpu/desk/uastc/roof_tile",
+   "ok": true,
+   "w": 1024,
+   "h": 1024,
+   "format": 37808,
+   "mips": 11,
+   "ms": 118,
+   "err": 0
+  },
+  {
+   "tag": "gpu/desk/uastc/school_standards",
+   "ok": true,
+   "w": 1024,
+   "h": 1024,
+   "format": 37808,
+   "mips": 11,
+   "ms": 95,
+   "err": 0
+  },
+  {
+   "tag": "gpu/desk/uastc/signal_flags",
+   "ok": true,
+   "w": 1024,
+   "h": 1024,
+   "format": 37808,
+   "mips": 11,
+   "ms": 125,
+   "err": 0
+  },
+  {
+   "tag": "gpu/desk/uastc/slips",
+   "ok": true,
+   "w": 1024,
+   "h": 1024,
+   "format": 37808,
+   "mips": 11,
+   "ms": 120,
+   "err": 0
+  },
+  {
+   "tag": "gpu/desk/uastc/slips_burnt",
+   "ok": true,
+   "w": 1024,
+   "h": 1024,
+   "format": 37808,
+   "mips": 11,
+   "ms": 23,
+   "err": 0
+  },
+  {
+   "tag": "gpu/desk/uastc/smoke_card",
+   "ok": true,
+   "w": 256,
+   "h": 256,
+   "format": 37808,
+   "mips": 9,
+   "ms": 102,
+   "err": 0
+  },
+  {
+   "tag": "gpu/desk/uastc/star_inlay",
+   "ok": true,
+   "w": 1024,
+   "h": 1024,
+   "format": 37808,
+   "mips": 11,
+   "ms": 15,
+   "err": 0
+  },
+  {
+   "tag": "gpu/desk/uastc/stone_paving",
+   "ok": true,
+   "w": 1024,
+   "h": 1024,
+   "format": 37808,
+   "mips": 11,
+   "ms": 139,
+   "err": 0
+  },
+  {
+   "tag": "gpu/desk/uastc/suit_bronze",
+   "ok": true,
+   "w": 512,
+   "h": 512,
+   "format": 37808,
+   "mips": 10,
+   "ms": 124,
+   "err": 0
+  },
+  {
+   "tag": "gpu/desk/uastc/suit_cloth",
+   "ok": true,
+   "w": 512,
+   "h": 512,
+   "format": 37808,
+   "mips": 10,
+   "ms": 9,
+   "err": 0
+  },
+  {
+   "tag": "gpu/desk/uastc/suit_lamellar",
+   "ok": true,
+   "w": 1024,
+   "h": 1024,
+   "format": 37808,
+   "mips": 11,
+   "ms": 49,
+   "err": 0
+  },
+  {
+   "tag": "gpu/desk/uastc/tile_ends",
+   "ok": true,
+   "w": 1024,
+   "h": 1024,
+   "format": 37808,
+   "mips": 11,
+   "ms": 111,
+   "err": 0
+  },
+  {
+   "tag": "gpu/desk/uastc/timber",
+   "ok": true,
+   "w": 1024,
+   "h": 1024,
+   "format": 37808,
+   "mips": 11,
+   "ms": 32,
+   "err": 0
+  },
+  {
+   "tag": "gpu/desk/uastc/timber_burnt",
+   "ok": true,
+   "w": 1024,
+   "h": 1024,
+   "format": 37808,
+   "mips": 11,
+   "ms": 121,
+   "err": 0
+  },
+  {
+   "tag": "gpu/desk/uastc/tread_belt",
+   "ok": true,
+   "w": 128,
+   "h": 64,
+   "format": 37808,
+   "mips": 8,
+   "ms": 94,
+   "err": 0
+  },
+  {
+   "tag": "gpu/desk/uastc/wall_burnt",
+   "ok": true,
+   "w": 1024,
+   "h": 1024,
+   "format": 37808,
+   "mips": 11,
+   "ms": 22,
+   "err": 0
+  },
+  {
+   "tag": "gpu/desk/uastc4/apex_patina",
+   "ok": true,
+   "w": 1024,
+   "h": 1024,
+   "format": 37808,
+   "mips": 11,
+   "ms": 122,
+   "err": 0
+  },
+  {
+   "tag": "gpu/desk/uastc4/black_lake",
+   "ok": true,
+   "w": 1024,
+   "h": 1024,
+   "format": 37808,
+   "mips": 11,
+   "ms": 109,
+   "err": 0
+  },
+  {
+   "tag": "gpu/desk/uastc4/bronze_trim_brass",
+   "ok": true,
+   "w": 1024,
+   "h": 1024,
+   "format": 37808,
+   "mips": 11,
+   "ms": 145,
+   "err": 0
+  },
+  {
+   "tag": "gpu/desk/uastc4/bronze_trim_patina",
+   "ok": true,
+   "w": 1024,
+   "h": 1024,
+   "format": 37808,
+   "mips": 11,
+   "ms": 127,
+   "err": 0
+  },
+  {
+   "tag": "gpu/desk/uastc4/door",
+   "ok": true,
+   "w": 1024,
+   "h": 1024,
+   "format": 37808,
+   "mips": 11,
+   "ms": 32,
+   "err": 0
+  },
+  {
+   "tag": "gpu/desk/uastc4/earth_burnt",
+   "ok": true,
+   "w": 1024,
+   "h": 1024,
+   "format": 37808,
+   "mips": 11,
+   "ms": 162,
+   "err": 0
+  },
+  {
+   "tag": "gpu/desk/uastc4/flame_card",
+   "ok": true,
+   "w": 256,
+   "h": 256,
+   "format": 37808,
+   "mips": 9,
+   "ms": 105,
+   "err": 0
+  },
+  {
+   "tag": "gpu/desk/uastc4/floor_tiles",
+   "ok": true,
+   "w": 1024,
+   "h": 1024,
+   "format": 37808,
+   "mips": 11,
+   "ms": 22,
+   "err": 0
+  },
+  {
+   "tag": "gpu/desk/uastc4/fodder_trim",
+   "ok": true,
+   "w": 1024,
+   "h": 1024,
+   "format": 37808,
+   "mips": 11,
+   "ms": 112,
+   "err": 0
+  },
+  {
+   "tag": "gpu/desk/uastc4/garden_ground",
+   "ok": true,
+   "w": 1024,
+   "h": 1024,
+   "format": 37808,
+   "mips": 11,
+   "ms": 142,
+   "err": 0
+  },
+  {
+   "tag": "gpu/desk/uastc4/garden_plants",
+   "ok": true,
+   "w": 1024,
+   "h": 1024,
+   "format": 37808,
+   "mips": 11,
+   "ms": 105,
+   "err": 0
+  },
+  {
+   "tag": "gpu/desk/uastc4/hall_floor",
+   "ok": true,
+   "w": 1024,
+   "h": 1024,
+   "format": 37808,
+   "mips": 11,
+   "ms": 150,
+   "err": 0
+  },
+  {
+   "tag": "gpu/desk/uastc4/hall_wall",
+   "ok": true,
+   "w": 1024,
+   "h": 1024,
+   "format": 37808,
+   "mips": 11,
+   "ms": 22,
+   "err": 0
+  },
+  {
+   "tag": "gpu/desk/uastc4/hollow_brick",
+   "ok": true,
+   "w": 1024,
+   "h": 1024,
+   "format": 37808,
+   "mips": 11,
+   "ms": 155,
+   "err": 0
+  },
+  {
+   "tag": "gpu/desk/uastc4/lion_stone",
+   "ok": true,
+   "w": 1024,
+   "h": 1024,
+   "format": 37808,
+   "mips": 11,
+   "ms": 122,
+   "err": 0
+  },
+  {
+   "tag": "gpu/desk/uastc4/mercury_matcap",
+   "ok": true,
+   "w": 1024,
+   "h": 1024,
+   "format": 37808,
+   "mips": 11,
+   "ms": 133,
+   "err": 0
+  },
+  {
+   "tag": "gpu/desk/uastc4/mural_wall",
+   "ok": true,
+   "w": 1024,
+   "h": 1024,
+   "format": 37808,
+   "mips": 11,
+   "ms": 128,
+   "err": 0
+  },
+  {
+   "tag": "gpu/desk/uastc4/pillar",
+   "ok": true,
+   "w": 1024,
+   "h": 1024,
+   "format": 37808,
+   "mips": 11,
+   "ms": 151,
+   "err": 0
+  },
+  {
+   "tag": "gpu/desk/uastc4/pond_water",
+   "ok": true,
+   "w": 1024,
+   "h": 1024,
+   "format": 37808,
+   "mips": 11,
+   "ms": 139,
+   "err": 0
+  },
+  {
+   "tag": "gpu/desk/uastc4/rammed_earth",
+   "ok": true,
+   "w": 1024,
+   "h": 1024,
+   "format": 37808,
+   "mips": 11,
+   "ms": 142,
+   "err": 0
+  },
+  {
+   "tag": "gpu/desk/uastc4/rammed_earth_core",
+   "ok": true,
+   "w": 1024,
+   "h": 1024,
+   "format": 37808,
+   "mips": 11,
+   "ms": 24,
+   "err": 0
+  },
+  {
+   "tag": "gpu/desk/uastc4/river_stone",
+   "ok": true,
+   "w": 1024,
+   "h": 1024,
+   "format": 37808,
+   "mips": 11,
+   "ms": 121,
+   "err": 0
+  },
+  {
+   "tag": "gpu/desk/uastc4/roof_tile",
+   "ok": true,
+   "w": 1024,
+   "h": 1024,
+   "format": 37808,
+   "mips": 11,
+   "ms": 119,
+   "err": 0
+  },
+  {
+   "tag": "gpu/desk/uastc4/school_standards",
+   "ok": true,
+   "w": 1024,
+   "h": 1024,
+   "format": 37808,
+   "mips": 11,
+   "ms": 108,
+   "err": 0
+  },
+  {
+   "tag": "gpu/desk/uastc4/signal_flags",
+   "ok": true,
+   "w": 1024,
+   "h": 1024,
+   "format": 37808,
+   "mips": 11,
+   "ms": 131,
+   "err": 0
+  },
+  {
+   "tag": "gpu/desk/uastc4/slips",
+   "ok": true,
+   "w": 1024,
+   "h": 1024,
+   "format": 37808,
+   "mips": 11,
+   "ms": 128,
+   "err": 0
+  },
+  {
+   "tag": "gpu/desk/uastc4/slips_burnt",
+   "ok": true,
+   "w": 1024,
+   "h": 1024,
+   "format": 37808,
+   "mips": 11,
+   "ms": 131,
+   "err": 0
+  },
+  {
+   "tag": "gpu/desk/uastc4/smoke_card",
+   "ok": true,
+   "w": 256,
+   "h": 256,
+   "format": 37808,
+   "mips": 9,
+   "ms": 107,
+   "err": 0
+  },
+  {
+   "tag": "gpu/desk/uastc4/star_inlay",
+   "ok": true,
+   "w": 1024,
+   "h": 1024,
+   "format": 37808,
+   "mips": 11,
+   "ms": 8,
+   "err": 0
+  },
+  {
+   "tag": "gpu/desk/uastc4/stone_paving",
+   "ok": true,
+   "w": 1024,
+   "h": 1024,
+   "format": 37808,
+   "mips": 11,
+   "ms": 156,
+   "err": 0
+  },
+  {
+   "tag": "gpu/desk/uastc4/suit_bronze",
+   "ok": true,
+   "w": 512,
+   "h": 512,
+   "format": 37808,
+   "mips": 10,
+   "ms": 134,
+   "err": 0
+  },
+  {
+   "tag": "gpu/desk/uastc4/suit_cloth",
+   "ok": true,
+   "w": 512,
+   "h": 512,
+   "format": 37808,
+   "mips": 10,
+   "ms": 30,
+   "err": 0
+  },
+  {
+   "tag": "gpu/desk/uastc4/suit_lamellar",
+   "ok": true,
+   "w": 1024,
+   "h": 1024,
+   "format": 37808,
+   "mips": 11,
+   "ms": 54,
+   "err": 0
+  },
+  {
+   "tag": "gpu/desk/uastc4/tile_ends",
+   "ok": true,
+   "w": 1024,
+   "h": 1024,
+   "format": 37808,
+   "mips": 11,
+   "ms": 121,
+   "err": 0
+  },
+  {
+   "tag": "gpu/desk/uastc4/timber",
+   "ok": true,
+   "w": 1024,
+   "h": 1024,
+   "format": 37808,
+   "mips": 11,
+   "ms": 113,
+   "err": 0
+  },
+  {
+   "tag": "gpu/desk/uastc4/timber_burnt",
+   "ok": true,
+   "w": 1024,
+   "h": 1024,
+   "format": 37808,
+   "mips": 11,
+   "ms": 109,
+   "err": 0
+  },
+  {
+   "tag": "gpu/desk/uastc4/tread_belt",
+   "ok": true,
+   "w": 128,
+   "h": 64,
+   "format": 37808,
+   "mips": 8,
+   "ms": 4,
+   "err": 0
+  },
+  {
+   "tag": "gpu/desk/uastc4/wall_burnt",
+   "ok": true,
+   "w": 1024,
+   "h": 1024,
+   "format": 37808,
+   "mips": 11,
+   "ms": 23,
+   "err": 0
+  },
+  {
+   "tag": "gpu/phone/etc1s/apex_patina",
+   "ok": true,
+   "w": 512,
+   "h": 512,
+   "format": 36492,
+   "mips": 10,
+   "ms": 106,
+   "err": 0
+  },
+  {
+   "tag": "gpu/phone/etc1s/black_lake",
+   "ok": true,
+   "w": 512,
+   "h": 512,
+   "format": 36492,
+   "mips": 10,
+   "ms": 17,
+   "err": 0
+  },
+  {
+   "tag": "gpu/phone/etc1s/bronze_trim_brass",
+   "ok": true,
+   "w": 512,
+   "h": 512,
+   "format": 36492,
+   "mips": 10,
+   "ms": 36,
+   "err": 0
+  },
+  {
+   "tag": "gpu/phone/etc1s/bronze_trim_patina",
+   "ok": true,
+   "w": 512,
+   "h": 512,
+   "format": 36492,
+   "mips": 10,
+   "ms": 31,
+   "err": 0
+  },
+  {
+   "tag": "gpu/phone/etc1s/door",
+   "ok": true,
+   "w": 512,
+   "h": 512,
+   "format": 36492,
+   "mips": 10,
+   "ms": 26,
+   "err": 0
+  },
+  {
+   "tag": "gpu/phone/etc1s/earth_burnt",
+   "ok": true,
+   "w": 512,
+   "h": 512,
+   "format": 36492,
+   "mips": 10,
+   "ms": 38,
+   "err": 0
+  },
+  {
+   "tag": "gpu/phone/etc1s/flame_card",
+   "ok": true,
+   "w": 256,
+   "h": 256,
+   "format": 36492,
+   "mips": 9,
+   "ms": 5,
+   "err": 0
+  },
+  {
+   "tag": "gpu/phone/etc1s/floor_tiles",
+   "ok": true,
+   "w": 512,
+   "h": 512,
+   "format": 36492,
+   "mips": 10,
+   "ms": 13,
+   "err": 0
+  },
+  {
+   "tag": "gpu/phone/etc1s/fodder_trim",
+   "ok": true,
+   "w": 512,
+   "h": 512,
+   "format": 36492,
+   "mips": 10,
+   "ms": 30,
+   "err": 0
+  },
+  {
+   "tag": "gpu/phone/etc1s/garden_ground",
+   "ok": true,
+   "w": 512,
+   "h": 512,
+   "format": 36492,
+   "mips": 10,
+   "ms": 33,
+   "err": 0
+  },
+  {
+   "tag": "gpu/phone/etc1s/garden_plants",
+   "ok": true,
+   "w": 512,
+   "h": 512,
+   "format": 36492,
+   "mips": 10,
+   "ms": 33,
+   "err": 0
+  },
+  {
+   "tag": "gpu/phone/etc1s/hall_floor",
+   "ok": true,
+   "w": 512,
+   "h": 512,
+   "format": 36492,
+   "mips": 10,
+   "ms": 36,
+   "err": 0
+  },
+  {
+   "tag": "gpu/phone/etc1s/hall_wall",
+   "ok": true,
+   "w": 512,
+   "h": 512,
+   "format": 36492,
+   "mips": 10,
+   "ms": 28,
+   "err": 0
+  },
+  {
+   "tag": "gpu/phone/etc1s/hollow_brick",
+   "ok": true,
+   "w": 512,
+   "h": 512,
+   "format": 36492,
+   "mips": 10,
+   "ms": 38,
+   "err": 0
+  },
+  {
+   "tag": "gpu/phone/etc1s/lion_stone",
+   "ok": true,
+   "w": 512,
+   "h": 512,
+   "format": 36492,
+   "mips": 10,
+   "ms": 7,
+   "err": 0
+  },
+  {
+   "tag": "gpu/phone/etc1s/mercury_matcap",
+   "ok": true,
+   "w": 512,
+   "h": 512,
+   "format": 36492,
+   "mips": 10,
+   "ms": 34,
+   "err": 0
+  },
+  {
+   "tag": "gpu/phone/etc1s/mural_wall",
+   "ok": true,
+   "w": 512,
+   "h": 512,
+   "format": 36492,
+   "mips": 10,
+   "ms": 33,
+   "err": 0
+  },
+  {
+   "tag": "gpu/phone/etc1s/pillar",
+   "ok": true,
+   "w": 512,
+   "h": 512,
+   "format": 36492,
+   "mips": 10,
+   "ms": 36,
+   "err": 0
+  },
+  {
+   "tag": "gpu/phone/etc1s/pond_water",
+   "ok": true,
+   "w": 512,
+   "h": 512,
+   "format": 36492,
+   "mips": 10,
+   "ms": 33,
+   "err": 0
+  },
+  {
+   "tag": "gpu/phone/etc1s/rammed_earth",
+   "ok": true,
+   "w": 512,
+   "h": 512,
+   "format": 36492,
+   "mips": 10,
+   "ms": 34,
+   "err": 0
+  },
+  {
+   "tag": "gpu/phone/etc1s/rammed_earth_core",
+   "ok": true,
+   "w": 512,
+   "h": 512,
+   "format": 36492,
+   "mips": 10,
+   "ms": 34,
+   "err": 0
+  },
+  {
+   "tag": "gpu/phone/etc1s/river_stone",
+   "ok": true,
+   "w": 512,
+   "h": 512,
+   "format": 36492,
+   "mips": 10,
+   "ms": 30,
+   "err": 0
+  },
+  {
+   "tag": "gpu/phone/etc1s/roof_tile",
+   "ok": true,
+   "w": 512,
+   "h": 512,
+   "format": 36492,
+   "mips": 10,
+   "ms": 5,
+   "err": 0
+  },
+  {
+   "tag": "gpu/phone/etc1s/school_standards",
+   "ok": true,
+   "w": 512,
+   "h": 512,
+   "format": 36492,
+   "mips": 10,
+   "ms": 30,
+   "err": 0
+  },
+  {
+   "tag": "gpu/phone/etc1s/signal_flags",
+   "ok": true,
+   "w": 512,
+   "h": 512,
+   "format": 36492,
+   "mips": 10,
+   "ms": 34,
+   "err": 0
+  },
+  {
+   "tag": "gpu/phone/etc1s/slips",
+   "ok": true,
+   "w": 512,
+   "h": 512,
+   "format": 36492,
+   "mips": 10,
+   "ms": 31,
+   "err": 0
+  },
+  {
+   "tag": "gpu/phone/etc1s/slips_burnt",
+   "ok": true,
+   "w": 512,
+   "h": 512,
+   "format": 36492,
+   "mips": 10,
+   "ms": 32,
+   "err": 0
+  },
+  {
+   "tag": "gpu/phone/etc1s/smoke_card",
+   "ok": true,
+   "w": 256,
+   "h": 256,
+   "format": 36492,
+   "mips": 9,
+   "ms": 28,
+   "err": 0
+  },
+  {
+   "tag": "gpu/phone/etc1s/star_inlay",
+   "ok": true,
+   "w": 512,
+   "h": 512,
+   "format": 36492,
+   "mips": 10,
+   "ms": 13,
+   "err": 0
+  },
+  {
+   "tag": "gpu/phone/etc1s/stone_paving",
+   "ok": true,
+   "w": 512,
+   "h": 512,
+   "format": 36492,
+   "mips": 10,
+   "ms": 34,
+   "err": 0
+  },
+  {
+   "tag": "gpu/phone/etc1s/suit_bronze",
+   "ok": true,
+   "w": 512,
+   "h": 512,
+   "format": 36492,
+   "mips": 10,
+   "ms": 6,
+   "err": 0
+  },
+  {
+   "tag": "gpu/phone/etc1s/suit_cloth",
+   "ok": true,
+   "w": 512,
+   "h": 512,
+   "format": 36492,
+   "mips": 10,
+   "ms": 32,
+   "err": 0
+  },
+  {
+   "tag": "gpu/phone/etc1s/suit_lamellar",
+   "ok": true,
+   "w": 512,
+   "h": 512,
+   "format": 36492,
+   "mips": 10,
+   "ms": 39,
+   "err": 0
+  },
+  {
+   "tag": "gpu/phone/etc1s/tile_ends",
+   "ok": true,
+   "w": 512,
+   "h": 512,
+   "format": 36492,
+   "mips": 10,
+   "ms": 30,
+   "err": 0
+  },
+  {
+   "tag": "gpu/phone/etc1s/timber",
+   "ok": true,
+   "w": 512,
+   "h": 512,
+   "format": 36492,
+   "mips": 10,
+   "ms": 31,
+   "err": 0
+  },
+  {
+   "tag": "gpu/phone/etc1s/timber_burnt",
+   "ok": true,
+   "w": 512,
+   "h": 512,
+   "format": 36492,
+   "mips": 10,
+   "ms": 28,
+   "err": 0
+  },
+  {
+   "tag": "gpu/phone/etc1s/tread_belt",
+   "ok": true,
+   "w": 128,
+   "h": 64,
+   "format": 36492,
+   "mips": 8,
+   "ms": 31,
+   "err": 0
+  },
+  {
+   "tag": "gpu/phone/etc1s/wall_burnt",
+   "ok": true,
+   "w": 512,
+   "h": 512,
+   "format": 36492,
+   "mips": 10,
+   "ms": 6,
+   "err": 0
+  },
+  {
+   "tag": "gpu/phone/uastc/apex_patina",
+   "ok": true,
+   "w": 512,
+   "h": 512,
+   "format": 37808,
+   "mips": 10,
+   "ms": 9,
+   "err": 0
+  },
+  {
+   "tag": "gpu/phone/uastc/black_lake",
+   "ok": true,
+   "w": 512,
+   "h": 512,
+   "format": 37808,
+   "mips": 10,
+   "ms": 29,
+   "err": 0
+  },
+  {
+   "tag": "gpu/phone/uastc/bronze_trim_brass",
+   "ok": true,
+   "w": 512,
+   "h": 512,
+   "format": 37808,
+   "mips": 10,
+   "ms": 39,
+   "err": 0
+  },
+  {
+   "tag": "gpu/phone/uastc/bronze_trim_patina",
+   "ok": true,
+   "w": 512,
+   "h": 512,
+   "format": 37808,
+   "mips": 10,
+   "ms": 33,
+   "err": 0
+  },
+  {
+   "tag": "gpu/phone/uastc/door",
+   "ok": true,
+   "w": 512,
+   "h": 512,
+   "format": 37808,
+   "mips": 10,
+   "ms": 28,
+   "err": 0
+  },
+  {
+   "tag": "gpu/phone/uastc/earth_burnt",
+   "ok": true,
+   "w": 512,
+   "h": 512,
+   "format": 37808,
+   "mips": 10,
+   "ms": 37,
+   "err": 0
+  },
+  {
+   "tag": "gpu/phone/uastc/flame_card",
+   "ok": true,
+   "w": 256,
+   "h": 256,
+   "format": 37808,
+   "mips": 9,
+   "ms": 29,
+   "err": 0
+  },
+  {
+   "tag": "gpu/phone/uastc/floor_tiles",
+   "ok": true,
+   "w": 512,
+   "h": 512,
+   "format": 37808,
+   "mips": 10,
+   "ms": 13,
+   "err": 0
+  },
+  {
+   "tag": "gpu/phone/uastc/fodder_trim",
+   "ok": true,
+   "w": 512,
+   "h": 512,
+   "format": 37808,
+   "mips": 10,
+   "ms": 8,
+   "err": 0
+  },
+  {
+   "tag": "gpu/phone/uastc/garden_ground",
+   "ok": true,
+   "w": 512,
+   "h": 512,
+   "format": 37808,
+   "mips": 10,
+   "ms": 39,
+   "err": 0
+  },
+  {
+   "tag": "gpu/phone/uastc/garden_plants",
+   "ok": true,
+   "w": 512,
+   "h": 512,
+   "format": 37808,
+   "mips": 10,
+   "ms": 28,
+   "err": 0
+  },
+  {
+   "tag": "gpu/phone/uastc/hall_floor",
+   "ok": true,
+   "w": 512,
+   "h": 512,
+   "format": 37808,
+   "mips": 10,
+   "ms": 35,
+   "err": 0
+  },
+  {
+   "tag": "gpu/phone/uastc/hall_wall",
+   "ok": true,
+   "w": 512,
+   "h": 512,
+   "format": 37808,
+   "mips": 10,
+   "ms": 31,
+   "err": 0
+  },
+  {
+   "tag": "gpu/phone/uastc/hollow_brick",
+   "ok": true,
+   "w": 512,
+   "h": 512,
+   "format": 37808,
+   "mips": 10,
+   "ms": 39,
+   "err": 0
+  },
+  {
+   "tag": "gpu/phone/uastc/lion_stone",
+   "ok": true,
+   "w": 512,
+   "h": 512,
+   "format": 37808,
+   "mips": 10,
+   "ms": 34,
+   "err": 0
+  },
+  {
+   "tag": "gpu/phone/uastc/mercury_matcap",
+   "ok": true,
+   "w": 512,
+   "h": 512,
+   "format": 37808,
+   "mips": 10,
+   "ms": 38,
+   "err": 0
+  },
+  {
+   "tag": "gpu/phone/uastc/mural_wall",
+   "ok": true,
+   "w": 512,
+   "h": 512,
+   "format": 37808,
+   "mips": 10,
+   "ms": 9,
+   "err": 0
+  },
+  {
+   "tag": "gpu/phone/uastc/pillar",
+   "ok": true,
+   "w": 512,
+   "h": 512,
+   "format": 37808,
+   "mips": 10,
+   "ms": 38,
+   "err": 0
+  },
+  {
+   "tag": "gpu/phone/uastc/pond_water",
+   "ok": true,
+   "w": 512,
+   "h": 512,
+   "format": 37808,
+   "mips": 10,
+   "ms": 38,
+   "err": 0
+  },
+  {
+   "tag": "gpu/phone/uastc/rammed_earth",
+   "ok": true,
+   "w": 512,
+   "h": 512,
+   "format": 37808,
+   "mips": 10,
+   "ms": 37,
+   "err": 0
+  },
+  {
+   "tag": "gpu/phone/uastc/rammed_earth_core",
+   "ok": true,
+   "w": 512,
+   "h": 512,
+   "format": 37808,
+   "mips": 10,
+   "ms": 43,
+   "err": 0
+  },
+  {
+   "tag": "gpu/phone/uastc/river_stone",
+   "ok": true,
+   "w": 512,
+   "h": 512,
+   "format": 37808,
+   "mips": 10,
+   "ms": 35,
+   "err": 0
+  },
+  {
+   "tag": "gpu/phone/uastc/roof_tile",
+   "ok": true,
+   "w": 512,
+   "h": 512,
+   "format": 37808,
+   "mips": 10,
+   "ms": 31,
+   "err": 0
+  },
+  {
+   "tag": "gpu/phone/uastc/school_standards",
+   "ok": true,
+   "w": 512,
+   "h": 512,
+   "format": 37808,
+   "mips": 10,
+   "ms": 27,
+   "err": 0
+  },
+  {
+   "tag": "gpu/phone/uastc/signal_flags",
+   "ok": true,
+   "w": 512,
+   "h": 512,
+   "format": 37808,
+   "mips": 10,
+   "ms": 6,
+   "err": 0
+  },
+  {
+   "tag": "gpu/phone/uastc/slips",
+   "ok": true,
+   "w": 512,
+   "h": 512,
+   "format": 37808,
+   "mips": 10,
+   "ms": 32,
+   "err": 0
+  },
+  {
+   "tag": "gpu/phone/uastc/slips_burnt",
+   "ok": true,
+   "w": 512,
+   "h": 512,
+   "format": 37808,
+   "mips": 10,
+   "ms": 38,
+   "err": 0
+  },
+  {
+   "tag": "gpu/phone/uastc/smoke_card",
+   "ok": true,
+   "w": 256,
+   "h": 256,
+   "format": 37808,
+   "mips": 9,
+   "ms": 28,
+   "err": 0
+  },
+  {
+   "tag": "gpu/phone/uastc/star_inlay",
+   "ok": true,
+   "w": 512,
+   "h": 512,
+   "format": 37808,
+   "mips": 10,
+   "ms": 10,
+   "err": 0
+  },
+  {
+   "tag": "gpu/phone/uastc/stone_paving",
+   "ok": true,
+   "w": 512,
+   "h": 512,
+   "format": 37808,
+   "mips": 10,
+   "ms": 35,
+   "err": 0
+  },
+  {
+   "tag": "gpu/phone/uastc/suit_bronze",
+   "ok": true,
+   "w": 512,
+   "h": 512,
+   "format": 37808,
+   "mips": 10,
+   "ms": 39,
+   "err": 0
+  },
+  {
+   "tag": "gpu/phone/uastc/suit_cloth",
+   "ok": true,
+   "w": 512,
+   "h": 512,
+   "format": 37808,
+   "mips": 10,
+   "ms": 32,
+   "err": 0
+  },
+  {
+   "tag": "gpu/phone/uastc/suit_lamellar",
+   "ok": true,
+   "w": 512,
+   "h": 512,
+   "format": 37808,
+   "mips": 10,
+   "ms": 8,
+   "err": 0
+  },
+  {
+   "tag": "gpu/phone/uastc/tile_ends",
+   "ok": true,
+   "w": 512,
+   "h": 512,
+   "format": 37808,
+   "mips": 10,
+   "ms": 31,
+   "err": 0
+  },
+  {
+   "tag": "gpu/phone/uastc/timber",
+   "ok": true,
+   "w": 512,
+   "h": 512,
+   "format": 37808,
+   "mips": 10,
+   "ms": 32,
+   "err": 0
+  },
+  {
+   "tag": "gpu/phone/uastc/timber_burnt",
+   "ok": true,
+   "w": 512,
+   "h": 512,
+   "format": 37808,
+   "mips": 10,
+   "ms": 31,
+   "err": 0
+  },
+  {
+   "tag": "gpu/phone/uastc/tread_belt",
+   "ok": true,
+   "w": 128,
+   "h": 64,
+   "format": 37808,
+   "mips": 8,
+   "ms": 28,
+   "err": 0
+  },
+  {
+   "tag": "gpu/phone/uastc/wall_burnt",
+   "ok": true,
+   "w": 512,
+   "h": 512,
+   "format": 37808,
+   "mips": 10,
+   "ms": 8,
+   "err": 0
+  },
+  {
+   "tag": "gpu/phone/uastc4/apex_patina",
+   "ok": true,
+   "w": 512,
+   "h": 512,
+   "format": 37808,
+   "mips": 10,
+   "ms": 31,
+   "err": 0
+  },
+  {
+   "tag": "gpu/phone/uastc4/black_lake",
+   "ok": true,
+   "w": 512,
+   "h": 512,
+   "format": 37808,
+   "mips": 10,
+   "ms": 31,
+   "err": 0
+  },
+  {
+   "tag": "gpu/phone/uastc4/bronze_trim_brass",
+   "ok": true,
+   "w": 512,
+   "h": 512,
+   "format": 37808,
+   "mips": 10,
+   "ms": 8,
+   "err": 0
+  },
+  {
+   "tag": "gpu/phone/uastc4/bronze_trim_patina",
+   "ok": true,
+   "w": 512,
+   "h": 512,
+   "format": 37808,
+   "mips": 10,
+   "ms": 34,
+   "err": 0
+  },
+  {
+   "tag": "gpu/phone/uastc4/door",
+   "ok": true,
+   "w": 512,
+   "h": 512,
+   "format": 37808,
+   "mips": 10,
+   "ms": 28,
+   "err": 0
+  },
+  {
+   "tag": "gpu/phone/uastc4/earth_burnt",
+   "ok": true,
+   "w": 512,
+   "h": 512,
+   "format": 37808,
+   "mips": 10,
+   "ms": 38,
+   "err": 0
+  },
+  {
+   "tag": "gpu/phone/uastc4/flame_card",
+   "ok": true,
+   "w": 256,
+   "h": 256,
+   "format": 37808,
+   "mips": 9,
+   "ms": 29,
+   "err": 0
+  },
+  {
+   "tag": "gpu/phone/uastc4/floor_tiles",
+   "ok": true,
+   "w": 512,
+   "h": 512,
+   "format": 37808,
+   "mips": 10,
+   "ms": 14,
+   "err": 0
+  },
+  {
+   "tag": "gpu/phone/uastc4/fodder_trim",
+   "ok": true,
+   "w": 512,
+   "h": 512,
+   "format": 37808,
+   "mips": 10,
+   "ms": 31,
+   "err": 0
+  },
+  {
+   "tag": "gpu/phone/uastc4/garden_ground",
+   "ok": true,
+   "w": 512,
+   "h": 512,
+   "format": 37808,
+   "mips": 10,
+   "ms": 37,
+   "err": 0
+  },
+  {
+   "tag": "gpu/phone/uastc4/garden_plants",
+   "ok": true,
+   "w": 512,
+   "h": 512,
+   "format": 37808,
+   "mips": 10,
+   "ms": 6,
+   "err": 0
+  },
+  {
+   "tag": "gpu/phone/uastc4/hall_floor",
+   "ok": true,
+   "w": 512,
+   "h": 512,
+   "format": 37808,
+   "mips": 10,
+   "ms": 35,
+   "err": 0
+  },
+  {
+   "tag": "gpu/phone/uastc4/hall_wall",
+   "ok": true,
+   "w": 512,
+   "h": 512,
+   "format": 37808,
+   "mips": 10,
+   "ms": 27,
+   "err": 0
+  },
+  {
+   "tag": "gpu/phone/uastc4/hollow_brick",
+   "ok": true,
+   "w": 512,
+   "h": 512,
+   "format": 37808,
+   "mips": 10,
+   "ms": 38,
+   "err": 0
+  },
+  {
+   "tag": "gpu/phone/uastc4/lion_stone",
+   "ok": true,
+   "w": 512,
+   "h": 512,
+   "format": 37808,
+   "mips": 10,
+   "ms": 34,
+   "err": 0
+  },
+  {
+   "tag": "gpu/phone/uastc4/mercury_matcap",
+   "ok": true,
+   "w": 512,
+   "h": 512,
+   "format": 37808,
+   "mips": 10,
+   "ms": 36,
+   "err": 0
+  },
+  {
+   "tag": "gpu/phone/uastc4/mural_wall",
+   "ok": true,
+   "w": 512,
+   "h": 512,
+   "format": 37808,
+   "mips": 10,
+   "ms": 34,
+   "err": 0
+  },
+  {
+   "tag": "gpu/phone/uastc4/pillar",
+   "ok": true,
+   "w": 512,
+   "h": 512,
+   "format": 37808,
+   "mips": 10,
+   "ms": 39,
+   "err": 0
+  },
+  {
+   "tag": "gpu/phone/uastc4/pond_water",
+   "ok": true,
+   "w": 512,
+   "h": 512,
+   "format": 37808,
+   "mips": 10,
+   "ms": 16,
+   "err": 0
+  },
+  {
+   "tag": "gpu/phone/uastc4/rammed_earth",
+   "ok": true,
+   "w": 512,
+   "h": 512,
+   "format": 37808,
+   "mips": 10,
+   "ms": 37,
+   "err": 0
+  },
+  {
+   "tag": "gpu/phone/uastc4/rammed_earth_core",
+   "ok": true,
+   "w": 512,
+   "h": 512,
+   "format": 37808,
+   "mips": 10,
+   "ms": 36,
+   "err": 0
+  },
+  {
+   "tag": "gpu/phone/uastc4/river_stone",
+   "ok": true,
+   "w": 512,
+   "h": 512,
+   "format": 37808,
+   "mips": 10,
+   "ms": 34,
+   "err": 0
+  },
+  {
+   "tag": "gpu/phone/uastc4/roof_tile",
+   "ok": true,
+   "w": 512,
+   "h": 512,
+   "format": 37808,
+   "mips": 10,
+   "ms": 33,
+   "err": 0
+  },
+  {
+   "tag": "gpu/phone/uastc4/school_standards",
+   "ok": true,
+   "w": 512,
+   "h": 512,
+   "format": 37808,
+   "mips": 10,
+   "ms": 27,
+   "err": 0
+  },
+  {
+   "tag": "gpu/phone/uastc4/signal_flags",
+   "ok": true,
+   "w": 512,
+   "h": 512,
+   "format": 37808,
+   "mips": 10,
+   "ms": 33,
+   "err": 0
+  },
+  {
+   "tag": "gpu/phone/uastc4/slips",
+   "ok": true,
+   "w": 512,
+   "h": 512,
+   "format": 37808,
+   "mips": 10,
+   "ms": 32,
+   "err": 0
+  },
+  {
+   "tag": "gpu/phone/uastc4/slips_burnt",
+   "ok": true,
+   "w": 512,
+   "h": 512,
+   "format": 37808,
+   "mips": 10,
+   "ms": 19,
+   "err": 0
+  },
+  {
+   "tag": "gpu/phone/uastc4/smoke_card",
+   "ok": true,
+   "w": 256,
+   "h": 256,
+   "format": 37808,
+   "mips": 9,
+   "ms": 28,
+   "err": 0
+  },
+  {
+   "tag": "gpu/phone/uastc4/star_inlay",
+   "ok": true,
+   "w": 512,
+   "h": 512,
+   "format": 37808,
+   "mips": 10,
+   "ms": 11,
+   "err": 0
+  },
+  {
+   "tag": "gpu/phone/uastc4/stone_paving",
+   "ok": true,
+   "w": 512,
+   "h": 512,
+   "format": 37808,
+   "mips": 10,
+   "ms": 39,
+   "err": 0
+  },
+  {
+   "tag": "gpu/phone/uastc4/suit_bronze",
+   "ok": true,
+   "w": 512,
+   "h": 512,
+   "format": 37808,
+   "mips": 10,
+   "ms": 40,
+   "err": 0
+  },
+  {
+   "tag": "gpu/phone/uastc4/suit_cloth",
+   "ok": true,
+   "w": 512,
+   "h": 512,
+   "format": 37808,
+   "mips": 10,
+   "ms": 32,
+   "err": 0
+  },
+  {
+   "tag": "gpu/phone/uastc4/suit_lamellar",
+   "ok": true,
+   "w": 512,
+   "h": 512,
+   "format": 37808,
+   "mips": 10,
+   "ms": 45,
+   "err": 0
+  },
+  {
+   "tag": "gpu/phone/uastc4/tile_ends",
+   "ok": true,
+   "w": 512,
+   "h": 512,
+   "format": 37808,
+   "mips": 10,
+   "ms": 32,
+   "err": 0
+  },
+  {
+   "tag": "gpu/phone/uastc4/timber",
+   "ok": true,
+   "w": 512,
+   "h": 512,
+   "format": 37808,
+   "mips": 10,
+   "ms": 8,
+   "err": 0
+  },
+  {
+   "tag": "gpu/phone/uastc4/timber_burnt",
+   "ok": true,
+   "w": 512,
+   "h": 512,
+   "format": 37808,
+   "mips": 10,
+   "ms": 31,
+   "err": 0
+  },
+  {
+   "tag": "gpu/phone/uastc4/tread_belt",
+   "ok": true,
+   "w": 128,
+   "h": 64,
+   "format": 37808,
+   "mips": 8,
+   "ms": 27,
+   "err": 0
+  },
+  {
+   "tag": "gpu/phone/uastc4/wall_burnt",
+   "ok": true,
+   "w": 512,
+   "h": 512,
+   "format": 37808,
+   "mips": 10,
+   "ms": 8,
+   "err": 0
+  },
+  {
+   "tag": "gpu/mut/blur__hall_wall",
+   "ok": true,
+   "w": 1024,
+   "h": 1024,
+   "format": 36492,
+   "mips": 11,
+   "ms": 34,
+   "err": 0
+  },
+  {
+   "tag": "gpu/mut/noalpha__smoke_card",
+   "ok": true,
+   "w": 256,
+   "h": 256,
+   "format": 36492,
+   "mips": 9,
+   "ms": 132,
+   "err": 0
+  },
+  {
+   "tag": "gpu/mut/nomip__pillar",
+   "ok": true,
+   "w": 1024,
+   "h": 1024,
+   "format": 36492,
+   "mips": 1,
+   "ms": 10,
+   "err": 0
+  },
+  {
+   "tag": "gpu/mut/poster__hall_floor",
+   "ok": true,
+   "w": 1024,
+   "h": 1024,
+   "format": 37808,
+   "mips": 11,
+   "ms": 136,
+   "err": 0
+  },
+  {
+   "tag": "gpu/mut/q1__hall_floor",
+   "ok": true,
+   "w": 1024,
+   "h": 1024,
+   "format": 36492,
+   "mips": 11,
+   "ms": 9,
+   "err": 0
+  },
+  {
+   "tag": "gpu/mut/swap__hall_wall",
+   "ok": true,
+   "w": 1024,
+   "h": 1024,
+   "format": 36492,
+   "mips": 11,
+   "ms": 104,
+   "err": 0
+  }
+ ]
+}
