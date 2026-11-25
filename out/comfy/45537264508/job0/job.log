@@ -1,0 +1,40 @@
+== preflight A 03:06:23
+PREFLIGHT A PASS
+== preflight B (install, models, 1-step probe) 03:06:25
+torch 2.15.0+cpu diffusers 0.43.0 threads 2
+               total        used        free      shared  buff/cache   available
+Mem:              15           1           5           0           9          14
+== generate 03:07:14
+Fetching 18 files:   0%|          | 0/18 [00:00<?, ?it/s]Fetching 18 files: 100%|██████████| 18/18 [00:00<00:00, 594.32it/s]
+models ready 0 s
+[transformers] `CLIPImageProcessor` requires torchvision (not installed); falling back to `CLIPImageProcessorPil` for backward compatibility. Install torchvision to use the default backend, or import `CLIPImageProcessorPil` directly to silence this warning.
+[transformers] `SiglipImageProcessor` requires torchvision (not installed); falling back to `SiglipImageProcessorPil` for backward compatibility. Install torchvision to use the default backend, or import `SiglipImageProcessorPil` directly to silence this warning.
+  deprecate("torch_dtype", "1.0.0", _TORCH_DTYPE_DEPRECATION_MESSAGE)
+Loading pipeline components...:   0%|          | 0/5 [00:00<?, ?it/s]
+Loading weights:   0%|          | 0/517 [00:00<?, ?it/s][A
+Loading weights:  26%|██▋       | 136/517 [00:00<00:00, 1347.64it/s][A
+Loading weights:  52%|█████▏    | 271/517 [00:00<00:00, 1299.15it/s][A
+Loading weights:  78%|███████▊  | 402/517 [00:00<00:00, 1228.67it/s][ALoading weights: 100%|██████████| 517/517 [00:00<00:00, 1274.55it/s]
+Loading pipeline components...:  20%|██        | 1/5 [00:00<00:02,  1.53it/s]
+Loading weights:   0%|          | 0/196 [00:00<?, ?it/s][ALoading weights: 100%|██████████| 196/196 [00:00<00:00, 2962.38it/s]
+Loading pipeline components...:  60%|██████    | 3/5 [00:00<00:00,  4.49it/s]Loading pipeline components...: 100%|██████████| 5/5 [00:00<00:00,  5.63it/s]
+prompt encoded 4 s
+Loading pipeline components...:   0%|          | 0/3 [00:00<?, ?it/s]Loading pipeline components...:  67%|██████▋   | 2/3 [00:16<00:08,  8.41s/it]Loading pipeline components...: 100%|██████████| 3/3 [00:20<00:00,  6.55s/it]Loading pipeline components...: 100%|██████████| 3/3 [00:20<00:00,  6.94s/it]
+No LoRA keys associated to NoneType found with the prefix='text_encoder'. This is safe to ignore if LoRA state dict didn't originally have any NoneType related params. You can also try specifying `prefix=None` to resolve the warning. Otherwise, open an issue if you think it's unexpected: https://github.com/huggingface/diffusers/issues/new
+No LoRA keys associated to NoneType found with the prefix='text_encoder_2'. This is safe to ignore if LoRA state dict didn't originally have any NoneType related params. You can also try specifying `prefix=None` to resolve the warning. Otherwise, open an issue if you think it's unexpected: https://github.com/huggingface/diffusers/issues/new
+probe_1step.png seed 1 steps 1 37 s
+PROBE PASS 1-step 768x768 image rendered, total 90 s
+face_6201.png seed 6201 steps 8 130 s
+face_6202.png seed 6202 steps 8 129 s
+face_6203.png seed 6203 steps 8 129 s
+face_6204.png seed 6204 steps 8 129 s
+There are modules in AutoencoderKL that should be kept in float32: []. Casting directly with `to()` can lead to inconsistent results; set `torch_dtype` in `from_pretrained()` instead to keep these modules in float32.
+There are modules in AutoencoderKL that should be kept in float32: []. Casting directly with `to()` can lead to inconsistent results; set `torch_dtype` in `from_pretrained()` instead to keep these modules in float32.
+  0%|          | 0/4 [00:00<?, ?it/s] 25%|██▌       | 1/4 [00:13<00:39, 13.27s/it] 50%|█████     | 2/4 [00:26<00:26, 13.24s/it] 75%|███████▌  | 3/4 [00:39<00:13, 13.26s/it]100%|██████████| 4/4 [00:53<00:00, 13.35s/it]100%|██████████| 4/4 [00:53<00:00, 13.32s/it]
+face_6211_i2i_kit_mask_front.png seed 6211 steps 8 img2img kit_mask_front.png strength 0.6 83 s
+There are modules in AutoencoderKL that should be kept in float32: []. Casting directly with `to()` can lead to inconsistent results; set `torch_dtype` in `from_pretrained()` instead to keep these modules in float32.
+There are modules in AutoencoderKL that should be kept in float32: []. Casting directly with `to()` can lead to inconsistent results; set `torch_dtype` in `from_pretrained()` instead to keep these modules in float32.
+  0%|          | 0/4 [00:00<?, ?it/s] 25%|██▌       | 1/4 [00:13<00:40, 13.35s/it] 50%|█████     | 2/4 [00:26<00:26, 13.34s/it] 75%|███████▌  | 3/4 [00:40<00:13, 13.43s/it]100%|██████████| 4/4 [00:53<00:00, 13.42s/it]100%|██████████| 4/4 [00:53<00:00, 13.40s/it]
+face_6212_i2i_kit_rogue_front.png seed 6212 steps 8 img2img kit_rogue_front.png strength 0.6 83 s
+GEN DONE 6 images
+RESULT job 0 images 6 (exit 0)

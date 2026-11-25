@@ -1,0 +1,8 @@
+prompt: front view of an ancient chinese qin dynasty bronze guard soldier, cast bronze hood, the face covered by a black lacquer war mask with a heavy flat brow, narrow angry eye slits and a grimacing mouth guard with teeth, menacing, game concept art, head and shoulders, plain grey background, dramatic studio light, highly detailed sculpted armour
+probe_1step.png seed 1 steps 1 37 s
+face_6201.png seed 6201 steps 8 130 s
+face_6202.png seed 6202 steps 8 129 s
+face_6203.png seed 6203 steps 8 129 s
+face_6204.png seed 6204 steps 8 129 s
+face_6211_i2i_kit_mask_front.png seed 6211 steps 8 img2img kit_mask_front.png strength 0.6 83 s
+face_6212_i2i_kit_rogue_front.png seed 6212 steps 8 img2img kit_rogue_front.png strength 0.6 83 s
