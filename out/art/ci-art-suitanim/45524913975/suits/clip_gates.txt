@@ -1,0 +1,303 @@
+PASS fa clips: attack,death,hit,idle,run
+PASS fa run_frozen: 57 channels, 0 differ from the approved GLB
+PASS fa hit_frozen: 57 channels, 0 differ from the approved GLB
+PASS fa death_frozen: 57 channels, 0 differ from the approved GLB
+PASS fa attack_identical: 57 channels, 0 differ from the approved GLB
+PASS fa idle_identical: 57 channels, 0 differ from the approved GLB
+PASS fa mesh_identical: 36 accessors (positions, normals, UVs, indices), 0 differ; joints same; inverse binds same
+PASS fa weights_scope: 0 vertices with changed skin weights, 0 outside the robe of a calm suit (no change allowed)
+PASS fa lod0_tris: 12924 (budget 10000-15000)
+PASS fa lod1_tris: 2599 (budget 2000-3000)
+PASS fa lod2_tris: 891 (budget 300-999)
+PASS fa weights: 12863 vertices, 0 sums off 1 (tol 0.01), max 4 influences (JOINTS_1 absent)
+PASS fa run_keys: first key t=0.0000 s, quaternion flips 0, max joint step 25.4 deg/frame at shin.R key 10 (max 70)
+PASS fa hit_keys: first key t=0.0000 s, quaternion flips 0, max joint step 37.8 deg/frame at forearm.L key 1 (max 70)
+PASS fa death_keys: first key t=0.0000 s, quaternion flips 0, max joint step 29.5 deg/frame at upper_arm.L key 38 (max 70)
+PASS fa run_length: 0.550 s (cycle 0.55 s at 6.4 m/s)
+PASS fa run_seam: closure 0.00 mm (max 1), seam accel 45.15 vs in-cycle max 121.25 mm/frame^2
+PASS fa run_contact_R: 1 contact(s) per cycle, longest 10 frames (min 4), sole min 1.0 mm vs floor ref (170 foot vertices)
+PASS fa run_slide_R: 0.39 cm per cycle (max 2)
+PASS fa run_contact_L: 1 contact(s) per cycle, longest 10 frames (min 4), sole min 1.0 mm vs floor ref (170 foot vertices)
+PASS fa run_slide_L: 0.34 cm per cycle (max 2)
+PASS fa run_info: 13 flight frames (both feet off) of 33; floor ref F = -24.6 mm
+PASS fa robe_info: hem swing 0.379 m (not gated)
+PASS fa run_floor: lowest vertex 0.6 mm vs floor ref, all LODs, all frames
+PASS fa hit_length: 0.300 s (0.25-0.35)
+PASS fa hit_returns: end vs idle frame 0: 0.92 mm (max 2)
+PASS fa hit_feet: feet move 0.21 cm during the flinch (max 2)
+PASS fa hit_floor: lowest vertex -0.0 mm vs floor ref
+PASS fa death_length: 0.900 s (0.8-1.2)
+PASS fa death_floor: lowest vertex 0.2 mm vs floor ref (frame 1), all LODs, all frames
+PASS fa death_still: last 0.1 s max move 0.00 mm (max 1)
+PASS fa death_lying: end: top 0.68 m above the floor ref (max 0.9), lowest 2.0 mm (touching <= 20)
+PASS ru clips: attack,death,hit,idle,run
+PASS ru run_frozen: 57 channels, 0 differ from the approved GLB
+PASS ru hit_frozen: 57 channels, 0 differ from the approved GLB
+PASS ru death_frozen: 57 channels, 0 differ from the approved GLB
+PASS ru attack_identical: 57 channels, 0 differ from the approved GLB
+PASS ru idle_identical: 57 channels, 0 differ from the approved GLB
+PASS ru mesh_identical: 36 accessors (positions, normals, UVs, indices), 0 differ; joints same; inverse binds same
+PASS ru weights_scope: 0 vertices with changed skin weights, 0 outside the robe of a calm suit (no change allowed)
+PASS ru lod0_tris: 13576 (budget 10000-15000)
+PASS ru lod1_tris: 2599 (budget 2000-3000)
+PASS ru lod2_tris: 886 (budget 300-999)
+PASS ru weights: 13720 vertices, 0 sums off 1 (tol 0.01), max 4 influences (JOINTS_1 absent)
+PASS ru run_keys: first key t=0.0000 s, quaternion flips 0, max joint step 22.5 deg/frame at shin.L key 27 (max 70)
+PASS ru hit_keys: first key t=0.0000 s, quaternion flips 0, max joint step 31.2 deg/frame at forearm.L key 1 (max 70)
+PASS ru death_keys: first key t=0.0000 s, quaternion flips 0, max joint step 20.6 deg/frame at shin.L key 1 (max 70)
+PASS ru run_length: 0.567 s (cycle 0.566667 s at 6 m/s)
+PASS ru run_seam: closure 0.00 mm (max 1), seam accel 40.68 vs in-cycle max 79.37 mm/frame^2
+PASS ru run_contact_R: 1 contact(s) per cycle, longest 11 frames (min 4), sole min 0.8 mm vs floor ref (172 foot vertices)
+PASS ru run_slide_R: 0.82 cm per cycle (max 2)
+PASS ru run_contact_L: 1 contact(s) per cycle, longest 11 frames (min 4), sole min 0.8 mm vs floor ref (172 foot vertices)
+PASS ru run_slide_L: 0.82 cm per cycle (max 2)
+PASS ru run_info: 12 flight frames (both feet off) of 34; floor ref F = -35.0 mm
+PASS ru robe_info: hem swing 0.541 m (not gated)
+PASS ru run_floor: lowest vertex 0.3 mm vs floor ref, all LODs, all frames
+PASS ru hit_length: 0.300 s (0.25-0.35)
+PASS ru hit_returns: end vs idle frame 0: 0.95 mm (max 2)
+PASS ru hit_feet: feet move 0.20 cm during the flinch (max 2)
+PASS ru hit_floor: lowest vertex -0.0 mm vs floor ref
+PASS ru death_length: 1.000 s (0.8-1.2)
+PASS ru death_floor: lowest vertex 0.2 mm vs floor ref (frame 1), all LODs, all frames
+PASS ru death_still: last 0.1 s max move 0.00 mm (max 1)
+PASS ru death_lying: end: top 0.64 m above the floor ref (max 0.9), lowest 2.0 mm (touching <= 20)
+PASS dao clips: attack,death,hit,idle,run
+PASS dao run_frozen: 54 channels, 0 differ from the approved GLB
+PASS dao hit_frozen: 54 channels, 0 differ from the approved GLB
+PASS dao death_frozen: 54 channels, 0 differ from the approved GLB
+PASS dao attack_identical: 54 channels, 0 differ from the approved GLB
+PASS dao idle_identical: 54 channels, 0 differ from the approved GLB
+PASS dao mesh_identical: 36 accessors (positions, normals, UVs, indices), 0 differ; joints same; inverse binds same
+PASS dao weights_scope: 0 vertices with changed skin weights, 0 outside the robe of a calm suit (calm suit)
+PASS dao lod0_tris: 10896 (budget 10000-15000)
+PASS dao lod1_tris: 2600 (budget 2000-3000)
+PASS dao lod2_tris: 897 (budget 300-999)
+PASS dao weights: 9992 vertices, 0 sums off 1 (tol 0.01), max 4 influences (JOINTS_1 absent)
+PASS dao run_keys: first key t=0.0000 s, quaternion flips 0, max joint step 22.8 deg/frame at shin.R key 6 (max 70)
+PASS dao hit_keys: first key t=0.0000 s, quaternion flips 0, max joint step 44.4 deg/frame at forearm.L key 1 (max 70)
+PASS dao death_keys: first key t=0.0000 s, quaternion flips 0, max joint step 21.7 deg/frame at forearm.L key 45 (max 70)
+PASS dao run_length: 0.333 s (cycle 0.333333 s at 6.4 m/s)
+PASS dao run_seam: closure 0.00 mm (max 1), seam accel 62.23 vs in-cycle max 62.23 mm/frame^2
+PASS dao run_contact_R: 1 contact(s) per cycle, longest 5 frames (min 4), sole min 0.7 mm vs floor ref (170 foot vertices)
+PASS dao run_slide_R: 0.16 cm per cycle (max 2)
+PASS dao run_contact_L: 1 contact(s) per cycle, longest 5 frames (min 4), sole min 0.7 mm vs floor ref (170 foot vertices)
+PASS dao run_slide_L: 0.16 cm per cycle (max 2)
+PASS dao run_info: 10 flight frames (both feet off) of 20; floor ref F = -23.0 mm
+PASS dao robe_flare: hem swing 0.151 m per cycle (180 hem vertices; max 0.379, calmest suit before the robe round)
+PASS dao run_floor: lowest vertex -0.1 mm vs floor ref, all LODs, all frames
+PASS dao hit_length: 0.300 s (0.25-0.35)
+PASS dao hit_returns: end vs idle frame 0: 0.19 mm (max 2)
+PASS dao hit_feet: feet move 0.10 cm during the flinch (max 2)
+PASS dao hit_floor: lowest vertex -0.0 mm vs floor ref
+PASS dao death_length: 0.950 s (0.8-1.2)
+PASS dao death_floor: lowest vertex 0.0 mm vs floor ref (frame 1), all LODs, all frames
+PASS dao death_still: last 0.1 s max move 0.00 mm (max 1)
+PASS dao death_lying: end: top 0.82 m above the floor ref (max 0.9), lowest 2.0 mm (touching <= 20)
+PASS mo clips: attack,death,hit,idle,run
+PASS mo run_frozen: 57 channels, 0 differ from the approved GLB
+PASS mo hit_frozen: 57 channels, 0 differ from the approved GLB
+PASS mo death_frozen: 57 channels, 0 differ from the approved GLB
+PASS mo attack_identical: 57 channels, 0 differ from the approved GLB
+PASS mo idle_identical: 57 channels, 0 differ from the approved GLB
+PASS mo mesh_identical: 36 accessors (positions, normals, UVs, indices), 0 differ; joints same; inverse binds same
+PASS mo weights_scope: 0 vertices with changed skin weights, 0 outside the robe of a calm suit (no change allowed)
+PASS mo lod0_tris: 11392 (budget 10000-15000)
+PASS mo lod1_tris: 2600 (budget 2000-3000)
+PASS mo lod2_tris: 893 (budget 300-999)
+PASS mo weights: 11370 vertices, 0 sums off 1 (tol 0.01), max 4 influences (JOINTS_1 absent)
+PASS mo run_keys: first key t=0.0000 s, quaternion flips 0, max joint step 23.1 deg/frame at shin.L key 25 (max 70)
+PASS mo hit_keys: first key t=0.0000 s, quaternion flips 0, max joint step 30.8 deg/frame at forearm.L key 1 (max 70)
+PASS mo death_keys: first key t=0.0000 s, quaternion flips 0, max joint step 27.4 deg/frame at weapon key 47 (max 70)
+PASS mo run_length: 0.500 s (cycle 0.5 s at 5.6 m/s)
+PASS mo run_seam: closure 0.00 mm (max 1), seam accel 36.73 vs in-cycle max 107.61 mm/frame^2
+PASS mo run_contact_R: 1 contact(s) per cycle, longest 11 frames (min 4), sole min 0.2 mm vs floor ref (180 foot vertices)
+PASS mo run_slide_R: 0.94 cm per cycle (max 2)
+PASS mo run_contact_L: 1 contact(s) per cycle, longest 11 frames (min 4), sole min 0.2 mm vs floor ref (180 foot vertices)
+PASS mo run_slide_L: 0.94 cm per cycle (max 2)
+PASS mo run_info: 8 flight frames (both feet off) of 30; floor ref F = -52.2 mm
+PASS mo robe_info: hem swing no skinned hem (not gated)
+PASS mo run_floor: lowest vertex -2.7 mm vs floor ref, all LODs, all frames
+PASS mo hit_length: 0.300 s (0.25-0.35)
+PASS mo hit_returns: end vs idle frame 0: 0.94 mm (max 2)
+PASS mo hit_feet: feet move 0.24 cm during the flinch (max 2)
+PASS mo hit_floor: lowest vertex -0.0 mm vs floor ref
+PASS mo death_length: 1.100 s (0.8-1.2)
+PASS mo death_floor: lowest vertex 0.0 mm vs floor ref (frame 1), all LODs, all frames
+PASS mo death_still: last 0.1 s max move 0.00 mm (max 1)
+PASS mo death_lying: end: top 0.85 m above the floor ref (max 0.9), lowest 2.0 mm (touching <= 20)
+PASS yy clips: attack,death,hit,idle,run
+PASS yy run_frozen: 57 channels, 0 differ from the approved GLB
+PASS yy hit_frozen: 57 channels, 0 differ from the approved GLB
+PASS yy death_frozen: 57 channels, 0 differ from the approved GLB
+PASS yy attack_identical: 57 channels, 0 differ from the approved GLB
+PASS yy idle_identical: 57 channels, 0 differ from the approved GLB
+PASS yy mesh_identical: 36 accessors (positions, normals, UVs, indices), 0 differ; joints same; inverse binds same
+PASS yy weights_scope: 0 vertices with changed skin weights, 0 outside the robe of a calm suit (no change allowed)
+PASS yy lod0_tris: 14036 (budget 10000-15000)
+PASS yy lod1_tris: 2600 (budget 2000-3000)
+PASS yy lod2_tris: 895 (budget 300-999)
+PASS yy weights: 11771 vertices, 0 sums off 1 (tol 0.01), max 4 influences (JOINTS_1 absent)
+PASS yy run_keys: first key t=0.0000 s, quaternion flips 0, max joint step 20.5 deg/frame at shin.L key 27 (max 70)
+PASS yy hit_keys: first key t=0.0000 s, quaternion flips 0, max joint step 44.5 deg/frame at forearm.L key 1 (max 70)
+PASS yy death_keys: first key t=0.0000 s, quaternion flips 0, max joint step 20.8 deg/frame at shin.L key 1 (max 70)
+PASS yy run_length: 0.567 s (cycle 0.566667 s at 6 m/s)
+PASS yy run_seam: closure 0.00 mm (max 1), seam accel 42.33 vs in-cycle max 91.86 mm/frame^2
+PASS yy run_contact_R: 1 contact(s) per cycle, longest 11 frames (min 4), sole min 1.3 mm vs floor ref (170 foot vertices)
+PASS yy run_slide_R: 0.75 cm per cycle (max 2)
+PASS yy run_contact_L: 1 contact(s) per cycle, longest 11 frames (min 4), sole min 1.3 mm vs floor ref (170 foot vertices)
+PASS yy run_slide_L: 0.75 cm per cycle (max 2)
+PASS yy run_info: 12 flight frames (both feet off) of 34; floor ref F = -26.3 mm
+PASS yy robe_info: hem swing 0.690 m (not gated)
+PASS yy run_floor: lowest vertex -1.2 mm vs floor ref, all LODs, all frames
+PASS yy hit_length: 0.300 s (0.25-0.35)
+PASS yy hit_returns: end vs idle frame 0: 0.91 mm (max 2)
+PASS yy hit_feet: feet move 0.11 cm during the flinch (max 2)
+PASS yy hit_floor: lowest vertex -0.1 mm vs floor ref
+PASS yy death_length: 1.000 s (0.8-1.2)
+PASS yy death_floor: lowest vertex 0.5 mm vs floor ref (frame 43), all LODs, all frames
+PASS yy death_still: last 0.1 s max move 0.00 mm (max 1)
+PASS yy death_lying: end: top 0.55 m above the floor ref (max 0.9), lowest 2.0 mm (touching <= 20)
+PASS za clips: attack,death,hit,idle,run
+PASS za run_frozen: 57 channels, 0 differ from the approved GLB
+PASS za hit_frozen: 57 channels, 0 differ from the approved GLB
+PASS za death_frozen: 57 channels, 28 differ from the approved GLB (allowed this round)
+PASS za attack_identical: 57 channels, 0 differ from the approved GLB
+PASS za idle_identical: 57 channels, 0 differ from the approved GLB
+PASS za mesh_identical: 36 accessors (positions, normals, UVs, indices), 0 differ; joints same; inverse binds same
+PASS za weights_scope: 817 vertices with changed skin weights, 0 outside the robe of a calm suit (calm suit)
+PASS za lod0_tris: 14196 (budget 10000-15000)
+PASS za lod1_tris: 2600 (budget 2000-3000)
+PASS za lod2_tris: 886 (budget 300-999)
+PASS za weights: 13097 vertices, 0 sums off 1 (tol 0.01), max 4 influences (JOINTS_1 absent)
+PASS za run_keys: first key t=0.0000 s, quaternion flips 0, max joint step 26.7 deg/frame at shin.L key 27 (max 70)
+PASS za hit_keys: first key t=0.0000 s, quaternion flips 0, max joint step 37.8 deg/frame at forearm.L key 1 (max 70)
+PASS za death_keys: first key t=0.0000 s, quaternion flips 0, max joint step 34.1 deg/frame at weapon key 43 (max 70)
+PASS za run_length: 0.550 s (cycle 0.55 s at 6 m/s)
+PASS za run_seam: closure 0.00 mm (max 1), seam accel 47.35 vs in-cycle max 133.46 mm/frame^2
+PASS za run_contact_R: 1 contact(s) per cycle, longest 11 frames (min 4), sole min 0.8 mm vs floor ref (171 foot vertices)
+PASS za run_slide_R: 0.76 cm per cycle (max 2)
+PASS za run_contact_L: 1 contact(s) per cycle, longest 10 frames (min 4), sole min 0.7 mm vs floor ref (171 foot vertices)
+PASS za run_slide_L: 0.40 cm per cycle (max 2)
+PASS za run_info: 12 flight frames (both feet off) of 33; floor ref F = -31.5 mm
+PASS za robe_flare: hem swing 0.286 m per cycle (315 hem vertices; max 0.379, calmest suit before the robe round)
+PASS za run_floor: lowest vertex -0.5 mm vs floor ref, all LODs, all frames
+PASS za hit_length: 0.300 s (0.25-0.35)
+PASS za hit_returns: end vs idle frame 0: 0.92 mm (max 2)
+PASS za hit_feet: feet move 0.22 cm during the flinch (max 2)
+PASS za hit_floor: lowest vertex -0.0 mm vs floor ref
+PASS za death_length: 1.000 s (0.8-1.2)
+PASS za death_floor: lowest vertex 0.2 mm vs floor ref (frame 1), all LODs, all frames
+PASS za death_still: last 0.1 s max move 0.00 mm (max 1)
+PASS za death_lying: end: top 0.64 m above the floor ref (max 0.9), lowest 2.0 mm (touching <= 20)
+PASS ming clips: attack,death,hit,idle,run
+PASS ming run_frozen: 57 channels, 0 differ from the approved GLB
+PASS ming hit_frozen: 57 channels, 0 differ from the approved GLB
+PASS ming death_frozen: 57 channels, 0 differ from the approved GLB
+PASS ming attack_identical: 57 channels, 0 differ from the approved GLB
+PASS ming idle_identical: 57 channels, 0 differ from the approved GLB
+PASS ming mesh_identical: 36 accessors (positions, normals, UVs, indices), 0 differ; joints same; inverse binds same
+PASS ming weights_scope: 0 vertices with changed skin weights, 0 outside the robe of a calm suit (no change allowed)
+PASS ming lod0_tris: 11032 (budget 10000-15000)
+PASS ming lod1_tris: 2600 (budget 2000-3000)
+PASS ming lod2_tris: 884 (budget 300-999)
+PASS ming weights: 11488 vertices, 0 sums off 1 (tol 0.01), max 4 influences (JOINTS_1 absent)
+PASS ming run_keys: first key t=0.0000 s, quaternion flips 0, max joint step 16.9 deg/frame at shin.L key 17 (max 70)
+PASS ming hit_keys: first key t=0.0000 s, quaternion flips 0, max joint step 44.5 deg/frame at forearm.L key 1 (max 70)
+PASS ming death_keys: first key t=0.0000 s, quaternion flips 0, max joint step 21.4 deg/frame at shin.L key 1 (max 70)
+PASS ming run_length: 0.533 s (cycle 0.533333 s at 6 m/s)
+PASS ming run_seam: closure 0.00 mm (max 1), seam accel 51.90 vs in-cycle max 63.13 mm/frame^2
+PASS ming run_contact_R: 1 contact(s) per cycle, longest 10 frames (min 4), sole min 0.9 mm vs floor ref (170 foot vertices)
+PASS ming run_slide_R: 0.60 cm per cycle (max 2)
+PASS ming run_contact_L: 1 contact(s) per cycle, longest 10 frames (min 4), sole min 0.9 mm vs floor ref (170 foot vertices)
+PASS ming run_slide_L: 0.60 cm per cycle (max 2)
+PASS ming run_info: 12 flight frames (both feet off) of 32; floor ref F = -23.1 mm
+PASS ming robe_info: hem swing no skinned hem (not gated)
+PASS ming run_floor: lowest vertex -0.9 mm vs floor ref, all LODs, all frames
+PASS ming hit_length: 0.300 s (0.25-0.35)
+PASS ming hit_returns: end vs idle frame 0: 0.92 mm (max 2)
+PASS ming hit_feet: feet move 0.22 cm during the flinch (max 2)
+PASS ming hit_floor: lowest vertex -0.2 mm vs floor ref
+PASS ming death_length: 0.950 s (0.8-1.2)
+PASS ming death_floor: lowest vertex 0.0 mm vs floor ref (frame 0), all LODs, all frames
+PASS ming death_still: last 0.1 s max move 0.00 mm (max 1)
+PASS ming death_lying: end: top 0.84 m above the floor ref (max 0.9), lowest 2.0 mm (touching <= 20)
+PASS zh clips: attack,death,hit,idle,run
+PASS zh run_frozen: 57 channels, 0 differ from the approved GLB
+PASS zh hit_frozen: 57 channels, 0 differ from the approved GLB
+PASS zh death_frozen: 57 channels, 0 differ from the approved GLB (allowed this round)
+PASS zh attack_identical: 57 channels, 0 differ from the approved GLB
+PASS zh idle_identical: 57 channels, 0 differ from the approved GLB
+PASS zh mesh_identical: 36 accessors (positions, normals, UVs, indices), 0 differ; joints same; inverse binds same
+PASS zh weights_scope: 1252 vertices with changed skin weights, 0 outside the robe of a calm suit (calm suit)
+PASS zh lod0_tris: 13804 (budget 10000-15000)
+PASS zh lod1_tris: 2599 (budget 2000-3000)
+PASS zh lod2_tris: 897 (budget 300-999)
+PASS zh weights: 12420 vertices, 0 sums off 1 (tol 0.01), max 4 influences (JOINTS_1 absent)
+PASS zh run_keys: first key t=0.0000 s, quaternion flips 0, max joint step 25.5 deg/frame at shin.L key 28 (max 70)
+PASS zh hit_keys: first key t=0.0000 s, quaternion flips 0, max joint step 37.8 deg/frame at forearm.L key 1 (max 70)
+PASS zh death_keys: first key t=0.0000 s, quaternion flips 0, max joint step 20.8 deg/frame at shin.L key 1 (max 70)
+PASS zh run_length: 0.583 s (cycle 0.583333 s at 6 m/s)
+PASS zh run_seam: closure 0.00 mm (max 1), seam accel 42.80 vs in-cycle max 114.88 mm/frame^2
+PASS zh run_contact_R: 1 contact(s) per cycle, longest 11 frames (min 4), sole min 1.4 mm vs floor ref (170 foot vertices)
+PASS zh run_slide_R: 0.41 cm per cycle (max 2)
+PASS zh run_contact_L: 1 contact(s) per cycle, longest 10 frames (min 4), sole min 1.5 mm vs floor ref (170 foot vertices)
+PASS zh run_slide_L: 0.37 cm per cycle (max 2)
+PASS zh run_info: 14 flight frames (both feet off) of 35; floor ref F = -28.6 mm
+PASS zh robe_flare: hem swing 0.341 m per cycle (222 hem vertices; max 0.379, calmest suit before the robe round)
+PASS zh run_floor: lowest vertex -1.3 mm vs floor ref, all LODs, all frames
+PASS zh hit_length: 0.300 s (0.25-0.35)
+PASS zh hit_returns: end vs idle frame 0: 0.94 mm (max 2)
+PASS zh hit_feet: feet move 0.21 cm during the flinch (max 2)
+PASS zh hit_floor: lowest vertex -0.2 mm vs floor ref
+PASS zh death_length: 1.000 s (0.8-1.2)
+PASS zh death_floor: lowest vertex 0.0 mm vs floor ref (frame 0), all LODs, all frames
+PASS zh death_still: last 0.1 s max move 0.00 mm (max 1)
+PASS zh death_lying: end: top 0.82 m above the floor ref (max 0.9), lowest 2.0 mm (touching <= 20)
+PASS nong clips: attack,death,hit,idle,run
+PASS nong run_frozen: 57 channels, 0 differ from the approved GLB
+PASS nong hit_frozen: 57 channels, 0 differ from the approved GLB
+PASS nong death_frozen: 57 channels, 0 differ from the approved GLB
+PASS nong attack_identical: 57 channels, 0 differ from the approved GLB
+PASS nong idle_identical: 57 channels, 0 differ from the approved GLB
+PASS nong mesh_identical: 36 accessors (positions, normals, UVs, indices), 0 differ; joints same; inverse binds same
+PASS nong weights_scope: 0 vertices with changed skin weights, 0 outside the robe of a calm suit (no change allowed)
+PASS nong lod0_tris: 11800 (budget 10000-15000)
+PASS nong lod1_tris: 2600 (budget 2000-3000)
+PASS nong lod2_tris: 893 (budget 300-999)
+PASS nong weights: 11914 vertices, 0 sums off 1 (tol 0.01), max 4 influences (JOINTS_1 absent)
+PASS nong run_keys: first key t=0.0000 s, quaternion flips 0, max joint step 23.1 deg/frame at shin.L key 26 (max 70)
+PASS nong hit_keys: first key t=0.0000 s, quaternion flips 0, max joint step 31.0 deg/frame at forearm.L key 1 (max 70)
+PASS nong death_keys: first key t=0.0000 s, quaternion flips 0, max joint step 25.9 deg/frame at upper_arm.L key 47 (max 70)
+PASS nong run_length: 0.517 s (cycle 0.516667 s at 5.6 m/s)
+PASS nong run_seam: closure 0.00 mm (max 1), seam accel 37.79 vs in-cycle max 133.20 mm/frame^2
+PASS nong run_contact_R: 1 contact(s) per cycle, longest 11 frames (min 4), sole min 0.8 mm vs floor ref (176 foot vertices)
+PASS nong run_slide_R: 0.55 cm per cycle (max 2)
+PASS nong run_contact_L: 1 contact(s) per cycle, longest 12 frames (min 4), sole min 0.8 mm vs floor ref (176 foot vertices)
+PASS nong run_slide_L: 0.47 cm per cycle (max 2)
+PASS nong run_info: 8 flight frames (both feet off) of 31; floor ref F = -42.2 mm
+PASS nong robe_info: hem swing no skinned hem (not gated)
+PASS nong run_floor: lowest vertex -1.2 mm vs floor ref, all LODs, all frames
+PASS nong hit_length: 0.300 s (0.25-0.35)
+PASS nong hit_returns: end vs idle frame 0: 0.93 mm (max 2)
+PASS nong hit_feet: feet move 0.22 cm during the flinch (max 2)
+PASS nong hit_floor: lowest vertex -0.3 mm vs floor ref
+PASS nong death_length: 1.100 s (0.8-1.2)
+PASS nong death_floor: lowest vertex 0.0 mm vs floor ref (frame 0), all LODs, all frames
+PASS nong death_still: last 0.1 s max move 0.00 mm (max 1)
+PASS nong death_lying: end: top 0.68 m above the floor ref (max 0.9), lowest 2.0 mm (touching <= 20)
+node:internal/fs/promises:639
+  return new FileHandle(await PromisePrototypeThen(
+                        ^
+
+Error: ENOENT: no such file or directory, open 'ci_art/precalm/fa.glb'
+    at async open (node:internal/fs/promises:639:25)
+    at async readFile (node:internal/fs/promises:1252:14)
+    at async file:///home/runner/work/Empress-decrees-/Empress-decrees-/art/tools/suit_clip_check.mjs:319:45 {
+  errno: -2,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: 'ci_art/precalm/fa.glb'
+}
+
+Node.js v22.23.5
