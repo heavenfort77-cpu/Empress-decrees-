@@ -1,0 +1,38 @@
+== preflight A 04:29:36
+PREFLIGHT A PASS
+== preflight B (install, models, 1-step probe) 04:30:16
+torch 2.15.0+cpu diffusers 0.43.0 threads 2
+               total        used        free      shared  buff/cache   available
+Mem:              15           1          11           0           3          14
+cpu: AMD EPYC 9V45 96-Core Processor, nproc 4, bf16 flags: avx512_bf16 (none = no native bf16), avx512f: 1
+Fetching 18 files:   6%|▌         | 1/18 [00:00<00:02,  7.31it/s]Fetching 18 files:  39%|███▉      | 7/18 [00:00<00:00, 32.76it/s]Fetching 18 files:  72%|███████▏  | 13/18 [00:00<00:00, 41.05it/s]Fetching 18 files:  94%|█████████▍| 17/18 [00:20<00:00, 41.05it/s]Fetching 18 files: 100%|██████████| 18/18 [01:25<00:00,  6.87s/it]Fetching 18 files: 100%|██████████| 18/18 [01:25<00:00,  4.78s/it]
+models ready 92 s
+[transformers] `CLIPImageProcessor` requires torchvision (not installed); falling back to `CLIPImageProcessorPil` for backward compatibility. Install torchvision to use the default backend, or import `CLIPImageProcessorPil` directly to silence this warning.
+[transformers] `SiglipImageProcessor` requires torchvision (not installed); falling back to `SiglipImageProcessorPil` for backward compatibility. Install torchvision to use the default backend, or import `SiglipImageProcessorPil` directly to silence this warning.
+  deprecate("torch_dtype", "1.0.0", _TORCH_DTYPE_DEPRECATION_MESSAGE)
+Loading pipeline components...:   0%|          | 0/5 [00:00<?, ?it/s]
+Loading weights:   0%|          | 0/196 [00:00<?, ?it/s][ALoading weights: 100%|██████████| 196/196 [00:00<00:00, 2895.80it/s]
+Loading pipeline components...:  20%|██        | 1/5 [00:00<00:00,  7.61it/s]
+Loading weights:   0%|          | 0/517 [00:00<?, ?it/s][A
+Loading weights:  33%|███▎      | 170/517 [00:00<00:00, 1597.36it/s][A
+Loading weights:  64%|██████▍   | 330/517 [00:00<00:00, 1516.42it/s][A
+Loading weights:  97%|█████████▋| 504/517 [00:00<00:00, 1572.21it/s][ALoading weights: 100%|██████████| 517/517 [00:00<00:00, 1603.09it/s]
+Loading pipeline components...:  40%|████      | 2/5 [00:00<00:00,  3.26it/s]Loading pipeline components...: 100%|██████████| 5/5 [00:00<00:00,  8.06it/s]
+prompt encoded 95 s, peak RSS 3.37 GB, now 1.72 GB, swap used 0.00 GB, system avail 12.76 GB
+Loading pipeline components...:   0%|          | 0/3 [00:00<?, ?it/s]Loading pipeline components...:  67%|██████▋   | 2/3 [00:01<00:00,  1.05it/s]Loading pipeline components...: 100%|██████████| 3/3 [00:01<00:00,  1.58it/s]
+No LoRA keys associated to NoneType found with the prefix='text_encoder'. This is safe to ignore if LoRA state dict didn't originally have any NoneType related params. You can also try specifying `prefix=None` to resolve the warning. Otherwise, open an issue if you think it's unexpected: https://github.com/huggingface/diffusers/issues/new
+No LoRA keys associated to NoneType found with the prefix='text_encoder_2'. This is safe to ignore if LoRA state dict didn't originally have any NoneType related params. You can also try specifying `prefix=None` to resolve the warning. Otherwise, open an issue if you think it's unexpected: https://github.com/huggingface/diffusers/issues/new
+unet + vae + fused lora loaded 102 s, peak RSS 11.42 GB, now 7.08 GB, swap used 0.00 GB, system avail 7.44 GB
+  probe_1step.png step 1/1 10 s, peak RSS 11.42 GB, now 7.08 GB, swap used 0.00 GB, system avail 7.45 GB
+probe_1step.png bfloat16 seed 1 steps 1 32 s, peak RSS 11.42 GB, now 7.08 GB, swap used 0.00 GB, system avail 7.32 GB
+There are modules in UNet2DConditionModel that should be kept in float32: []. Casting directly with `to()` can lead to inconsistent results; set `torch_dtype` in `from_pretrained()` instead to keep these modules in float32.
+There are modules in AutoencoderKL that should be kept in float32: []. Casting directly with `to()` can lead to inconsistent results; set `torch_dtype` in `from_pretrained()` instead to keep these modules in float32.
+converted unet + vae to float32, peak RSS 14.25 GB, now 14.24 GB, swap used 0.00 GB, system avail 0.66 GB
+  probe_1step_fp32.png step 1/1 40 s, peak RSS 14.59 GB, now 13.78 GB, swap used 0.80 GB, system avail 0.61 GB
+probe_1step_fp32.png float32 seed 1 steps 1 87 s, peak RSS 14.68 GB, now 11.66 GB, swap used 2.86 GB, system avail 2.83 GB
+There are modules in UNet2DConditionModel that should be kept in float32: []. Casting directly with `to()` can lead to inconsistent results; set `torch_dtype` in `from_pretrained()` instead to keep these modules in float32.
+There are modules in AutoencoderKL that should be kept in float32: []. Casting directly with `to()` can lead to inconsistent results; set `torch_dtype` in `from_pretrained()` instead to keep these modules in float32.
+DTYPE PROBE 1 step 832x1216: bfloat16 32 s, float32 87 s -> images use bfloat16 (auto), peak RSS 14.68 GB, now 8.71 GB, swap used 1.93 GB, system avail 5.62 GB
+PROBE PASS 1-step 832x1216 image rendered, total 227 s, peak RSS 14.68 GB, now 8.71 GB, swap used 1.93 GB, system avail 5.62 GB
+PREFLIGHT PASS
+RESULT preflight only
