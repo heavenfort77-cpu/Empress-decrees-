@@ -1,1 +1,1 @@
-{"mode": "shard", "shards": 6, "label": "17b-shard3"}
+{"mode": "cmd", "cmd": "echo preflight-only", "label": "17b-preflight"}

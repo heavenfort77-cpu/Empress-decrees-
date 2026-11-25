@@ -59,7 +59,12 @@ export async function load17Checks(g, check, page, browser, URL0) {
   const f4 = {};
   {
     const ctx = await browser.newContext({ viewport: { width: 1366, height: 768 } }), pg = await ctx.newPage(), e = [];
+    // Expected here, and only here: the browser's console line for each deliberately blocked request, by exact text. Any other console error
+    // or page error in this page fails the check (check 17 still counts every error of the main page).
+    const BLOCKED = 'Failed to load resource: net::ERR_FAILED';
+    f4.blocked = 0;
     pg.on('pageerror', (x) => e.push(String(x).slice(0, 160)));
+    pg.on('console', (m) => { if (m.type() !== 'error') return; if (m.text() === BLOCKED) f4.blocked++; else e.push(m.text().slice(0, 160)); });
     await pg.goto(URL0); await pg.waitForFunction(() => window.__ready === true, null, { timeout: 120000 });
     await pg.route('**/assets/c/desk/door.ktx2', (r) => r.abort());
     await pg.evaluate(toPalace); await idle(pg); f4.f1 = await pg.evaluate(() => __game.load());
@@ -73,8 +78,8 @@ export async function load17Checks(g, check, page, browser, URL0) {
   check('1704 fallback: blocked KTX2 -> its PNG; KTX2 and PNG blocked -> the whole set on box colours, ledger names it; recovers after; no page error',
     f1.palace === 'ready' && f1.led.fmt.includes('door:png') && f1.led.fmt.filter((x) => x.endsWith(':ktx2')).length === 4
     && f2.palace === 'failed' && f2.led.failed.join() === 'door' && f2.maps.every((m) => !m.map) && f2.ptex === 0
-    && f3.palace === 'ready' && f3.maps.every((m) => m.map) && f4.errs.length === 0,
-    JSON.stringify({ f1: [f1.palace, f1.led.fmt], f2: [f2.palace, f2.led.failed, f2.maps.map((m) => m.map)], f3: f3.palace, errs: f4.errs }));
+    && f3.palace === 'ready' && f3.maps.every((m) => m.map) && f4.errs.length === 0 && f4.blocked > 0,
+    JSON.stringify({ f1: [f1.palace, f1.led.fmt], f2: [f2.palace, f2.led.failed, f2.maps.map((m) => m.map)], f3: f3.palace, errs: f4.errs, blocked: f4.blocked }));
 
   // 1711 The page's load event fires before the boot's warm-up (a top-level yield): load event start < the boot's end mark, in a fresh page.
   {
