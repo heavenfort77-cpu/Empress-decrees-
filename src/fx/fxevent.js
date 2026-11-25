@@ -26,7 +26,7 @@ export const FX_CONFIG = {
 };
 
 const F = { THREE: null, scene: null, snd: null, C: null, meta: null, ev: null, rowIdx: null, t: 0, paused: false, tier: 'medium',
-  h2: -1, unknown: 0, events: 0, sounds: 0, spawned: 0, camFx: 0, camFz: 1, ready: false, warmProg: -1, unitR: null, errs: null };
+  h2: -1, unknown: 0, events: 0, sounds: 0, spawned: 0, warmCalls: 0, camFx: 0, camFz: 1, ready: false, warmProg: -1, unitR: null, errs: null };
 // The one opts object every call site fills through fxO (no object literal per event).
 const OPTS = { dx: 0, dz: 1, a: 0, b: 0, hold: 0, rate: 0, y: 0 };
 const NONE = { dx: 0, dz: 1, a: 0, b: 0, hold: 0, rate: 0, y: 0 };
@@ -72,6 +72,8 @@ export function fxWarm(renderer, camera) {
   for (let k = 0; k < n; k++) C.spawnK(k, tx, 0, tz, 0, 1, 1, 0, 0.2, 1);
   renderer.compile(F.scene, camera);
   renderer.render(F.scene, camera);
+  // Proof the warm-up drew (card ledger): the draw calls of that render (info.render resets per render call by default).
+  F.warmCalls = renderer.info.render.calls;
   F.warmProg = renderer.info.programs ? renderer.info.programs.length : -1;
   C.clear();
   return n;
@@ -156,6 +158,10 @@ export function fxMove(h, x, z, y) {
 export function fxRelease(h) { if (F.C !== null) F.C.release(h); }
 export function fxKill(h) { if (F.C !== null) F.C.kill(h); }
 export function fxSecond() { return F.h2; }
+// Events dispatched so far (no allocation: probes and the long-frame log).
+export function fxEvents() { return F.events; }
+// Live cards now (no allocation: the debug line and probes).
+export function fxLive() { return F.C !== null ? F.C.live() : 0; }
 // Her stinger for a TEXT voice key (keys with no stinger stay silent). Returns true when it played.
 export function fxVoice(key) {
   const s = STINGER_OF[key];
@@ -174,7 +180,7 @@ export function fxClear() { if (F.C !== null) F.C.clear(); F.h2 = -1; }
 // Read-only state for tests and the debug line (allocates: never per frame).
 export function fxStatus() {
   return { ready: F.ready, t: F.t, paused: F.paused, tier: F.tier, live: F.C ? F.C.live() : 0, events: F.events, sounds: F.sounds, spawned: F.spawned,
-    unknown: F.unknown, errs: F.errs ? F.errs.length : -1, items: F.ev ? Object.keys(F.ev).length : 0, draws: F.C ? F.C.meshes.length : 0, warmProg: F.warmProg };
+    unknown: F.unknown, errs: F.errs ? F.errs.length : -1, items: F.ev ? Object.keys(F.ev).length : 0, draws: F.C ? F.C.meshes.length : 0, warmProg: F.warmProg, warmCalls: F.warmCalls };
 }
 // For tests: the parsed table (names, sounds, cards) and the three meshes.
 export function fxTable() { return F.ev; }

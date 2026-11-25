@@ -6,12 +6,12 @@ Line numbers are from batches-3-5 ab0473f (before 17b). INT's 17b edits move the
 ## 0. Modules (on batches-3-5 after the gates pass; nothing else to copy)
 | File | What |
 |---|---|
-| `src/fx/fxevent.js` | `fxEvent(name, x, z, school, opts)`: the ONE dispatcher. It plays the sound and spawns the painted card(s). Also `fxO`, `fxStep`, `fxMove`, `fxRelease`, `fxKill`, `fxSecond`, `fxVoice`, `fxPause`, `fxClear`, `fxIds`, `fxWarm`, `fxSetRoom`, `fxSetCamera`, `fxSetTier`, `fxDispose`, `fxStatus` |
+| `src/fx/fxevent.js` | `fxEvent(name, x, z, school, opts)`: the ONE dispatcher. It plays the sound and spawns the painted card(s). Also `fxO`, `fxStep`, `fxMove`, `fxRelease`, `fxKill`, `fxSecond`, `fxVoice`, `fxPause`, `fxClear`, `fxIds`, `fxWarm`, `fxSetRoom`, `fxSetCamera`, `fxSetTier`, `fxDispose`, `fxStatus` (allocates: tests only), `fxLive`, `fxEvents` (no allocation: debug line) |
 | `src/fx/fxmap.js` | The event table: 97 items, 242 events (`item:phase`). Joins the 86 items of docs/VFX.md to the sounds of docs/AUDIO.md. Also `UNIT_ITEM` (MOVES key to item), `GUARD_ITEM` (GUARD.moves and bootleg key to item), `STINGER_OF` (TEXT voice key to stinger) |
 | `src/fx/cards.js` | Card pools: one InstancedBufferGeometry + ShaderMaterial per atlas (3 draws). Ported from art/vfx/cards_reference.js |
 | `src/fx/intensity.js` | Music intensity 0-1 and ambience (fire, wind) from game state (section 5) |
 | `src/audio/options.js` | Options/pause menu: sliders, mute, CSS, TEXT keys (section 6) |
-| `src/audio/sound.js` | Changed: `setMute(on)`, `getVolume(bus)`, `setVolume(bus, v, noSave)`; `status()` adds `mute`, `played`, `vol`. Mute is saved with the volumes in `empressDecrees.audio` |
+| `src/audio/sound.js` | Changed: `setMute(on)`, `getVolume(bus)`, `setVolume(bus, v, noSave)`; `status()` adds `mute`, `played`, `sr` and `vol`; `bufferOf(name)` is a read-only test hook. Mute is saved with the volumes in `empressDecrees.audio`. Effects now render straight into the AudioBuffers they play from: no copy, so the old ~42 MB of desktop copy garbage is gone, and the samples are identical (T16). The loop arrays are no longer kept after the loops start (`S.loops` held them) |
 
 Phases per item: `tell` (windup, held), `rel` (release: the move fires), `hit` (lands; x, z = the target), `whiff` (miss), `trail` (flies: follow it with fxMove), `state` (held aura, shield, ring or smoke), `end`.
 The callable names are the keys of `fxTable()`; tests_draft/fx-map.mjs lists them all. No call site ever builds a name per event: names are literals, or ids made once at load (section 3).
