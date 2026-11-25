@@ -70,6 +70,7 @@ export function fxWarm(renderer, camera) {
   renderer.initTexture(C.pools[0].mesh.material.uniforms.ramp.value);
   const n = C.kW.length, tx = camera.position.x, tz = camera.position.z - 6;
   for (let k = 0; k < n; k++) C.spawnK(k, tx, 0, tz, 0, 1, 1, 0, 0.2, 1);
+  renderer.info.reset();
   renderer.compile(F.scene, camera);
   renderer.render(F.scene, camera);
   // Proof the warm-up drew (card ledger): the draw calls of that render (info.render resets per render call by default).

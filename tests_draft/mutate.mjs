@@ -1,7 +1,7 @@
 // Mutation round for the PREP-AV checks (draft for INT). Runs on a GitHub runner only (project rule: mutation rounds never on the session
 // machine). Each mutant changes one spot of a module in the runner's checkout, runs the check that must catch it, and restores the file.
 // A mutant is CAUGHT when the named check prints FAIL. Usage: node tests_draft/mutate.mjs [names...]
-import { readFileSync, writeFileSync } from 'node:fs';
+import { readFileSync, writeFileSync, existsSync } from 'node:fs';
 import { execFileSync } from 'node:child_process';
 const ROOT = new URL('..', import.meta.url).pathname;
 const M = [
@@ -31,8 +31,10 @@ const only = process.argv.slice(2);
 let caught = 0, ran = 0;
 for (const m of M) {
   if (only.length && !only.includes(m.name)) continue;
-  const p = ROOT + m.file, orig = readFileSync(p, 'utf8');
+  const p = ROOT + m.file;
   ran++;
+  if (!existsSync(p) || !existsSync(ROOT + 'tests_draft/' + m.test[0])) { console.log(`MUT ERROR ${m.name}: target ${m.file} or check ${m.test[0]} missing`); continue; }
+  const orig = readFileSync(p, 'utf8');
   if (orig.split(m.a).length !== 2) { console.log(`MUT ERROR ${m.name}: anchor not found once in ${m.file}`); continue; }
   writeFileSync(p, orig.replace(m.a, m.b));
   let out = '';
@@ -45,4 +47,4 @@ for (const m of M) {
   if (!hit) console.log(out.split('\n').filter((l) => /FAIL|PASS|ERR/.test(l)).slice(0, 8).join('\n'));
 }
 console.log(`MUTATIONS ${caught} of ${ran} caught`);
-process.exit(caught === ran ? 0 : 1);
+process.exit(caught === ran && ran > 0 ? 0 : 1);

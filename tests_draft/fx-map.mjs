@@ -13,6 +13,7 @@ const cardIdx = {}, rowIdx = {};
 Object.keys(meta.effects).forEach((n, i) => { cardIdx[n] = i; });
 meta.ramps.rows.forEach((r, i) => { rowIdx[r] = i; });
 const P = parseFx(cardIdx, rowIdx);
+if (!P.list.length || !vmap.length || !Object.keys(SOUNDS).length) fails.push('counts: nothing to check (passed on nothing)');
 // 1. the table parses: every card, row and phase exists.
 ck('parse', P.errs);
 // 2. every sound named exists in SOUNDS (a wrong name would be silent in play).

@@ -52,6 +52,9 @@ for (const r of rows) console.log([r.scene.padEnd(9), String(r.fps).padStart(7),
   String(r.gpuMean).padStart(8), String(r.cardGpuMean).padStart(7), String(r.cardGpuP95).padStart(7), (r.liveMean + '/' + r.liveMax).padStart(14), String(r.calls).padStart(5), String(r.tris).padStart(6),
   String(r.progNew).padStart(7), String(r.sndPerS).padStart(5), String(r.evPerS).padStart(5), String(r.heapMB).padStart(6), ' ' + r.long].join(' '));
 const G = (name, ok, detail) => console.log(`GATE ${name} ${detail} ${ok ? 'PASS' : 'FAIL'}`);
+// Passed on nothing is a FAIL: every scene measured, every scene with frames (and GPU samples when the timer exists).
+G('scenes measured', rows.length === 4, `rows ${rows.length} of 4`);
+for (const r of rows) G(`${r.scene} frames measured`, r.frames > 100 && (!r.timer || r.gpuMean !== null), `frames ${r.frames} gpu ${r.gpuMean}`);
 for (const r of rows) {
   G(`${r.scene} errors`, r.errs === 0, `errors ${r.errs}`);
   G(`${r.scene} budget`, r.calls < 500 && r.tris < 500000, `calls ${r.calls} tris ${r.tris}`);

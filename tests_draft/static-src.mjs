@@ -27,6 +27,7 @@ const BAD = [
 ];
 const fails = [];
 let blocks = 0;
+if (!files.length) fails.push('no files scanned (passed on nothing)');
 for (const f of files) {
   const src = readFileSync(f, 'utf8'), lines = src.split('\n'), rel = f.replace(ROOT, '');
   let inB = false;

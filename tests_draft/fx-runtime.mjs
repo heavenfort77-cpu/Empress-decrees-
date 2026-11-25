@@ -84,7 +84,7 @@ const want = (id) => !ONLY.length || ONLY.includes(id);
     return { n: names.length, unknown: FX.fxStatus().unknown, newProg: window.__t.progs() - p0, progsAfterWarm: window.__t.progs0, warmed: window.__t.warmed, warmCalls: FX.fxStatus().warmCalls, liveFired };
   });
   if (want('T7')) rec('T7 all events fire, warm-up complete', t7.n > 200 && t7.unknown === 0 && t7.newProg === 0 && t7.warmed === 13 && t7.warmCalls >= 3 && t7.liveFired >= 100, JSON.stringify(t7));
-  // T16 the buffers the game plays are the rendered samples, unchanged (waveform comparison: max |difference| = 0).
+  // T16 the buffers the game plays are the rendered samples, unchanged (waveform comparison: max |difference| <= 1e-6).
   if (want('T16')) {
     const t16 = await ev(page, async () => {
       const { SND } = window.__t, st = SND.status(), out = [];
@@ -97,7 +97,8 @@ const want = (id) => !ONLY.length || ONLY.includes(id);
       }
       return out;
     });
-    rec('T16 played buffers equal the renders', t16.every((r) => r[1] === 0), JSON.stringify(t16));
+    // Two offline renders of one sound differ by float rounding only (seen: <= 2.4e-7); 1e-6 = -120 dBFS. A gain or copy change is >> that.
+    rec('T16 played buffers equal the renders', t16.length === 6 && t16.every((r) => typeof r[1] === 'number' && r[1] <= 1e-6), JSON.stringify(t16));
   }
   // T8 intensity mapping: each condition gives its level; the fall waits holdS of game steps; sound.js gets the value.
   const t8 = await ev(page, () => {
@@ -157,6 +158,7 @@ if (want('T14') || want('T15')) {
   await ctx.close();
 }
 await browser.close(); server.close();
-const nf = results.filter((r) => !r[1]).length;
-console.log(`FX-RUNTIME ${nf ? 'FAIL' : 'PASS'} ${results.length - nf} of ${results.length}`);
+const nf = results.filter((r) => !r[1]).length + (results.length ? 0 : 1);
+if (!results.length) console.log('FAIL no checks ran (passed on nothing)');
+console.log(`FX-RUNTIME ${nf ? 'FAIL' : 'PASS'} ${results.length - (nf && results.length ? nf : 0)} of ${results.length}`);
 process.exit(nf ? 1 : 0);
