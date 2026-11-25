@@ -337,7 +337,10 @@ export function textureNames() {
 // ===================== Kit: shared materials and baked geometry (built once under card P) =====================
 // gl: { key: parsed glTF } for every files() entry; tex(name): the loaded THREE.Texture or null (null = box colour fallback for that material);
 // opts: { fow (the game's FOW uniforms), schools (CONFIG.SCHOOLS ids), phone (bool), maxAniso (renderer cap) }.
-export function makeKit(gl, tex, opts) {
+export function makeKit(gl, tex, opts) { const it = kitSteps(gl, tex, opts); let s; do s = it.next(); while (!s.done); return s.value; }
+// The same build in steps for the card's job queue (one file per step, so a CONFIG.LOAD.sliceMs slice can stop between files):
+// const it = kitSteps(...); each frame call it.next() until it returns { done: true, value: kit }.
+export function* kitSteps(gl, tex, opts) {
   const C = PAL_ART, o = opts || {};
   const kit = { mats: {}, pmats: {}, burnt: {}, accent: [], banner: [], merc: {}, pieces: {}, props: {}, door: null, mercKit: null, clock: null,
     geos: [], matList: [], texList: [], missing: [], warm: null, schools: o.schools || [], phone: !!o.phone, lodDist: {}, ripples: [], rooms: 0 };
@@ -380,6 +383,7 @@ export function makeKit(gl, tex, opts) {
 
   // Architecture pieces: one baked part per material, in piece space (origin and axes as the arch viewer places them).
   for (const n of C.archFiles) {
+    yield;
     const g = gl['arch/' + n]; if (!g) { kit.missing.push('arch/' + n); continue; }
     const I = new THREE.Matrix4();
     if (n === 'door') {
@@ -403,6 +407,7 @@ export function makeKit(gl, tex, opts) {
   // Props: LOD levels (the 17a GLBs spread LOD1/LOD2 along x for the viewers: the whole-metre spread is undone), state objects, poses.
   const spreadOf = (nd, b0) => { const b = new THREE.Box3().setFromObject(nd); return Math.round((b.min.x + b.max.x) / 2 - (b0.min.x + b0.max.x) / 2); };
   for (const n of C.propFiles) {
+    yield;
     const g = gl[n]; if (!g) { kit.missing.push(n); continue; }
     const S = g.scene; S.updateMatrixWorld(true);
     if (n === 'merc') { kit.mercKit = mercKit(S); for (const k in kit.mercKit) for (const p of kit.mercKit[k].parts) kit.geos.push(p.geo); continue; }
