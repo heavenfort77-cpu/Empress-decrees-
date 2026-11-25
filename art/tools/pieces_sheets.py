@@ -46,7 +46,7 @@ for i in ('crab', 'wanderer'):
                          [(f'move pose {k}', f'{i}_move_{k}', None) for k in range(4)], [(f'idle pose {k}', f'{i}_idle_{k}', None) for k in range(4)]], h=420)
 sheet('small_close', [[(f'{i}: 3/4', f'{i}_turn_34', None), ('front', f'{i}_turn_front', None), ('game pitch', f'{i}_top', None), ('outline', f'{i}_sil', None), ('LODs', f'{i}_lods', None)]
                       for i in ('plate', 'leader_crown', 'mo_wall', 'decree_mark')], h=380)
-sheet('play_lineup', [[('PLAY SIZE, lighter floor candidate (CAM_DIST 14, 1080p): ding, mo suit + leader crown, crab, wanderer, zu guard, plate, fa suit + decree mark; mo wall behind', 'lineup_light', None)],
-                      [('same on the current hall floor', 'lineup_play', None)], [('creatures in their move clip', 'lineup_move', None)], [('wide 22 m', 'lineup_wide', None)]], h=720)
+sheet('play_lineup', [[('PLAY SIZE, lighter floor (CAM_DIST 14, 1080p): ding, mo suit + leader crown, crab and wanderer (game renderer outline simulated), zu guard, plate, fa suit + decree mark; mo wall behind; props carry no outline', 'lineup_light', None)],
+                      [('same without the simulated renderer outline on the crab and the wanderer', 'lineup_noline', None)], [('same on the current hall floor', 'lineup_play', None)], [('creatures in their move clip', 'lineup_move', None)]], h=720)
 sheet('play_crops', [[(f'{i}: play size, 2x pixels', 'lineup_light', box(f'mask_{i}')) for i in ('crab', 'wanderer', 'plate')],
                      [(f'{i}: play size, 2x pixels', 'lineup_light', box(f'mask_{i}')) for i in ('leader_crown', 'decree_mark', 'mo_wall')]], h=440)

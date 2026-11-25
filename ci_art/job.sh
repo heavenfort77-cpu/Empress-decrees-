@@ -1,5 +1,5 @@
 #!/bin/bash
-# PIECES round 3 (owner 25 Nov 13:08 and 14:13; lead notes on run 45557912570): art for everything still drawn as plain shapes: Kaymuse (pieces_kaymuse.py), the crab and the wanderer
+# PIECES round 4 (owner 25 Nov 13:08 and 14:13; lead notes on run 45560766962): art for everything still drawn as plain shapes: Kaymuse (pieces_kaymuse.py), the crab and the wanderer
 # (pieces_creatures.py), the plate pickup, leader crown, 墨 wall and decree mark (pieces_small.py). Steps: build (Blender gates), builder
 # mutations (wrong CONFIG values must fail their gates), GLB gates with mutations (pieces_check.py), review shots in three (pieces_shoot.mjs:
 # close-ups, play size beside in-game art, masks, silhouettes), play-size measures with mutations (pieces_measure.py) and sheets
@@ -53,17 +53,18 @@ mut() { PIECES_MUT="$3" $BPY $T/$1 $2 > /tmp/pmut/log.txt 2>&1; if grep -q "^FAI
   mut pieces_creatures.py /tmp/pmut "DK='pcBlack'" "crab is bronze"
   mut pieces_creatures.py /tmp/pmut "C_FINGER_B=[(0.63,0.78,0.83),(0.60,0.96,0.85),(0.52,1.06,0.83)]" "crab pincers"
   mut pieces_creatures.py /tmp/pmut "W_LEG_W=(0.16,0.03,0.075)" "wanderer limbs"
-  mut pieces_creatures.py /tmp/pmut "W_BILL=((0.0,0.58,2.585),(0.0,0.8,2.56))" "wanderer bill"
-  mut pieces_creatures.py /tmp/pmut "W_WHEEL=(0.40,0.12,0.04,15,6,0.16)" "wanderer hip wheels"
-  mut pieces_creatures.py /tmp/pmut "SHELL_W=0.0" "crab is bronze"
+  mut pieces_creatures.py /tmp/pmut "W_BILL=((0.0,0.635,2.65),(0.0,0.85,2.62))" "wanderer bill"
+  mut pieces_creatures.py /tmp/pmut "W_WHEEL=(0.47,0.40,0.035,15,6,0.14)" "wanderer vessel"
+  mut pieces_creatures.py /tmp/pmut "C_LEG_W=(0.13,0.11)" "crab lower legs"
   mut pieces_small.py /tmp/pmut "PL_LEN=1.2" "plate [0-9]"
-  mut pieces_small.py /tmp/pmut "PL_HW=(0.29,0.08)" "plate reads as armour"
+  mut pieces_small.py /tmp/pmut "PL_RAKE=(0.02,0.62)" "plate reads as a curved"
+  mut pieces_small.py /tmp/pmut "PL_SCALLOPS=0" "plate reads as a curved"
   mut pieces_small.py /tmp/pmut "CR_LID=1" "leader crown reads"
   mut pieces_small.py /tmp/pmut "CR_POINTS=[(0,0.17,0.9),(-38,0.14,0.22),(38,0.14,0.22),(-66,0.10,0.14),(66,0.10,0.14)]" "leader crown [0-9]"
   mut pieces_small.py /tmp/pmut "MW_BRACES=3" "墨 wall frame"
   mut pieces_small.py /tmp/pmut "MW_POSTS=(-1.88,-0.63,0.63,1.88)" "墨 wall frame"
   mut pieces_small.py /tmp/pmut "MW_POSTS=(-2.7,-0.9,0.55,2.7)" "墨 wall [0-9]"
-  mut pieces_small.py /tmp/pmut "DM_SIGIL=[(-0.045,0.028,0.034,0.034,0),(0.045,0.028,0.034,0.034,0),(-0.052,0.066,0.06,0.018,28),(0.052,0.066,0.06,0.018,-28),(0.0,-0.006,0.02,0.07,0),(0.0,-0.066,0.13,0.02,0),(-0.05,-0.042,0.02,0.03,0),(0.05,-0.042,0.02,0.03,0)]" "decree seal sigil"; } 2>&1 | tee $O/gates/build_mutations.txt
+  mut pieces_small.py /tmp/pmut "DM_TIGER=[(-0.05,-0.05),(0.05,-0.05),(0.05,0.05),(-0.05,0.05)]" "decree seal"; } 2>&1 | tee $O/gates/build_mutations.txt
 step "glb gates"
 python3 $T/pieces_check.py /tmp/pieces --mutate 2>&1 | tee $O/gates/glb_gates.txt
 step "shots"

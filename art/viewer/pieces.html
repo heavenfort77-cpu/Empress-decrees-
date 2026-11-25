@@ -6,7 +6,11 @@
      ?scene=lineup            every floor piece at play size beside in-game characters at the same scale: 鼎, 墨 suit (leader crown over it),
                               crab, wanderer, 卒 guard, plate, 法 suit (decree mark over it), the 墨 wall behind. &clip= &t= pose the creatures.
      ?scene=throne&view=play|approach|wide|close   Kaymuse on throne_dais.glb with a suit and a guard at the dais foot (&yaw= &pitch= close)
-     &mode=tex | sil (black on white, no floor) | mask (&mask=ID: that piece unlit white, the rest black: on-screen measurement)
+     &mode=tex | sil (black on white, no floor) | mask (&mask=ID: that piece unlit white, the rest black: on-screen measurement;
+            &matmask=NAME narrows the mask to one material of that piece, e.g. palBronze; ID ding = the 鼎 beside them)
+     Outline: the crab and the wanderer are characters, so they are drawn with the game's renderer outline, simulated here with the
+            game's own shader (src/chars.js outlineMaterial on branch ci-run-int: back faces pushed out along the normal by 2 device
+            px, colour 0x0b0908); &outline=0 turns it off. Static props and Kaymuse get none.
      &floor=tex (the current hall floor) | light (the lighter floor candidate of branch ci-art-colour, a copy at art/pieces/floor_candidate.png:
             the contrast gate is judged on it; the throne's 丹 top takes it too) | calm (flat #7a2a1c)
      &dir=path of the pieces GLBs (default ../../assets/models/pieces/). Materials: art/tools/pieces_mats.json. -->
@@ -48,6 +52,28 @@ function mat(m) {
   o.color = d.tint ? m.color.clone() : new THREE.Color(d.color || '#ffffff');
   return (MADE[key] = new THREE.MeshStandardMaterial(o));
 }
+// The game's renderer outline (src/chars.js CHR.outline: { px: 2, color: 0x0b0908 }), same vertex code: back faces pushed out along the
+// (skinned) normal in clip space by uOPx device pixels. Only for the pieces the game treats as characters.
+const OUTLINED = new Set(['crab', 'wanderer']), OUTLINE_ON = Q.get('outline') !== '0', MATMASK = Q.get('matmask');
+const OUT = { px: { value: 2 }, res: { value: new THREE.Vector2(W, H) } }, OUTMATS = {};
+function outlineMaterial(color) {
+  if (OUTMATS[color]) return OUTMATS[color];
+  const m = new THREE.MeshBasicMaterial({ color, side: THREE.BackSide });
+  m.onBeforeCompile = (sh) => {
+    sh.uniforms.uOPx = OUT.px; sh.uniforms.uORes = OUT.res;
+    sh.vertexShader = sh.vertexShader.replace('#include <common>', '#include <common>\nuniform float uOPx;\nuniform vec2 uORes;')
+      .replace('#include <project_vertex>', `#include <project_vertex>
+#ifdef USE_SKINNING
+vec3 chrN = normalize( normalMatrix * objectNormal );
+#else
+vec3 chrN = normalize( normalMatrix * normal );
+#endif
+vec2 chrD = ( projectionMatrix * vec4( chrN, 0.0 ) ).xy;
+gl_Position.xy += normalize( chrD + vec2( 1e-6 ) ) * uOPx * 2.0 / uORes * gl_Position.w;`);
+  };
+  m.customProgramCacheKey = () => 'chrOutline1' + color;
+  return (OUTMATS[color] = m);
+}
 const loader = new GLTFLoader(), mixers = [];
 // place one GLB: id = mask id; lod = which LOD shows ('all' keeps the exported side-by-side places); clip + t pose it
 function place(url, id, x, y, z, { lod = '0', clip = null, t = 0, yaw = 0 } = {}) {
@@ -60,11 +86,20 @@ function place(url, id, x, y, z, { lod = '0', clip = null, t = 0, yaw = 0 } = {}
       if (l) { if (l[1] !== lod) o.visible = false; else if (l[1] !== '0') o.position.x = 0; }
       else if (o.isMesh && !/_lod[012]$/.test(o.parent ? o.parent.name : '')) o.visible = false;
     });
+    const lined = [];
     root.traverse((o) => {
       if (!o.isMesh) return;
-      o.frustumCulled = false; o.castShadow = o.receiveShadow = LIT;
-      o.material = MODE === 'sil' ? BLACK : MODE === 'mask' ? (id === MASK ? WHITE : BLACK) : mat(o.material);
+      o.frustumCulled = false; o.castShadow = o.receiveShadow = LIT; const m0 = o.material.name;
+      o.material = MODE === 'sil' ? BLACK : MODE === 'mask' ? (id === MASK && (!MATMASK || m0 === MATMASK) ? WHITE : BLACK) : mat(o.material);
+      if (OUTLINED.has(id) && OUTLINE_ON && o.visible && !MATMASK) lined.push(o);
     });
+    for (const o of lined) {  // one extra back-face draw per mesh, as the game does for its characters
+      let vis = true; for (let p = o; p; p = p.parent) vis = vis && p.visible; if (!vis) continue;
+      const om = outlineMaterial(MODE === 'mask' ? (id === MASK ? 0xffffff : 0x000000) : MODE === 'sil' ? 0x000000 : 0x0b0908);
+      const ol = o.isSkinnedMesh ? new THREE.SkinnedMesh(o.geometry, om) : new THREE.Mesh(o.geometry, om);
+      if (o.isSkinnedMesh) ol.bind(o.skeleton, o.bindMatrix);
+      ol.position.copy(o.position); ol.quaternion.copy(o.quaternion); ol.scale.copy(o.scale); ol.frustumCulled = false; ol.name = o.name + '_ol'; o.parent.add(ol);
+    }
     scene.add(root);
     if (clip) { const c = g.animations.find((a) => a.name === clip); if (c) { const mix = new THREE.AnimationMixer(root); mix.clipAction(c).play(); mix.setTime(t); mixers.push(mix); } else window.__noclip = (window.__noclip || '') + id + ':' + clip + ' '; }
     res(g);
@@ -82,7 +117,7 @@ if (SCENE === 'one') {
   if (VIEW === 'cam') aim(new THREE.Vector3(0, 1, 0), 14, 40, +(Q.get('yaw') || 0));
   else aim(new THREE.Vector3(+(Q.get('lx') || 0), +(Q.get('ly') || 0.8), 0), +(Q.get('dist') || 4), +(Q.get('pitch') || 15), +(Q.get('yaw') || 30));
 } else if (SCENE === 'lineup') {
-  jobs.push(place(M('ding'), 'ref', -6.2, 0, 0), place(M('suits/mo'), 'ref', -4.4, 0, 0), place(P('leader_crown'), 'leader_crown', -4.4, 2.95, 0),
+  jobs.push(place(M('ding'), 'ding', -6.2, 0, 0), place(M('suits/mo'), 'ref', -4.4, 0, 0), place(P('leader_crown'), 'leader_crown', -4.4, 2.95, 0),
     place(P('crab'), 'crab', -2.3, 0, 0.3, { clip: CLIP, t: T }), place(P('wanderer'), 'wanderer', 0, 0, 0.3, { clip: CLIP, t: T }), place(M('guard/zu'), 'ref', 1.9, 0, 0),
     place(P('plate'), 'plate', 3.5, 0, 0.6), place(M('suits/fa'), 'ref', 5.2, 0, 0), place(P('decree_mark'), 'decree_mark', 5.2, 3.5, 0), place(P('mo_wall'), 'mo_wall', 0.5, 0, -3.4));
   aim(new THREE.Vector3(-0.5, 1.0, -0.5), VIEW === 'wide' ? 22 : 14, 40);

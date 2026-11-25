@@ -1,5 +1,5 @@
 {
-  "_note": "Material table for the PIECES GLBs (PIECES round 3). The GLBs carry material names only (no images), as the other props. tex = file in assets/tex (glTF UVs: flipY false, repeat wrap); color = sRGB multiplier. pcOutline is the baked dark outline shell (inside-out faces: draw it with front faces only, the three.js default, never DoubleSide). pcDarkBronze is the brass sheet under a dark tint (undersides, joints, lower legs). kmRobe is the neutral cloth sheet under a Qin-black tint.",
+  "_note": "Material table for the PIECES GLBs (PIECES round 4). The GLBs carry material names only (no images), as the other props. tex = file in assets/tex (glTF UVs: flipY false, repeat wrap); color = sRGB multiplier. palBronze is the 鼎's own material (brass trim sheet, metalness 0.4, roughness 0.6). No outline is baked in: the crab and the wanderer are characters and take the game's renderer outline (src/chars.js CHR.outline); the static props take none. pcDarkBronze is the brass sheet under a dark tint (undersides, joints, feet). kmRobe is the neutral cloth sheet under a Qin-black tint.",
   "palBronze": {
     "tex": "bronze_trim_brass",
     "metalness": 0.4,
@@ -38,18 +38,19 @@
   },
   "moEarth": {
     "tex": "rammed_earth",
+    "color": "#ffe6c4",
     "metalness": 0,
     "roughness": 0.95
   },
   "moTimber": {
     "tex": "timber",
-    "color": "#5a4a40",
+    "color": "#a89684",
     "metalness": 0,
     "roughness": 0.9
   },
   "moStone": {
     "tex": "river_stone",
-    "color": "#6e665e",
+    "color": "#b0a89e",
     "metalness": 0,
     "roughness": 0.9
   },
@@ -58,11 +59,6 @@
     "metalness": 0,
     "roughness": 0.85
   },
-  "pcOutline": {
-    "color": "#0b0908",
-    "metalness": 0,
-    "roughness": 1.0
-  },
   "pcDarkBronze": {
     "tex": "bronze_trim_brass",
     "color": "#4a3f36",
@@ -70,20 +66,25 @@
     "roughness": 0.7
   },
   "kmSkin": {
-    "color": "#e9cfb6",
+    "color": "#deb393",
     "metalness": 0,
     "roughness": 0.75
   },
   "moEarthLine": {
     "tex": "rammed_earth",
-    "color": "#7a6a58",
+    "color": "#b89a70",
     "metalness": 0,
     "roughness": 0.95
   },
   "moTimberLight": {
     "tex": "timber",
-    "color": "#c8b8a4",
+    "color": "#ffffff",
     "metalness": 0,
     "roughness": 0.85
+  },
+  "kmWhite": {
+    "color": "#f2efe9",
+    "metalness": 0,
+    "roughness": 0.8
   }
 }

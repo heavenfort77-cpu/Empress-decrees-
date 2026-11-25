@@ -9,7 +9,7 @@ import numpy as np
 
 # CONFIG
 # Per piece: triangle budgets LOD0/1/2 and the clips the game needs.
-SPEC = {'kaymuse': ((10000, 2600, 900), ['idle']), 'crab': ((3000, 1800, 600), ['idle', 'move']), 'wanderer': ((3000, 1800, 600), ['idle', 'move']),
+SPEC = {'kaymuse': ((10000, 2600, 900), ['idle']), 'crab': ((3000, 1200, 450), ['idle', 'move']), 'wanderer': ((3000, 1200, 450), ['idle', 'move']),
         'plate': ((499, 400, 220), []), 'leader_crown': ((499, 400, 220), []), 'mo_wall': ((499, 400, 220), []), 'decree_mark': ((499, 400, 220), [])}
 # A clip moves when some channel's keys differ by more than this; it loops when every channel's last key equals its first within this.
 MOVE_EPS, LOOP_EPS = 1e-3, 2e-3

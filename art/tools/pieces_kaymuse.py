@@ -1,4 +1,4 @@
-# Empress Kaymuse, seated (PIECES round 3; owner 25 Nov 13:08, 13:1x and 14:13 "kaymuse is female"): a woman, an empress, in black Qin
+# Empress Kaymuse, seated (PIECES round 4; owner 25 Nov 13:08, 13:1x and 14:13 "kaymuse is female"): a woman, an empress, in black Qin
 # court robes with a 冕 crown whose bead strings veil her eyes. Replaces the two cream boxes on the throne.
 # Round 3 (lead after run 45557912570): she must read as a woman close up and at play size: narrow shoulders, a defined waist under a
 # wide cinnabar sash with a gold knot, hanging ribbons and jade pendants, a long wide trailing hem; long hair in a high coiled bun
@@ -9,6 +9,9 @@
 # inner sleeve) and hands with long fingers on her own two low lacquer armrests (凭几; the throne couch is 4.06 m wide).
 # Outline against the throne: the white inner layer at the floor, cuffs and under-sleeve edges, gold borders along the sleeve tops,
 # gold crown points and hairpins. No face detail is painted: forms only, own design from the research rule list.
+# Round 4 (lead after run 45560766962): the face is simple modelled planes (brow, nose bridge, cheeks, lips) in a warm skin tone; the
+# hands have joined fingers with a slight curl; the collar is two smooth crossed bands (swept, not stepped); the inner layer is a
+# brighter white with folds at the floor; the strings hang 11 degrees apart (the veil gate's clear gap).
 # Scale: about 1.3 x a suit (guess, lead to judge). Model origin = the middle of her seat place; extras 'seat' = where that sits in
 # throne_dais.glb (three.js x, y, z). Clip 'idle' (4 s loop): the bead strings sway. LOD0 skinned (rigid), LOD1 / LOD2 static.
 # Usage: python pieces_kaymuse.py OUT.glb   (inside Blender's Python)
@@ -32,7 +35,7 @@ SKIRT = [(0.0, 0.10, 1.16, 0.70), (0.06, 0.10, 1.18, 0.71), (0.20, 0.08, 0.92, 0
 # Roundness of the robe sections (2 = ellipse, higher = squarer): skirt, torso.
 SKIRT_N, TORSO_N = 3.0, 2.6
 # White inner layer showing at the floor: how far it stands out past the black robe, m; its height m.
-UNDER_OUT, UNDER_H = 0.07, 0.035
+UNDER_OUT, UNDER_H = 0.085, 0.035
 # Upper robe sections (z, centre f, half width, half depth), m: waist, ribs, bust, shoulders, neck root (narrow shoulders, a defined waist).
 TORSO = [(0.60, 0.0, 0.25, 0.19), (0.78, 0.0, 0.26, 0.20), (0.98, 0.01, 0.33, 0.235), (1.10, -0.01, 0.36, 0.21), (1.19, -0.02, 0.30, 0.17), (1.235, -0.02, 0.12, 0.11)]
 # Sash at the waist: z range, how far it stands proud m.
@@ -53,7 +56,7 @@ EYE_Z, NOSE_Z, LIPS_Z, CHIN_Z, LIPS_MAT = 1.452, 1.405, 1.35, 1.29, 'palCinnabar
 # 冕 board: centre, half width, rear length, front arc centre offset (arc radius = half width), forward tip deg, m.
 BOARD_C, BOARD_HW, BOARD_REAR, BOARD_ARC, BOARD_TIP = (0.0, 0.01, 1.655), 0.20, 0.26, 0.08, 8
 # Bead strings: count front and back (twelve each), arc radius the front ones hang on m, degrees between them, cord width m.
-STRINGS, STR_ARC_R, STR_DEG, CORD_W = 12, 0.185, 10, 0.007
+STRINGS, STR_ARC_R, STR_DEG, CORD_W = 12, 0.185, 11, 0.007
 # Front strings: length m (to the nose: the lips stay clear), beads per string, bead radius m, first bead and pitch m. Back strings: length, beads.
 STR_LEN, STR_BEADS, BEAD_R, BEAD_0, BEAD_PITCH = 0.19, 4, 0.011, 0.04, 0.045
 STR_LEN_B, STR_BEADS_B = 0.14, 3
@@ -61,7 +64,7 @@ STR_LEN_B, STR_BEADS_B = 0.14, 3
 BUN_C, BUN_R, PIN_SPAN = (0.0, -0.30, 1.66), (0.105, 0.095, 0.10), 0.29
 # Idle clip: seconds, front sway deg (fore-aft, sideways), back sway deg, min string travel m.
 IDLE_S, SWAY_F, SWAY_B, SWAY_MIN = 4.0, (6.0, 2.5), 4.0, 0.008
-ROBE, CIN, GOLD, JADE, BLACK, LAC, BR, SKIN = 'kmRobe', 'palCinnabar', 'palGold', 'kmJade', 'pcBlack', 'palLacquerPlain', 'palBronze', 'kmSkin'
+ROBE, CIN, GOLD, JADE, BLACK, LAC, BR, SKIN, WHITE = 'kmRobe', 'palCinnabar', 'palGold', 'kmJade', 'pcBlack', 'palLacquerPlain', 'palBronze', 'kmSkin', 'kmWhite'
 PK.mutate(globals())
 TIP = math.radians(BOARD_TIP)
 
@@ -113,10 +116,9 @@ def on_sleeve(fr, i, k, lift=0.0):
     return tuple(P_[j] + U[j] * k * R + V[j] * d for j in range(3))
 
 def band(name, path, w, t, mat, out):
-    """a flat border laid on the upper robe along path [(a_deg, z)]."""
+    """a smooth flat border swept over the upper robe along path [(a_deg, z)] (round 4: one swept band, not stepped blocks)."""
     pts = [robe_pt(TORSO, a, z, out, TORSO_N) for a, z in path]
-    for j, (p, q) in enumerate(zip(pts, pts[1:])):
-        a = math.radians(path[j][0]); prism(f'{name}_{j}', rect(w, t), p, q, mat, 'plain', rnd=True, up=(math.sin(a), math.cos(a), 0.35))
+    sweep(name, pts, [w / 2] * len(pts), mat, 'plain', n=6, flat=(1.0, max(t / w * 1.4, 0.3)), side=(1, 0, 0))
 
 def head_f(z, x=0.0):
     """f of the head's front surface at height z and offset x."""
@@ -127,7 +129,11 @@ def build(detail):
     lv = PK.LEVEL['n']; PK.bone('root')
     # lower robe: the white inner layer at the floor, the black skirt spreading into a long wide hem, a gold-inlay hem band and a cinnabar band
     hw0, hd0 = SKIRT[0][2] + UNDER_OUT, SKIRT[0][3] + UNDER_OUT
-    loft('under', [(0.0, 0.10, hw0, hd0, 0.0), (UNDER_H, 0.10, hw0, hd0, 0.0)], JADE, 'plain', n_exp=SKIRT_N, M=32)
+    loft('under', [(0.0, 0.10, hw0, hd0, 0.0), (UNDER_H, 0.10, hw0, hd0, 0.0)], WHITE, 'plain', n_exp=SKIRT_N, M=32)
+    if detail:  # folds in the white layer where it shows at the floor (cloth, not a plate)
+        for i in range(-11, 12):
+            a = i * 15.5 + 4
+            prism(f'under_fold_{i}', blade(0.085, 0.03), robe_pt(SKIRT, a, UNDER_H - 0.004, 0.02), robe_pt(SKIRT, a, UNDER_H - 0.012, UNDER_OUT + 0.012), WHITE, 'plain', scale_b=1.3, rnd=True, up=(0, 0, 1))
     loft('skirt', [(z, cf, hw, hd, 0.0) for z, cf, hw, hd in SKIRT], ROBE, 'tile2', n_exp=SKIRT_N, M=32)
     loft('hem_gold', [(UNDER_H, 0.10, 1.195, 0.728, 0.0), (0.10, 0.094, 1.13, 0.69, 0.0)], GOLD, 'plain', n_exp=SKIRT_N, M=32, cap=False)
     loft('hem_cin', [(0.10, 0.094, 1.12, 0.685, 0.0), (0.15, 0.088, 1.03, 0.645, 0.0)], CIN, 'plain', n_exp=SKIRT_N, M=32, cap=False)
@@ -168,15 +174,15 @@ def build(detail):
                 prism(f'cord_{s}{j}', rect(0.014, 0.012), a, b, CIN, 'plain', rnd=True, up=(s, 1, 0.5))
                 if detail or j == 1: prism(f'jade_{s}{j}', ngon(0.042 - 0.006 * j, 6), b, (b[0] + s * 0.012, b[1] + 0.014, b[2] + 0.006), JADE, 'plain', rnd=True)
     # layered crossed collar laid on the chest: her left border over her right (右衽): white inner collar, cinnabar border, gold edge
-    T5 = [i / 4 for i in range(5)] if lv < 2 else [0.0, 0.5, 1.0]
+    T5 = [i / 8 for i in range(9)] if lv == 0 else [i / 4 for i in range(5)] if lv == 1 else [0.0, 0.5, 1.0]
     pa = [(38 - 70 * t, 1.17 - 0.40 * t) for t in T5]; pb = [(-38 + 33 * t, 1.17 - 0.24 * t) for t in T5]
     band('collar_b', pb, 0.07, 0.02, CIN, 0.004)
-    band('collar_b_in', [(a + 10, z) for a, z in pb[:-1]], 0.045, 0.016, JADE, 0.002)
+    band('collar_b_in', [(a + 10, z) for a, z in pb[:-1]], 0.045, 0.016, WHITE, 0.002)
     band('collar_a', pa, 0.07, 0.026, CIN, 0.012)
-    band('collar_a_in', [(a - 10, z) for a, z in pa[:len(pa) // 2 + 1]], 0.045, 0.02, JADE, 0.008)
+    band('collar_a_in', [(a - 10, z) for a, z in pa[:len(pa) // 2 + 1]], 0.045, 0.02, WHITE, 0.008)
     if detail: band('collar_a_gold', [(a + 7.5, z) for a, z in pa], 0.022, 0.02, GOLD, 0.022)
     lathe('collar_stand', [(0.125, 1.195), (0.104, 1.238), (0.094, 1.238)], CIN, 'plain', n=12)
-    lathe('collar_stand_in', [(0.10, 1.20), (0.08, 1.255), (0.071, 1.255)], JADE, 'plain', n=12)
+    lathe('collar_stand_in', [(0.10, 1.20), (0.08, 1.255), (0.071, 1.255)], WHITE, 'plain', n=12)
     lathe('neck', [(0.064, 1.22), (0.058, 1.31)], SKIN, 'plain', n=10)
     # sleeves: deep masses pooling on the seat, draped fold swags, a gold border above and the white inner sleeve showing below,
     # an open cuff (gold rim, cinnabar lining, white inner sleeve) and a hand with long fingers on the armrest
@@ -185,14 +191,14 @@ def build(detail):
         sweep(f'sleeve_{s}', pts, SLEEVE_R, ROBE, 'tile2', n=10, flat=(1.0, SLEEVE_FLAT), side=(0, 0, 1))
         e1 = pts[-1]; d = unit([e1[i] - pts[-2][i] for i in range(3)]); u = fr[-1][1]; R = SLEEVE_R[-1]
         at = lambda k, up=0.0: tuple(e1[i] + d[i] * k + u[i] * up for i in range(3))
-        sweep(f'cuff_rim_{s}', [at(-0.03), at(0.012)], [R + 0.014] * 2, GOLD, 'plain', n=10, flat=(1.0, SLEEVE_FLAT), side=(0, 0, 1))
+        sweep(f'cuff_rim_{s}', [at(-0.03), at(0.012)], [R + 0.014] * 2, WHITE, 'plain', n=10, flat=(1.0, SLEEVE_FLAT), side=(0, 0, 1))
         sweep(f'cuff_lining_{s}', [at(-0.02), at(0.024)], [R - 0.012, R - 0.035], CIN, 'plain', n=10, flat=(1.0, SLEEVE_FLAT), side=(0, 0, 1))
         hc = (s * HAND_C[0], HAND_C[1], HAND_C[2])
-        sweep(f'cuff_inner_{s}', [at(-0.04, R - 0.10), (hc[0], hc[1] - 0.05, hc[2] + 0.012)], [0.088, 0.058], JADE, 'plain', n=8)
+        sweep(f'cuff_inner_{s}', [at(-0.04, R - 0.10), (hc[0], hc[1] - 0.05, hc[2] + 0.012)], [0.088, 0.058], WHITE, 'plain', n=8)
         pp = [(p[0] + u_[0] * 0.89 * r - v_[0] * 0.2 * r, p[1] + u_[1] * 0.89 * r - v_[1] * 0.2 * r, p[2] + u_[2] * 0.89 * r - v_[2] * 0.2 * r) for p, u_, v_, r in fr]
         sweep(f'sleeve_gold_{s}', pp, [PIPE_R] * len(pp), GOLD, 'plain', n=5)
         pw = [(p[0] - u_[0] * 0.9 * r + v_[0] * 0.2 * r, p[1] - u_[1] * 0.9 * r + v_[1] * 0.2 * r, max(p[2] - u_[2] * 0.9 * r + v_[2] * 0.2 * r, PIPE_R + 0.012)) for p, u_, v_, r in fr[1:]]
-        sweep(f'sleeve_white_{s}', pw, [PIPE_R + 0.008] * len(pw), JADE, 'plain', n=5)
+        sweep(f'sleeve_white_{s}', pw, [PIPE_R + 0.008] * len(pw), WHITE, 'plain', n=5)
         if lv < 2:  # draped folds: swags hanging across the sleeve's outer face
             for q, ks in enumerate(((0.62, 0.05, -0.22, 0.42), (0.4, -0.3, -0.52, 0.15), (0.18, -0.62, -0.78, -0.2))):
                 sp = [on_sleeve(fr, 1 + 0.9 * j, k, 0.012) for j, k in enumerate(ks)]
@@ -205,17 +211,24 @@ def build(detail):
             if lv < 2: prism(f'rest_cap_{s}{q}', rect(0.13, 0.095), (x, f0, REST_Z - 0.04), (x, f0 + 0.07, REST_Z - 0.04), BR, 'lozenge', rnd=False)
             fl = REST_F[0] + 0.1 if q == 0 else REST_F[1] - 0.1
             prism(f'rest_leg_{s}{q}', rect(0.075, 0.06), (x, fl, REST_Z - 0.07), (x + s * 0.03, fl, 0.0), LAC, 'plain', scale_b=1.25, rnd=False)
-        # hand: a slim palm on the armrest, four long fingers draped over its end, a thumb
+        # hand: a slim palm on the armrest, four joined fingers curling over its end, a thumb laid beside them
         spheroid(f'palm_{s}', hc, (0.045, 0.062, 0.02), SKIN, 'plain', sg=(8, 5))
         if lv < 2:
-            for q, dx in enumerate((-0.033, -0.011, 0.011, 0.033)):
-                L = FINGER * (1.0 - 0.12 * abs(q - 1.4))
-                prism(f'finger_{s}{q}', ngon(0.0125, 4), (hc[0] + dx, hc[1] + 0.045, hc[2]), (hc[0] + dx * 1.5, hc[1] + 0.045 + L, hc[2] - 0.03), SKIN, 'plain', scale_b=0.55, rnd=True)
-            prism(f'thumb_{s}', ngon(0.014, 4), (hc[0] - s * 0.04, hc[1] + 0.0, hc[2]), (hc[0] - s * 0.075, hc[1] + 0.075, hc[2] - 0.012), SKIN, 'plain', scale_b=0.55, rnd=True)
-    # head: a woman's lower face (jaw, chin, nose, cinnabar lips), ears with jade drops, closed lash lines, hair with cheek locks
+            for q, dx in enumerate((-0.027, -0.009, 0.009, 0.027)):
+                L = FINGER * (1.0 - 0.1 * abs(q - 1.4)); k0 = (hc[0] + dx, hc[1] + 0.04, hc[2] + 0.002); k1 = (hc[0] + dx, hc[1] + 0.04 + L * 0.55, hc[2] - 0.006); k2 = (hc[0] + dx, hc[1] + 0.04 + L * 0.95, hc[2] - 0.05)
+                if detail:
+                    prism(f'finger_{s}{q}a', ngon(0.0125, 4, math.pi / 4), k0, k1, SKIN, 'plain', scale_b=0.9, rnd=True, up=(0, 0, 1))
+                    prism(f'finger_{s}{q}b', ngon(0.0112, 4, math.pi / 4), k1, k2, SKIN, 'plain', scale_b=0.7, rnd=True, up=(0, 0, 1))
+                else: prism(f'finger_{s}{q}', ngon(0.0125, 4, math.pi / 4), k0, k2, SKIN, 'plain', scale_b=0.65, rnd=True, up=(0, 0, 1))
+            t0 = (hc[0] - s * 0.04, hc[1] - 0.005, hc[2]); t1 = (hc[0] - s * 0.05, hc[1] + 0.06, hc[2] - 0.004)
+            prism(f'thumb_{s}', ngon(0.014, 4, math.pi / 4), t0, t1, SKIN, 'plain', scale_b=0.7, rnd=True, up=(0, 0, 1))
+    # head: a woman's face in simple planes (brow, nose bridge, cheeks, jaw and chin, cinnabar lips), ears with jade drops, closed
+    # lash lines, hair with cheek locks
     spheroid('head', HEAD_C, HEAD_R, SKIN, 'plain', sg=(14, 9))
     spheroid('jaw', (0.0, 0.07, CHIN_Z + 0.04), (0.068, 0.062, 0.052), SKIN, 'plain', sg=(10, 6))
-    prism('nose', blade(0.03, 0.03), (0.0, head_f(EYE_Z) - 0.012, EYE_Z), (0.0, head_f(NOSE_Z) + 0.016, NOSE_Z), SKIN, 'plain', scale_b=1.0, rnd=True, up=(0, 1, 0.3))
+    prism('nose', blade(0.034, 0.042), (0.0, head_f(EYE_Z + 0.02) - 0.016, EYE_Z + 0.02), (0.0, head_f(NOSE_Z) + 0.022, NOSE_Z), SKIN, 'plain', scale_b=1.2, rnd=True, up=(0, 1, 0.3))
+    spheroid('brow', (0.0, head_f(EYE_Z + 0.032) - 0.014, EYE_Z + 0.032), (0.078, 0.022, 0.015), SKIN, 'plain', sg=(8, 4))
+    for s in (-1, 1): spheroid(f'cheek_{s}', (s * 0.05, head_f(1.398, 0.05) - 0.02, 1.398), (0.036, 0.03, 0.034), SKIN, 'plain', sg=(8, 5))
     fl = head_f(LIPS_Z)
     spheroid('lip_up', (0.0, fl - 0.004, LIPS_Z + 0.008), (0.03, 0.016, 0.008), LIPS_MAT, 'plain', sg=(8, 4))
     spheroid('lip_low', (0.0, fl - 0.006, LIPS_Z - 0.007), (0.024, 0.016, 0.009), LIPS_MAT, 'plain', sg=(8, 4))
@@ -324,8 +337,8 @@ def gates(G, l0, l1, l2, arm):
       f'kaymuse crown: board {L:.2f} m long (max 0.6: not a block) x {2 * BOARD_HW:.2f} m, gold cloud points and phoenix above it')
     hands = count(l0, (SKIN,), lambda x, f, z: abs(x) > 0.8 and f > 0.4 and z < 0.6)
     G(hands >= 40, f'kaymuse hands on the armrests: {hands} skin faces (palms, fingers, thumbs)')
-    m = K.mats(l0); G({ROBE, CIN, GOLD, JADE, BLACK, SKIN} <= m, f'kaymuse materials {sorted(m)} (black robe, cinnabar, gold, white inner layer, hair, skin)')
-    G({CIN, GOLD, JADE, SKIN} <= K.mats(l1) and {GOLD, JADE} <= K.mats(l2), 'kaymuse LOD1 keeps cinnabar, gold, the white layer and skin; LOD2 keeps gold and white')
+    m = K.mats(l0); G({ROBE, CIN, GOLD, JADE, WHITE, BLACK, SKIN} <= m, f'kaymuse materials {sorted(m)} (black robe, cinnabar, gold, white inner layer, hair, skin)')
+    G({CIN, GOLD, WHITE, SKIN} <= K.mats(l1) and {GOLD, WHITE} <= K.mats(l2), 'kaymuse LOD1 keeps cinnabar, gold, the white layer and skin; LOD2 keeps gold and white')
 
 
 if __name__ == '__main__':

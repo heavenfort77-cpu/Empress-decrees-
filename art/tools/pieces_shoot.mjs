@@ -33,7 +33,10 @@ for (const [id, clip, ts] of [['crab', 'move', [0, 0.15, 0.3, 0.45]], ['crab', '
 for (const id of ['crab', 'wanderer']) for (const yaw of [0, 90]) shots.push([`sil_${id}_${yaw}`, `scene=one&model=${id}&view=cam&yaw=${yaw}&mode=sil`, 960, 960]);
 // play size on the hall floor beside in-game art, and one mask per piece (same camera)
 shots.push(['lineup_light', 'scene=lineup&floor=light', ...FULL], ['lineup_play', 'scene=lineup', ...FULL], ['lineup_wide', 'scene=lineup&view=wide&floor=light', ...FULL], ['lineup_move', 'scene=lineup&clip=move&t=0.15&floor=light', ...FULL]);
-for (const id of ['crab', 'wanderer', 'plate', 'leader_crown', 'mo_wall', 'decree_mark']) shots.push([`mask_${id}`, `scene=lineup&mode=mask&mask=${id}`, ...FULL]);
+for (const id of ['crab', 'wanderer', 'plate', 'leader_crown', 'mo_wall', 'decree_mark', 'ding']) shots.push([`mask_${id}`, `scene=lineup&mode=mask&mask=${id}`, ...FULL]);
+// brass only (material masks, same camera): the 鼎's brass against each piece's, and the crown's gold
+for (const [id, m] of [['ding', 'palBronze'], ['crab', 'palBronze'], ['wanderer', 'palBronze'], ['plate', 'palBronze'], ['leader_crown', 'palGold']]) shots.push([`mat_${id}`, `scene=lineup&mode=mask&mask=${id}&matmask=${m}`, ...FULL]);
+shots.push(['lineup_noline', 'scene=lineup&floor=light&outline=0', ...FULL]);
 // Kaymuse on the throne: play size (three framings), close-ups, the bead curtain, idle poses, masks
 shots.push(['throne_play', 'scene=throne&view=play', ...FULL], ['throne_approach', 'scene=throne&view=approach', ...FULL], ['throne_wide', 'scene=throne&view=wide&floor=light', ...FULL],
   ['throne_play_light', 'scene=throne&view=play&floor=light', ...FULL], ['throne_approach_light', 'scene=throne&view=approach&floor=light', ...FULL], ['alone_back', 'scene=one&model=kaymuse&dist=4.2&ly=0.9&pitch=12&yaw=180', 960, 960], ['alone_back34', 'scene=one&model=kaymuse&dist=4.2&ly=0.9&pitch=12&yaw=140', 960, 960], ['alone_side', 'scene=one&model=kaymuse&dist=4.2&ly=0.9&pitch=12&yaw=90', 960, 960],

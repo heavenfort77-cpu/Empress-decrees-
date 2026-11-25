@@ -21,22 +21,10 @@ BONE = {'cur': 'root'}
 # Which LOD is being built (0, 1, 2): builders drop parts by level, so LOD2 is built lean and keeps thin limbs (round 1: decimating LOD1
 # to LOD2 ate the wanderer's legs and the wall's posts; decimation is now only the fallback when a LOD is over its budget).
 LEVEL = {'n': 0}
-# Dark outline (owner 25 Nov 14:1x, option A: dark outlines only, no rim): an inverted shell baked into the GLB. Each part marked by
-# outline(priority) gets a copy pushed out along its vertex normals with its faces turned inside out, in material OUTLINE: a renderer
-# drawing front faces only (three.js default) shows it as a dark line round the outline from every side, with no game code.
-OUTLINE = 'pcOutline'
-SHELL = {'prio': -1}
 _put = K.put
 
 def _tagged_put(name, bm, mat, row, rnd):
-    ob = _put(name, bm, mat, row, rnd); ob['bone'] = BONE['cur']; ob['shell'] = SHELL['prio']; return ob
-
-def outline(prio=-1):
-    """parts built after this call carry the dark outline shell; lower priority numbers are kept first when the triangle budget is
-    tight; -1 = no shell (small inner details)."""
-    SHELL['prio'] = prio
-
-K.put = _tagged_put
+    ob = _put(name, bm, mat, row, rnd); ob['bone'] = BONE['cur']; return ob
 
 def mutate(ns):
     """mutation runs (ci_art/job.sh): PIECES_MUT='NAME=value;NAME=value' overrides CONFIG values of the calling builder, so its gates can
@@ -55,25 +43,14 @@ def uv_tile(ob, m):
         for li in poly.loop_indices:
             c = me.vertices[me.loops[li].vertex_index].co; uvl.data[li].uv = (c[ua] / m, 1.0 - c[va] / m)
 
-def finish(name, bevel=False, width=None, shell_w=0.0, limit=None):
-    """as prop_kit.finish, plus tile rows, one vertex group per part (its bone) and the outline shells (shell_w m wide, added in
-    priority order while the whole stays inside limit triangles); joins PARTS into one object."""
-    shells = []
+def finish(name, bevel=False, width=None):
+    """as prop_kit.finish, plus tile rows and one vertex group per part (its bone); joins PARTS into one object. (Round 3's baked
+    inside-out outline shell is removed: lead round 4, the outline is the game's own renderer outline, src/chars.js CHR.outline.)"""
     for ob, mat, row, rnd in K.PARTS:
         if ob.data.uv_layers: pass  # UVs made before a tilt (pre_uv)
         elif isinstance(row, str) and row in TILE_M: uv_tile(ob, TILE_M[row])
         else: K.uv_trim(ob, row)
         ob.data.materials.append(K.material(mat))
-        if shell_w and ob.get('shell', -1) >= 0:  # from the unbevelled part
-            me = ob.data.copy(); so = bpy.data.objects.new(ob.name + '_ol', me); bpy.context.collection.objects.link(so)
-            me.materials.clear(); me.materials.append(K.material(OUTLINE))
-            bm = bmesh.new(); bm.from_mesh(me); bm.normal_update()
-            for v in bm.verts: v.co += v.normal * shell_w
-            bmesh.ops.reverse_faces(bm, faces=bm.faces[:])
-            for f in bm.faces: f.smooth = True; f.material_index = 0
-            bm.to_mesh(me); bm.free()
-            vg = so.vertex_groups.new(name=ob['bone']); vg.add(list(range(len(me.vertices))), 1.0, 'REPLACE')
-            shells.append((ob['shell'], K.tris(so), so))
         bm = bmesh.new(); bm.from_mesh(ob.data)
         if bevel and rnd is False: bmesh.ops.bevel(bm, geom=list(bm.edges), offset=width or K.BEVEL, segments=1, affect='EDGES', clamp_overlap=True)
         for f in bm.faces: f.smooth = rnd is True
@@ -82,24 +59,13 @@ def finish(name, bevel=False, width=None, shell_w=0.0, limit=None):
                 if len(e.link_faces) == 2 and e.calc_face_angle(0) > math.radians(K.SHARP_DEG): e.smooth = False
         bm.to_mesh(ob.data); bm.free()
         vg = ob.vertex_groups.new(name=ob['bone']); vg.add(list(range(len(ob.data.vertices))), 1.0, 'REPLACE')
-    obs = [p[0] for p in K.PARTS]; total = sum(K.tris(o) for o in obs); dropped = 0
-    for pr, n, so in sorted(shells, key=lambda t: t[0]):
-        if limit is None or total + n <= limit: obs.append(so); total += n
-        else: bpy.data.objects.remove(so); dropped += 1
-    if shells: print(f'INFO {name} outline shell: {len(shells) - dropped} of {len(shells)} parts, {total} tris in all' + (f' (limit {limit})' if limit else ''))
     bpy.ops.object.select_all(action='DESELECT')
-    for ob in obs: ob.select_set(True)
-    bpy.context.view_layer.objects.active = obs[0]
-    if len(obs) > 1: bpy.ops.object.join()
+    for ob, *_ in K.PARTS: ob.select_set(True)
+    bpy.context.view_layer.objects.active = K.PARTS[0][0]
+    if len(K.PARTS) > 1: bpy.ops.object.join()
     ob = bpy.context.active_object; ob.name = name; ob.data.name = name
-    K.PARTS.clear(); BONE['cur'] = 'root'; SHELL['prio'] = -1
+    K.PARTS.clear(); BONE['cur'] = 'root'
     return ob
-
-def bounds(ob):
-    """bounds of the piece itself (the outline shell left out): ((x0, x1), (y0, y1), (z0, z1)) in Blender axes."""
-    skip = {i for i, m in enumerate(ob.data.materials) if m.name == OUTLINE}
-    vs = {v for p in ob.data.polygons if p.material_index not in skip for v in p.vertices}; bb = [ob.matrix_world @ ob.data.vertices[i].co for i in vs]
-    return (min(c.x for c in bb), max(c.x for c in bb)), (min(c.y for c in bb), max(c.y for c in bb)), (min(c.z for c in bb), max(c.z for c in bb))
 
 def unskin(ob):
     for vg in list(ob.vertex_groups): ob.vertex_groups.remove(vg)
@@ -145,11 +111,11 @@ def shell(name, fn, nu, nv, mat, row='plain', rnd=True):
     bmesh.ops.recalc_face_normals(bm, faces=bm.faces)
     return K.put(name, bm, mat, row, rnd)
 
-def lods_static(prefix, build, budget, shell_w=0.0):
+def lods_static(prefix, build, budget):
     """LOD0 (full detail, bevels), LOD1 (half segments, no small parts), LOD2 (LOD1 decimated); all static."""
-    LEVEL['n'] = 1; K.Q['seg'] = 0.5; build(False); l1 = unskin(finish(prefix + '_lod1', shell_w=shell_w, limit=budget[1])); fit(l1, budget[1])
-    LEVEL['n'] = 2; K.Q['seg'] = 0.35; build(False); l2 = unskin(finish(prefix + '_lod2', shell_w=shell_w, limit=budget[2])); fit(l2, budget[2])
-    LEVEL['n'] = 0; K.Q['seg'] = 1.0; build(True); l0 = unskin(finish(prefix + '_lod0', True, shell_w=shell_w, limit=budget[0]))
+    LEVEL['n'] = 1; K.Q['seg'] = 0.5; build(False); l1 = unskin(finish(prefix + '_lod1')); fit(l1, budget[1])
+    LEVEL['n'] = 2; K.Q['seg'] = 0.35; build(False); l2 = unskin(finish(prefix + '_lod2')); fit(l2, budget[2])
+    LEVEL['n'] = 0; K.Q['seg'] = 1.0; build(True); l0 = unskin(finish(prefix + '_lod0', True))
     return l0, l1, l2
 
 # rig and clips -------------------------------------------------------------------------------------------------------
@@ -235,13 +201,13 @@ def export(path, extras=None, root=None):
                               export_image_format='NONE', export_extras=True)
     print('wrote', path, os.path.getsize(path), 'bytes')
 
-def build_rigged(key, build, bones, clips_fn, out, budget, gap, extras=None, extra_gates=None, shell_w=0.0):
+def build_rigged(key, build, bones, clips_fn, out, budget, gap, extras=None, extra_gates=None):
     """build(detail) fills prop_kit.PARTS (each part tagged by bone()); clips_fn(arm) -> [(action, seconds, probe bone, min travel m)].
     Writes <key>_lod0 skinned to <key>_rig, <key>_lod1 and <key>_lod2 static (moved aside by gap, 2 x gap). Returns the gate fail count."""
     K.reset(); K.PARTS.clear(); bpy.context.scene.render.fps = FPS
-    LEVEL['n'] = 1; K.Q['seg'] = 0.5; build(False); l1 = unskin(finish(f'{key}_lod1', shell_w=shell_w, limit=budget[1])); fit(l1, budget[1])
-    LEVEL['n'] = 2; K.Q['seg'] = 0.35; build(False); l2 = unskin(finish(f'{key}_lod2', shell_w=shell_w, limit=budget[2])); fit(l2, budget[2])
-    LEVEL['n'] = 0; K.Q['seg'] = 1.0; build(True); l0 = finish(f'{key}_lod0', True, shell_w=shell_w, limit=budget[0])
+    LEVEL['n'] = 1; K.Q['seg'] = 0.5; build(False); l1 = unskin(finish(f'{key}_lod1')); fit(l1, budget[1])
+    LEVEL['n'] = 2; K.Q['seg'] = 0.35; build(False); l2 = unskin(finish(f'{key}_lod2')); fit(l2, budget[2])
+    LEVEL['n'] = 0; K.Q['seg'] = 1.0; build(True); l0 = finish(f'{key}_lod0', True)
     arm = make_rig(f'{key}_rig', bones); stray, bad = skin(arm, l0)
     G = K.Gates()
     for ob, lim in zip((l0, l1, l2), budget): G(K.tris(ob) <= lim, f'{ob.name} tris {K.tris(ob)} (budget {lim})')
