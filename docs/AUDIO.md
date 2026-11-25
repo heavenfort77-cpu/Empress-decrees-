@@ -125,7 +125,7 @@ Slots: windup = the tell, which plays at windup start and swells to the release.
 ### Kaymuse's stingers (synth, no speech; calm contempt, never a shout; each under 3 s per the tone brief)
 | Stinger | Sound | Her lines (TEXT keys) it plays under |
 |---|---|---|
-| Decree | st_decree: two bell strikes a fifth apart over a hummed fifth | voice_dec_dry, voice_dec_nodash, voice_dec_silence, voice_dec_heights, voice_dec_ult2x, voice_kennel, voice_guard_break, voice_marked, voice_silenced, piece_voice_hb |
+| Decree | st_decree: two bell strikes a fifth apart over a hummed fifth | voice_dec_dry, voice_dec_nodash, voice_dec_silence, voice_dec_heights, voice_dec_ult2x, voice_kennel, voice_guard_break, voice_marked, voice_silenced |
 | Burning warning | st_burn: falling yu-zhi-yu bells, a fire tremolo and a low swell | burn_voice, voice_wave0-4, voice_fell |
 | Bounty | st_bounty: a cascade of coin chimes, a drum and a bell | voice_bounty, voice_bounty_paid, fz_voice_charge, voice_plate, voice_plate_take |
 | Wake | st_wake: a deep bell and a hum rising to an unresolved shang | voice_wake, voice_frenzy, pal_voice_core, voice_won, voice_lost, pal_voice_lost, voice_died, voice_royale_lost |

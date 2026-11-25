@@ -206,6 +206,9 @@ export async function fanzeiChecks(g, check, base) {
   // no shader compile, geometry flat; after all are broken none stays in the scene.
   const d907 = await g(() => {
     const G = __game, o = {}; const { A } = __fs(0);
+    // One step first: sight is worked out in the step, so the empty scene shows what the fight rows show (a training dummy out of sight
+    // was still drawn right after the new run: diag 45597082961, M.dummy + its M.camp base at 0,-18 in the empty scene only).
+    G.step(1);
     const empty = G.render(true), ec = G.census();
     o.q = [G.guardSpawn('huangjia', ['wz', 'dun', 'dun', 'zu', 'zu', 'zu', 'zu', 'zu', 'nu', 'nu', 'nu', 'che'], A[0], A[1] + 5, { fz: -1, open: true }),
       G.guardSpawn('fanzei', ['qs', 'ls', 'ls', 'ls', 'ls', 'ls', 'ls', 'ls', 'ls', 'fs', 'ss', 'ss'], A[0], A[1] - 5, { fz: 1, school: 'nong' })];

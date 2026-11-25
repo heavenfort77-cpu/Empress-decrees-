@@ -153,5 +153,14 @@ export async function proto17cChecks(g, check, page, browser, URL0) {
   check('1735 杂甲 counts start at 0 every run (copy cast = 1, new run = 0); the bot copies a line skill within its range, not beyond',
     z5.cast === true && z5.n1 === 1 && z5.n2 === 0 && z5.exp === 0 && !!z5.line && z5.line[0] === true && z5.line[1] === false, JSON.stringify(z5));
 
+  // 1736 Pieces art (owner 25 Nov 18:44): with the switches on no piece draws its plain shape: every plate, the leader crown, every decree mark
+  // and every 墨 wall carries its model (own draw hidden), the crab and the wanderer have rigs and hidden box bodies, no file or build failed;
+  // Kaymuse's switch is off until her file is in (no rig).
+  const pc = await g(() => __game.pcs());
+  check('1736 pieces art: no plain shape drawn for plate, crown, decree mark, 墨 wall, crab, wanderer; nothing failed; Kaymuse off',
+    pc.built && pc.failed.length === 0 && pc.on.plate && pc.on.crown && pc.on.decree && pc.on.moWall && pc.on.crab && pc.on.wanderer
+    && pc.plain.plate === 0 && pc.plain.crown === 0 && pc.plain.decree === 0 && pc.plain.moWall === 0 && pc.hosts > 0
+    && pc.neutrals.length === 2 && pc.neutrals.every((u) => u.rig && !u.body && u.levels >= 1) && pc.on.kaymuse === false && pc.km === false, JSON.stringify(pc));
+
   check('1732 no page error during the 17c and prototype checks', errs.length === 0, errs.slice(0, 4).join(' | '));
 }

@@ -729,6 +729,12 @@ const CONFIG = {
   CHARS: { on: true, dirSuits: 'assets/models/', dirModels: 'assets/c/models/' },
   // Palace art (prototype, owner 25 Nov 11:33; src/palace_art.js): arch = walls, pillars, floors, doors, throne; props = beasts, 鼎, vats, clocks,
   // cranes, censers, mercury; solidProps = racks, lamps, bell stands and standards (they add collision, a gameplay change: off).
+  // Pieces art (owner 25 Nov 18:44: the six round-4 pieces go in; models assets/models/pieces, materials in src/chars.js charMaterials): one
+  // switch per piece (off or a failed file = the plain shape stays): crab and wanderer (rigs with the game outline), plate, crown, moWall,
+  // decree (the mark over a marked suit). kaymuse = her model on the throne (owner 18:42: off until the round-5 file is in; anchor = metres
+  // from the dais spot). lod = metres at which a static piece drops to its second and third level.
+  PIECES_ART: { dir: 'assets/models/pieces/', crab: true, wanderer: true, plate: true, crown: true, moWall: true, decree: true,
+    kaymuse: false, kaymuseAt: [0, 2.16, -0.84], lod: [25, 60] },
   // queClear = metres between the approach bridge's edge and each 阙 tower's inner face (owner 25 Nov 02:2x: towers north, flanking the bridge);
   // lodFloorM = a LOD level standing more than this off LOD0's floor is left out (que_pair LOD2 has no footing: lead 25 Nov, leave it out).
   PAL_ART: { arch: true, props: true, solidProps: false, queClear: 0.6, lodFloorM: 0.1 },
@@ -817,12 +823,10 @@ const CONFIG = {
   // mercury: period = seconds per cycle; warn = seconds the channel shimmers before it burns (the tell, >= 0.4); on = seconds it burns; dps = damage per
   // second to anyone standing in it while it burns. smoke: revealM = two points this close see each other through smoke (m); opacity of the clouds;
   // r = cloud radius in metres for the full palace's smoke pieces (the six-room box gives its own r per piece).
-  // huabiao: range = a suit this close wakes the beast (m); radius = suits this close when it looks are marked (m); windup = the tell (s: red ring,
-  // glowing eyes); cooldown = seconds before it wakes again; markS = seconds marked (seen by all, as a decree break). col = colours: mercury idle,
-  // shimmering, burning; smoke; the beast's eyes asleep and awake.
+  // The 华表 are scenery only (owner 25 Nov 18:42: the pillar no longer marks anyone): no values here. col = colours: mercury idle,
+  // shimmering, burning; smoke.
   PIECES: { on: true, mercury: { period: 4, warn: 0.6, on: 1.2, dps: 12 }, smoke: { revealM: 2.5, opacity: 0.55, r: 3 },
-    huabiao: { range: 3, radius: 3.5, windup: 0.5, cooldown: 6, markS: 5 },
-    col: { merc: 0xa9b4bc, mercWarn: 0xd8e4ee, mercHot: 0xf2f8ff, smoke: 0x8c8a86, eyeOff: 0x5a4a30, eyeOn: 0xff5020 } },
+    col: { merc: 0xa9b4bc, mercWarn: 0xd8e4ee, mercHot: 0xf2f8ff, smoke: 0x8c8a86 } },
   // Palace pieces II (BP09; owner picks 24 Nov 14:27): on = switch (palace runs only; Royal Rumble has none). Numbers are first picks, not tuned (owner: results first).
   // clock = 铜壶滴漏 water clocks, one per wing: steps = water-level steps (the water is written only when its step changes).
   // vat = 门海 bronze water vats: hp = damage that breaks one; crackS = tell seconds (ring) before the splash (>= 0.4); radius = splash metres;
@@ -1081,8 +1085,6 @@ const TEXT = {
   pal3_r_giant: 'A bronze giant crushed {b} in the {room}.',
   help_pal_desktop: 'Right-click move / attack · Q W R aim at cursor (release to cast) · Z zoom: auto, wide, close · S stop · N new run',
   help_pal_touch: 'Left stick: move · tap or drag skills · New run',
-  piece_voice_hb: 'The beast upon the pillar hath seen thee.',
-  piece_rule_hb: 'Marked by the 华表 for {s} s: everyone sees you.',
   sel_key: '{n}. {who}',
   hud_leader: 'Leader: {who}',
   hud_leader_bounty: 'Leader: {who}  (bounty {s} s)',
@@ -2818,7 +2820,8 @@ const PIECES_01 = {
     { type: 'mercury', x0: 20, x1: 40, z0: -20, z1: -18, ph: 0 }, { type: 'lion', x: 26.8, z: -21.8, fz: -1 }, { type: 'lion', x: 33.2, z: -21.8, fz: -1 }],
   bridge: [{ type: 'mercury', x0: 12, x1: 14, z0: -32, z1: -24, ph: 1.5 }, { type: 'mercury', x0: 22, x1: 24, z0: -32, z1: -24, ph: 3 }],
 };
-const PIECE_SIDES = [], PIECE_HAZ = [], PIECE_MERC = [], PIECE_SMOKE = [], PIECE_DING = [];
+// PIECE_HB = the 华表 pillars: scenery with a solid (owner 25 Nov 18:42: they no longer wake, tell, look or mark), kept for the art and the minimap.
+const PIECE_SIDES = [], PIECE_HAZ = [], PIECE_HB = [], PIECE_MERC = [], PIECE_SMOKE = [], PIECE_DING = [];
 // A room's pieces in this reader's format (integration, 24 Nov): the six-room box uses PIECES_01; the full palace's PAL_FULL_PIECES (BP05:
 // mercury as centre x, z and size sx, sz; smoke kind 'crane' or 'censer') is converted here. Clocks, vats and giants are ticket 09's.
 // Lions in the full palace face south (fz 1; looks only: the strike ring is round).
@@ -2833,7 +2836,6 @@ function pieceList(LK, id) {
   }
   return out;
 }
-const PIECE_VARS = { s: CONFIG.PIECES.huabiao.markS };
 // Checks only (__game.pieceProbe): a stand-in unit of another side, so the checks prove every piece acts on other sides before the guard is merged.
 const PIECE_PROBE = { list: [],
   hurt(u, n, kx, kz) { u.hp -= n; u.hits++; u.kx += kx; u.kz += kz; },
@@ -2851,9 +2853,7 @@ PIECE_SIDES.push({ list: P2_GIANT_T, hurt(u, n) { hitGiant(u, n, null, 'piece');
   mat('merc', col.merc, { metalness: 0.8, roughness: 0.3 });
   mat('mercWarn', col.mercWarn, { emissive: col.mercWarn, emissiveIntensity: 0.6, metalness: 0.8, roughness: 0.3 });
   mat('mercHot', col.mercHot, { emissive: col.mercHot, emissiveIntensity: 1.4, metalness: 0.8, roughness: 0.3 });
-  mat('hbEyeOff', col.eyeOff, { emissive: col.eyeOff, emissiveIntensity: 0.3 });
-  mat('hbEyeOn', col.eyeOn, { emissive: col.eyeOn, emissiveIntensity: 2 });
-  for (const k of ['merc', 'mercWarn', 'mercHot', 'hbEyeOff', 'hbEyeOn']) addFow(M[k]);
+  for (const k of ['merc', 'mercWarn', 'mercHot']) addFow(M[k]);
   M.smoke = new THREE.MeshStandardMaterial({ color: col.smoke, roughness: 1, transparent: true, opacity: PP.smoke.opacity, depthWrite: false });
   const still = (r, mesh, shadow) => { mesh.castShadow = shadow; mesh.receiveShadow = true; mesh.matrixAutoUpdate = false; mesh.updateMatrix(); r.group.add(mesh); return mesh; };
   for (const LK in PAL.sets) {
@@ -2875,14 +2875,12 @@ PIECE_SIDES.push({ list: P2_GIANT_T, hurt(u, n) { hitGiant(u, n, null, 'piece');
         add('palLion', box(1.6, 0.6, 2.2, x, 0.3, z)); add('palLion', box(1.2, 1.2, 1.6, x, 1.2, z)); add('palLion', box(1.0, 1.0, 0.8, x, 2.1, z + 0.6 * f));
         palSolid(r, x - 0.9, x + 0.9, z - 1.1, z + 1.1);
         const ring = addStatic(r.group, ringMesh(CONFIG.LION.radius, x, 0, z)); ring.visible = false;
-        PIECE_HAZ.push({ kind: 'lion', cfg: CONFIG.LION, x, z, y: 0, s: r, ring, state: 0, t: 0, statue: false, mark: false, eyes: null, src: p, art: null, fxH: -1 });
+        PIECE_HAZ.push({ kind: 'lion', cfg: CONFIG.LION, x, z, y: 0, s: r, ring, state: 0, t: 0, statue: false, src: p, art: null, fxH: -1 });
       } else if (p.type === 'huabiao') {
         add('stone', box(1.4, 0.4, 1.4, x, 0.2, z)); add('stone', cyl(0.45, 5, x, 2.9, z)); add('stone', box(1.6, 0.25, 0.4, x, 4.4, z));
         add('stone', box(0.9, 0.6, 1.1, x, 5.7, z));
         palSolid(r, x - 0.7, x + 0.7, z - 0.7, z + 0.7);
-        const eyes = still(r, new THREE.Mesh(box(0.7, 0.15, 0.1, x, 5.85, z + 0.56), M.hbEyeOff), false);
-        const ring = addStatic(r.group, ringMesh(PP.huabiao.radius, x, 0, z)); ring.visible = false;
-        PIECE_HAZ.push({ kind: 'huabiao', cfg: PP.huabiao, x, z, y: 0, s: r, ring, state: 0, t: 0, statue: false, mark: true, eyes, src: p, art: null, fxH: -1 });
+        PIECE_HB.push({ kind: 'huabiao', x, z, s: r, src: p, art: null });
       } else if (p.type === 'ding') {
         add('bronze', cyl(0.85, 1.0, x, 0.75, z, 16)); add('bronze', cyl(0.95, 0.12, x, 1.3, z, 16));
         for (const [lx, lz] of [[0.5, 0.4], [-0.5, 0.4], [0, -0.6]]) add('bronze', cyl(0.12, 0.5, x + lx, 0.25, z + lz, 6));
@@ -2908,46 +2906,45 @@ PIECE_SIDES.push({ list: P2_GIANT_T, hurt(u, n) { hitGiant(u, n, null, 'piece');
   }
   }
 }
-// New run: pieces back to rest (rings off, eyes asleep, mercury at its phase, cauldrons full); the probe unit gone.
+// New run: pieces back to rest (rings off, mercury at its phase, cauldrons full); the probe unit gone.
 function resetPieces() {
-  for (const h of PIECE_HAZ) { h.state = 0; h.t = 0; h.ring.visible = false; if (h.eyes) h.eyes.material = M.hbEyeOff; }
+  for (const h of PIECE_HAZ) { h.state = 0; h.t = 0; h.ring.visible = false; }
   for (const m of PIECE_MERC) { m.t = m.ph % CONFIG.PIECES.mercury.period; m.state = 0; m.stT = 0; m.mesh.material = M.merc; }
   for (const a of PIECE_DING) { a.charge = CONFIG.ALTAR.charge; a.emptyT = 0; a.mesh.material = M.altarOn; }
   PIECE_PROBE.list.length = 0;
 }
-// Load warm-up (one palace draw): every piece look drawn once (rings, the awake eyes, the three mercury looks, an empty cauldron).
+// Load warm-up (one palace draw): every piece look drawn once (rings, the three mercury looks, an empty cauldron).
 function warmPieces(on) {
-  PIECE_HAZ.forEach((h) => { h.ring.visible = on; if (h.eyes) h.eyes.material = on ? M.hbEyeOn : M.hbEyeOff; });
+  PIECE_HAZ.forEach((h) => { h.ring.visible = on; });
   const looks = [M.merc, M.mercWarn, M.mercHot];
   PIECE_MERC.forEach((m, i) => { m.mesh.material = on ? looks[i % 3] : M.merc; });
   PIECE_DING.forEach((a) => { a.mesh.material = on ? M.altarOff : M.altarOn; });
 }
 // PERFRAME-BEGIN
-// A hazard's cycle (the Royal Rumble statue and lions, the palace lions and 华表): idle -> tell (red ring; the statue's or beast's eyes glow) ->
-// strike or look -> cooldown. Anyone close by starts the tell (the 华表 only suits); the strike hits every suit and every side inside.
+// A hazard's cycle (the Royal Rumble statue and lions, the palace lions): idle -> tell (red ring; the statue's eyes glow) -> strike ->
+// cooldown. Anyone close by starts the tell; the strike hits every suit and every side inside.
 function hazardStep(h, dt) {
   const c = h.cfg;
   if (h.state === 0) {
     if (hazardWakes(h)) {
-      h.state = 1; h.t = 0; h.ring.visible = true; if (h.statue) M.eyes.emissiveIntensity = 3; if (h.eyes) h.eyes.material = M.hbEyeOn;
-      // Batch 17c: the beast's or statue's painted tell for exactly the windup (the 华表 has no card: owner 25 Nov 02:25).
-      h.fxH = h.mark ? -1 : fxE(h.statue ? 'statue:tell' : 'lion:tell', h.x, h.z, '', FX.fxO(0, 1, c.radius, 0, c.windup, 0, h.y));
+      h.state = 1; h.t = 0; h.ring.visible = true; if (h.statue) M.eyes.emissiveIntensity = 3;
+      // Batch 17c: the beast's or statue's painted tell for exactly the windup.
+      h.fxH = fxE(h.statue ? 'statue:tell' : 'lion:tell', h.x, h.z, '', FX.fxO(0, 1, c.radius, 0, c.windup, 0, h.y));
       if (h.art) PA.setBeast(h.art, true);
     }
   } else if (h.state === 1) {
     h.t += dt;
     if (h.t >= c.windup) {
-      h.state = 2; h.t = 0; h.ring.visible = false; if (h.statue) M.eyes.emissiveIntensity = 0.4; if (h.eyes) h.eyes.material = M.hbEyeOff;
+      h.state = 2; h.t = 0; h.ring.visible = false; if (h.statue) M.eyes.emissiveIntensity = 0.4;
       if (h.art) PA.setBeast(h.art, false);
-      if (!h.mark) { FX.fxRelease(h.fxH); h.fxH = -1; fxE(h.statue ? 'statue:rel' : 'lion:rel', h.x, h.z, '', FX.fxO(0, 1, c.radius, 0, 0, 0, h.y)); }
-      if (h.mark) hazardMark(h); else hazardStrike(h);
+      FX.fxRelease(h.fxH); h.fxH = -1; fxE(h.statue ? 'statue:rel' : 'lion:rel', h.x, h.z, '', FX.fxO(0, 1, c.radius, 0, 0, 0, h.y));
+      hazardStrike(h);
     }
   } else if (h.state === 2) { h.t += dt; if (h.t >= c.cooldown) h.state = 0; }
 }
 function hazardWakes(h) {
   const r = h.cfg.range;
   for (let k = 0; k < SUITS.length; k++) { const s = SUITS[k]; if (!s.dead && Math.abs(s.y - h.y) < 3 && Math.hypot(s.x - h.x, s.z - h.z) < r) return true; }
-  if (h.mark) return false;
   for (let j = 0; j < PIECE_SIDES.length; j++) {
     const L = PIECE_SIDES[j].list;
     for (let k = 0; k < L.length; k++) { const u = L[k]; if (u.alive && Math.abs(u.y - h.y) < 3 && Math.hypot(u.x - h.x, u.z - h.z) < r) return true; }
@@ -2972,16 +2969,6 @@ function hazardStrike(h) {
       if (d >= c.radius) continue;
       if (d > 0.01) side.hurt(u, c.dmg, hx / d * c.kb, hz / d * c.kb); else side.hurt(u, c.dmg, 0, c.kb);
     }
-  }
-}
-// The 华表 beast looks: every suit within its radius is marked (seen by all, as after a decree break); the player sees her line.
-function hazardMark(h) {
-  const sec = h.cfg.markS;
-  for (let k = 0; k < SUITS.length; k++) {
-    const s = SUITS[k];
-    if (s.dead || Math.abs(s.y - h.y) >= 3 || Math.hypot(s.x - h.x, s.z - h.z) >= h.cfg.radius) continue;
-    s.markT = Math.max(s.markT, sec); s.marker.visible = true;
-    if (s === P) showNote('piece_voice_hb', 'piece_rule_hb', PIECE_VARS);
   }
 }
 // An altar or a 鼎 heals whoever stands on it (suits, then other sides); a hit pauses a suit's healing; emptied, it refills later; none while dry.
@@ -3056,7 +3043,7 @@ function pieceDanger(b, x, z, margin) {
   const react = b.skill.react;
   for (let i = 0; i < PIECE_HAZ.length; i++) {
     const h = PIECE_HAZ[i];
-    if (h.mark || h.state !== 1 || h.t < react || Math.abs(h.y - b.y) >= 3) continue;
+    if (h.state !== 1 || h.t < react || Math.abs(h.y - b.y) >= 3) continue;
     if (Math.hypot(x - h.x, z - h.z) < h.cfg.radius + margin) { DNG.ex = b.x - h.x; DNG.ez = b.z - h.z; if (DNG.ex === 0 && DNG.ez === 0) DNG.ez = 1; return true; }
   }
   for (let i = 0; i < PIECE_MERC.length; i++) {
@@ -3141,6 +3128,7 @@ function palMiniRoom(c, C, r, sc, X, Z) {
   c.fillStyle = I.merc;
   for (const m of PIECE_MERC) if (m.s === r) { c.fillRect(X(m.x0), Z(m.z0), Math.max(2, (m.x1 - m.x0) * sc), Math.max(2, (m.z1 - m.z0) * sc)); n++; }
   for (const p of PIECE_HAZ) if (p.s === r) dot(I[p.kind] || I.lion, p.x, p.z);
+  for (const p of PIECE_HB) if (p.s === r) dot(I.huabiao, p.x, p.z);
   for (const p of PIECE_DING) if (p.s === r) dot(I.ding, p.x, p.z);
   for (const p of PIECE_SMOKE) if (p.s === r) dot(I.smoke, p.x, p.z);
   for (const k of P2.clocks) if (k.room === r) dot(I.clock, k.water.position.x, k.water.position.z);
@@ -5326,7 +5314,10 @@ function wallFits(s, sk, x, z, dx, dz) {
 function raiseWall(s, sk) {
   const w = s.wall; if (!w.off) lowerWall(s);
   w.x0 = WB.x0; w.x1 = WB.x1; w.z0 = WB.z0; w.z1 = WB.z1; w.y = WB.y; w.s = WB.sec; w.off = false; s.wallT = sk.dur; G.wallN++;
-  w.mesh.scale.set(w.x1 - w.x0, sk.h, w.z1 - w.z0); w.mesh.position.set((w.x0 + w.x1) / 2, WB.y + sk.h / 2, (w.z0 + w.z1) / 2); w.mesh.updateMatrix();
+  w.mesh.scale.set(w.x1 - w.x0, sk.h, w.z1 - w.z0); w.mesh.position.set((w.x0 + w.x1) / 2, WB.y + sk.h / 2, (w.z0 + w.z1) / 2);
+  // Pieces art: the wall model lies along the wall's long side.
+  if (w.art) { w.art.rotation.y = w.x1 - w.x0 >= w.z1 - w.z0 ? 0 : Math.PI / 2; w.art.updateMatrix(); }
+  w.mesh.updateMatrix();
   scene.add(w.mesh); renderer.shadowMap.needsUpdate = true;
 }
 function lowerWall(s) { const w = s.wall; if (w.off) return; w.off = true; s.wallT = 0; G.wallN--; scene.remove(w.mesh); renderer.shadowMap.needsUpdate = true; }
@@ -7684,8 +7675,41 @@ function reset() {
 // school; the nine suits of a run have nine schools), the Tiger Demon and the two hunt minions, the royale cubs, twelve giant rigs (one per head) and
 // the guard and rebel crowd. Gameplay, timers, collision and hit areas stay in this file; the box bodies stay built (hidden while the models are on).
 const CHRS = { drawN: 0, rigN: 0, fxN: 0, tex: {}, gl: null, info: null, mat: null, tpl: {}, gi: [], steps: null, si: 0, suit: {}, units: [], giants: [], crowd: null, ready: false, failed: [], rigs: [] };
-const CHR_SHEETS = ['suit_lamellar', 'suit_bronze', 'suit_cloth', 'bronze_trim_brass', 'bronze_trim_patina', 'fodder_trim', 'tread_belt', 'apex_patina'];
+const CHR_SHEETS = ['suit_lamellar_qin', 'suit_bronze', 'suit_cloth', 'bronze_trim_brass', 'bronze_trim_patina', 'fodder_trim', 'tread_belt', 'apex_patina'];
 const CHR_HIDE = new THREE.MeshBasicMaterial({ visible: false });
+// Pieces art (CONFIG.PIECES_ART): gl = parsed files, failed = keys whose file or build failed (their plain shape stays), hosts = the plain
+// meshes now carrying a model (their own draw hidden), warm = one mesh per model part for the card's warm draw, km = Kaymuse's rig.
+const PCS = { gl: {}, failed: [], hosts: [], one: {}, warm: null, km: null, built: false };
+const PCS_FILE = { crab: 'crab', wanderer: 'wanderer', plate: 'plate', crown: 'leader_crown', moWall: 'mo_wall', decree: 'decree_mark', kaymuse: 'kaymuse' };
+const PCS_HIDE = new THREE.MeshBasicMaterial({ visible: false });
+// A static piece as a THREE.LOD (levels <file>_lod0..2 of its GLB; geometry and materials shared by every copy). Load time only.
+function pcsMake(key) {
+  const gl = PCS.gl[key], lod = new THREE.LOD(), D = CONFIG.PIECES_ART.lod;
+  for (let i = 0; i < 3; i++) {
+    const nd = gl.scene.getObjectByName(PCS_FILE[key] + '_lod' + i); if (!nd) continue;
+    const g = new THREE.Group(), src = nd.isMesh ? [nd] : nd.children.filter((o) => o.isMesh);
+    for (const o of src) { const m = new THREE.Mesh(o.geometry, CHRS.mat(o.material.name, o.material)); m.castShadow = false; m.matrixAutoUpdate = false; g.add(m); }
+    g.matrixAutoUpdate = false; lod.addLevel(g, i === 0 ? 0 : D[i - 1]);
+  }
+  if (!lod.levels.length) throw new Error('pieces: no level in ' + key);
+  return lod;
+}
+// The model rides on the plain mesh (same pool, same show/hide and placement code); the plain mesh's own draw is hidden.
+function pcsAttach(host, key, sx, sy, sz, y) {
+  const l = pcsMake(key); l.scale.set(sx, sy, sz); l.position.y = y; l.updateMatrix(); l.matrixAutoUpdate = false;
+  host.add(l); host.material = PCS_HIDE; PCS.hosts.push(host); if (!PCS.one[key]) PCS.one[key] = l; return l;
+}
+// Under the card, after the character templates: the static pieces on their hosts and the warm group. A piece that fails keeps its shape.
+function pcsBuild() {
+  const C = CONFIG.PIECES_ART, on = (k) => C[k] && PCS.gl[k] && PCS.failed.indexOf(k) < 0, each = (k, f) => { if (!on(k)) return; try { f(); } catch (e) { PCS.failed.push(k); } };
+  each('plate', () => { for (const u of ENEMIES.concat(CUBS, NEUTRALS)) pcsAttach(u.plate, 'plate', 1, 1, 1, -0.075); });
+  each('crown', () => { const k = CONFIG.LEADER.crownR * 2 / 0.66; pcsAttach(crown, 'crown', k, k, k, -0.13); });
+  each('decree', () => { for (const s of SUITS) pcsAttach(s.marker, 'decree', 1, 1, 1, 0); });
+  each('moWall', () => { for (const s of SUITS) s.wall.art = pcsAttach(s.wall.mesh, 'moWall', 1 / 4.12, 1 / 2.4, 1 / 0.88, -0.5); });
+  PCS.warm = new THREE.Group(); let n = 0;
+  for (const k in PCS.one) for (const L of PCS.one[k].levels) for (const o of L.object.children) { const m = new THREE.Mesh(o.geometry, o.material); m.scale.setScalar(0.2); m.position.set((n % 8) * 0.3 - 1, 0, Math.floor(n / 8) * 0.3); n++; PCS.warm.add(m); }
+  PCS.built = true;
+}
 // PERFRAME-BEGIN
 // Checks only (306, 907): crowd batches the renderer drew in its main pass since __game.render last zeroed the count (culled batches do not count).
 function crowdTick() { CHRS.drawN++; }
@@ -7699,6 +7723,12 @@ function chrFetch() {
   const jobs = files.map((f) => ld.loadAsync(f.url).then((x) => { gl[f.key] = x; }, () => fail.push(f.key)));
   for (const n of CHR_SHEETS) jobs.push(ldOne(n).then((f) => {
     if (!f.t) { fail.push(n); return; }
+    const t = f.t; t.colorSpace = THREE.SRGBColorSpace; t.wrapS = t.wrapT = THREE.RepeatWrapping; t.anisotropy = Math.min(4, renderer.capabilities.getMaxAnisotropy()); t.flipY = false; t.needsUpdate = true; CHRS.tex[n] = t;
+  }));
+  // Pieces art: optional files (a miss leaves that piece's plain shape; it never fails the characters); the 墨 wall's three sheets with them.
+  for (const k in PCS_FILE) if (CONFIG.PIECES_ART[k]) jobs.push(ld.loadAsync(CONFIG.PIECES_ART.dir + PCS_FILE[k] + '.glb').then((x) => { PCS.gl[k] = x; }, () => { PCS.failed.push(k); }));
+  if (CONFIG.PIECES_ART.moWall) for (const n of ['rammed_earth', 'timber', 'river_stone']) jobs.push(ldOne(n).then((f) => {
+    if (!f.t) { if (PCS.failed.indexOf('moWall') < 0) PCS.failed.push('moWall'); return; }
     const t = f.t; t.colorSpace = THREE.SRGBColorSpace; t.wrapS = t.wrapT = THREE.RepeatWrapping; t.anisotropy = Math.min(4, renderer.capabilities.getMaxAnisotropy()); t.flipY = false; t.needsUpdate = true; CHRS.tex[n] = t;
   }));
   jobs.push(fetch(CHR.CHR.suitInfo).then((r) => r.json()).then((j) => { CHRS.info = {}; for (const s of j) CHRS.info[s.id] = s; }, () => fail.push('suits_info')));
@@ -7716,6 +7746,12 @@ function chrBuildStep() {
     S.push(() => { T.tiger = CHR.makeTemplate(GL.tiger, { kind: 'tiger', id: 'tiger', mat, states: ['dormant', 'awake'], lodDist: C.lod.tiger }); });
     for (const k of ['stalker', 'howler']) S.push(() => { T[k] = CHR.makeTemplate(GL[k], { kind: k, id: k, mat, states: ['dormant', 'awake'], lodDist: C.lod.cub }); });
     for (let i = 0; i < 12; i++) { const h = 'giant_g' + String(i).padStart(2, '0') + '_'; S.push(() => { CHRS.gi.push(CHR.makeTemplate(GL.giants, { kind: 'giant', id: 'g' + i, mat, states: ['dormant', 'awake'], lodDist: C.lod.giant, keep: (n) => n.startsWith('giant_body') || n === 'giant_flakes' || n.startsWith(h) })); }); }
+    // Pieces art: the two buff creatures and Kaymuse as rigs (static LOD levels sit beside the rig in the files: moved back first).
+    for (const k of ['crab', 'wanderer', 'kaymuse']) S.push(() => {
+      if (!CONFIG.PIECES_ART[k] || !PCS.gl[k]) return;
+      try { PCS.gl[k].scene.traverse((o) => { if (/_lod[12]$/.test(o.name)) o.position.set(0, 0, 0); }); T[k] = CHR.makeTemplate(PCS.gl[k], { kind: k, id: k, mat, outline: k !== 'kaymuse', lodDist: C.lod.neutral }); }
+      catch (e) { PCS.failed.push(k); }
+    });
     S.push(chrSpawn);
   }
   if (CHRS.si < CHRS.steps.length) { CHRS.steps[CHRS.si++](); return CHRS.si >= CHRS.steps.length; }
@@ -7727,10 +7763,15 @@ function chrSpawn() {
   for (const sc of CONFIG.SCHOOLS) { const r = CHR.spawnRig(T['suit_' + C.suitIds[sc]], { lodK: k }); CHRS.suit[sc] = r; CHRS.rigs.push(r); }
   for (const u of ENEMIES.concat(CUBS)) { u.rig = CHR.spawnRig(u.kind === 'demon' ? T.tiger : T[u.kind], { lodK: k }); u.chrSt = -1; CHRS.units.push(u); CHRS.rigs.push(u.rig); }
   for (let i = 0; i < 12; i++) { const r = CHR.spawnRig(CHRS.gi[i], { lodK: k }); CHRS.giants.push(r); CHRS.rigs.push(r); }
+
   const CT = {}; for (const t of C.guardTypes.concat(C.rebelTypes)) CT[t] = T[t];
   CHRS.crowd = CHR.makeCrowd(CT, { pool: GC.pool, lodK: k });
   for (const m of CHRS.crowd.meshes) { m.onAfterRender = crowdTick; scene.add(m); }
   for (const t of GUARD_TYPES) { const pool = GPOOL[t]; for (let i = 0; i < pool.length; i++) { pool[i].cs = CHRS.crowd.makeState(t, i); pool[i].chrClip = ''; } }
+  // Pieces art last, each part on its own: a failure leaves that piece's plain shape and never the characters above.
+  for (const u of NEUTRALS) if (T[u.kind]) { try { const r = CHR.spawnRig(T[u.kind], { lodK: k }); u.rig = r; u.chrSt = -1; u.chrMv = -1; CHRS.units.push(u); CHRS.rigs.push(r); } catch (e) { PCS.failed.push(u.kind); } }
+  if (T.kaymuse) { try { PCS.km = CHR.spawnRig(T.kaymuse, { lodK: k }); CHRS.rigs.push(PCS.km); } catch (e) { PCS.failed.push('kaymuse'); } }
+  try { pcsBuild(); } catch (e) { PCS.failed.push('build'); }
 }
 // Warm-up under the card: every rig level and both material states drawn once, every crowd batch drawn, then all hidden again.
 function chrWarm() {
@@ -7742,11 +7783,13 @@ function chrWarm() {
   CHR.beginFrame(camera);
   for (let i = 0; i < R.length; i++) { R[i].place(x + ((i % 8) - 3.5) * 2, 0, z + (Math.floor(i / 8) - 1.5) * 2, 0, 1); R[i].show(scene); R[i].play(R[i].actions.idle ? 'idle' : R[i].actions.move ? 'move' : 'dormant'); R[i].update(0.016); }
   CHRS.crowd.setTime(0); CHRS.crowd.warmAll(x, 0, z);
+  if (PCS.warm) { PCS.warm.position.set(x, 0.3, z); scene.add(PCS.warm); }
   CHR.lodHold(R, true); renderer.compile(scene, camera); renderer.render(scene, camera);
   let calls = renderer.info.render.calls;
   for (const r of R) r.setState(1);
   renderer.compile(scene, camera); renderer.render(scene, camera); calls += renderer.info.render.calls;
   for (const r of R) r.setState(0);
+  if (PCS.warm) scene.remove(PCS.warm);
   CHR.lodHold(R, false);
   for (const r of R) r.hide();
   CHRS.crowd.begin(camera); CHRS.crowd.end();
@@ -7786,7 +7829,14 @@ function chrFrame(dt) {
     if (st !== u.chrSt) { u.chrSt = st; r.setState(st); r.play(st === 0 && r.actions.dormant ? 'dormant' : r.actions.move ? 'move' : 'idle'); }
     r.place(u.group.position.x, u.y, u.group.position.z, u.fx, u.fz);
     if (r.tpl.tread) r.addTread(Math.hypot(u.x - u.px, u.z - u.pz));
+    if (u.neutral) { const mv = u.x !== u.px || u.z !== u.pz ? 1 : 0; if (mv !== u.chrMv) { u.chrMv = mv; r.play(mv && r.actions.move ? 'move' : 'idle'); } }
     r.update(dt);
+  }
+  // Kaymuse on the throne (CONFIG.PIECES_ART.kaymuse): shown while the palace's core hall is in the scene, at her seat on the dais.
+  if (PCS.km) {
+    const r = PCS.km, c = PAL.on ? PAL.byId.core : null, A = CONFIG.PIECES_ART.kaymuseAt;
+    if (!c || !c.group.parent || !c.spots || !c.spots.dais) { if (r.on) r.hide(); }
+    else { if (!r.on) { r.show(scene); r.play('idle'); } r.place(c.spots.dais[0] + A[0], A[1], c.spots.dais[1] + A[2], 0, 1); r.update(dt); }
   }
   for (let i = 0; i < P2.giants.length && i < CHRS.giants.length; i++) {
     const g = P2.giants[i], r = CHRS.giants[i];
@@ -7811,7 +7861,7 @@ function artRoom(r) {
   const si = r.school ? Math.max(0, CONFIG.SCHOOLS.indexOf(r.school)) : 0;
   if (PA.PAL_ART.props) {
     for (const h of PIECE_HAZ) if (h.s === r && h.kind === 'lion') h.art = PA.addTo(art, PA.prop(K, 'beast', h.x, h.z, (h.src && h.src.fz || 1) > 0 ? 0 : Math.PI));
-    for (const h of PIECE_HAZ) if (h.s === r && h.kind === 'huabiao') h.art = PA.addTo(art, PA.prop(K, 'huabiao', h.x, h.z, 0));
+    for (const h of PIECE_HB) if (h.s === r) h.art = PA.addTo(art, PA.prop(K, 'huabiao', h.x, h.z, 0));
     for (const a of PIECE_DING) if (a.s === r) { a.art = PA.addTo(art, PA.ding(K, a.x, a.z, si)); PA.standard(K, art, r, a.x, a.z, si, blocked); }
     for (const s of PIECE_SMOKE) if (s.s === r) s.art = PA.addTo(art, PA.prop(K, s.src === 'crane' ? 'crane' : 'censer', s.x, s.z, 0));
     for (const m of PIECE_MERC) if (m.s === r) m.art = PA.addTo(art, PA.mercury(K, m.x0, m.x1, m.z0, m.z1));
@@ -7853,7 +7903,7 @@ function artRevert() {
     for (const d of A.doors) if (d.art) { if (d.art.root.parent) d.art.root.parent.remove(d.art.root); d.panel.material = d.panelMat; }
   }
   for (const r of A.rooms) { if (r.art) { if (r.art.group.parent) r.art.group.parent.remove(r.art.group); PA.disposeRoom(r.art); } r.art = null; }
-  for (const h of PIECE_HAZ) h.art = null; for (const a of PIECE_DING) a.art = null; for (const s of PIECE_SMOKE) s.art = null; for (const m of PIECE_MERC) m.art = null;
+  for (const h of PIECE_HAZ) h.art = null; for (const h of PIECE_HB) h.art = null; for (const a of PIECE_DING) a.art = null; for (const s of PIECE_SMOKE) s.art = null; for (const m of PIECE_MERC) m.art = null;
   for (const LK in P2.sets) for (const c of P2.sets[LK].clocks) c.art = null;
   for (const v of P2_VATS) v.art = null; for (const d of A.doors) d.art = null;
   if (A.kit) PA.disposeKit(A.kit);
@@ -7993,6 +8043,7 @@ function chrRewarm() {
   CHR.beginFrame(camera);
   for (let i = 0; i < R.length; i++) if (!R[i].on) { R[i].place(x + ((i % 8) - 3.5) * 2, 0, z + (Math.floor(i / 8) - 1.5) * 2, 0, 1); R[i].show(scene); R[i].update(0.016); }
   CHRS.crowd.setTime(0); CHRS.crowd.warmAll(x, 0, z);
+  if (PCS.warm) { PCS.warm.position.set(x, 0.3, z); scene.add(PCS.warm); }
   CHR.lodHold(R, true);
   for (const r of R) r.setState(0);
   renderer.compile(scene, camera); renderer.render(scene, camera);
@@ -8000,6 +8051,7 @@ function chrRewarm() {
   for (const r of R) r.setState(1);
   renderer.compile(scene, camera); renderer.render(scene, camera); calls += renderer.info.render.calls;
   for (let i = 0; i < R.length; i++) R[i].setState(was[i][1]);
+  if (PCS.warm) scene.remove(PCS.warm);
   CHR.lodHold(R, false);
   for (let i = 0; i < R.length; i++) if (!was[i][0]) R[i].hide();
   CHRS.crowd.begin(camera); CHRS.crowd.end();
@@ -8397,6 +8449,14 @@ window.__game = {
     walk(scene, 'scene'); for (const r of PAL.rooms) walk(r.group, 'room ' + r.id); for (const d of PAL.doors) walk(d.group, 'door');
     return out;
   },
+  // Read-only (check 1736): pieces art: switches, failed keys, hosts carrying a model and how many of them still draw their plain shape, the
+  // buff creatures' rigs and box bodies, Kaymuse's rig.
+  pcs() {
+    const C = CONFIG.PIECES_ART, on = {}; for (const k in PCS_FILE) on[k] = !!C[k];
+    const hostOf = { plate: ENEMIES.concat(CUBS, NEUTRALS).map((u) => u.plate), crown: [crown], decree: SUITS.map((s) => s.marker), moWall: SUITS.map((s) => s.wall.mesh) }, plain = {};
+    for (const k in hostOf) plain[k] = hostOf[k].filter((h) => h.material !== PCS_HIDE || !h.children.some((c) => c.isLOD && c.levels.length > 0)).length;
+    return { on, built: PCS.built, failed: PCS.failed.slice(), hosts: PCS.hosts.length, plain, neutrals: NEUTRALS.map((u) => ({ kind: u.kind, rig: !!u.rig, body: u.body.visible, levels: u.rig ? u.rig.lod.levels.length : 0 })), km: !!PCS.km };
+  },
   // Read-only, checks 306/907: what the main pass draws besides crowd batches, rig meshes and card batches, with the renderer's own visibility
   // and frustum test: tells = meshes on the two tell shapes; other = the rest by name or shape and material.
   census() {
@@ -8405,7 +8465,7 @@ window.__game = {
       if (!(m.isMesh || m.isLine || m.isPoints) || m.onAfterRender === crowdTick || m.onAfterRender === rigTick || m.onAfterRender === fxTick) return;
       if ((m.isInstancedMesh && m.count === 0) || (m.frustumCulled && !fr.intersectsObject(m))) return;
       const mats = Array.isArray(m.material) ? m.material : [m.material];
-      for (const mt of mats) { if (!mt.visible) continue; if (m.geometry === tellRingGeo || m.geometry === tellLineGeo) o.tells++; else { const k = (m.name || m.geometry.type) + '/' + (mt.name || mt.type); o.other[k] = (o.other[k] || 0) + 1; } }
+      for (const mt of mats) { if (!mt.visible) continue; if (m.geometry === tellRingGeo || m.geometry === tellLineGeo) o.tells++; else { let mk = mt.name || ''; if (!mk) for (const q in M) if (M[q] === mt) mk = 'M.' + q; const k = (m.name || m.geometry.type) + '/' + (mk || mt.type) + '@' + Math.round(m.matrixWorld.elements[12]) + ',' + Math.round(m.matrixWorld.elements[14]) + '<' + (m.parent ? m.parent.name || m.parent.type : ''); o.other[k] = (o.other[k] || 0) + 1; } }
     });
     return o;
   },
@@ -8748,7 +8808,9 @@ Object.assign(window.__game, {
 // at x, z), probe (read), pieceDanger (bot k's danger at x, z and the way out), smokeBlocks.
 Object.assign(window.__game, {
   pieces: () => ({ on: CONFIG.PIECES.on, sides: PIECE_SIDES.length, pMark: P.markT, pHp: P.hp, pMarker: P.marker.visible,
-    haz: PIECE_HAZ.filter((h) => h.s.lay === PAL.layout).map((h) => ({ kind: h.kind, room: h.s.id, x: h.x, z: h.z, state: h.state, t: h.t, ring: h.ring.visible, eyes: h.eyes ? h.eyes.material === M.hbEyeOn : null, inScene: !!h.s.group.parent })),
+    haz: PIECE_HAZ.filter((h) => h.s.lay === PAL.layout).map((h) => ({ kind: h.kind, room: h.s.id, x: h.x, z: h.z, state: h.state, t: h.t, ring: h.ring.visible, inScene: !!h.s.group.parent })),
+    // The 华表 pillars (scenery): where they stand, whether their room is in the scene, and whether a model or the box pillar shows.
+    hb: PIECE_HB.filter((h) => h.s.lay === PAL.layout).map((h) => ({ room: h.s.id, x: h.x, z: h.z, inScene: !!h.s.group.parent, art: !!h.art, box: !!(h.s.pieceBox && h.s.pieceBox.stone && h.s.pieceBox.stone.visible) })),
     merc: PIECE_MERC.filter((m) => m.s.lay === PAL.layout).map((m) => ({ room: m.s.id, ph: m.ph, x0: m.x0, x1: m.x1, z0: m.z0, z1: m.z1, state: m.state, stT: m.stT, t: m.t, look: [M.merc, M.mercWarn, M.mercHot].indexOf(m.mesh.material) })),
     smoke: PIECE_SMOKE.filter((c) => c.s.lay === PAL.layout).map((c) => ({ room: c.s.id, x: c.x, z: c.z, r: c.r })),
     ding: PIECE_DING.filter((a) => a.s.lay === PAL.layout).map((a) => ({ room: a.s.id, x: a.x, z: a.z, charge: a.charge, on: a.mesh.material === M.altarOn })) }),

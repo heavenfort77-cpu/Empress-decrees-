@@ -39,7 +39,7 @@ export const CHR = {
   rebelTypes: ['ls', 'fs', 'ss', 'qs'],
   // LOD switch distances, m: [LOD0 -> LOD1, LOD1 -> LOD2]. Lens FOV 50 at 1080p: px = height x 1158 / d; LOD0 while over ~200 px tall,
   // LOD2 under ~70 px (INTEGRATION section 6 targets: suit 2.4 m, guard 1.8-2.7 m, giant 5 m; tiger 2.5 m tall, cubs 1-1.8 m).
-  lod: { suit: [14, 40], guard: [10, 30], tiger: [14, 40], cub: [8, 24], giant: [29, 83] },
+  lod: { suit: [14, 40], guard: [10, 30], tiger: [14, 40], cub: [8, 24], giant: [29, 83], neutral: [40, 90] },
   // LOD hysteresis: a level holds until the distance passes its switch point by this share (no flicker at the edge).
   lodHyst: 0.1,
   // Phone: every LOD distance x this (INTEGRATION section 6).
@@ -63,6 +63,11 @@ export const CHR = {
   patch: [0x6f6a34, 0x6a4a32, 0x8e5a52],
   // Suit outline (owner pick 25 Nov 02:1x: 2 px on screen, renderer-side): inverted hull, one extra draw per suit material.
   outline: { on: true, px: 2, color: 0x0b0908 },
+  // Suit cloth colour by suit id (owner 25 Nov 14:08 colour option A, art/Colour-Clarity-Study.md section 8): sRGB. A suit not listed keeps the
+  // colour in its file (道 keeps its gold, section 9; 阴阳 keeps its near black).
+  clothTint: { fa: 0xefe9dc, ru: 0xc88c3e, mo: 0xe66044, za: 0xdfe6f2, ming: 0x9c7ae0, zh: 0x22754a, nong: 0x5a92e4 },
+  // Rebel cloth tint (same decision): sRGB multiplier on the fodder sheet.
+  rebelCloth: 0x8c7860,
   // Faces (owner picking A-D, 25 Nov): suit materials named with this prefix (fcBrass, fcFace in the face samples run 45533099431).
   // No face is chosen here: the suit file carries the face and its material is built from the file's own values, unless INT sets
   // mat = (name, srcMaterial, tex, state) -> Material before charMaterials builds; Rig.setFace(material) swaps it on a spawned rig.
@@ -266,12 +271,12 @@ export function charMaterials(tex) {
   const std = (o) => new THREE.MeshStandardMaterial(o);
   const brassTint = new THREE.Color(1, 1, 1).multiplyScalar(B.gain);
   const T = {
-    sLam: () => std({ map: tex('suit_lamellar'), metalness: 0, roughness: 0.5 }),
+    sLam: () => std({ map: tex('suit_lamellar_qin'), metalness: 0, roughness: 0.5 }),
     sBronze: () => std({ map: tex('suit_bronze'), metalness: 0.5, roughness: 0.45 }),
     gdBronze: () => std({ map: tex('bronze_trim_brass'), metalness: 0.4, roughness: 0.6 }),
     gdLacquer: () => std({ map: tex('fodder_trim'), metalness: 0.05, roughness: 0.8 }),
     treadBelt: (s) => std({ map: tex('tread_belt'), color: s === 'dormant' ? 0x8a8a7a : 0xffffff, metalness: 0.4, roughness: 0.6 }),
-    rbCloth: () => std({ map: tex('fodder_trim'), roughness: 0.85 }),
+    rbCloth: () => std({ map: tex('fodder_trim'), color: CHR.rebelCloth, roughness: 0.85 }),
     rbPatch: () => std({ map: tex('fodder_trim'), roughness: 0.85 }),
     rbGlint: () => new THREE.MeshBasicMaterial({ color: 0xffe066 }),
     apexBronze: (s) => s === 'dormant' ? std({ map: tex('apex_patina'), metalness: 0.15, roughness: 0.85 }) : std({ map: tex('bronze_trim_brass'), color: brassTint, metalness: B.metalness, roughness: B.roughness }),
@@ -283,13 +288,29 @@ export function charMaterials(tex) {
     palBronze: (s) => s === 'dormant' ? std({ map: tex('bronze_trim_patina'), metalness: 0.15, roughness: 0.8 }) : std({ map: tex('bronze_trim_brass'), metalness: 0.4, roughness: 0.6 }),
     palTin: (s) => s === 'dormant' ? std({ color: 0x7c9c88, metalness: 0.15, roughness: 0.75 }) : std({ color: 0xd8cda8, metalness: 0.6, roughness: 0.35 }),
     palPatina: () => std({ map: tex('bronze_trim_patina'), metalness: 0.15, roughness: 0.8 }),
+    // Pieces art (PIECES round 4, art/tools/pieces_mats.json on branch ci-art-missing): crab, wanderer, plate, crown, 墨 wall, decree mark, Kaymuse.
+    palInlay: () => std({ color: 0xd6d8da, metalness: 0.15, roughness: 0.4 }),
+    palGold: () => std({ color: 0xe2b84a, metalness: 0.25, roughness: 0.5 }),
+    palCinnabar: () => std({ color: 0xa8321e, metalness: 0, roughness: 0.7 }),
+    palLacquerPlain: () => std({ color: 0x1c1512, metalness: 0, roughness: 0.6 }),
+    pcBlack: () => std({ color: 0x100c0b, metalness: 0, roughness: 0.85 }),
+    pcDarkBronze: () => std({ map: tex('bronze_trim_brass'), color: 0x4a3f36, metalness: 0.3, roughness: 0.7 }),
+    moEarth: () => std({ map: tex('rammed_earth'), color: 0xffe6c4, metalness: 0, roughness: 0.95 }),
+    moEarthLine: () => std({ map: tex('rammed_earth'), color: 0xb89a70, metalness: 0, roughness: 0.95 }),
+    moTimber: () => std({ map: tex('timber'), color: 0xa89684, metalness: 0, roughness: 0.9 }),
+    moTimberLight: () => std({ map: tex('timber'), color: 0xffffff, metalness: 0, roughness: 0.85 }),
+    moStone: () => std({ map: tex('river_stone'), color: 0xb0a89e, metalness: 0, roughness: 0.9 }),
+    kmRobe: () => std({ map: tex('suit_cloth'), color: 0x1e1a18, metalness: 0, roughness: 0.9 }),
+    kmJade: () => std({ color: 0xd9d2c3, metalness: 0, roughness: 0.45 }),
+    kmSkin: () => std({ color: 0xdeb393, metalness: 0, roughness: 0.75 }),
+    kmWhite: () => std({ color: 0xf2efe9, metalness: 0, roughness: 0.8 }),
   };
   const get = (name, src, state) => {
     const cloth = name.startsWith('sCloth'), face = name.startsWith(CHR.face.prefix);
     const key = name + '|' + (state || 'awake') + (cloth ? '|' + src.color.getHexString() : '') + (face ? '|' + src.uuid : '');
     if (cache.has(key)) return cache.get(key);
     let m;
-    if (cloth) m = std({ map: tex('suit_cloth'), color: src.color.clone(), metalness: 0, roughness: 0.85 });
+    if (cloth) { const tint = CHR.clothTint[name.slice(name.indexOf('_') + 1)]; m = std({ map: tex('suit_cloth'), color: tint !== undefined ? new THREE.Color(tint) : src.color.clone(), metalness: 0, roughness: 0.85 }); }
     else if (face) m = (CHR.face.mat && CHR.face.mat(name, src, tex, state || 'awake')) || std({ map: src.map || null, color: src.color.clone(),
       metalness: src.metalness !== undefined ? src.metalness : 0, roughness: src.roughness !== undefined ? src.roughness : 0.5, side: src.side });
     else if (T[name]) m = T[name](state);

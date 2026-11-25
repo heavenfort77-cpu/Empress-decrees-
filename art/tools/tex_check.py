@@ -55,6 +55,12 @@ T = {
 }
 # Extra rules per W2 texture: value = mean luminance range of the broad region (study value plan; research palette), wrap = edges that
 # must tile (edge step <= 1.5x the inside step), alpha = opaque share range per atlas cell (alpha cards), plus named checks below.
+# Walkable floors have their own two limits; every other surface keeps the original ones (contrast sd >= 8, brush scale <= 15 cm).
+FLOORS = ('hall_floor', 'stone_paving', 'floor_tiles', 'garden_ground', 'bridge_deck')
+# Owner decision 25 Nov 14:4x: a walkable floor's contrast (luminance sd) is at least this (calm floors, so figures read on them).
+FLOOR_SD_MIN = 4
+# Owner decision 25 Nov 14:4x: a walkable floor's brush scale (mean same-tone run) is at most this, cm.
+FLOOR_BRUSH_MAX_CM = 40
 X = {
     'rammed_earth': dict(repeat=True, value=(105, 145), wrap='xy'), 'rammed_earth_core': dict(repeat=True, value=(80, 120), wrap='xy'),
     'earth_burnt': dict(repeat=True, value=(60, 105), wrap='xy', redder='rammed_earth'), 'river_stone': dict(repeat=True, value=(90, 140), wrap='xy'),
@@ -122,8 +128,8 @@ for n, (du, dv, (y0, y1), scap) in T.items():
         run_cm = (1 / (1 - eq) if eq < 1 else 1e9) / (du / s) * 100
         res = [
             ('density', 0.8 * 256 <= du <= 1.25 * 256 and 0.8 * 256 <= dv <= 1.25 * 256, f'{du:.0f} x {dv:.0f} px/m'),
-            ('brush scale', 4 <= run_cm <= 15, f'{run_cm:.1f} cm'),
-            ('contrast', 8 <= sd <= 30, f'lum sd {sd:.1f}'),
+            ('brush scale', 4 <= run_cm <= (FLOOR_BRUSH_MAX_CM if n in FLOORS else 15), f'{run_cm:.1f} cm' + (f' (floor max {FLOOR_BRUSH_MAX_CM})' if n in FLOORS else '')),
+            ('contrast', (FLOOR_SD_MIN if n in FLOORS else 8) <= sd <= 30, f'lum sd {sd:.1f}' + (f' (floor min {FLOOR_SD_MIN})' if n in FLOORS else '')),
             ('saturation', sat <= scap, f'{sat:.2f} (cap {scap})'),
         ]
     if 'value' in x:

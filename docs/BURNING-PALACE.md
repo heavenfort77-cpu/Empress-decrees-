@@ -60,7 +60,7 @@ Hazards and tools from traditional palaces (Qin first). Every hit shows a tell >
 - 铜鹤 / 香炉 bronze cranes and incense burners: smoke clouds that block sight; anyone can hide in them, the 死士 assassins too. Few, small smoke cards (transparency budget).
 - 鼎 cauldrons: replace the healing altars in the palace, nine, one in each school's hall (lore: the 九鼎 Qin lost). Royal Rumble keeps its altars.
 - 铜壶滴漏 water clock: one per wing, its water level counts down to her next burning in that wing (the timer shown in the scene, as well as the HUD).
-- 华表 pillar beasts: the beast on top watches its room; passing it marks you for a few seconds (seen by all, the existing mark).
+- 华表 pillars: scenery only (owner 25 Nov 18:42: the marking function is removed). They stand in the courts as landmarks with collision; they do not wake, tell, look or mark anyone. Marks from decrees and other sources are unchanged.
 
 ## Camera
 - Wide when no enemy is within reach, tighter when one is; eased over about 0.4 s; never jumps. Corridors closer, courtyards wider.

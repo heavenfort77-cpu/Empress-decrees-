@@ -120,7 +120,7 @@ export const GUARD_ITEM = { thrust: 'g_thrust', volley: 'g_volley', shove: 'g_sh
 // Her stingers (docs/AUDIO.md): TEXT voice key -> stinger. Keys not listed stay silent (small events play their own sound).
 export const STINGER_OF = {
   voice_dec_dry: 'st_decree', voice_dec_nodash: 'st_decree', voice_dec_silence: 'st_decree', voice_dec_heights: 'st_decree', voice_dec_ult2x: 'st_decree',
-  voice_kennel: 'st_decree', voice_guard_break: 'st_decree', voice_marked: 'st_decree', voice_silenced: 'st_decree', piece_voice_hb: 'st_decree',
+  voice_kennel: 'st_decree', voice_guard_break: 'st_decree', voice_marked: 'st_decree', voice_silenced: 'st_decree',
   burn_voice: 'st_burn', voice_wave0: 'st_burn', voice_wave1: 'st_burn', voice_wave2: 'st_burn', voice_wave3: 'st_burn', voice_wave4: 'st_burn', voice_fell: 'st_burn',
   voice_bounty: 'st_bounty', voice_bounty_paid: 'st_bounty', fz_voice_charge: 'st_bounty', voice_plate: 'st_bounty', voice_plate_take: 'st_bounty',
   voice_wake: 'st_wake', voice_frenzy: 'st_wake', pal_voice_core: 'st_wake', voice_won: 'st_wake', voice_lost: 'st_wake', pal_voice_lost: 'st_wake',

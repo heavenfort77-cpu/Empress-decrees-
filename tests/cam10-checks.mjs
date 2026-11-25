@@ -209,7 +209,7 @@ export async function cam10Checks(g, check, browser, URL0) {
     G.setSeed(12345); G.setMode('palace'); G.pieces2(true, true); G.reset(); G.step(2);
     const want = (id) => {
       const q = G.pieces(), s = G.pieces2State();
-      return q.haz.filter((h) => h.room === id).length + q.merc.filter((m) => m.room === id).length + q.smoke.filter((c) => c.room === id).length + q.ding.filter((a) => a.room === id).length
+      return q.haz.filter((h) => h.room === id).length + q.hb.filter((h) => h.room === id).length + q.merc.filter((m) => m.room === id).length + q.smoke.filter((c) => c.room === id).length + q.ding.filter((a) => a.room === id).length
         + s.clocks.filter((c) => c.room === id).length + s.vats.filter((v) => v.room === id && v.st < 2).length + s.giants.filter((gi) => gi.room === id && gi.st === 0).length;
     };
     const look = () => {

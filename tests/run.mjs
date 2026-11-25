@@ -3842,7 +3842,7 @@ try {
   const p8B = await g(() => {
     const G = __game, o = {};
     G.setSeed(12345); G.setMode('palace'); G.reset();
-    const q = G.pieces(); o.n = { lions: q.haz.filter((h) => h.kind === 'lion').length, hb: q.haz.filter((h) => h.kind === 'huabiao').length, merc: q.merc.length, smoke: q.smoke.length, ding: q.ding.length, sides: q.sides };
+    const q = G.pieces(); o.n = { lions: q.haz.filter((h) => h.kind === 'lion').length, hb: q.hb.length, hbHaz: q.haz.filter((h) => h.kind === 'huabiao').length, merc: q.merc.length, smoke: q.smoke.length, ding: q.ding.length, sides: q.sides };
     o.rest = q.haz.every((h) => h.state === 0 && !h.ring) && q.merc.every((m) => m.look === m.state) && q.ding.every((d) => d.on && d.charge === G.config.ALTAR.charge);
     o.rooms = [...new Set(q.haz.map((h) => h.room).concat(q.merc.map((m) => m.room), q.smoke.map((c) => c.room), q.ding.map((d) => d.room)))].sort().join(',');
     G.setMode('rumble'); G.reset(); const t0 = G.pieces().merc.map((m) => m.t); G.step(120); const t1 = G.pieces().merc.map((m) => m.t);
@@ -3850,7 +3850,7 @@ try {
     return o;
   });
   check('800 palace pieces built in the BP01 rooms (2 lions, 1 华表, 3 mercury, 3 smoke, 1 鼎, 1 side list), at rest; Royal Rumble: own 5 hazards (4 lions) and 3 altars, pieces never stepped',
-    p8B.n.lions === 2 && p8B.n.hb === 1 && p8B.n.merc === 3 && p8B.n.smoke === 3 && p8B.n.ding === 1 && p8B.n.sides >= 1 && p8B.rest && p8B.rooms === 'bridge,court,garden,hall'
+    p8B.n.lions === 2 && p8B.n.hb === 1 && p8B.n.hbHaz === 0 && p8B.n.merc === 3 && p8B.n.smoke === 3 && p8B.n.ding === 1 && p8B.n.sides >= 1 && p8B.rest && p8B.rooms === 'bridge,court,garden,hall'
     && p8B.rumbleStill && p8B.rumbleHaz === 5 && p8B.rumbleLions === 4 && p8B.rumbleAltars === 3, JSON.stringify(p8B));
   // 801 Palace lions: a suit close by starts the tell (red ring, >= 0.4 s, nobody hurt during it); the strike hits the player, a bot and a unit of another side
   // inside the radius (damage and knockback outward); then the cooldown.
@@ -3911,26 +3911,22 @@ try {
   });
   check('803 smoke blocks sight both ways through a cloud (palSight, bot vision of the player); within revealM or beside the cloud sight is clear',
     p8S.through.blocks && !p8S.through.sight && !p8S.through.back && !p8S.beside.blocks && p8S.beside.sight && !p8S.close.blocks && p8S.close.sight && !p8S.hidden && p8S.near && p8S.clear, JSON.stringify(p8S));
-  // 804 华表: a suit close by wakes it (ring and eyes for windup >= 0.4 s, nobody marked yet); its look marks every suit in reach (her line for the player);
-  // a marked player is seen through a shut door by a bot in another room until the mark ends; other sides do not wake it; cooldown before it looks again.
+  // 804 华表 are scenery (owner 25 Nov 18:42: the pillar's marking function is removed; game changed on purpose, this replaces the wake/tell/look/
+  // mark check): the player and a bot standing beside one for 10 s of game time are never marked by it and no hazard of its kind exists
+  // (no ring, no tell, no state); the pillar still stands in its room and draws (its model with the art on, else the box pillar).
   const p8H = await g(() => {
-    const G = __game, C = G.config.PIECES.huabiao, o = {}, sp = (s) => G.step(Math.round(s / G.config.STEP));
-    G.setSeed(12345); G.setMode('palace'); G.reset();
-    const h0 = G.pieces().haz.find((h) => h.kind === 'huabiao'), cur = () => G.pieces().haz.find((h) => h.kind === 'huabiao');
-    G.pieceProbe(h0.x + 1.5, h0.z, 100); sp(1); o.probeOnly = cur().state;
-    G.reset(); G.teleport(h0.x + 2, h0.z); G.palPlaceBot(0, h0.x - 2, h0.z); G.step(1);
-    o.tell = { state: cur().state, ring: cur().ring, eyes: cur().eyes };
-    sp(C.windup - 0.05); o.mid = { pMark: G.pieces().pMark, bot: G.pieceBot(0).markT };
-    sp(0.1); const q = G.pieces(); o.look = { state: cur().state, eyes: cur().eyes, pMark: q.pMark, marker: q.pMarker, bot: G.pieceBot(0).markT, botMarker: G.pieceBot(0).marker, rule: G.palace().rule === G.text.piece_rule_hb.replace('{s}', C.markS) };
-    const hall = G.palace().rooms.find((r) => r.id === 'hall'); G.palPlaceBot(0, hall.cx, hall.cz + 4); o.wallSeen = G.botSeesP(0); o.shut = !G.palace().doors[0].open;
-    sp(C.markS + 0.1); o.later = { pMark: G.pieces().pMark, seen: G.botSeesP(0), state: cur().state };
-    sp(C.cooldown - C.markS - 0.05); o.again = cur().state;
+    const G = __game, o = { maxP: 0, maxB: 0, marker: false }, q0 = (G.setSeed(12345), G.setMode('palace'), G.reset(), G.pieces());
+    const h0 = q0.hb[0]; o.n = q0.hb.length; o.haz = q0.haz.filter((h) => h.kind === 'huabiao').length;
+    G.setHp(1e9); G.teleport(h0.x + 2, h0.z); G.palPlaceBot(0, h0.x - 2, h0.z);
+    for (let t = 0; t < Math.round(10 / G.config.STEP); t++) {
+      G.step(1); if (t % 30 === 0) { G.teleport(h0.x + 2, h0.z); G.palPlaceBot(0, h0.x - 2, h0.z); }
+      const q = G.pieces(), b = G.pieceBot(0); if (q.pMark > o.maxP) o.maxP = q.pMark; if (b.markT > o.maxB) o.maxB = b.markT; if (q.pMarker || b.marker) o.marker = true;
+    }
+    const h1 = G.pieces().hb[0]; o.stands = h1.inScene && (h1.art || h1.box); o.art = h1.art; o.box = h1.box; o.rings = G.pieces().haz.filter((h) => h.ring).length; o.text = G.config.PIECES.huabiao === undefined;
     G.setMode('rumble'); G.reset(); return o;
   });
-  check('804 华表: suits wake it (tell >= 0.4 s, ring and eyes, nobody marked yet), its look marks suits in reach (her line); marked = seen through a shut door until it ends; other sides never wake it; cooldown',
-    G8.PIECES.huabiao.windup >= 0.4 && p8H.probeOnly === 0 && p8H.tell.state === 1 && p8H.tell.ring && p8H.tell.eyes && p8H.mid.pMark === 0 && p8H.mid.bot === 0
-    && p8H.look.state === 2 && !p8H.look.eyes && Math.abs(p8H.look.pMark - G8.PIECES.huabiao.markS) < 0.1 && p8H.look.marker && p8H.look.bot > 0 && p8H.look.botMarker && p8H.look.rule
-    && p8H.shut && p8H.wallSeen && p8H.later.pMark === 0 && !p8H.later.seen && p8H.later.state === 2 && p8H.again === 1, JSON.stringify(p8H));
+  check('804 华表 is scenery: beside it 10 s nobody is marked (player and bot), no hazard of its kind, the pillar stands and draws',
+    p8H.n >= 1 && p8H.haz === 0 && p8H.maxP === 0 && p8H.maxB === 0 && !p8H.marker && p8H.stands === true && p8H.text === true, JSON.stringify(p8H));
   // 805 鼎: heals the player, a bot and another side standing at it (altar rate, from its charge); emptied it looks empty and refills after emptyS.
   const p8D = await g(() => {
     const G = __game, A = G.config.ALTAR, o = {}, sp = (s) => G.step(Math.round(s / G.config.STEP));
@@ -3972,7 +3968,7 @@ try {
     const G = __game, o = { rooms: {} };
     G.setSeed(12345); G.setMode('palace'); G.reset(); G.step(1); const p0 = G.render(true).programs;
     for (const r of G.palace().rooms) { G.reset(); G.teleport(r.cx, r.cz); G.step(2); const x = G.render(true); o.rooms[r.id] = [x.calls, x.tris]; }
-    G.reset(); const l = G.pieces().haz.find((h) => h.kind === 'lion'), hb = G.pieces().haz.find((h) => h.kind === 'huabiao'), d = G.pieces().ding[0];
+    G.reset(); const l = G.pieces().haz.find((h) => h.kind === 'lion'), hb = G.pieces().hb[0], d = G.pieces().ding[0];
     G.teleport(l.x + 2.5, l.z + 1.5); G.step(1); const busy = G.render(true); o.busy = [busy.calls, busy.tris];
     let n = 0, seen = new Set(); while (n < 300) { G.step(1); n++; for (const m of G.pieces().merc) seen.add(m.look); if (n % 5 === 0) G.render(false); }
     G.teleport(hb.x + 2, hb.z); G.step(2); G.render(false); G.teleport(d.x + 1, d.z); G.setHp(1); G.step(Math.round((G.config.ALTAR.charge / G.config.ALTAR.rate + 1) / G.config.STEP)); G.render(false);
@@ -3993,7 +3989,7 @@ try {
     G.setSeed(12345); G.setLayout('full'); G.setMode('palace'); G.reset();
     const pl = G.palPlan(), q = G.pieces(), want = { lion: 0, huabiao: 0, ding: 0, mercury: 0, smoke: 0 };
     for (const r of pl.rooms) for (const x of r.pieces) if (want[x.type] !== undefined) want[x.type]++;
-    o.want = want; o.got = { lion: q.haz.filter((h) => h.kind === 'lion').length, huabiao: q.haz.filter((h) => h.kind === 'huabiao').length, ding: q.ding.length, mercury: q.merc.length, smoke: q.smoke.length };
+    o.want = want; o.got = { lion: q.haz.filter((h) => h.kind === 'lion').length, huabiao: q.hb.length, ding: q.ding.length, mercury: q.merc.length, smoke: q.smoke.length };
     o.layout = pl.layout; o.sides = q.sides;
     o.far = [];
     for (const h of q.haz) {
