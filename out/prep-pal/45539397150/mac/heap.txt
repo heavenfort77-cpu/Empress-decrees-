@@ -1,0 +1,11 @@
+INFO heap ci_pal/pal.html?mode=perf&tier=medium&toggles=0: after GC 73.5 -> 57.76 MB in 20 s; sampled live allocations 0.06 MB
+INFO        49 KB  loop pal.html?mode=perf&tier=medium&toggles=0:121:16
+INFO        16 KB  (anon) three.module.min.js:6:166805
+INFO         0 KB  (root) :0:0
+INFO         0 KB  render three.module.min.js:6:323363
+INFO         0 KB  Ke three.module.min.js:6:318121
+INFO         0 KB  Ze three.module.min.js:6:319782
+INFO         0 KB  $e three.module.min.js:6:319993
+INFO         0 KB  renderBufferDirect three.module.min.js:6:309825
+INFO         0 KB  setup three.module.min.js:6:166114
+RESULT 0 of 0

@@ -1,0 +1,31 @@
+ROW {"scene":"reference","loadMs":3153,"errs":0,"gpu":"ANGLE (Apple, ANGLE Metal Renderer: Apple Paravirtual device, Unspecified Version)","frames":4293,"fps":214.5,"p50":4.2,"p95":11.6,"worst":32,"over20":0.6,"links":-1,"heap0":13.4,"heapRaw":16.8,"heap1":14.5,"view":null}
+ROW {"scene":"pal_med","loadMs":2465,"errs":0,"gpu":"ANGLE (Apple, ANGLE Metal Renderer: Apple Paravirtual device, Unspecified Version)","frames":4082,"fps":203.9,"p50":4.5,"p95":11,"worst":37.9,"over20":0.3,"links":0,"heap0":58,"heapRaw":63,"heap1":66.3,"view":{"id":"corr_w","counts":{"calls":200,"tris":132092,"mainCalls":105,"mainTris":88740},"steady":{"calls":105,"tris":88740,"mainCalls":105,"mainTris":88740},"prog0":30,"prog1":30,"props":15,"doors":5}}
+ROW {"scene":"pal_low","loadMs":1953,"errs":0,"gpu":"ANGLE (Apple, ANGLE Metal Renderer: Apple Paravirtual device, Unspecified Version)","frames":5083,"fps":253.6,"p50":2.2,"p95":11,"worst":72,"over20":0.2,"links":0,"heap0":57.8,"heapRaw":67.3,"heap1":67.1,"view":{"id":"corr_w","counts":{"calls":105,"tris":88740,"mainCalls":105,"mainTris":88740},"steady":{"calls":105,"tris":88740,"mainCalls":105,"mainTris":88740},"prog0":26,"prog1":26,"props":15,"doors":5}}
+ROW {"scene":"pal_quiet","loadMs":1153,"errs":0,"gpu":"ANGLE (Apple, ANGLE Metal Renderer: Apple Paravirtual device, Unspecified Version)","frames":4119,"fps":205.8,"p50":4.6,"p95":11,"worst":36.1,"over20":0.2,"links":0,"heap0":58,"heapRaw":66.1,"heap1":68.1,"view":{"id":"corr_w","counts":{"calls":200,"tris":132092,"mainCalls":105,"mainTris":88740},"steady":{"calls":105,"tris":88740,"mainCalls":105,"mainTris":88740},"prog0":30,"prog1":30,"props":15,"doors":5}}
+ROW {"scene":"pal_noglc","loadMs":1011,"errs":0,"gpu":"ANGLE (Apple, ANGLE Metal Renderer: Apple Paravirtual device, Unspecified Version)","frames":3998,"fps":199.8,"p50":4.7,"p95":11.5,"worst":29.1,"over20":0.3,"links":-1,"heap0":57.9,"heapRaw":67.6,"heap1":67.1,"view":{"id":"corr_w","counts":{"calls":105,"tris":88740,"mainCalls":105,"mainTris":88740,"glc":false},"steady":{"calls":105,"tris":88740,"mainCalls":105,"mainTris":88740,"glc":false},"prog0":30,"prog1":30,"props":15,"doors":5}}
+ROW {"scene":"webglmin","loadMs":312,"errs":0,"gpu":"ANGLE (Apple, ANGLE Metal Renderer: Apple Paravirtual device, Unspecified Version)","frames":4441,"fps":221.9,"p50":3.4,"p95":11.3,"worst":44,"over20":0.5,"links":-1,"heap0":4.4,"heapRaw":7.1,"heap1":5.7,"view":null}
+ROW {"scene":"reference","loadMs":791,"errs":0,"gpu":"ANGLE (Apple, ANGLE Metal Renderer: Apple Paravirtual device, Unspecified Version)","frames":4169,"fps":208.3,"p50":4.4,"p95":12,"worst":34.8,"over20":0.2,"links":-1,"heap0":13.4,"heapRaw":15.8,"heap1":14.5,"view":null}
+RENDERER ANGLE (Apple, ANGLE Metal Renderer: Apple Paravirtual device, Unspecified Version)
+PASS reference measured twice on a real GPU: 214.5 fps p95 11.6 / 208.3 fps p95 12 (ANGLE (Apple, ANGLE Metal Renderer: Apple Paravirtual device, Unspecified Version))
+PASS pal_med corr_w: 203.9 fps p95 11 ms (limit 14.8 = max(1.25 x ref 11.8, ref + 2), and 16.7) worst 37.9 ms; ref 211.4 fps
+PASS pal_med: worst frame 37.9 ms < 100 (over 20 ms: 0.3 %)
+PASS pal_med: programs linked in play 0 (programs 30 -> 30), 15 props and 5 doors toggling every 0.5 s
+FAIL pal_med: JS heap after GC 58 -> 66.3 MB over 20 s of play (< 2 MB; before GC 63 MB)
+PASS pal_med: GL draws 200 (steady 105), triangles 132092 (shadow frame) < 500 / 0.5M
+PASS pal_low corr_w: 253.6 fps p95 11 ms (limit 14.8 = max(1.25 x ref 11.8, ref + 2), and 16.7) worst 72 ms; ref 211.4 fps
+PASS pal_low: worst frame 72 ms < 100 (over 20 ms: 0.2 %)
+PASS pal_low: programs linked in play 0 (programs 26 -> 26), 15 props and 5 doors toggling every 0.5 s
+FAIL pal_low: JS heap after GC 57.8 -> 67.1 MB over 20 s of play (< 2 MB; before GC 67.3 MB)
+PASS pal_low: GL draws 105 (steady 105), triangles 88740 (shadow frame) < 500 / 0.5M
+PASS real GPU PASS P14 base {"buf":146,"tex":5,"prog":6,"geo":36,"itex":1,"progs":6} built {"buf":1104,"tex":32,"prog":19,"geo":190,"itex":28,"progs":19} / {"buf":1104,"tex":32,"prog":19,"geo":190,"itex":28,"progs":19} disposed {"buf":146,"tex":5,"prog":6,"geo":36,"itex":1,"progs":6} / {"buf":146,"tex":5,"prog":6,"geo":36,"itex":1,"progs":6}
+INFO pal_quiet: 205.8 fps p95 11 heap 58 -> raw 66.1 -> after GC 68.1 MB
+INFO pal_noglc: 199.8 fps p95 11.5 heap 57.9 -> raw 67.6 -> after GC 67.1 MB
+scene        fps     p50   p95   worst  >20ms%  draws  tris     links heapMB (start-raw-afterGC)
+reference     214.5    4.2  11.6     32    0.6                    -1    13.4-16.8-14.5
+pal_med       203.9    4.5    11   37.9    0.3    200   132092     0        58-63-66.3
+pal_low       253.6    2.2    11     72    0.2    105    88740     0    57.8-67.3-67.1
+pal_quiet     205.8    4.6    11   36.1    0.2    200   132092     0      58-66.1-68.1
+pal_noglc     199.8    4.7  11.5   29.1    0.3    105    88740    -1    57.9-67.6-67.1
+webglmin      221.9    3.4  11.3     44    0.5                    -1       4.4-7.1-5.7
+reference     208.3    4.4    12   34.8    0.2                    -1    13.4-15.8-14.5
+RESULT 10 of 12 (FAIL)
