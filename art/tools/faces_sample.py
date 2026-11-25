@@ -28,6 +28,8 @@ os.makedirs(OUTDIR, exist_ok=True)
 SHARP = 50
 # Rim (hood or crown edge) profile: (outward from the mask edge, forward of the mask surface) per point, as a share of RIM_W.
 RIM_PROFILE = [(1.0, -0.3), (0.55, 1.1), (-0.5, 1.4), (-0.85, 0.45)]
+# Rim forward projection scale per group (round 3: the guard's hood rim shaded the eyes from the play camera).
+RIM_FWD = {'zu': 0.6, 'g00': 1.0}
 # Rim width, m, per group.
 RIM_W = {'zu': 0.016, 'g00': 0.055}
 # Rim path per group: side edge from this t up to the top (both sides), and points along the top at full detail.
@@ -140,7 +142,7 @@ def build_mask(A, head, group, M, bone):
     for s, t, (ds, dt) in path:
         for po, pf in RIM_PROFILE:
             fx = head.fx(K.clamp(t, -0.05, 1.05))
-            pts.append(head.point(s + ds * po * W / fx, t + dt * po * W / tspan, hgt, pf * W))
+            pts.append(head.point(s + ds * po * W / fx, t + dt * po * W / tspan, hgt, pf * W * RIM_FWD[group]))
     m = len(RIM_PROFILE)
     for i in range(len(path) - 1):
         for q in range(m - 1): rf.append((i * m + q, i * m + q + 1, (i + 1) * m + q + 1, (i + 1) * m + q))
@@ -151,8 +153,8 @@ def probes(head, group, to_b, zmap=lambda z: z):
     """rest-pose probe points in glTF space (Blender (x, y, z) -> glTF (x, z, -y)) for the viewer's contrast gate."""
     hgt = K.SHAPES[group][0]
     es, et = K.EYE_C[group]
-    eye = head.point(es, et, lambda a, b: hgt(a, b) - K.DEPTH[group] + K.bulge(group, a, b))
-    for key, p in (('mask', head.point(*PROBE_MASK[group], hgt)), ('helm', PROBE_HELM[group]), ('eye', eye)):
+    eh = lambda a, b: hgt(a, b) - K.DEPTH[group] + K.bulge(group, a, b)
+    for key, p in (('mask', head.point(*PROBE_MASK[group], hgt)), ('helm', PROBE_HELM[group]), ('eye', head.point(es, et, eh)), ('eye2', head.point(-es, et, eh))):
         v = to_b(*p); STATS['probes'][key] = [round(v.x, 5), round(zmap(v.z), 5), round(-v.y, 5)]
 
 

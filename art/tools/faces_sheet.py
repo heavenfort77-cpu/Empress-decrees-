@@ -59,10 +59,10 @@ for c, (title, meshes, budget, meshes1, budget1, hh, zoom) in CHARS.items():
             gate(0 < tri1[o] <= budget1, f'{c} {o} LOD1 tris {tri1[o]} (budget {budget1})')
             ex = EXTRA_OK.get((c, o), set())
             gate(set(mats[o]) <= set(mats['0']) | ex, f"{c} {o} materials {mats[o]} (no new one over now {mats['0']}" + (f"; allowed {sorted(ex)}: +{len(ex)} draw call per unit, owner decision)" if ex else ")"))
-            if o != '0': gate(st[o]['face_tris_lod0'] > 0 and len(st[o].get('probes', {})) == 3, f"{c} {o} mask built, {st[o]['face_tris_lod0']} tris at LOD0, probes {sorted(st[o].get('probes', {}))}")
+            if o != '0': gate(st[o]['face_tris_lod0'] > 0 and len(st[o].get('probes', {})) == 4, f"{c} {o} mask built, {st[o]['face_tris_lod0']} tris at LOD0, probes {sorted(st[o].get('probes', {}))}")
         pr = shots.get(f'{c}_{o}_play', {}).get('probe', {})
         line = f"{c} {o} play contrast mask {pr.get('mask', {}).get('L')} vs above {pr.get('helm', {}).get('L')}: ratio {pr.get('ratio')} (min {CONTRAST_MIN})"
-        eline = f"{c} {o} play contrast eye {pr.get('eye', {}).get('L')} vs mask {pr.get('mask', {}).get('L')}: ratio {pr.get('eye_ratio')} (min {CONTRAST_MIN})"
+        eline = f"{c} {o} play contrast brighter eye {pr.get('eye', {}).get('L')} vs mask {pr.get('mask', {}).get('L')}: ratio {pr.get('eye_ratio')} (min {CONTRAST_MIN}; shadowed eye {pr.get('eye_shadow_ratio')})"
         if o != '0': gate((pr.get('eye_ratio') or 0) >= CONTRAST_MIN, eline)
         if o == '0': print('INFO ' + line + (' under the line (mutation case caught)' if (pr.get('ratio') or 0) < CONTRAST_MIN else ' NOT under the line'))
         else: gate((pr.get('ratio') or 0) >= CONTRAST_MIN, line)

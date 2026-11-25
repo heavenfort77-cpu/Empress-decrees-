@@ -2,7 +2,7 @@
 <!-- Face masks round 2 sample viewer (FACES worker, owner GO 25 Nov 10:47; art tool, not shipped, sample only). Loads art/faces/glb/<c>_<o>.glb
      (faces_sample.py) with the same lights, camera FOV and 丹 floor as fodder.html / giants.html.
      ?c=zu | g00   &o=0 (current face) | M (round-2 mask)   &view=close (head and shoulders, 3/4) | play (FOV 50, pitch 40, 10.5 m)
-     Contrast probes: the mask cheek, the hood / crown above it and the eyeball in the slit (rest-pose points from <c>_M_stats.json, moved with the head bone),
+     Contrast probes: the mask cheek, the hood / crown above it and both eyeballs (the brighter one gates; the other is reported) (rest-pose points from <c>_M_stats.json, moved with the head bone),
      sampled 5 x 5 px after the render; relative luminance and the contrast ratio go to window.__info.probe. -->
 <html><head><meta charset="utf-8"><style>html,body{margin:0;background:#120d16;overflow:hidden}</style>
 <script type="importmap">{"imports":{"three":"../../lib/three.module.min.js"}}</script></head><body>
@@ -85,17 +85,21 @@ new GLTFLoader().load(`../faces/glb/${C}_${O}.glb`, (g) => {
     r.render(scene, cam); const i = r.info.render;
     const probes = await PROBES, gl = r.getContext(), probe = {};
     const lum = (buf, q) => 0.2126 * lin(buf[4 * q]) + 0.7152 * lin(buf[4 * q + 1]) + 0.0722 * lin(buf[4 * q + 2]);
-    if (probes) for (const k of ['mask', 'helm', 'eye']) {
+    if (probes) for (const k of ['mask', 'helm', 'eye', 'eye2']) {
       if (!probes[k]) continue;
       // mask and above: 5 x 5 mean; eye: the brightest of 3 x 3 (a slit is 2-4 px at play size)
-      const [sx, sy] = px(probeWorld(probes[k])), n = k === 'eye' ? 3 : 5, buf = new Uint8Array(4 * n * n);
+      const [sx, sy] = px(probeWorld(probes[k])), n = k.startsWith('eye') ? 3 : 5, buf = new Uint8Array(4 * n * n);
       gl.readPixels(Math.round(sx) - (n >> 1), H - Math.round(sy) - 1 - (n >> 1), n, n, gl.RGBA, gl.UNSIGNED_BYTE, buf);
-      let L = 0; for (let q = 0; q < n * n; q++) L = k === 'eye' ? Math.max(L, lum(buf, q)) : L + lum(buf, q) / (n * n);
+      let L = 0; for (let q = 0; q < n * n; q++) L = k.startsWith('eye') ? Math.max(L, lum(buf, q)) : L + lum(buf, q) / (n * n);
       probe[k] = { px: [Math.round(sx), Math.round(sy)], L: +L.toFixed(4) };
     }
     const cr = (p, q) => +((Math.max(p.L, q.L) + 0.05) / (Math.min(p.L, q.L) + 0.05)).toFixed(2);
     if (probe.mask && probe.helm) probe.ratio = cr(probe.mask, probe.helm);
+    // the brighter eyeball (the scene light comes from one side; one eye in shadow is expected)
+    if (probe.eye2 && (!probe.eye || probe.eye2.L > probe.eye.L)) { probe.eye_shadow = probe.eye; probe.eye = probe.eye2; } else if (probe.eye2) probe.eye_shadow = probe.eye2;
+    delete probe.eye2;
     if (probe.mask && probe.eye) probe.eye_ratio = cr(probe.mask, probe.eye);
+    if (probe.mask && probe.eye_shadow) probe.eye_shadow_ratio = cr(probe.mask, probe.eye_shadow);
     window.__info = { calls: i.calls, triangles: i.triangles, bbox: [x0, y0, x1, y1].map(Math.round), head: [Math.round(hx), Math.round(hy)], probe };
     window.__ready = true;
   }, 900);

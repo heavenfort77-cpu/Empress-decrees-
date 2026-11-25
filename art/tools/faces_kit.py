@@ -16,7 +16,7 @@ ASPECT = {'zu': 0.5, 'g00': 0.65}
 # How far the backing sits behind the shell, height units (also the wall depth of every cut edge and the outline).
 DEPTH = {'zu': 0.09, 'g00': 0.14}
 # Eyeball bulge of the backing behind the eye slits, height units at the eye centre (round 3: the eyes must show from the play camera).
-BULGE = {'zu': 0.075, 'g00': 0.12}
+BULGE = {'zu': 0.14, 'g00': 0.2}
 # Backing margin beyond each cut, t units (so the wall always lands on the backing).
 BACK_MARGIN = {'zu': 0.03, 'g00': 0.03}
 
