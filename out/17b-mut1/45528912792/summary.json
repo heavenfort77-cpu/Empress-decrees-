@@ -1,0 +1,176 @@
+[
+ {
+  "i": 0,
+  "fails": [
+   "42",
+   "1701"
+  ],
+  "tot": [
+   "RUNTIME 283 of 285 pass"
+  ],
+  "s": 724,
+  "name": "no v flip",
+  "want": "1701",
+  "applied": true,
+  "caught_named": true
+ },
+ {
+  "i": 1,
+  "fails": [
+   "42",
+   "1701",
+   "1705",
+   "1706"
+  ],
+  "tot": [
+   "RUNTIME 281 of 285 pass"
+  ],
+  "s": 400,
+  "name": "no warm draw",
+  "want": "1701",
+  "applied": true,
+  "caught_named": true
+ },
+ {
+  "i": 2,
+  "fails": [
+   "42",
+   "1701",
+   "1703",
+   "1704",
+   "1707"
+  ],
+  "tot": [
+   "RUNTIME 280 of 285 pass"
+  ],
+  "s": 380,
+  "name": "no dispose on Rumble",
+  "want": "1703",
+  "applied": true,
+  "caught_named": true
+ },
+ {
+  "i": 3,
+  "fails": [
+   "42",
+   "1703",
+   "1705"
+  ],
+  "tot": [
+   "RUNTIME 282 of 285 pass"
+  ],
+  "s": 713,
+  "name": "textures not freed",
+  "want": "1703",
+  "applied": true,
+  "caught_named": true
+ },
+ {
+  "i": 4,
+  "fails": [
+   "42",
+   "1704",
+   "1710"
+  ],
+  "tot": [
+   "RUNTIME 282 of 285 pass"
+  ],
+  "s": 714,
+  "name": "no PNG fallback",
+  "want": "1704",
+  "applied": true,
+  "caught_named": true
+ },
+ {
+  "i": 5,
+  "fails": [
+   "42",
+   "1704"
+  ],
+  "tot": [
+   "RUNTIME 283 of 285 pass"
+  ],
+  "s": 704,
+  "name": "half textured on failure",
+  "want": "1704",
+  "applied": true,
+  "caught_named": true
+ },
+ {
+  "i": 6,
+  "fails": [
+   "42",
+   "1705",
+   "1706"
+  ],
+  "tot": [
+   "RUNTIME 282 of 285 pass"
+  ],
+  "s": 534,
+  "name": "no restore card",
+  "want": "1705",
+  "applied": true,
+  "caught_named": true
+ },
+ {
+  "i": 7,
+  "fails": [
+   "42",
+   "1706"
+  ],
+  "tot": [
+   "RUNTIME 283 of 285 pass"
+  ],
+  "s": 709,
+  "name": "no adjust card",
+  "want": "1706",
+  "applied": true,
+  "caught_named": true
+ },
+ {
+  "i": 8,
+  "fails": [
+   "42",
+   "1707"
+  ],
+  "tot": [
+   "RUNTIME 283 of 285 pass"
+  ],
+  "s": 370,
+  "name": "card clock runs while hidden",
+  "want": "1707",
+  "applied": true,
+  "caught_named": true
+ },
+ {
+  "i": 9,
+  "fails": [
+   "42",
+   "1711"
+  ],
+  "tot": [
+   "RUNTIME 283 of 285 pass"
+  ],
+  "s": 402,
+  "name": "boot before load event",
+  "want": "1711",
+  "applied": true,
+  "caught_named": true
+ },
+ {
+  "i": 10,
+  "fails": [
+   "42",
+   "1701",
+   "1704"
+  ],
+  "tot": [
+   "RUNTIME 282 of 285 pass"
+  ],
+  "s": 728,
+  "name": "phone set on desktop",
+  "want": "1701",
+  "applied": true,
+  "caught_named": true
+ }
+]
