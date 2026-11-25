@@ -1,0 +1,33 @@
+PASS C1_one_skeleton: skeletons per rig 1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1
+PASS C2_uploads_per_frame: uploads/frame 15.00 rigs 16 mixer steps/frame 11.67
+PASS C3_frustum_culled: objects with frustumCulled false: 0
+PASS C4_spheres: rig spheres below k: 0 (min ratio 1.60), crowd instances outside: 0
+PASS C5_anim_gating: 60 calls of 1/60 s: behind camera 0 steps, far 9 (farHz 10), near 60
+PASS C6_suit_floor_run: floor offsets wrong 0, run timeScale wrong 0
+PASS C7_clips_start_0: tracks starting after 0: 0
+PASS C8_tread_scroll: stalker 0.3610 want 0.3610, zu 0.3704 want 0.3704
+PASS C9_hit_capsules: tiger/stalker/howler edges hit, 0.3 m beyond miss
+PASS C10_sweep_sector: hit and drawn sector 2.5 m / 120 deg
+PASS C11_bake_matches_skin: worst vertex 0.000 mm (zu, ls, che move frame 17)
+PASS C12_lod_weights: bad sums 0, bad indices 0, worst transfer distance 10.9 cm (LOD1/LOD2 cm: zu 2.8/5.8, nu 9.7/8.7, dun 3.4/6.0, che 5.0/10.4, wz 3.0/8.2, ls 10.9/10.4, fs 5.7/5.0, ss 5.0/4.8, qs 5.9/7.6)
+PASS C19_lod_deform: worst extra distance from the posed LOD0 0.0 cm (nu LOD1; attack mid frame, every 3rd vertex)
+PASS C13_outline_hull: levels with a wrong hull set 0, width uniform ok true (want 2.5 px)
+PASS C14_bind_pose: max matrix difference 7.02e-6
+PASS C15_memory_flat: [[169,26,8,80.28],[169,26,8,80.35],[169,26,8,80.4],[169,26,8,80.41],[169,26,8,80.41]]
+PASS C16_cloth_from_file: cloth materials not matching the file colour: 0
+PASS C17_programs_in_play: programs after warm-up 8, now 8
+PASS C18_statue_static: skinned 0, auto-matrix meshes 0, meshes 7
+PASS C20_dispose: before 169/26, drawn 202/28, disposed 169/26 (geometries/textures)
+PASS C21_face_swap: file values true, override true, setFace 1 of 1 face parts only true, hull true, unknown name stops true
+CHECKS 21 of 21
+MUTANT per-part skeletons: CAUGHT by C1_one_skeleton; failing: C1_one_skeleton,C2_uploads_per_frame,C13_outline_hull
+MUTANT no far rate: CAUGHT by C5_anim_gating; failing: C5_anim_gating
+MUTANT floor offset dropped: CAUGHT by C6_suit_floor_run; failing: C6_suit_floor_run
+MUTANT tread sign: CAUGHT by C8_tread_scroll; failing: C8_tread_scroll
+MUTANT sweep 150 deg: CAUGHT by C10_sweep_sector; failing: C10_sweep_sector
+MUTANT nearest weights from a far vertex: CAUGHT by C19_lod_deform; failing: C19_lod_deform
+MUTANT memory grows per spawn: CAUGHT by C15_memory_flat; failing: C15_memory_flat
+MUTANT face from another sheet: CAUGHT by C21_face_swap; failing: C21_face_swap
+MUTANT bake texture kept on dispose: CAUGHT by C20_dispose; failing: C20_dispose
+MUTANTS shard 0/3: caught 9 of 9, by the named check 9 of 9
+RESULT PASS
