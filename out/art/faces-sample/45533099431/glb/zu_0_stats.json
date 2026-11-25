@@ -1,0 +1,33 @@
+{
+ "char": "zu",
+ "opt": "0",
+ "face_tris_lod0": 0,
+ "face_parts": [],
+ "meshes": {
+  "zu_lod0": {
+   "tris": 3400,
+   "mats": [
+    "gdBronze",
+    "gdLacquer",
+    "treadBelt"
+   ]
+  },
+  "zu_lod1": {
+   "tris": 1186,
+   "mats": [
+    "gdBronze",
+    "gdLacquer",
+    "treadBelt"
+   ]
+  },
+  "zu_lod2": {
+   "tris": 342,
+   "mats": [
+    "gdBronze",
+    "gdLacquer",
+    "treadBelt"
+   ]
+  }
+ },
+ "uv_fixed_polys": 0
+}

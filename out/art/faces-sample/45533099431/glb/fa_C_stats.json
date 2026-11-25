@@ -1,0 +1,45 @@
+{
+ "char": "fa",
+ "opt": "C",
+ "face_tris_lod0": 1408,
+ "face_parts": [
+  [
+   "fc_face_C",
+   1056
+  ],
+  [
+   "fc_rim_C",
+   352
+  ]
+ ],
+ "meshes": {
+  "fa_lod0": {
+   "tris": 13808,
+   "mats": [
+    "sLam",
+    "sCloth_fa",
+    "sBronze",
+    "fcFace"
+   ]
+  },
+  "fa_lod1": {
+   "tris": 2599,
+   "mats": [
+    "sLam",
+    "sCloth_fa",
+    "sBronze",
+    "fcFace"
+   ]
+  },
+  "fa_lod2": {
+   "tris": 900,
+   "mats": [
+    "sLam",
+    "sCloth_fa",
+    "sBronze",
+    "fcFace"
+   ]
+  }
+ },
+ "uv_fixed_polys": 604
+}

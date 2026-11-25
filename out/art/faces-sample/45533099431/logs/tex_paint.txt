@@ -1,0 +1,5 @@
+painted face_skin 48 ops 4 passes
+painted face_lacq_fa 30 ops 2 passes
+painted face_lacq_court 30 ops 2 passes
+painted face_lacq_cinnabar 30 ops 2 passes
+FACES tex painted 4 of 4

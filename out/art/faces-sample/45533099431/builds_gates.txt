@@ -1,0 +1,66 @@
+## build_fa_0
+FACES stats fa 0 face tris lod0 0 uv fixed polys 0
+FACES done fa 0
+## build_fa_A
+FACES stats fa A face tris lod0 1496 uv fixed polys 0
+FAIL fa materials (draw calls) 4 (max 3)
+FACES done fa A
+## build_fa_B
+FACES stats fa B face tris lod0 2072 uv fixed polys 0
+FAIL fa materials (draw calls) 4 (max 3)
+FACES done fa B
+## build_fa_C
+FACES stats fa C face tris lod0 1408 uv fixed polys 604
+FAIL fa materials (draw calls) 4 (max 3)
+FACES done fa C
+## build_fa_D
+FACES stats fa D face tris lod0 1456 uv fixed polys 602
+FAIL fa materials (draw calls) 4 (max 3)
+FACES done fa D
+## build_g00_0
+21 of 21 pass
+FACES stats g00 0 face tris lod0 0 uv fixed polys 0
+FACES done g00 0
+## build_g00_A
+21 of 21 pass
+FACES stats g00 A face tris lod0 1688 uv fixed polys 0
+FACES done g00 A
+## build_g00_B
+21 of 21 pass
+FACES stats g00 B face tris lod0 2476 uv fixed polys 0
+FACES done g00 B
+## build_g00_C
+21 of 21 pass
+FACES stats g00 C face tris lod0 1488 uv fixed polys 1034
+FACES done g00 C
+## build_g00_D
+21 of 21 pass
+FACES stats g00 D face tris lod0 1648 uv fixed polys 794
+FACES done g00 D
+## build_zu_0
+zu: 12 of 12 pass
+FACES stats zu 0 face tris lod0 0 uv fixed polys 0
+SUMMARY zu 0 12 of 12 tris [3400, 1186, 342]
+FACES done zu 0
+## build_zu_A
+zu: 12 of 12 pass
+FACES stats zu A face tris lod0 568 uv fixed polys 0
+SUMMARY zu A 12 of 12 tris [3804, 1350, 394]
+FACES done zu A
+## build_zu_B
+FAIL zu lod1 tris 1582 (budget 1500)
+zu: 11 of 12 pass
+FACES stats zu B face tris lod0 600 uv fixed polys 0
+FAIL zu lod1 tris 1582 (budget 1500)
+SUMMARY zu B 11 of 12 tris [3836, 1582, 466]
+FACES done zu B
+## build_zu_C
+zu: 12 of 12 pass
+FACES stats zu C face tris lod0 528 uv fixed polys 459
+SUMMARY zu C 12 of 12 tris [3764, 1398, 401]
+FACES done zu C
+## build_zu_D
+zu: 12 of 12 pass
+FACES stats zu D face tris lod0 528 uv fixed polys 219
+SUMMARY zu D 12 of 12 tris [3764, 1350, 391]
+FACES done zu D

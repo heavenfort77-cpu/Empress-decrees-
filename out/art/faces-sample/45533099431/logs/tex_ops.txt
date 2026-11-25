@@ -1,0 +1,4 @@
+face_skin 48 ops
+face_lacq_fa 30 ops
+face_lacq_court 30 ops
+face_lacq_cinnabar 30 ops

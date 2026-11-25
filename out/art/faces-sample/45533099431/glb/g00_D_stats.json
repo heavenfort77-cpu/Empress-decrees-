@@ -1,0 +1,79 @@
+{
+ "char": "g00",
+ "opt": "D",
+ "face_tris_lod0": 1648,
+ "face_parts": [
+  [
+   "fc_face_D",
+   1248
+  ],
+  [
+   "fc_slit1",
+   24
+  ],
+  [
+   "fc_slit-1",
+   24
+  ],
+  [
+   "fc_rim_D",
+   352
+  ]
+ ],
+ "meshes": {
+  "giant_body_lod0": {
+   "tris": 3640,
+   "mats": [
+    "palBronze",
+    "palTin"
+   ]
+  },
+  "giant_body_lod1": {
+   "tris": 1504,
+   "mats": [
+    "palBronze",
+    "palTin"
+   ]
+  },
+  "giant_body_lod2": {
+   "tris": 606,
+   "mats": [
+    "palBronze"
+   ]
+  },
+  "giant_flakes": {
+   "tris": 288,
+   "mats": [
+    "palPatina"
+   ]
+  },
+  "giant_g00_lod0": {
+   "tris": 3780,
+   "mats": [
+    "palBronze",
+    "fcFace",
+    "fcDark",
+    "palTin"
+   ]
+  },
+  "giant_g00_lod1": {
+   "tris": 1268,
+   "mats": [
+    "palBronze",
+    "fcFace",
+    "fcDark",
+    "palTin"
+   ]
+  },
+  "giant_g00_lod2": {
+   "tris": 385,
+   "mats": [
+    "palBronze",
+    "fcFace",
+    "fcDark",
+    "palTin"
+   ]
+  }
+ },
+ "uv_fixed_polys": 794
+}

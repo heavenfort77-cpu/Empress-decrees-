@@ -1,0 +1,67 @@
+PASS fa 0 build stats present
+PASS fa A build stats present
+PASS fa B build stats present
+PASS fa C build stats present
+PASS fa D build stats present
+PASS fa 0 LOD0 tris 12924 (budget 15000)
+PASS fa A LOD0 tris 13896 (budget 15000)
+PASS fa A face parts built, 1496 tris at LOD0
+PASS fa B LOD0 tris 14472 (budget 15000)
+PASS fa B face parts built, 2072 tris at LOD0
+PASS fa C LOD0 tris 13808 (budget 15000)
+PASS fa C painted face polygons projected 604 (> 0)
+PASS fa C face parts built, 1408 tris at LOD0
+PASS fa D LOD0 tris 13856 (budget 15000)
+PASS fa D painted face polygons projected 602 (> 0)
+PASS fa D face parts built, 1456 tris at LOD0
+PASS fa play shots measured 5 of 5
+PASS fa 0 close and play shots present
+PASS fa A close and play shots present
+PASS fa B close and play shots present
+PASS fa C close and play shots present
+PASS fa D close and play shots present
+PASS zu 0 build stats present
+PASS zu A build stats present
+PASS zu B build stats present
+PASS zu C build stats present
+PASS zu D build stats present
+PASS zu 0 LOD0 tris 3400 (budget 4000)
+PASS zu A LOD0 tris 3804 (budget 4000)
+PASS zu A face parts built, 568 tris at LOD0
+PASS zu B LOD0 tris 3836 (budget 4000)
+PASS zu B face parts built, 600 tris at LOD0
+PASS zu C LOD0 tris 3764 (budget 4000)
+PASS zu C painted face polygons projected 459 (> 0)
+PASS zu C face parts built, 528 tris at LOD0
+PASS zu D LOD0 tris 3764 (budget 4000)
+PASS zu D painted face polygons projected 219 (> 0)
+PASS zu D face parts built, 528 tris at LOD0
+PASS zu play shots measured 5 of 5
+PASS zu 0 close and play shots present
+PASS zu A close and play shots present
+PASS zu B close and play shots present
+PASS zu C close and play shots present
+PASS zu D close and play shots present
+PASS g00 0 build stats present
+PASS g00 A build stats present
+PASS g00 B build stats present
+PASS g00 C build stats present
+PASS g00 D build stats present
+PASS g00 0 LOD0 tris 6516 (budget 15000)
+PASS g00 A LOD0 tris 7460 (budget 15000)
+PASS g00 A face parts built, 1688 tris at LOD0
+PASS g00 B LOD0 tris 8248 (budget 15000)
+PASS g00 B face parts built, 2476 tris at LOD0
+PASS g00 C LOD0 tris 7260 (budget 15000)
+PASS g00 C painted face polygons projected 1034 (> 0)
+PASS g00 C face parts built, 1488 tris at LOD0
+PASS g00 D LOD0 tris 7420 (budget 15000)
+PASS g00 D painted face polygons projected 794 (> 0)
+PASS g00 D face parts built, 1648 tris at LOD0
+PASS g00 play shots measured 5 of 5
+PASS g00 0 close and play shots present
+PASS g00 A close and play shots present
+PASS g00 B close and play shots present
+PASS g00 C close and play shots present
+PASS g00 D close and play shots present
+66 of 66 pass

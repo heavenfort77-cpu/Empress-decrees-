@@ -1,0 +1,58 @@
+{
+ "char": "zu",
+ "opt": "A",
+ "face_tris_lod0": 568,
+ "face_parts": [
+  [
+   "fc_face_A",
+   288
+  ],
+  [
+   "fc_slit1",
+   24
+  ],
+  [
+   "fc_slit-1",
+   24
+  ],
+  [
+   "fc_inlay1",
+   20
+  ],
+  [
+   "fc_inlay-1",
+   20
+  ],
+  [
+   "fc_rim_A",
+   192
+  ]
+ ],
+ "meshes": {
+  "zu_lod0": {
+   "tris": 3804,
+   "mats": [
+    "gdBronze",
+    "gdLacquer",
+    "treadBelt"
+   ]
+  },
+  "zu_lod1": {
+   "tris": 1350,
+   "mats": [
+    "gdBronze",
+    "gdLacquer",
+    "treadBelt"
+   ]
+  },
+  "zu_lod2": {
+   "tris": 394,
+   "mats": [
+    "gdBronze",
+    "gdLacquer",
+    "treadBelt"
+   ]
+  }
+ },
+ "uv_fixed_polys": 0
+}

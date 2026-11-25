@@ -1,0 +1,36 @@
+FACES stats fa B face tris lod0 2072 uv fixed polys 0
+ERROR Draco is not available because library could not be found at /opt/hostedtoolcache/Python/3.13.18/x64/lib/python3.13/site-packages/bpy/lib/libbf_intern_draco_bridge.so
+ERROR MeshOptimizer is not available because library could not be found at /opt/hostedtoolcache/Python/3.13.18/x64/lib/python3.13/site-packages/bpy/lib/libbf_intern_meshopt_bridge.so
+02:29:01 | INFO: Starting glTF 2.0 export
+02:29:01 | INFO: Extracting primitive: fa_lod0
+02:29:01 | INFO: Primitives created: 4
+02:29:01 | INFO: Extracting primitive: fa_lod1
+02:29:01 | INFO: Primitives created: 4
+02:29:01 | WARNING: Mesh fa_lod2 is not valid, and may be exported wrongly
+02:29:01 | INFO: Extracting primitive: fa_lod2
+02:29:01 | INFO: Primitives created: 4
+02:29:02 | INFO: Finished glTF 2.0 export in 0.5667848587036133 s
+
+02:29:02 | INFO: Data are loaded, start creating Blender stuff
+02:29:02 | INFO: Blender create Mesh node fa_lod0
+02:29:02 | INFO: Blender create Mesh node fa_lod1
+02:29:02 | INFO: Blender create Mesh node fa_lod2
+02:29:02 | INFO: glTF import finished in 0.16s
+PASS fa lod0 tris 14472 (budget 10000-15000)
+PASS fa lod1 tris 2600 (budget 2000-3000)
+PASS fa lod2 tris 900 (budget 300-999)
+PASS fa lod0 unweighted vertices 0
+PASS fa lod0 weight sums off 1: 0
+PASS fa max influences 2 (glTF 4)
+PASS fa cloth heat weights solved (0 parts fell back to nearest bone: )
+FAIL fa materials (draw calls) 4 (max 3)
+PASS fa attack tell 0.45 s (min 0.4)
+PASS fa tell travel 1.15 m (weapon tip, rest to windup; min 0.3)
+PASS fa idle 1.00 s
+PASS fa height with crest 2.39 m (1.7-2.9)
+PASS fa 7.51 heads tall (crown 2.02 m, head 0.27 m; band (7.3, 7.7)); mutation round-3 body 6.41 heads caught
+PASS fa run stance legs within reach every frame (0 stance frames clamped); hip drop 0.11 m, lowest hip 0.893 m, cycle 0.55 s (33 frames, 3.636 steps/s, step 1.76 m) at 6.4 m/s
+PASS fa death floor solve: largest lift 0.099 m at frame 14 (fall front, 0.90 s); floor ref -0.0246 m (rest sole)
+PASS fa texel density min 0.86 of 256 px/m (min 0.8; 16 parts squeezed; lowest [('tlam0', 0.86), ('tlam1', 0.86), ('tlam2', 0.86), ('tasR0', 0.86)])
+PASS fa GLB re-import: 3 skinned meshes, actions ['attack', 'death', 'hit', 'idle', 'run'], 907 KB
+FACES done fa B

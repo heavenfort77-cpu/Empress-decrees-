@@ -1,0 +1,169 @@
+== preflight 02:28:46
+bpy 5.3.0
+PREFLIGHT PASS
+== textures (klad) 02:28:49
+face_skin 48 ops
+face_lacq_fa 30 ops
+face_lacq_court 30 ops
+face_lacq_cinnabar 30 ops
+painted face_skin 48 ops 4 passes
+painted face_lacq_fa 30 ops 2 passes
+painted face_lacq_court 30 ops 2 passes
+painted face_lacq_cinnabar 30 ops 2 passes
+FACES tex painted 4 of 4
+== builds 02:28:50
+built g00 B exit 0
+built g00 0 exit 0
+built g00 A exit 0
+built g00 C exit 0
+built fa 0 exit 0
+built g00 D exit 0
+built fa A exit 0
+built fa B exit 0
+built fa C exit 0
+built zu 0 exit 0
+built zu A exit 0
+built zu B exit 0
+built zu C exit 0
+built fa D exit 0
+built zu D exit 0
+## build_fa_0
+FACES stats fa 0 face tris lod0 0 uv fixed polys 0
+FACES done fa 0
+## build_fa_A
+FACES stats fa A face tris lod0 1496 uv fixed polys 0
+FAIL fa materials (draw calls) 4 (max 3)
+FACES done fa A
+## build_fa_B
+FACES stats fa B face tris lod0 2072 uv fixed polys 0
+FAIL fa materials (draw calls) 4 (max 3)
+FACES done fa B
+## build_fa_C
+FACES stats fa C face tris lod0 1408 uv fixed polys 604
+FAIL fa materials (draw calls) 4 (max 3)
+FACES done fa C
+## build_fa_D
+FACES stats fa D face tris lod0 1456 uv fixed polys 602
+FAIL fa materials (draw calls) 4 (max 3)
+FACES done fa D
+## build_g00_0
+21 of 21 pass
+FACES stats g00 0 face tris lod0 0 uv fixed polys 0
+FACES done g00 0
+## build_g00_A
+21 of 21 pass
+FACES stats g00 A face tris lod0 1688 uv fixed polys 0
+FACES done g00 A
+## build_g00_B
+21 of 21 pass
+FACES stats g00 B face tris lod0 2476 uv fixed polys 0
+FACES done g00 B
+## build_g00_C
+21 of 21 pass
+FACES stats g00 C face tris lod0 1488 uv fixed polys 1034
+FACES done g00 C
+## build_g00_D
+21 of 21 pass
+FACES stats g00 D face tris lod0 1648 uv fixed polys 794
+FACES done g00 D
+## build_zu_0
+zu: 12 of 12 pass
+FACES stats zu 0 face tris lod0 0 uv fixed polys 0
+SUMMARY zu 0 12 of 12 tris [3400, 1186, 342]
+FACES done zu 0
+## build_zu_A
+zu: 12 of 12 pass
+FACES stats zu A face tris lod0 568 uv fixed polys 0
+SUMMARY zu A 12 of 12 tris [3804, 1350, 394]
+FACES done zu A
+## build_zu_B
+FAIL zu lod1 tris 1582 (budget 1500)
+zu: 11 of 12 pass
+FACES stats zu B face tris lod0 600 uv fixed polys 0
+FAIL zu lod1 tris 1582 (budget 1500)
+SUMMARY zu B 11 of 12 tris [3836, 1582, 466]
+FACES done zu B
+## build_zu_C
+zu: 12 of 12 pass
+FACES stats zu C face tris lod0 528 uv fixed polys 459
+SUMMARY zu C 12 of 12 tris [3764, 1398, 401]
+FACES done zu C
+## build_zu_D
+zu: 12 of 12 pass
+FACES stats zu D face tris lod0 528 uv fixed polys 219
+SUMMARY zu D 12 of 12 tris [3764, 1350, 391]
+FACES done zu D
+40
+== shots 02:29:06
+PASS shots 30 of 30
+jpg 30
+== sheets 02:30:07
+PASS fa 0 build stats present
+PASS fa A build stats present
+PASS fa B build stats present
+PASS fa C build stats present
+PASS fa D build stats present
+PASS fa 0 LOD0 tris 12924 (budget 15000)
+PASS fa A LOD0 tris 13896 (budget 15000)
+PASS fa A face parts built, 1496 tris at LOD0
+PASS fa B LOD0 tris 14472 (budget 15000)
+PASS fa B face parts built, 2072 tris at LOD0
+PASS fa C LOD0 tris 13808 (budget 15000)
+PASS fa C painted face polygons projected 604 (> 0)
+PASS fa C face parts built, 1408 tris at LOD0
+PASS fa D LOD0 tris 13856 (budget 15000)
+PASS fa D painted face polygons projected 602 (> 0)
+PASS fa D face parts built, 1456 tris at LOD0
+PASS fa play shots measured 5 of 5
+PASS fa 0 close and play shots present
+PASS fa A close and play shots present
+PASS fa B close and play shots present
+PASS fa C close and play shots present
+PASS fa D close and play shots present
+PASS zu 0 build stats present
+PASS zu A build stats present
+PASS zu B build stats present
+PASS zu C build stats present
+PASS zu D build stats present
+PASS zu 0 LOD0 tris 3400 (budget 4000)
+PASS zu A LOD0 tris 3804 (budget 4000)
+PASS zu A face parts built, 568 tris at LOD0
+PASS zu B LOD0 tris 3836 (budget 4000)
+PASS zu B face parts built, 600 tris at LOD0
+PASS zu C LOD0 tris 3764 (budget 4000)
+PASS zu C painted face polygons projected 459 (> 0)
+PASS zu C face parts built, 528 tris at LOD0
+PASS zu D LOD0 tris 3764 (budget 4000)
+PASS zu D painted face polygons projected 219 (> 0)
+PASS zu D face parts built, 528 tris at LOD0
+PASS zu play shots measured 5 of 5
+PASS zu 0 close and play shots present
+PASS zu A close and play shots present
+PASS zu B close and play shots present
+PASS zu C close and play shots present
+PASS zu D close and play shots present
+PASS g00 0 build stats present
+PASS g00 A build stats present
+PASS g00 B build stats present
+PASS g00 C build stats present
+PASS g00 D build stats present
+PASS g00 0 LOD0 tris 6516 (budget 15000)
+PASS g00 A LOD0 tris 7460 (budget 15000)
+PASS g00 A face parts built, 1688 tris at LOD0
+PASS g00 B LOD0 tris 8248 (budget 15000)
+PASS g00 B face parts built, 2476 tris at LOD0
+PASS g00 C LOD0 tris 7260 (budget 15000)
+PASS g00 C painted face polygons projected 1034 (> 0)
+PASS g00 C face parts built, 1488 tris at LOD0
+PASS g00 D LOD0 tris 7420 (budget 15000)
+PASS g00 D painted face polygons projected 794 (> 0)
+PASS g00 D face parts built, 1648 tris at LOD0
+PASS g00 play shots measured 5 of 5
+PASS g00 0 close and play shots present
+PASS g00 A close and play shots present
+PASS g00 B close and play shots present
+PASS g00 C close and play shots present
+PASS g00 D close and play shots present
+66 of 66 pass
+23M	/home/runner/work/Empress-decrees-/Empress-decrees-/ci_art_out
+RESULT done

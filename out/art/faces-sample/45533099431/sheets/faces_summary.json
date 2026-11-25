@@ -1,0 +1,179 @@
+{
+ "fa": {
+  "0": {
+   "tris_lod0": 12924,
+   "delta": 0,
+   "face_tris": 0,
+   "materials": [
+    "sBronze",
+    "sCloth_fa",
+    "sLam"
+   ],
+   "calls": 4
+  },
+  "A": {
+   "tris_lod0": 13896,
+   "delta": 972,
+   "face_tris": 1496,
+   "materials": [
+    "fcBrass",
+    "sBronze",
+    "sCloth_fa",
+    "sLam"
+   ],
+   "calls": 5
+  },
+  "B": {
+   "tris_lod0": 14472,
+   "delta": 1548,
+   "face_tris": 2072,
+   "materials": [
+    "fcBrass",
+    "sBronze",
+    "sCloth_fa",
+    "sLam"
+   ],
+   "calls": 5
+  },
+  "C": {
+   "tris_lod0": 13808,
+   "delta": 884,
+   "face_tris": 1408,
+   "materials": [
+    "fcFace",
+    "sBronze",
+    "sCloth_fa",
+    "sLam"
+   ],
+   "calls": 5
+  },
+  "D": {
+   "tris_lod0": 13856,
+   "delta": 932,
+   "face_tris": 1456,
+   "materials": [
+    "fcFace",
+    "sBronze",
+    "sCloth_fa",
+    "sLam"
+   ],
+   "calls": 5
+  }
+ },
+ "zu": {
+  "0": {
+   "tris_lod0": 3400,
+   "delta": 0,
+   "face_tris": 0,
+   "materials": [
+    "gdBronze",
+    "gdLacquer",
+    "treadBelt"
+   ],
+   "calls": 4
+  },
+  "A": {
+   "tris_lod0": 3804,
+   "delta": 404,
+   "face_tris": 568,
+   "materials": [
+    "gdBronze",
+    "gdLacquer",
+    "treadBelt"
+   ],
+   "calls": 4
+  },
+  "B": {
+   "tris_lod0": 3836,
+   "delta": 436,
+   "face_tris": 600,
+   "materials": [
+    "gdBronze",
+    "gdLacquer",
+    "treadBelt"
+   ],
+   "calls": 4
+  },
+  "C": {
+   "tris_lod0": 3764,
+   "delta": 364,
+   "face_tris": 528,
+   "materials": [
+    "fcFace",
+    "gdBronze",
+    "gdLacquer",
+    "treadBelt"
+   ],
+   "calls": 5
+  },
+  "D": {
+   "tris_lod0": 3764,
+   "delta": 364,
+   "face_tris": 528,
+   "materials": [
+    "fcFace",
+    "gdBronze",
+    "gdLacquer",
+    "treadBelt"
+   ],
+   "calls": 5
+  }
+ },
+ "g00": {
+  "0": {
+   "tris_lod0": 6516,
+   "delta": 0,
+   "face_tris": 0,
+   "materials": [
+    "palBronze",
+    "palTin"
+   ],
+   "calls": 5
+  },
+  "A": {
+   "tris_lod0": 7460,
+   "delta": 944,
+   "face_tris": 1688,
+   "materials": [
+    "fcDark",
+    "palBronze",
+    "palTin"
+   ],
+   "calls": 6
+  },
+  "B": {
+   "tris_lod0": 8248,
+   "delta": 1732,
+   "face_tris": 2476,
+   "materials": [
+    "fcDark",
+    "palBronze",
+    "palTin"
+   ],
+   "calls": 6
+  },
+  "C": {
+   "tris_lod0": 7260,
+   "delta": 744,
+   "face_tris": 1488,
+   "materials": [
+    "fcFace",
+    "palBronze",
+    "palTin"
+   ],
+   "calls": 6
+  },
+  "D": {
+   "tris_lod0": 7420,
+   "delta": 904,
+   "face_tris": 1648,
+   "materials": [
+    "fcDark",
+    "fcFace",
+    "palBronze",
+    "palTin"
+   ],
+   "calls": 7
+  }
+ }
+}
