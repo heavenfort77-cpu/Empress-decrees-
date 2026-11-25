@@ -116,17 +116,23 @@ if (MODE === 'checks') {
     const o = await open(q);
     if (o.err) { gate(false, `${name}: page error ${o.err.slice(0, 200)}`); await o.browser.close(); continue; }
     if (name === 'reference') await o.page.evaluate(() => { if (window.__game && __game.setSeed) { __game.setSeed(12345); __game.reset(); } });
-    const r = await o.page.evaluate(async ({ SETTLE, TIMED }) => {
-      const wait = (s) => new Promise((res) => setTimeout(res, s * 1000)); await wait(SETTLE); if (window.gc) window.gc();
+    // JS heap through the DevTools protocol (round 4: one window.gc() read back noisy, e.g. 58 -> 68.1 MB after GC while 66.1 MB before it, and the
+    // sampling profiler found 0.06-0.16 MB of live allocations over the same window): two full collections, then the used size.
+    const cdp = await o.page.context().newCDPSession(o.page);
+    const heapMB = async () => { for (let k = 0; k < 2; k++) await cdp.send('HeapProfiler.collectGarbage'); const u = await cdp.send('Runtime.getHeapUsage'); return +(u.usedSize / 1048576).toFixed(2); };
+    await o.page.waitForTimeout(SETTLE * 1000); const hs0 = await heapMB();
+    const r = await o.page.evaluate(async ({ TIMED }) => {
+      const wait = (s) => new Promise((res) => setTimeout(res, s * 1000));
       const heap = () => (performance.memory ? +(performance.memory.usedJSHeapSize / 1048576).toFixed(1) : -1), G = window.__gl || null;
       const l0 = G ? G.link : 0, h0 = heap(), d = []; let last = 0, run = true;
       await new Promise((res) => { const f = (t) => { if (last) d.push(t - last); last = t; if (run) requestAnimationFrame(f); else res(); }; requestAnimationFrame(f); setTimeout(() => { run = false; }, TIMED * 1000); });
-      const raw = heap(); if (window.gc) window.gc(); await wait(0.2);
+      const raw = heap();
       d.sort((a, b) => a - b); const F = d.length, sum = d.reduce((a, b) => a + b, 0), V = window.__probe && window.__probe.view;
       return { frames: F, fps: F ? +(F / (sum / 1000)).toFixed(1) : 0, p50: F ? +d[Math.floor(F * 0.5)].toFixed(1) : 0, p95: F ? +d[Math.floor(F * 0.95)].toFixed(1) : 0, worst: F ? +d[F - 1].toFixed(1) : 0,
         over20: F ? +(100 * d.filter((x) => x > 20).length / F).toFixed(1) : 0, links: G && !G.off ? G.link - l0 : -1, heap0: h0, heapRaw: raw, heap1: heap(),
         view: V ? { id: V.id, counts: V.counts, steady: V.steady, prog0: V.prog0, prog1: V.programs(), props: V.propsN, doors: V.doorsN } : null };
-    }, { SETTLE, TIMED });
+    }, { TIMED });
+    r.heapStart = hs0; r.heapEnd = await heapMB();
     const row = { scene: name, loadMs: o.loadMs, errs: o.errs.length, gpu: await renderer(o.page), ...r }; rows.push(row); console.log('ROW ' + JSON.stringify(row));
     await o.page.screenshot({ path: `${OUT}/shots/${name}_${rows.length}.png` }).catch(() => {});
     await o.browser.close();
@@ -139,7 +145,7 @@ if (MODE === 'checks') {
     gate(x.frames > 0 && V.props > 0 && refP95 > 0 && x.p95 <= lim && x.p95 <= 16.7, `${x.scene} ${V.id}: ${x.fps} fps p95 ${x.p95} ms (limit ${lim.toFixed(1)} = max(1.25 x ref ${refP95.toFixed(1)}, ref + 2), and 16.7) worst ${x.worst} ms; ref ${refFps.toFixed(1)} fps`);
     gate(x.frames > 0 && x.worst < 100, `${x.scene}: worst frame ${x.worst} ms < 100 (over 20 ms: ${x.over20} %)`);
     gate(x.frames > 0 && x.links === 0 && V.prog0 > 0 && V.prog1 === V.prog0, `${x.scene}: programs linked in play ${x.links} (programs ${V.prog0} -> ${V.prog1}), ${V.props} props and ${V.doors} doors toggling every 0.5 s`);
-    gate(x.frames > 0 && x.heap0 > 0 && x.heap1 - x.heap0 < 2, `${x.scene}: JS heap after GC ${x.heap0} -> ${x.heap1} MB over ${TIMED} s of play (< 2 MB; before GC ${x.heapRaw} MB)`);
+    gate(x.frames > 0 && x.heapStart > 0 && x.heapEnd - x.heapStart < 2, `${x.scene}: JS heap after two full GCs ${x.heapStart} -> ${x.heapEnd} MB over ${TIMED} s of play (< 2 MB; page counter before GC ${x.heap0} -> ${x.heapRaw} MB)`);
     gate(V.counts && V.counts.calls > 0 && V.counts.calls < 500 && V.counts.tris < 500000, `${x.scene}: GL draws ${V.counts && V.counts.calls} (steady ${V.steady && V.steady.calls}), triangles ${V.counts && V.counts.tris} (shadow frame) < 500 / 0.5M`);
   }
   // Memory cycles on the real GPU (P14) with the JS heap.
@@ -147,10 +153,10 @@ if (MODE === 'checks') {
   const cs = o.err ? [] : await o.page.evaluate(() => window.__checks || []), c = cs.find((y) => y.id === 'P14');
   gate(!o.err && c && c.ok, 'real GPU ' + (c ? c.line.slice(0, 400) : o.err || 'P14 did not run'));
   await o.browser.close();
-  for (const x of rows.filter((y) => y.scene === 'pal_quiet' || y.scene === 'pal_noglc')) console.log(`INFO ${x.scene}: ${x.fps} fps p95 ${x.p95} heap ${x.heap0} -> raw ${x.heapRaw} -> after GC ${x.heap1} MB`);
-  const t = ['scene        fps     p50   p95   worst  >20ms%  draws  tris     links heapMB (start-raw-afterGC)'];
+  for (const x of rows.filter((y) => y.scene === 'pal_quiet' || y.scene === 'pal_noglc' || y.scene === 'reference' || y.scene === 'webglmin')) console.log(`INFO ${x.scene}: ${x.fps} fps p95 ${x.p95} heap after full GCs ${x.heapStart} -> ${x.heapEnd} MB`);
+  const t = ['scene        fps     p50   p95   worst  >20ms%  draws  tris     links heapMB (after full GCs)'];
   for (const x of rows) t.push([x.scene.padEnd(12), String(x.fps).padStart(6), String(x.p50).padStart(6), String(x.p95).padStart(5), String(x.worst).padStart(6), String(x.over20).padStart(6),
-    String(x.view && x.view.counts ? x.view.counts.calls : '').padStart(6), String(x.view && x.view.counts ? x.view.counts.tris : '').padStart(8), String(x.links).padStart(5), (x.heap0 + '-' + x.heapRaw + '-' + x.heap1).padStart(17)].join(' '));
+    String(x.view && x.view.counts ? x.view.counts.calls : '').padStart(6), String(x.view && x.view.counts ? x.view.counts.tris : '').padStart(8), String(x.links).padStart(5), (x.heapStart + '-' + x.heapEnd).padStart(13)].join(' '));
   console.log(t.join('\n')); await writeFile(OUT + '/perf_table.txt', t.join('\n') + '\n');
 }
 console.log(`RESULT ${pass} of ${pass + fail}${fail ? ' (FAIL)' : ''}`);
