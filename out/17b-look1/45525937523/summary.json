@@ -1,0 +1,9 @@
+[
+ {
+  "i": 0,
+  "fails": [],
+  "tot": [],
+  "s": 4,
+  "tail": "node:internal/modules/run_main:123\n    triggerUncaughtException(\n    ^\n\npage.evaluate: TypeError: Cannot read properties of undefined (reading 'cx')\n    at eval (eval at evaluate (:311:30), <anonymous>:1:66)\n    at UtilityScript.evaluate (<anonymous>:313:16)\n    at UtilityScript.<anonymous> (<anonymous>:1:44)\n    at shot (/home/runner/work/Empress-decrees-/Empress-decrees-/probe17b/look.mjs:14:11)\n    at async file:///home/runner/work/Empress-decrees-/Empress-decrees-/probe17b/look.mjs:34:13 {\n  log: []\n}\n\nNode.js v22.23.5\n"
+ }
+]
