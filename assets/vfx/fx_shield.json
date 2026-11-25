@@ -1,0 +1,59 @@
+{
+ "name": "shield",
+ "atlas": "soft_b",
+ "blend": "blend",
+ "orient": "bill",
+ "frames": 12,
+ "fps": 20,
+ "loop": [
+  4,
+  12
+ ],
+ "cellPx": [
+  100,
+  116
+ ],
+ "originPx": [
+  2,
+  2
+ ],
+ "stridePx": [
+  104,
+  120
+ ],
+ "cols": 9,
+ "pivotPx": [
+  50,
+  98
+ ],
+ "texelM": 0.03,
+ "sizeM": [
+  3.0,
+  3.48
+ ],
+ "pivotM": [
+  1.5,
+  0.54
+ ],
+ "durationS": 0.6,
+ "alphaSum": [
+  776.3,
+  829.4,
+  849.7,
+  852.4,
+  885.7,
+  909.9,
+  907.6,
+  905.5,
+  904.5,
+  905.5,
+  907.5,
+  910.0
+ ],
+ "ref": "pixelfx holy/divine-shield (shape and timing only)",
+ "anchorHeightM": 0.0,
+ "atlasSize": [
+  1024,
+  984
+ ]
+}

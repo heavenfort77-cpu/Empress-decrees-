@@ -1,0 +1,57 @@
+{
+ "name": "slash",
+ "atlas": "soft_a",
+ "blend": "blend",
+ "orient": "bill",
+ "frames": 13,
+ "fps": 30,
+ "loop": null,
+ "cellPx": [
+  212,
+  156
+ ],
+ "originPx": [
+  2,
+  2
+ ],
+ "stridePx": [
+  216,
+  160
+ ],
+ "cols": 4,
+ "pivotPx": [
+  64,
+  151
+ ],
+ "texelM": 0.027,
+ "sizeM": [
+  5.724,
+  4.212
+ ],
+ "pivotM": [
+  1.728,
+  0.135
+ ],
+ "durationS": 0.433,
+ "alphaSum": [
+  2503.0,
+  2556.4,
+  2501.6,
+  2368.4,
+  1989.7,
+  1438.8,
+  805.5,
+  410.4,
+  177.6,
+  86.3,
+  26.3,
+  19.5,
+  14.8
+ ],
+ "ref": "pixelfx melee/sword-slash (shape and timing only)",
+ "anchorHeightM": 0.0,
+ "atlasSize": [
+  1024,
+  956
+ ]
+}

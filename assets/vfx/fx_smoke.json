@@ -1,0 +1,56 @@
+{
+ "name": "smoke",
+ "atlas": "soft_b",
+ "blend": "blend",
+ "orient": "bill",
+ "frames": 12,
+ "fps": 15,
+ "loop": null,
+ "cellPx": [
+  94,
+  84
+ ],
+ "originPx": [
+  2,
+  810
+ ],
+ "stridePx": [
+  98,
+  88
+ ],
+ "cols": 10,
+ "pivotPx": [
+  47,
+  78
+ ],
+ "texelM": 0.04,
+ "sizeM": [
+  3.76,
+  3.36
+ ],
+ "pivotM": [
+  1.88,
+  0.24
+ ],
+ "durationS": 0.8,
+ "alphaSum": [
+  0.0,
+  190.8,
+  433.5,
+  571.9,
+  640.2,
+  639.0,
+  574.0,
+  454.5,
+  297.9,
+  124.8,
+  10.9,
+  0.0
+ ],
+ "ref": "pixelfx explosions/smoke-bomb (shape and timing only)",
+ "anchorHeightM": 0.0,
+ "atlasSize": [
+  1024,
+  984
+ ]
+}
