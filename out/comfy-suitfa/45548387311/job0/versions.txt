@@ -1,0 +1,2 @@
+torch 2.15.0+cpu diffusers 0.43.0 threads 2
+cpu: AMD EPYC 9V74 80-Core Processor, nproc 4, bf16 flags: avx512_bf16 (none = no native bf16), avx512f: 1
