@@ -43,6 +43,8 @@ node art/tools/suitanim_shoot.mjs /tmp/ashots /tmp/suits/suits_info.json fa 2>&1
 mkdir -p $O/sheets/strips && for f in /tmp/ashots/fa_strip_*.png; do [ -f "$f" ] && python3 -c "import sys;from PIL import Image;Image.open(sys.argv[1]).convert('RGB').save(sys.argv[2],quality=88)" $f $O/sheets/strips/$(basename ${f%.png}).jpg; done
 step "measures and sheets"
 python3 art/tools/fa_measure.py /tmp/fashots /tmp/suits/fa_r5_metrics.json $O/sheets --mutate 2>&1 | tee $O/suits/measures.txt
+# option for the lead, not a gate (viewer-only rim, no game code): the floor-contrast measure on the rim lineup, lines prefixed OPTION
+python3 art/tools/suit_contrast.py /tmp/fashots lineup_play_rim 2>&1 | sed 's/^/OPTION rim (viewer only): /' | tee $O/suits/option_rim.txt
 mkdir -p $O/shots && cp /tmp/fashots/*.png $O/shots/ && mkdir -p $O/shots/old && cp /tmp/fashots/old/*.png $O/shots/old/
 rm -f assets/models/suits/fa_old.glb; git checkout -- assets art 2>/dev/null; git status --short | grep -v '^??' | head -5
 echo "== summary"; cat $O/suits/tex_gates.txt $O/suits/gates.txt $O/suits/clip_gates.txt $O/suits/measures.txt 2>/dev/null | grep -E "^FAIL|MUT MISSED|of .* pass|mutations|Traceback" | tee $O/summary.txt

@@ -1,6 +1,7 @@
 # SUITS fa round 5 (owner GO 25 Nov 10:55): 法甲 廷尉 rebuilt as ONE sample the way the owner's armour-suit kit does it
 # (/home/claude/kits/armour-suit: Techno-Plate-Style-Study.md, 3d/HANDOFF-3D.md; technique only, its main.js is not copied):
-#  - per-character LOOK table (plate / dark / trim / binding), here from the research palette and the owner's school mapping (法 = lead white);
+#  - per-character LOOK table (plate / dark / trim / binding); owner standard 25 Nov 12:1x: Qin court look = BLACK LACQUER plates, the
+#    school colour (法 = lead white) only on bindings, edging and accents, silver inlay trim (art/tools/fa_tex.py holds the values);
 #  - head = ONE sculpted shell: a height function over the head wrap, cut by marching squares over a signed field (outline, eye slits,
 #    mouth), the lead-white mask region and the black lacquer helm in the same shell, framed by a brow eave and cheek flanges;
 #  - engraving = height picture -> colour map + normal map (art/tools/fa_tex.py), gold inlay lines on plate edges;
@@ -24,12 +25,15 @@ SX = 0.238
 FA_H, FA_W, FA_G, FA_L = 1.0, 1.15, 1.06, 1.22
 # Lamella row height, m (study 12.5 cm), outward step per row, m, superellipse exponent of rows.
 LAM_H, LAM_STEP, LAM_N = 0.125, 0.018, 2.5
-# Binding (black silk cord) band height and how far it stands proud, m; every n-th row carries one.
-CORD_H, CORD_OUT, CORD_EVERY = 0.026, 0.007, 2
-# Gold inlay rims (bracer, greave, pauldron, collar ends): band height and proud, m.
+# Binding (lead-white silk cord: the school colour marks the binding) band height and how far it stands proud, m; every n-th row carries one.
+CORD_H, CORD_OUT, CORD_EVERY = 0.026, 0.007, 1
+# Lead-white silk under-robe sleeves between pauldron and bracer (Qin robes show at the arms under the armour; school colour as an accent).
+# On/off: False = black silk sleeves like the undersuit (pure black lacquer read).
+ROBE_WHITE = True
+# Silver inlay rims (bracer, greave, pauldron, collar ends): band height and proud, m.
 RIM_H, RIM_OUT = 0.024, 0.006
 # Head shell: grid cells around (azimuth) and up (elevation) at LOD0; head centre above the chin, m; radii side / front-back / up / down, m.
-SHELL_NU, SHELL_NV = 44, 26
+SHELL_NU, SHELL_NV = 64, 40
 HEAD_C, HEAD_A, HEAD_F, HEAD_UP, HEAD_DN = 0.125, 0.122, 0.138, 0.145, 0.135
 # Shell elevation range, deg: bottom at the face (mask chin) and at the back (neck guard edge), top (just short of the pole; the pole is welded).
 E_CHIN, E_BACK, E_TOP = -62.0, -38.0, 89.0
@@ -40,14 +44,20 @@ MASK_W, MASK_WCHIN, BROW_E0, BROW_EK = 1.02, 0.52, 0.12, 0.10
 EYE = (0.40, -0.07, 0.235, 0.045, 22.0)
 MOUTH = (-0.66, 0.26, 0.028, 0.045)
 # Sculpt heights, m: mask stands proud of the helm, brow ridge, nose ridge, cheekbones, cheek hollow, crest ridge, neck-guard flare.
-H_MASK, H_BROW, H_NOSE, H_CHEEK, H_HOLLOW, H_CREST, H_FLARE = 0.010, 0.016, 0.022, 0.008, -0.006, 0.012, 0.035
+# (r5 first build 0.010 / 0.016 / 0.022 / 0.008 / -0.006 / 0.012 / 0.035 read as an egg with a face at close-up, run 45545078424 fa_head_34:
+# about doubled so brow, nose and cheekbones cast their own shading)
+H_MASK, H_BROW, H_NOSE, H_CHEEK, H_HOLLOW, H_CREST, H_FLARE = 0.016, 0.034, 0.034, 0.018, -0.014, 0.022, 0.045
 # Shell wall thickness at the cut edges (rim walls only), m.
 SHELL_T = 0.006
-# Horn (獬豸, the law beast: one horn, hooking forward = pursuit): rise above the helmet top and forward hook, m.
-HORN_UP, HORN_FWD = 0.34, 0.22
+# Horn (獬豸, the law beast: one horn, hooking forward = pursuit): rise above the helmet top, how far it sweeps back first, forward hook of the
+# tip, m; root half widths (side, front-back), m. (r5 first build: one quadratic curve tapering from the socket read as a spike/cone.)
+HORN_UP, HORN_BACK, HORN_FWD, HORN_ROOT = 0.30, 0.10, 0.20, (0.05, 0.068)
 # Visual heads band (helmet top / (helmet top - mask chin), horn excluded): kit 7 (measured knight 7.2, rogue 6.7) to concepts 7.5.
 HEADS_VIS = (7.0, 7.6)
 # Shoulder span (pauldron outer edges) over the visual head height: kit rogue 2.6, knight 4.1 (measured on the kit sheets).
+# Pauldron: lamella rows under the cap, outward flare per row, m, and the cap's widest half widths (side, front-back), m (r5 first build:
+# 2 rows, 0.03, 0.155 / 0.135: span 3.34 heads, 3/4 outline 0.77 IoU like ru's).
+PAUL_ROWS, PAUL_FLARE, CAP_AB = 3, 0.035, (0.172, 0.142)
 SPAN_BAND = (2.8, 3.8)
 # Limb thickness (bracer and greave diameter) over the visual head height, min (kit rogue about 0.4, knight 0.8-1.0).
 LIMB_MIN = 0.45
@@ -68,11 +78,11 @@ MATS = {'faA': (0.42, 0.0), 'faM': (0.35, 0.25), 'faC': (0.85, 0.0)}
 _R = json.load(open(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'fa_rows.json')))
 SB.SHEETS.update({k: tuple(v) for k, v in _R['sizes'].items()})
 SB.ROWS.update({k: {r: tuple(v) for r, v in d.items()} for k, d in _R['rows'].items()})
-SB.PREVIEW.update({'lam': (226, 220, 206), 'lamu': (226, 220, 206), 'plate': (236, 230, 216), 'plate2': (238, 232, 218), 'lacq': (34, 29, 28),
-                   'cord': (24, 20, 20), 'mask': (240, 236, 226), 'gold': (212, 178, 90), 'goldp': (212, 178, 90), 'goldb': (212, 178, 90),
+SB.PREVIEW.update({'lam': (49, 43, 41), 'lamu': (49, 43, 41), 'plate': (49, 43, 41), 'plate2': (49, 43, 41), 'lacq': (24, 20, 19), 'white': (240, 236, 226),
+                   'cord': (220, 214, 200), 'mask': (240, 236, 226), 'gold': (188, 191, 195), 'goldp': (188, 191, 195), 'goldb': (188, 191, 195),
                    'blade': (200, 160, 90), 'bronze': (176, 138, 78), 'silk_w': (229, 225, 202), 'silk_b': (30, 27, 28)})
 SB.TRIM_SUITS = [s for s in SB.TRIM_SUITS if s != 'fa']   # fa's sash and cuffs are part of its own build now
-SB.SUITS['fa'].update(H=FA_H, W=FA_W, G=FA_G, L=FA_L, cloth='#e5e1ca', trim='gold', lac='white')
+SB.SUITS['fa'].update(H=FA_H, W=FA_W, G=FA_G, L=FA_L, cloth='#e5e1ca', trim='silver', lac='black')
 loft, tube, path, bez, segs, D = SB.loft, SB.tube, SB.path, SB.bez, SB.segs, SB.D
 METRICS = {}
 
@@ -120,12 +130,13 @@ def c_body(b):
     tube('neck', (0, 0, b.zneck - 0.04), (0, 0, b.zchin + 0.04), 0.068, 0.062, 'faC', 'silk_b', 'neck', N=segs(SB.SEG_LIMB))
     for side, m in (('R', 1), ('L', -1)):
         sh = (m * b.sx, 0, b.zsh - 0.01); el = (m * (b.sx + 0.05), 0, b.zelb); wr = (m * (b.sx + 0.08), 0.05, b.zwri)
-        loft(f'sleeve_{side}', [(sh, 0.068 * L, 0.068 * L, 2), (el, 0.058 * L, 0.058 * L, 2)], 'faC', 'silk_b', f'upper_arm.{side}', caps=(True, False))
+        loft(f'sleeve_{side}', [(sh, 0.074 * L, 0.074 * L, 2), (el, 0.064 * L, 0.064 * L, 2)], 'faC', 'silk_w' if ROBE_WHITE else 'silk_b', f'upper_arm.{side}',
+             caps=(True, False))
         loft(f'farm_{side}', [(el, 0.05 * L, 0.05 * L, 2), (wr, 0.042 * L, 0.04 * L, 2)], 'faC', 'silk_b', f'forearm.{side}')
         hc = b.hand(m)
         loft(f'hand_{side}', [(wr, 0.042 * L, 0.032 * L, 2.2), ((hc[0], hc[1] + 0.005, hc[2]), 0.052 * L, 0.042 * L, 2.6),
                               ((m * (b.sx + 0.09), 0.075, b.zhand), 0.036 * L, 0.031 * L, 2.4)], 'faA', 'lacq', f'hand.{side}', N=segs(SB.SEG_SMALL))
-        # plate back of the gauntlet (lead white): the hands sit on the outline beside the skirt
+        # plate back of the gauntlet (black lacquer, silver inlay lines)
         loft(f'gaunt_{side}', [((wr[0] + m * 0.004, wr[1] - 0.004, wr[2] + 0.01), 0.05 * L, 0.04 * L, 2.6), ((hc[0] + m * 0.012, hc[1] - 0.004, hc[2]), 0.05 * L, 0.036 * L, 2.6),
                                ((hc[0] + m * 0.01, hc[1] + 0.01, hc[2] - 0.045), 0.03 * L, 0.025 * L, 2.4)], 'faA', 'plate2', f'hand.{side}', N=segs(SB.SEG_SMALL))
         hp = (m * b.hx, 0, b.zhip); kn = (m * (b.hx + 0.01), 0.01, b.zknee); an = (m * (b.hx + 0.015), -0.01, b.zank)
@@ -187,13 +198,14 @@ def c_shoulders(b):
     for side, m in (('R', 1), ('L', -1)):
         c = (m * (b.sx + 0.045), 0.0, b.zsh + 0.03); bone = f'upper_arm.{side}'
         def ab(zz):
-            t = (b.zsh - 0.02 - zz) / (2 * LAM_H)
-            return (c[0] + m * 0.03 * t, 0.0, 0.12 + 0.03 * t, 0.115 + 0.02 * t)
-        lam_rows(f'paul{side}', b.zsh - 0.02, 2, bone, ab, N=segs(SB.SEG_LIMB + 6), step=0.035, up=True)
-        loft(f'cap{side}', [((c[0] - m * 0.01, 0, c[2] + 0.095), 0.015, 0.015, 2), ((c[0], 0, c[2] + 0.07), 0.09, 0.085, 2.2), ((c[0] + m * 0.02, 0, c[2] + 0.02), 0.14, 0.125, 2.4),
-                            ((c[0] + m * 0.03, 0, c[2] - 0.04), 0.155, 0.135, 2.4), ((c[0] + m * 0.03, 0, c[2] - 0.03), 0.14, 0.122, 2.4)], 'faA', 'plate', bone,
-             N=segs(SB.SEG_BODY), caps=(True, False), flat=True)
-        rim(f'caprim{side}', (c[0] + m * 0.03, 0), 0.158, 0.138, c[2] - 0.018, c[2] - 0.042, bone, N=segs(SB.SEG_BODY))
+            t = (b.zsh - 0.02 - zz) / (PAUL_ROWS * LAM_H)
+            return (c[0] + m * (0.03 + PAUL_FLARE) * t, 0.0, 0.13 + PAUL_FLARE * t * 1.4, 0.12 + 0.025 * t)
+        lam_rows(f'paul{side}', b.zsh - 0.02, PAUL_ROWS, bone, ab, N=segs(SB.SEG_LIMB + 8), step=0.035, up=True)
+        ca, cb = CAP_AB
+        loft(f'cap{side}', [((c[0] - m * 0.01, 0, c[2] + 0.1), 0.015, 0.015, 2), ((c[0], 0, c[2] + 0.075), ca * 0.58, cb * 0.6, 2.2),
+                            ((c[0] + m * 0.02, 0, c[2] + 0.025), ca * 0.9, cb * 0.9, 2.4), ((c[0] + m * 0.03, 0, c[2] - 0.04), ca, cb, 2.4),
+                            ((c[0] + m * 0.03, 0, c[2] - 0.03), ca * 0.9, cb * 0.9, 2.4)], 'faA', 'plate', bone, N=segs(SB.SEG_BODY + 8), caps=(True, False), flat=True)
+        rim(f'caprim{side}', (c[0] + m * 0.03, 0), ca + 0.003, cb + 0.003, c[2] - 0.018, c[2] - 0.042, bone, N=segs(SB.SEG_BODY + 8))
         # elbow cop
         el = (m * (b.sx + 0.05), 0.0, b.zelb)
         loft(f'cop{side}', [((el[0] + m * 0.0, -0.02, el[2] + 0.06), 0.06, 0.05, 2.2), ((el[0] + m * 0.01, -0.035, el[2]), 0.08, 0.07, 2.4),
@@ -343,7 +355,7 @@ def ms_shell(b, nu, nv):
 
 def c_head(b):
     """the sculpted shell, a dark inner head behind the slits, the brow eave and cheek flanges framing the mask (black lacquer, gold edge),
-    and the 獬豸 horn (lead white, gold socket)."""
+    and the 獬豸 horn (lead white, silver socket)."""
     ob, nmask, ntri = ms_shell(b, max(16, int(SHELL_NU * SB.Q['seg'])), max(12, int(SHELL_NV * SB.Q['seg'])))
     C = head_frame(b)
     loft('innerhead', [((C.x, C.y - 0.005, C.z + 0.1), 0.04, 0.04, 2), ((C.x, C.y - 0.005, C.z), 0.1, 0.112, 2), ((C.x, C.y - 0.01, C.z - 0.12), 0.07, 0.08, 2)],
@@ -364,12 +376,16 @@ def c_head(b):
         path([tuple(Vector(top) + Vector((m * 0.008, 0.035, 0))), tuple(Vector(mid) + Vector((m * 0.01, 0.04, 0))), tuple(Vector(low) + Vector((m * 0.012, 0.035, 0)))],
              [(0.006, 0.006)] * 3, 'faM', 'goldb', 'head', f'flangegold{m}', N=6)
     # horn: rises from the brow and hooks forward (pursuit); lead white with a gold socket
+    # a cubic sweep: up and back from the crown, then the upper third hooks forward and down at the tip (the 獬豸 butting horn); a thick root
+    # that thins fast past the bend, so it reads as a horn, not a cone
     base, _ = wrap(b, 0.0, 0.62, height(0.0, 0.62)); top = wrap(b, 0.0, math.radians(E_TOP), 0)[0]
-    p0 = Vector(base); p2 = Vector((0, p0.y + HORN_FWD, top.z + HORN_UP)); p1 = Vector((0, p0.y - 0.11, top.z + HORN_UP * 0.75))
-    hp = bez(tuple(p0), tuple(p1), tuple(p2), 10)
-    hw = [(0.048, 0.06), (0.046, 0.056), (0.042, 0.05), (0.037, 0.044), (0.031, 0.037), (0.025, 0.03), (0.019, 0.023), (0.013, 0.016), (0.007, 0.009), (0.001, 0.001)]
-    path(hp, hw, 'faA', 'plate2', 'head', 'horn', N=segs(SB.SEG_LIMB))
-    tube('hornsock', tuple(p0 + Vector((0, -0.005, -0.02))), tuple(p0 + Vector((0, -0.012, 0.05))), 0.058, 0.052, 'faM', 'goldp', 'head', N=segs(SB.SEG_LIMB))
+    p0 = Vector(base); p1 = Vector((0, p0.y - HORN_BACK * 0.6, top.z + HORN_UP * 0.55)); p2 = Vector((0, p0.y - HORN_BACK * 0.4, top.z + HORN_UP * 1.12))
+    p3 = Vector((0, p0.y + HORN_FWD, top.z + HORN_UP * 0.8))
+    K = 14; hp = [tuple(p0 * (1 - t) ** 3 + p1 * 3 * (1 - t) ** 2 * t + p2 * 3 * (1 - t) * t * t + p3 * t ** 3) for t in [i / (K - 1) for i in range(K)]]
+    ra, rb = HORN_ROOT
+    hw = [(max(0.002, ra * (1 - t) ** 0.8), max(0.002, rb * (1 - t) ** 0.8)) for t in [i / (K - 1) for i in range(K)]]
+    path(hp, hw, 'faA', 'white', 'head', 'horn', N=segs(SB.SEG_LIMB + 2))
+    tube('hornsock', tuple(p0 + Vector((0, -0.005, -0.02))), tuple(p0 + Vector((0, -0.012, 0.05))), ra + 0.01, ra + 0.004, 'faM', 'goldp', 'head', N=segs(SB.SEG_LIMB))
     # measures for the gates (design coords): helmet top, mask chin (lowest mask vertex), shell vertex count
     zs = [ (ob.matrix_world @ v.co).z for v in ob.data.vertices]
     METRICS['helm_top'] = max(zs); METRICS['shell_bottom'] = min(zs)
@@ -394,11 +410,22 @@ def fa_parts(S):
     wb = c_sword(b, S)
     return b, wb
 
+_resample = SB.resample
+def fa_resample(secs):
+    """SB.resample switches Catmull-Rom off whenever Q['seg'] < 1; that cliff (cause of LOD0 6,644 tris at seg 0.709, run 45545078424:
+    the solver stepped under 1.0 and every part lost its sections) is removed for fa's LOD0 build: sections stay on at any ring scale."""
+    s_ = SB.Q['seg']; SB.Q['seg'] = max(1.0, s_)
+    try: return _resample(secs)
+    finally: SB.Q['seg'] = s_
+SB.resample = fa_resample
+
 def fa_build_parts(S):
     """build, count triangles, and shrink the ring segments until LOD0 fits TRI_TARGET (the budget's 15k minus the shell walls' slack)."""
+    METRICS_SOLVE = []
     for k in range(6):
         b, wb = fa_parts(S)
         n = sum(SB.tris(P_['ob']) for P_ in SB.PARTS)
+        METRICS_SOLVE.append((round(SB.Q['seg'], 3), n)); METRICS['solve'] = METRICS_SOLVE
         METRICS['seg_scale'] = round(SB.Q['seg'], 3); METRICS['tris_parts'] = n
         if 0.93 * TRI_TARGET <= n <= TRI_TARGET or k == 5: break
         for P_ in SB.PARTS: bpy.data.objects.remove(P_['ob'], do_unlink=True)

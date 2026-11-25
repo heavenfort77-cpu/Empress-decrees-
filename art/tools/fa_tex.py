@@ -5,8 +5,8 @@ first (plates, seams, studs, inlay grooves, cloud-scroll engraving), then albedo
 (OpenGL / glTF convention: green = up in the image). Light is NOT painted in (the game's sun and hemisphere light the normals);
 only cavities (seams, grooves) are darkened, as lacquer pools there.
 Atlases (256 px/m everywhere, mask 512 px/m; rows are the builder's UV rows, art/tools/fa_r5.py ROWS):
-  suit_fa_armour.png  1024 x 1024 (4 m): lamella strip, big plate field, black lacquer, black silk cord, mask (non-metal)
-  suit_fa_metal.png    512 x  512 (2 m): gold inlay band, plain gold, bronze blade, bronze (metal)
+  suit_fa_armour.png  1024 x 1024 (4 m): lamella strip, big plate field, black lacquer, lead-white silk cord, mask, lead-white horn (non-metal)
+  suit_fa_metal.png    512 x  512 (2 m): silver inlay band, plain silver, bronze blade, bronze (metal; rows keep their old 'gold' names)
   suit_fa_cloth.png    512 x  512 (2 m): lead-white silk, black silk (cloth)
 plus *_n.png normal maps. Prints PASS/FAIL sheet gates (density, value bands, saturation, seam share). Usage: python3 fa_tex.py OUTDIR"""
 import sys, os, json
@@ -22,27 +22,30 @@ os.makedirs(OUT, exist_ok=True)
 SEED = 5105
 # Texel density, px per metre (palace and suit studies: 256), and the mask's own density (fine engraving at close-up).
 PPM, MASK_PPM = 256, 512
-# LOOK (kit per-character look table, values from the research palette and the owner's school mapping, 法 = lead white):
-# plate = lead-white lacquer (school colour on the plates: the floor-contrast rule needs a pale exterior), dark = Qin black lacquer
-# (helm, seams, gauntlets, boots), trim = gold inlay (rank: the empress's own officer), binding = black silk cord (her court's colour).
-PLATE, PLATE_DEEP = '#f2ecdd', '#938c7c'
-LACQ, LACQ_LIGHT = '#1b1716', '#3a3230'
-GOLD, GOLD_DEEP, GOLD_LIGHT = '#d4b25a', '#7a5f26', '#f0d488'
-BRONZE, BRONZE_DEEP = '#b08a4e', '#5e482b'
-CORD, CORD_LIGHT = '#151213', '#4a4140'
-# Mask: lead white (owner research, 法 = lead white), a touch cooler and brighter than the plates so it reads as its own piece.
+# LOOK (owner standard 25 Nov 12:1x: Qin court look = black lacquer armour; the school colour, 法 = lead white, on bindings, trim and
+# accents only; kit per-character look table for the construction): plate = Qin black lacquer at the top of the lacquer band (value 45,
+# brief: the lowered band 45->35 goes back to 45, so plates, seams and bindings stay apart), seams and lips = deeper lacquer, trim = silver
+# inlay (Qin-Lamellar study: silver on 法), binding and plate edging = lead-white silk (school colour), horn = lead-white lacquer (accent).
+PLATE, PLATE_DEEP = '#312b29', '#1d1918'
+LACQ, LACQ_LIGHT = '#141110', '#2a2523'
+GOLD, GOLD_DEEP, GOLD_LIGHT = '#bcbfc3', '#6a6e73', '#eceef0'
+BRONZE, BRONZE_DEEP, BRONZE_LIGHT = '#b08a4e', '#5e482b', '#f0d488'
+CORD, CORD_LIGHT = '#bdb7a8', '#ece7da'
+# Lead-white silk edging (包边) along the lower edge of every lamella row, px (the row edges form most of the outline at play size).
+EDGE_WHITE = 4.0
+# Mask: lead white (owner research, 法 = lead white): the pale mask on the dark helm (>= 3:1 at play size).
 MASK, MASK_DEEP = '#f1ede2', '#9a958a'
 # Cloth (owner 25 Nov: 法 cloth a brighter, creamier lead white; the lit sheet median x tint was #e5e1ca, kept as the silk median).
 SILK_W, SILK_B = '#e5e1ca', '#1e1b1c'
-# Lamella: plate width and row height, m (study: 8 cm plates, 12.5 cm rows), seam width px, stud radius px, gold edge line px.
+# Lamella: plate width and row height, m (study: 8 cm plates, 12.5 cm rows), seam width px, stud radius px, silver inlay line px.
 LAM_W, LAM_H, SEAM_PX, STUD_R, EDGE_GOLD = 0.08, 0.125, 1.6, 1.7, 2.2
 # Normal map strength (height units -> slope) per atlas; the kit used depth 3.2 on a 0-1 height picture.
 DEPTH = {'armour': 3.2, 'metal': 2.6, 'cloth': 1.4}
 # Brush/wear variation of a plate's lacquer value (fraction), and how much lacquer pools in cavities (albedo darkening).
 WEAR, CAVITY = 0.035, 0.55
 # Sheet gates: plate field mean value band (0-255 luma), lacquer band, mask band, saturation caps.
-BAND = {'plate': (205, 235), 'lacq': (15, 45), 'mask': (210, 245), 'silk_w': (205, 235), 'silk_b': (15, 45), 'gold': (140, 200)}
-SAT_CAP = {'plate': 0.12, 'mask': 0.10, 'lacq': 0.25, 'silk_w': 0.15}
+BAND = {'plate': (15, 45), 'lacq': (15, 45), 'mask': (210, 245), 'silk_w': (205, 235), 'silk_b': (15, 45), 'gold': (140, 200), 'white': (205, 245)}
+SAT_CAP = {'plate': 0.25, 'mask': 0.10, 'lacq': 0.25, 'silk_w': 0.15, 'gold': 0.08}
 # Rows (px, top to bottom) per atlas and atlas sizes: shared with the builder (art/tools/fa_rows.json).
 _R = json.load(open(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'fa_rows.json')))
 ROWS = {k: {r: tuple(v) for r, v in d.items()} for k, d in _R['rows'].items()}
@@ -78,7 +81,7 @@ def scroll_mask(h, w, cx, cy, r, turns=1.6, width=1.1, sign=1):
     return np.clip(1 - best / width, 0, 1) * (rr <= r + width)
 
 # ---------------------------------------------------------------------------------------------------------------------
-def lamella_strip(W, H, y0=0.0, ph=None):
+def lamella_strip(W, H, y0=0.0, ph=None, edge_top=False):
     """one lamellar row: plates LAM_W wide, ph px tall starting at row y0 (the builder's vz UVs: 'lam' rows hang down from v 0 with the
     folded lip below; 'lamu' belly rows start with a 3 px lip at the top). Height: plate body with bevels, seams 0, two studs per plate,
     a gold inlay line along the lower edge (a groove filled with gold); above y0 and below the plate: dark lacquer lip."""
@@ -98,9 +101,13 @@ def lamella_strip(W, H, y0=0.0, ph=None):
         sd = np.hypot(lx - pw * fx, yy - ph * 0.24); st = np.maximum(st, np.clip(1 - sd / STUD_R, 0, 1))
     stud = st > 0.05
     hgt = np.where(stud & body, hgt + 0.35 * np.sqrt(st), hgt)
-    # gold inlay line along the lower edge (groove 1 px deep relief)
-    gl = body & (db > 2.0) & (db < 2.0 + EDGE_GOLD)
+    # lead-white silk edging (包边) bound over the lower edge, standing proud; a silver inlay line just above it (groove)
+    # (belly rows, edge_top: the upper edge is the one that stands out, the lower edge tucks under the next row)
+    de = dt if edge_top else db
+    we = (yy < ph) & (yy >= 0) & (de < EDGE_WHITE)
+    gl = body & (de > EDGE_WHITE + 1.5) & (de < EDGE_WHITE + 1.5 + EDGE_GOLD)
     hgt = np.where(gl, hgt - 0.12, hgt)
+    hgt = np.where(we, 0.85 + 0.1 * np.sin(xx * 2 * np.pi / 5.0), hgt)
     # lip (folded under, below the row): dark lacquer, falls away
     lip = (yy >= ph) | (yy < 0)
     hgt = np.where(lip, 0.15, hgt)
@@ -111,13 +118,14 @@ def lamella_strip(W, H, y0=0.0, ph=None):
     alb = np.where(body[..., None], alb, hexc(LACQ)[None, None])
     alb = np.where((stud & body)[..., None], lerp(hexc(GOLD_DEEP), hexc(GOLD_LIGHT), np.clip(st, 0, 1)), alb)
     alb = np.where(gl[..., None], hexc(GOLD)[None, None], alb)
+    alb = np.where(we[..., None], lerp(hexc(CORD), hexc(CORD_LIGHT), 0.6 + 0.4 * np.sin(xx * 2 * np.pi / 5.0) ** 2), alb)
     alb = np.where(lip[..., None], hexc(LACQ_LIGHT)[None, None] * 0.8, alb)
-    kind = np.where(body, np.where(gl | stud, 2, 1), 0)
+    kind = np.where(body, np.where(gl | stud | we, 2, 1), 0)
     return hgt, alb, kind
 
 def plate_field(W, H, scroll=True):
-    """big plates (breastplate, pauldron caps, bracers, greaves, horn): lead-white lacquer with fine brush wear and a band of
-    cloud-scroll engraving every 25 cm along u (rim zones use the band near the top of the field)."""
+    """big plates (breastplate, pauldron caps, bracers, greaves): black lacquer with fine brush wear, silver inlay lines along both
+    long edges of the field (the parts' ends) and a band of silver-inlaid cloud-scroll engraving every 25 cm along u."""
     yy, xx = np.mgrid[0:H, 0:W].astype(np.float32)
     hgt = 0.6 + noise(H, W, 10, 0.03) + noise(H, W, 2, 0.01)
     if scroll:
@@ -129,6 +137,19 @@ def plate_field(W, H, scroll=True):
     wear = 1 + noise(H, W, 5, WEAR) + noise(H, W, 1, WEAR * 0.3)
     alb = lerp(hexc(PLATE_DEEP), hexc(PLATE), np.clip(0.97 * wear, 0, 1.05))
     if scroll: alb = lerp(alb, hexc(GOLD), np.clip(eng * 1.2, 0, 1) * 0.85)
+    # silver inlay lines (trim lines) 6 px in from both edges of the field, 2 px wide, sunk
+    il = (np.abs(yy - 6) < 1.1) | (np.abs(yy - (H - 7)) < 1.1)
+    hgt = np.where(il, hgt - 0.1, hgt); alb = np.where(il[..., None], hexc(GOLD)[None, None], alb)
+    return hgt.astype(np.float32), alb, np.ones((H, W), int)
+
+def white_field(W, H):
+    """lead-white lacquer (the 獬豸 horn, the school accent): polished, with silver ring lines every 6 cm along v."""
+    yy, xx = np.mgrid[0:H, 0:W].astype(np.float32)
+    hgt = 0.6 + noise(H, W, 8, 0.02)
+    rl = (yy % 16) < 1.6
+    hgt = np.where(rl, hgt - 0.15, hgt)
+    alb = lerp(hexc(MASK_DEEP), hexc(MASK), np.clip(0.98 + noise(H, W, 6, 0.015), 0, 1.03))
+    alb = np.where(rl[..., None], hexc(GOLD)[None, None], alb)
     return hgt.astype(np.float32), alb, np.ones((H, W), int)
 
 def lacquer(W, H, gloss=True):
@@ -138,7 +159,7 @@ def lacquer(W, H, gloss=True):
     return hgt.astype(np.float32), alb, np.zeros((H, W), int)
 
 def cord(W, H):
-    """black silk cord: twisted strands (diagonal ridges)."""
+    """lead-white silk cord (the school colour on the bindings): twisted strands (diagonal ridges)."""
     yy, xx = np.mgrid[0:H, 0:W].astype(np.float32)
     tw = 0.5 + 0.5 * np.sin((xx + yy * 0.9) * 2 * np.pi / 7.0)
     edge = np.clip(np.minimum(yy, H - 1 - yy) / 4, 0, 1)
@@ -158,11 +179,11 @@ def mask_field(W, H):
             eng = np.maximum(eng, scroll_mask(H, W, cx0 + m * fx * MASK_PPM, fy * MASK_PPM, r, 1.4, 1.0, s * m))
     hgt -= 0.3 * eng
     alb = lerp(hexc(MASK_DEEP), hexc(MASK), np.clip(0.98 + noise(H, W, 6, 0.015), 0, 1.03))
-    alb = lerp(alb, hexc(GOLD), np.clip(eng * 1.3, 0, 1) * 0.9)
+    alb = lerp(alb, hexc(LACQ_LIGHT), np.clip(eng * 1.3, 0, 1) * 0.9)
     return hgt.astype(np.float32), alb, np.ones((H, W), int)
 
 def gold_band(W, H, lozenge=True):
-    """gold inlay band (plate rims, belt, collar): polished gold with a lozenge (菱纹) groove pattern."""
+    """silver inlay band (plate rims, belt, collar): polished silver with a lozenge (菱纹) groove pattern."""
     yy, xx = np.mgrid[0:H, 0:W].astype(np.float32)
     hgt = 0.6 + noise(H, W, 6, 0.02)
     if lozenge:
@@ -178,7 +199,7 @@ def blade(W, H):
     yy, xx = np.mgrid[0:H, 0:W].astype(np.float32)
     v = yy / max(H - 1, 1); ridge = 1 - np.abs(v - 0.5) * 2
     hgt = 0.3 + 0.7 * ridge
-    alb = lerp(hexc(BRONZE_DEEP), hexc(GOLD_LIGHT), np.clip(0.35 + 0.6 * ridge + noise(H, W, 5, 0.04), 0, 1))
+    alb = lerp(hexc(BRONZE_DEEP), hexc(BRONZE_LIGHT), np.clip(0.35 + 0.6 * ridge + noise(H, W, 5, 0.04), 0, 1))
     return hgt.astype(np.float32), alb, np.full((H, W), 2)
 
 def bronze(W, H):
@@ -214,8 +235,8 @@ def sat(a):
     mx, mn = a.max(-1), a.min(-1); return np.where(mx > 0, (mx - mn) / np.maximum(mx, 1e-6), 0)
 
 if __name__ == '__main__':
-    A = {'lam': lamella_strip(1024, 40, 0, 34.5), 'lamu': lamella_strip(1024, 40, 3, 32.5), 'plate': plate_field(1024, 256), 'lacq': lacquer(1024, 192), 'cord': cord(1024, 24),
-         'mask': mask_field(1024, 256), 'plate2': plate_field(1024, 216, scroll=False)}
+    A = {'lam': lamella_strip(1024, 40, 0, 34.5), 'lamu': lamella_strip(1024, 40, 3, 32.5, edge_top=True), 'plate': plate_field(1024, 256), 'lacq': lacquer(1024, 192), 'cord': cord(1024, 24),
+         'mask': mask_field(1024, 256), 'plate2': plate_field(1024, 112, scroll=False), 'white': white_field(1024, 104)}
     Mt = {'gold': gold_band(512, 32), 'goldp': gold_band(512, 128, lozenge=False), 'blade': blade(512, 64), 'bronze': bronze(512, 128),
           'goldb': gold_band(512, 160, lozenge=False)}
     C = {'silk_w': silk(512, 256, SILK_W, '#a9a492'), 'silk_b': silk(512, 256, SILK_B, '#0c0a0a')}
@@ -232,15 +253,24 @@ if __name__ == '__main__':
         lo, hi = BAND[k]; v = float(np.median(luma(a))); return lo <= v <= hi, v
     reg = lambda a, n, r, k=None: a[ROWS[n][r][0]:ROWS[n][r][1]]
     for k, a in (('plate', reg(aA, 'faA', 'plate')), ('lacq', reg(aA, 'faA', 'lacq')), ('mask', reg(aA, 'faA', 'mask')), ('silk_w', reg(aC, 'faC', 'silk_w')),
-                 ('silk_b', reg(aC, 'faC', 'silk_b')), ('gold', reg(aM, 'faM', 'goldp'))):
+                 ('silk_b', reg(aC, 'faC', 'silk_b')), ('gold', reg(aM, 'faM', 'goldp')), ('white', reg(aA, 'faA', 'white'))):
         ok, v = band(a, k); gate(ok, f'{k} median value {v:.0f} (band {BAND[k]})')
         if k in SAT_CAP: s = float(np.median(sat(a / 255))); gate(s <= SAT_CAP[k], f'{k} median saturation {s:.2f} (cap {SAT_CAP[k]})')
-    lam = reg(aA, 'faA', 'lam')[:34]; dark = float((luma(lam) < 60).mean()); gold = float((sat(lam / 255) > 0.35).mean())
-    gate(0.06 <= dark <= 0.25, f'lamella seams: {dark:.1%} dark (6-25%: plates, seams and bindings told apart)')
-    gate(0.03 <= gold <= 0.15, f'lamella gold inlay and studs: {gold:.1%} (3-15%)')
-    # mutations: a flat-filled lamella strip (no seams, no inlay) and a black plate field must fail their gates
-    flat = np.full_like(lam, hexc(PLATE)); bl = np.full_like(reg(aA, 'faA', 'plate'), hexc(LACQ))
-    m1 = not (0.06 <= float((luma(flat) < 60).mean()) <= 0.25); m2 = not band(bl, 'plate')[0]
-    G.append(f"MUT {'caught' if m1 else 'MISSED'} fa_tex lamella seams: flat-filled strip"); G.append(f"MUT {'caught' if m2 else 'MISSED'} fa_tex plate value: black plate field")
+    # plates are black lacquer now (owner 12:1x), so seams are measured against the plate value: a seam pixel is under 0.6 x the plate
+    # median (was: luma < 60, which a black plate meets everywhere); bright = silver inlay, studs and lead-white edging (luma > 150; silver
+    # has no saturation, so the old gold test 'saturation > 0.35' would miss it)
+    def seams(a):
+        lm_ = luma(a); pm = float(np.median(lm_)); return float((lm_ < 0.6 * pm).mean())
+    lam = reg(aA, 'faA', 'lam')[:34]; dark = seams(lam); bright = float((luma(lam) > 150).mean())
+    gate(0.06 <= dark <= 0.25, f'lamella seams: {dark:.1%} under 0.6 x plate value (6-25%: plates, seams and bindings told apart)')
+    gate(0.08 <= bright <= 0.30, f'lamella silver inlay, studs and lead-white edging: {bright:.1%} (8-30%)')
+    # mutations: a flat-filled lamella strip (no seams, no inlay, no edging), the shakedown's lead-white plate field and a strip with
+    # black edging must fail their gates
+    flat = np.full_like(lam, hexc(PLATE)); wh = np.full_like(reg(aA, 'faA', 'plate'), hexc('#f2ecdd'))
+    m1 = not (0.06 <= seams(flat) <= 0.25); m2 = not band(wh, 'plate')[0]
+    l3 = lam.copy(); l3[luma(l3) > 150] = hexc(PLATE); m3 = not (0.08 <= float((luma(l3) > 150).mean()) <= 0.30)
+    G.append(f"MUT {'caught' if m1 else 'MISSED'} fa_tex lamella seams: flat-filled strip")
+    G.append(f"MUT {'caught' if m2 else 'MISSED'} fa_tex plate value: lead-white plate field (shakedown look)")
+    G.append(f"MUT {'caught' if m3 else 'MISSED'} fa_tex lamella bright marks: edging and inlay painted plate black")
     for g in G: print(g)
     nf = sum(g.startswith('FAIL') for g in G); ng = sum(g[:4] in ('PASS', 'FAIL') for g in G); print(f'fa_tex {ng - nf} of {ng} pass')
