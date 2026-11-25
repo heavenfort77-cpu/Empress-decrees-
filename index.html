@@ -729,7 +729,9 @@ const CONFIG = {
   CHARS: { on: true, dirSuits: 'assets/models/', dirModels: 'assets/c/models/' },
   // Palace art (prototype, owner 25 Nov 11:33; src/palace_art.js): arch = walls, pillars, floors, doors, throne; props = beasts, 鼎, vats, clocks,
   // cranes, censers, mercury; solidProps = racks, lamps, bell stands and standards (they add collision, a gameplay change: off).
-  PAL_ART: { arch: true, props: true, solidProps: false },
+  // queClear = metres between the approach bridge's edge and each 阙 tower's inner face (owner 25 Nov 02:2x: towers north, flanking the bridge);
+  // lodFloorM = a LOD level standing more than this off LOD0's floor is left out (que_pair LOD2 has no footing: lead 25 Nov, leave it out).
+  PAL_ART: { arch: true, props: true, solidProps: false, queClear: 0.6, lodFloorM: 0.1 },
   // Options menu (owner 25 Nov "follow lol or dota"): Esc opens it in play and pauses; sliders for master, music, effects, voice/ambience, mute; no sound hotkey.
   OPTIONS: { on: true },
   // Context camera in the palace (owner 24 Nov 13:18; ticket 10, owner 24 Nov 15:43-15:46). Field of view and pitch never change (no fisheye, no
@@ -1391,7 +1393,8 @@ function fxIdsAll(on) {
 }
 fxIdsAll(false);
 // Palace art and character switches from CONFIG (one CONFIG block); the collision-adding props stay off unless solidProps.
-Object.assign(PA.PAL_ART, { arch: CONFIG.PAL_ART.arch, props: CONFIG.PAL_ART.props });
+Object.assign(PA.PAL_ART, { arch: CONFIG.PAL_ART.arch, props: CONFIG.PAL_ART.props, lodFloorM: CONFIG.PAL_ART.lodFloorM });
+PA.PAL_ART.que.clear = CONFIG.PAL_ART.queClear;
 for (const k of ['racks', 'lamps', 'bells', 'standards']) PA.PAL_ART.on[k] = CONFIG.PAL_ART.solidProps;
 CHR.CHR.on = CONFIG.CHARS.on;
 // The table and the atlases load once (one promise). A failed load leaves the game silent and card-free, never stopped (FXL.errs lists why).
@@ -1493,6 +1496,13 @@ mat('dummy', COL.dummy, { roughness: 0.8 }); mat('hit', COL.hit, { emissive: COL
 mat('ind', COL.ind, { emissive: COL.ind, emissiveIntensity: 0.9 }); mat('fx', COL.fx, { emissive: COL.fx, emissiveIntensity: 1.2 });
 // Fog of war: every world material is dimmed beyond the vision radius around the player (one shared shader variant).
 const FOW = { uFowC: { value: new THREE.Vector3() }, uFowR: { value: CONFIG.VISION_R }, uFowDim: { value: CONFIG.FOW_DIM } };
+// three.js keeps the last shadow caster's map in its shared shadow depth material's cached uniform; after that texture is disposed the next
+// shadow pass uploads it again and nothing frees it (one texture per palace/Rumble cycle, diag 45551911453). The static casters hand the depth
+// material over here (depthSpy), and ldRevert disposes it with the palace set so its cached uniforms are dropped.
+const DEPTH = { mat: null };
+// PERFRAME-BEGIN
+function depthSpy(r, o, cam, sc, geo, dm) { DEPTH.mat = dm; }
+// PERFRAME-END
 function addFow(m) {
   m.onBeforeCompile = (sh) => {
     sh.uniforms.uFowC = FOW.uFowC; sh.uniforms.uFowR = FOW.uFowR; sh.uniforms.uFowDim = FOW.uFowDim;
@@ -1645,7 +1655,7 @@ for (const s of SECLIST) {
     const m = isFloor ? M[key.slice(6)] : M[key];
     const mesh = new THREE.Mesh(mergeGeoms(s.parts[key]), m);
     mesh.receiveShadow = true;
-    mesh.castShadow = key !== 'camp' && key !== 'spawn' && key !== 'broken';
+    mesh.castShadow = key !== 'camp' && key !== 'spawn' && key !== 'broken'; mesh.onBeforeShadow = depthSpy;
     mesh.matrixAutoUpdate = false; mesh.updateMatrix();
     if (isFloor) { s.floorMeshes.push(mesh); s.floorMats.push(m); }
     s.group.add(mesh);
@@ -2778,7 +2788,7 @@ for (const LK in PAL_LAYOUTS) {
     for (const key in r.parts) {
       const isFloor = key.startsWith('floor:'), m = isFloor ? M[key.slice(6)] : M[key];
       const mesh = new THREE.Mesh(mergeGeoms(r.parts[key], PALUV[isFloor ? key.slice(6) : key]), m);
-      mesh.receiveShadow = true; mesh.castShadow = key !== 'spawn';
+      mesh.receiveShadow = true; mesh.castShadow = key !== 'spawn'; mesh.onBeforeShadow = depthSpy;
       mesh.matrixAutoUpdate = false; mesh.updateMatrix();
       if (isFloor) { r.floorMeshes.push(mesh); r.floorMats.push(m); }
       r.group.add(mesh); r.box = r.box || {}; r.box[key] = mesh;
@@ -5216,7 +5226,8 @@ function zaExpose(s, sk) {
 function zaWorth(b, q, d) {
   const c = b.storeSk;
   if (!c || c.self === 'harvest') return false;
-  const reach = c.move ? (c.shape === 'circle' ? c.radius : c.range) : c.self ? c.radius * (c.botIn || 1) : c.range + c.radius;
+  // A line skill has no radius (range + undefined was NaN: the bot never copied a line): it reaches its range.
+  const reach = c.move ? (c.shape === 'circle' ? c.radius : c.range) : c.self ? c.radius * (c.botIn || 1) : c.type === 'line' ? c.range : c.range + c.radius;
   return d <= reach + q.r;
 }
 // A bot's target after 纵横甲's persuasion (ticket 09; never the player, b === P): inside a circle of another 纵横甲 it turns on the nearest other suit it sees
@@ -7641,6 +7652,8 @@ function reset() {
   updateHp();
   clearLeader('reset');
   for (const s of SUITS) { s.kills = 0; s.bountied = false; s.bId = -1; s.bYes = false; }
+  // 杂甲's per-run counts start at 0 every run (they were kept from the run before: check 170 counted old copies).
+  for (const s of SUITS) { s.copyN = 0; s.zaExpN = 0; }
   G.leaderChanges = 0; G.leaderCode = -1; G.leaderWrites = 0; G.bountyN = 0; G.bountyWarnAt = -1; G.bountyStartAt = -1; G.bountyEndAt = -1; G.bountyEndWhy = ''; G.bountyPaid = 0; G.bountyPaidTo = -1;
   updateLeaderHud();
   // Bagged decrees (batch 12): the first request time from the bag; counters back to zero.
@@ -7870,6 +7883,14 @@ function ldOne(name) {
     .catch(() => tries(png(C.dirPng + name + '.png'), C.retry).then((t) => ({ t, how: 'png' })))
     .catch(() => ({ t: null, how: 'failed' }));
 }
+// Checks only: GPU textures the palace set holds = distinct image + sampler settings (three.js shares one GPU texture between clones that
+// have both the same) over the five palace images and the art kit's textures.
+function palSetTexN() {
+  const S = new Set(), add = (t) => S.add([t.source.uuid, t.wrapS, t.wrapT, t.magFilter, t.minFilter, t.anisotropy, t.internalFormat, t.format, t.type, t.generateMipmaps, t.premultiplyAlpha, t.flipY, t.unpackAlignment, t.colorSpace].join());
+  for (const t of PTEX.list) add(t);
+  if (LD.art && LD.art.kit) for (const t of LD.art.kit.texList) add(t);
+  return S.size;
+}
 function ldFree(t) { if (!t) return; if (t.image && t.image.close) t.image.close(); t.dispose(); }
 // All five images on the palace materials, or none: rows are top-first in every route, and these materials map by world position with v up
 // (before 17b the images were uploaded flipped), so v is flipped by the texture transform here (no cost: every map has a transform).
@@ -7884,11 +7905,13 @@ function ldApply() {
 }
 // Palace materials back to their box colours and every palace image freed (Royal Rumble picked, a failed or capped load).
 function ldRevert() {
+  const had = PTEX.list.length > 0 || !!LD.art;
   artRevert();
   for (const k in CONFIG.TEX.files) { const m = M[k]; if (m.map) { m.map = null; m.color.setHex(TEXCOL[k]); m.needsUpdate = true; } }
   for (const t of PTEX.list) ldFree(t);
   if (LD.files) for (const f of LD.files) if (f && f.t && PTEX.list.indexOf(f.t) < 0) ldFree(f.t);
   PTEX.list.length = 0; PTEX.on = false; LD.files = null;
+  if (had && DEPTH.mat) { DEPTH.mat.map = null; DEPTH.mat.alphaMap = null; DEPTH.mat.dispose(); }
 }
 // Warm draw: every palace room and door in the scene, seen from above the palace with the overview far plane, then the run's own view back.
 function ldWarmOn() {
@@ -7899,7 +7922,7 @@ function ldWarmOn() {
   camera.position.set(PAL.cx, 90, PAL.cz + 60); camera.lookAt(PAL.cx, 0, PAL.cz); camera.updateMatrixWorld();
 }
 function ldWarmOff() {
-  if (LD.art && LD.art.warm) { PA.warmOff(LD.art.kit, scene, LD.art.arts); LD.art.warm = false; }
+  if (LD.art && LD.art.warm) { PA.warmOff(LD.art.kit, scene, LD.art.warmArts); LD.art.warm = false; }
   if (!LD.warm) return;
   LD.warm = false;
   if (PAL.on) palSync(); else { for (const r of PAL.rooms) scene.remove(r.group); for (const d of PAL.doors) scene.remove(d.group); }
@@ -7931,6 +7954,36 @@ function ldFx() {
 function ldChrFetch() { if (!CONFIG.CHARS.on || CHRS.gl || CHRS.failed.length) return true; if (!LD.started) { LD.started = true; ldWait(chrFetch()); } return LD.waitDone; }
 function ldChrBuild() { if (!CONFIG.CHARS.on || CHRS.ready || !CHRS.gl) return true; return chrBuildStep(); }
 function ldChrWarm() { if (!CONFIG.CHARS.on || CHRS.ready || !CHRS.crowd) return true; LD.led.draws += chrWarm(); return true; }
+// Restore card: the same warm draw for rigs and crowd batches (their bone and bake textures and geometry upload under the card, not in play).
+// Rigs in use keep their place and clip; every rig gets its state back; hidden rigs stand in view for the draw only.
+function chrRewarm() {
+  if (!CONFIG.CHARS.on || !CHRS.ready || !CHRS.crowd) return 0;
+  const R = CHRS.rigs, was = R.map((r) => [r.on, r.state]), d = camera.getWorldDirection(tmpV), reach = d.y < -0.05 ? Math.min(30, camera.position.y / -d.y) : 12;
+  const x = camera.position.x + d.x * reach, z = camera.position.z + d.z * reach;
+  CHR.beginFrame(camera);
+  for (let i = 0; i < R.length; i++) if (!R[i].on) { R[i].place(x + ((i % 8) - 3.5) * 2, 0, z + (Math.floor(i / 8) - 1.5) * 2, 0, 1); R[i].show(scene); R[i].update(0.016); }
+  CHRS.crowd.setTime(0); CHRS.crowd.warmAll(x, 0, z);
+  CHR.lodHold(R, true);
+  for (const r of R) r.setState(0);
+  renderer.compile(scene, camera); renderer.render(scene, camera);
+  let calls = renderer.info.render.calls;
+  for (const r of R) r.setState(1);
+  renderer.compile(scene, camera); renderer.render(scene, camera); calls += renderer.info.render.calls;
+  for (let i = 0; i < R.length; i++) R[i].setState(was[i][1]);
+  CHR.lodHold(R, false);
+  for (let i = 0; i < R.length; i++) if (!was[i][0]) R[i].hide();
+  CHRS.crowd.begin(camera); CHRS.crowd.end();
+  return calls;
+}
+function ldChrRewarm() { LD.led.draws += chrRewarm(); return true; }
+// Restore card in a palace run: every room and door in the scene and the art's warm rack (materials and kit geometry), as under the palace card.
+// The props keep their states (no arts passed: the rack already holds every kit geometry).
+function ldPalRewarm() {
+  if (!PAL.on) return true;
+  ldWarmOn();
+  if (LD.art && LD.art.kit && LD.art.on) { PA.warmOn(LD.art.kit, scene, camera, null); LD.art.warm = true; LD.art.warmArts = null; }
+  return true;
+}
 const LD_SHARED = [{ key: 'fx', run: ldFx }, { key: 'chr_fetch', run: ldChrFetch }, { key: 'chr_build', run: ldChrBuild }, { key: 'chr_warm', run: ldChrWarm }];
 function ldDraw() {
   renderer.render(scene, camera); LD.led.draws += renderer.info.render.calls; LD.led.n++;
@@ -7975,13 +8028,13 @@ const LD_JOBS = {
     { key: 'art_rooms', run() {
       const A = LD.art; if (!A || !A.kit) return true;
       if (A.ri < PAL.rooms.length) { artRoom(PAL.rooms[A.ri++]); return false; }
-      artDoors(); artApply(); PA.warmOn(A.kit, scene, camera, A.arts); A.warm = true; return true;
+      artDoors(); artApply(); PA.warmOn(A.kit, scene, camera, A.arts); A.warm = true; A.warmArts = A.arts; return true;
     } },
     { key: 'compile', run: ldCompile },
     { key: 'upload', run: ldUpload },
     { key: 'draw', run: ldDraw },
   ]),
-  restore: [{ key: 'upload', run: ldUpload }, { key: 'compile', run: ldCompile }, { key: 'draw', run: ldDraw }, { key: 'fx', run: ldFx }],
+  restore: [{ key: 'chr_warm', run: ldChrRewarm }, { key: 'art_rooms', run: ldPalRewarm }, { key: 'upload', run: ldUpload }, { key: 'compile', run: ldCompile }, { key: 'draw', run: ldDraw }, { key: 'fx', run: ldFx }],
   adjust: [{ key: 'compile', run: ldCompile }, { key: 'draw', run: ldDraw }],
 };
 function ldStart(kind) {
@@ -8291,12 +8344,25 @@ window.__game = {
   perfRing(t0) { const out = [], R = PERF.ring; for (let j = 0; j < PERF.n; j++) { const k = ((PERF.i - PERF.n + j + 4096) % 4096) * 8; if (R[k] >= t0) out.push(Array.from(R.subarray(k, k + 8))); } return out; },
   art() {
     const A = LD.art, que = [];
-    if (A) for (const r of A.rooms) if (r.art) for (const h of r.art.props) if (h.kind.startsWith('arch/que_pair')) { const P = A.kit.props[h.kind]; que.push({ room: r.id, x: h.root.position.x, z: h.root.position.z, z0: r.z0, cx: r.cx, inner: P.queInner || 0, shift: P.queShift || 0 }); }
-    return { on: !!(A && A.on), rooms: A ? A.rooms.length : 0, failed: A ? A.failed.slice() : null, doors: A ? A.doors.length : 0, texN: A && A.kit ? new Set(A.kit.texList).size : 0, que };
+    if (A) for (const r of A.rooms) if (r.art) for (const h of r.art.props) if (h.kind.startsWith('arch/que_pair')) { const P = A.kit.props[h.kind]; que.push({ room: r.id, x: h.root.position.x, z: h.root.position.z, z0: r.z0, cx: r.cx, inner: PA.queInnerOf(P), shift: P.queShift || 0, levels: h.lod.levels.length }); }
+    return { on: !!(A && A.on), rooms: A ? A.rooms.length : 0, failed: A ? A.failed.slice() : null, doors: A ? A.doors.length : 0, texN: A && A.kit ? new Set(A.kit.texList).size : 0, lodDropped: A && A.kit ? A.kit.lodDropped.slice() : [], que };
   },
   // Read-only (memory diagnostics): the art kit's textures, and textures on kit materials that are not in its list.
   artTexIds() { const A = LD.art; if (!A || !A.kit) return null; const L = new Set(A.kit.texList), out = { list: [...L].map((t) => t.uuid), extra: [] };
     for (const m of A.kit.matList) for (const q in m) if (m[q] && m[q].isTexture && !L.has(m[q])) out.extra.push(q + ':' + m[q].uuid + ':' + (m[q].name || '')); return out; },
+  // Read-only (memory diagnostics): who holds the texture with this uuid: the loader's lists and every object (in the scene or in a room or door
+  // group) whose material carries it.
+  texWho(u) {
+    const out = [], A = LD.art, is = (t) => t && t.uuid === u;
+    PTEX.list.forEach((t, i) => { if (is(t)) out.push('PTEX.list[' + i + ']'); });
+    if (LD.files) LD.files.forEach((f, i) => { if (f && is(f.t)) out.push('LD.files[' + i + ']'); });
+    if (A) { A.own.forEach((t, i) => { if (is(t)) out.push('art.own[' + i + ']'); }); A.clones.forEach((t, i) => { if (is(t)) out.push('art.clones[' + i + ']'); }); if (A.kit) A.kit.texList.forEach((t, i) => { if (is(t)) out.push('kit.texList[' + i + ']'); }); }
+    for (const k in CHRS.tex) if (is(CHRS.tex[k])) out.push('CHRS.tex.' + k);
+    for (const k in M) for (const q in M[k]) if (is(M[k][q])) out.push('M.' + k + '.' + q);
+    const seen = new Set(), walk = (root, tag) => root.traverse((o) => { if (!o.material || seen.has(o)) return; seen.add(o); for (const m of Array.isArray(o.material) ? o.material : [o.material]) for (const q in m) if (is(m[q])) { const n = []; for (let x = o; x && n.length < 6; x = x.parent) n.push(x.name || x.type); out.push(tag + ' ' + n.join('<') + ' mat ' + (m.name || m.type) + '.' + q + ' vis ' + o.visible + ' cast ' + o.castShadow); } });
+    walk(scene, 'scene'); for (const r of PAL.rooms) walk(r.group, 'room ' + r.id); for (const d of PAL.doors) walk(d.group, 'door');
+    return out;
+  },
   // Read-only: the fog-of-war shader patch applied to a stand-in shader (check: it reads each instance's own position).
   fowSrc() { const m = { onBeforeCompile: null }; addFow(m); const sh = { uniforms: {}, vertexShader: '#include <common>\n#include <worldpos_vertex>', fragmentShader: '#include <common>\n#include <dithering_fragment>' }; m.onBeforeCompile(sh); return sh.vertexShader; },
   setMove(x, z) { testMove.on = true; testMove.x = x; testMove.z = z; },
@@ -8561,9 +8627,11 @@ window.__game = {
   config: CONFIG, text: TEXT, sections: SECTION_IDS, spawns: SPAWNS,
   canvasSize: () => [cv.width, cv.height],
   loseContext() { const x = renderer.getContext().getExtension('WEBGL_lose_context'); x.loseContext(); return x; },
+  // Read-only: the 杂甲 bot's copy rule for a stored skill at distance d (check: a line skill is worth copying within its range).
+  zaWorthOf(school, slot, d) { const b = { storeSk: CONFIG.KITS[school].skills[slot] }; return zaWorth(b, { r: 0 }, d); },
   // Batch 17b: loader state (read only), the player's mode pick (the real path: Royal Rumble disposes the palace set), a tier change in play.
   load: () => ({ phase: LD.jobs ? 'busy' : 'idle', kind: LD.kind, step: LD.step, palace: LD.palace, card: LD.card, visS: LD.visS, led: JSON.parse(JSON.stringify(LD.led)),
-    ptex: PTEX.list.length, maps: Object.keys(CONFIG.TEX.files).map((k) => ({ k, map: !!M[k].map, flipV: M[k].map ? M[k].map.repeat.y : 0, compressed: !!(M[k].map && M[k].map.isCompressedTexture), w: M[k].map ? M[k].map.image.width : 0 })),
+    ptex: PTEX.list.length, pset: palSetTexN(), maps: Object.keys(CONFIG.TEX.files).map((k) => ({ k, map: !!M[k].map, flipV: M[k].map ? M[k].map.repeat.y : 0, compressed: !!(M[k].map && M[k].map.isCompressedTexture), w: M[k].map ? M[k].map.image.width : 0 })),
     mem: Object.assign({}, renderer.info.memory), programs: renderer.info.programs.length, shown: el.load.style.display !== 'none' && el.load.style.display !== '' }),
   loadBusy: () => !!LD.jobs,
   pickMode(m) { pickMode(m); },
@@ -8648,7 +8716,7 @@ Object.assign(window.__game, {
   pieces2State: () => ({ on: P2.on, giantsOn: P2.giantsOn, awake: P2.awake, wakes: P2.wakes, lost: P2.lost, douses: P2.douses, notes: P2.notes, instWrites: P2.instWrites,
     nDorm: P2.nDorm, nAwake: P2.nAwake, inScene: !!P2.dorm.parent && !!P2.wake.parent, cap: CONFIG.PIECES2.giant.cap,
     clocks: P2.clocks.map((c) => ({ room: c.room.id, wing: c.wing, level: c.level, eta: c.eta, full: c.full, step: c.step, scale: c.water.scale.y, writes: c.writes, attached: !!c.room.group.parent })),
-    vats: P2_VATS.filter((v) => v.lay === PAL.layout).map((v) => ({ room: v.room, x: v.x, z: v.z, hp: v.hp, st: v.st, seen: v.seen, solidOff: v.solid.off, body: v.body.visible, ring: !!v.ring.parent, flood: !!v.flood.parent })),
+    vats: P2_VATS.filter((v) => v.lay === PAL.layout).map((v) => ({ room: v.room, x: v.x, z: v.z, hp: v.hp, st: v.st, seen: v.seen, solidOff: v.solid.off, body: v.art ? v.art.lod.visible : v.body.visible, ring: !!v.ring.parent, flood: !!v.flood.parent })),
     giants: P2.giants.map((g) => ({ i: g.i, st: g.st, x: g.x, z: g.z, hx: g.hx, hz: g.hz, room: (palRoomAt(g.x, g.z) || { id: '' }).id, cur: g.cur, t: g.t, tellT: g.tellT,
       ring: !!g.ring.parent, line: !!g.line.parent, hits: g.hits, minTell: g.minTell, tgt: g.tgt === P ? 'P' : g.tgt ? 'suit' : '', vis: g.vis,
       hp: g.hp, alive: g.alive, seen: g.seen, fallT: g.fallT, killer: g.killer === P ? 'P' : g.killer ? 'suit' : '' })),

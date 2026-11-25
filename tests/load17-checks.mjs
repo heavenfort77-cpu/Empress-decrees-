@@ -9,7 +9,7 @@ const idle = (page) => page.waitForFunction(() => !__game.loadBusy(), null, { ti
 // A palace run through the player's own path: the mode menu pick, then the school pick (which starts the run; a set it needs starts its card).
 const toPalace = () => { const G = __game; G.setSeed(12345); G.pickMode('palace'); G.pickSchool(0); };
 const toRumble = () => { const G = __game; G.setSeed(12345); G.pickMode('rumble'); G.pickSchool(0); };
-const memNow = () => { const r = __game.render(true), l = __game.load(); return { geoms: r.geoms, texs: r.texs, programs: r.programs, palace: l.palace, ptex: l.ptex }; };
+const memNow = () => { const r = __game.render(true), l = __game.load(); return { geoms: r.geoms, texs: r.texs, programs: r.programs, palace: l.palace, ptex: l.ptex, pset: l.pset }; };
 
 export async function load17Checks(g, check, page, browser, URL0) {
   const errs0 = [];
@@ -17,7 +17,9 @@ export async function load17Checks(g, check, page, browser, URL0) {
   const C = await g(() => ({ fmt: __game.config.LOAD.fmt, files: __game.config.TEX.files, cap: __game.config.LOAD.capS, mode: __game.config.PALACE.saveKey, school: __game.config.SELECT.saveKey }));
 
   // 1701 The palace set: picking the palace loads the five images from assets/c (KTX2, desktop set 1024 px, top-first rows, v flipped by the texture transform), all or
-  // none; the card ran its warm draw (draws > 0 under it) and ended within the cap; five textures more on the GPU; the card was shown while it ran.
+  // none; the card ran its warm draw (draws > 0 under it) and ended within the cap; the card was shown while it ran. Textures more on the GPU:
+  // exactly the palace set's (prototype, game changed on purpose: the set = the five images plus the art kit's textures; load().pset counts its
+  // distinct GPU textures, at least the five; before the art it was + 5).
   await g(toRumble);
   await g(() => { __game.pickMode('palace'); __game.pickSchool(0); });
   const shown = await page.waitForFunction(() => __game.load().shown || !__game.loadBusy(), null, { timeout: 120000 }).then(() => page.evaluate(() => __game.load().shown || __game.load().led.kind));
@@ -26,7 +28,7 @@ export async function load17Checks(g, check, page, browser, URL0) {
   check('1701 palace set: 5 images from assets/c as KTX2 (flipped v), all on, warm draw under the card, within the cap, +5 textures',
     l1.palace === 'ready' && l1.led.kind === 'palace' && l1.led.failed.length === 0 && l1.led.fmt.length === 5 && l1.led.fmt.every((f) => f.endsWith(':ktx2'))
     && l1.maps.every((m) => m.map && m.compressed && m.flipV === -1 && m.w === 1024) && l1.led.n === 1 && l1.led.draws > 0 && !l1.led.capped && l1.led.ms <= C.cap * 1000
-    && l1.led.tex1 - l1.led.tex0 === 5 && l1.ptex === 5 && (shown === true || shown === 'palace'), JSON.stringify({ shown, led: l1.led, maps: l1.maps, palace: l1.palace }));
+    && l1.pset >= 5 && l1.led.tex1 - l1.led.tex0 === l1.pset && l1.ptex === 5 && (shown === true || shown === 'palace'), JSON.stringify({ shown, led: l1.led, maps: l1.maps, palace: l1.palace, pset: l1.pset }));
 
   // 1702 No shader program and no texture built in play after the card: 600 steps of a palace run (walking the start hall, the HUD and pieces
   // live), drawn every 20 steps, against the counts the card left.
@@ -41,7 +43,7 @@ export async function load17Checks(g, check, page, browser, URL0) {
     JSON.stringify(p2));
 
   // 1703 Memory flat over mode switches: 5 cycles of Royal Rumble then the palace (each with 2 new runs); in Royal Rumble the palace images are gone
-  // (textures down by 5, maps off); cycle 1 and cycle 5 counts equal on both sides.
+  // (textures down by the palace set's count, load().pset; maps off); cycle 1 and cycle 5 counts equal on both sides.
   const cyc = [];
   for (let c = 0; c < 5; c++) {
     await g(toRumble); const r = await g(memNow);
@@ -50,7 +52,7 @@ export async function load17Checks(g, check, page, browser, URL0) {
   }
   const eq = (a, b) => a.geoms === b.geoms && a.texs === b.texs && a.programs === b.programs;
   check('1703 memory flat over 5 Rumble/palace cycles (geometries, textures, programs); Rumble holds no palace image',
-    eq(cyc[0].r, cyc[4].r) && eq(cyc[0].p, cyc[4].p) && cyc.every((x) => x.r.palace === 'none' && x.r.ptex === 0 && x.p.palace === 'ready' && x.p.texs - x.r.texs === 5),
+    eq(cyc[0].r, cyc[4].r) && eq(cyc[0].p, cyc[4].p) && cyc.every((x) => x.r.palace === 'none' && x.r.ptex === 0 && x.r.pset === 0 && x.p.palace === 'ready' && x.p.pset >= 5 && x.p.texs - x.r.texs === x.p.pset),
     JSON.stringify(cyc));
 
   // 1704 A missing file (in its own page, so the blocked requests' console lines stay out of the main page's log): door.ktx2 blocked = the door

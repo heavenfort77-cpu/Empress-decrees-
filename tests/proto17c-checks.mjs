@@ -126,16 +126,32 @@ export async function proto17cChecks(g, check, page, browser, URL0) {
   check('1733 fog of war per instance: instanceMatrix applied under USE_INSTANCING, then the model matrix', /#ifdef USE_INSTANCING\s*\nfowP = instanceMatrix \* fowP;\s*\n#endif\s*\nvFowPos = \(modelMatrix \* fowP\)\.xyz;/.test(fs), fs.slice(-200));
 
   // 1734 阙 towers (owner 25 Nov 02:2x: north): on the full plan the pair stands north of the forecourt, centred on its north gate, with the
-  // passage's inner faces clear of the approach bridge (bridge half width + 0.6 m), never at the west or east gates.
+  // passage's inner faces (measured on the tower bodies of the placed model) clear of the approach bridge (bridge half width + 0.6 m), never at
+  // the west or east gates; the pair has two LOD levels: LOD2 (no footing) is left out and listed (lead 25 Nov).
   await g(() => { const G = __game; G.setSeed(12345); G.pickMode('rumble'); G.pickSchool(0); });
   await idle(page);
   await g(() => { const G = __game; G.setLayout('full'); G.pickMode('palace'); G.pickSchool(0); });
   await idle(page);
-  const q4 = await g(() => { const a = __game.art(), br = __game.palPlan().rooms.find((r) => r.id === 'bridge_n') || null; return { que: a.que, on: a.on }; });
-  check('1734 阙 pair north of the forecourt, centred on the north gate, passage clear of the bridge (inner face >= bridge half + 0.6 m)',
-    q4.on && q4.que.length === 1 && q4.que.every((q) => q.room === 'fore' && q.z < q.z0 && q.inner >= 6.6 - 1e-6 && q.shift > 0), JSON.stringify(q4));
+  const q4 = await g(() => { const a = __game.art(), ap = __game.palPlan().rooms.find((r) => r.id === 'approach'); return { que: a.que, on: a.on, dropped: a.lodDropped, half: ap ? (ap.x1 - ap.x0) / 2 : -1 }; });
+  check('1734 阙 pair north of the forecourt, centred on the north gate, passage clear of the bridge (inner face >= bridge half + 0.6 m), LOD2 left out',
+    q4.on && q4.half > 0 && q4.que.length === 1 && q4.que.every((q) => q.room === 'fore' && q.z < q.z0 && Math.abs(q.x - q.cx) < 1e-6 && q.inner >= q.half + 0.6 - 1e-4 && q.inner < q.half + 0.6 + 0.05 && q.shift > 0 && q.levels === 2)
+    && q4.dropped.some((d) => d.startsWith('que_pair:2')), JSON.stringify(q4));
   await g(() => { const G = __game; G.setLayout('proto'); G.pickMode('rumble'); G.pickSchool(0); });
   await idle(page);
+
+  // 1735 杂甲's counts are per run (they were kept over a new run: check 170 counted copies left by earlier matches): a copy cast counts 1, a new
+  // run starts at 0. The bot's copy rule reaches a line skill (no radius) out to its range (it was never worth copying: range + undefined).
+  const z5 = await g(() => {
+    const G = __game, C = G.config, o = {};
+    G.setSeed(12345); G.setBots(0); G.setPkitP(false); G.pickSchool(5); G.step(2);
+    G.setStore(-1, 'ru', 1); G.setCharge(-1, C.ULT.full); o.cast = G.cast(2, 0, -20); G.step(2); o.n1 = G.zaState(-1).copyN;
+    G.reset(); G.step(1); o.n2 = G.zaState(-1).copyN; o.exp = G.zaState(-1).expN;
+    const li = C.KITS.ming.skills.findIndex((k) => k.type === 'line' && k.radius === undefined), L = C.KITS.ming.skills[li];
+    o.line = li < 0 ? null : [G.zaWorthOf('ming', li, L.range - 0.1), G.zaWorthOf('ming', li, L.range + 0.1)];
+    G.setPkitP(true); G.pickSchool(0); G.reset(); return o;
+  });
+  check('1735 杂甲 counts start at 0 every run (copy cast = 1, new run = 0); the bot copies a line skill within its range, not beyond',
+    z5.cast === true && z5.n1 === 1 && z5.n2 === 0 && z5.exp === 0 && !!z5.line && z5.line[0] === true && z5.line[1] === false, JSON.stringify(z5));
 
   check('1732 no page error during the 17c and prototype checks', errs.length === 0, errs.slice(0, 4).join(' | '));
 }

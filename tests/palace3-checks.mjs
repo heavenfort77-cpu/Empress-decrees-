@@ -148,15 +148,16 @@ export async function palace3Checks(g, check, base) {
     const G = __game, o = {}; const { R } = __p3(8);
     G.setHp(1e9); G.teleport(R.court.cx, R.court.cz); G.step(1);
     for (let i = 0; i < G.palSim().recs.length; i++) G.palSimSet(i, 'court', 100, 0);
-    o.pre = G.render(true).programs; o.pset = G.load().palace === 'ready' ? 1 : 0; G.step(120); const a = G.render(true); G.step(180); const b = G.render(true);
+    o.pre = G.render(true).programs; o.card = G.load().led.prog1; o.cardKind = G.load().led.kind; G.step(120); const a = G.render(true); G.step(180); const b = G.render(true);
     o.live = G.palSim().recs.filter((r) => r.st === 'live').length; o.locked = G.palSim().locked.join();
     o.calls = Math.max(a.calls, b.calls); o.tris = Math.max(a.tris, b.tris); o.programs = [a.programs, b.programs]; o.geoms = [a.geoms, b.geoms];
     __p3end(); return o;
   });
   // Batch 17b (game changed on purpose): the palace images' program now compiles under the palace loading card, not at page load: the fight is
-  // compared with the programs at its start, which hold exactly that one program over the page-load base when the palace set is on.
+  // compared with the programs at its start. Prototype (game changed on purpose: the card also compiles the palace art's programs): the programs
+  // at the fight's start are exactly the count the last loading card's ledger left (prog1), so nothing compiled between that card and the fight.
   check('507 budget: court with every rival in sight fighting the player (locked): calls<500, tris<500k, no shader compile, geometry flat',
-    d507.live >= 6 && d507.locked === 'court' && d507.calls < 500 && d507.tris < 500000 && d507.programs[0] === d507.pre && d507.programs[1] === d507.pre && d507.pre === base.programs + d507.pset && d507.geoms[0] === d507.geoms[1], JSON.stringify(d507));
+    d507.live >= 6 && d507.locked === 'court' && d507.calls < 500 && d507.tris < 500000 && d507.programs[0] === d507.pre && d507.programs[1] === d507.pre && d507.pre === d507.card && d507.geoms[0] === d507.geoms[1], JSON.stringify(d507));
 
   // 508 New run in the same page after a palace run with rivals: every record back in its seeded start room at full health, no locks, no traces,
   // no hunter, the queue empty, the core sealed again; the same start for the same seed.
