@@ -1,5 +1,5 @@
 // COLOUR (art/Colour-Clarity-Study.md): shots of art/viewer/colour.html (art tool, not shipped). Nine suits + guard zu + rebel ls on the
-// old (round 2) and new hall floor, with the game's current dark outline and with the proposed pale rim / trim sheet, at the game's close
+// old (round 2) and new hall floor, with the game's current dark outline and with the proposed silhouette rim, school tint and rebel tint, at the game's close
 // framing (10.5 m) and CAM_DIST (14 m), close-ups, the same row on the other walkable floors, and ID masks for the measures.
 // Usage: node art/tools/colour_shoot.mjs OUTDIR   (writes PNGs and manifest.json)   Software GL on the runner: look only, no frame rate.
 import { createServer } from 'node:http';
@@ -12,17 +12,22 @@ try { ({ chromium } = await import('playwright')); } catch { ({ chromium } = awa
 const IDS = ['fa', 'ru', 'dao', 'mo', 'yy', 'za', 'ming', 'zh', 'nong', 'zu', 'ls'];
 // The game's current suit outline (src/chars.js CHR.outline.color).
 const DARK = '0b0908';
-// Proposed pale rim colour (lead white, unlit).
-const PALE = 'e6dfcc';
+// Proposed rim colours (unlit): pale warm gold, and a deeper bronze-gold for comparison.
+const GOLD = 'e8c888', BRONZE = 'd4a85a';
+// Proposed rebel cloth tint (umber hemp, off the floor's value).
+const RB = '8c7860';
 // Floors: the approved round 2 hall floor (kept copy) and the repainted one.
 const OLD = 'art/round2/tex/hall_floor.png', NEW = 'assets/tex/hall_floor.png';
-// Variants: name, floor, suit sheet, outline colour, outline px, fresnel strength.
-const V = [['old_cur', OLD, 'suit_lamellar', DARK, 2, 0], ['old_rim', OLD, 'suit_lamellar_qin', PALE, 2, 0], ['new_cur', NEW, 'suit_lamellar', DARK, 2, 0],
-  ['new_rimonly', NEW, 'suit_lamellar', PALE, 2, 0], ['new_rim', NEW, 'suit_lamellar_qin', PALE, 2, 0], ['new_rim3', NEW, 'suit_lamellar_qin', PALE, 3, 0],
-  ['new_fres', NEW, 'suit_lamellar_qin', DARK, 2, 0.9], ['new_rim_fres', NEW, 'suit_lamellar_qin', PALE, 2, 0.5]];
-// Other walkable floors (src/palace_art.js floors: court, corridor, garden, bridge) and the lifted candidates, shot with the new_rim settings.
-const FLOORS = [['stone_paving', 'assets/tex/stone_paving.png'], ['floor_tiles', 'assets/tex/floor_tiles.png'], ['floor_tiles_cand', 'art/colour/cand/floor_tiles.png'],
-  ['garden_ground', 'assets/tex/garden_ground.png'], ['garden_ground_cand', 'art/colour/cand/garden_ground.png'], ['timber', 'assets/tex/timber.png']];
+// Variants: name, floor, suit sheet, outline colour ('' = none), outline px (0 = none), silhouette-only, school tint, rebel tint, fresnel.
+const V = [['old_cur', OLD, 'suit_lamellar', DARK, 2, 0, 0, '', 0], ['old_sil2', OLD, 'suit_lamellar_qin', GOLD, 2, 1, 1, RB, 0],
+  ['new_norim', NEW, 'suit_lamellar_qin', '', 0, 0, 1, RB, 0], ['new_dark', NEW, 'suit_lamellar_qin', DARK, 2, 0, 1, RB, 0],
+  ['new_sil2', NEW, 'suit_lamellar_qin', GOLD, 2, 1, 1, RB, 0], ['new_sil3', NEW, 'suit_lamellar_qin', GOLD, 3, 1, 1, RB, 0],
+  ['new_silbronze', NEW, 'suit_lamellar_qin', BRONZE, 2, 1, 1, RB, 0], ['new_fres', NEW, 'suit_lamellar_qin', '', 0, 0, 1, RB, 0.8]];
+// The proposal (shot on the other floors and in the close-ups).
+const PROP = V[4];
+// Other walkable floors (src/palace_art.js floors: court, corridor, garden, bridge): the approved court paving and the round 2 proposals.
+const FLOORS = [['stone_paving', 'assets/tex/stone_paving.png'], ['floor_tiles_prop', 'art/colour/cand/floor_tiles.png'],
+  ['garden_ground_prop', 'art/colour/cand/garden_ground.png'], ['bridge_deck_prop', 'art/colour/cand/bridge_deck.png']];
 // Close-up groups.
 const GROUPS = [['fa', 'ru', 'dao', 'mo'], ['yy', 'za', 'ming', 'zh'], ['nong', 'zu', 'ls']];
 const ROOT = new URL('../..', import.meta.url).pathname, OUTD = process.argv[2] || '/tmp/colshots';
@@ -35,13 +40,12 @@ const BASE = `http://127.0.0.1:${server.address().port}/art/viewer/colour.html`;
 await mkdir(OUTD, { recursive: true });
 const browser = await chromium.launch({ args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--ignore-gpu-blocklist'] });
 const all = IDS.join(','), SHOTS = [], MAN = [];
-const q = (ids, view, dist, floor, lam, ol, px, fres) => `ids=${ids}&view=${view}&dist=${dist}&floor=${floor}&lam=${lam}&ol=${ol}&olpx=${px}&fres=${fres}`;
-for (const px of [2, 3]) for (const d of [10.5, 14]) SHOTS.push([`id_px${px}_d${d}`, q(all, 'play', d, NEW, 'suit_lamellar', DARK, px, 0) + '&mode=id']);
-for (const [name, floor, lam, ol, px, fres] of V) {
-  for (const d of [10.5, 14]) { SHOTS.push([`${name}_d${d}`, q(all, 'play', d, floor, lam, ol, px, fres)]); MAN.push({ shot: `${name}_d${d}`, variant: name, dist: d, id: `id_px${px}_d${d}`, floor: floor, kind: 'hall' }); }
-}
-for (const [name, floor, lam, ol, px, fres] of [V[0], V[4]]) GROUPS.forEach((g, i) => SHOTS.push([`close_${name}_${i}`, q(g.join(','), 'turn', 5.2, floor, lam, ol, px, fres)]));
-for (const [fname, path] of FLOORS) { SHOTS.push([`floor_${fname}`, q(all, 'play', 10.5, path, 'suit_lamellar_qin', PALE, 2, 0)]); MAN.push({ shot: `floor_${fname}`, variant: 'new_rim', dist: 10.5, id: 'id_px2_d10.5', floor: path, kind: fname }); }
+const q = (ids, view, dist, [, floor, lam, ol, px, sil, tint, rb, fres], fl) => `ids=${ids}&view=${view}&dist=${dist}&floor=${fl || floor}&lam=${lam}` +
+  (ol ? `&ol=${ol}&olpx=${px}` : '') + (sil ? '&sil=1' : '') + (tint ? '&tint=1' : '') + (rb ? `&rb=${rb}` : '') + (fres ? `&fres=${fres}` : '');
+for (const px of [0, 2, 3]) for (const d of [10.5, 14]) SHOTS.push([`id_px${px}_d${d}`, q(all, 'play', d, ['', NEW, 'suit_lamellar', px ? DARK : '', px, 0, 0, '', 0]) + '&mode=id']);
+for (const v of V) for (const d of [10.5, 14]) { SHOTS.push([`${v[0]}_d${d}`, q(all, 'play', d, v)]); MAN.push({ shot: `${v[0]}_d${d}`, variant: v[0], dist: d, id: `id_px${v[4]}_d${d}`, floor: v[1], kind: 'hall' }); }
+for (const v of [V[0], PROP]) GROUPS.forEach((g, i) => SHOTS.push([`close_${v[0]}_${i}`, q(g.join(','), 'turn', 5.2, v)]));
+for (const [fname, path] of FLOORS) { SHOTS.push([`floor_${fname}`, q(all, 'play', 10.5, PROP, path)]); MAN.push({ shot: `floor_${fname}`, variant: PROP[0], dist: 10.5, id: `id_px${PROP[4]}_d10.5`, floor: path, kind: fname }); }
 let bad = 0;
 for (const [name, query] of SHOTS) {
   const page = await browser.newPage({ viewport: { width: 1920, height: 1080 } });

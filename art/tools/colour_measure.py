@@ -4,7 +4,7 @@ Per figure and shot: share of outline pixels (the 2 px border of the figure's ID
 floor right behind them (floor pixels within about 10 px, shadows included) is >= 3:1 (WCAG relative luminance), the same share against the
 ring median (the suit_contrast.py formula), the body median contrast against the floor ring, and the share of school-coloured pixels.
 Per shot: the floor's on-screen luminance and its own p95/p5 contrast in the figure-free lower band.
-Gates (PASS/FAIL): the proposal (variant new_rim) at both distances, per figure; the floor on-screen rules per floor.
+Gates (PASS/FAIL): the proposal (variant new_sil2) at both distances, per figure (outline rule; school colour share for the nine suits); the floor on-screen rules per floor.
 Control (the measure's mutation): the old floor with the game's current dark outline must fail the outline rule, else MUT MISSED.
 Usage: python3 colour_measure.py SHOTDIR SHEETDIR"""
 import json, sys
@@ -21,7 +21,13 @@ FLOOR_Y = (0.125, 0.20)
 # Largest contrast between the floor's own light and dark marks on screen (p95 against p5).
 FLOOR_MARKS = 1.30
 # Variant that is the proposal (gated); the control that must fail.
-PROPOSAL, CONTROL = 'new_rim', 'old_cur'
+PROPOSAL, CONTROL = 'new_sil2', 'old_cur'
+# Share of a suit's pixels that must be in its school colour at play size (round 2, lead 25 Nov).
+SCHOOL_SHARE = 0.08
+# School colour per suit: a hue (degrees, +- HUE_TOL, chroma >= 0.12, luminance >= 0.03), or 'pale' (lead white / silver: chroma <= 0.16 and
+# luminance >= 0.22), or 'black' (阴阳 bone black: luminance <= 0.035; always met by a black suit, printed for completeness).
+SCHOOLS = {'fa': 'pale', 'ru': 34, 'dao': 44, 'mo': 10, 'yy': 'black', 'za': 'pale', 'ming': 260, 'zh': 150, 'nong': 216}
+HUE_TOL = 28
 S, OUT = sys.argv[1], sys.argv[2]
 man = json.load(open(f'{S}/manifest.json')); IDS = man['ids']
 def load(n): return np.asarray(Image.open(f'{S}/{n}.png').convert('RGB')).astype(float) / 255
@@ -38,7 +44,14 @@ for sh in man['shots']:
     w = ndimage.gaussian_filter(notfig.astype(float), 5); loc = ndimage.gaussian_filter(np.where(notfig, Y, 0.0), 5) / np.maximum(w, 1e-6)
     band = np.zeros_like(fig); band[int(Y.shape[0] * 0.78):int(Y.shape[0] * 0.97)] = True; fb = band & ~ndimage.binary_dilation(fig, iterations=12) & (Y > 0.012)
     fy = float(np.median(Y[fb])); marks = float((np.percentile(Y[fb], 95) + 0.05) / (np.percentile(Y[fb], 5) + 0.05))
-    mx, mn = img.max(2), img.min(2)
+    mx, mn = img.max(2), img.min(2); ch = mx - mn; dd = np.maximum(ch, 1e-6); R_, G_, B_ = img[..., 0], img[..., 1], img[..., 2]
+    hue = np.where(mx == R_, 60 * (((G_ - B_) / dd) % 6), np.where(mx == G_, 60 * ((B_ - R_) / dd + 2), 60 * ((R_ - G_) / dd + 4)))
+    def school(m, sid):
+        k = SCHOOLS.get(sid)
+        if k is None: return None
+        if k == 'pale': return float(((ch[m] <= 0.16) & (Y[m] >= 0.22)).mean())
+        if k == 'black': return float((Y[m] <= 0.035).mean())
+        dh = np.abs((hue[m] - k + 180) % 360 - 180); return float(((dh <= HUE_TOL) & (ch[m] >= 0.12) & (Y[m] >= 0.03)).mean())
     floorrows[sh['shot']] = (fy, marks, float(((mx - mn) / np.maximum(mx, 1e-6))[fb].mean()))
     res = []
     for i, sid in enumerate(IDS):
@@ -50,7 +63,7 @@ for sh in man['shots']:
         lf = np.where(w[edge] > 0.02, loc[edge], fl)
         share = float((cr(Y[edge], lf) >= RATIO).mean()); legacy = float((cr(Y[edge], fl) >= RATIO).mean())
         body = float(cr(np.median(Y[m]), fl)); area = float((cr(Y[m], fl) >= RATIO).mean())
-        col = float((((mx - mn)[m] >= 0.25) & (Y[m] >= 0.08)).mean())
+        col = school(ndimage.binary_erosion(m, iterations=3), sid)   # the rim is not counted as school colour
         res.append((sid, dict(share=share, legacy=legacy, body=body, area=area, col=col, px=int(m.sum()))))
     rows[sh['shot']] = res
     tag = f"{sh['variant']} {sh['kind']} {sh['dist']} m"
@@ -62,7 +75,10 @@ for sh in man['shots']:
         ok = d['share'] >= EDGE_SHARE
         head = ('PASS' if ok else 'FAIL') if gate else ('CONTROL' if sh['variant'] == CONTROL else 'OPTION')
         if gate and not ok: fails += 1
-        print(f"{head} {tag} {sid} outline >= {RATIO}:1 vs floor behind: {d['share']:.0%} (min {EDGE_SHARE:.0%}); ring formula {d['legacy']:.0%}; body median {d['body']:.2f}:1; area >= 3:1 {d['area']:.0%}; coloured px {d['col']:.0%}")
+        print(f"{head} {tag} {sid} outline >= {RATIO}:1 vs floor behind: {d['share']:.0%} (min {EDGE_SHARE:.0%}); ring formula {d['legacy']:.0%}; body median {d['body']:.2f}:1; area >= 3:1 {d['area']:.0%}" + (f"; school colour px {d['col']:.0%}" if d['col'] is not None else ''))
+        if gate and sh['kind'] == 'hall' and d['col'] is not None:
+            oks = d['col'] >= SCHOOL_SHARE; fails += 0 if oks else 1
+            print(f"{'PASS' if oks else 'FAIL'} {tag} {sid} school colour: {d['col']:.0%} of the figure's pixels (min {SCHOOL_SHARE:.0%})")
     if sh['variant'] == CONTROL:
         nf = sum(1 for _, d in res if d and d['share'] < EDGE_SHARE)
         ok = nf >= 6   # the owner's screenshot case: most figures must fail on the old floor with the dark outline
@@ -78,11 +94,12 @@ for sh in man['shots']:
         print(f"{h(okm)} {tag} floor own marks p95/p5 contrast {marks:.2f}:1 (max {FLOOR_MARKS}); on-screen saturation {floorrows[sh['shot']][2]:.2f}")
 def summ(shot):
     r = [d for _, d in rows[shot] if d]
-    return (min(d['share'] for d in r), float(np.mean([d['share'] for d in r])), float(np.median([d['body'] for d in r])), sum(d['share'] >= EDGE_SHARE for d in r), len(r))
-print('TABLE variant | dist | figures >= 50% | min outline share | mean outline share | median body contrast | floor Y | floor marks')
+    return (min(d['share'] for d in r), float(np.mean([d['share'] for d in r])), float(np.median([d['body'] for d in r])), sum(d['share'] >= EDGE_SHARE for d in r), len(r),
+            min(d['col'] for d in r if d['col'] is not None))
+print('TABLE variant | dist | figures >= 50% | min outline share | mean outline share | median body contrast | floor Y | floor marks | min school colour px')
 for sh in man['shots']:
     a = summ(sh['shot']); f = floorrows[sh['shot']]
-    print(f"TABLE {sh['variant']} {sh['kind']} | {sh['dist']} | {a[3]} of {a[4]} | {a[0]:.0%} | {a[1]:.0%} | {a[2]:.2f}:1 | {f[0]:.3f} | {f[1]:.2f}:1")
+    print(f"TABLE {sh['variant']} {sh['kind']} | {sh['dist']} | {a[3]} of {a[4]} | {a[0]:.0%} | {a[1]:.0%} | {a[2]:.2f}:1 | {f[0]:.3f} | {f[1]:.2f}:1 | {a[5]:.0%}")
 # sheets (JPEG): same scale, same camera, stacked
 def bandcrop(shot, idn, pad=40):
     lab = idmask(idn); ys = np.where((lab > 0).any(1))[0]; y0, y1 = max(0, ys[0] - pad), min(lab.shape[0], ys[-1] + pad + 60)
@@ -94,7 +111,7 @@ def stack(items, path):
     sheet.save(path, quality=88)
 def label(sh):
     a = summ(sh['shot']); f = floorrows[sh['shot']]
-    return f"{sh['variant']} ({sh['kind']}) at {sh['dist']} m: {a[3]} of {a[4]} figures pass, min outline share {a[0]:.0%}, median body {a[2]:.2f}:1, floor Y {f[0]:.3f}, marks {f[1]:.2f}:1"
+    return f"{sh['variant']} ({sh['kind']}) at {sh['dist']} m: {a[3]} of {a[4]} figures pass, min outline share {a[0]:.0%}, median body {a[2]:.2f}:1, floor Y {f[0]:.3f}, marks {f[1]:.2f}:1, min school colour {a[5]:.0%}"
 by = {(s['variant'], s['kind'], s['dist']): s for s in man['shots']}
 for d in (10.5, 14):
     stack([(label(by[(v, 'hall', d)]), bandcrop(by[(v, 'hall', d)]['shot'], by[(v, 'hall', d)]['id'])) for v in (CONTROL, PROPOSAL)], f'{OUT}/sheet_play{d}_old_vs_new.jpg')

@@ -30,16 +30,15 @@ LAC = {'black': ('#120f0f', '#1d1918', '#2a2524', '#3e3533', '#5e504a'), 'brown'
 # owner 25 Nov: the ONE school colour mapping (W1a 鼎 pigments; 儒 #94622c and 杂 #b2bccb as on the banners and effects); was the study palette.
 CORDS = [('fa', '#d9d2c3'), ('ru', '#94622c'), ('dao', '#e2b84a'), ('mo', '#a8321e'), ('yy', '#1a1614'), ('za', '#b2bccb'), ('ming', '#5b3f8c'), ('zh', '#2f8a5c'), ('nong', '#2e5a9c')]
 # COLOUR 25 Nov (owner 13:1x: light rim plus school-colour trim; 12:1x: Qin court black lacquer plates). Env SUIT_QIN=1 paints the proposal
-# sheet (shipped as suit_lamellar_qin.png beside the approved suit_lamellar.png, same rows and UVs, no model change):
-# the brown plate and lamella rows become brown-black lacquer (value plan 25-45), and the nine cord rows use the trim colours below.
+# sheet (shipped as suit_lamellar_qin.png beside the approved suit_lamellar.png, same rows and UVs, no model change). Round 2: the school
+# colour comes from a per-school material tint (art/Colour-Clarity-Study.md, tint table), so the sheet holds only black lacquer and a
+# neutral light binding: the brown plate and lamella rows become brown-black lacquer, every cord row is the neutral binding, and every
+# lamella row gets a binding cord across it (lamellae are laced in rows). Black x tint stays black; binding x tint is the school colour.
 QIN = __import__('os').environ.get('SUIT_QIN', '') == '1'
 # Brown-black lacquer ramp for the former brown rows (a little warmer and lighter than the black rows, so two-tone suits keep two tones).
 LAC_QIN_BROWN = ('#15100d', '#1f1713', '#2c211c', '#40302a', '#614a3e')
-# Trim colours (art/Colour-Clarity-Study.md): the owner's pigment per school, lifted until the cord reads at 3:1 on a black plate on screen
-# (texture relative luminance >= 0.21); 阴阳 stays bone black and takes a lead-white strand instead.
-TRIM = [('fa', '#d9d2c3'), ('ru', '#b88038'), ('dao', '#e2b84a'), ('mo', '#d6583e'), ('yy', '#1a1614'), ('za', '#b2bccb'), ('ming', '#9070d0'), ('zh', '#379e6a'), ('nong', '#5286d2')]
-# Lead-white strand colour on the 阴阳 cord.
-YY_STRAND = '#d9d2c3'
+# Neutral light binding (tinted per school in the material) and its shadow side.
+BIND, BIND_D = '#f2efe8', '#a39f96'
 # Bronze ramp for suit fittings (fresh, live pieces: no patina) and inlay metals.
 BR = ('#3a2b1a', '#5e482b', '#8a6a3c', '#a88a52', '#c8a86a')
 GOLD, GOLD_D, SILVER, SILVER_D = '#d4b25a', '#9c7c34', '#c8ccd0', '#8e9396'
@@ -139,11 +138,13 @@ def lam_row(t, y0, ramp):
         for hx in (x + 9, x + 15): t.stroke([(hx, y0 + 9), (hx + 1, y0 + 9)], 'ink', 3, deep, 0.95, taper=[0, 0])  # tie holes
     t.stage = 3
     x0 = r.uniform(0, t.S); t.stroke([(x0, y1 - 2), (x0 + t.S * 1.05, y1 - 2)], 'marker', 4, deep, 1.0, taper=[0, 0])
+    if QIN:   # binding cord laced across the row (8 px of the 32 px row), twists every 6 px
+        xb = r.uniform(0, t.S); t.stroke([(xb, y0 + 17), (xb + t.S * 1.05, y0 + 17)], 'marker', 8, BIND, 1.0, taper=[0, 0])
+        for i in range(t.S // 6 + 1): t.stroke([(i * 6, y0 + 20), (i * 6 + 4, y0 + 14)], 'ink', 1.5, BIND_D, 0.7, taper=[0, 0])
 
 
-def cord_row(t, y0, col, strand=None):
-    """a twisted cord in the binding colour: diagonal twists with light and shadow sides, dark gaps above and below.
-    strand: every second twist in this colour (the 阴阳 black and white cord of the Qin proposal sheet)."""
+def cord_row(t, y0, col):
+    """a twisted cord in the binding colour: diagonal twists with light and shadow sides, dark gaps above and below."""
     c = col.lstrip('#'); rgb = [int(c[i:i + 2], 16) for i in (0, 2, 4)]
     hexs = lambda k: '#%02x%02x%02x' % tuple(int(max(0, min(255, v * k))) for v in rgb)
     dark, light = hexs(0.55), hexs(1.25) if sum(rgb) < 600 else hexs(1.05)
@@ -153,8 +154,7 @@ def cord_row(t, y0, col, strand=None):
     for i in range(t.S // 8 + 1):
         x = i * 8
         t.stroke([(x, y1 - 8), (x + 8, y0 + 8)], 'ink', 2.5, dark, 0.85, taper=[0, 0])
-        if strand and i % 2 == 0: t.stroke([(x + 1, y1 - 9), (x + 8, y0 + 9)], 'ink', 6, strand, 0.95, taper=[0, 0])
-        else: t.stroke([(x + 2, y1 - 10), (x + 7, y0 + 10)], 'ink', 2, light, 0.6, taper=[0, 0])
+        t.stroke([(x + 2, y1 - 10), (x + 7, y0 + 10)], 'ink', 2, light, 0.6, taper=[0, 0])
 
 
 def lamellar():
@@ -177,7 +177,7 @@ def lamellar():
             cx = 16 + i * 32
             t.stroke([(cx - 11, y0 + 16), (cx, y0 + 10), (cx + 11, y0 + 16), (cx, y0 + 22), (cx - 11, y0 + 16)], 'ink', 3, m, 0.95, taper=[0, 0])
             t.stroke([(cx - 2, y0 + 16), (cx + 2, y0 + 16)], 'ink', 3, md, 0.95, taper=[0, 0])
-    for i, (sid, col) in enumerate(TRIM if QIN else CORDS): cord_row(t, 736 + 32 * i, col, YY_STRAND if QIN and sid == 'yy' else None)
+    for i, (sid, col) in enumerate(CORDS): cord_row(t, 736 + 32 * i, BIND if QIN else col)
     return t
 
 

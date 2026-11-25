@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Walkable-floor rules (art/Colour-Clarity-Study.md, COLOUR 25 Nov): a floor a black-lacquer figure and its pale rim both read on.
 Prints PASS/FAIL per floor and rule. Usage: python3 floor_rule_check.py TEXDIR [--mutate] [name=path ...]
-  TEXDIR holds hall_floor.png, stone_paving.png, floor_tiles.png, garden_ground.png, timber.png; name=path adds a candidate measured by the
+  TEXDIR holds hall_floor.png, stone_paving.png, floor_tiles.png, garden_ground.png, bridge_deck.png (the bridge's own deck texture); name=path adds a candidate measured by the
   rules of floor `name` (printed as name_cand). --mutate: three broken copies of the hall floor must each fail their rule."""
 import os, sys
 import numpy as np
@@ -12,16 +12,17 @@ FLOOR_Y = (0.167, 0.26)
 # Largest contrast between a floor's own light and dark marks (p95 against p5 of the texture's relative luminance).
 MARKS = 1.30
 # Mean HSV saturation cap for every walkable floor; the hall floor's own band (still cinnabar, not grey).
-SAT_CAP = 0.50
-HALL_SAT = (0.38, 0.50)
-# Hall floor luminance sd band (sRGB luminance 0-255): calm, but not a flat fill.
-HALL_SD = (5.5, 8.0)
+SAT_CAP = 0.55
+HALL_SAT = (0.48, 0.55)
+# Hall floor luminance sd band (sRGB luminance 0-255): calm, but not a flat fill. Round 2: was 5.5-8.0, which the marks rule above cannot meet
+# (p95/p5 1.30 at this value is an sd of about 5.5 for a normal spread; run 45553818769 had sd 5.8 at 1.30), so the band sits under it.
+HALL_SD = (4.5, 7.5)
 # Hall floor stroke scale: half-width of the luminance autocorrelation along x and y, px at 256 px/m (20 px = 8 cm), and the largest x:y ratio.
 HALL_AC = 20
 HALL_ANISO = 2.0
 # Which rules a floor carries: the hall floor all of them (repainted on purpose), the others the luminance band and the saturation cap only
 # (their mark contrast is printed as NOTE: tile joints and gravel are drawn detail, judged on the rendered sheets).
-FLOORS = {'hall_floor': 'all', 'stone_paving': 'value', 'floor_tiles': 'value', 'garden_ground': 'value', 'timber': 'value'}
+FLOORS = {'hall_floor': 'all', 'stone_paving': 'value', 'floor_tiles': 'value', 'garden_ground': 'value', 'bridge_deck': 'value'}
 
 
 def measure(src):
@@ -30,10 +31,10 @@ def measure(src):
     L = (a @ [0.2126, 0.7152, 0.0722]) * 255; mx, mn = a.max(2), a.min(2)
     F = np.fft.fft2(L - L.mean()); ac = np.fft.ifft2(F * np.conj(F)).real; ac /= max(ac[0, 0], 1e-9)
     hx = next((i for i in range(1, 400) if ac[0, i] < 0.5), 400); hy = next((i for i in range(1, 400) if ac[i, 0] < 0.5), 400)
-    eq = (np.abs(np.diff(L, axis=1)) < 6).mean()
+    eq = (np.abs(np.diff(L, axis=1)) < 6).mean(); eq4 = (np.abs(np.diff(L, axis=1)) < 4).mean()
     return dict(Y=float(Y.mean()), lum=float(L.mean()), sd=float(L.std()), sat=float(((mx - mn) / np.maximum(mx, 1e-6)).mean()),
                 marks=float((np.percentile(Y, 95) + 0.05) / (np.percentile(Y, 5) + 0.05)), acx=hx, acy=hy,
-                run_cm=float((1 / (1 - eq) if eq < 1 else 1e9) / 2.56), blk=float(L.reshape(8, L.shape[0] // 8, 8, L.shape[1] // 8).mean((1, 3)).std()))
+                run_cm=float((1 / (1 - eq) if eq < 1 else 1e9) / 2.56), run4_cm=float((1 / (1 - eq4) if eq4 < 1 else 1e9) / 2.56), blk=float(L.reshape(8, L.shape[0] // 8, 8, L.shape[1] // 8).mean((1, 3)).std()))
 
 
 def rules(name, m, kind):

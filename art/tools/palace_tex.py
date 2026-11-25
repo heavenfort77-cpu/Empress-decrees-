@@ -28,36 +28,41 @@ def pk(h):
     return '#' + ''.join('%02x' % min(255, round(int(h[i:i + 2], 16) * PLASTER_K)) for i in (1, 3, 5))
 # COLOUR 25 Nov (owner 13:1x: 'colour clear, not one mess when a character is on it'; hall floor repainted calmer and less saturated, replaces
 # the approved round 2 floor: old texture, bundle and generator kept in art/round2/). Rules and maths: art/Colour-Clarity-Study.md.
-# Hall floor base colour: cinnabar 丹地 lifted to a mid value (texture relative luminance about 0.20, saturation about 0.44, hue 17 deg).
-FLOOR_BASE = '#a4705c'
+# Hall floor base colour: cinnabar 丹地 at a mid value (round 2 of COLOUR, lead verdict 25 Nov: red again, not salmon; hue 8 deg, saturation
+# about 0.52, texture relative luminance about 0.185 = 0.14 on screen).
+FLOOR_BASE = '#b26155'
 # Hall floor value gain on the base and every mark (linear light). The runner's calibration (art/tools/floor_calibrate.py) sets the env; the
 # default is the value the shipped texture was painted with.
-FLOOR_G = float(__import__('os').environ.get('FLOOR_G', '0.9794'))
-# Hall floor mark contrast (1.0 = marks at the tones written in floor(); lower = calmer).
-FLOOR_C = float(__import__('os').environ.get('FLOOR_C', '1.1366'))
+FLOOR_G = float(__import__('os').environ.get('FLOOR_G', '1.0'))
+# Hall floor mark contrast (1.0 = marks at the tones written in floor(); lower = calmer). Calibrated to the own-marks rule (p95/p5 <= 1.30).
+FLOOR_C = float(__import__('os').environ.get('FLOOR_C', '1.0'))
 # Hall floor broad tone-blot opacity scale (lower = less cloud at the 0.5 m scale, shorter stroke correlation).
 FLOOR_B = float(__import__('os').environ.get('FLOOR_B', '1.0'))
-# Hall floor grit speck count (fine pebble grit; keeps the brush-scale run inside 4-15 cm on a low-contrast floor).
-FLOOR_N = int(__import__('os').environ.get('FLOOR_N', '2600'))
+# Hall floor pebble-burnish dab count (short chalk dabs; more dabs keep the brush-scale run inside 4-15 cm on a low-contrast floor).
+FLOOR_N = int(__import__('os').environ.get('FLOOR_N', '1400'))
 # Colour gain for candidates of other textures (linear light on the background and every stroke colour; 1.0 = approved ops byte-identical).
 TEX_GAIN = float(__import__('os').environ.get('TEX_GAIN', '1.0'))
+# Mark contrast for candidates of other textures: every stroke colour pulled toward the background colour in linear light (1.0 = unchanged).
+TEX_CONTRAST = float(__import__('os').environ.get('TEX_CONTRAST', '1.0'))
 
 
 def _lin(v): v /= 255.0; return v / 12.92 if v <= 0.04045 else ((v + 0.055) / 1.055) ** 2.4
 def _srgb(l): l = min(1.0, max(0.0, l)); return round(255 * (12.92 * l if l <= 0.0031308 else 1.055 * l ** (1 / 2.4) - 0.055))
 
 
-def gain(h, g):
-    """a colour scaled by g in linear light (unchanged string at 1.0)."""
-    if g == 1.0 or not h.startswith('#'): return h
-    return '#' + ''.join('%02x' % _srgb(_lin(int(h[i:i + 2], 16)) * g) for i in (1, 3, 5))
+def gain(h, g, toward=None, k=1.0):
+    """a colour scaled by g in linear light, after pulling it toward colour `toward` by 1 - k (unchanged string at g 1.0, k 1.0)."""
+    if (g == 1.0 and k == 1.0) or not h.startswith('#'): return h
+    v = [_lin(int(h[i:i + 2], 16)) for i in (1, 3, 5)]
+    if toward and k != 1.0: b = [_lin(int(toward[i:i + 2], 16)) for i in (1, 3, 5)]; v = [q + (x - q) * k for x, q in zip(v, b)]
+    return '#' + ''.join('%02x' % _srgb(x * g) for x in v)
 S = int(sys.argv[2]) if len(sys.argv) > 2 else 1024
 K = S / 1024.0  # every coordinate below is written for 1024 px and scaled
 
 
 class Tex:
     def __init__(self, name, bg, wrap_x, wrap_y, seed):
-        self.name, self.bg, self.wx, self.wy = name, gain(bg, TEX_GAIN), wrap_x, wrap_y
+        self.name, self.bg0, self.bg, self.wx, self.wy = name, bg, gain(bg, TEX_GAIN), wrap_x, wrap_y
         self.r = random.Random(seed)
         self.ops = []
         self.stage = 0  # paint stage for the passes strip: 0 base, 1 tone, 2 marks, 3 detail
@@ -78,7 +83,7 @@ class Tex:
         for ox in offs_x:
             for oy in offs_y:
                 d = 'M' + ' L'.join(f'{x + ox:.1f} {y + oy:.1f}' for x, y in pts)
-                op = {"op": "stroke", "layer": "l1", "brush": brush, "size": round(size * K, 2), "color": gain(color, TEX_GAIN), "opacity": opacity, "path": d, "seed": seed}
+                op = {"op": "stroke", "layer": "l1", "brush": brush, "size": round(size * K, 2), "color": gain(color, TEX_GAIN, self.bg0, TEX_CONTRAST), "opacity": opacity, "path": d, "seed": seed}
                 if pressure: op["pressure"] = pressure
                 if taper is not None: op["taper"] = taper
                 if flow is not None: op["flow"] = flow
@@ -130,9 +135,9 @@ def band(t, y0, y1, color, brush='flat-bristle', size=60, opacity=1.0, step=None
 
 def floor():
     # 丹地: cinnabar earth floor, burnished with pebbles; one continuous painted surface (no tiles). 4 m per repeat (256 px/m).
-    # Round 3 (COLOUR 25 Nov, art/Colour-Clarity-Study.md): a mid-value, calmer floor a black-lacquer figure and its pale rim both read on.
-    # Texture relative luminance 0.20, saturation 0.42-0.50, luminance sd 5.5-8, marks short and in every direction (no long one-way
-    # burnish grain), fine grit. Seed 101 kept. Round 2 (value 80, sd 9.1, long strokes): art/round2/.
+    # Round 4 (COLOUR round 2, 25 Nov, art/Colour-Clarity-Study.md): a mid-value cinnabar floor a black-lacquer figure reads on: texture
+    # relative luminance 0.185, saturation 0.50-0.55, own marks p95/p5 <= 1.30, calm broad burnish strokes (shorter and less one-way than
+    # round 2), pebble dabs, no grit specks (round 3's read as sprinkles). Seed 101 kept. Round 2 (value 80, sd 9.1): art/round2/.
     c0 = [_lin(int(FLOOR_BASE[i:i + 2], 16)) * FLOOR_G for i in (1, 3, 5)]
     def col(d, warm=0.0):
         """the base scaled by 1 + FLOOR_C x d in linear light; warm > 0 leans to the earth under the paint (less red)."""
@@ -146,17 +151,17 @@ def floor():
     for _ in range(90):  # broad tone variation (kept low: nothing a figure edge can be lost in)
         t.blot(r.uniform(0, 1024), r.uniform(0, 1024), r.uniform(60, 160), 'sponge', r.uniform(70, 140), r.choice(tones), r.uniform(0.2, 0.34) * FLOOR_B, 3)
     t.stage = 2
-    burn = [col(0.50), col(0.65), col(-0.45)]
-    for _ in range(260):  # burnish passes: short, in every direction (round 2: 80-260 px, one way, read as a busy grain under characters)
-        x, y = r.uniform(0, 1024), r.uniform(0, 1024); a = r.uniform(-1.25, 1.25); L = r.uniform(40, 110)
-        t.stroke(t.wobble(x, y, x + math.cos(a) * L, y + math.sin(a) * L, 4, 3), 'dry-brush', r.uniform(12, 24), r.choice(burn), r.uniform(0.22, 0.38), pressure=[0.3, 1, 0.3])
-    dabs = [col(0.55), col(-0.50), col(-0.25), col(0.30)]
-    for _ in range(700):  # pebble-burnish dabs, 4-12 cm
+    burn = [col(0.42), col(0.55), col(-0.40)]
+    for _ in range(240):  # burnish passes: broad calm strokes, 20-55 cm, a loose common direction (round 2: 80-260 px, one way, read busy)
+        x, y = r.uniform(0, 1024), r.uniform(0, 1024); a = r.uniform(-0.7, 0.7); L = r.uniform(55, 140)
+        t.stroke(t.wobble(x, y, x + math.cos(a) * L, y + math.sin(a) * L, 5, 3), 'dry-brush', r.uniform(16, 30), r.choice(burn), r.uniform(0.2, 0.34), pressure=[0.3, 1, 0.3])
+    dabs = [col(0.45), col(-0.42), col(-0.22), col(0.26)]
+    for _ in range(FLOOR_N):  # pebble-burnish dabs, 4-12 cm
         x, y = r.uniform(0, 1024), r.uniform(0, 1024); a = r.uniform(0, math.tau); L = r.uniform(10, 30)
         t.stroke([(x, y), (x + math.cos(a) * L, y + math.sin(a) * L)], 'chalk', r.uniform(6, 11), r.choice(dabs), r.uniform(0.3, 0.45))
     t.stage = 3
-    scuff = [col(0.90, 0.22), col(-0.60)]
-    for _ in range(80):  # scuffs worn through to the earth
+    scuff = [col(0.70, 0.18), col(-0.55)]
+    for _ in range(70):  # scuffs worn through to the earth
         x, y = r.uniform(0, 1024), r.uniform(0, 1024); a = r.uniform(0, math.tau); L = r.uniform(10, 34)
         t.stroke([(x, y), (x + math.cos(a) * L, y + math.sin(a) * L)], 'chalk', r.uniform(3, 6), r.choice(scuff), r.uniform(0.25, 0.4))
     for _ in range(10):  # hairline cracks
@@ -164,10 +169,6 @@ def floor():
         for _ in range(r.randint(4, 8)):
             x += r.uniform(-30, 30); y += r.uniform(-30, 30); pts.append((x, y))
         t.stroke(pts, 'pencil', 2.2, col(-0.7), 0.4)
-    grit = [col(0.70), col(-0.55)]
-    for _ in range(FLOOR_N):  # fine grit (last, so the count can change without moving any mark above)
-        x, y = r.uniform(0, 1024), r.uniform(0, 1024)
-        t.stroke([(x, y), (x + r.uniform(-4, 4), y + r.uniform(-3, 3))], 'ink', r.uniform(2, 3.5), r.choice(grit), r.uniform(0.4, 0.6), taper=[0, 0])
     return t
 
 

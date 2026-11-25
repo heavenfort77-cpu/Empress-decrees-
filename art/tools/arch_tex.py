@@ -36,7 +36,11 @@ POND = dict(base='#5f8f88', crest='#86b2aa', trough='#4a7872', glint='#d4e6e0', 
 # brass inlay tones (lines, studs, highlight), line and stud widths px, number of asterisms, single studs, margin kept clear px (the
 # tile can then be turned 0/90/180/270 deg per 4 m cell without a seam).
 # Round 2: lines 7 -> 11 px, studs 13 -> 18, ring 5 -> 8 (round 1: 0.24 of drawn pixels lost at the alpha test; nearly unseen at play).
-INLAY = dict(tones=['#a8864c', '#9a7a44', '#b8965a'], line=11, stud=18, ring=8, asterisms=11, singles=46, margin=24)
+# Bridge deck (COLOUR round 2): linear-light gain and mark contrast on the timber colours (texture relative luminance 0.092 -> about 0.20).
+DECK_GAIN, DECK_CONTRAST = 2.15, 0.42
+# COLOUR round 2 (25 Nov): the hall / core floor is repainted at mean lum about 112 (was 77), so the brass is lifted to stay 25-75 above it
+# (tones were '#a8864c', '#9a7a44', '#b8965a', mean lum about 137; run 45553818769: inlay minus floor 17, FAIL).
+INLAY = dict(tones=['#cfae6a', '#c2a060', '#dcbc7a'], line=11, stud=18, ring=8, asterisms=11, singles=46, margin=24)
 
 
 def layered_earth(name, R, seed, lmin, lmax, soot=False, pocks=3200, thick=0.18):
@@ -559,6 +563,18 @@ def timber():
     return t
 
 
+def bridge_deck():
+    """Bridge deck (COLOUR round 2, 25 Nov): the bridge's own walking surface, so the deck can follow the walkable-floor rule
+    (art/Colour-Clarity-Study.md) without changing the beams. The timber boards and grain (same seed and marks), sun-bleached and worn:
+    every colour lifted and pulled toward the board ground in linear light."""
+    g0, c0 = P.TEX_GAIN, P.TEX_CONTRAST
+    P.TEX_GAIN, P.TEX_CONTRAST = DECK_GAIN, DECK_CONTRAST
+    try: t = timber()
+    finally: P.TEX_GAIN, P.TEX_CONTRAST = g0, c0
+    t.name = 'bridge_deck'
+    return t
+
+
 def timber_burnt():
     """Charred timber (A18): alligator char, blocks 4-9 cm split by deep cracks across and along the grain, ash-grey highlights on the
     blocks, a few patches of scorched brown; same layout and grain direction as timber (a material swap)."""
@@ -916,7 +932,7 @@ def slips_burnt(): return slips_rows(P.Tex('slips_burnt', '#33281f', True, False
 
 ALL = [rammed_earth, rammed_earth_core, earth_burnt, river_stone, stone_paving, floor_tiles, hollow_brick, mural_wall, wall_burnt, roof_tile, tile_ends,
        timber, timber_burnt, mercury_matcap, black_lake, garden_ground, garden_plants, star_ceiling, signal_flags, slips, slips_burnt,
-       pond_water, star_inlay]
+       pond_water, star_inlay, bridge_deck]
 
 if __name__ == '__main__':
     want = sys.argv[3].split(',') if len(sys.argv) > 3 else None

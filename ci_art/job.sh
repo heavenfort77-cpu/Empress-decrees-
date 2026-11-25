@@ -1,10 +1,10 @@
 #!/bin/bash
-# COLOUR (owner 25 Nov 13:1x: characters must read on the floor, 'not one mess'; art/Colour-Clarity-Study.md). ONE art round:
-# 1 hall floor repainted in klad to the study's targets (floor_calibrate.py on palace_tex.py floor(), seed 101 kept), 2 lifted candidates of
-# the corridor tiles and garden ground (TEX_GAIN, not replacing the approved files), 3 the Qin proposal suit sheet (SUIT_QIN=1, new file
-# suit_lamellar_qin.png), 4 gates with mutations (tex_check, floor_rule_check, trim_check), 5 shots of nine suits + guard + rebel on the
-# old and new floor with and without rim / trim (colour_shoot.mjs), 6 measures and sheets (colour_measure.py).
-# No model is rebuilt; no game file is touched. Writes to $OUT; leaves the tree as checked out.
+# COLOUR round 2 (lead verdict 25 Nov on run 45553818769; owner 13:1x: characters must read on the floor; art/Colour-Clarity-Study.md):
+# 1 hall floor repainted in klad as a mid-value CINNABAR floor (floor_calibrate.py: luminance and own-marks targets, no grit, seed 101),
+# 2 the other walkable floors to the rule (corridor tiles, garden ground, a bridge deck texture of its own) and the star inlay lifted,
+# 3 the Qin suit sheet for the per-school tint (SUIT_QIN=1), 4 gates with mutations, 5 shots of nine suits + guard + rebel on the old and
+# new floor (current game look, no rim, dark outline, silhouette-only rim 2 / 3 px, bronze rim, grazing rim term), 6 measures and sheets.
+# Proposals are written beside the approved files (art/colour), never over them. No model is rebuilt; no game file is touched.
 set -u
 export PYTHONDONTWRITEBYTECODE=1
 cd "$(dirname "$0")/.."
@@ -21,7 +21,7 @@ node -e "import('playwright').then(m=>m.chromium.executablePath()).then(p=>requi
 for f in $T/palace_tex.py $T/paint_palace.py $T/arch_tex.py $T/suit_tex.py $T/suit_paint.py $T/tex_check.py $T/tex_check_mut.py $T/floor_rule_check.py \
          $T/floor_calibrate.py $T/trim_check.py $T/colour_shoot.mjs $T/colour_measure.py art/viewer/colour.html art/viewer/vendor/loaders/GLTFLoader.js \
          art/viewer/vendor/utils/BufferGeometryUtils.js lib/three.module.min.js lib/three.core.min.js art/round2/tex/hall_floor.png \
-         assets/tex/hall_floor.png assets/tex/stone_paving.png assets/tex/floor_tiles.png assets/tex/garden_ground.png assets/tex/timber.png \
+         assets/tex/hall_floor.png assets/tex/stone_paving.png assets/tex/floor_tiles.png assets/tex/garden_ground.png assets/tex/timber.png assets/tex/star_inlay.png \
          assets/tex/suit_lamellar.png assets/tex/suit_cloth.png assets/tex/suit_bronze.png assets/tex/bronze_trim_brass.png assets/tex/fodder_trim.png \
          assets/tex/tread_belt.png assets/models/guard/zu.glb assets/models/rebels/ls.glb; do [ -s "$f" ] || miss "input $f"; done
 for id in fa ru dao mo yy za ming zh nong; do [ -s assets/models/suits/$id.glb ] || miss "input assets/models/suits/$id.glb"; done
@@ -36,31 +36,36 @@ if [ -f ci_art/PREFLIGHT_ONLY ]; then echo "RESULT preflight only (proof run)"; 
 step "hall floor (klad, calibrated to the study targets)"
 python3 $T/floor_calibrate.py $KLAD /tmp/fl/ops /tmp/fl/src /tmp/fl/out /tmp/fl/strip 2>&1 | tee $O/gates/floor_calibration.txt
 cp /tmp/fl/out/hall_floor.png assets/tex/hall_floor.png && cp /tmp/fl/out/hall_floor.png $O/tex/ && cp -r /tmp/fl/src/hall_floor.klad $O/src/ && cp /tmp/fl/strip/hall_floor_passes.png $O/sheets/ && cp /tmp/fl/ops/calib.json $O/gates/
-step "candidates of the other floors (not replacing the approved files)"
-TEX_GAIN=1.20 python3 $T/arch_tex.py /tmp/cand/ops 1024 floor_tiles && TEX_GAIN=1.35 python3 $T/arch_tex.py /tmp/cand/ops 1024 garden_ground
-python3 $T/paint_palace.py $KLAD /tmp/cand/ops /tmp/cand/src /tmp/cand/out /tmp/cand/strip floor_tiles,garden_ground
-cp /tmp/cand/out/floor_tiles.png /tmp/cand/out/garden_ground.png art/colour/cand/ && cp /tmp/cand/out/*.png $O/cand/ && cp -r /tmp/cand/src/*.klad $O/cand/
-step "Qin proposal suit sheet"
+step "other floors and the star inlay (proposals, not replacing the approved files)"
+TEX_GAIN=1.20 TEX_CONTRAST=0.6 python3 $T/arch_tex.py /tmp/cand/ops 1024 floor_tiles && TEX_GAIN=1.35 python3 $T/arch_tex.py /tmp/cand/ops 1024 garden_ground && python3 $T/arch_tex.py /tmp/cand/ops 1024 bridge_deck,star_inlay
+python3 $T/paint_palace.py $KLAD /tmp/cand/ops /tmp/cand/src /tmp/cand/out /tmp/cand/strip floor_tiles,garden_ground,bridge_deck,star_inlay
+cp /tmp/cand/out/floor_tiles.png /tmp/cand/out/garden_ground.png /tmp/cand/out/bridge_deck.png /tmp/cand/out/star_inlay.png art/colour/cand/ && cp /tmp/cand/out/*.png $O/cand/ && cp -r /tmp/cand/src/*.klad $O/cand/
+step "Qin suit sheet for the school tint"
 SUIT_QIN=1 python3 $T/suit_tex.py /tmp/sq/ops && python3 $T/suit_paint.py $KLAD /tmp/sq/ops /tmp/sq/src /tmp/sq/out /tmp/sq/strip suit_lamellar
 cp /tmp/sq/out/suit_lamellar.png assets/tex/suit_lamellar_qin.png && cp assets/tex/suit_lamellar_qin.png $O/tex/ && cp -r /tmp/sq/src/suit_lamellar.klad $O/src/suit_lamellar_qin.klad && cp /tmp/sq/strip/suit_lamellar_passes.png $O/sheets/suit_lamellar_qin_passes.png
-step "gates"
-cp assets/tex/*.png /tmp/texall/ && rm -f /tmp/texall/suit_lamellar_qin.png
-python3 $T/tex_check.py /tmp/texall 1 4 > $O/gates/tex_check_full.txt 2>&1; grep -E "^FAIL|hall_floor|star_inlay|of .* pass|Traceback" $O/gates/tex_check_full.txt | tee $O/gates/tex_check.txt
+step "gates (the proposals under their final names)"
+cp assets/tex/*.png /tmp/texall/ && rm -f /tmp/texall/suit_lamellar_qin.png && cp art/colour/cand/floor_tiles.png art/colour/cand/garden_ground.png art/colour/cand/bridge_deck.png art/colour/cand/star_inlay.png /tmp/texall/
+python3 $T/tex_check.py /tmp/texall 1 4 > $O/gates/tex_check_full.txt 2>&1; grep -E "^FAIL|hall_floor|star_inlay|floor_tiles|garden_ground|bridge_deck|of .* pass|Traceback" $O/gates/tex_check_full.txt | tee $O/gates/tex_check.txt
 python3 $T/tex_check_mut.py /tmp/texall 2>&1 | grep -E "hall_floor|MISSED|caught$|Traceback" | tee $O/gates/tex_check_mut.txt
-python3 $T/floor_rule_check.py assets/tex --mutate floor_tiles=art/colour/cand/floor_tiles.png garden_ground=art/colour/cand/garden_ground.png hall_floor=art/round2/tex/hall_floor.png 2>&1 | sed 's/^FAIL hall_floor_cand/CONTROL round 2 hall floor fails/' | tee $O/gates/floor_rules.txt
+python3 $T/floor_rule_check.py /tmp/texall --mutate hall_floor=art/round2/tex/hall_floor.png 2>&1 | sed 's/^FAIL hall_floor_cand/CONTROL round 2 hall floor fails/' | tee $O/gates/floor_rules.txt
 python3 $T/trim_check.py assets/tex/suit_lamellar_qin.png --mutate assets/tex/suit_lamellar.png 2>&1 | tee $O/gates/trim.txt
 python3 - <<'PY' 2>&1 | tee $O/gates/floor_sheet.txt
 import os
 from PIL import Image, ImageDraw
 O = os.environ['OUT']; old = Image.open('art/round2/tex/hall_floor.png').convert('RGB'); new = Image.open('assets/tex/hall_floor.png').convert('RGB')
 s = Image.new('RGB', (1024 * 2 + 12, 26 + 1024 + 26 + 1024), (255, 255, 255)); d = ImageDraw.Draw(s)
-d.text((6, 6), 'round 2 hall floor (approved, kept in art/round2), 1:1', fill=(0, 0, 0)); d.text((1042, 6), 'round 3 hall floor (COLOUR), 1:1', fill=(0, 0, 0))
+d.text((6, 6), 'round 2 hall floor (approved, kept in art/round2), 1:1', fill=(0, 0, 0)); d.text((1042, 6), 'hall floor, COLOUR round 2, 1:1', fill=(0, 0, 0))
 s.paste(old, (0, 26)); s.paste(new, (1036, 26)); d.text((6, 1056), '2 x 2 tiles at half size (seams)', fill=(0, 0, 0))
 for k, im in enumerate((old, new)):
     h = im.resize((512, 512), Image.LANCZOS)
     for i in range(2):
         for j in range(2): s.paste(h, (k * 1036 + i * 512, 1076 + j * 512))
-s.save(f'{O}/sheets/sheet_floor_texture_old_vs_new.jpg', quality=88); print('floor texture sheet written')
+s.save(f'{O}/sheets/sheet_floor_texture_old_vs_new.jpg', quality=88)
+names = [('assets/tex/floor_tiles.png', 'floor_tiles approved'), ('art/colour/cand/floor_tiles.png', 'floor_tiles proposal'), ('assets/tex/garden_ground.png', 'garden_ground approved'),
+         ('art/colour/cand/garden_ground.png', 'garden_ground proposal'), ('assets/tex/timber.png', 'timber (beams; deck now)'), ('art/colour/cand/bridge_deck.png', 'bridge_deck proposal')]
+s = Image.new('RGB', (6 * 518, 26 + 512), (255, 255, 255)); d = ImageDraw.Draw(s)
+for i, (p, t) in enumerate(names): d.text((i * 518 + 6, 6), t + ', 512 px crop 1:1', fill=(0, 0, 0)); s.paste(Image.open(p).convert('RGB').crop((0, 0, 512, 512)), (i * 518, 26))
+s.save(f'{O}/sheets/sheet_other_floor_textures.jpg', quality=88); print('floor texture sheets written')
 PY
 step "shots"
 node $T/colour_shoot.mjs /tmp/colshots 2>&1 | tee $O/gates/shots_full.txt | grep -v " ok$" | tee $O/gates/shots.txt
@@ -68,7 +73,7 @@ step "measures and sheets"
 python3 $T/colour_measure.py /tmp/colshots $O/sheets 2>&1 | tee $O/measures.txt | grep -E "^FAIL|^MUT|^TABLE|FAIL lines|all colour|Traceback"
 for f in /tmp/colshots/*.png; do n=$(basename ${f%.png}); case $n in id_*) cp $f $O/shots/;; *) python3 -c "import sys;from PIL import Image;Image.open(sys.argv[1]).convert('RGB').save(sys.argv[2],quality=90)" $f $O/shots/$n.jpg;; esac; done
 cp /tmp/colshots/manifest.json $O/shots/
-rm -rf art/colour/cand assets/tex/suit_lamellar_qin.png; rmdir art/colour 2>/dev/null; git checkout -- assets art 2>/dev/null; git status --short | head -5
+rm -f assets/tex/suit_lamellar_qin.png art/colour/cand/bridge_deck.png art/colour/cand/star_inlay.png; git checkout -- assets art 2>/dev/null; git status --short | head -5
 echo "== summary"
 cat $O/gates/floor_calibration.txt $O/gates/tex_check.txt $O/gates/tex_check_mut.txt $O/gates/floor_rules.txt $O/gates/trim.txt $O/gates/shots.txt $O/measures.txt 2>/dev/null | grep -E "^FAIL|MUT MISSED|MISSED |of .* pass|caught$|mutations caught|Traceback|^TABLE" | tee $O/summary.txt
 nf=$(grep -c "^FAIL\|MUT MISSED\|^MISSED \|Traceback" $O/summary.txt); echo "FAIL lines: $nf" | tee -a $O/summary.txt
