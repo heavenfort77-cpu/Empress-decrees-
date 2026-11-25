@@ -1,0 +1,7 @@
+PASS mutant fow-inst -> P10: FAIL P10 instanced plaster at fog centre 88, 60 m out 252; mercury 105 / 300 (dim must be < 0.6 x)
+PASS mutant no-spread -> P3: FAIL P3 26 LOD levels checked; off [arch/que_pair:2 dx 0.00 dz 0.00; beast:1 dx 3.00 dz 0.00; beast:2 dx 6.00 dz 0.00; ding:1 dx 3.00 dz 0.00; ding:2 dx 6.00 dz 0.01; vat:1 dx 3.00 dz 0.00; vat:2 dx 6.00 dz 0.00; crane:1
+PASS mutant clock-inverted -> P13: FAIL P13 5 clocks; wrong [full 0.69 empty 2.16 same-step true,full 0.69 empty 2.16 same-step true,full 0.69 empty 2.16 same-step true]
+PASS mutant plants-flood -> P7: FAIL P7 tier medium: worst draws 200 (corr_w; three main pass 105), worst triangles 639388 (corr_sw); 29 views
+PASS mutant light -> P8: FAIL P8 29 lights in 2076 art objects
+PASS mutant geo-copies -> P19: FAIL P19 342 instanced meshes, 1 on kit geometry; rooms with many plain meshes []
+RESULT 6 of 6
