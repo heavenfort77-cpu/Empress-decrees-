@@ -36,6 +36,25 @@ jobs:
           node-version: 22
       - name: Install Playwright Chromium
         run: npm i --no-save --no-audit --no-fund playwright@1.63.0 acorn@8 && npx playwright install --with-deps chromium
+      - name: Preflight (RUNNERS.md RULE; fails in the first minute)
+        run: |
+          set -e; mkdir -p results
+          command -v node python3; node -e "require('playwright').chromium.executablePath() && console.log('chromium ok')"
+          node -e "import('acorn').then(() => console.log('acorn ok'))"
+          for f in index.html tests/run.mjs tests/static-check.mjs ci/job.json ci/apply_mut.py ci/shard.mjs ci/summarise.py; do test -f "$f" || { echo "PREFLIGHT missing $f"; exit 1; }; done
+          for d in lib tests; do test -d "$d" || { echo "PREFLIGHT missing dir $d"; exit 1; }; done
+          if grep -q "lib/jsm" index.html; then test -f lib/jsm/loaders/KTX2Loader.js && test -f lib/jsm/libs/basis/basis_transcoder.wasm || { echo "PREFLIGHT missing lib/jsm"; exit 1; }; fi
+          if grep -q "assets/c/manifest.json" index.html; then test -f assets/c/manifest.json || { echo "PREFLIGHT missing assets/c/manifest.json"; exit 1; }; fi
+          test -z "$(git ls-files '*.pyc' '*/__pycache__/*' tests/run_shard.mjs)" || { echo "PREFLIGHT tracked build files"; git ls-files '*.pyc' tests/run_shard.mjs; exit 1; }
+          python3 - <<'PY'
+          import json, sys
+          j = json.load(open('ci/job.json', encoding='utf-8')); src = open('index.html', encoding='utf-8').read()
+          if j['mode'] == 'mut':
+              bad = [m['name'] for m in j['muts'] if src.count(m['a']) != 1]
+              if bad: print('PREFLIGHT mutation targets not found exactly once:', bad); sys.exit(1)
+              print('mutation targets', len(j['muts']), 'ok')
+          PY
+          echo PREFLIGHT PASS
       - name: Run
         run: |
           mkdir -p results
