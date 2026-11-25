@@ -1,5 +1,5 @@
 {
- "_about": "SUITS fa round 5 concept references (owner GO 25 Nov 10:55): suit 法甲 廷尉 (Legalist law officer, assassin, bronze jian, pursuit). SDXL base 1.0 + SDXL-Lightning 8-step LoRA (diffusers, CPU), not SD1.5/LCM, not SDXL-Turbo. Full figure 832x1216. Job 0: seeds 7101-7102 + img2img from sheet_knight; job 1: seeds 7103-7104 + img2img from sheet_rogue (4 seeds in all); img2img from the owner's armour-suit kit (sheet_knight front, sheet_rogue front) at strength 0.6 with the same Qin lamellar prompt. Reference only: never shipped, never traced. Licences: SDXL base 1.0 CreativeML Open RAIL++-M, SDXL-Lightning openrail++ (commercial use allowed). Guidance 0, so no negative prompt.",
+ "_about": "SUITS fa round 5 concept references (owner GO 25 Nov 10:55): suit 法甲 廷尉 (Legalist law officer, assassin, bronze jian, pursuit). SDXL base 1.0 + SDXL-Lightning 8-step LoRA (diffusers, CPU), not SD1.5/LCM, not SDXL-Turbo. Full figure 832x1216. Look per owner standard 25 Nov 12:1x: Qin court black lacquer armour; fa school colour lead white on bindings, edging and accents; silver inlay (Qin-Lamellar study: silver for fa); 獬豸 horn crest; pale lead-white mask on the dark helm. Job 0: seeds 7101-7102 + img2img from sheet_knight; job 1: seeds 7103-7104 + img2img from sheet_rogue (4 seeds in all); img2img from the owner's armour-suit kit (sheet_knight front, sheet_rogue front) at strength 0.6 with the same Qin lamellar prompt. Reference only: never shipped, never traced. Licences: SDXL base 1.0 CreativeML Open RAIL++-M, SDXL-Lightning openrail++ (commercial use allowed). Guidance 0, so no negative prompt.",
  "width": 832,
  "height": 1216,
  "steps": 8,
@@ -7,7 +7,7 @@
  "negative": "text, watermark, samurai, japanese, oni, kabuki, opera mask, european knight, bucket helmet, medieval visor, sci-fi, robot, neon, glowing, cartoon, smiling, blurry, cropped, multiple figures",
  "jobs": [
   {
-   "view": "ancient chinese qin warrior, lamellar armour of small pale polished bronze plates laced with white silk cord, gold inlay edges, broad shoulder guards, black lacquer helmet with one forward-curving horn, pale white war mask with narrow slanted eye slits, bronze sword held low",
+   "view": "qin dynasty chinese warrior, black lacquer lamellar armour laced with white silk cord, silver inlay edges, white silk edging bands, broad black shoulder guards, black lacquer helmet with one tall forward-hooking horn, pale white war mask with slanted eye slits, bronze sword",
    "seeds": [
     7101,
     7102
@@ -21,7 +21,7 @@
    ]
   },
   {
-   "view": "ancient chinese qin warrior, lamellar armour of small pale polished bronze plates laced with white silk cord, gold inlay edges, broad shoulder guards, black lacquer helmet with one forward-curving horn, pale white war mask with narrow slanted eye slits, bronze sword held low",
+   "view": "qin dynasty chinese warrior, black lacquer lamellar armour laced with white silk cord, silver inlay edges, white silk edging bands, broad black shoulder guards, black lacquer helmet with one tall forward-hooking horn, pale white war mask with slanted eye slits, bronze sword",
    "seeds": [
     7103,
     7104
@@ -38,5 +38,6 @@
  "base": "stabilityai/stable-diffusion-xl-base-1.0",
  "lora_repo": "ByteDance/SDXL-Lightning",
  "lora_file": "sdxl_lightning_8step_lora.safetensors",
- "guidance": 0.0
+ "guidance": 0.0,
+ "dtype": "auto"
 }

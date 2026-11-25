@@ -22,8 +22,9 @@ timeout 600 python -m pip install --quiet torch --index-url https://download.pyt
 timeout 600 python -m pip install --quiet diffusers transformers accelerate safetensors huggingface_hub peft pillow || die "pip diffusers"
 python -c "import torch, diffusers, transformers, peft; print('torch', torch.__version__, 'diffusers', diffusers.__version__, 'threads', torch.get_num_threads())" | tee "$O/versions.txt" || die "imports"
 free -g | head -2
+echo "cpu: $(grep -m1 'model name' /proc/cpuinfo | cut -d: -f2 | xargs), nproc $(nproc), bf16 flags: $(grep -m1 -o -w -E 'avx512_bf16|amx_bf16' /proc/cpuinfo | sort -u | xargs echo -n) (none = no native bf16), avx512f: $(grep -m1 -c -w avx512f /proc/cpuinfo)" | tee -a "$O/versions.txt"
 if [ -f ci/PREFLIGHT_ONLY ]; then
-  timeout 900 python ci_comfy/gen_xl.py ci_comfy/prompts.json "$J" "$O" --probe-only 2>&1 | grep -v Warning || die "probe"
+  timeout 1500 python ci_comfy/gen_xl.py ci_comfy/prompts.json "$J" "$O" --probe-only 2>&1 | grep -v Warning || die "probe"
   grep -q . "$O/probe_1step.png" 2>/dev/null || die "probe image"
   echo "PREFLIGHT PASS"; echo "RESULT preflight only"; exit 0
 fi
