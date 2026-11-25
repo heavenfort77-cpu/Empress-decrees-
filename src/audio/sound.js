@@ -2,7 +2,7 @@
 // At the first tap every effect is rendered once with OfflineAudioContext into a buffer; music and ambience are
 // pre-rendered seamless loops. During play only one-shot buffer sources are started (no live synthesis).
 // API: init(opts), unlock(), play(name, x, z, rate), setListener(x, z), setIntensity(v), setAmb(fire, wind),
-// setMode(m), cycleMode(), setReduce(on), setVolume(bus, v), pause(), resume(), status().
+// setMode(m), cycleMode(), setReduce(on), setVolume(bus, v, noSave), getVolume(bus), setMute(on), pause(), resume(), status().
 
 export const CONFIG = {
   // Master gain after the limiter, 0-1 (13d: default reduced; the player raises it).
@@ -392,25 +392,28 @@ function buildVoice(c, out, v, phone, r, dur) {
 }
 function OAC() { return globalThis.OfflineAudioContext || globalThis.webkitOfflineAudioContext; }
 function voicesEnd(vs) { let e = 0; for (const v of vs) e = Math.max(e, v.at + v.d); return e; }
-async function renderVoices(vs, seconds, sr, phone, seed, steadyLen) {
+async function renderVoicesBuf(vs, seconds, sr, phone, seed, steadyLen) {
   const C = OAC(), c = new C(1, Math.max(1, Math.ceil(seconds * sr)), sr), r = rng(seed);
   for (const v of vs) buildVoice(c, c.destination, v, phone, r, steadyLen || 0);
-  const b = await c.startRendering();
-  return b.getChannelData(0);
+  return c.startRendering();
 }
+async function renderVoices(vs, seconds, sr, phone, seed, steadyLen) { return (await renderVoicesBuf(vs, seconds, sr, phone, seed, steadyLen)).getChannelData(0); }
 function peakOf(x) { let p = 0; for (let i = 0; i < x.length; i++) { const a = Math.abs(x[i]); if (a > p) p = a; } return p; }
 function rmsOf(x) { let s = 0; for (let i = 0; i < x.length; i++) s += x[i] * x[i]; return Math.sqrt(s / Math.max(1, x.length)); }
 function scale(x, k) { for (let i = 0; i < x.length; i++) x[i] *= k; return x; }
 const db = (v) => Math.pow(10, v / 20);
 
-// Renders one effect to a mono Float32Array, normalised to its category's peak.
-export async function renderSound(name, sr, profile) {
+// Renders one effect into an AudioBuffer, normalised in place to its category's peak (the game plays this buffer: no copy, no garbage).
+async function renderSoundBuffer(name, sr, profile) {
   const s = SOUNDS[name]; if (!s) throw new Error('sound: no sound ' + name);
-  const end = voicesEnd(s.v) + 0.06, x = await renderVoices(s.v, end, sr, profile === 'phone', CONFIG.seed + hashName(name));
+  const end = voicesEnd(s.v) + 0.06, b = await renderVoicesBuf(s.v, end, sr, profile === 'phone', CONFIG.seed + hashName(name)), x = b.getChannelData(0);
   if (s.cat === 'voice' && CONFIG.voiceSat > 0 && peakOf(x) > 0) soft(x, peakOf(x), CONFIG.voiceSat);
   const p = peakOf(x);
-  return p > 0 ? scale(x, db(CONFIG.peakDb[s.cat]) / p) : x;
+  if (p > 0) scale(x, db(CONFIG.peakDb[s.cat]) / p);
+  return b;
 }
+// Renders one effect to a mono Float32Array, normalised to its category's peak (the same samples the game plays).
+export async function renderSound(name, sr, profile) { return (await renderSoundBuffer(name, sr, profile)).getChannelData(0); }
 function hashName(n) { let h = 7; for (let i = 0; i < n.length; i++) h = (h * 31 + n.charCodeAt(i)) >>> 0; return h % 100000; }
 export function loopSeconds(name) { const M = CONFIG.music; return LOOPS[name].kind === 'music' ? M.bars * 4 * 60 / M.bpm : CONFIG.amb.loopS; }
 // Snap steady frequencies to whole cycles per loop so the loop point is seamless.
@@ -523,12 +526,12 @@ export async function renderRamp(sr, seconds, profile, loops) {
 // Empty catch blocks below are on purpose: audio must never stop the game; a failure leaves that sound silent.
 const S = { ctx: null, G: null, profile: 'desktop', sr: 0, buf: Object.create(null), rec: Object.create(null), loops: null, voices: [], vvoices: [],
   mode: 'on', reduce: false, vol: { sfx: 1, music: 1, amb: 1, voice: 1, master: 1 }, paused: false, hidden: false, intensity: 0, fire: 0, wind: 0.7,
-  lx: 0, lz: 0, t0: -1, rendering: false, ready: 0, total: 0, unlocked: false, silent: null, inited: false };
+  lx: 0, lz: 0, t0: -1, rendering: false, ready: 0, total: 0, unlocked: false, silent: null, inited: false, mute: false, played: 0 };
 
 function loadSettings() {
-  try { const j = JSON.parse(localStorage.getItem(CONFIG.saveKey) || 'null'); if (j) { if (CONFIG.modes.indexOf(j.mode) >= 0) S.mode = j.mode; S.reduce = !!j.reduce; if (j.vol) for (const k in S.vol) if (typeof j.vol[k] === 'number') S.vol[k] = j.vol[k]; } } catch (e) { }
+  try { const j = JSON.parse(localStorage.getItem(CONFIG.saveKey) || 'null'); if (j) { if (CONFIG.modes.indexOf(j.mode) >= 0) S.mode = j.mode; S.reduce = !!j.reduce; S.mute = !!j.mute; if (j.vol) for (const k in S.vol) if (typeof j.vol[k] === 'number') S.vol[k] = j.vol[k]; } } catch (e) { }
 }
-function saveSettings() { try { localStorage.setItem(CONFIG.saveKey, JSON.stringify({ mode: S.mode, reduce: S.reduce, vol: S.vol })); } catch (e) { } }
+function saveSettings() { try { localStorage.setItem(CONFIG.saveKey, JSON.stringify({ mode: S.mode, reduce: S.reduce, vol: S.vol, mute: S.mute })); } catch (e) { } }
 
 export function init(opts) {
   if (S.inited) return;
@@ -582,12 +585,12 @@ async function renderQueue() {
   names.sort((a, b) => rank[SOUNDS[a].cat] - rank[SOUNDS[b].cat]);
   S.total = names.length + Object.keys(LOOPS).length;
   for (const n of names) {
-    try { const x = await renderSound(n, S.sr, S.profile); S.buf[n] = toBuffer(S.ctx, x, S.sr); S.rec[n] = { cat: SOUNDS[n].cat, last: -1, n: 0 }; S.ready++; } catch (e) { }
+    try { S.buf[n] = await renderSoundBuffer(n, S.sr, S.profile); S.rec[n] = { cat: SOUNDS[n].cat, last: -1, n: 0 }; S.ready++; } catch (e) { }
     await new Promise((r) => setTimeout(r, 0));
   }
   const loops = {};
   for (const k in LOOPS) { try { loops[k] = await renderLoop(k, S.sr, S.profile); S.ready++; } catch (e) { } await new Promise((r) => setTimeout(r, 0)); }
-  S.loops = loops;
+  S.loops = true;
   const t0 = S.ctx.currentTime + 0.1; S.t0 = t0;
   startLoops(S.ctx, S.G, loops, S.sr, t0);
   applyIntensity(S.G, S.intensity, S.ctx.currentTime, 0.5); applyAmb(S.G, S.fire, S.wind, S.ctx.currentTime, 0.5);
@@ -603,7 +606,7 @@ function applyBuses() {
   if (!S.G) return;
   const t = S.ctx.currentTime, tau = CONFIG.busTau;
   for (const k in S.G.bus) S.G.bus[k].gain.setTargetAtTime(busTarget(k), t, tau);
-  S.G.master.gain.setTargetAtTime(CONFIG.master * S.vol.master, t, tau);
+  S.G.master.gain.setTargetAtTime(S.mute ? 0 : CONFIG.master * S.vol.master, t, tau);
 }
 function runState() {
   if (!S.ctx) return;
@@ -615,7 +618,7 @@ function newSource() { return S.ctx.createBufferSource(); }
 export function setListener(x, z) { S.lx = x; S.lz = z; }
 // Plays a rendered sound. x, z = world position (omit for a sound at the listener); rate = playback rate (bootleg copies use 0.85).
 export function play(name, x, z, rate) {
-  if (!S.ctx || S.paused || S.hidden || S.mode === 'off') return false;
+  if (!S.ctx || S.paused || S.hidden || S.mute || S.mode === 'off') return false;
   const b = S.buf[name], rec = S.rec[name]; if (!b) return false;
   const now = S.ctx.currentTime, cat = rec.cat, isVoice = cat === 'voice';
   let gain = 1, pan = 0;
@@ -639,7 +642,7 @@ export function play(name, x, z, rate) {
   const src = newSource(), r = rate || 1;
   src.buffer = b; src.playbackRate.value = r; src.connect(v.g);
   v.g.gain.setValueAtTime(gain, when); if (v.p) v.p.pan.setValueAtTime(pan, when);
-  src.start(when); v.src = src; v.end = when + b.duration / r; v.tell = cat === 'tell' || isVoice;
+  src.start(when); S.played++; v.src = src; v.end = when + b.duration / r; v.tell = cat === 'tell' || isVoice;
   if (isVoice) { const D = CONFIG.music.duck; S.G.duck.gain.setTargetAtTime(db(S.reduce ? D.db / 2 : D.db), Math.max(now, when - 0.03), D.inTau); S.G.duck.gain.setTargetAtTime(1, when + b.duration * 0.8, D.outTau); }
   return true;
 }
@@ -661,10 +664,15 @@ export function setMode(m) { if (CONFIG.modes.indexOf(m) < 0) return; S.mode = m
 export function cycleMode() { const i = CONFIG.modes.indexOf(S.mode); setMode(CONFIG.modes[(i + 1) % CONFIG.modes.length]); return S.mode; }
 // Reduce intensity (13d): stingers and heavy hits quieter, music capped, no beat-wait before stingers. Saved.
 export function setReduce(on) { S.reduce = !!on; applyBuses(); const v = S.intensity; S.intensity = -1; setIntensity(v); saveSettings(); }
-// Volume 0-1 per bus: 'master', 'sfx', 'music', 'amb', 'voice'. Saved.
-export function setVolume(bus, v) { if (!(bus in S.vol)) return; S.vol[bus] = Math.max(0, Math.min(1, v)); applyBuses(); saveSettings(); }
+// Volume 0-1 per bus: 'master', 'sfx', 'music', 'amb', 'voice'. Saved unless noSave (a slider being dragged saves on release).
+export function setVolume(bus, v, noSave) { if (!(bus in S.vol)) return; S.vol[bus] = Math.max(0, Math.min(1, v)); applyBuses(); if (!noSave) saveSettings(); }
+export function getVolume(bus) { return bus in S.vol ? S.vol[bus] : 0; }
+// Mute all (options menu): the master goes to 0 and no sound starts; the volumes are kept. Saved.
+export function setMute(on) { S.mute = !!on; applyBuses(); saveSettings(); }
 // Game pause and menus: the audio clock stops, so loops, ramps and queued sounds all freeze.
 export function pause() { S.paused = true; runState(); }
 export function resume() { S.paused = false; runState(); }
+// Read-only test hook: the AudioBuffer the game plays for a sound (waveform check against renderSound).
+export function bufferOf(name) { return S.buf[name] || null; }
 // Read-only state for tests and the settings menu.
-export function status() { return { ctx: S.ctx ? S.ctx.state : 'none', profile: S.profile, mode: S.mode, reduce: S.reduce, ready: S.ready, total: S.total, music: S.t0 >= 0, intensity: S.intensity }; }
+export function status() { return { ctx: S.ctx ? S.ctx.state : 'none', profile: S.profile, mode: S.mode, reduce: S.reduce, ready: S.ready, total: S.total, music: S.t0 >= 0, intensity: S.intensity, mute: S.mute, played: S.played, sr: S.sr, vol: { master: S.vol.master, sfx: S.vol.sfx, music: S.vol.music, amb: S.vol.amb, voice: S.vol.voice } }; }

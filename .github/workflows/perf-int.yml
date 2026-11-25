@@ -1,0 +1,40 @@
+# INT 17c real-GPU measurement on a macOS runner (Apple GPU through ANGLE Metal). Triggered by a push to ci-perf-int only.
+# Output is committed to the branch ci-out under out/perf-int/<run id>/ (artifact downloads may be blocked). A failed gate fails the job.
+name: perf-int
+on:
+  push:
+    branches: [ci-perf-int]
+permissions:
+  contents: write
+concurrency:
+  group: perf-int
+  cancel-in-progress: false
+jobs:
+  perf:
+    runs-on: macos-15
+    timeout-minutes: 50
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Install Playwright Chromium
+        run: npm install --no-save --no-audit --no-fund playwright@1.63.0 && npx playwright install chromium
+      - name: PREFLIGHT
+        run: bash ci/job.sh preflight
+      - name: Machine
+        run: (sysctl -n machdep.cpu.brand_string; system_profiler SPDisplaysDataType | grep -E "Chipset|Metal|Resolution" || true) | tee machine.txt
+      - name: Probe and gates
+        run: bash ci/job.sh
+      - name: Commit to ci-out
+        if: always()
+        run: |
+          D=out/perf-int/${GITHUB_RUN_ID}
+          cp perf.txt gates.txt machine.txt top.txt /tmp/ 2>/dev/null || true
+          git config user.name Claude && git config user.email noreply@anthropic.com
+          git fetch origin ci-out
+          git checkout -B ci-out origin/ci-out
+          mkdir -p $D && cp /tmp/perf.txt /tmp/gates.txt /tmp/machine.txt /tmp/top.txt $D/ 2>/dev/null || true
+          echo "sha ${GITHUB_SHA} run ${GITHUB_RUN_ID} attempt ${GITHUB_RUN_ATTEMPT}" > $D/meta.txt
+          git add out && git commit -qm "perf-int ${GITHUB_RUN_ID}"
+          for k in 1 2 3; do git push origin ci-out && break; git pull --rebase origin ci-out; done
