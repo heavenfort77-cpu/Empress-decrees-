@@ -72,3 +72,26 @@ Run 45522030493 (ci-art-suitanim 588b218). Results: builder 152 of 153, silhouet
 - Look: the dao robe stays calm (a steady cone, toes show at the hem). Its death is a stiff cone topple.
 - dao play-size strip: ci-out out/art/ci-art-suitanim/45522030493/suits/strips/dao_strip_play_run.jpg
 - Backup of the delivered GLBs: /home/claude/suitanim/backup_suits_before_robecalm. batches-3-5 still holds 64b7bd5.
+
+## Robe round 2 - DELIVERED
+Run 45523064942 (ci-art-suitanim 99f6dba).
+
+Gates:
+- Builder 153 of 153
+- Silhouettes 30 of 30
+- Clip gates 246 of 246, including robe_flare and weights_scope
+- Mutations 14 of 14 (the robe_flare mutant now targets za)
+- Shots 74 of 74
+
+Changes this round:
+- The calm robe weights from 588b218 are kept. Meshes are identical; only robe weights changed.
+- dao's death is a stiff backward topple. The whole body turns as one piece about a floor point under its rear-most vertex, so the floor solve lifted 0.0 m (was 0.364 m).
+- Robe hem swing per run cycle (limit 0.379 m): dao 0.151, za 0.210, zh 0.220.
+
+Look (strips):
+- za and zh robes hang calmly from the hips. At full stride the forward thigh shows in front of the robe panel: the cloth no longer follows the legs, so it clips there.
+- dao falls like a rigid statue and lands on its back. No hover.
+- dao's robe is a steady cone with no flare.
+
+dao play-size strip: art/suits/anim/dao_strip_play_run.jpg (also on ci-out under out/art/ci-art-suitanim/45523064942/suits/strips/).
+Backup of the previous GLBs (64b7bd5): /home/claude/suitanim/backup_suits_before_robecalm.
