@@ -834,10 +834,10 @@
    }
   },
   "assets/c/desk/suit_lamellar.ktx2": {
-   "bytes": 720404,
-   "sha256": "36079c71ddba5cbf9f8c16503d56956cfe987d1d5bc138ff32959d528d558708",
+   "bytes": 719667,
+   "sha256": "c38b4d38e1ab8b023011c6d1255800379ee5392b8e6cab5caf49b05a952cd0ce",
    "source": "assets/tex/suit_lamellar.png",
-   "source_sha256": "51b1190db5c29faec62aa860eac2db30356fbc9bcf76d00de9ca7fdf99dc9c58",
+   "source_sha256": "1eba06bd129417ec9fa242da7232384e15295ed1498c5d8db1474190552346e8",
    "mode": "uastc",
    "psnr": 50.21,
    "de": 0.419,
@@ -857,7 +857,8 @@
      0.44,
      0
     ]
-   }
+   },
+   "stale_metrics": true
   },
   "assets/c/desk/tile_ends.ktx2": {
    "bytes": 79834,
@@ -1822,10 +1823,10 @@
    }
   },
   "assets/c/phone/suit_lamellar.ktx2": {
-   "bytes": 221402,
-   "sha256": "e1145585b2a08fb2789a60f33c221c36675d11774a528bbdc5a1337189ff1680",
+   "bytes": 222145,
+   "sha256": "86e3fe4d2b2e444659c89948ea6f31d81c6267c4c59fd287cf91a7f99bc85842",
    "source": "assets/tex/suit_lamellar.png",
-   "source_sha256": "51b1190db5c29faec62aa860eac2db30356fbc9bcf76d00de9ca7fdf99dc9c58",
+   "source_sha256": "1eba06bd129417ec9fa242da7232384e15295ed1498c5d8db1474190552346e8",
    "mode": "uastc",
    "psnr": 47.22,
    "de": 0.583,
@@ -1845,7 +1846,8 @@
      0.59,
      0
     ]
-   }
+   },
+   "stale_metrics": true
   },
   "assets/c/phone/tile_ends.ktx2": {
    "bytes": 39063,
