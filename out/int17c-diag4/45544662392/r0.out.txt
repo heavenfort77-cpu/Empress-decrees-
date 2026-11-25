@@ -1,0 +1,9 @@
+CYCLE art=false 0 rumble texs 53 geoms 454 palace texs 58 geoms 456 art false
+CYCLE art=false 1 rumble texs 53 geoms 456 palace texs 58 geoms 456 art false
+CYCLE art=false 2 rumble texs 53 geoms 456 palace texs 58 geoms 456 art false
+KITTEX {"n":51,"notDisposed":[],"extra":[]}
+CYCLE art=true 0 rumble texs 53 geoms 456 palace texs 87 geoms 544 art false
+KITTEX {"n":51,"notDisposed":[],"extra":[]}
+CYCLE art=true 1 rumble texs 54 geoms 456 palace texs 88 geoms 544 art false
+KITTEX {"n":51,"notDisposed":[],"extra":[]}
+CYCLE art=true 2 rumble texs 55 geoms 456 palace texs 89 geoms 544 art false
