@@ -1,6 +1,6 @@
 #!/bin/bash
-# FACES round 2 job (owner GO 25 Nov 10:47, order 10:52; samples only, nothing goes into the game): 4 builds (guard zu, giant 00 x now 0
-# and mask M) through art/tools/faces_sample.py, viewer shots with contrast probes, one sheet per character. Everything lands in $OUT.
+# FACES round 2 job (owner GO 25 Nov 10:47, order 10:52; samples only, nothing goes into the game): 5 builds (guard zu now 0 and mask M;
+# giant 00 now 0, lacquer mask M and tin variant T) through art/tools/faces_sample.py, viewer shots with contrast probes, one sheet per character. Everything lands in $OUT.
 # PREFLIGHT first (tools, imports, inputs, output folders, clean tree); a file ci_art/PREFLIGHT_ONLY stops the job after it.
 # The preflight also imports faces_kit and evaluates both mask fields once.
 set -u
@@ -28,7 +28,7 @@ mkdir -p $O/logs $O/glb $O/shots $O/sheets art/faces/glb /tmp/fshots || die "mkd
 echo "PREFLIGHT PASS"
 if [ -f ci_art/PREFLIGHT_ONLY ]; then echo "RESULT preflight only"; exit 0; fi
 step "builds"
-for c in g00 zu; do for o in 0 M; do echo "$c $o"; done; done | xargs -P 2 -L 1 bash -c \
+printf "g00 0\ng00 M\ng00 T\nzu 0\nzu M\n" | xargs -P 2 -L 1 bash -c \
   '$BPY art/tools/faces_sample.py -- $0 $1 art/faces/glb > '"$O"'/logs/build_$0_$1.log 2>&1; echo "built $0 $1 exit $?"'
 for f in $O/logs/build_*.log; do echo "## $(basename $f .log)"; grep -E "^(PASS|FAIL|SUMMARY|FACES)|of [0-9]+ pass|Traceback|Error" $f | grep -v "^PASS" ; done | tee $O/builds_gates.txt
 cp art/faces/glb/*.glb art/faces/glb/*_stats.json $O/glb/ 2>/dev/null; ls art/faces/glb | wc -l

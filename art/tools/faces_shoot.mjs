@@ -1,14 +1,14 @@
-// Face masks round 2 (FACES worker): screenshots of art/viewer/faces.html for guard zu and giant 00, now and M, close (head and shoulders,
+// Face masks round 2 (FACES worker): screenshots of art/viewer/faces.html for guard zu (now, M) and giant 00 (now, M, T), close (head and shoulders,
 // 3/4) and play size (FOV 50, pitch 40, 10.5 m, 1920 x 1080). Serves the repo root; writes OUTDIR/<c>_<o>_<view>.png and shots.json
 // (calls, triangles, screen boxes, contrast probes per shot). Software GL on the runner: look only, no frame rate.
-// Usage: node art/tools/faces_shoot.mjs OUTDIR [chars] [opts]
+// Usage: node art/tools/faces_shoot.mjs OUTDIR [plan, e.g. 'zu:0,M;g00:0,M,T']
 import { createServer } from 'node:http';
 import { readFile, mkdir, writeFile } from 'node:fs/promises';
 import { extname, join, normalize } from 'node:path';
 let chromium;
 try { ({ chromium } = await import('playwright')); } catch { ({ chromium } = await import('/opt/npm-tools/node_modules/playwright/index.mjs')); }
 const ROOT = new URL('../..', import.meta.url).pathname, OUT = process.argv[2] || '/tmp/fshots';
-const CH = (process.argv[3] || 'zu,g00').split(','), OP = (process.argv[4] || '0,M').split(',');
+const PLAN = (process.argv[3] || 'zu:0,M;g00:0,M,T').split(';').map((x) => x.split(':')).map(([c, o]) => [c, o.split(',')]);
 const TYPES = { '.html': 'text/html', '.js': 'text/javascript', '.mjs': 'text/javascript', '.png': 'image/png', '.glb': 'model/gltf-binary', '.json': 'application/json' };
 const server = createServer(async (req, res) => {
   const p = normalize(join(ROOT, decodeURIComponent(req.url.split('?')[0])));
@@ -18,7 +18,7 @@ const BASE = `http://127.0.0.1:${server.address().port}/art/viewer/faces.html`;
 await mkdir(OUT, { recursive: true });
 const browser = await chromium.launch({ args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--ignore-gpu-blocklist'] });
 const info = {}; let ok = 0, n = 0;
-for (const c of CH) for (const o of OP) for (const [view, w, h] of [['close', 640, 640], ['play', 1920, 1080]]) {
+for (const [c, OP] of PLAN) for (const o of OP) for (const [view, w, h] of [['close', 640, 640], ['play', 1920, 1080]]) {
   const name = `${c}_${o}_${view}`; n++;
   const page = await browser.newPage({ viewport: { width: w, height: h } });
   const errs = []; page.on('pageerror', (e) => errs.push(String(e))); page.on('console', (m) => { if (m.type() === 'error') errs.push(m.text()); });

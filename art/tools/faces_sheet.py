@@ -13,7 +13,11 @@ SHOT, STATS, OUT = sys.argv[1:4]
 os.makedirs(OUT, exist_ok=True)
 # ---- CONFIG -------------------------------------------------------------------------------------------------------------------------
 # Options in sheet order with their labels.
-OPTS = [('0', 'now (current face)'), ('M', 'round 2: sculpted mask')]
+OPTS_ALL = {'0': 'now (current face)', 'M': 'round 2: sculpted mask', 'T': 'round 2, tin variant (no new material)'}
+# Columns per character.
+COLS = {'zu': ['0', 'M'], 'g00': ['0', 'M', 'T']}
+# Materials allowed over now, per character and option (owner decision pending; printed on the sheet).
+EXTRA_OK = {('g00', 'M'): {'gdLacquer'}}
 # Characters: title, LOD0 meshes, LOD0 budget, LOD1 meshes, LOD1 budget, head crop half-size at play size (px), head zoom.
 CHARS = {'zu': ('guard 卒 zu', ['zu_lod0'], 4000, ['zu_lod1'], 1500, 22, 4),
          'g00': ('giant 00', ['giant_body_lod0', 'giant_g00_lod0'], 15000, ['giant_body_lod1', 'giant_g00_lod1'], 3000, 60, 2)}
@@ -40,6 +44,7 @@ def gate(ok, line):
 
 summary = {}
 for c, (title, meshes, budget, meshes1, budget1, hh, zoom) in CHARS.items():
+    OPTS = [(o, OPTS_ALL[o]) for o in COLS[c]]
     st = {}
     for o, _ in OPTS:
         p = os.path.join(STATS, f'{c}_{o}_stats.json')
@@ -52,7 +57,8 @@ for c, (title, meshes, budget, meshes1, budget1, hh, zoom) in CHARS.items():
         if st[o]:
             gate(0 < tri[o] <= budget, f'{c} {o} LOD0 tris {tri[o]} (budget {budget})')
             gate(0 < tri1[o] <= budget1, f'{c} {o} LOD1 tris {tri1[o]} (budget {budget1})')
-            gate(set(mats[o]) <= set(mats['0']), f"{c} {o} materials {mats[o]} (no new one over now {mats['0']})")
+            ex = EXTRA_OK.get((c, o), set())
+            gate(set(mats[o]) <= set(mats['0']) | ex, f"{c} {o} materials {mats[o]} (no new one over now {mats['0']}" + (f"; allowed {sorted(ex)}: +{len(ex)} draw call per unit, owner decision)" if ex else ")"))
             if o != '0': gate(st[o]['face_tris_lod0'] > 0 and len(st[o].get('probes', {})) == 2, f"{c} {o} mask built, {st[o]['face_tris_lod0']} tris at LOD0, probes {sorted(st[o].get('probes', {}))}")
         pr = shots.get(f'{c}_{o}_play', {}).get('probe', {})
         line = f"{c} {o} play contrast mask {pr.get('mask', {}).get('L')} vs above {pr.get('helm', {}).get('L')}: ratio {pr.get('ratio')} (min {CONTRAST_MIN})"

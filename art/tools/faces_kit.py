@@ -8,13 +8,13 @@ import math
 
 # ---- CONFIG -------------------------------------------------------------------------------------------------------------------------
 # Per group: s half-range of the shell domain, t range, grid columns and rows at full detail (rows are packed around the eye band).
-DOMAIN = {'zu': (1.0, -0.12, 1.06, 14, 14), 'g00': (1.2, -0.2, 1.45, 44, 44)}
+DOMAIN = {'zu': (0.96, -0.14, 1.03, 12, 13), 'g00': (1.2, -0.32, 1.1, 44, 44)}
 # t of the eye band centre and its half-width, where grid rows are packed (share of rows packed there).
-EYE_BAND = {'zu': (0.56, 0.12, 0.45), 'g00': (0.56, 0.14, 0.35)}
+EYE_BAND = {'zu': (0.585, 0.1, 0.4), 'g00': (0.4, 0.3, 0.45)}
 # Metres per s unit / metres per t unit (set by the builder from the head; only scales s into t units for the fields).
 ASPECT = {'zu': 0.5, 'g00': 0.65}
 # How far the backing sits behind the shell, height units (also the wall depth of every cut edge and the outline).
-DEPTH = {'zu': 0.16, 'g00': 0.2}
+DEPTH = {'zu': 0.09, 'g00': 0.14}
 # Backing margin beyond each cut, t units (so the wall always lands on the backing).
 BACK_MARGIN = {'zu': 0.03, 'g00': 0.03}
 
@@ -29,77 +29,90 @@ def seg_dist(px, py, ax, ay, bx, by):
 def tri_wave(x, period): return abs((x / period) % 2 - 1) * 2 - 1
 
 
-# ---- guard 卒 zu: broad brutal mask, flat brow shelf, angry slits, flat wide nose, jagged grimace ---------------------------------------
-def zu_eye_t(a): return 0.56 + 0.16 * (a - 0.36)
-def zu_mouth_t(a): return 0.16 + 0.05 * a
+# ---- guard 卒 zu (concept face_6204, run 45537264508: a cast war face set in the hood rim): stern human war face in black lacquer, angry
+# brows meeting low over the nose, almond slits, long straight nose, high cheekbones, upturned Qin moustache and chin tuft in relief --------
+def zu_eye_t(a): return 0.585 + 0.09 * (a - 0.36)
 
 
 def zu_holes(s, t):
-    """signed field of the cuts only (negative inside a cut): two angry eye slits and a jagged grimace."""
+    """signed field of the cuts only (negative inside a cut): two almond eye slits (inner end pressed down by the brow)."""
     a = abs(s); A = ASPECT['zu']
-    u, v = (a - 0.36) * A, t - zu_eye_t(a)
-    taper = 0.055 * (1 - 0.55 * clamp(abs(a - 0.36) / 0.2))
-    eye = (math.hypot(u / (0.2 * A), v / taper) - 1) * taper
-    mouth = 1.0
-    if a < 0.46:
-        mouth = abs(t - (zu_mouth_t(a) + 0.018 * tri_wave(a, 0.115))) - 0.028 * (1 - (a / 0.46) ** 2)
-    return min(eye, mouth)
+    u, v = (a - 0.37) * A, t - zu_eye_t(a)
+    hh = 0.06 * (1 - 0.45 * clamp(abs(a - 0.37) / 0.19)) * (1 - 0.25 * (a < 0.37))
+    return (math.hypot(u / (0.19 * A), v / hh) - 1) * hh
 
 
 def zu_field(s, t):
     a = abs(s); A = ASPECT['zu']
-    jaw = -0.06 + 0.12 * a ** 3
-    out = min((0.98 - a) * A, 1.0 - t, t - jaw)
+    jaw = -0.04 + 0.3 * a * a
+    jaw = min(jaw, -0.13 + 0.9 * a) if a < 0.12 else jaw                       # chin tuft hangs below the jaw
+    out = min((0.95 - a) * A, 1.0 - t, t - jaw)
     return min(out, zu_holes(s, t))
 
 
 def zu_height(s, t):
     a = abs(s); d = 0.0
-    d += 0.17 * sstep(0.62, 0.68, t) * (1 - sstep(0.8, 0.92, t)) * (1 - sstep(0.82, 0.98, a))        # flat brow shelf, sharp underside
-    d -= 0.05 * tent((t - 0.56) / 0.1)                                                                  # eye band set back under it
-    nz = sstep(0.28, 0.33, t) * (1 - sstep(0.58, 0.65, t))
-    d += (0.13 + 0.07 * (1 - clamp((t - 0.3) / 0.3))) * nz * (1 - sstep(0.1, 0.17, a))                # flat wide nose wedge
-    d += 0.08 * (1 - sstep(0.6, 0.9, a)) * sstep(0.26, 0.32, t) * (1 - sstep(0.46, 0.52, t))           # cheek planes
-    d += 0.07 * (1 - sstep(0.42, 0.62, a)) * tent((t - 0.16) / 0.13)                                  # mouth guard bulge
-    d += 0.04 * (1 - sstep(0.5, 0.7, a)) * (1 - sstep(-0.02, 0.06, t))                                  # square chin
-    d -= 0.06 * sstep(0.8, 1.0, a)                                                                      # sides turn back
+    d += 0.06 * (1 - sstep(0.75, 0.98, t)) * sstep(0.68, 0.8, t) * (1 - sstep(0.6, 0.95, a))         # forehead, set back under the rim
+    d += 0.15 * tent(seg_dist(a, t, 0.05, 0.685, 0.62, 0.775) / 0.06)                                   # angry brows, inner ends low
+    d -= 0.04 * tent(s / 0.025) * sstep(0.66, 0.7, t) * (1 - sstep(0.76, 0.82, t))                    # frown crease between them
+    r = math.hypot((a - 0.37) / 0.24, (t - zu_eye_t(a)) / 0.11)
+    d -= 0.07 * (1 - sstep(0.5, 1.0, r))                                                                  # eye sockets
+    up = clamp((t - 0.36) / 0.32)
+    d += (0.26 - 0.13 * up) * sstep(0.32, 0.37, t) * (1 - sstep(0.66, 0.71, t)) * tent(s / (0.11 - 0.035 * up))   # long straight nose
+    d += 0.07 * g((a - 0.12) / 0.05) * g((t - 0.355) / 0.035)                                            # nostril wings
+    d += 0.09 * tent(seg_dist(a, t, 0.72, 0.5, 0.36, 0.44) / 0.09)                                       # high cheekbones
+    d -= 0.06 * g((a - 0.5) / 0.15) * g((t - 0.27) / 0.08)                                                # hollow cheeks
+    d += 0.08 * tent(seg_dist(a, t, 0.04, 0.3, 0.22, 0.265) / 0.035) + 0.07 * tent(seg_dist(a, t, 0.22, 0.265, 0.36, 0.305) / 0.03)  # moustache, tips up
+    d -= 0.05 * tent((t - (0.21 - 0.12 * a * a)) / 0.02) * (1 - sstep(0.18, 0.24, a))                   # closed grim mouth
+    d += 0.03 * g(s / 0.16) * g((t - 0.18) / 0.025)                                                       # lower lip
+    d += 0.08 * tent(s / 0.07) * sstep(-0.12, -0.04, t) * (1 - sstep(0.12, 0.17, t))                   # chin tuft
+    d += 0.05 * g(s / 0.28) * g((t - 0.03) / 0.07)                                                        # chin
+    d -= 0.12 * sstep(0.72, 0.95, a)                                                                      # sides turn back into the hood
     return d
 
 
-# ---- giant 00: colossal taotie-like mask wider than the head, horned brow corners, round deep sockets, fanged snarl ----------------------
-def g_top(a): return 1.04 + 0.36 * sstep(0.55, 1.2, a)
-def g_eye_t(a): return 0.56 + 0.14 * (a - 0.36)
-def g_mouth_t(a): return 0.13 + 0.13 * a * a
+# ---- giant 00 (concept face_6303, run 45537264508: a cast temple-guardian war mask): mask wider than the head with cheek flanges hanging
+# past the jaw, furrowed V brows over wide glaring slits, broad bulb nose, wide snarl cut with a row of teeth, ridged beard, forehead flange -----
+def g_top(a): return 1.02 + 0.06 * a
+def g_eye_t(a): return 0.57 + 0.12 * (a - 0.37)
+def g_mouth_t(a): return 0.15 + 0.06 * a * a
 
 
 def g00_holes(s, t):
     a = abs(s); A = ASPECT['g00']
-    u, v = (a - 0.37) * A, t - g_eye_t(a)
-    eye = (math.hypot(u / (0.19 * A), v / 0.085) - 1) * 0.085
+    u, v = (a - 0.38) * A, t - g_eye_t(a)
+    hh = 0.075 * (1 - 0.4 * clamp(abs(a - 0.38) / 0.2))
+    eye = (math.hypot(u / (0.21 * A), v / hh) - 1) * hh
     mouth = 1.0
-    if a < 0.62:
-        mouth = abs(t - (g_mouth_t(a) + 0.02 * tri_wave(a, 0.13))) - 0.04 * (1 - (a / 0.62) ** 2)
+    if a < 0.52:
+        top = g_mouth_t(a) + 0.055 - 0.03 * max(0.0, tri_wave(a, 0.09))      # upper teeth hang into the cut
+        bot = g_mouth_t(a) - 0.06 + 0.03 * max(0.0, -tri_wave(a + 0.045, 0.09))
+        mouth = min(top - t, t - bot, (0.52 - a) * A)
+        mouth = -mouth
     return min(eye, mouth)
 
 
 def g00_field(s, t):
     a = abs(s); A = ASPECT['g00']
-    jaw = -0.17 + 0.14 * a * a
+    jaw = -0.12 + 0.12 * a * a
+    jaw -= 0.17 * sstep(0.78, 1.05, a)                                     # cheek flanges hang past the jaw
     out = min((1.18 - a) * A, g_top(a) - t, t - jaw)
     return min(out, g00_holes(s, t))
 
 
 def g00_height(s, t):
     a = abs(s); d = 0.0
-    d += 0.26 * tent(seg_dist(a, t, 0.03, 0.68, 0.8, 0.92) / 0.075)                                       # V brow ridges into the horns
-    d += 0.15 * tent(s / 0.05) * sstep(0.66, 0.72, t)                                                       # central flange up the forehead
-    d += 0.26 * g(s / 0.17) * g((t - 0.35) / 0.08)                                                          # broad nose bulb
-    d += 0.13 * tent(s / 0.1) * sstep(0.36, 0.42, t) * (1 - sstep(0.6, 0.68, t))                            # nose bridge
-    d += 0.16 * g((a - 0.62) / 0.18) * g((t - 0.36) / 0.12)                                                 # cheek masses
-    r = math.hypot((a - 0.37) / 0.19, (t - g_eye_t(a)) / 0.085)
-    d += 0.08 * tent((r - 1.25) / 0.35)                                                                     # raised socket rims
-    d += 0.09 * g(s / 0.42) * g((t + 0.05) / 0.09)                                                          # heavy lower jaw
-    d -= 0.28 * sstep(0.88, 1.18, a)                                                                        # flaring wings sweep back
+    d += 0.28 * tent(seg_dist(a, t, 0.05, 0.69, 0.72, 0.8) / 0.075)                                      # furrowed V brows
+    d += 0.05 * tent(seg_dist(a, t, 0.1, 0.8, 0.6, 0.88) / 0.04)                                           # second furrow above
+    d += 0.14 * tent(s / 0.06) * sstep(0.74, 0.8, t)                                                        # forehead flange up to the rim
+    r = math.hypot((a - 0.38) / 0.26, (t - g_eye_t(a)) / 0.13)
+    d += 0.08 * tent((r - 1.0) / 0.35) * (t < g_eye_t(a))                                                  # lower lids / socket rims
+    d += 0.28 * g(s / 0.19) * g((t - 0.36) / 0.08)                                                          # broad bulb nose
+    d += 0.13 * tent(s / 0.11) * sstep(0.38, 0.44, t) * (1 - sstep(0.62, 0.7, t))                           # nose bridge
+    d += 0.17 * g((a - 0.62) / 0.17) * g((t - 0.36) / 0.12)                                                 # cheek masses
+    d += 0.08 * tent((t - (g_mouth_t(a) + 0.075)) / 0.03) * (1 - sstep(0.45, 0.58, a))                     # upper lip roll over the snarl
+    d += 0.1 * g(s / 0.42) * g((t + 0.02) / 0.07) * (0.7 + 0.3 * abs(math.cos(s * 22)))                   # ridged beard on the jaw
+    d -= 0.12 * sstep(0.95, 1.18, a)                                                                        # cheek flanges sweep back
     return d
 
 

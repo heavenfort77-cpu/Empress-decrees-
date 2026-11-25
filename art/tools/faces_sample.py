@@ -4,11 +4,14 @@
 #       signed field (outline, eye slits, mouth), walls down every cut edge to a backing set deep behind the cuts, and a rim (the hood or
 #       crown edge) standing proud over the top and sides so the mask sits back under it. No new material: guard lacquer mask on the bronze
 #       hood with bronze behind the cuts; giant high-tin (pale) mask on the gold body with dark bronze behind the cuts.
+#   T = giant only: the same mask in high-tin bronze (pale) with dark bronze behind the cuts, no new material; M on the giant is black
+#       lacquer (the guards' gdLacquer material, +1 draw call per giant) with pale tin behind the cuts. Built side by side so the owner
+#       gets the measured play-size contrast of each for the draw-call trade.
 #   0 = the current face, built through the same path for the comparison column.
 # The real builders run unchanged except for their face function (read-only references): the guard (art/tools/guard_build.py head() on
 # art/tools/fodder_base.py) and the giants (art/tools/giant_blender.py face()). Their export call is wrapped so the triangle counts, the
 # materials and two probe points (mask cheek, hood or crown above it; rest pose, glTF space) are written to <OUT>/<char>_<opt>_stats.json.
-# Usage (bpy Python): python faces_sample.py -- CHAR OPT OUTDIR      CHAR zu | g00, OPT 0 | M
+# Usage (bpy Python): python faces_sample.py -- CHAR OPT OUTDIR      CHAR zu | g00, OPT 0 | M (| T giant)
 import sys, os, math, json, types
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, HERE)
@@ -26,12 +29,12 @@ SHARP = 50
 # Rim (hood or crown edge) profile: (outward from the mask edge, forward of the mask surface) per point, as a share of RIM_W.
 RIM_PROFILE = [(1.0, -0.3), (0.55, 1.1), (-0.5, 1.4), (-0.85, 0.45)]
 # Rim width, m, per group.
-RIM_W = {'zu': 0.013, 'g00': 0.055}
+RIM_W = {'zu': 0.016, 'g00': 0.055}
 # Rim path per group: side edge from this t up to the top (both sides), and points along the top at full detail.
-RIM_SIDE_T0 = {'zu': 0.3, 'g00': 0.28}
-RIM_PTS = {'zu': 12, 'g00': 26}
+RIM_SIDE_T0 = {'zu': 0.02, 'g00': 0.4}
+RIM_PTS = {'zu': 10, 'g00': 26}
 # Probe points for the play-size contrast gate (mask s, t) and the surface above the mask (design x, f, z).
-PROBE_MASK = {'zu': (0.55, 0.38), 'g00': (0.62, 0.36)}
+PROBE_MASK = {'zu': (0.5, 0.42), 'g00': (0.66, 0.36)}
 PROBE_HELM = {'zu': (0.0, 0.066, 1.54), 'g00': (0.0, 0.16, 4.39)}
 
 STATS = {'face_tris_lod0': 0, 'parts': [], 'probes': {}}
@@ -127,7 +130,7 @@ def build_mask(A, head, group, M, bone):
         A.emit(f'fc_back_{group}', P2, tris2, *M['back'], bone)
     # the rim: up one side, along the top, down the other side, standing proud over the mask edge
     S = K.DOMAIN[group][0]; top = K.g_top if group == 'g00' else (lambda a: 1.0)
-    smax = S - 0.02 if group == 'zu' else 1.18
+    smax = 0.95 if group == 'zu' else 1.18
     n_top = max(6, round(RIM_PTS[group] * k)); n_side = max(2, round(n_top * 0.3))
     t0 = RIM_SIDE_T0[group]
     path = [(-smax, t0 + (top(smax) - t0) * i / n_side, (-1, 0)) for i in range(n_side)]
@@ -227,7 +230,9 @@ def face_giant(g, H, lod):
     def put(name, bm, mat, row, bone): return ns['put'](name, bm, mat, bone, row, True)
     Q = ns['Q']
     A = Adapter(ns['P'], put, lod0=lambda: Q['lod'] == 0, segf=lambda: Q['seg'], outward=ns['P'](0, 1, 0))
-    build_mask(A, head, 'g00', dict(shell=('palTin', 'plain'), back=('palBronze', 'inlay'), rim=('palBronze', 'flange')), 'head')
+    M = dict(shell=('gdLacquer', 'lacquer'), back=('palTin', 'plain'), rim=('palBronze', 'flange')) if OPT == 'M' else \
+        dict(shell=('palTin', 'plain'), back=('palBronze', 'inlay'), rim=('palBronze', 'flange'))
+    build_mask(A, head, 'g00', M, 'head')
     if lod == 0: probes(head, 'g00', ns['P'], ns['Wz'])
 
 
@@ -236,6 +241,8 @@ def run_giant():
     if OPT != '0':
         src = src.replace('def face(g, H, lod):', 'def face(g, H, lod): return FACE_GIANT(g, H, lod)\ndef _face_orig(g, H, lod):', 1)
     src = src.replace('bpy.ops.export_scene.gltf(', 'FC_EXPORT(')
+    # the lacquer mask (M) takes the lacquer band of the guards' fodder_trim sheet (rows 8-248), same 256 px/m trim mapping
+    src = src.replace("ROWS = {'plain': (40, 344),", "ROWS = {'lacquer': (8, 248), 'plain': (40, 344),", 1)
     os.environ['GIANTS'] = str(int(CHAR[1:]))
     out = os.path.join(OUTDIR, f'{CHAR}_{OPT}.glb')
     sys.argv = ['giant_blender.py', out]
