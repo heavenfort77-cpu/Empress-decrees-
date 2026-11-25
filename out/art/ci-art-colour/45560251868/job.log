@@ -1,0 +1,4 @@
+== preflight 06:24:14
+NOTE tex_check.py identity not checked on the runner (shallow clone): see the commit
+PREFLIGHT PASS
+RESULT preflight only (proof run)
