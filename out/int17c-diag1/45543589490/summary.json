@@ -1,0 +1,9 @@
+[
+ {
+  "i": 0,
+  "fails": [],
+  "tot": [],
+  "s": 17,
+  "tail": "SNAP base {\"calls\":35,\"programs\":17,\"geoms\":285,\"texs\":29}\nSNAP after3s {\"calls\":35,\"programs\":17,\"geoms\":285,\"texs\":29}\nSNAP bots {\"programs\":17,\"geoms\":285,\"texs\":29}\nSNAP afterBots {\"calls\":35,\"programs\":17,\"geoms\":285,\"texs\":29}\nDIFF base->after3s {\"plus\":[],\"minus\":[]}\nDIFF base->bots {\"plus\":[],\"minus\":[]}\nDIFF base->afterBots {\"plus\":[],\"minus\":[]}\nMEM [{\"geometries\":285,\"textures\":29},{\"geometries\":285,\"textures\":29},{\"geometries\":285,\"textures\":29},{\"geometries\":285,\"textures\":29}]\nSNAP rumble0 {\"calls\":35,\"programs\":17,\"geoms\":285,\"texs\":29}\nSNAP palace0 {\"calls\":46,\"programs\":46,\"geoms\":377,\"texs\":63}\nART {\"art\":{\"on\":true,\"rooms\":6,\"failed\":[],\"doors\":6,\"texN\":51,\"que\":[]},\"load\":\"ready\",\"chars\":{\"ready\":true,\"failed\":[],\"rigs\":31,\"on\":1,\"crowd\":0,\"crowdMeshes\":0,\"stats\":{\"mixers\":1,\"offscreen\":0},\"bodies\":false}}\nSNAP rumble1 {\"calls\":27,\"programs\":22,\"geoms\":289,\"texs\":30}\nSNAP palace1 {\"calls\":46,\"programs\":46,\"geoms\":380,\"texs\":64}\nART {\"art\":{\"on\":true,\"rooms\":6,\"failed\":[],\"doors\":6,\"texN\":51,\"que\":[]},\"load\":\"ready\",\"chars\":{\"ready\":true,\"failed\":[],\"rigs\":31,\"on\":1,\"crowd\":0,\"crowdMeshes\":0,\"stats\":{\"mixers\":1,\"offscreen\":0},\"bodies\":false}}\nAV {\"fx\":{\"ready\":true,\"t\":7.016666666666647,\"paused\":false,\"tier\":\"medium\",\"live\":0,\"events\":4,\"sounds\":0,\"spawned\":2,\"unknown\":0,\"errs\":0,\"items\":242,\"draws\":3,\"warmProg\":9,\"warmCalls\":1},\"snd\":140}\n"
+ }
+]
