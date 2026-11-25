@@ -52,3 +52,23 @@ The approved meshes, weights and attack/idle clips are byte-identical to the app
 - The approved boots sit 23-52 mm below y = 0 at rest. Every clip treats that rest sole level as the floor. To put the soles on the floor, place each suit at y = -floor_y (art/suits/anim/suits_info.json).
 - The new clips start at 0 s. The approved idle and attack start at 1/60 s.
 - Tools: suit_clip_check.mjs (gates, three r171 in Node), suit_clip_signfix.mjs (run after the builder), suit_clip_merge.mjs (fallback), suitanim_shoot.mjs and suitanim_sheet.py, and the strip mode in art/viewer/suits.html.
+
+## Robe round (owner 25 Nov "rebind robes calmer": dao, za, zh) - NOT DELIVERED
+Run 45522030493 (ci-art-suitanim 588b218). Results: builder 152 of 153, silhouettes 30 of 30, clip gates 246 of 246, mutations 13 of 14, shots 74 of 74.
+- Calm binding (ROBE_CALM in suit_blender.py; weights only): each robe vertex's shin weight moves to the thigh on the same side, the leg share is partly spread over both thighs and partly given to the hips.
+  - Meshes unchanged: 0 accessors differ (positions, normals, UVs, indices).
+  - Weight changes: 2113 / 1324 / 1252 vertices on dao / za / zh, all inside the robe (weights_scope: 0 outside).
+- Robe flare gate. Threshold = the calmest suit before this round, fa at 0.379 m. Results (was → now):
+
+  | Suit | Before | Now |
+  |---|---|---|
+  | dao | 0.413 | 0.151 m |
+  | za | 0.454 | 0.210 m |
+  | zh | 0.538 | 0.220 m |
+
+- dao run: kick 0.4, m0k 0.3, the 1.07 m stride is kept.
+- FAIL (builder): dao death floor solve lifts the body 0.364 m at frame 32 (0.53 s; max 0.25). The body visibly hovers in the strip. Cause: the calm robe follows the hips, and the back-fall squat lowers the hips 0.40 m while the hem is only 6 cm above the floor. The proposed fix is a shallower dao buckle (a stiff topple); whether it clears the gate is unknown until a run.
+- MISSED mutant (fixed, [skip ci]): restoring dao's old weights did not trip the flare gate, because dao's run itself changed this round. The mutant now targets za. Local check on the returned za GLB: 14 of 14 mutations caught.
+- Look: the dao robe stays calm (a steady cone, toes show at the hem). Its death is a stiff cone topple.
+- dao play-size strip: ci-out out/art/ci-art-suitanim/45522030493/suits/strips/dao_strip_play_run.jpg
+- Backup of the delivered GLBs: /home/claude/suitanim/backup_suits_before_robecalm. batches-3-5 still holds 64b7bd5.

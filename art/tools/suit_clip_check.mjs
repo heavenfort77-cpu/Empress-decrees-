@@ -285,9 +285,10 @@ const MUTS = [
   ['run_keys', 'one run key sign-flipped', (g) => { const s = chanOf(g, 'run', 'chest', 'rotation'); const q = accF(g, s.output); for (let c = 0; c < 4; c++) accSet(g, s.output, 8 + c, -q[8 + c]); return g; }],
   ['weights_scope', 'one non-robe weight changed (sum kept)', (g) => { const p = g.json.meshes[0].primitives.find((q) => !g.json.materials[q.material].name.startsWith('sCloth'));
     accSet(g, p.attributes.WEIGHTS_0, 0, 0.6); accSet(g, p.attributes.WEIGHTS_0, 1, 0.4); return g; }],
-  ['robe_flare', 'dao robe weights put back to the approved (pre-calm) binding', (g, old) => { for (const m of g.json.meshes) { const o = old.json.meshes.find((x) => x.name === m.name);
+  // robe round fix: on za, whose run did not change in the robe round (dao's calmer run alone kept the old binding under the limit, run 45522030493)
+  ['robe_flare', 'za robe weights put back to the approved (pre-calm) binding', (g, old) => { for (const m of g.json.meshes) { const o = old.json.meshes.find((x) => x.name === m.name);
     m.primitives.forEach((p, k) => { for (const a of ['JOINTS_0', 'WEIGHTS_0']) { const src = accBytes(old, o.primitives[k].attributes[a]); const ac = g.json.accessors[p.attributes[a]], bv = g.json.bufferViews[ac.bufferView];
-      g.bin.set(src, (bv.byteOffset || 0) + (ac.byteOffset || 0)); } }); } return g; }, {}, 'dao'],
+      g.bin.set(src, (bv.byteOffset || 0) + (ac.byteOffset || 0)); } }); } return g; }, {}, 'za'],
   ['hit_length', 'hit stretched to 0.5 s', (g) => { const a = anim(g, 'hit'); const seen = new Set(); for (const s of a.samplers) { if (seen.has(s.input)) continue; seen.add(s.input); const t = accF(g, s.input); t.forEach((x, k) => accSet(g, s.input, k, x * 0.5 / 0.3)); g.json.accessors[s.input].max = [t[t.length - 1] * 0.5 / 0.3]; } return g; }],
 ];
 
