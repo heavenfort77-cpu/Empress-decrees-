@@ -1,0 +1,20 @@
+{
+ "renderer": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)",
+ "parallelCompile": false,
+ "astc": true,
+ "bptc": true,
+ "s3tc": true,
+ "etc": true,
+ "etc1": true,
+ "maxTex": 8192,
+ "aniso": 16,
+ "workerConfig": {
+  "astcSupported": false,
+  "astcHDRSupported": false,
+  "etc1Supported": false,
+  "etc2Supported": false,
+  "dxtSupported": false,
+  "bptcSupported": false,
+  "pvrtcSupported": false
+ }
+}

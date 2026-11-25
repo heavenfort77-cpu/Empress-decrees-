@@ -1,0 +1,1575 @@
+{
+ "errs": [],
+ "rows": [
+  {
+   "tag": "gpu/desk/etc1s/apex_patina",
+   "ok": true,
+   "w": 1024,
+   "h": 1024,
+   "format": 36492,
+   "mips": 11,
+   "ms": 74,
+   "err": 0
+  },
+  {
+   "tag": "gpu/desk/etc1s/black_lake",
+   "ok": true,
+   "w": 1024,
+   "h": 1024,
+   "format": 36492,
+   "mips": 11,
+   "ms": 91,
+   "err": 0
+  },
+  {
+   "tag": "gpu/desk/etc1s/bronze_trim_brass",
+   "ok": true,
+   "w": 1024,
+   "h": 1024,
+   "format": 36492,
+   "mips": 11,
+   "ms": 116,
+   "err": 0
+  },
+  {
+   "tag": "gpu/desk/etc1s/bronze_trim_patina",
+   "ok": true,
+   "w": 1024,
+   "h": 1024,
+   "format": 36492,
+   "mips": 11,
+   "ms": 104,
+   "err": 0
+  },
+  {
+   "tag": "gpu/desk/etc1s/door",
+   "ok": true,
+   "w": 1024,
+   "h": 1024,
+   "format": 36492,
+   "mips": 11,
+   "ms": 89,
+   "err": 0
+  },
+  {
+   "tag": "gpu/desk/etc1s/earth_burnt",
+   "ok": true,
+   "w": 1024,
+   "h": 1024,
+   "format": 36492,
+   "mips": 11,
+   "ms": 123,
+   "err": 0
+  },
+  {
+   "tag": "gpu/desk/etc1s/flame_card",
+   "ok": true,
+   "w": 256,
+   "h": 256,
+   "format": 36492,
+   "mips": 9,
+   "ms": 91,
+   "err": 0
+  },
+  {
+   "tag": "gpu/desk/etc1s/floor_tiles",
+   "ok": true,
+   "w": 1024,
+   "h": 1024,
+   "format": 36492,
+   "mips": 11,
+   "ms": 11,
+   "err": 0
+  },
+  {
+   "tag": "gpu/desk/etc1s/fodder_trim",
+   "ok": true,
+   "w": 1024,
+   "h": 1024,
+   "format": 36492,
+   "mips": 11,
+   "ms": 12,
+   "err": 0
+  },
+  {
+   "tag": "gpu/desk/etc1s/garden_ground",
+   "ok": true,
+   "w": 1024,
+   "h": 1024,
+   "format": 36492,
+   "mips": 11,
+   "ms": 111,
+   "err": 0
+  },
+  {
+   "tag": "gpu/desk/etc1s/garden_plants",
+   "ok": true,
+   "w": 1024,
+   "h": 1024,
+   "format": 36492,
+   "mips": 11,
+   "ms": 90,
+   "err": 0
+  },
+  {
+   "tag": "gpu/desk/etc1s/hall_floor",
+   "ok": true,
+   "w": 1024,
+   "h": 1024,
+   "format": 36492,
+   "mips": 11,
+   "ms": 127,
+   "err": 0
+  },
+  {
+   "tag": "gpu/desk/etc1s/hall_wall",
+   "ok": true,
+   "w": 1024,
+   "h": 1024,
+   "format": 36492,
+   "mips": 11,
+   "ms": 87,
+   "err": 0
+  },
+  {
+   "tag": "gpu/desk/etc1s/hollow_brick",
+   "ok": true,
+   "w": 1024,
+   "h": 1024,
+   "format": 36492,
+   "mips": 11,
+   "ms": 127,
+   "err": 0
+  },
+  {
+   "tag": "gpu/desk/etc1s/lion_stone",
+   "ok": true,
+   "w": 1024,
+   "h": 1024,
+   "format": 36492,
+   "mips": 11,
+   "ms": 113,
+   "err": 0
+  },
+  {
+   "tag": "gpu/desk/etc1s/mercury_matcap",
+   "ok": true,
+   "w": 1024,
+   "h": 1024,
+   "format": 36492,
+   "mips": 11,
+   "ms": 115,
+   "err": 0
+  },
+  {
+   "tag": "gpu/desk/etc1s/mural_wall",
+   "ok": true,
+   "w": 1024,
+   "h": 1024,
+   "format": 36492,
+   "mips": 11,
+   "ms": 16,
+   "err": 0
+  },
+  {
+   "tag": "gpu/desk/etc1s/pillar",
+   "ok": true,
+   "w": 1024,
+   "h": 1024,
+   "format": 36492,
+   "mips": 11,
+   "ms": 123,
+   "err": 0
+  },
+  {
+   "tag": "gpu/desk/etc1s/pond_water",
+   "ok": true,
+   "w": 1024,
+   "h": 1024,
+   "format": 36492,
+   "mips": 11,
+   "ms": 110,
+   "err": 0
+  },
+  {
+   "tag": "gpu/desk/etc1s/rammed_earth",
+   "ok": true,
+   "w": 1024,
+   "h": 1024,
+   "format": 36492,
+   "mips": 11,
+   "ms": 120,
+   "err": 0
+  },
+  {
+   "tag": "gpu/desk/etc1s/rammed_earth_core",
+   "ok": true,
+   "w": 1024,
+   "h": 1024,
+   "format": 36492,
+   "mips": 11,
+   "ms": 114,
+   "err": 0
+  },
+  {
+   "tag": "gpu/desk/etc1s/river_stone",
+   "ok": true,
+   "w": 1024,
+   "h": 1024,
+   "format": 36492,
+   "mips": 11,
+   "ms": 100,
+   "err": 0
+  },
+  {
+   "tag": "gpu/desk/etc1s/roof_tile",
+   "ok": true,
+   "w": 1024,
+   "h": 1024,
+   "format": 36492,
+   "mips": 11,
+   "ms": 96,
+   "err": 0
+  },
+  {
+   "tag": "gpu/desk/etc1s/school_standards",
+   "ok": true,
+   "w": 1024,
+   "h": 1024,
+   "format": 36492,
+   "mips": 11,
+   "ms": 84,
+   "err": 0
+  },
+  {
+   "tag": "gpu/desk/etc1s/signal_flags",
+   "ok": true,
+   "w": 1024,
+   "h": 1024,
+   "format": 36492,
+   "mips": 11,
+   "ms": 9,
+   "err": 0
+  },
+  {
+   "tag": "gpu/desk/etc1s/slips",
+   "ok": true,
+   "w": 1024,
+   "h": 1024,
+   "format": 36492,
+   "mips": 11,
+   "ms": 105,
+   "err": 0
+  },
+  {
+   "tag": "gpu/desk/etc1s/slips_burnt",
+   "ok": true,
+   "w": 1024,
+   "h": 1024,
+   "format": 36492,
+   "mips": 11,
+   "ms": 107,
+   "err": 0
+  },
+  {
+   "tag": "gpu/desk/etc1s/smoke_card",
+   "ok": true,
+   "w": 256,
+   "h": 256,
+   "format": 36492,
+   "mips": 9,
+   "ms": 94,
+   "err": 0
+  },
+  {
+   "tag": "gpu/desk/etc1s/star_inlay",
+   "ok": true,
+   "w": 1024,
+   "h": 1024,
+   "format": 36492,
+   "mips": 11,
+   "ms": 9,
+   "err": 0
+  },
+  {
+   "tag": "gpu/desk/etc1s/stone_paving",
+   "ok": true,
+   "w": 1024,
+   "h": 1024,
+   "format": 36492,
+   "mips": 11,
+   "ms": 114,
+   "err": 0
+  },
+  {
+   "tag": "gpu/desk/etc1s/suit_bronze",
+   "ok": true,
+   "w": 512,
+   "h": 512,
+   "format": 36492,
+   "mips": 10,
+   "ms": 123,
+   "err": 0
+  },
+  {
+   "tag": "gpu/desk/etc1s/suit_cloth",
+   "ok": true,
+   "w": 512,
+   "h": 512,
+   "format": 36492,
+   "mips": 10,
+   "ms": 12,
+   "err": 0
+  },
+  {
+   "tag": "gpu/desk/etc1s/suit_lamellar",
+   "ok": true,
+   "w": 1024,
+   "h": 1024,
+   "format": 36492,
+   "mips": 11,
+   "ms": 10,
+   "err": 0
+  },
+  {
+   "tag": "gpu/desk/etc1s/tile_ends",
+   "ok": true,
+   "w": 1024,
+   "h": 1024,
+   "format": 36492,
+   "mips": 11,
+   "ms": 101,
+   "err": 0
+  },
+  {
+   "tag": "gpu/desk/etc1s/timber",
+   "ok": true,
+   "w": 1024,
+   "h": 1024,
+   "format": 36492,
+   "mips": 11,
+   "ms": 96,
+   "err": 0
+  },
+  {
+   "tag": "gpu/desk/etc1s/timber_burnt",
+   "ok": true,
+   "w": 1024,
+   "h": 1024,
+   "format": 36492,
+   "mips": 11,
+   "ms": 89,
+   "err": 0
+  },
+  {
+   "tag": "gpu/desk/etc1s/tread_belt",
+   "ok": true,
+   "w": 128,
+   "h": 64,
+   "format": 36492,
+   "mips": 8,
+   "ms": 87,
+   "err": 0
+  },
+  {
+   "tag": "gpu/desk/etc1s/wall_burnt",
+   "ok": true,
+   "w": 1024,
+   "h": 1024,
+   "format": 36492,
+   "mips": 11,
+   "ms": 10,
+   "err": 0
+  },
+  {
+   "tag": "gpu/desk/uastc/apex_patina",
+   "ok": true,
+   "w": 1024,
+   "h": 1024,
+   "format": 37808,
+   "mips": 11,
+   "ms": 138,
+   "err": 0
+  },
+  {
+   "tag": "gpu/desk/uastc/black_lake",
+   "ok": true,
+   "w": 1024,
+   "h": 1024,
+   "format": 37808,
+   "mips": 11,
+   "ms": 98,
+   "err": 0
+  },
+  {
+   "tag": "gpu/desk/uastc/bronze_trim_brass",
+   "ok": true,
+   "w": 1024,
+   "h": 1024,
+   "format": 37808,
+   "mips": 11,
+   "ms": 21,
+   "err": 0
+  },
+  {
+   "tag": "gpu/desk/uastc/bronze_trim_patina",
+   "ok": true,
+   "w": 1024,
+   "h": 1024,
+   "format": 37808,
+   "mips": 11,
+   "ms": 121,
+   "err": 0
+  },
+  {
+   "tag": "gpu/desk/uastc/door",
+   "ok": true,
+   "w": 1024,
+   "h": 1024,
+   "format": 37808,
+   "mips": 11,
+   "ms": 100,
+   "err": 0
+  },
+  {
+   "tag": "gpu/desk/uastc/earth_burnt",
+   "ok": true,
+   "w": 1024,
+   "h": 1024,
+   "format": 37808,
+   "mips": 11,
+   "ms": 130,
+   "err": 0
+  },
+  {
+   "tag": "gpu/desk/uastc/flame_card",
+   "ok": true,
+   "w": 256,
+   "h": 256,
+   "format": 37808,
+   "mips": 9,
+   "ms": 91,
+   "err": 0
+  },
+  {
+   "tag": "gpu/desk/uastc/floor_tiles",
+   "ok": true,
+   "w": 1024,
+   "h": 1024,
+   "format": 37808,
+   "mips": 11,
+   "ms": 17,
+   "err": 0
+  },
+  {
+   "tag": "gpu/desk/uastc/fodder_trim",
+   "ok": true,
+   "w": 1024,
+   "h": 1024,
+   "format": 37808,
+   "mips": 11,
+   "ms": 98,
+   "err": 0
+  },
+  {
+   "tag": "gpu/desk/uastc/garden_ground",
+   "ok": true,
+   "w": 1024,
+   "h": 1024,
+   "format": 37808,
+   "mips": 11,
+   "ms": 120,
+   "err": 0
+  },
+  {
+   "tag": "gpu/desk/uastc/garden_plants",
+   "ok": true,
+   "w": 1024,
+   "h": 1024,
+   "format": 37808,
+   "mips": 11,
+   "ms": 11,
+   "err": 0
+  },
+  {
+   "tag": "gpu/desk/uastc/hall_floor",
+   "ok": true,
+   "w": 1024,
+   "h": 1024,
+   "format": 37808,
+   "mips": 11,
+   "ms": 138,
+   "err": 0
+  },
+  {
+   "tag": "gpu/desk/uastc/hall_wall",
+   "ok": true,
+   "w": 1024,
+   "h": 1024,
+   "format": 37808,
+   "mips": 11,
+   "ms": 96,
+   "err": 0
+  },
+  {
+   "tag": "gpu/desk/uastc/hollow_brick",
+   "ok": true,
+   "w": 1024,
+   "h": 1024,
+   "format": 37808,
+   "mips": 11,
+   "ms": 137,
+   "err": 0
+  },
+  {
+   "tag": "gpu/desk/uastc/lion_stone",
+   "ok": true,
+   "w": 1024,
+   "h": 1024,
+   "format": 37808,
+   "mips": 11,
+   "ms": 114,
+   "err": 0
+  },
+  {
+   "tag": "gpu/desk/uastc/mercury_matcap",
+   "ok": true,
+   "w": 1024,
+   "h": 1024,
+   "format": 37808,
+   "mips": 11,
+   "ms": 130,
+   "err": 0
+  },
+  {
+   "tag": "gpu/desk/uastc/mural_wall",
+   "ok": true,
+   "w": 1024,
+   "h": 1024,
+   "format": 37808,
+   "mips": 11,
+   "ms": 112,
+   "err": 0
+  },
+  {
+   "tag": "gpu/desk/uastc/pillar",
+   "ok": true,
+   "w": 1024,
+   "h": 1024,
+   "format": 37808,
+   "mips": 11,
+   "ms": 141,
+   "err": 0
+  },
+  {
+   "tag": "gpu/desk/uastc/pond_water",
+   "ok": true,
+   "w": 1024,
+   "h": 1024,
+   "format": 37808,
+   "mips": 11,
+   "ms": 23,
+   "err": 0
+  },
+  {
+   "tag": "gpu/desk/uastc/rammed_earth",
+   "ok": true,
+   "w": 1024,
+   "h": 1024,
+   "format": 37808,
+   "mips": 11,
+   "ms": 126,
+   "err": 0
+  },
+  {
+   "tag": "gpu/desk/uastc/rammed_earth_core",
+   "ok": true,
+   "w": 1024,
+   "h": 1024,
+   "format": 37808,
+   "mips": 11,
+   "ms": 122,
+   "err": 0
+  },
+  {
+   "tag": "gpu/desk/uastc/river_stone",
+   "ok": true,
+   "w": 1024,
+   "h": 1024,
+   "format": 37808,
+   "mips": 11,
+   "ms": 103,
+   "err": 0
+  },
+  {
+   "tag": "gpu/desk/uastc/roof_tile",
+   "ok": true,
+   "w": 1024,
+   "h": 1024,
+   "format": 37808,
+   "mips": 11,
+   "ms": 103,
+   "err": 0
+  },
+  {
+   "tag": "gpu/desk/uastc/school_standards",
+   "ok": true,
+   "w": 1024,
+   "h": 1024,
+   "format": 37808,
+   "mips": 11,
+   "ms": 89,
+   "err": 0
+  },
+  {
+   "tag": "gpu/desk/uastc/signal_flags",
+   "ok": true,
+   "w": 1024,
+   "h": 1024,
+   "format": 37808,
+   "mips": 11,
+   "ms": 116,
+   "err": 0
+  },
+  {
+   "tag": "gpu/desk/uastc/slips",
+   "ok": true,
+   "w": 1024,
+   "h": 1024,
+   "format": 37808,
+   "mips": 11,
+   "ms": 120,
+   "err": 0
+  },
+  {
+   "tag": "gpu/desk/uastc/slips_burnt",
+   "ok": true,
+   "w": 1024,
+   "h": 1024,
+   "format": 37808,
+   "mips": 11,
+   "ms": 21,
+   "err": 0
+  },
+  {
+   "tag": "gpu/desk/uastc/smoke_card",
+   "ok": true,
+   "w": 256,
+   "h": 256,
+   "format": 37808,
+   "mips": 9,
+   "ms": 96,
+   "err": 0
+  },
+  {
+   "tag": "gpu/desk/uastc/star_inlay",
+   "ok": true,
+   "w": 1024,
+   "h": 1024,
+   "format": 37808,
+   "mips": 11,
+   "ms": 12,
+   "err": 0
+  },
+  {
+   "tag": "gpu/desk/uastc/stone_paving",
+   "ok": true,
+   "w": 1024,
+   "h": 1024,
+   "format": 37808,
+   "mips": 11,
+   "ms": 133,
+   "err": 0
+  },
+  {
+   "tag": "gpu/desk/uastc/suit_bronze",
+   "ok": true,
+   "w": 512,
+   "h": 512,
+   "format": 37808,
+   "mips": 10,
+   "ms": 115,
+   "err": 0
+  },
+  {
+   "tag": "gpu/desk/uastc/suit_cloth",
+   "ok": true,
+   "w": 512,
+   "h": 512,
+   "format": 37808,
+   "mips": 10,
+   "ms": 18,
+   "err": 0
+  },
+  {
+   "tag": "gpu/desk/uastc/suit_lamellar",
+   "ok": true,
+   "w": 1024,
+   "h": 1024,
+   "format": 37808,
+   "mips": 11,
+   "ms": 48,
+   "err": 0
+  },
+  {
+   "tag": "gpu/desk/uastc/tile_ends",
+   "ok": true,
+   "w": 1024,
+   "h": 1024,
+   "format": 37808,
+   "mips": 11,
+   "ms": 104,
+   "err": 0
+  },
+  {
+   "tag": "gpu/desk/uastc/timber",
+   "ok": true,
+   "w": 1024,
+   "h": 1024,
+   "format": 37808,
+   "mips": 11,
+   "ms": 19,
+   "err": 0
+  },
+  {
+   "tag": "gpu/desk/uastc/timber_burnt",
+   "ok": true,
+   "w": 1024,
+   "h": 1024,
+   "format": 37808,
+   "mips": 11,
+   "ms": 97,
+   "err": 0
+  },
+  {
+   "tag": "gpu/desk/uastc/tread_belt",
+   "ok": true,
+   "w": 128,
+   "h": 64,
+   "format": 37808,
+   "mips": 8,
+   "ms": 94,
+   "err": 0
+  },
+  {
+   "tag": "gpu/desk/uastc/wall_burnt",
+   "ok": true,
+   "w": 1024,
+   "h": 1024,
+   "format": 37808,
+   "mips": 11,
+   "ms": 20,
+   "err": 0
+  },
+  {
+   "tag": "gpu/phone/etc1s/apex_patina",
+   "ok": true,
+   "w": 512,
+   "h": 512,
+   "format": 36492,
+   "mips": 10,
+   "ms": 92,
+   "err": 0
+  },
+  {
+   "tag": "gpu/phone/etc1s/black_lake",
+   "ok": true,
+   "w": 512,
+   "h": 512,
+   "format": 36492,
+   "mips": 10,
+   "ms": 23,
+   "err": 0
+  },
+  {
+   "tag": "gpu/phone/etc1s/bronze_trim_brass",
+   "ok": true,
+   "w": 512,
+   "h": 512,
+   "format": 36492,
+   "mips": 10,
+   "ms": 29,
+   "err": 0
+  },
+  {
+   "tag": "gpu/phone/etc1s/bronze_trim_patina",
+   "ok": true,
+   "w": 512,
+   "h": 512,
+   "format": 36492,
+   "mips": 10,
+   "ms": 27,
+   "err": 0
+  },
+  {
+   "tag": "gpu/phone/etc1s/door",
+   "ok": true,
+   "w": 512,
+   "h": 512,
+   "format": 36492,
+   "mips": 10,
+   "ms": 4,
+   "err": 0
+  },
+  {
+   "tag": "gpu/phone/etc1s/earth_burnt",
+   "ok": true,
+   "w": 512,
+   "h": 512,
+   "format": 36492,
+   "mips": 10,
+   "ms": 30,
+   "err": 0
+  },
+  {
+   "tag": "gpu/phone/etc1s/flame_card",
+   "ok": true,
+   "w": 256,
+   "h": 256,
+   "format": 36492,
+   "mips": 9,
+   "ms": 25,
+   "err": 0
+  },
+  {
+   "tag": "gpu/phone/etc1s/floor_tiles",
+   "ok": true,
+   "w": 512,
+   "h": 512,
+   "format": 36492,
+   "mips": 10,
+   "ms": 10,
+   "err": 0
+  },
+  {
+   "tag": "gpu/phone/etc1s/fodder_trim",
+   "ok": true,
+   "w": 512,
+   "h": 512,
+   "format": 36492,
+   "mips": 10,
+   "ms": 23,
+   "err": 0
+  },
+  {
+   "tag": "gpu/phone/etc1s/garden_ground",
+   "ok": true,
+   "w": 512,
+   "h": 512,
+   "format": 36492,
+   "mips": 10,
+   "ms": 27,
+   "err": 0
+  },
+  {
+   "tag": "gpu/phone/etc1s/garden_plants",
+   "ok": true,
+   "w": 512,
+   "h": 512,
+   "format": 36492,
+   "mips": 10,
+   "ms": 22,
+   "err": 0
+  },
+  {
+   "tag": "gpu/phone/etc1s/hall_floor",
+   "ok": true,
+   "w": 512,
+   "h": 512,
+   "format": 36492,
+   "mips": 10,
+   "ms": 29,
+   "err": 0
+  },
+  {
+   "tag": "gpu/phone/etc1s/hall_wall",
+   "ok": true,
+   "w": 512,
+   "h": 512,
+   "format": 36492,
+   "mips": 10,
+   "ms": 5,
+   "err": 0
+  },
+  {
+   "tag": "gpu/phone/etc1s/hollow_brick",
+   "ok": true,
+   "w": 512,
+   "h": 512,
+   "format": 36492,
+   "mips": 10,
+   "ms": 29,
+   "err": 0
+  },
+  {
+   "tag": "gpu/phone/etc1s/lion_stone",
+   "ok": true,
+   "w": 512,
+   "h": 512,
+   "format": 36492,
+   "mips": 10,
+   "ms": 30,
+   "err": 0
+  },
+  {
+   "tag": "gpu/phone/etc1s/mercury_matcap",
+   "ok": true,
+   "w": 512,
+   "h": 512,
+   "format": 36492,
+   "mips": 10,
+   "ms": 28,
+   "err": 0
+  },
+  {
+   "tag": "gpu/phone/etc1s/mural_wall",
+   "ok": true,
+   "w": 512,
+   "h": 512,
+   "format": 36492,
+   "mips": 10,
+   "ms": 29,
+   "err": 0
+  },
+  {
+   "tag": "gpu/phone/etc1s/pillar",
+   "ok": true,
+   "w": 512,
+   "h": 512,
+   "format": 36492,
+   "mips": 10,
+   "ms": 30,
+   "err": 0
+  },
+  {
+   "tag": "gpu/phone/etc1s/pond_water",
+   "ok": true,
+   "w": 512,
+   "h": 512,
+   "format": 36492,
+   "mips": 10,
+   "ms": 29,
+   "err": 0
+  },
+  {
+   "tag": "gpu/phone/etc1s/rammed_earth",
+   "ok": true,
+   "w": 512,
+   "h": 512,
+   "format": 36492,
+   "mips": 10,
+   "ms": 29,
+   "err": 0
+  },
+  {
+   "tag": "gpu/phone/etc1s/rammed_earth_core",
+   "ok": true,
+   "w": 512,
+   "h": 512,
+   "format": 36492,
+   "mips": 10,
+   "ms": 5,
+   "err": 0
+  },
+  {
+   "tag": "gpu/phone/etc1s/river_stone",
+   "ok": true,
+   "w": 512,
+   "h": 512,
+   "format": 36492,
+   "mips": 10,
+   "ms": 25,
+   "err": 0
+  },
+  {
+   "tag": "gpu/phone/etc1s/roof_tile",
+   "ok": true,
+   "w": 512,
+   "h": 512,
+   "format": 36492,
+   "mips": 10,
+   "ms": 22,
+   "err": 0
+  },
+  {
+   "tag": "gpu/phone/etc1s/school_standards",
+   "ok": true,
+   "w": 512,
+   "h": 512,
+   "format": 36492,
+   "mips": 10,
+   "ms": 20,
+   "err": 0
+  },
+  {
+   "tag": "gpu/phone/etc1s/signal_flags",
+   "ok": true,
+   "w": 512,
+   "h": 512,
+   "format": 36492,
+   "mips": 10,
+   "ms": 27,
+   "err": 0
+  },
+  {
+   "tag": "gpu/phone/etc1s/slips",
+   "ok": true,
+   "w": 512,
+   "h": 512,
+   "format": 36492,
+   "mips": 10,
+   "ms": 26,
+   "err": 0
+  },
+  {
+   "tag": "gpu/phone/etc1s/slips_burnt",
+   "ok": true,
+   "w": 512,
+   "h": 512,
+   "format": 36492,
+   "mips": 10,
+   "ms": 27,
+   "err": 0
+  },
+  {
+   "tag": "gpu/phone/etc1s/smoke_card",
+   "ok": true,
+   "w": 256,
+   "h": 256,
+   "format": 36492,
+   "mips": 9,
+   "ms": 23,
+   "err": 0
+  },
+  {
+   "tag": "gpu/phone/etc1s/star_inlay",
+   "ok": true,
+   "w": 512,
+   "h": 512,
+   "format": 36492,
+   "mips": 10,
+   "ms": 9,
+   "err": 0
+  },
+  {
+   "tag": "gpu/phone/etc1s/stone_paving",
+   "ok": true,
+   "w": 512,
+   "h": 512,
+   "format": 36492,
+   "mips": 10,
+   "ms": 28,
+   "err": 0
+  },
+  {
+   "tag": "gpu/phone/etc1s/suit_bronze",
+   "ok": true,
+   "w": 512,
+   "h": 512,
+   "format": 36492,
+   "mips": 10,
+   "ms": 32,
+   "err": 0
+  },
+  {
+   "tag": "gpu/phone/etc1s/suit_cloth",
+   "ok": true,
+   "w": 512,
+   "h": 512,
+   "format": 36492,
+   "mips": 10,
+   "ms": 26,
+   "err": 0
+  },
+  {
+   "tag": "gpu/phone/etc1s/suit_lamellar",
+   "ok": true,
+   "w": 512,
+   "h": 512,
+   "format": 36492,
+   "mips": 10,
+   "ms": 36,
+   "err": 0
+  },
+  {
+   "tag": "gpu/phone/etc1s/tile_ends",
+   "ok": true,
+   "w": 512,
+   "h": 512,
+   "format": 36492,
+   "mips": 10,
+   "ms": 26,
+   "err": 0
+  },
+  {
+   "tag": "gpu/phone/etc1s/timber",
+   "ok": true,
+   "w": 512,
+   "h": 512,
+   "format": 36492,
+   "mips": 10,
+   "ms": 23,
+   "err": 0
+  },
+  {
+   "tag": "gpu/phone/etc1s/timber_burnt",
+   "ok": true,
+   "w": 512,
+   "h": 512,
+   "format": 36492,
+   "mips": 10,
+   "ms": 25,
+   "err": 0
+  },
+  {
+   "tag": "gpu/phone/etc1s/tread_belt",
+   "ok": true,
+   "w": 128,
+   "h": 64,
+   "format": 36492,
+   "mips": 8,
+   "ms": 2,
+   "err": 0
+  },
+  {
+   "tag": "gpu/phone/etc1s/wall_burnt",
+   "ok": true,
+   "w": 512,
+   "h": 512,
+   "format": 36492,
+   "mips": 10,
+   "ms": 5,
+   "err": 0
+  },
+  {
+   "tag": "gpu/phone/uastc/apex_patina",
+   "ok": true,
+   "w": 512,
+   "h": 512,
+   "format": 37808,
+   "mips": 10,
+   "ms": 36,
+   "err": 0
+  },
+  {
+   "tag": "gpu/phone/uastc/black_lake",
+   "ok": true,
+   "w": 512,
+   "h": 512,
+   "format": 37808,
+   "mips": 10,
+   "ms": 25,
+   "err": 0
+  },
+  {
+   "tag": "gpu/phone/uastc/bronze_trim_brass",
+   "ok": true,
+   "w": 512,
+   "h": 512,
+   "format": 37808,
+   "mips": 10,
+   "ms": 36,
+   "err": 0
+  },
+  {
+   "tag": "gpu/phone/uastc/bronze_trim_patina",
+   "ok": true,
+   "w": 512,
+   "h": 512,
+   "format": 37808,
+   "mips": 10,
+   "ms": 30,
+   "err": 0
+  },
+  {
+   "tag": "gpu/phone/uastc/door",
+   "ok": true,
+   "w": 512,
+   "h": 512,
+   "format": 37808,
+   "mips": 10,
+   "ms": 27,
+   "err": 0
+  },
+  {
+   "tag": "gpu/phone/uastc/earth_burnt",
+   "ok": true,
+   "w": 512,
+   "h": 512,
+   "format": 37808,
+   "mips": 10,
+   "ms": 31,
+   "err": 0
+  },
+  {
+   "tag": "gpu/phone/uastc/flame_card",
+   "ok": true,
+   "w": 256,
+   "h": 256,
+   "format": 37808,
+   "mips": 9,
+   "ms": 3,
+   "err": 0
+  },
+  {
+   "tag": "gpu/phone/uastc/floor_tiles",
+   "ok": true,
+   "w": 512,
+   "h": 512,
+   "format": 37808,
+   "mips": 10,
+   "ms": 13,
+   "err": 0
+  },
+  {
+   "tag": "gpu/phone/uastc/fodder_trim",
+   "ok": true,
+   "w": 512,
+   "h": 512,
+   "format": 37808,
+   "mips": 10,
+   "ms": 25,
+   "err": 0
+  },
+  {
+   "tag": "gpu/phone/uastc/garden_ground",
+   "ok": true,
+   "w": 512,
+   "h": 512,
+   "format": 37808,
+   "mips": 10,
+   "ms": 31,
+   "err": 0
+  },
+  {
+   "tag": "gpu/phone/uastc/garden_plants",
+   "ok": true,
+   "w": 512,
+   "h": 512,
+   "format": 37808,
+   "mips": 10,
+   "ms": 23,
+   "err": 0
+  },
+  {
+   "tag": "gpu/phone/uastc/hall_floor",
+   "ok": true,
+   "w": 512,
+   "h": 512,
+   "format": 37808,
+   "mips": 10,
+   "ms": 29,
+   "err": 0
+  },
+  {
+   "tag": "gpu/phone/uastc/hall_wall",
+   "ok": true,
+   "w": 512,
+   "h": 512,
+   "format": 37808,
+   "mips": 10,
+   "ms": 23,
+   "err": 0
+  },
+  {
+   "tag": "gpu/phone/uastc/hollow_brick",
+   "ok": true,
+   "w": 512,
+   "h": 512,
+   "format": 37808,
+   "mips": 10,
+   "ms": 35,
+   "err": 0
+  },
+  {
+   "tag": "gpu/phone/uastc/lion_stone",
+   "ok": true,
+   "w": 512,
+   "h": 512,
+   "format": 37808,
+   "mips": 10,
+   "ms": 6,
+   "err": 0
+  },
+  {
+   "tag": "gpu/phone/uastc/mercury_matcap",
+   "ok": true,
+   "w": 512,
+   "h": 512,
+   "format": 37808,
+   "mips": 10,
+   "ms": 30,
+   "err": 0
+  },
+  {
+   "tag": "gpu/phone/uastc/mural_wall",
+   "ok": true,
+   "w": 512,
+   "h": 512,
+   "format": 37808,
+   "mips": 10,
+   "ms": 30,
+   "err": 0
+  },
+  {
+   "tag": "gpu/phone/uastc/pillar",
+   "ok": true,
+   "w": 512,
+   "h": 512,
+   "format": 37808,
+   "mips": 10,
+   "ms": 36,
+   "err": 0
+  },
+  {
+   "tag": "gpu/phone/uastc/pond_water",
+   "ok": true,
+   "w": 512,
+   "h": 512,
+   "format": 37808,
+   "mips": 10,
+   "ms": 30,
+   "err": 0
+  },
+  {
+   "tag": "gpu/phone/uastc/rammed_earth",
+   "ok": true,
+   "w": 512,
+   "h": 512,
+   "format": 37808,
+   "mips": 10,
+   "ms": 32,
+   "err": 0
+  },
+  {
+   "tag": "gpu/phone/uastc/rammed_earth_core",
+   "ok": true,
+   "w": 512,
+   "h": 512,
+   "format": 37808,
+   "mips": 10,
+   "ms": 32,
+   "err": 0
+  },
+  {
+   "tag": "gpu/phone/uastc/river_stone",
+   "ok": true,
+   "w": 512,
+   "h": 512,
+   "format": 37808,
+   "mips": 10,
+   "ms": 27,
+   "err": 0
+  },
+  {
+   "tag": "gpu/phone/uastc/roof_tile",
+   "ok": true,
+   "w": 512,
+   "h": 512,
+   "format": 37808,
+   "mips": 10,
+   "ms": 6,
+   "err": 0
+  },
+  {
+   "tag": "gpu/phone/uastc/school_standards",
+   "ok": true,
+   "w": 512,
+   "h": 512,
+   "format": 37808,
+   "mips": 10,
+   "ms": 23,
+   "err": 0
+  },
+  {
+   "tag": "gpu/phone/uastc/signal_flags",
+   "ok": true,
+   "w": 512,
+   "h": 512,
+   "format": 37808,
+   "mips": 10,
+   "ms": 30,
+   "err": 0
+  },
+  {
+   "tag": "gpu/phone/uastc/slips",
+   "ok": true,
+   "w": 512,
+   "h": 512,
+   "format": 37808,
+   "mips": 10,
+   "ms": 31,
+   "err": 0
+  },
+  {
+   "tag": "gpu/phone/uastc/slips_burnt",
+   "ok": true,
+   "w": 512,
+   "h": 512,
+   "format": 37808,
+   "mips": 10,
+   "ms": 31,
+   "err": 0
+  },
+  {
+   "tag": "gpu/phone/uastc/smoke_card",
+   "ok": true,
+   "w": 256,
+   "h": 256,
+   "format": 37808,
+   "mips": 9,
+   "ms": 25,
+   "err": 0
+  },
+  {
+   "tag": "gpu/phone/uastc/star_inlay",
+   "ok": true,
+   "w": 512,
+   "h": 512,
+   "format": 37808,
+   "mips": 10,
+   "ms": 11,
+   "err": 0
+  },
+  {
+   "tag": "gpu/phone/uastc/stone_paving",
+   "ok": true,
+   "w": 512,
+   "h": 512,
+   "format": 37808,
+   "mips": 10,
+   "ms": 32,
+   "err": 0
+  },
+  {
+   "tag": "gpu/phone/uastc/suit_bronze",
+   "ok": true,
+   "w": 512,
+   "h": 512,
+   "format": 37808,
+   "mips": 10,
+   "ms": 6,
+   "err": 0
+  },
+  {
+   "tag": "gpu/phone/uastc/suit_cloth",
+   "ok": true,
+   "w": 512,
+   "h": 512,
+   "format": 37808,
+   "mips": 10,
+   "ms": 26,
+   "err": 0
+  },
+  {
+   "tag": "gpu/phone/uastc/suit_lamellar",
+   "ok": true,
+   "w": 512,
+   "h": 512,
+   "format": 37808,
+   "mips": 10,
+   "ms": 38,
+   "err": 0
+  },
+  {
+   "tag": "gpu/phone/uastc/tile_ends",
+   "ok": true,
+   "w": 512,
+   "h": 512,
+   "format": 37808,
+   "mips": 10,
+   "ms": 27,
+   "err": 0
+  },
+  {
+   "tag": "gpu/phone/uastc/timber",
+   "ok": true,
+   "w": 512,
+   "h": 512,
+   "format": 37808,
+   "mips": 10,
+   "ms": 23,
+   "err": 0
+  },
+  {
+   "tag": "gpu/phone/uastc/timber_burnt",
+   "ok": true,
+   "w": 512,
+   "h": 512,
+   "format": 37808,
+   "mips": 10,
+   "ms": 24,
+   "err": 0
+  },
+  {
+   "tag": "gpu/phone/uastc/tread_belt",
+   "ok": true,
+   "w": 128,
+   "h": 64,
+   "format": 37808,
+   "mips": 8,
+   "ms": 23,
+   "err": 0
+  },
+  {
+   "tag": "gpu/phone/uastc/wall_burnt",
+   "ok": true,
+   "w": 512,
+   "h": 512,
+   "format": 37808,
+   "mips": 10,
+   "ms": 7,
+   "err": 0
+  },
+  {
+   "tag": "gpu/mut/noalpha__smoke_card",
+   "ok": true,
+   "w": 256,
+   "h": 256,
+   "format": 36492,
+   "mips": 9,
+   "ms": 2,
+   "err": 0
+  },
+  {
+   "tag": "gpu/mut/nomip__pillar",
+   "ok": true,
+   "w": 1024,
+   "h": 1024,
+   "format": 36492,
+   "mips": 1,
+   "ms": 12,
+   "err": 0
+  },
+  {
+   "tag": "gpu/mut/poster__hall_floor",
+   "ok": true,
+   "w": 1024,
+   "h": 1024,
+   "format": 37808,
+   "mips": 11,
+   "ms": 113,
+   "err": 0
+  },
+  {
+   "tag": "gpu/mut/q1__hall_floor",
+   "ok": true,
+   "w": 1024,
+   "h": 1024,
+   "format": 36492,
+   "mips": 11,
+   "ms": 86,
+   "err": 0
+  },
+  {
+   "tag": "gpu/mut/swap__hall_wall",
+   "ok": true,
+   "w": 1024,
+   "h": 1024,
+   "format": 36492,
+   "mips": 11,
+   "ms": 88,
+   "err": 0
+  }
+ ]
+}

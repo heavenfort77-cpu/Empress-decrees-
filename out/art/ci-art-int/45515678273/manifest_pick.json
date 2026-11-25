@@ -1,0 +1,1066 @@
+{
+ "desk/apex_patina": {
+  "mode": "uastc",
+  "psnr": 47.25,
+  "de": 0.611,
+  "de95": 1.82,
+  "aflip": 0.0,
+  "orient": "top-first",
+  "bytes": 1127519,
+  "etc1s": {
+   "psnr": 36.487,
+   "de": 2.31,
+   "aflip": 0.0
+  }
+ },
+ "desk/black_lake": {
+  "mode": "uastc",
+  "psnr": 54.7,
+  "de": 0.291,
+  "de95": 1.02,
+  "aflip": 0.0,
+  "orient": "top-first",
+  "bytes": 798346,
+  "etc1s": {
+   "psnr": 39.243,
+   "de": 3.042,
+   "aflip": 0.0
+  }
+ },
+ "desk/bronze_trim_brass": {
+  "mode": "etc1s",
+  "psnr": 36.78,
+  "de": 1.833,
+  "de95": 4.0,
+  "aflip": 0.0,
+  "orient": "top-first",
+  "bytes": 188242,
+  "etc1s": {
+   "psnr": 36.78,
+   "de": 1.833,
+   "aflip": 0.0
+  }
+ },
+ "desk/bronze_trim_patina": {
+  "mode": "etc1s",
+  "psnr": 38.74,
+  "de": 1.521,
+  "de95": 3.6,
+  "aflip": 0.0,
+  "orient": "top-first",
+  "bytes": 179744,
+  "etc1s": {
+   "psnr": 38.737,
+   "de": 1.521,
+   "aflip": 0.0
+  }
+ },
+ "desk/door": {
+  "mode": "uastc",
+  "psnr": 54.09,
+  "de": 0.347,
+  "de95": 1.12,
+  "aflip": 0.0,
+  "orient": "top-first",
+  "bytes": 650523,
+  "etc1s": {
+   "psnr": 37.5,
+   "de": 2.88,
+   "aflip": 0.0
+  }
+ },
+ "desk/earth_burnt": {
+  "mode": "etc1s",
+  "psnr": 40.6,
+  "de": 1.552,
+  "de95": 2.25,
+  "aflip": 0.0,
+  "orient": "top-first",
+  "bytes": 182723,
+  "etc1s": {
+   "psnr": 40.605,
+   "de": 1.552,
+   "aflip": 0.0
+  }
+ },
+ "desk/flame_card": {
+  "mode": "etc1s",
+  "psnr": 44.72,
+  "de": 0.319,
+  "de95": 1.29,
+  "aflip": 0.0009,
+  "orient": "top-first",
+  "bytes": 9755,
+  "etc1s": {
+   "psnr": 44.724,
+   "de": 0.319,
+   "aflip": 0.001
+  }
+ },
+ "desk/floor_tiles": {
+  "mode": "uastc",
+  "psnr": 57.71,
+  "de": 0.147,
+  "de95": 0.69,
+  "aflip": 0.0,
+  "orient": "top-first",
+  "bytes": 632831,
+  "etc1s": {
+   "psnr": 40.109,
+   "de": 2.703,
+   "aflip": 0.0
+  }
+ },
+ "desk/fodder_trim": {
+  "mode": "uastc",
+  "psnr": 48.09,
+  "de": 0.506,
+  "de95": 1.47,
+  "aflip": 0.0,
+  "orient": "top-first",
+  "bytes": 980825,
+  "etc1s": {
+   "psnr": 35.15,
+   "de": 2.763,
+   "aflip": 0.0
+  }
+ },
+ "desk/garden_ground": {
+  "mode": "etc1s",
+  "psnr": 42.04,
+  "de": 1.191,
+  "de95": 3.67,
+  "aflip": 0.0,
+  "orient": "top-first",
+  "bytes": 153054,
+  "etc1s": {
+   "psnr": 42.037,
+   "de": 1.191,
+   "aflip": 0.0
+  }
+ },
+ "desk/garden_plants": {
+  "mode": "etc1s",
+  "psnr": 43.06,
+  "de": 0.24,
+  "de95": 1.34,
+  "aflip": 0.0026,
+  "orient": "top-first",
+  "bytes": 169110,
+  "etc1s": {
+   "psnr": 43.06,
+   "de": 0.24,
+   "aflip": 0.003
+  }
+ },
+ "desk/hall_floor": {
+  "mode": "etc1s",
+  "psnr": 40.34,
+  "de": 1.732,
+  "de95": 2.89,
+  "aflip": 0.0,
+  "orient": "top-first",
+  "bytes": 175538,
+  "etc1s": {
+   "psnr": 40.339,
+   "de": 1.732,
+   "aflip": 0.0
+  }
+ },
+ "desk/hall_wall": {
+  "mode": "uastc",
+  "psnr": 52.87,
+  "de": 0.303,
+  "de95": 1.05,
+  "aflip": 0.0,
+  "orient": "top-first",
+  "bytes": 832499,
+  "etc1s": {
+   "psnr": 37.493,
+   "de": 2.823,
+   "aflip": 0.0
+  }
+ },
+ "desk/hollow_brick": {
+  "mode": "uastc",
+  "psnr": 56.9,
+  "de": 0.119,
+  "de95": 0.6,
+  "aflip": 0.0,
+  "orient": "top-first",
+  "bytes": 558557,
+  "etc1s": {
+   "psnr": 39.932,
+   "de": 2.609,
+   "aflip": 0.0
+  }
+ },
+ "desk/lion_stone": {
+  "mode": "uastc",
+  "psnr": 54.92,
+  "de": 0.3,
+  "de95": 0.9,
+  "aflip": 0.0,
+  "orient": "top-first",
+  "bytes": 953838,
+  "etc1s": {
+   "psnr": 39.802,
+   "de": 2.227,
+   "aflip": 0.0
+  }
+ },
+ "desk/mercury_matcap": {
+  "mode": "uastc",
+  "psnr": 56.07,
+  "de": 0.184,
+  "de95": 0.69,
+  "aflip": 0.0,
+  "orient": "top-first",
+  "bytes": 238834,
+  "etc1s": {
+   "psnr": 38.979,
+   "de": 3.492,
+   "aflip": 0.0
+  }
+ },
+ "desk/mural_wall": {
+  "mode": "uastc",
+  "psnr": 50.58,
+  "de": 0.348,
+  "de95": 1.12,
+  "aflip": 0.0,
+  "orient": "top-first",
+  "bytes": 770182,
+  "etc1s": {
+   "psnr": 35.584,
+   "de": 2.894,
+   "aflip": 0.0
+  }
+ },
+ "desk/pillar": {
+  "mode": "uastc",
+  "psnr": 55.13,
+  "de": 0.266,
+  "de95": 1.04,
+  "aflip": 0.0,
+  "orient": "top-first",
+  "bytes": 496853,
+  "etc1s": {
+   "psnr": 36.93,
+   "de": 2.388,
+   "aflip": 0.0
+  }
+ },
+ "desk/pond_water": {
+  "mode": "etc1s",
+  "psnr": 42.64,
+  "de": 0.928,
+  "de95": 3.05,
+  "aflip": 0.0,
+  "orient": "top-first",
+  "bytes": 149827,
+  "etc1s": {
+   "psnr": 42.639,
+   "de": 0.928,
+   "aflip": 0.0
+  }
+ },
+ "desk/rammed_earth": {
+  "mode": "etc1s",
+  "psnr": 41.9,
+  "de": 1.318,
+  "de95": 2.09,
+  "aflip": 0.0,
+  "orient": "top-first",
+  "bytes": 181245,
+  "etc1s": {
+   "psnr": 41.902,
+   "de": 1.318,
+   "aflip": 0.0
+  }
+ },
+ "desk/rammed_earth_core": {
+  "mode": "etc1s",
+  "psnr": 42.01,
+  "de": 1.033,
+  "de95": 2.64,
+  "aflip": 0.0,
+  "orient": "top-first",
+  "bytes": 188029,
+  "etc1s": {
+   "psnr": 42.011,
+   "de": 1.033,
+   "aflip": 0.0
+  }
+ },
+ "desk/river_stone": {
+  "mode": "uastc",
+  "psnr": 55.42,
+  "de": 0.2,
+  "de95": 0.94,
+  "aflip": 0.0,
+  "orient": "top-first",
+  "bytes": 613115,
+  "etc1s": {
+   "psnr": 39.467,
+   "de": 2.292,
+   "aflip": 0.0
+  }
+ },
+ "desk/roof_tile": {
+  "mode": "etc1s",
+  "psnr": 43.77,
+  "de": 1.268,
+  "de95": 3.66,
+  "aflip": 0.0,
+  "orient": "top-first",
+  "bytes": 84467,
+  "etc1s": {
+   "psnr": 43.773,
+   "de": 1.268,
+   "aflip": 0.0
+  }
+ },
+ "desk/school_standards": {
+  "mode": "etc1s",
+  "psnr": 35.61,
+  "de": 1.611,
+  "de95": 5.49,
+  "aflip": 0.0001,
+  "orient": "top-first",
+  "bytes": 102216,
+  "etc1s": {
+   "psnr": 35.61,
+   "de": 1.611,
+   "aflip": 0.0
+  }
+ },
+ "desk/signal_flags": {
+  "mode": "etc1s",
+  "psnr": 36.15,
+  "de": 1.779,
+  "de95": 4.06,
+  "aflip": 0.0005,
+  "orient": "top-first",
+  "bytes": 70670,
+  "etc1s": {
+   "psnr": 36.147,
+   "de": 1.779,
+   "aflip": 0.0
+  }
+ },
+ "desk/slips": {
+  "mode": "etc1s",
+  "psnr": 37.88,
+  "de": 1.367,
+  "de95": 3.77,
+  "aflip": 0.0,
+  "orient": "top-first",
+  "bytes": 177360,
+  "etc1s": {
+   "psnr": 37.88,
+   "de": 1.367,
+   "aflip": 0.0
+  }
+ },
+ "desk/slips_burnt": {
+  "mode": "uastc",
+  "psnr": 54.96,
+  "de": 0.337,
+  "de95": 1.05,
+  "aflip": 0.0,
+  "orient": "top-first",
+  "bytes": 690436,
+  "etc1s": {
+   "psnr": 40.332,
+   "de": 2.451,
+   "aflip": 0.0
+  }
+ },
+ "desk/smoke_card": {
+  "mode": "etc1s",
+  "psnr": 42.33,
+  "de": 0.992,
+  "de95": 2.63,
+  "aflip": 0.0003,
+  "orient": "top-first",
+  "bytes": 12648,
+  "etc1s": {
+   "psnr": 42.334,
+   "de": 0.992,
+   "aflip": 0.0
+  }
+ },
+ "desk/star_inlay": {
+  "mode": "etc1s",
+  "psnr": 48.19,
+  "de": 0.09,
+  "de95": 0.34,
+  "aflip": 0.0007,
+  "orient": "top-first",
+  "bytes": 55293,
+  "etc1s": {
+   "psnr": 48.194,
+   "de": 0.09,
+   "aflip": 0.001
+  }
+ },
+ "desk/stone_paving": {
+  "mode": "uastc",
+  "psnr": 56.77,
+  "de": 0.156,
+  "de95": 0.63,
+  "aflip": 0.0,
+  "orient": "top-first",
+  "bytes": 667371,
+  "etc1s": {
+   "psnr": 39.721,
+   "de": 2.635,
+   "aflip": 0.0
+  }
+ },
+ "desk/suit_bronze": {
+  "mode": "etc1s",
+  "psnr": 36.08,
+  "de": 1.767,
+  "de95": 4.83,
+  "aflip": 0.0,
+  "orient": "top-first",
+  "bytes": 48600,
+  "etc1s": {
+   "psnr": 36.085,
+   "de": 1.767,
+   "aflip": 0.0
+  }
+ },
+ "desk/suit_cloth": {
+  "mode": "uastc",
+  "psnr": 54.83,
+  "de": 0.255,
+  "de95": 0.82,
+  "aflip": 0.0,
+  "orient": "top-first",
+  "bytes": 181256,
+  "etc1s": {
+   "psnr": 39.142,
+   "de": 2.572,
+   "aflip": 0.0
+  }
+ },
+ "desk/suit_lamellar": {
+  "mode": "uastc",
+  "psnr": 50.21,
+  "de": 0.419,
+  "de95": 1.1,
+  "aflip": 0.0,
+  "orient": "top-first",
+  "bytes": 720404,
+  "etc1s": {
+   "psnr": 33.663,
+   "de": 2.483,
+   "aflip": 0.0
+  }
+ },
+ "desk/tile_ends": {
+  "mode": "uastc",
+  "psnr": 62.99,
+  "de": 0.045,
+  "de95": 0.65,
+  "aflip": 0.0,
+  "orient": "top-first",
+  "bytes": 79834,
+  "etc1s": {
+   "psnr": 37.586,
+   "de": 5.21,
+   "aflip": 0.0
+  }
+ },
+ "desk/timber": {
+  "mode": "etc1s",
+  "psnr": 41.07,
+  "de": 1.781,
+  "de95": 3.01,
+  "aflip": 0.0,
+  "orient": "top-first",
+  "bytes": 119803,
+  "etc1s": {
+   "psnr": 41.067,
+   "de": 1.781,
+   "aflip": 0.0
+  }
+ },
+ "desk/timber_burnt": {
+  "mode": "uastc",
+  "psnr": 53.61,
+  "de": 0.414,
+  "de95": 1.08,
+  "aflip": 0.0,
+  "orient": "top-first",
+  "bytes": 844358,
+  "etc1s": {
+   "psnr": 40.08,
+   "de": 2.671,
+   "aflip": 0.0
+  }
+ },
+ "desk/tread_belt": {
+  "mode": "uastc",
+  "psnr": 48.59,
+  "de": 0.479,
+  "de95": 1.77,
+  "aflip": 0.0,
+  "orient": "top-first",
+  "bytes": 3592,
+  "etc1s": {
+   "psnr": 33.308,
+   "de": 3.088,
+   "aflip": 0.0
+  }
+ },
+ "desk/wall_burnt": {
+  "mode": "uastc",
+  "psnr": 53.74,
+  "de": 0.373,
+  "de95": 1.08,
+  "aflip": 0.0,
+  "orient": "top-first",
+  "bytes": 917912,
+  "etc1s": {
+   "psnr": 40.106,
+   "de": 2.189,
+   "aflip": 0.0
+  }
+ },
+ "phone/apex_patina": {
+  "mode": "uastc",
+  "psnr": 45.73,
+  "de": 0.751,
+  "de95": 2.13,
+  "aflip": 0.0,
+  "orient": "top-first",
+  "bytes": 302617,
+  "etc1s": {
+   "psnr": 35.661,
+   "de": 2.478,
+   "aflip": 0.0
+  }
+ },
+ "phone/black_lake": {
+  "mode": "uastc",
+  "psnr": 52.62,
+  "de": 0.418,
+  "de95": 1.1,
+  "aflip": 0.0,
+  "orient": "top-first",
+  "bytes": 249414,
+  "etc1s": {
+   "psnr": 38.163,
+   "de": 3.133,
+   "aflip": 0.0
+  }
+ },
+ "phone/bronze_trim_brass": {
+  "mode": "uastc",
+  "psnr": 48.51,
+  "de": 0.419,
+  "de95": 1.34,
+  "aflip": 0.0,
+  "orient": "top-first",
+  "bytes": 242669,
+  "etc1s": {
+   "psnr": 35.289,
+   "de": 2.03,
+   "aflip": 0.0
+  }
+ },
+ "phone/bronze_trim_patina": {
+  "mode": "etc1s",
+  "psnr": 37.57,
+  "de": 1.724,
+  "de95": 4.11,
+  "aflip": 0.0,
+  "orient": "top-first",
+  "bytes": 69120,
+  "etc1s": {
+   "psnr": 37.569,
+   "de": 1.724,
+   "aflip": 0.0
+  }
+ },
+ "phone/door": {
+  "mode": "uastc",
+  "psnr": 52.89,
+  "de": 0.424,
+  "de95": 1.15,
+  "aflip": 0.0,
+  "orient": "top-first",
+  "bytes": 207593,
+  "etc1s": {
+   "psnr": 37.418,
+   "de": 2.871,
+   "aflip": 0.0
+  }
+ },
+ "phone/earth_burnt": {
+  "mode": "etc1s",
+  "psnr": 40.1,
+  "de": 1.599,
+  "de95": 2.38,
+  "aflip": 0.0,
+  "orient": "top-first",
+  "bytes": 73718,
+  "etc1s": {
+   "psnr": 40.1,
+   "de": 1.599,
+   "aflip": 0.0
+  }
+ },
+ "phone/flame_card": {
+  "mode": "etc1s",
+  "psnr": 44.72,
+  "de": 0.319,
+  "de95": 1.29,
+  "aflip": 0.0009,
+  "orient": "top-first",
+  "bytes": 9755,
+  "etc1s": {
+   "psnr": 44.724,
+   "de": 0.319,
+   "aflip": 0.001
+  }
+ },
+ "phone/floor_tiles": {
+  "mode": "uastc",
+  "psnr": 55.45,
+  "de": 0.224,
+  "de95": 0.93,
+  "aflip": 0.0,
+  "orient": "top-first",
+  "bytes": 215120,
+  "etc1s": {
+   "psnr": 39.511,
+   "de": 2.757,
+   "aflip": 0.0
+  }
+ },
+ "phone/fodder_trim": {
+  "mode": "uastc",
+  "psnr": 46.96,
+  "de": 0.611,
+  "de95": 1.66,
+  "aflip": 0.0,
+  "orient": "top-first",
+  "bytes": 281013,
+  "etc1s": {
+   "psnr": 35.331,
+   "de": 2.774,
+   "aflip": 0.0
+  }
+ },
+ "phone/garden_ground": {
+  "mode": "etc1s",
+  "psnr": 40.17,
+  "de": 1.398,
+  "de95": 4.5,
+  "aflip": 0.0,
+  "orient": "top-first",
+  "bytes": 56648,
+  "etc1s": {
+   "psnr": 40.17,
+   "de": 1.398,
+   "aflip": 0.0
+  }
+ },
+ "phone/garden_plants": {
+  "mode": "uastc",
+  "psnr": 31.8,
+  "de": 1.058,
+  "de95": 6.02,
+  "aflip": 0.0027,
+  "orient": "top-first",
+  "bytes": 129245,
+  "etc1s": {
+   "psnr": 26.806,
+   "de": 1.317,
+   "aflip": 0.005
+  }
+ },
+ "phone/hall_floor": {
+  "mode": "etc1s",
+  "psnr": 39.96,
+  "de": 1.802,
+  "de95": 3.02,
+  "aflip": 0.0,
+  "orient": "top-first",
+  "bytes": 61921,
+  "etc1s": {
+   "psnr": 39.956,
+   "de": 1.802,
+   "aflip": 0.0
+  }
+ },
+ "phone/hall_wall": {
+  "mode": "uastc",
+  "psnr": 50.05,
+  "de": 0.428,
+  "de95": 1.16,
+  "aflip": 0.0,
+  "orient": "top-first",
+  "bytes": 248699,
+  "etc1s": {
+   "psnr": 35.687,
+   "de": 3.059,
+   "aflip": 0.0
+  }
+ },
+ "phone/hollow_brick": {
+  "mode": "uastc",
+  "psnr": 53.83,
+  "de": 0.225,
+  "de95": 0.67,
+  "aflip": 0.0,
+  "orient": "top-first",
+  "bytes": 201753,
+  "etc1s": {
+   "psnr": 38.175,
+   "de": 3.042,
+   "aflip": 0.0
+  }
+ },
+ "phone/lion_stone": {
+  "mode": "uastc",
+  "psnr": 53.66,
+  "de": 0.376,
+  "de95": 0.92,
+  "aflip": 0.0,
+  "orient": "top-first",
+  "bytes": 261871,
+  "etc1s": {
+   "psnr": 39.502,
+   "de": 2.299,
+   "aflip": 0.0
+  }
+ },
+ "phone/mercury_matcap": {
+  "mode": "uastc",
+  "psnr": 54.46,
+  "de": 0.232,
+  "de95": 0.9,
+  "aflip": 0.0,
+  "orient": "top-first",
+  "bytes": 86783,
+  "etc1s": {
+   "psnr": 38.341,
+   "de": 3.587,
+   "aflip": 0.0
+  }
+ },
+ "phone/mural_wall": {
+  "mode": "uastc",
+  "psnr": 48.06,
+  "de": 0.467,
+  "de95": 1.21,
+  "aflip": 0.0,
+  "orient": "top-first",
+  "bytes": 250149,
+  "etc1s": {
+   "psnr": 34.291,
+   "de": 3.098,
+   "aflip": 0.0
+  }
+ },
+ "phone/pillar": {
+  "mode": "uastc",
+  "psnr": 53.45,
+  "de": 0.349,
+  "de95": 1.08,
+  "aflip": 0.0,
+  "orient": "top-first",
+  "bytes": 187592,
+  "etc1s": {
+   "psnr": 36.628,
+   "de": 2.491,
+   "aflip": 0.0
+  }
+ },
+ "phone/pond_water": {
+  "mode": "etc1s",
+  "psnr": 41.01,
+  "de": 1.057,
+  "de95": 3.41,
+  "aflip": 0.0,
+  "orient": "top-first",
+  "bytes": 58320,
+  "etc1s": {
+   "psnr": 41.014,
+   "de": 1.057,
+   "aflip": 0.0
+  }
+ },
+ "phone/rammed_earth": {
+  "mode": "etc1s",
+  "psnr": 41.46,
+  "de": 1.348,
+  "de95": 2.12,
+  "aflip": 0.0,
+  "orient": "top-first",
+  "bytes": 74539,
+  "etc1s": {
+   "psnr": 41.457,
+   "de": 1.348,
+   "aflip": 0.0
+  }
+ },
+ "phone/rammed_earth_core": {
+  "mode": "etc1s",
+  "psnr": 40.91,
+  "de": 1.143,
+  "de95": 2.86,
+  "aflip": 0.0,
+  "orient": "top-first",
+  "bytes": 77562,
+  "etc1s": {
+   "psnr": 40.911,
+   "de": 1.143,
+   "aflip": 0.0
+  }
+ },
+ "phone/river_stone": {
+  "mode": "uastc",
+  "psnr": 51.51,
+  "de": 0.365,
+  "de95": 1.01,
+  "aflip": 0.0,
+  "orient": "top-first",
+  "bytes": 226007,
+  "etc1s": {
+   "psnr": 38.071,
+   "de": 2.464,
+   "aflip": 0.0
+  }
+ },
+ "phone/roof_tile": {
+  "mode": "etc1s",
+  "psnr": 42.53,
+  "de": 1.483,
+  "de95": 4.35,
+  "aflip": 0.0,
+  "orient": "top-first",
+  "bytes": 30049,
+  "etc1s": {
+   "psnr": 42.532,
+   "de": 1.483,
+   "aflip": 0.0
+  }
+ },
+ "phone/school_standards": {
+  "mode": "uastc",
+  "psnr": 38.26,
+  "de": 0.518,
+  "de95": 2.57,
+  "aflip": 0.0014,
+  "orient": "top-first",
+  "bytes": 130953,
+  "etc1s": {
+   "psnr": 29.451,
+   "de": 2.575,
+   "aflip": 0.001
+  }
+ },
+ "phone/signal_flags": {
+  "mode": "uastc",
+  "psnr": 44.96,
+  "de": 0.382,
+  "de95": 1.79,
+  "aflip": 0.0003,
+  "orient": "top-first",
+  "bytes": 78492,
+  "etc1s": {
+   "psnr": 32.41,
+   "de": 2.377,
+   "aflip": 0.001
+  }
+ },
+ "phone/slips": {
+  "mode": "etc1s",
+  "psnr": 36.74,
+  "de": 1.499,
+  "de95": 4.81,
+  "aflip": 0.0,
+  "orient": "top-first",
+  "bytes": 64060,
+  "etc1s": {
+   "psnr": 36.738,
+   "de": 1.499,
+   "aflip": 0.0
+  }
+ },
+ "phone/slips_burnt": {
+  "mode": "uastc",
+  "psnr": 53.61,
+  "de": 0.432,
+  "de95": 1.09,
+  "aflip": 0.0,
+  "orient": "top-first",
+  "bytes": 223444,
+  "etc1s": {
+   "psnr": 39.887,
+   "de": 2.537,
+   "aflip": 0.0
+  }
+ },
+ "phone/smoke_card": {
+  "mode": "etc1s",
+  "psnr": 42.33,
+  "de": 0.992,
+  "de95": 2.63,
+  "aflip": 0.0003,
+  "orient": "top-first",
+  "bytes": 12648,
+  "etc1s": {
+   "psnr": 42.334,
+   "de": 0.992,
+   "aflip": 0.0
+  }
+ },
+ "phone/star_inlay": {
+  "mode": "uastc",
+  "psnr": 35.07,
+  "de": 0.334,
+  "de95": 1.27,
+  "aflip": 0.0012,
+  "orient": "top-first",
+  "bytes": 52556,
+  "etc1s": {
+   "psnr": 29.407,
+   "de": 0.531,
+   "aflip": 0.002
+  }
+ },
+ "phone/stone_paving": {
+  "mode": "uastc",
+  "psnr": 54.53,
+  "de": 0.246,
+  "de95": 0.88,
+  "aflip": 0.0,
+  "orient": "top-first",
+  "bytes": 223302,
+  "etc1s": {
+   "psnr": 39.194,
+   "de": 2.732,
+   "aflip": 0.0
+  }
+ },
+ "phone/suit_bronze": {
+  "mode": "etc1s",
+  "psnr": 36.08,
+  "de": 1.767,
+  "de95": 4.83,
+  "aflip": 0.0,
+  "orient": "top-first",
+  "bytes": 48600,
+  "etc1s": {
+   "psnr": 36.085,
+   "de": 1.767,
+   "aflip": 0.0
+  }
+ },
+ "phone/suit_cloth": {
+  "mode": "uastc",
+  "psnr": 54.83,
+  "de": 0.255,
+  "de95": 0.82,
+  "aflip": 0.0,
+  "orient": "top-first",
+  "bytes": 181256,
+  "etc1s": {
+   "psnr": 39.142,
+   "de": 2.572,
+   "aflip": 0.0
+  }
+ },
+ "phone/suit_lamellar": {
+  "mode": "uastc",
+  "psnr": 47.22,
+  "de": 0.583,
+  "de95": 1.62,
+  "aflip": 0.0,
+  "orient": "top-first",
+  "bytes": 221402,
+  "etc1s": {
+   "psnr": 31.841,
+   "de": 2.918,
+   "aflip": 0.0
+  }
+ },
+ "phone/tile_ends": {
+  "mode": "uastc",
+  "psnr": 60.61,
+  "de": 0.062,
+  "de95": 0.68,
+  "aflip": 0.0,
+  "orient": "top-first",
+  "bytes": 39063,
+  "etc1s": {
+   "psnr": 37.472,
+   "de": 5.227,
+   "aflip": 0.0
+  }
+ },
+ "phone/timber": {
+  "mode": "etc1s",
+  "psnr": 40.33,
+  "de": 1.815,
+  "de95": 3.27,
+  "aflip": 0.0,
+  "orient": "top-first",
+  "bytes": 43897,
+  "etc1s": {
+   "psnr": 40.327,
+   "de": 1.815,
+   "aflip": 0.0
+  }
+ },
+ "phone/timber_burnt": {
+  "mode": "uastc",
+  "psnr": 51.76,
+  "de": 0.543,
+  "de95": 1.24,
+  "aflip": 0.0,
+  "orient": "top-first",
+  "bytes": 255398,
+  "etc1s": {
+   "psnr": 38.691,
+   "de": 2.936,
+   "aflip": 0.0
+  }
+ },
+ "phone/tread_belt": {
+  "mode": "uastc",
+  "psnr": 48.59,
+  "de": 0.479,
+  "de95": 1.77,
+  "aflip": 0.0,
+  "orient": "top-first",
+  "bytes": 3592,
+  "etc1s": {
+   "psnr": 33.308,
+   "de": 3.088,
+   "aflip": 0.0
+  }
+ },
+ "phone/wall_burnt": {
+  "mode": "uastc",
+  "psnr": 52.01,
+  "de": 0.509,
+  "de95": 1.19,
+  "aflip": 0.0,
+  "orient": "top-first",
+  "bytes": 270690,
+  "etc1s": {
+   "psnr": 39.354,
+   "de": 2.41,
+   "aflip": 0.0
+  }
+ }
+}

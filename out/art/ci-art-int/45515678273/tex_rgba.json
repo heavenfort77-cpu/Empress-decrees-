@@ -1,0 +1,1575 @@
+{
+ "errs": [],
+ "rows": [
+  {
+   "tag": "rgba/desk/etc1s/apex_patina",
+   "ok": true,
+   "w": 1024,
+   "h": 1024,
+   "format": 1023,
+   "mips": 11,
+   "ms": 79,
+   "err": 0
+  },
+  {
+   "tag": "rgba/desk/etc1s/black_lake",
+   "ok": true,
+   "w": 1024,
+   "h": 1024,
+   "format": 1023,
+   "mips": 11,
+   "ms": 94,
+   "err": 0
+  },
+  {
+   "tag": "rgba/desk/etc1s/bronze_trim_brass",
+   "ok": true,
+   "w": 1024,
+   "h": 1024,
+   "format": 1023,
+   "mips": 11,
+   "ms": 119,
+   "err": 0
+  },
+  {
+   "tag": "rgba/desk/etc1s/bronze_trim_patina",
+   "ok": true,
+   "w": 1024,
+   "h": 1024,
+   "format": 1023,
+   "mips": 11,
+   "ms": 110,
+   "err": 0
+  },
+  {
+   "tag": "rgba/desk/etc1s/door",
+   "ok": true,
+   "w": 1024,
+   "h": 1024,
+   "format": 1023,
+   "mips": 11,
+   "ms": 96,
+   "err": 0
+  },
+  {
+   "tag": "rgba/desk/etc1s/earth_burnt",
+   "ok": true,
+   "w": 1024,
+   "h": 1024,
+   "format": 1023,
+   "mips": 11,
+   "ms": 121,
+   "err": 0
+  },
+  {
+   "tag": "rgba/desk/etc1s/flame_card",
+   "ok": true,
+   "w": 256,
+   "h": 256,
+   "format": 1023,
+   "mips": 9,
+   "ms": 91,
+   "err": 0
+  },
+  {
+   "tag": "rgba/desk/etc1s/floor_tiles",
+   "ok": true,
+   "w": 1024,
+   "h": 1024,
+   "format": 1023,
+   "mips": 11,
+   "ms": 14,
+   "err": 0
+  },
+  {
+   "tag": "rgba/desk/etc1s/fodder_trim",
+   "ok": true,
+   "w": 1024,
+   "h": 1024,
+   "format": 1023,
+   "mips": 11,
+   "ms": 13,
+   "err": 0
+  },
+  {
+   "tag": "rgba/desk/etc1s/garden_ground",
+   "ok": true,
+   "w": 1024,
+   "h": 1024,
+   "format": 1023,
+   "mips": 11,
+   "ms": 113,
+   "err": 0
+  },
+  {
+   "tag": "rgba/desk/etc1s/garden_plants",
+   "ok": true,
+   "w": 1024,
+   "h": 1024,
+   "format": 1023,
+   "mips": 11,
+   "ms": 91,
+   "err": 0
+  },
+  {
+   "tag": "rgba/desk/etc1s/hall_floor",
+   "ok": true,
+   "w": 1024,
+   "h": 1024,
+   "format": 1023,
+   "mips": 11,
+   "ms": 115,
+   "err": 0
+  },
+  {
+   "tag": "rgba/desk/etc1s/hall_wall",
+   "ok": true,
+   "w": 1024,
+   "h": 1024,
+   "format": 1023,
+   "mips": 11,
+   "ms": 88,
+   "err": 0
+  },
+  {
+   "tag": "rgba/desk/etc1s/hollow_brick",
+   "ok": true,
+   "w": 1024,
+   "h": 1024,
+   "format": 1023,
+   "mips": 11,
+   "ms": 125,
+   "err": 0
+  },
+  {
+   "tag": "rgba/desk/etc1s/lion_stone",
+   "ok": true,
+   "w": 1024,
+   "h": 1024,
+   "format": 1023,
+   "mips": 11,
+   "ms": 112,
+   "err": 0
+  },
+  {
+   "tag": "rgba/desk/etc1s/mercury_matcap",
+   "ok": true,
+   "w": 1024,
+   "h": 1024,
+   "format": 1023,
+   "mips": 11,
+   "ms": 117,
+   "err": 0
+  },
+  {
+   "tag": "rgba/desk/etc1s/mural_wall",
+   "ok": true,
+   "w": 1024,
+   "h": 1024,
+   "format": 1023,
+   "mips": 11,
+   "ms": 12,
+   "err": 0
+  },
+  {
+   "tag": "rgba/desk/etc1s/pillar",
+   "ok": true,
+   "w": 1024,
+   "h": 1024,
+   "format": 1023,
+   "mips": 11,
+   "ms": 124,
+   "err": 0
+  },
+  {
+   "tag": "rgba/desk/etc1s/pond_water",
+   "ok": true,
+   "w": 1024,
+   "h": 1024,
+   "format": 1023,
+   "mips": 11,
+   "ms": 120,
+   "err": 0
+  },
+  {
+   "tag": "rgba/desk/etc1s/rammed_earth",
+   "ok": true,
+   "w": 1024,
+   "h": 1024,
+   "format": 1023,
+   "mips": 11,
+   "ms": 123,
+   "err": 0
+  },
+  {
+   "tag": "rgba/desk/etc1s/rammed_earth_core",
+   "ok": true,
+   "w": 1024,
+   "h": 1024,
+   "format": 1023,
+   "mips": 11,
+   "ms": 123,
+   "err": 0
+  },
+  {
+   "tag": "rgba/desk/etc1s/river_stone",
+   "ok": true,
+   "w": 1024,
+   "h": 1024,
+   "format": 1023,
+   "mips": 11,
+   "ms": 99,
+   "err": 0
+  },
+  {
+   "tag": "rgba/desk/etc1s/roof_tile",
+   "ok": true,
+   "w": 1024,
+   "h": 1024,
+   "format": 1023,
+   "mips": 11,
+   "ms": 98,
+   "err": 0
+  },
+  {
+   "tag": "rgba/desk/etc1s/school_standards",
+   "ok": true,
+   "w": 1024,
+   "h": 1024,
+   "format": 1023,
+   "mips": 11,
+   "ms": 84,
+   "err": 0
+  },
+  {
+   "tag": "rgba/desk/etc1s/signal_flags",
+   "ok": true,
+   "w": 1024,
+   "h": 1024,
+   "format": 1023,
+   "mips": 11,
+   "ms": 11,
+   "err": 0
+  },
+  {
+   "tag": "rgba/desk/etc1s/slips",
+   "ok": true,
+   "w": 1024,
+   "h": 1024,
+   "format": 1023,
+   "mips": 11,
+   "ms": 109,
+   "err": 0
+  },
+  {
+   "tag": "rgba/desk/etc1s/slips_burnt",
+   "ok": true,
+   "w": 1024,
+   "h": 1024,
+   "format": 1023,
+   "mips": 11,
+   "ms": 116,
+   "err": 0
+  },
+  {
+   "tag": "rgba/desk/etc1s/smoke_card",
+   "ok": true,
+   "w": 256,
+   "h": 256,
+   "format": 1023,
+   "mips": 9,
+   "ms": 91,
+   "err": 0
+  },
+  {
+   "tag": "rgba/desk/etc1s/star_inlay",
+   "ok": true,
+   "w": 1024,
+   "h": 1024,
+   "format": 1023,
+   "mips": 11,
+   "ms": 10,
+   "err": 0
+  },
+  {
+   "tag": "rgba/desk/etc1s/stone_paving",
+   "ok": true,
+   "w": 1024,
+   "h": 1024,
+   "format": 1023,
+   "mips": 11,
+   "ms": 119,
+   "err": 0
+  },
+  {
+   "tag": "rgba/desk/etc1s/suit_bronze",
+   "ok": true,
+   "w": 512,
+   "h": 512,
+   "format": 1023,
+   "mips": 10,
+   "ms": 115,
+   "err": 0
+  },
+  {
+   "tag": "rgba/desk/etc1s/suit_cloth",
+   "ok": true,
+   "w": 512,
+   "h": 512,
+   "format": 1023,
+   "mips": 10,
+   "ms": 14,
+   "err": 0
+  },
+  {
+   "tag": "rgba/desk/etc1s/suit_lamellar",
+   "ok": true,
+   "w": 1024,
+   "h": 1024,
+   "format": 1023,
+   "mips": 11,
+   "ms": 11,
+   "err": 0
+  },
+  {
+   "tag": "rgba/desk/etc1s/tile_ends",
+   "ok": true,
+   "w": 1024,
+   "h": 1024,
+   "format": 1023,
+   "mips": 11,
+   "ms": 105,
+   "err": 0
+  },
+  {
+   "tag": "rgba/desk/etc1s/timber",
+   "ok": true,
+   "w": 1024,
+   "h": 1024,
+   "format": 1023,
+   "mips": 11,
+   "ms": 102,
+   "err": 0
+  },
+  {
+   "tag": "rgba/desk/etc1s/timber_burnt",
+   "ok": true,
+   "w": 1024,
+   "h": 1024,
+   "format": 1023,
+   "mips": 11,
+   "ms": 94,
+   "err": 0
+  },
+  {
+   "tag": "rgba/desk/etc1s/tread_belt",
+   "ok": true,
+   "w": 128,
+   "h": 64,
+   "format": 1023,
+   "mips": 8,
+   "ms": 87,
+   "err": 0
+  },
+  {
+   "tag": "rgba/desk/etc1s/wall_burnt",
+   "ok": true,
+   "w": 1024,
+   "h": 1024,
+   "format": 1023,
+   "mips": 11,
+   "ms": 12,
+   "err": 0
+  },
+  {
+   "tag": "rgba/desk/uastc/apex_patina",
+   "ok": true,
+   "w": 1024,
+   "h": 1024,
+   "format": 1023,
+   "mips": 11,
+   "ms": 140,
+   "err": 0
+  },
+  {
+   "tag": "rgba/desk/uastc/black_lake",
+   "ok": true,
+   "w": 1024,
+   "h": 1024,
+   "format": 1023,
+   "mips": 11,
+   "ms": 103,
+   "err": 0
+  },
+  {
+   "tag": "rgba/desk/uastc/bronze_trim_brass",
+   "ok": true,
+   "w": 1024,
+   "h": 1024,
+   "format": 1023,
+   "mips": 11,
+   "ms": 23,
+   "err": 0
+  },
+  {
+   "tag": "rgba/desk/uastc/bronze_trim_patina",
+   "ok": true,
+   "w": 1024,
+   "h": 1024,
+   "format": 1023,
+   "mips": 11,
+   "ms": 114,
+   "err": 0
+  },
+  {
+   "tag": "rgba/desk/uastc/door",
+   "ok": true,
+   "w": 1024,
+   "h": 1024,
+   "format": 1023,
+   "mips": 11,
+   "ms": 99,
+   "err": 0
+  },
+  {
+   "tag": "rgba/desk/uastc/earth_burnt",
+   "ok": true,
+   "w": 1024,
+   "h": 1024,
+   "format": 1023,
+   "mips": 11,
+   "ms": 140,
+   "err": 0
+  },
+  {
+   "tag": "rgba/desk/uastc/flame_card",
+   "ok": true,
+   "w": 256,
+   "h": 256,
+   "format": 1023,
+   "mips": 9,
+   "ms": 92,
+   "err": 0
+  },
+  {
+   "tag": "rgba/desk/uastc/floor_tiles",
+   "ok": true,
+   "w": 1024,
+   "h": 1024,
+   "format": 1023,
+   "mips": 11,
+   "ms": 26,
+   "err": 0
+  },
+  {
+   "tag": "rgba/desk/uastc/fodder_trim",
+   "ok": true,
+   "w": 1024,
+   "h": 1024,
+   "format": 1023,
+   "mips": 11,
+   "ms": 102,
+   "err": 0
+  },
+  {
+   "tag": "rgba/desk/uastc/garden_ground",
+   "ok": true,
+   "w": 1024,
+   "h": 1024,
+   "format": 1023,
+   "mips": 11,
+   "ms": 122,
+   "err": 0
+  },
+  {
+   "tag": "rgba/desk/uastc/garden_plants",
+   "ok": true,
+   "w": 1024,
+   "h": 1024,
+   "format": 1023,
+   "mips": 11,
+   "ms": 12,
+   "err": 0
+  },
+  {
+   "tag": "rgba/desk/uastc/hall_floor",
+   "ok": true,
+   "w": 1024,
+   "h": 1024,
+   "format": 1023,
+   "mips": 11,
+   "ms": 131,
+   "err": 0
+  },
+  {
+   "tag": "rgba/desk/uastc/hall_wall",
+   "ok": true,
+   "w": 1024,
+   "h": 1024,
+   "format": 1023,
+   "mips": 11,
+   "ms": 100,
+   "err": 0
+  },
+  {
+   "tag": "rgba/desk/uastc/hollow_brick",
+   "ok": true,
+   "w": 1024,
+   "h": 1024,
+   "format": 1023,
+   "mips": 11,
+   "ms": 141,
+   "err": 0
+  },
+  {
+   "tag": "rgba/desk/uastc/lion_stone",
+   "ok": true,
+   "w": 1024,
+   "h": 1024,
+   "format": 1023,
+   "mips": 11,
+   "ms": 114,
+   "err": 0
+  },
+  {
+   "tag": "rgba/desk/uastc/mercury_matcap",
+   "ok": true,
+   "w": 1024,
+   "h": 1024,
+   "format": 1023,
+   "mips": 11,
+   "ms": 127,
+   "err": 0
+  },
+  {
+   "tag": "rgba/desk/uastc/mural_wall",
+   "ok": true,
+   "w": 1024,
+   "h": 1024,
+   "format": 1023,
+   "mips": 11,
+   "ms": 130,
+   "err": 0
+  },
+  {
+   "tag": "rgba/desk/uastc/pillar",
+   "ok": true,
+   "w": 1024,
+   "h": 1024,
+   "format": 1023,
+   "mips": 11,
+   "ms": 141,
+   "err": 0
+  },
+  {
+   "tag": "rgba/desk/uastc/pond_water",
+   "ok": true,
+   "w": 1024,
+   "h": 1024,
+   "format": 1023,
+   "mips": 11,
+   "ms": 38,
+   "err": 0
+  },
+  {
+   "tag": "rgba/desk/uastc/rammed_earth",
+   "ok": true,
+   "w": 1024,
+   "h": 1024,
+   "format": 1023,
+   "mips": 11,
+   "ms": 150,
+   "err": 0
+  },
+  {
+   "tag": "rgba/desk/uastc/rammed_earth_core",
+   "ok": true,
+   "w": 1024,
+   "h": 1024,
+   "format": 1023,
+   "mips": 11,
+   "ms": 129,
+   "err": 0
+  },
+  {
+   "tag": "rgba/desk/uastc/river_stone",
+   "ok": true,
+   "w": 1024,
+   "h": 1024,
+   "format": 1023,
+   "mips": 11,
+   "ms": 122,
+   "err": 0
+  },
+  {
+   "tag": "rgba/desk/uastc/roof_tile",
+   "ok": true,
+   "w": 1024,
+   "h": 1024,
+   "format": 1023,
+   "mips": 11,
+   "ms": 119,
+   "err": 0
+  },
+  {
+   "tag": "rgba/desk/uastc/school_standards",
+   "ok": true,
+   "w": 1024,
+   "h": 1024,
+   "format": 1023,
+   "mips": 11,
+   "ms": 93,
+   "err": 0
+  },
+  {
+   "tag": "rgba/desk/uastc/signal_flags",
+   "ok": true,
+   "w": 1024,
+   "h": 1024,
+   "format": 1023,
+   "mips": 11,
+   "ms": 126,
+   "err": 0
+  },
+  {
+   "tag": "rgba/desk/uastc/slips",
+   "ok": true,
+   "w": 1024,
+   "h": 1024,
+   "format": 1023,
+   "mips": 11,
+   "ms": 128,
+   "err": 0
+  },
+  {
+   "tag": "rgba/desk/uastc/slips_burnt",
+   "ok": true,
+   "w": 1024,
+   "h": 1024,
+   "format": 1023,
+   "mips": 11,
+   "ms": 35,
+   "err": 0
+  },
+  {
+   "tag": "rgba/desk/uastc/smoke_card",
+   "ok": true,
+   "w": 256,
+   "h": 256,
+   "format": 1023,
+   "mips": 9,
+   "ms": 90,
+   "err": 0
+  },
+  {
+   "tag": "rgba/desk/uastc/star_inlay",
+   "ok": true,
+   "w": 1024,
+   "h": 1024,
+   "format": 1023,
+   "mips": 11,
+   "ms": 16,
+   "err": 0
+  },
+  {
+   "tag": "rgba/desk/uastc/stone_paving",
+   "ok": true,
+   "w": 1024,
+   "h": 1024,
+   "format": 1023,
+   "mips": 11,
+   "ms": 129,
+   "err": 0
+  },
+  {
+   "tag": "rgba/desk/uastc/suit_bronze",
+   "ok": true,
+   "w": 512,
+   "h": 512,
+   "format": 1023,
+   "mips": 10,
+   "ms": 124,
+   "err": 0
+  },
+  {
+   "tag": "rgba/desk/uastc/suit_cloth",
+   "ok": true,
+   "w": 512,
+   "h": 512,
+   "format": 1023,
+   "mips": 10,
+   "ms": 16,
+   "err": 0
+  },
+  {
+   "tag": "rgba/desk/uastc/suit_lamellar",
+   "ok": true,
+   "w": 1024,
+   "h": 1024,
+   "format": 1023,
+   "mips": 11,
+   "ms": 64,
+   "err": 0
+  },
+  {
+   "tag": "rgba/desk/uastc/tile_ends",
+   "ok": true,
+   "w": 1024,
+   "h": 1024,
+   "format": 1023,
+   "mips": 11,
+   "ms": 113,
+   "err": 0
+  },
+  {
+   "tag": "rgba/desk/uastc/timber",
+   "ok": true,
+   "w": 1024,
+   "h": 1024,
+   "format": 1023,
+   "mips": 11,
+   "ms": 22,
+   "err": 0
+  },
+  {
+   "tag": "rgba/desk/uastc/timber_burnt",
+   "ok": true,
+   "w": 1024,
+   "h": 1024,
+   "format": 1023,
+   "mips": 11,
+   "ms": 100,
+   "err": 0
+  },
+  {
+   "tag": "rgba/desk/uastc/tread_belt",
+   "ok": true,
+   "w": 128,
+   "h": 64,
+   "format": 1023,
+   "mips": 8,
+   "ms": 90,
+   "err": 0
+  },
+  {
+   "tag": "rgba/desk/uastc/wall_burnt",
+   "ok": true,
+   "w": 1024,
+   "h": 1024,
+   "format": 1023,
+   "mips": 11,
+   "ms": 27,
+   "err": 0
+  },
+  {
+   "tag": "rgba/phone/etc1s/apex_patina",
+   "ok": true,
+   "w": 512,
+   "h": 512,
+   "format": 1023,
+   "mips": 10,
+   "ms": 96,
+   "err": 0
+  },
+  {
+   "tag": "rgba/phone/etc1s/black_lake",
+   "ok": true,
+   "w": 512,
+   "h": 512,
+   "format": 1023,
+   "mips": 10,
+   "ms": 12,
+   "err": 0
+  },
+  {
+   "tag": "rgba/phone/etc1s/bronze_trim_brass",
+   "ok": true,
+   "w": 512,
+   "h": 512,
+   "format": 1023,
+   "mips": 10,
+   "ms": 28,
+   "err": 0
+  },
+  {
+   "tag": "rgba/phone/etc1s/bronze_trim_patina",
+   "ok": true,
+   "w": 512,
+   "h": 512,
+   "format": 1023,
+   "mips": 10,
+   "ms": 29,
+   "err": 0
+  },
+  {
+   "tag": "rgba/phone/etc1s/door",
+   "ok": true,
+   "w": 512,
+   "h": 512,
+   "format": 1023,
+   "mips": 10,
+   "ms": 4,
+   "err": 0
+  },
+  {
+   "tag": "rgba/phone/etc1s/earth_burnt",
+   "ok": true,
+   "w": 512,
+   "h": 512,
+   "format": 1023,
+   "mips": 10,
+   "ms": 30,
+   "err": 0
+  },
+  {
+   "tag": "rgba/phone/etc1s/flame_card",
+   "ok": true,
+   "w": 256,
+   "h": 256,
+   "format": 1023,
+   "mips": 9,
+   "ms": 23,
+   "err": 0
+  },
+  {
+   "tag": "rgba/phone/etc1s/floor_tiles",
+   "ok": true,
+   "w": 512,
+   "h": 512,
+   "format": 1023,
+   "mips": 10,
+   "ms": 7,
+   "err": 0
+  },
+  {
+   "tag": "rgba/phone/etc1s/fodder_trim",
+   "ok": true,
+   "w": 512,
+   "h": 512,
+   "format": 1023,
+   "mips": 10,
+   "ms": 22,
+   "err": 0
+  },
+  {
+   "tag": "rgba/phone/etc1s/garden_ground",
+   "ok": true,
+   "w": 512,
+   "h": 512,
+   "format": 1023,
+   "mips": 10,
+   "ms": 29,
+   "err": 0
+  },
+  {
+   "tag": "rgba/phone/etc1s/garden_plants",
+   "ok": true,
+   "w": 512,
+   "h": 512,
+   "format": 1023,
+   "mips": 10,
+   "ms": 23,
+   "err": 0
+  },
+  {
+   "tag": "rgba/phone/etc1s/hall_floor",
+   "ok": true,
+   "w": 512,
+   "h": 512,
+   "format": 1023,
+   "mips": 10,
+   "ms": 31,
+   "err": 0
+  },
+  {
+   "tag": "rgba/phone/etc1s/hall_wall",
+   "ok": true,
+   "w": 512,
+   "h": 512,
+   "format": 1023,
+   "mips": 10,
+   "ms": 5,
+   "err": 0
+  },
+  {
+   "tag": "rgba/phone/etc1s/hollow_brick",
+   "ok": true,
+   "w": 512,
+   "h": 512,
+   "format": 1023,
+   "mips": 10,
+   "ms": 33,
+   "err": 0
+  },
+  {
+   "tag": "rgba/phone/etc1s/lion_stone",
+   "ok": true,
+   "w": 512,
+   "h": 512,
+   "format": 1023,
+   "mips": 10,
+   "ms": 27,
+   "err": 0
+  },
+  {
+   "tag": "rgba/phone/etc1s/mercury_matcap",
+   "ok": true,
+   "w": 512,
+   "h": 512,
+   "format": 1023,
+   "mips": 10,
+   "ms": 30,
+   "err": 0
+  },
+  {
+   "tag": "rgba/phone/etc1s/mural_wall",
+   "ok": true,
+   "w": 512,
+   "h": 512,
+   "format": 1023,
+   "mips": 10,
+   "ms": 30,
+   "err": 0
+  },
+  {
+   "tag": "rgba/phone/etc1s/pillar",
+   "ok": true,
+   "w": 512,
+   "h": 512,
+   "format": 1023,
+   "mips": 10,
+   "ms": 31,
+   "err": 0
+  },
+  {
+   "tag": "rgba/phone/etc1s/pond_water",
+   "ok": true,
+   "w": 512,
+   "h": 512,
+   "format": 1023,
+   "mips": 10,
+   "ms": 27,
+   "err": 0
+  },
+  {
+   "tag": "rgba/phone/etc1s/rammed_earth",
+   "ok": true,
+   "w": 512,
+   "h": 512,
+   "format": 1023,
+   "mips": 10,
+   "ms": 32,
+   "err": 0
+  },
+  {
+   "tag": "rgba/phone/etc1s/rammed_earth_core",
+   "ok": true,
+   "w": 512,
+   "h": 512,
+   "format": 1023,
+   "mips": 10,
+   "ms": 6,
+   "err": 0
+  },
+  {
+   "tag": "rgba/phone/etc1s/river_stone",
+   "ok": true,
+   "w": 512,
+   "h": 512,
+   "format": 1023,
+   "mips": 10,
+   "ms": 26,
+   "err": 0
+  },
+  {
+   "tag": "rgba/phone/etc1s/roof_tile",
+   "ok": true,
+   "w": 512,
+   "h": 512,
+   "format": 1023,
+   "mips": 10,
+   "ms": 25,
+   "err": 0
+  },
+  {
+   "tag": "rgba/phone/etc1s/school_standards",
+   "ok": true,
+   "w": 512,
+   "h": 512,
+   "format": 1023,
+   "mips": 10,
+   "ms": 23,
+   "err": 0
+  },
+  {
+   "tag": "rgba/phone/etc1s/signal_flags",
+   "ok": true,
+   "w": 512,
+   "h": 512,
+   "format": 1023,
+   "mips": 10,
+   "ms": 30,
+   "err": 0
+  },
+  {
+   "tag": "rgba/phone/etc1s/slips",
+   "ok": true,
+   "w": 512,
+   "h": 512,
+   "format": 1023,
+   "mips": 10,
+   "ms": 30,
+   "err": 0
+  },
+  {
+   "tag": "rgba/phone/etc1s/slips_burnt",
+   "ok": true,
+   "w": 512,
+   "h": 512,
+   "format": 1023,
+   "mips": 10,
+   "ms": 28,
+   "err": 0
+  },
+  {
+   "tag": "rgba/phone/etc1s/smoke_card",
+   "ok": true,
+   "w": 256,
+   "h": 256,
+   "format": 1023,
+   "mips": 9,
+   "ms": 23,
+   "err": 0
+  },
+  {
+   "tag": "rgba/phone/etc1s/star_inlay",
+   "ok": true,
+   "w": 512,
+   "h": 512,
+   "format": 1023,
+   "mips": 10,
+   "ms": 12,
+   "err": 0
+  },
+  {
+   "tag": "rgba/phone/etc1s/stone_paving",
+   "ok": true,
+   "w": 512,
+   "h": 512,
+   "format": 1023,
+   "mips": 10,
+   "ms": 30,
+   "err": 0
+  },
+  {
+   "tag": "rgba/phone/etc1s/suit_bronze",
+   "ok": true,
+   "w": 512,
+   "h": 512,
+   "format": 1023,
+   "mips": 10,
+   "ms": 32,
+   "err": 0
+  },
+  {
+   "tag": "rgba/phone/etc1s/suit_cloth",
+   "ok": true,
+   "w": 512,
+   "h": 512,
+   "format": 1023,
+   "mips": 10,
+   "ms": 25,
+   "err": 0
+  },
+  {
+   "tag": "rgba/phone/etc1s/suit_lamellar",
+   "ok": true,
+   "w": 512,
+   "h": 512,
+   "format": 1023,
+   "mips": 10,
+   "ms": 36,
+   "err": 0
+  },
+  {
+   "tag": "rgba/phone/etc1s/tile_ends",
+   "ok": true,
+   "w": 512,
+   "h": 512,
+   "format": 1023,
+   "mips": 10,
+   "ms": 25,
+   "err": 0
+  },
+  {
+   "tag": "rgba/phone/etc1s/timber",
+   "ok": true,
+   "w": 512,
+   "h": 512,
+   "format": 1023,
+   "mips": 10,
+   "ms": 24,
+   "err": 0
+  },
+  {
+   "tag": "rgba/phone/etc1s/timber_burnt",
+   "ok": true,
+   "w": 512,
+   "h": 512,
+   "format": 1023,
+   "mips": 10,
+   "ms": 22,
+   "err": 0
+  },
+  {
+   "tag": "rgba/phone/etc1s/tread_belt",
+   "ok": true,
+   "w": 128,
+   "h": 64,
+   "format": 1023,
+   "mips": 8,
+   "ms": 8,
+   "err": 0
+  },
+  {
+   "tag": "rgba/phone/etc1s/wall_burnt",
+   "ok": true,
+   "w": 512,
+   "h": 512,
+   "format": 1023,
+   "mips": 10,
+   "ms": 5,
+   "err": 0
+  },
+  {
+   "tag": "rgba/phone/uastc/apex_patina",
+   "ok": true,
+   "w": 512,
+   "h": 512,
+   "format": 1023,
+   "mips": 10,
+   "ms": 31,
+   "err": 0
+  },
+  {
+   "tag": "rgba/phone/uastc/black_lake",
+   "ok": true,
+   "w": 512,
+   "h": 512,
+   "format": 1023,
+   "mips": 10,
+   "ms": 27,
+   "err": 0
+  },
+  {
+   "tag": "rgba/phone/uastc/bronze_trim_brass",
+   "ok": true,
+   "w": 512,
+   "h": 512,
+   "format": 1023,
+   "mips": 10,
+   "ms": 35,
+   "err": 0
+  },
+  {
+   "tag": "rgba/phone/uastc/bronze_trim_patina",
+   "ok": true,
+   "w": 512,
+   "h": 512,
+   "format": 1023,
+   "mips": 10,
+   "ms": 29,
+   "err": 0
+  },
+  {
+   "tag": "rgba/phone/uastc/door",
+   "ok": true,
+   "w": 512,
+   "h": 512,
+   "format": 1023,
+   "mips": 10,
+   "ms": 25,
+   "err": 0
+  },
+  {
+   "tag": "rgba/phone/uastc/earth_burnt",
+   "ok": true,
+   "w": 512,
+   "h": 512,
+   "format": 1023,
+   "mips": 10,
+   "ms": 32,
+   "err": 0
+  },
+  {
+   "tag": "rgba/phone/uastc/flame_card",
+   "ok": true,
+   "w": 256,
+   "h": 256,
+   "format": 1023,
+   "mips": 9,
+   "ms": 3,
+   "err": 0
+  },
+  {
+   "tag": "rgba/phone/uastc/floor_tiles",
+   "ok": true,
+   "w": 512,
+   "h": 512,
+   "format": 1023,
+   "mips": 10,
+   "ms": 13,
+   "err": 0
+  },
+  {
+   "tag": "rgba/phone/uastc/fodder_trim",
+   "ok": true,
+   "w": 512,
+   "h": 512,
+   "format": 1023,
+   "mips": 10,
+   "ms": 24,
+   "err": 0
+  },
+  {
+   "tag": "rgba/phone/uastc/garden_ground",
+   "ok": true,
+   "w": 512,
+   "h": 512,
+   "format": 1023,
+   "mips": 10,
+   "ms": 31,
+   "err": 0
+  },
+  {
+   "tag": "rgba/phone/uastc/garden_plants",
+   "ok": true,
+   "w": 512,
+   "h": 512,
+   "format": 1023,
+   "mips": 10,
+   "ms": 22,
+   "err": 0
+  },
+  {
+   "tag": "rgba/phone/uastc/hall_floor",
+   "ok": true,
+   "w": 512,
+   "h": 512,
+   "format": 1023,
+   "mips": 10,
+   "ms": 34,
+   "err": 0
+  },
+  {
+   "tag": "rgba/phone/uastc/hall_wall",
+   "ok": true,
+   "w": 512,
+   "h": 512,
+   "format": 1023,
+   "mips": 10,
+   "ms": 31,
+   "err": 0
+  },
+  {
+   "tag": "rgba/phone/uastc/hollow_brick",
+   "ok": true,
+   "w": 512,
+   "h": 512,
+   "format": 1023,
+   "mips": 10,
+   "ms": 38,
+   "err": 0
+  },
+  {
+   "tag": "rgba/phone/uastc/lion_stone",
+   "ok": true,
+   "w": 512,
+   "h": 512,
+   "format": 1023,
+   "mips": 10,
+   "ms": 7,
+   "err": 0
+  },
+  {
+   "tag": "rgba/phone/uastc/mercury_matcap",
+   "ok": true,
+   "w": 512,
+   "h": 512,
+   "format": 1023,
+   "mips": 10,
+   "ms": 33,
+   "err": 0
+  },
+  {
+   "tag": "rgba/phone/uastc/mural_wall",
+   "ok": true,
+   "w": 512,
+   "h": 512,
+   "format": 1023,
+   "mips": 10,
+   "ms": 29,
+   "err": 0
+  },
+  {
+   "tag": "rgba/phone/uastc/pillar",
+   "ok": true,
+   "w": 512,
+   "h": 512,
+   "format": 1023,
+   "mips": 10,
+   "ms": 34,
+   "err": 0
+  },
+  {
+   "tag": "rgba/phone/uastc/pond_water",
+   "ok": true,
+   "w": 512,
+   "h": 512,
+   "format": 1023,
+   "mips": 10,
+   "ms": 31,
+   "err": 0
+  },
+  {
+   "tag": "rgba/phone/uastc/rammed_earth",
+   "ok": true,
+   "w": 512,
+   "h": 512,
+   "format": 1023,
+   "mips": 10,
+   "ms": 31,
+   "err": 0
+  },
+  {
+   "tag": "rgba/phone/uastc/rammed_earth_core",
+   "ok": true,
+   "w": 512,
+   "h": 512,
+   "format": 1023,
+   "mips": 10,
+   "ms": 33,
+   "err": 0
+  },
+  {
+   "tag": "rgba/phone/uastc/river_stone",
+   "ok": true,
+   "w": 512,
+   "h": 512,
+   "format": 1023,
+   "mips": 10,
+   "ms": 28,
+   "err": 0
+  },
+  {
+   "tag": "rgba/phone/uastc/roof_tile",
+   "ok": true,
+   "w": 512,
+   "h": 512,
+   "format": 1023,
+   "mips": 10,
+   "ms": 6,
+   "err": 0
+  },
+  {
+   "tag": "rgba/phone/uastc/school_standards",
+   "ok": true,
+   "w": 512,
+   "h": 512,
+   "format": 1023,
+   "mips": 10,
+   "ms": 24,
+   "err": 0
+  },
+  {
+   "tag": "rgba/phone/uastc/signal_flags",
+   "ok": true,
+   "w": 512,
+   "h": 512,
+   "format": 1023,
+   "mips": 10,
+   "ms": 30,
+   "err": 0
+  },
+  {
+   "tag": "rgba/phone/uastc/slips",
+   "ok": true,
+   "w": 512,
+   "h": 512,
+   "format": 1023,
+   "mips": 10,
+   "ms": 28,
+   "err": 0
+  },
+  {
+   "tag": "rgba/phone/uastc/slips_burnt",
+   "ok": true,
+   "w": 512,
+   "h": 512,
+   "format": 1023,
+   "mips": 10,
+   "ms": 29,
+   "err": 0
+  },
+  {
+   "tag": "rgba/phone/uastc/smoke_card",
+   "ok": true,
+   "w": 256,
+   "h": 256,
+   "format": 1023,
+   "mips": 9,
+   "ms": 24,
+   "err": 0
+  },
+  {
+   "tag": "rgba/phone/uastc/star_inlay",
+   "ok": true,
+   "w": 512,
+   "h": 512,
+   "format": 1023,
+   "mips": 10,
+   "ms": 9,
+   "err": 0
+  },
+  {
+   "tag": "rgba/phone/uastc/stone_paving",
+   "ok": true,
+   "w": 512,
+   "h": 512,
+   "format": 1023,
+   "mips": 10,
+   "ms": 33,
+   "err": 0
+  },
+  {
+   "tag": "rgba/phone/uastc/suit_bronze",
+   "ok": true,
+   "w": 512,
+   "h": 512,
+   "format": 1023,
+   "mips": 10,
+   "ms": 6,
+   "err": 0
+  },
+  {
+   "tag": "rgba/phone/uastc/suit_cloth",
+   "ok": true,
+   "w": 512,
+   "h": 512,
+   "format": 1023,
+   "mips": 10,
+   "ms": 28,
+   "err": 0
+  },
+  {
+   "tag": "rgba/phone/uastc/suit_lamellar",
+   "ok": true,
+   "w": 512,
+   "h": 512,
+   "format": 1023,
+   "mips": 10,
+   "ms": 36,
+   "err": 0
+  },
+  {
+   "tag": "rgba/phone/uastc/tile_ends",
+   "ok": true,
+   "w": 512,
+   "h": 512,
+   "format": 1023,
+   "mips": 10,
+   "ms": 29,
+   "err": 0
+  },
+  {
+   "tag": "rgba/phone/uastc/timber",
+   "ok": true,
+   "w": 512,
+   "h": 512,
+   "format": 1023,
+   "mips": 10,
+   "ms": 23,
+   "err": 0
+  },
+  {
+   "tag": "rgba/phone/uastc/timber_burnt",
+   "ok": true,
+   "w": 512,
+   "h": 512,
+   "format": 1023,
+   "mips": 10,
+   "ms": 26,
+   "err": 0
+  },
+  {
+   "tag": "rgba/phone/uastc/tread_belt",
+   "ok": true,
+   "w": 128,
+   "h": 64,
+   "format": 1023,
+   "mips": 8,
+   "ms": 23,
+   "err": 0
+  },
+  {
+   "tag": "rgba/phone/uastc/wall_burnt",
+   "ok": true,
+   "w": 512,
+   "h": 512,
+   "format": 1023,
+   "mips": 10,
+   "ms": 8,
+   "err": 0
+  },
+  {
+   "tag": "rgba/mut/noalpha__smoke_card",
+   "ok": true,
+   "w": 256,
+   "h": 256,
+   "format": 1023,
+   "mips": 9,
+   "ms": 2,
+   "err": 0
+  },
+  {
+   "tag": "rgba/mut/nomip__pillar",
+   "ok": true,
+   "w": 1024,
+   "h": 1024,
+   "format": 1023,
+   "mips": 1,
+   "ms": 13,
+   "err": 0
+  },
+  {
+   "tag": "rgba/mut/poster__hall_floor",
+   "ok": true,
+   "w": 1024,
+   "h": 1024,
+   "format": 1023,
+   "mips": 11,
+   "ms": 124,
+   "err": 0
+  },
+  {
+   "tag": "rgba/mut/q1__hall_floor",
+   "ok": true,
+   "w": 1024,
+   "h": 1024,
+   "format": 1023,
+   "mips": 11,
+   "ms": 89,
+   "err": 0
+  },
+  {
+   "tag": "rgba/mut/swap__hall_wall",
+   "ok": true,
+   "w": 1024,
+   "h": 1024,
+   "format": 1023,
+   "mips": 11,
+   "ms": 90,
+   "err": 0
+  }
+ ]
+}
