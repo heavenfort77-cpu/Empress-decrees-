@@ -1,0 +1,104 @@
+SHARD 2 of 12: statements 496, prelude 13, always 18, valid cuts 206, cuts at lines 262,665,1400,1723,2210,2766,3286,3824,4014,4070,4072; weight ms
+FAIL 50 wake: live cubs fly home as plates and are gone by the hunt, new run restarts waves; 7 cubs with tells inside budget, no shader compile, memory flat :: {"before":3,"cleared":true,"fusing":3,"fusePlates":3,"noneInHunt":true,"reset":true,"best":{"tells":3,"alive":7,"calls":28,"tris":2042,"programs":17,"geoms":291}}
+FAIL 55 buff creatures: lost with a fallen section (no boon, drawn again), cleared by the wake, switch off, memory and shaders flat :: {"lost":true,"boons":0,"redrawn":true,"backOnLiveGround":true,"geoms":291,"programs":17,"wake":true,"off":true}
+FAIL 57 budget: 9 suits + 7 cubs + tells drawn (calls<500, tris<500k), no shader compile, geometry flat :: {"tells":3,"bots":8,"cubs":7,"calls":36,"tris":2138,"programs":17,"geoms":291}
+FAIL 58 new run x3 with bots: fresh bots, memory and shaders flat :: [{"fresh":true,"geoms":291,"texs":29,"programs":17},{"fresh":true,"geoms":291,"texs":29,"programs":17},{"fresh":true,"geoms":291,"texs":29,"programs":17}]
+FAIL 74 budget with the crown: 9 suits + cubs + tells + crown (calls<500, tris<500k), no shader compile, geometry flat :: {"tells":3,"crown":true,"cubs":7,"calls":37,"tris":2162,"programs":17,"geoms":291}
+RUNTIME 32 of 37 pass
+SIM leader win share (longest leader wins) 1 of 12; player >=1 plate 3 of 12; decided 187.9,187.8,198.7,203.1,187.6,179,208,189.5,181.8,180.4,225.8,215.5
+SIM per seed decided/place/player out/winner spawn: 12345 187.9/9/hit@130/8; 2 187.8/5/hit@164/7; 3 198.7/2/bleed@199/6; 4 203.1/1/won/2; 5 187.6/9/hit@123/0; 6 179/2/hit@179/5; 7 208/8/hit@113/6; 8 189.5/4/hit@168/3; 9 181.8/9/hit@129/3; 10 180.4/6/hit@134/8; 11 225.8/9/hit@125/8; 12 215.5/6/hit@143/4
+SIM bounties 0,1,0,1,1,1,2,1,0,0,1,0 paid 0,0,0,0,1,1,2,1,0,0,1,0; fight share on 0.82 off 0.17; bounty-on-player ticks 1974, cap max off 1 on 1
+SIM kennel autopilot (P5 proxy): player >=1 plate 12 of 12 (old autopilot 3 of 12); reached camp 19 of 26 free warnings; leader win share 2 of 12; decided 193.8,191.6,215.3,210.1,181.1,189.4,165.1,198.4,180.9,188.7,172.1,189.3; player out 181,142,139,139,won,171,148,128,145,124,won,144
+SIM decrees per match 3,3,3,3,3,2,2,2,3,3,3,3; order 12345:heights,silence,nodash | 2:nodash,heights,bounty,silence | 3:ult2x,heights,dry | 4:heights,dry,bounty,nodash | 5:heights,dry,bounty,ult2x | 6:heights,nodash,bounty | 7:ult2x,bounty,heights,bounty | 8:nodash,dry,bounty | 9:silence,heights,dry | 10:nodash,dry,heights | 11:nodash,dry,ult2x,bounty | 12:silence,ult2x,nodash; breaks player 0,0,2,0,0,0,0,0,0,0,0,0 bots 0,1,0,0,0,0,1,0,0,0,0,0; player marked ticks 422, cap max 2; bots on heights max 0.02 s
+ok   01 load without errors 
+ok   02 budget follow view (calls<500, tris<500k) :: calls 35, tris 8464
+ok   03 budget overview, all sections (calls<500, tris<500k) :: calls 84, tris 10550
+ok   48 plate: flight shown, buff slot, ultimate charge, bleed on hits, speed, oldest slot replaced, expiry :: {"dead":true,"flying":true,"takenBefore":0,"slot0":"stalker","t0":44.96666666666667,"status":"Stalker plate 45s","rule":"Stalker plate: your hits cause bleeding for 45 s. +30 ultimate charge.","plateG
+ok   49 collapse: cub lost with its section, no plate; fallen camp spawns nothing and is not announced :: {"onRoof":1,"lost":true,"taken":0,"slots":"","wave":2,"noSpawn":true,"banner2":false}
+FAIL 50 wake: live cubs fly home as plates and are gone by the hunt, new run restarts waves; 7 cubs with tells inside budget, no shader compile, memory flat :: {"before":3,"cleared":true,"fusing":3,"fusePlates":3,"noneInHunt":true,"reset":true,"best":{"tells":3,"alive":7,"calls":28,"tris":2042,"programs":17,"geoms":291}}
+ok   51 bot farms the west camp 170 s: 0 broken invariants, takes plates, never dies :: {"viol":[],"taken":2,"minHp":100,"deaths":0,"hits":0,"wave":3}
+ok   52 marble bags: full cycles without repeats, seeded, all spots standable; cubs and minions faster than the suit :: {"cycles":true,"same":true,"differs":true,"spotsOk":true,"speeds":[6.6,6.6,6]}
+ok   53 buff creature: bag-drawn time, place, boon and size; announced; passive; next time drawn at the kill :: {"first":[35,45],"noneAt0":true,"kind":"crab","alive":true,"rule":"A crab is in: Centre courtyard, south. Kill it for a boon.","voice":"Something scuttleth in Our courts.","atSpot":true,"boon":"ult","
+ok   54 boons: ultimate charge, heal, power, regen, vision, speed at the drawn size; under the cap; they end; HUD text :: {"ult":30,"wantUlt":30,"ultRule":"Boon: +30 ultimate charge.","heal":10,"wantHeal":10,"powerHit":27.5,"wantHit":27.500000000000004,"status":"Power 40s","regen":1.9999999999998863,"wantRegen":2,"visR":
+FAIL 55 buff creatures: lost with a fallen section (no boon, drawn again), cleared by the wake, switch off, memory and shaders flat :: {"lost":true,"boons":0,"redrawn":true,"backOnLiveGround":true,"geoms":291,"programs":17,"wake":true,"off":true}
+ok   56 bots: 8 at the other spawns, roam 230 s: on a floor every tick, never stuck > 3 s, <= 1 path search per step, seen only in vision, every out has a cause :: {"n":8,"distinct":true,"inScene":true,"navPeak":1,"navPerStep":0.0427,"stuck":0.77,"out":["bleed","hit","hit","hit","hit","hit"],"noCause":0,"navMs":{"median":0,"max":2.4},"viol":[]}
+FAIL 57 budget: 9 suits + 7 cubs + tells drawn (calls<500, tris<500k), no shader compile, geometry flat :: {"tells":3,"bots":8,"cubs":7,"calls":36,"tris":2138,"programs":17,"geoms":291}
+FAIL 58 new run x3 with bots: fresh bots, memory and shaders flat :: [{"fresh":true,"geoms":291,"texs":29,"programs":17},{"fresh":true,"geoms":291,"texs":29,"programs":17},{"fresh":true,"geoms":291,"texs":29,"programs":17}]
+ok   59 bot target: answers its attacker, switches to the player on sight, keeps the player while seen, lets go out of sight :: {"first":2,"onSight":0,"kept":true,"away":2}
+ok   60 bots take plates and boons: plate to the bot that broke the cub (slot, ultimate charge), boon to the last hitter, none to the player :: {"plates":1,"slot":"stalker","gain":30,"playerPlates":0,"boons":1,"power":true,"playerBoons":0}
+ok   61 dodge: bot by a stone lion 8 s, lion tells at least twice, bot takes no damage :: {"tells":2,"hp":100,"dead":false}
+ok   62 flee: two bots fighting on the roof leave it within the 5 s warning and live :: {"start":["ROOF","ROOF"],"fight":["fight","fight"],"dead":[false,false],"zone":["C2","C2"]}
+ok   63 heal: a bot at 30 health walks to a charged altar and heals past 60 :: {"mode":"heal","hp":70,"near":32.4}
+ok   64 royale end: H off in a match, broken player = frozen loss with place and New run, New run restores bots, void fall = loss, last suit standing starts the hunt :: {"btnHidden":true,"hNoop":true,"lost":true,"place":"Your suit is broken. Place 9 of 9. N: new run","voice":"Broken before Our eyes. We shall not trouble to remember thy school.","btn":"block","btnText
+ok   65 whole matches x12: decided in 150-255 s, 0 broken invariants, every out has a cause, bots take plates and boons, no spawn wins more than 3 of 6 :: {"out":[{"seed":12345,"decided":187.9,"winner":8,"player":"hit@130","place":9,"playerFirst":true,"nocause":0},{"seed":2,"decided":187.8,"winner":7,"player":"hit@164","place":5,"playerFirst":false,"noc
+ok   67 hunter slot: at most maxHunters bots switch to the player at any tick over 6 matches (3+ bots seeing the player happened) :: {"hv":[],"see3":18768,"maxOnP":5,"maxHunt":1} places 9,5,2,1,9,2,8,4,9,6,9,6
+ok   68 hunter slot: one of 3 switches; frees on hunter death and another claims it; held until hunterLoseS out of sight, then freed; claimed again in sight :: {"before":{"slots":0,"flagged":0,"huntOnP":0,"capOnP":0,"onP":0,"seeP":0,"id":-1,"claims":0,"frees":0,"max":1,"bountyP":false,"markP":false},"one":{"slots":1,"flagged":1,"huntOnP":1,"capOnP":1,"onP":1
+ok   69 leader: matches the rule every tick over 6 matches, no flip on a tie, none before the first plate or kill, crown on the leader only :: {"lv":[],"lchanges":43,"leadersSeen":63253,"preLeadBad":0}
+ok   72 cap and bounty in matches: player cap holds every tick (1, or 3 under a bounty on the player), bots fight a seen leader more under the bounty :: {"cv":[],"capOff":1,"capOn":1,"bountyPTicks":1974,"capMark":2,"markPTicks":422} share on 0.82 (733) off 0.17 (8474) controlled {"bounty":{"on":true,"t":117,"share":0.249},"control":{"on":true,"t":117,
+ok   70 crown and HUD: none at start; plate = leader with crown shown only in vision; tie keeps; kill breaks the tie; player leader; HUD written only on change :: {"start":{"id":-1,"leadT":0,"changes":0,"writes":1,"hud":"Leader: Dao suit  (bounty 40 s)","hudShown":"none","crownOn":false,"crownId":-1,"crownShown":false,"mini":false,"dec":0,"decKey":"","decT":0,"
+ok   71 bounty: queued off collapse banners, told >= 5 s after 25 s of lead, lasts 40 s, pays only for breaking the leader in force, ends on leader out and at the wake, none in the hunt, new run x3 resets, keys :: {"queued":1,"warn":{"at":60.01666666666454,"voice":"A bounty lieth upon the leader.","rule":"Bounty on the leader (Dao suit) in 5 s: break them for a full ultimate.","shown":"block","sinceLead":33.02}
+ok   84 bounty paced like a decree: due during the gap it waits for it; a drawn gap follows it before the next decree :: {"due":86,"early":-1,"warnAt":100.02,"key":"bounty","endAt":145.03,"why":"time","next":160.03,"nextWarn":160.03,"gapMin":5}
+ok   73 player cap: 1 bot by any rule but hitting back, 2 answer the player's hits, up to 3 under a bounty on the player and back to 1 after :: {"near":0,"nearMax":1,"hitMax":2,"onMax":3,"afterMax":1,"afterBad":0,"onP":true}
+FAIL 74 budget with the crown: 9 suits + cubs + tells + crown (calls<500, tris<500k), no shader compile, geometry flat :: {"tells":3,"crown":true,"cubs":7,"calls":37,"tris":2162,"programs":17,"geoms":291}
+ok   75 decree bags: full cycles without repeats, seeded, gone places skipped (no bridge, heights or fallen zone after their collapse) :: {"cycles":true,"same":true,"differs":true,"picks":"dry nodash:C1 nodash:C2 nodash:CORE ult2x","goneOk":true}
+ok   76 decrees: dry, ultimates 2x, bridge silence, heights, no dash each do what their line says and only while in force :: {"warnHeal":true,"dryHeal":0,"dryLook":true,"hud":"Decree: altars do not heal (2 s)","hudShown":"block","endSt":0,"afterHeal":true,"afterLook":true,"hudGone":"none","ultWarn":1,"ultOn":2,"botWarn":1,"
+ok   77 penalty and mark: 30% slow 2 s, mark 5 s seen by every bot and by the player, marker hides at the end, cap 2 while the player is marked and 1 after :: {"capMax":2,"afterBad":0,"seesBefore":false,"slow":[2,0.3],"mark":5,"marker":true,"seesAfter":true,"cap":2,"dx":2.1,"want":2.1,"botSeen":true,"botVis":true,"botMini":true,"markEnd":0,"markerEnd":false
+ok   78 decrees in 12 matches: told >= 5 s, not under a collapse banner, never two at once, HUD only on change, bots off the heights, decrees every match :: {"dv":[],"hiStay":0.02,"dsum":[{"seed":12345,"told":3,"w":[47.03,102.07,150.02],"n":3,"keys":"heights,silence,nodash","brkP":0,"brkB":0,"writes":100},{"seed":2,"told":4,"w":[45.02,105.05,155.07,166.37
+ok   83 decree pacing: 3-4 decrees told (bounty included) in each of 12 matches, about one a minute (mean warning to warning <= 60 s), no banner over a decree warning, no heights break near a warned section :: told 12345:3,2:4,3:3,4:4,5:4,6:3,7:4,8:3,9:3,10:3,11:4,12:3; mean warning to warning 51.5 s (29 gaps); bannerOv 0; heights breaks 4, near warned 0
+ok   85 kennel autopilot (test proxy): reaches an announced camp in at least half of its free warnings and takes a plate in more of 12 matches than the old autopilot :: {"out":[{"seed":12345,"decided":193.8,"pPlates":3,"out":181,"topLeader":0,"winId":7},{"seed":2,"decided":191.6,"pPlates":3,"out":142,"topLeader":0,"winId":8},{"seed":3,"decided":215.3,"pPlates":2,"out
+ok   86 kennel autopilot fixed scene: walks to the announced camp, fights the cub there and takes its plate before 75 s :: {"modes":{"":1440,"roam":102,"camp":336,"creature":309,"dodge":87},"plates":1,"dead":false,"t":37.9}
+STMT 42 141
+STMT 43 679
+STMT 46 2246
+STMT 48 7
+STMT 50 5
+STMT 52 4
+STMT 53 7
+STMT 55 2
+STMT 57 2
+STMT 365 2
+STMT 626 2
+STMT 665 92
+STMT 685 99
+STMT 696 138
+STMT 713 260
+STMT 744 12
+STMT 759 26
+STMT 773 36
+STMT 792 230
+STMT 808 1763
+STMT 837 478
+STMT 854 1228
+STMT 863 35
+STMT 876 55
+STMT 878 61
+STMT 892 45
+STMT 903 261
+STMT 919 45
+STMT 930 96
+STMT 946 14601
+STMT 1057 35
+STMT 1082 767
+STMT 1111 549
+STMT 1124 6
+STMT 1133 1495
+STMT 1183 677
+STMT 1202 520
+STMT 1229 409
+STMT 1248 12
+STMT 1254 311
+STMT 1271 1149
+STMT 1318 335
+STMT 1350 10013
+STMT 1380 90
+STMT 1479 13
+STMT 1641 7
+STMT 1781 7
+STMT 1942 6
+STMT 2121 12
+STMT 2276 7
+STMT 2470 6
+STMT 2648 6
+STMT 2829 6
+STMT 3038 7
+STMT 4084 1429

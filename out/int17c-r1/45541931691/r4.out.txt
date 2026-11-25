@@ -1,0 +1,82 @@
+SHARD 4 of 12: statements 496, prelude 13, always 18, valid cuts 206, cuts at lines 262,665,1400,1723,2210,2766,3286,3824,4014,4070,4072; weight ms
+FAIL 103 budget with 法甲 effects: every suit + cubs + tells + 势 ring + exposed suit (calls<500, tris<500k), no shader compile, geometry flat :: {"tells":3,"ring":true,"exposed":true,"calls":36,"tris":2438,"programs":17,"geoms":291}
+FAIL 111 budget with 儒甲 effects: every suit + cubs + tells + 编钟 ring (calls<500, tris<500k), no shader compile, geometry flat :: {"tells":3,"ring":true,"calls":37,"tris":2250,"programs":17,"geoms":291}
+FAIL 120 budget with 墨甲 effects: every suit + cubs + tells + wall + lever tell + status count (calls<500, tris<500k), no shader compile, geometry flat :: {"tells":3,"wall":true,"pend":true,"status":"Nine defences 9","calls":38,"tris":2262,"programs":17,"geoms":291}
+RUNTIME 25 of 28 pass
+ok   01 load without errors 
+ok   02 budget follow view (calls<500, tris<500k) :: calls 35, tris 8464
+ok   03 budget overview, all sections (calls<500, tris<500k) :: calls 84, tris 10550
+ok   101 法甲 signature: exposure shows a far suit through the fog (body and minimap) for exposeS s; a decree breaker takes the passive bonus :: {"before":{"seen":false,"vis":false,"mini":[102,97,90]},"exposed":{"seen":true,"vis":true,"mini":[255,122,58]},"after":{"seen":false,"vis":false},"markedLost":12,"bonus":0.2}
+ok   102 法甲 in whole matches: on a floor and never stuck > 3 s, hunter cap every tick, the 法甲 bot casts Q, W and R (player 法甲 autopilot reported) :: {"viol":[],"casts":{"q":4,"w":2,"r":2},"player":{"q":3,"w":1,"r":1}}
+FAIL 103 budget with 法甲 effects: every suit + cubs + tells + 势 ring + exposed suit (calls<500, tris<500k), no shader compile, geometry flat :: {"tells":3,"ring":true,"exposed":true,"calls":36,"tris":2438,"programs":17,"geoms":291}
+ok   104 儒甲 passive: +bonus on the suit that last hit him only within lastS s; takes duelK of a blow with one enemy near, full with two; High armor :: {"kit":"ru","armorK":0.8235294117647058,"last":11.5,"other":10,"late":10,"duel2":1,"duel1":0.85,"takenDuel":14,"takenTwo":16.4706,"wantDuel":14,"wantTwo":16.4706,"wantLast":11.5}
+ok   105 儒甲 attack: sword within closeR, arrow beyond to range (an order shoots without walking in), every 6th hit a volley at mid or a heavy cut that pushes close :: {"atk0":0,"close":[10,10,10,10,10,20],"pushed":10,"mid":[8,8,8,8,8,24],"atkN":6,"order":{"hp":92,"moved":0}}
+ok   106 儒甲 Q: chariot dash of range m, hits every suit along its path and drives it sideways off the path; off-path and beyond-end suits untouched; cooldown :: {"cast":true,"hit":22,"off":0,"beyond":0,"travel":5,"side":-1.19,"cd":6.35}
+ok   107 儒甲 W: seal shot hits and turns the target's plates and boons off for seal s (Howler speed gone, back after); the player's status says Sealed, then not :: {"boon":true,"spdPlate":7.128000000000001,"cast":true,"dmg":15,"sealT":4,"spdSealed":6,"sealEnd":0,"spdAfter":7.128000000000001,"base":6,"status":"Sealed: plates and boons off","statusEnd":""}
+ok   108 儒甲 R: three rings, each told >= 0.4 s on the ground (radius m) before it lands, dmg + slow each, stun on the last, outside untouched, heals per suit hit, meter emptied, ring removed :: {"gaps":[],"on":{"lost":[18,36,54],"at":[0.6,1.3,2.017],"cast":true,"ring":{"in":true,"r":4.5,"n":1},"ch":0,"slow":[1.5,1.5,1.5],"stun":[0,0,0.6],"vis":[true,true,true,true,true,true,true,true,true,tr
+ok   109 儒甲 signature: 正名 on the leader turns its plates off for seal s while it keeps the lead; plates work again after :: {"leader0":1,"spd0":6.6000000000000005,"cast":true,"leader1":1,"spd1":6,"sealT":3.97,"leader2":1,"spd2":6.6000000000000005}
+ok   110 儒甲 in whole matches: on a floor and never stuck > 3 s, hunter cap every tick, the 儒甲 bot casts Q, W and R (player 儒甲 autopilot reported) :: {"viol":[],"casts":{"q":4,"w":4,"r":1},"player":{"q":1,"w":2,"r":1},"decided":[202.6,202.4,181.1,234.9]}
+FAIL 111 budget with 儒甲 effects: every suit + cubs + tells + 编钟 ring (calls<500, tris<500k), no shader compile, geometry flat :: {"tells":3,"ring":true,"calls":37,"tris":2250,"programs":17,"geoms":291}
+ok   112 墨甲 passive: +bonus on a suit that attacked someone within aggroS s only; takes stillK after standing still stillS s, full after moving; High armor; no dash skill :: {"kit":"mo","noDash":true,"aggr":8.4,"calm":7,"late":7,"stillK":0.8,"takenStill":13.1765,"movedK":1,"takenMoved":16.4706,"wantStill":13.1765,"wantMoved":16.4706,"wantAggr":8.4}
+ok   113 墨甲 attack: crossbow bolts of dmg every interval s out to range m without walking in; beyond range he walks :: {"inRange":{"hp":79,"moved":0},"far":{"moved":2.613}}
+ok   114 墨甲 Q: wall at the aim point, len x thick across the aim, drawn, cooldown; stops walking and bolts through it, not around it; not over a body; down after dur s :: {"onBody":false,"cdBody":0,"cast":true,"wall":{"up":true,"mesh":true,"dx":0.6,"dz":4,"cx":18,"n":1},"cd":10,"bolt":0,"cut":true,"clear":false,"walkX":17.17,"after":{"up":false,"mesh":false,"n":0},"bol
+ok   115 墨甲 W: lever shown for delay s (>= 0.4) with no damage before, then dmg and a fling away from him; off the plate untouched; through a broken-rail gap only :: {"cast":true,"pend":true,"tellS":0.6,"early":false,"dmg":8,"kx":23.99,"flung":1.97,"off":0,"gap":{"fell":true,"dead":true,"zone":"ROOF"},"rail":{"fell":false,"dead":false,"zone":"ROOF"}}
+ok   116 墨甲 R: meter emptied; the next nine blows do no damage and push the attacker away, status counts 9 to 0 and clears; the tenth hurts; unused ones end after dur s :: {"lost":[0,0,0,0,0,0,0,0,0,8.235],"left":[8,7,6,5,4,3,2,1,0,0],"text":["Nine defences 8","Nine defences 7","Nine defences 6","Nine defences 5","Nine defences 4","Nine defences 3","Nine defences 2","Ni
+ok   117 墨甲 vs the apex: the wall stops the demon's Pounce before it (player behind not hit; control without wall is hit) and refuses a minion's Flank through it :: {"cast":true,"wall":{"demonZ":-60.5,"hp":100,"hits":0},"open":{"demonZ":-55.5,"hp":88.14117647058823,"hits":1},"flankCast":true,"flankTells":0,"flankCut":true}
+ok   118 墨甲 vs the apex: lever flings a minion about unitM m but the demon only about demonM m; 九距之 turns the demon's claw back (no damage, 8 left, demon shoved) :: {"minion":3.78,"demon":0.85,"claw":{"hp":100,"left":8,"shove":0.75}}
+ok   119 墨甲 in whole matches: on a floor, nobody stuck > 3 s, walls down after dur, hunter cap every tick, the 墨甲 bot casts Q, W and R (player 墨甲 autopilot reported) :: {"viol":[],"casts":{"q":12,"qFlee":0,"w":9,"r":2},"player":{"q":1,"qFlee":0,"w":1,"r":0},"decided":[202.6,202.4,181.1,196.6],"wallMax":4.017}
+FAIL 120 budget with 墨甲 effects: every suit + cubs + tells + wall + lever tell + status count (calls<500, tris<500k), no shader compile, geometry flat :: {"tells":3,"wall":true,"pend":true,"status":"Nine defences 9","calls":38,"tris":2262,"programs":17,"geoms":291}
+ok   121 名甲 passive: hits in a row on one target climb 0, max/2, 3max/4 ... toward max (never reached), restart on another target or after gapS s, only 名甲; Low armor :: {"kit":"ming","row":[10,12,13,13.5,13.75,13.875,13.9375,13.9688,13.9844,13.9922,13.9961,13.998],"other":10,"back":10,"back2":12,"late":10,"want":[10,12,13,13.5,13.75,13.875,13.9375,13.9688,13.9844,13.
+ok   122 名甲 attack: the wheel is thrown without walking in, drawn while out, flies out to range and back, hits once out and once back (dmg, then with the passive); a wall turns it back :: {"moved":0,"seenOut":true,"maxGone":8.27,"hpOut":94,"hp":86.8,"back":true,"want":86.8,"wall":true,"wallHp":100,"wallGone":0.8}
+ok   123 名甲 Q: blink of range m (no hit), shadow drawn where he stood for shadowS s; a bot fighting him acts on the shadow only for those s (no blow lands), then on him; the auto-target takes a 名甲 bot's shadow for it :: {"before":0,"cd":9,"shadow":{"t":0.98,"x":14,"z":-20,"in":true,"vis":true},"during":"shadow0","blink":6,"at0":true,"hpDuring":0,"botHp":0,"after":0,"gone":true,"mingBot":"ming","pickBefore":6,"pickSha
+ok   124 名甲 W: line of range x width shown hang s (>= 0.4) with no damage before; a suit touching it is slowed; then dmg to a suit in it, none off it; cooldown :: {"cd":8,"line":{"len":8,"w":1.2,"vis":true},"slow":true,"toldS":0.983,"early":false,"hit":20,"off":0,"offSlow":false}
+ok   125 名甲 R: only on a full meter (emptied); the long line is shown hang s (>= 0.4) with no damage before; then dmg to every suit along it, none off it :: {"empty":false,"cast":true,"ch":0,"len":30,"toldS":0.983,"early":false,"hits":[45,45,0]}
+STMT 42 167
+STMT 43 1918
+STMT 46 1597
+STMT 48 12
+STMT 50 9
+STMT 52 5
+STMT 53 6
+STMT 55 5
+STMT 57 2
+STMT 365 3
+STMT 626 2
+STMT 876 59
+STMT 1248 13
+STMT 1479 2
+STMT 1641 2
+STMT 1723 2705
+STMT 1738 6532
+STMT 1762 516
+STMT 1781 48
+STMT 1787 102
+STMT 1808 54
+STMT 1826 44
+STMT 1838 113
+STMT 1852 78
+STMT 1884 67
+STMT 1898 8981
+STMT 1923 394
+STMT 1942 17
+STMT 1948 42
+STMT 1966 45
+STMT 1978 42
+STMT 1998 61
+STMT 2021 61
+STMT 2038 44
+STMT 2055 49
+STMT 2073 7947
+STMT 2102 366
+STMT 2121 22
+STMT 2127 36
+STMT 2143 25
+STMT 2163 34
+STMT 2184 70
+STMT 2197 26
+STMT 2276 22
+STMT 2470 6
+STMT 2648 10
+STMT 2829 5
+STMT 3038 6
+STMT 4084 4365

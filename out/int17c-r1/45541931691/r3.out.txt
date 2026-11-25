@@ -1,0 +1,67 @@
+SHARD 3 of 12: statements 496, prelude 13, always 18, valid cuts 206, cuts at lines 262,665,1400,1723,2210,2766,3286,3824,4014,4070,4072; weight ms
+FAIL 81 budget with 9 marks, the crown and the zone tint: 9 suits + cubs + tells (calls<500, tris<500k), no shader compile, geometry flat :: {"tells":3,"marks":9,"crown":true,"calls":46,"tris":2270,"programs":17,"geoms":291}
+FAIL 92 HUD charge: written only on change (0 writes while full, one per whole number gained), text and ring match the meter; budget, programs and geometry flat :: {"fullWrites":0,"fullText":"","fullCover":"none","writes":3,"changes":3,"text":"12","ring":"conic-gradient(rgb(255, 208, 96) 12%, rgba(0, 0, 0, 0) 0deg)","ringShown":"block","p":12.199999999999886,"calls":35,"programs":17,"geoms":291,"ok":true}
+FAIL 95 unseen: hidden from the player and bots beyond 3 m, shimmer within it, mark wins, ends on being hit, casting and its timer, new run clears it; programs and geometry flat :: {"before":{"seen":true,"sees":true},"on":{"t":2,"shimmer":true},"far":{"seen":false,"vis":false,"sees":false},"near":{"seen":true,"vis":true},"programs":17,"geoms":291,"hit":{"t":0,"seen":true,"shimmer":false},"mid":false,"timer":{"t":0,"seen":true},"pHidden":true,"pCast":{"t":0,"sees":true},"marked":{"seen":true,"sees":true},"reset":0,"ok":true}
+RUNTIME 18 of 21 pass
+ok   01 load without errors 
+ok   02 budget follow view (calls<500, tris<500k) :: calls 35, tris 8464
+ok   03 budget overview, all sections (calls<500, tris<500k) :: calls 84, tris 10550
+ok   79 W dash: 4 m on open ground, stops at a rail and a wall without falling, never off a sloped bridge, burst lands on landing :: {"open":4,"openZone":"C1","rail":{"z":8.5,"falling":false,"zone":"WB2","hp":1000000000},"wall":{"x":-19.5,"zone":"CORE","falling":false},"slope":{"z":-15.67,"falling":false,"zone":"WB1"},"burst":[100,
+ok   80 wake ends the decree, tint, marks and HUD; none in the hunt; new run x3 resets slot, bags and counts; zone named; text keys :: {"dryOn":true,"wake":{"st":0,"zone":null,"tint":false,"marks":0,"hud":"none","altars":true},"hunt":{"st":0,"n":0},"runs":[{"st":0,"n":0,"next":35,"brk":0,"log":0,"marks":0,"hud":"none"},{"st":0,"n":0,
+FAIL 81 budget with 9 marks, the crown and the zone tint: 9 suits + cubs + tells (calls<500, tris<500k), no shader compile, geometry flat :: {"tells":3,"marks":9,"crown":true,"calls":46,"tris":2270,"programs":17,"geoms":291}
+ok   82 replay: a run starts from the same state and one seed played twice in a row gives the same match :: [0,35,0,-60,18,-1,-99,-99,0,0,false,false,false] vs [208.03,112.62,[5,37.03,42.03,-1,82.05,0,4,127.63,132.63,-1,177.65,0],0,1] vs [0,35,0,-60,18,-1,-99,-99,0,0,false,false,false] vs [208.03,112.62,[5,
+ok   87 charge sources: passive per second, per health dealt and taken (capped at health lost), kill bonus, player and bot, nothing while broken (CONFIG.ULT) :: {"passive":[1.9999999999999953,1.9999999999999953,1.9999999999999953],"wantPassive":2,"pDealt":2.5,"bTaken":1,"bDealt":2,"pTaken":0.8,"pTakenNoHitter":0.6000000000000001,"bKill":21.25,"bKillWant":21.2
+ok   88 charge wording: boon, plate and 2x decree lines say charge, not cooldown :: [["boon_ult","Boon: +{v} ultimate charge."],["rule_plate_s","Stalker plate: your hits cause bleeding for {s} s. +{c} ultimate charge."],["rule_plate_h","Howler plate: +{p}% speed for {s} s. +{c} ultim
+ok   89 meter gate: no R under a full meter (player and bot); the cast empties it and starts no cooldown in the royale :: {"pUnder":false,"pUnderCh":99.9,"pUnderN":0,"pFull":true,"pAfterCh":0,"pCd":0,"pN":1,"pAgain":false,"bFought":true,"bUnderN":0,"bUnderCd":0,"bTgt":2,"bN":1,"bCastCh":0,"bCd":0,"ok":true}
+ok   90 wake and hunt: the wake fills the meter; in the hunt R keeps its 30 s cooldown, the meter does not gate or gain, ring hidden :: {"wake":{"p":100,"ultN":0,"meter":false,"ready":true,"writes":262,"text":"0","cover":"block","ring":"conic-gradient(rgb(255, 208, 96) 0%, rgba(0, 0, 0, 0) 0deg)","ringShown":"block","bots":[]},"hunt":
+ok   91 new run x3: every suit's meter and ultimate count reset (after a charged royale and after a hunt) :: [{"p":0.008333333333333333,"n":0,"bots":[0,0.008333333333333333,0.008333333333333333,0,0.008333333333333333,0.008333333333333333,0.008333333333333333,0.008333333333333333],"bn":[0,0,0,0,0,0,0,0],"text
+FAIL 92 HUD charge: written only on change (0 writes while full, one per whole number gained), text and ring match the meter; budget, programs and geometry flat :: {"fullWrites":0,"fullText":"","fullCover":"none","writes":3,"changes":3,"text":"12","ring":"conic-gradient(rgb(255, 208, 96) 12%, rgba(0, 0, 0, 0) 0deg)","ringShown":"block","p":12.199999999999886,"ca
+ok   93 suit stats: armor on hits and bleed (Low takes more, High less, Mid unchanged), statue/lion, drop and test damage fixed, speed tiers in m/s, a new run back to its kit :: {"mid":true,"low":29.1667,"high":20.5882,"midHit":25,"wantLow":29.1667,"wantHigh":20.5882,"testFixed":10,"bleed":3.294,"wantBleed":3.294,"lion":20,"drop":8,"vLow":2.8,"vMid":3,"vHigh":3.2,"want":[2.8,
+ok   94 school select: 9 schools + random (44 px), frozen while open, keys 1-9 / 0 / Enter, pick stored, bots take the other eight with names and colours, HUD line, New run opens it :: {"open":true,"n":10,"small":0,"last0":true,"frozen":true,"keysIgnored":true,"pick":2,"closed":true,"hud":"Your school: Fa suit","player":"fa","bots":"ru,dao,mo,yinyang,za,ming,zongheng,nong","wantBots
+FAIL 95 unseen: hidden from the player and bots beyond 3 m, shimmer within it, mark wins, ends on being hit, casting and its timer, new run clears it; programs and geometry flat :: {"before":{"seen":true,"sees":true},"on":{"t":2,"shimmer":true},"far":{"seen":false,"vis":false,"sees":false},"near":{"seen":true,"vis":true},"programs":17,"geoms":291,"hit":{"t":0,"seen":true,"shimme
+ok   96 kit framework: nine schools in order with their stat tiers, all on the placeholder kit at Mid until built, default pick keeps the bots' order, skill tags, text keys :: {"order":"ru,dao,fa,mo,yinyang,za,ming,zongheng,nong","tiers":true,"unbuilt":true,"placeholder":true,"player":"ru","bots":"Dao suit,Fa suit,Mo suit,Yinyang suit,Za suit,Ming suit,Zongheng suit,Nong su
+ok   97 法甲 passive: +bonus on the leader and on a marked suit, no stacking, only 法甲 gets it :: {"player":"fa","plain":10,"leaderId":2,"leader":12,"marked":12,"both":12,"other":10,"bonus":0.2}
+ok   98 法甲 Q: pursuit dash of range m (no hit at 8 m), longRange against the leader, a marked suit or under half health (lands and hits) :: {"plain":{"ok":true,"travel":5,"lost":0},"leader":{"ok":true,"travel":7.2,"lost":30},"half":{"ok":true,"travel":7.2,"lost":25},"marked":{"ok":true,"travel":7.2,"lost":30},"range":5,"long":7.5,"dmg":25
+ok   99 法甲 W: unseen dur s (shimmer within 3 m), first hit (also after a cast from it) exposes the target to every suit for exposeS s, no mark, cap unchanged; late or after being hit no exposure :: {"before":true,"cast":true,"unseen":1.98,"far":false,"near":true,"expT":3,"seenFar":true,"mark":0,"cap":1,"endUnseen":0,"after":false,"late":0,"hitFirst":0,"combo":2.63,"dur":2,"exposeS":3}
+ok   100 法甲 R: ring dur s drawn and in the scene, slows and holds suits inside (no dash, player status Held), not outside; hits grow with missing health under the cap; demon held in the hunt :: {"cast":true,"ch":0,"ring":{"in":true,"vis":true,"r":6,"auraN":1},"inside":{"held":true,"slowK":0.3},"outside":{"held":false,"slowT":0},"half":12,"low":13.2,"capped":14,"at59":true,"end":{"in":false,"
+STMT 42 131
+STMT 43 681
+STMT 46 2133
+STMT 48 25
+STMT 50 5
+STMT 52 7
+STMT 53 4
+STMT 55 2
+STMT 57 2
+STMT 365 2
+STMT 626 2
+STMT 876 26
+STMT 1248 3
+STMT 1400 26
+STMT 1413 110
+STMT 1428 382
+STMT 1447 3012
+STMT 1461 50
+STMT 1479 17
+STMT 1484 37
+STMT 1502 60
+STMT 1514 578
+STMT 1530 36
+STMT 1547 33
+STMT 1575 419
+STMT 1598 39
+STMT 1616 25
+STMT 1641 11
+STMT 1648 9
+STMT 1662 36
+STMT 1677 68
+STMT 1695 92
+STMT 1781 24
+STMT 1942 13
+STMT 2121 6
+STMT 2276 8
+STMT 2470 16
+STMT 2648 17
+STMT 2829 11
+STMT 3038 10
+STMT 4084 4703

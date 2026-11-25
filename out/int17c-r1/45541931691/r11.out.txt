@@ -1,0 +1,47 @@
+SHARD 11 of 12: statements 496, prelude 13, always 18, valid cuts 206, cuts at lines 262,665,1400,1723,2210,2766,3286,3824,4014,4070,4072; weight ms
+FAIL 1723 shared card: fx table loaded (0 errors), 13 cards warm-drawn, ids for 9 kits, 0 unknown events :: {"fxOn":true,"errs":[],"drawn":13,"kits":18,"ready":true,"unknown":0,"items":242,"warm":1}
+RUNTIME 16 of 17 pass
+ok   01 load without errors 
+ok   02 budget follow view (calls<500, tris<500k) :: calls 35, tris 8464
+ok   03 budget overview, all sections (calls<500, tris<500k) :: calls 84, tris 10550
+ok   1721 static rules: src modules (stricter list) and src/chars.js pass ::  || 
+ok   1722 fx event table vs the game: FX-MAP PASS with no check skipped :: FX-MAP PASS 13 of 13 checks (242 events, 97 items)
+
+FAIL 1723 shared card: fx table loaded (0 errors), 13 cards warm-drawn, ids for 9 kits, 0 unknown events :: {"fxOn":true,"errs":[],"drawn":13,"kits":18,"ready":true,"unknown":0,"items":242,"warm":1}
+ok   1724 every table event fires: 0 unknown, cards live, 0 new programs :: {"names":242,"fired":242,"unknown":0,"events":242,"live":160,"p0":17,"p1":17} 
+ok   1725 play dispatches through fxEvent: events and cards from guard and player moves, 0 unknown :: {"events":76,"spawned":48,"unknown":0}
+ok   1726 Esc menu: opens in play and pauses (cards held, sound paused), Esc closes, Esc opens again :: {"a6":{"open":true,"paused":true,"fxPaused":true,"t0":21.00000000000009,"t1":21.00000000000009},"a6b":{"open":false,"paused":false,"fxPaused":false},"a6c":true,"a6d":false}
+ok   1727 sliders (master, music, effects, voice/ambience) and mute save to empressDecrees.audio; every control >= 44 px :: {"sliders":4,"buttons":2,"saved":{"mode":"on","reduce":false,"vol":{"sfx":1,"music":0.37,"amb":1,"voice":1,"master":1},"mute":true},"small":0,"mute":true,"after":false,"text":107}
+ok   1728 sound: unlocked by a gesture, buffers rendered, suspended while the menu is open, running after :: {"a8":{"ready":138,"ctx0":"suspended"},"a8b":"suspended","a8c":"running"}
+ok   1729 characters: loaded with no failed file, 31 rigs, boxes hidden, the player model shown and animated :: {"ready":true,"failed":[],"rigs":31,"on":1,"crowd":0,"crowdMeshes":0,"stats":{"mixers":1,"offscreen":0},"bodies":false}
+ok   1730 palace art: no failed file, all rooms built and doors dressed; start hall + 12 guards under 500 calls / 0.5M tris, 0 programs in play :: {"art":{"on":true,"rooms":6,"failed":[],"doors":6,"texN":51},"rooms":6,"worst":{"calls":65,"tris":30932},"prog":46,"p0":46}
+ok   1731 new run: 0 live cards, intensity inputs reset, room type set for the music :: {"live":0,"room":"hall","since":99}
+ok   1732 no page error during the 17c and prototype checks 
+ok   16 resize across 5 OpenGame sizes 
+ok   17 no page errors in whole run 
+STMT 42 219
+STMT 43 1946
+STMT 46 1616
+STMT 48 7
+STMT 50 8
+STMT 52 5
+STMT 53 12
+STMT 55 4
+STMT 57 3
+STMT 365 4
+STMT 626 4
+STMT 876 37
+STMT 1248 4
+STMT 1479 3
+STMT 1641 4
+STMT 1781 3
+STMT 1942 3
+STMT 2121 3
+STMT 2276 3
+STMT 2470 3
+STMT 2648 3
+STMT 2829 3
+STMT 3038 3
+STMT 4072 14946
+STMT 4076 7455
+STMT 4084 21577

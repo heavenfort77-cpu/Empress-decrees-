@@ -1,0 +1,80 @@
+SHARD 0 of 12: statements 496, prelude 13, always 18, valid cuts 206, cuts at lines 262,665,1400,1723,2210,2766,3286,3824,4014,4070,4072; weight ms
+RUNTIME 24 of 24 pass
+ok   01 load without errors 
+ok   02 budget follow view (calls<500, tris<500k) :: calls 35, tris 8464
+ok   03 budget overview, all sections (calls<500, tris<500k) :: calls 84, tris 10550
+ok   04 every floor (both layers) reachable from the spawn 
+ok   04b void points are not standable (8 points) :: []
+ok   04c terrace and ramp sides are walls from below (4 points) :: []
+ok   05 bot walk spawn -> bridge -> core hall :: {"reached":6,"of":6,"steps":1143,"x":0,"y":0,"z":-48.96,"zone":"CORE","falling":false,"hp":100}
+ok   06 roof route up and down :: {"up":{"reached":2,"of":2,"steps":264,"x":0,"y":4,"z":32.4,"zone":"ROOF","falling":false,"hp":100},"down":{"reached":2,"of":2,"steps":509,"x":-50.43,"y":0,"z":27,"zone":"W2","falling":false,"hp":100}}
+ok   06b drop from terrace to courtyard (lands, takes drop damage) :: {"y":0,"zone":"W2","hp":92,"falling":false}
+ok   06c courtyard ramp up to the terrace :: {"reached":1,"of":1,"steps":190,"x":-64.5,"y":4,"z":-4,"zone":"W1","falling":false,"hp":100}
+ok   06d sloped bridge centre -> terrace :: {"reached":1,"of":1,"steps":264,"x":-44.4,"y":4,"z":-18,"zone":"W1","falling":false,"hp":100}
+ok   07 edge clamp (6 edges incl. 3 broken-rail gaps) :: [{"x":-30,"z":3.5,"falling":false,"ok":true},{"x":-30,"z":8.5,"falling":false,"ok":true},{"x":-68.5,"z":-15,"falling":false,"ok":true},{"x":-54,"z":-29.5,"falling":false,"ok":true},{"x":0,"z":41.5,"fa
+ok   08 collapse warning and removal per wave :: {"warnS":5,"out":[{"i":0,"ok":true},{"i":1,"ok":true},{"i":2,"ok":true},{"i":3,"ok":true},{"i":4,"ok":true}]}
+ok   09 final arena = CORE + C1, reachable :: {"left":["C1","CORE"],"reachCore":true}
+ok   11 fall at collapse then respawn :: {"fellAtCollapse":true,"respawnZone":"C1","fallingAfter":false}
+ok   12 new run x3: restored, memory flat :: [{"restored":true,"geoms":291,"texs":29},{"restored":true,"geoms":291,"texs":29},{"restored":true,"geoms":291,"texs":29}]
+ok   18 statue: tell, strike, knockback, idle out of range :: {"windup":0.6,"idle":0,"tellState":1,"tellRing":true,"midHp":100,"midRing":true,"hpAfter":70,"pushed":true,"ringAfter":false}
+ok   19 stone lion: tell then strike :: {"windup":0.6,"tell":1,"hp":80}
+ok   20 knockback: broken gaps (z and x) drop into void, rail holds :: {"gapFell":true,"gapRespawn":"C1","railFell":false,"railZone":"ROOF","xStart":"W1","xFell":true}
+ok   21 altar: heal, hit pause, empty, refill :: {"h1":66,"h2":61,"h3":61,"h4":64.1,"emptyOn":false,"emptyCharge":0,"refilledOn":true}
+ok   22 death then respawn at full health :: {"d":true,"dead":false,"hp":100,"zone":"C1"}
+ok   23 vision: seen inside radius, hidden outside, fog follows player :: {"nearSeen":true,"nearVis":true,"farSeen":false,"farVis":false,"fow":true}
+ok   24 auto-target: nearest visible in range, none beyond :: {"inRange":1,"beyond":-1}
+ok   25 attack: chase, hit on interval, dummy stands again :: {"hp3":60,"dist":2.9,"deadHp":100,"back":100}
+STMT 42 141
+STMT 43 669
+STMT 46 2151
+STMT 48 8
+STMT 50 6
+STMT 52 10
+STMT 53 5
+STMT 55 2
+STMT 57 2
+STMT 61 247
+STMT 81 15
+STMT 84 7
+STMT 100 10
+STMT 101 28
+STMT 105 7
+STMT 106 17
+STMT 107 18
+STMT 111 6
+STMT 112 10
+STMT 113 3
+STMT 116 3
+STMT 117 9
+STMT 120 3
+STMT 121 9
+STMT 125 24
+STMT 138 4
+STMT 139 181
+STMT 156 11
+STMT 166 4
+STMT 167 40
+STMT 176 490
+STMT 189 12
+STMT 202 14
+STMT 209 17
+STMT 224 54
+STMT 235 9
+STMT 238 9
+STMT 246 9
+STMT 254 26
+STMT 365 8
+STMT 626 4
+STMT 876 35
+STMT 1248 5
+STMT 1479 4
+STMT 1641 4
+STMT 1781 2
+STMT 1942 2
+STMT 2121 2
+STMT 2276 2
+STMT 2470 2
+STMT 2648 2
+STMT 2829 22
+STMT 3038 16
+STMT 4084 4223
