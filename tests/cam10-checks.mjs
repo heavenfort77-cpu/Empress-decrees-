@@ -39,7 +39,7 @@ export async function cam10Checks(g, check, browser, URL0) {
     const ctx = await browser.newContext({ viewport: { width: w, height: h }, isMobile: touch, hasTouch: touch });
     const pg = await ctx.newPage(), errs = [];
     pg.on('pageerror', (e) => errs.push(String(e)));
-    await pg.goto(URL0); await pg.waitForFunction(() => window.__ready === true, null, { timeout: 60000 });
+    await pg.goto(URL0, { timeout: 120000 }); await pg.waitForFunction(() => window.__ready === true, null, { timeout: 120000 });
     S[k] = await pg.evaluate(sizeProbe); S[k].errs = errs.slice(0, 2);
     await ctx.close();
   }

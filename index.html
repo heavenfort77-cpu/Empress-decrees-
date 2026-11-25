@@ -7681,9 +7681,13 @@ function reset() {
 // Characters: src/chars.js (docs/HOOKS-17fgh.md). One shared set for both modes, loaded once under the first card and kept: nine suit rigs (one per
 // school; the nine suits of a run have nine schools), the Tiger Demon and the two hunt minions, the royale cubs, twelve giant rigs (one per head) and
 // the guard and rebel crowd. Gameplay, timers, collision and hit areas stay in this file; the box bodies stay built (hidden while the models are on).
-const CHRS = { tex: {}, gl: null, info: null, mat: null, tpl: {}, gi: [], steps: null, si: 0, suit: {}, units: [], giants: [], crowd: null, ready: false, failed: [], rigs: [] };
+const CHRS = { drawN: 0, tex: {}, gl: null, info: null, mat: null, tpl: {}, gi: [], steps: null, si: 0, suit: {}, units: [], giants: [], crowd: null, ready: false, failed: [], rigs: [] };
 const CHR_SHEETS = ['suit_lamellar', 'suit_bronze', 'suit_cloth', 'bronze_trim_brass', 'bronze_trim_patina', 'fodder_trim', 'tread_belt', 'apex_patina'];
 const CHR_HIDE = new THREE.MeshBasicMaterial({ visible: false });
+// PERFRAME-BEGIN
+// Checks only (306, 907): crowd batches the renderer drew in its main pass since __game.render last zeroed the count (culled batches do not count).
+function crowdTick() { CHRS.drawN++; }
+// PERFRAME-END
 function chrFetch() {
   const ld = new GLTFLoader().setMeshoptDecoder(MeshoptDecoder), gl = {}, fail = CHRS.failed;
   const files = CHR.charFiles(CONFIG.CHARS.dirSuits).filter((f) => f.key.startsWith('suit_')).concat(CHR.charFiles(CONFIG.CHARS.dirModels).filter((f) => !f.key.startsWith('suit_')));
@@ -7720,7 +7724,7 @@ function chrSpawn() {
   for (let i = 0; i < 12; i++) { const r = CHR.spawnRig(CHRS.gi[i], { lodK: k }); CHRS.giants.push(r); CHRS.rigs.push(r); }
   const CT = {}; for (const t of C.guardTypes.concat(C.rebelTypes)) CT[t] = T[t];
   CHRS.crowd = CHR.makeCrowd(CT, { pool: GC.pool, lodK: k });
-  for (const m of CHRS.crowd.meshes) scene.add(m);
+  for (const m of CHRS.crowd.meshes) { m.onAfterRender = crowdTick; scene.add(m); }
   for (const t of GUARD_TYPES) { const pool = GPOOL[t]; for (let i = 0; i < pool.length; i++) { pool[i].cs = CHRS.crowd.makeState(t, i); pool[i].chrClip = ''; } }
 }
 // Warm-up under the card: every rig level and both material states drawn once, every crowd batch drawn, then all hidden again.
@@ -8336,7 +8340,7 @@ window.__game = {
   fxStepFrames(n, dt) { for (let i = 0; i < n; i++) { FX.fxStep(dt, false); fxFollow(); if (CONFIG.SND.on) { audInputs(); stepIntensity(dt, SND); } } },
   openOptions() { if (canOpenMenu()) openOptions(); return !!OPT && OPT.isOpen(); },
   closeOptions() { closeOptions(); return !!OPT && OPT.isOpen(); },
-  chars() { return { ready: CHRS.ready, failed: CHRS.failed.slice(), rigs: CHRS.rigs.length, on: CHRS.rigs.filter((r) => r.on).length, crowd: CHRS.crowd ? CHRS.crowd.drawn : -1, crowdMeshes: CHRS.crowd ? CHRS.crowd.meshes.filter((m) => m.visible && m.count > 0).length : 0, stats: CHR.stats(), bodies: playerBody.visible }; },
+  chars() { return { ready: CHRS.ready, failed: CHRS.failed.slice(), rigs: CHRS.rigs.length, on: CHRS.rigs.filter((r) => r.on).length, crowd: CHRS.crowd ? CHRS.crowd.drawn : -1, crowdMeshes: CHRS.crowd ? CHRS.crowd.meshes.filter((m) => m.visible && m.count > 0).length : 0, crowdDrawn: CHRS.drawN, stats: CHR.stats(), bodies: playerBody.visible }; },
   chrFrame(dt) { placeView(1); chrFrame(dt); },
   // Read-only: shader programs in use (name and the start of the cache key) and GPU memory counts, for the memory checks' diagnostics.
   progs() { return { p: renderer.info.programs.map((q) => q.name + '|' + q.usedTimes + '|' + String(q.cacheKey).slice(0, 60)), m: Object.assign({}, renderer.info.memory) }; },
@@ -8586,7 +8590,7 @@ window.__game = {
   canStand, walkable: (x, z, y) => !!floorAt(x, z, y === undefined ? 99 : y),
   render(forceShadow) {
     if (forceShadow) renderer.shadowMap.needsUpdate = true;
-    placeView(1); renderer.render(scene, camera); renderer.shadowMap.needsUpdate = false;
+    CHRS.drawN = 0; placeView(1); renderer.render(scene, camera); renderer.shadowMap.needsUpdate = false;
     return { calls: renderer.info.render.calls, tris: renderer.info.render.triangles, programs: renderer.info.programs.length,
       geoms: renderer.info.memory.geometries, texs: renderer.info.memory.textures };
   },

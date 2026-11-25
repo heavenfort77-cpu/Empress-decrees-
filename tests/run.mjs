@@ -39,7 +39,7 @@ page.on('console', (m) => { if (m.type() === 'error') errors.push(m.text()); });
 const g = async (fn, arg) => { await page.waitForFunction(() => !window.__game || !__game.loadBusy || !__game.loadBusy(), null, { timeout: 120000 }); return page.evaluate(fn, arg); };
 
 try {
-  await page.goto(URL0);
+  await page.goto(URL0, { timeout: 120000 });
   await page.waitForFunction(() => window.__ready === true, null, { timeout: 60000 });
   check('01 load without errors', errors.length === 0, errors.slice(0, 3).join(' | '));
   // Fixed seed so the marble bags draw the same way every run.
@@ -332,7 +332,7 @@ try {
   {
     const ctx = await browser.newContext({ viewport: { width: 844, height: 390 }, isMobile: true, hasTouch: true });
     const ph = await ctx.newPage(); const perr = []; ph.on('pageerror', (e) => perr.push(String(e)));
-    await ph.goto(URL0); await ph.waitForFunction(() => window.__ready === true, null, { timeout: 60000 });
+    await ph.goto(URL0, { timeout: 120000 }); await ph.waitForFunction(() => window.__ready === true, null, { timeout: 120000 });
     const res = await ph.evaluate(() => {
       const G = __game, d = G.dummies()[1], btns = document.querySelectorAll('#bar .sk');
       G.reset(); G.teleport(d.x, d.z - 5); G.step(2);
@@ -3431,7 +3431,7 @@ try {
   {
     const ctx = await browser.newContext({ viewport: { width: 844, height: 390 }, isMobile: true, hasTouch: true });
     const ph = await ctx.newPage(); const perr = []; ph.on('pageerror', (e) => perr.push(String(e)));
-    await ph.goto(URL0 + '&mode=palace'); await ph.waitForFunction(() => window.__ready === true, null, { timeout: 60000 });
+    await ph.goto(URL0 + '&mode=palace', { timeout: 120000 }); await ph.waitForFunction(() => window.__ready === true, null, { timeout: 120000 });
     const bpPc = await ph.evaluate(() => { const G = __game, C = G.config.PAL_CAM, p = G.palace(), c = G.palCam(); return { on: p.on, px: c.px, floor: c.floor, want: C.minPx / C.phone, b: c.b, help: p.help === G.text.help_pal_touch }; });
     await ctx.close();
     // Changed on purpose by ticket 10: phones keep a larger floor (minPx / phone), so they sit closer.

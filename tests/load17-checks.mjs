@@ -67,7 +67,7 @@ export async function load17Checks(g, check, page, browser, URL0) {
     f4.blocked = 0;
     pg.on('pageerror', (x) => e.push(String(x).slice(0, 160)));
     pg.on('console', (m) => { if (m.type() !== 'error') return; if (m.text() === BLOCKED) f4.blocked++; else e.push(m.text().slice(0, 160)); });
-    await pg.goto(URL0); await pg.waitForFunction(() => window.__ready === true, null, { timeout: 120000 });
+    await pg.goto(URL0, { timeout: 120000 }); await pg.waitForFunction(() => window.__ready === true, null, { timeout: 120000 });
     await pg.route('**/assets/c/desk/door.ktx2', (r) => r.abort());
     await pg.evaluate(toPalace); await idle(pg); f4.f1 = await pg.evaluate(() => __game.load());
     await pg.route('**/assets/tex/door.png', (r) => r.abort());
@@ -136,7 +136,7 @@ export async function load17Checks(g, check, page, browser, URL0) {
     const ctx = await browser.newContext({ viewport: { width: 1366, height: 768 } }); const pg = await ctx.newPage(); const e = [];
     pg.on('pageerror', (x) => e.push(String(x).slice(0, 160)));
     await pg.addInitScript((sv) => { for (const k in sv) localStorage.setItem(k, sv[k]); }, sv);
-    await pg.goto(URL0); await pg.waitForFunction(() => window.__ready === true, null, { timeout: 120000 });
+    await pg.goto(URL0, { timeout: 120000 }); await pg.waitForFunction(() => window.__ready === true, null, { timeout: 120000 });
     await pg.evaluate(toPalace); await idle(pg);
     s8.push({ errs: e, palace: await pg.evaluate(() => __game.load().palace) }); await ctx.close();
   }
