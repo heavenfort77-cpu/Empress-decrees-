@@ -1,0 +1,31 @@
+INFO floor on screen (lineup, relative luminance, median of the lower third): lighter candidate 0.143, current 0.060
+PASS crab with the game renderer outline (simulated, 2 px) at play size (91 px high, 9869 px): 71% of outline pixels >= 3.0:1 on the lighter floor (min 50%); body median 1.6:1
+INFO crab without the outline (body only): outline share 29%, body median 1.3:1
+FAIL wanderer with the game renderer outline (simulated, 2 px) at play size (196 px high, 7305 px): 47% of outline pixels >= 3.0:1 on the lighter floor (min 50%); body median 2.2:1
+INFO wanderer without the outline (body only): outline share 21%, body median 1.7:1
+INFO ding (the reference prop, no outline) on the lighter floor: bright part 1.0:1, dark part 2.8:1, body median 1.8:1 (floor 0.138)
+FAIL plate reads like the ding (52 px high, 2381 px, no outline): bright part 1.1:1, dark part 1.4:1, body median 1.1:1 against the ding 1.0 / 2.8 / 1.8 (stronger part >= 0.9 x the ding: 1.4 against 2.5)
+INFO plate outline share at 3:1 (not a gate for static props): 0%
+FAIL leader_crown reads like the ding (40 px high, 1690 px, no outline): bright part 1.2:1, dark part 2.3:1, body median 1.2:1 against the ding 1.0 / 2.8 / 1.8 (stronger part >= 0.9 x the ding: 2.3 against 2.5)
+INFO leader_crown outline share at 3:1 (not a gate for static props): 3%
+PASS mo_wall reads like the ding (171 px high, 50204 px, no outline): bright part 1.0:1, dark part 2.7:1, body median 1.9:1 against the ding 1.0 / 2.8 / 1.8 (stronger part >= 0.9 x the ding: 2.7 against 2.5)
+INFO mo_wall outline share at 3:1 (not a gate for static props): 3%
+PASS decree_mark reads like the ding (78 px high, 2009 px, no outline): bright part 1.0:1, dark part 3.5:1, body median 3.4:1 against the ding 1.0 / 2.8 / 1.8 (stronger part >= 0.9 x the ding: 3.5 against 2.5)
+INFO decree_mark outline share at 3:1 (not a gate for static props): 74%
+INFO ding brass mean colour rgb(87, 63, 35), relative luminance 0.069 (14148 px)
+FAIL crab brass mean colour rgb(103, 75, 40), luminance 0.096 = 1.38 x the ding brass (band 0.75-1.33), warm (r > g > b): True
+PASS wanderer brass mean colour rgb(79, 57, 31), luminance 0.058 = 0.84 x the ding brass (band 0.75-1.33), warm (r > g > b): True
+FAIL plate brass mean colour rgb(121, 88, 45), luminance 0.114 = 1.65 x the ding brass (band 0.75-1.33), warm (r > g > b): True
+PASS leader_crown gold mean colour rgb(119, 85, 33), luminance 0.120 = 1.72 x the ding brass (band 0.75-1.33, gold up to 1.6 x that), warm (r > g > b): True
+FAIL kaymuse on the throne, play framing (173 px high, 17766 px, no outline): 44% of outline pixels >= 3.0:1 against the throne behind her (min 50%); body median 1.0:1
+FAIL kaymuse on the throne, approach framing (138 px high, 10226 px, no outline): 38% of outline pixels >= 3.0:1 against the throne behind her (min 50%); body median 1.0:1
+PASS crab against wanderer, game camera yaw 0: silhouette IoU 0.06 at the same scale, 0.14 scaled to one height (max 0.6)
+PASS crab against wanderer, game camera yaw 90: silhouette IoU 0.22 at the same scale, 0.32 scaled to one height (max 0.6)
+7 of 14 pass
+MUT caught: character outline gate against the wanderer repainted in its surround colour -> outline 0% (unmutated 47%: the unmutated piece fails too, so this proves less)
+MUT caught: visibility gate against an empty mask -> 0 px
+MUT caught: reads-like-the-ding gate against the plate repainted in its surround colour -> stronger part 1.0:1 (needs 2.5)
+MUT caught: brass gate against the crab brass at half value -> 0.35 x the ding brass
+MUT caught: silhouette gate against the crab compared with itself -> IoU 1.00
+MUT caught: scaled silhouette gate against the crab compared with itself -> IoU 1.00
+6 of 6 mutations caught
