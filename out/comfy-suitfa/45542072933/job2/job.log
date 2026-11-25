@@ -1,0 +1,28 @@
+== preflight A 03:46:49
+PREFLIGHT A PASS
+== preflight B (install, models, 1-step probe) 03:46:49
+torch 2.15.0+cpu diffusers 0.43.0 threads 2
+               total        used        free      shared  buff/cache   available
+Mem:              15           1          11           0           3          14
+Fetching 18 files:  33%|███▎      | 6/18 [00:00<00:00, 55.80it/s]Fetching 18 files:  83%|████████▎ | 15/18 [00:09<00:02,  1.41it/s]Fetching 18 files:  89%|████████▉ | 16/18 [00:20<00:01,  1.41it/s]Fetching 18 files:  94%|█████████▍| 17/18 [00:20<00:01,  1.54s/it]Fetching 18 files: 100%|██████████| 18/18 [00:41<00:00,  3.80s/it]Fetching 18 files: 100%|██████████| 18/18 [00:41<00:00,  2.32s/it]
+models ready 46 s
+[transformers] `CLIPImageProcessor` requires torchvision (not installed); falling back to `CLIPImageProcessorPil` for backward compatibility. Install torchvision to use the default backend, or import `CLIPImageProcessorPil` directly to silence this warning.
+[transformers] `SiglipImageProcessor` requires torchvision (not installed); falling back to `SiglipImageProcessorPil` for backward compatibility. Install torchvision to use the default backend, or import `SiglipImageProcessorPil` directly to silence this warning.
+  deprecate("torch_dtype", "1.0.0", _TORCH_DTYPE_DEPRECATION_MESSAGE)
+Loading pipeline components...:   0%|          | 0/5 [00:00<?, ?it/s]
+Loading weights:   0%|          | 0/517 [00:00<?, ?it/s][A
+Loading weights:  21%|██        | 106/517 [00:00<00:00, 964.48it/s][A
+Loading weights:  46%|████▌     | 239/517 [00:00<00:00, 1171.00it/s][A
+Loading weights:  70%|███████   | 362/517 [00:00<00:00, 1164.41it/s][A
+Loading weights:  94%|█████████▍| 488/517 [00:00<00:00, 1198.97it/s][ALoading weights: 100%|██████████| 517/517 [00:00<00:00, 1207.24it/s]
+Loading pipeline components...:  20%|██        | 1/5 [00:00<00:02,  1.64it/s]
+Loading weights:   0%|          | 0/196 [00:00<?, ?it/s][ALoading weights: 100%|██████████| 196/196 [00:00<00:00, 2988.81it/s]
+Loading pipeline components...:  40%|████      | 2/5 [00:00<00:00,  3.08it/s]Loading pipeline components...: 100%|██████████| 5/5 [00:00<00:00,  6.18it/s]
+prompt encoded 49 s, peak RSS 3.11 GB
+Loading pipeline components...:   0%|          | 0/3 [00:00<?, ?it/s]Loading pipeline components...: 100%|██████████| 3/3 [00:02<00:00,  1.27it/s]Loading pipeline components...: 100%|██████████| 3/3 [00:02<00:00,  1.26it/s]
+No LoRA keys associated to NoneType found with the prefix='text_encoder'. This is safe to ignore if LoRA state dict didn't originally have any NoneType related params. You can also try specifying `prefix=None` to resolve the warning. Otherwise, open an issue if you think it's unexpected: https://github.com/huggingface/diffusers/issues/new
+No LoRA keys associated to NoneType found with the prefix='text_encoder_2'. This is safe to ignore if LoRA state dict didn't originally have any NoneType related params. You can also try specifying `prefix=None` to resolve the warning. Otherwise, open an issue if you think it's unexpected: https://github.com/huggingface/diffusers/issues/new
+probe_1step.png seed 1 steps 1 59 s, peak RSS 11.38 GB
+PROBE PASS 1-step 832x1216 image rendered, total 117 s, peak RSS 11.38 GB
+PREFLIGHT PASS
+RESULT preflight only
