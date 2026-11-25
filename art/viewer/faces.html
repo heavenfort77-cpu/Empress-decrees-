@@ -1,0 +1,84 @@
+<!doctype html>
+<!-- Face options sample viewer (FACES worker, owner 25 Nov 09:44; art tool, not shipped, sample only). Loads the sample builds from
+     art/faces/glb/<c>_<o>.glb (faces_sample.py) with the same lights, camera FOV and 丹 floor as suits.html / fodder.html / giants.html.
+     ?c=fa | zu | g00   &o=0 (current face) | A | B | C | D   &view=close (head and shoulders, 3/4) | play (FOV 50, pitch 40, 10.5 m)
+     Bronze = the brass sheet (bronze_trim_brass.png; suits keep suit_bronze.png on their own sBronze parts); painted faces (fcFace) use
+     art/faces/tex/face_skin.png (C) or face_lacq_<fa|court|cinnabar>.png (D). Exposes window.__info {calls, triangles, bbox, head}. -->
+<html><head><meta charset="utf-8"><style>html,body{margin:0;background:#120d16;overflow:hidden}</style>
+<script type="importmap">{"imports":{"three":"../../lib/three.module.min.js"}}</script></head><body>
+<script type="module">
+import * as THREE from 'three';
+import { GLTFLoader } from './vendor/loaders/GLTFLoader.js';
+const Q = new URLSearchParams(location.search), C = Q.get('c') || 'fa', O = Q.get('o') || '0', VIEW = Q.get('view') || 'close';
+const W = innerWidth, H = innerHeight;
+const r = new THREE.WebGLRenderer({ antialias: true }); r.setPixelRatio(1); r.setSize(W, H); r.shadowMap.enabled = true; document.body.appendChild(r.domElement);
+const scene = new THREE.Scene(); scene.background = new THREE.Color(0x120d16);
+const cam = new THREE.PerspectiveCamera(50, W / H, 0.1, 200);
+scene.add(new THREE.HemisphereLight(0xd9c9ff, 0x3a2a22, 1.1));
+const sun = new THREE.DirectionalLight(0xffe2b8, 2.2); sun.position.set(-30, 60, 25); sun.target.position.set(0, 0, -12); sun.castShadow = true;
+Object.assign(sun.shadow.camera, { left: -12, right: 12, top: 12, bottom: -12, near: 10, far: 150 }); sun.shadow.mapSize.set(2048, 2048);
+scene.add(sun, sun.target);
+const tl = new THREE.TextureLoader();
+const tex = (f, rep, sheet) => { const t = tl.load(f); t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 4;
+  if (sheet) t.flipY = false; if (rep) { t.wrapS = t.wrapT = THREE.RepeatWrapping; t.repeat.set(rep, rep); } else if (sheet === 'trim') t.wrapS = t.wrapT = THREE.RepeatWrapping; return t; };
+const floor = new THREE.Mesh(new THREE.PlaneGeometry(40, 40), new THREE.MeshStandardMaterial({ map: tex('../../assets/tex/hall_floor.png', 9), roughness: 0.9 }));
+floor.rotation.x = -Math.PI / 2; floor.receiveShadow = true; scene.add(floor);
+const T = (n) => tex(`../../assets/tex/${n}.png`, 0, 'trim');
+const FACE = O === 'C' ? 'face_skin' : `face_lacq_${C === 'fa' ? 'fa' : C === 'zu' ? 'court' : 'cinnabar'}`;
+const MK = {
+  sLam: () => new THREE.MeshStandardMaterial({ map: T('suit_lamellar'), metalness: 0.0, roughness: 0.5 }),
+  sBronze: () => new THREE.MeshStandardMaterial({ map: T('suit_bronze'), metalness: 0.5, roughness: 0.45 }),
+  sCloth: (m) => new THREE.MeshStandardMaterial({ map: T('suit_cloth'), color: m.color.clone(), metalness: 0.0, roughness: 0.85 }),
+  gdBronze: () => new THREE.MeshStandardMaterial({ map: T('bronze_trim_brass'), metalness: 0.4, roughness: 0.6 }),
+  gdLacquer: () => new THREE.MeshStandardMaterial({ map: T('fodder_trim'), metalness: 0.05, roughness: 0.8 }),
+  treadBelt: () => new THREE.MeshStandardMaterial({ map: T('tread_belt'), metalness: 0.4, roughness: 0.6 }),
+  palBronze: () => new THREE.MeshStandardMaterial({ map: T('bronze_trim_brass'), metalness: 0.4, roughness: 0.6 }),
+  palTin: () => new THREE.MeshStandardMaterial({ color: 0xd8cda8, metalness: 0.6, roughness: 0.35 }),
+  fcBrass: () => new THREE.MeshStandardMaterial({ map: T('bronze_trim_brass'), metalness: 0.4, roughness: 0.6 }),
+  fcDark: () => new THREE.MeshStandardMaterial({ color: 0x120e0c, metalness: 0.0, roughness: 0.9 }),
+  fcFace: () => { const t = tl.load(`../faces/tex/${FACE}.png`); t.colorSpace = THREE.SRGBColorSpace; t.flipY = false; t.anisotropy = 4;
+    return new THREE.MeshStandardMaterial({ map: t, metalness: 0.0, roughness: O === 'C' ? 0.75 : 0.32 }); },
+};
+const made = {};
+function mat(m) {
+  const base = m.name.startsWith('sCloth') ? 'sCloth' : m.name;
+  const key = base === 'sCloth' ? m.name : base;
+  return made[key] || (made[key] = (MK[base] || (() => new THREE.MeshStandardMaterial({ map: T('fodder_trim'), roughness: 0.85 })))(m));
+}
+const CLIP = C === 'g00' ? 'carry' : 'idle';
+const SC = { fa: 1.0, zu: 0.8, g00: 2.6 }[C];
+new GLTFLoader().load(`../faces/glb/${C}_${O}.glb`, (g) => {
+  const root = g.scene;
+  root.traverse((o) => {
+    if (!o.isMesh) return;
+    o.material = mat(o.material); o.castShadow = o.receiveShadow = true;
+    let n = o.name; if (!/(_lod[0-2]|_flakes)$/.test(n) && o.parent) n = o.parent.name;
+    o.visible = C === 'g00' ? /^giant_(body|g00)_lod0$/.test(n) : n === `${C}_lod0`;
+  });
+  scene.add(root);
+  const mix = new THREE.AnimationMixer(root), clip = g.animations.find((a) => a.name === CLIP);
+  if (clip) { mix.clipAction(clip).play(); mix.setTime(0); }
+  root.updateMatrixWorld(true);
+  root.traverse((o) => { if (o.isSkinnedMesh && o.computeBoundingSphere) o.computeBoundingSphere(); });
+  let headBone = null; root.traverse((o) => { if (o.isBone && o.name === 'head' && !headBone) headBone = o; });
+  const hp = new THREE.Vector3(); if (headBone) headBone.getWorldPosition(hp);
+  let look, dist, yaw, pitch;
+  if (VIEW === 'close') { look = hp.clone().add(new THREE.Vector3(0, 0.08 * SC, 0)); dist = { fa: 1.25, zu: 1.0, g00: 3.4 }[C]; yaw = 35; pitch = 8; }
+  else { look = C === 'g00' ? new THREE.Vector3(0, 2.2, 0.6) : new THREE.Vector3(0, 1.0, 0); dist = 10.5; yaw = 20; pitch = 40; }
+  const p = pitch * Math.PI / 180, y = yaw * Math.PI / 180;
+  cam.position.set(look.x + Math.sin(y) * Math.cos(p) * dist, look.y + Math.sin(p) * dist, look.z + Math.cos(y) * Math.cos(p) * dist); cam.lookAt(look);
+  cam.updateMatrixWorld();
+  // screen boxes for the sheet crops: the visible meshes (world bounding boxes) and the head (bone + a head radius)
+  const box = new THREE.Box3(), b2 = new THREE.Box3(), v = new THREE.Vector3();
+  root.traverse((o) => { if (o.isMesh && o.visible) { o.geometry.computeBoundingBox(); b2.copy(o.geometry.boundingBox).applyMatrix4(o.matrixWorld); box.union(b2); } });
+  const px = (w) => { v.copy(w).project(cam); return [(v.x + 1) / 2 * W, (1 - v.y) / 2 * H]; };
+  let x0 = 1e9, y0 = 1e9, x1 = -1e9, y1 = -1e9;
+  for (let i = 0; i < 8; i++) { const [a, b] = px(new THREE.Vector3(i & 1 ? box.max.x : box.min.x, i & 2 ? box.max.y : box.min.y, i & 4 ? box.max.z : box.min.z)); x0 = Math.min(x0, a); x1 = Math.max(x1, a); y0 = Math.min(y0, b); y1 = Math.max(y1, b); }
+  const hc = hp.clone().add(new THREE.Vector3(0, 0.12 * SC, 0)), [hx, hy] = px(hc);
+  setTimeout(() => {
+    r.render(scene, cam); const i = r.info.render;
+    window.__info = { calls: i.calls, triangles: i.triangles, bbox: [x0, y0, x1, y1].map(Math.round), head: [Math.round(hx), Math.round(hy)] };
+    window.__ready = true;
+  }, 900);
+}, undefined, (e) => { document.title = 'ERR ' + e; window.__info = { err: String(e) }; window.__ready = true; });
+</script></body></html>
