@@ -1,0 +1,11 @@
+PASS reference measured twice on a real GPU: 202.5 fps p95 11.9 / 202.3 fps p95 11.5 (ANGLE (Apple, ANGLE Metal Renderer: Apple Paravirtual device, Unspecified Version))
+PASS pal_med corr_w: 191.5 fps p95 12.1 ms (limit 14.6 = max(1.25 x ref 11.7, ref + 2), and 16.7) worst 35 ms; ref 202.4 fps
+PASS pal_med: worst frame 35 ms < 100 (over 20 ms: 0.5 %)
+PASS pal_med: programs linked in play 0 (programs 30 -> 30), 15 props and 5 doors toggling every 0.5 s
+PASS pal_med: GL draws 200 (steady 105), triangles 132092 (shadow frame) < 500 / 0.5M
+PASS pal_low corr_w: 245.9 fps p95 11.5 ms (limit 14.6 = max(1.25 x ref 11.7, ref + 2), and 16.7) worst 33.1 ms; ref 202.4 fps
+PASS pal_low: worst frame 33.1 ms < 100 (over 20 ms: 0.3 %)
+PASS pal_low: programs linked in play 0 (programs 26 -> 26), 15 props and 5 doors toggling every 0.5 s
+PASS pal_low: GL draws 105 (steady 105), triangles 88740 (shadow frame) < 500 / 0.5M
+PASS real GPU PASS P14 base {"buf":146,"tex":5,"prog":6,"geo":36,"itex":1,"progs":6} built {"buf":1104,"tex":32,"prog":19,"geo":190,"itex":28,"progs":19} / {"buf":1104,"tex":32,"prog":19,"geo":190,"itex":28,"progs":19} disposed {"buf":146,"tex":5,"prog":6,"geo":36,"itex":1,"progs":6} / {"buf":146,"tex":5,"prog":6,"geo":36,"itex":1,"progs":6}
+RESULT 10 of 10
