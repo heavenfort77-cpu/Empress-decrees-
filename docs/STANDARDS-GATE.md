@@ -17,6 +17,9 @@ Every deliverable (build, art sample, report) is checked line by line against th
 - [ ] Side-by-side with the reference at the same scale, by measurement, close-up AND play size.
 - [ ] Lead verdict per option: would the lead ship it at a AAA desktop bar? If no option passes, nothing is sent.
 - [ ] Suits (owner 25 Nov 12:1x): Qin court look (black lacquer), each suit distinct for its school (outline first, then the school colour on bindings/trim/accents); the techno-plate kit sets construction quality only, not its steel colour.
+- [ ] AAA bar (owner 25 Nov 12:5x): the owner's kits, and a side-by-side against Warframe at the same scale (close-up AND play size).
+- [ ] Royal guards 皇家 keep bronze and blue (owner 25 Nov 12:5x); black lacquer is for the nine suits only.
+- [ ] Guardian beast, mercury channel, tiger tally: redo only after the playable build is sent (owner 25 Nov 12:5x).
 - [ ] Distinct characters, not recolours; Qin materials; reads at play size (value contrast >= 3:1 where measured).
 - [ ] One round, then the lead looks, before any further round.
 - [ ] Never replace an approved asset without telling the owner; sources kept.
