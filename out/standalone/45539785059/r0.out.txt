@@ -1,0 +1,16 @@
+PASS A_http ready: window.__ready
+PASS A_http palace built: palace ready kind palace fmt [hall_floor:png,hall_wall:png,pillar:png,door:png,lion_stone:png] failed [] capped false
+PASS A_http textures: loaded 5 of 5, failed 0
+PASS A_http plays: game time 0.0 -> 10.1 s, frames 25 -> 254, view follow
+PASS A_http errors: 0
+PASS B_file ready: window.__ready
+PASS B_file palace built: palace ready kind palace fmt [hall_floor:png,hall_wall:png,pillar:png,door:png,lion_stone:png] failed [] capped false
+PASS B_file textures: loaded 5 of 5, failed 0
+PASS B_file plays: game time 0.0 -> 10.0 s, frames 18 -> 252, view follow
+PASS B_file errors: 0
+PASS C_blocked ready: window.__ready
+PASS C_blocked palace built: palace failed kind palace fmt [hall_floor:failed,hall_wall:failed,pillar:failed,door:failed,lion_stone:failed] failed [hall_floor,hall_wall,pillar,door,lion_stone] capped false
+PASS C_blocked textures blocked: fallback, failed 5
+PASS C_blocked plays: game time 0.0 -> 10.0 s, frames 5 -> 246, view follow
+PASS C_blocked errors: 0
+RESULT PASS fails 0
