@@ -1,0 +1,22 @@
+## build_g00_0
+21 of 21 pass
+FACES stats g00 0 face tris lod0 0 probes {}
+FACES done g00 0
+## build_g00_M
+21 of 21 pass
+FACES stats g00 M face tris lod0 4620 probes {'mask': [0.2211, 3.9344, 0.36382], 'helm': [0.0, 4.39, 0.16], 'eye': [0.12535, 4.0478, 0.36695], 'eye2': [-0.12535, 4.0478, 0.36695]}
+FACES done g00 M
+## build_g00_T
+21 of 21 pass
+FACES stats g00 T face tris lod0 4620 probes {'mask': [0.2211, 3.9344, 0.36382], 'helm': [0.0, 4.39, 0.16], 'eye': [0.12535, 4.0478, 0.36695], 'eye2': [-0.12535, 4.0478, 0.36695]}
+FACES done g00 T
+## build_zu_0
+zu: 12 of 12 pass
+FACES stats zu 0 face tris lod0 0 probes {}
+SUMMARY zu 0 12 of 12 tris [3400, 1186, 342]
+FACES done zu 0
+## build_zu_M
+zu: 12 of 12 pass
+FACES stats zu M face tris lod0 608 probes {'mask': [-0.03814, 1.5845, 0.11229], 'helm': [-0.0, 1.7202, 0.066], 'eye': [-0.02949, 1.61172, 0.11424], 'eye2': [0.02949, 1.61172, 0.11424]}
+SUMMARY zu M 12 of 12 tris [3844, 1478, 436]
+FACES done zu M
