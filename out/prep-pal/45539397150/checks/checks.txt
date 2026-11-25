@@ -1,0 +1,23 @@
+RENDERER ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver) load+checks 16034 ms
+PASS P1 files 42/42 failed [] textures 30/30 (ktx2 30) missing [ ] load 618 ms build 142 ms
+PASS P2 35 material names, without a table entry: []
+PASS P3 25 LOD levels checked; off []; not used (floor off): [que_pair:2 floor 0.50 m]
+PASS P4 2337 objects; auto-updating or unculled: 0 []
+PASS P5 672 wall segments; off []
+PASS P6 41 pillar and throne placements; off []
+PASS P7 tier medium: worst draws 200 (corr_w; three main pass 105), worst triangles 132092 (corr_w); 29 views
+INFO P7 views core:76/9k approach:145/53k fore:171/40k bridge_wf:151/29k court_w:122/34k corr_w:200/132k hall_ru:112/65k hall_dao:117/66k corr_wsw:118/21k garden_sw:139/30k bridge_sws:117/18k corr_sw:196/82k hall_yinyang:120/50k hall_fa:120/50k court_s:151/27k bridge_sf:175/32k corr_s:155/71k hall_ming:115/47k bridge_ef:151/29k court_e:122/34k corr_e:200/132k hall_za:112/65k hall_nong:117/66k corr_ese:118/21k garden_se:139/30k bridge_sse:115/18k corr_se:196/82k hall_zongheng:120/50k hall_mo:120/50k
+PASS P8 0 lights in 2037 art objects
+PASS P9 51 textures (47 compressed); over the limits []
+PASS P10 instanced plaster at fog centre 252, 60 m out 88; mercury 300 / 105 (dim must be < 0.6 x)
+PASS P11 programs after warm 30, links in play 0, programs now 30, 348 play frames
+PASS P12 229 state changes; wrong []
+PASS P13 5 clocks; wrong []
+PASS P14 base {"buf":146,"tex":5,"prog":6,"geo":36,"itex":1,"progs":6} built {"buf":1104,"tex":32,"prog":19,"geo":190,"itex":28,"progs":19} / {"buf":1104,"tex":32,"prog":19,"geo":190,"itex":28,"progs":19} disposed {"buf":146,"tex":5,"prog":6,"geo":36,"itex":1,"progs":6} / {"buf":146,"tex":5,"prog":6,"geo":36,"itex":1,"progs":6}
+PASS P15 1349 meshes, 732 casters; wrong casters []
+PASS P16 79 new solids; wrong []
+PASS P17 470 terrace segments; under a room []
+PASS P18 14 replaced keys; unknown []
+PASS P19 342 instanced meshes, 342 on kit geometry; rooms with many plain meshes []
+PASS P20 7 channels; off []
+RESULT 20 of 20
