@@ -4,7 +4,7 @@ Machine: 2 cores, 7 GB, shared by several workers. Local heavy jobs (Blender, kl
 ## Your own branches (never touch another worker's branch or worktree)
 - Work tree: `git -C /home/claude/empress-decrees- fetch -q origin batches-3-5 && git -C /home/claude/empress-decrees- worktree add /home/claude/<w>-wt -b ci-art-<w> origin/batches-3-5`
 - Copy the art runner workflow into it: `git -C /home/claude/<w>-wt checkout origin/ci-art-test -- .github/workflows/art-run.yml` (fetch ci-art-test first: `git -C /home/claude/empress-decrees- fetch -q origin +refs/heads/ci-art-test:refs/remotes/origin/ci-art-test`).
-- Your deliverables (scripts, GLBs, textures, .klad sources, shots, study files) are committed on ci-art-<w>; the lead merges them into batches-3-5 in the morning. Never push to batches-3-5, main or another worker's branch.
+- Your deliverables (scripts, GLBs, textures, .klad sources, shots, study files) are committed on ci-art-<w>; the lead merges them into batches-3-5 in the morning. Branch workers never push to batches-3-5, main or another worker's branch. Exception: the shared-tree worker (W1a, W1b, W1c as briefed) commits art/ and assets/ files only to batches-3-5. CI files (.github, ci_art, ci_comfy) never go to batches-3-5 or main.
 
 ## Heavy job on a runner (Blender via pip bpy 5.3 / python 3.13, klad CLI, Chromium via playwright 1.63)
 - Write ci_art/job.sh in your tree (bash; env: $BPY = python with bpy, $KLAD = klad binary, $OUT = folder to write results into). Commit, `git -c push.negotiate=true push -q origin ci-art-<w>`; every push starts a run (workflow art-run). Do not push again while your run is going (check: gh api "repos/heavenfort77-cpu/empress-decrees-/actions/runs?branch=ci-art-<w>&per_page=1").
@@ -19,3 +19,13 @@ Machine: 2 cores, 7 GB, shared by several workers. Local heavy jobs (Blender, kl
 ## Commits and logs
 - Name Claude, email noreply@anthropic.com; message ends with "Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>" and "Claude-Session: https://claude.ai/code/session_015w2gCFTByA9kWQ9LtEYXgQ". Secret scan the diff before every push.
 - One line per step in /home/claude/overnight.log: `<w> HH:MM <what> <numbers / run id>`.
+
+## RULE (lead, 25 Nov 09:5x local, after the same job-script bug hit 5 times: W5 ops dir, W4/W5 tracked .pyc, INT toktx + gates passing on 0 files, SUITANIM ops dir + scipy + wrong GLB path)
+Every runner job starts with a PREFLIGHT step that runs in the first minute and FAILS the job before any heavy work if anything is missing:
+1. every tool the job calls (`command -v` for each binary: blender/bpy, klad, toktx, ffmpeg, node, playwright browsers);
+2. every Python import the scripts use (`python -c "import numpy, PIL, ..."`; no scipy unless installed by the job);
+3. every input file and folder the job reads (GLBs, .klad sources, ops dirs) and `mkdir -p` of every folder it writes;
+4. the git tree is clean of tracked build files (no .pyc, no generated files tracked) so the ci-out push cannot be blocked.
+Every gate counts what it measured and FAILS when that count is 0 ("passed on nothing" is a FAIL).
+Mutation scripts check their target file exists before mutating, and fail if it does not.
+Prove the job script once with the preflight alone (a 1-minute run) after any change to the job script, before the heavy run.
