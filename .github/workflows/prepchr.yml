@@ -1,0 +1,79 @@
+# PREP-CHR proofs for src/chars.js (branch prep-chr only; never on main or batches-3-5).
+# Parallel jobs: two real-GPU macOS probes (each with the game's reference scene in the same job) and three Linux check shards
+# (in-page checks + mutants on SwiftShader: correctness and counts only). Outputs go to branch ci-out under out/prepchr/<run id>/.
+name: prepchr
+on:
+  push:
+    branches: [prep-chr]
+permissions:
+  contents: write
+concurrency:
+  group: prepchr
+  cancel-in-progress: false
+jobs:
+  perf:
+    strategy:
+      fail-fast: false
+      matrix:
+        part: [A, B]
+    runs-on: macos-15
+    timeout-minutes: 45
+    env:
+      PW_VERSION: 1.63.0
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Install Playwright Chromium
+        run: npm install --no-save --no-audit --no-fund playwright@${PW_VERSION} && npx playwright install chromium
+      - name: Machine
+        run: (sysctl -n machdep.cpu.brand_string; system_profiler SPDisplaysDataType | grep -E "Chipset|Metal|Resolution" || true) | tee machine.txt
+      - name: Probe (real GPU, vsync off)
+        run: |
+          if [ "${{ matrix.part }}" = "A" ]; then S=reference,chr_wide,chr_close,chr_noout,chr_wide,reference; else S=reference,chr_low,chr_dorm,chr_cycles,webglmin,reference; fi
+          SCENES=$S OUT=chr_out node ci_probe/chrperf.mjs 2>&1 | tee perf.txt
+      - name: Commit to ci-out
+        if: always()
+        run: |
+          D=out/prepchr/${GITHUB_RUN_ID}/perf_${{ matrix.part }}
+          mkdir -p /tmp/o && cp -r perf.txt machine.txt chr_out /tmp/o/ 2>/dev/null || true
+          git config user.name Claude && git config user.email noreply@anthropic.com
+          for k in 1 2 3 4 5 6; do
+            git fetch -q origin ci-out && git checkout -q -B ci-out origin/ci-out && mkdir -p $D && cp -r /tmp/o/* $D/ \
+              && echo "sha ${GITHUB_SHA} run ${GITHUB_RUN_ID} attempt ${GITHUB_RUN_ATTEMPT}" > $D/meta.txt && git add out && git commit -qm "prepchr perf ${GITHUB_RUN_ID} ${{ matrix.part }}" \
+              && git push -q origin ci-out && break
+            sleep $((k * 7))
+          done
+  checks:
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [0, 1, 2]
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    env:
+      PW_VERSION: 1.63.0
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Install Playwright Chromium
+        run: npm install --no-save --no-audit --no-fund playwright@${PW_VERSION} && npx playwright install --with-deps chromium
+      - name: Static
+        run: node tests_draft/chars-static.mjs 2>&1 | tee static.txt
+      - name: Checks and mutants
+        run: MUT_SHARD=${{ matrix.shard }}/3 node tests_draft/chars-checks.mjs --mutants 2>&1 | tee checks.txt
+      - name: Commit to ci-out
+        if: always()
+        run: |
+          D=out/prepchr/${GITHUB_RUN_ID}/checks_${{ matrix.shard }}
+          mkdir -p /tmp/o && cp static.txt checks.txt /tmp/o/ 2>/dev/null || true
+          git config user.name Claude && git config user.email noreply@anthropic.com
+          for k in 1 2 3 4 5 6; do
+            git fetch -q origin ci-out && git checkout -q -B ci-out origin/ci-out && mkdir -p $D && cp -r /tmp/o/* $D/ \
+              && echo "sha ${GITHUB_SHA} run ${GITHUB_RUN_ID}" > $D/meta.txt && git add out && git commit -qm "prepchr checks ${GITHUB_RUN_ID} ${{ matrix.shard }}" \
+              && git push -q origin ci-out && break
+            sleep $((k * 7))
+          done

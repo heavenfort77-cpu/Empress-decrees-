@@ -1,0 +1,141 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><title>PREP-CHR probe 17f-17h</title>
+<script type="importmap">{"imports":{"three":"/lib/three.module.min.js"}}</script>
+<style>body{margin:0;background:#120d16;overflow:hidden}</style>
+<script>addEventListener("error", (e) => { window.__err = String(e.message); }); addEventListener("unhandledrejection", (e) => { window.__err = String(e.reason && e.reason.stack || e.reason); });</script></head>
+<body>
+<script type="module">
+// PREP-CHR probe (CI only, never in the game): src/chars.js with the heaviest realistic character cast in one room, the game's lens
+// (FOV 50, pixel ratio 1.25 medium / 1.0 low, one 2048 shadow sun re-rendered only once, hemisphere light, fog 45-85 m).
+// Cast: 10 suits (nine schools + a 名 decoy), 37 皇家 guard / 反贼 units (17a mix), Tiger Demon + Stalker + Howler, 3 awake giants.
+// Query: tier=medium|low, cam=wide|close (wide = 23 m at 40 deg pitch, close = 0.75 x), out=0 (outline off), notex=1 (flat colours),
+// test=1 (run the in-page checks into window.__checks), dorm=N (N dormant giant statues too).
+import * as THREE from 'three';
+import { GLTFLoader } from '/lib/jsm/loaders/GLTFLoader.js';
+import { KTX2Loader } from '/lib/jsm/loaders/KTX2Loader.js';
+import { MeshoptDecoder } from '/lib/jsm/libs/meshopt_decoder.module.js';
+import * as CH from '/src/chars.js';
+const Q = new URLSearchParams(location.search), TIER = Q.get('tier') || 'medium', CAM = Q.get('cam') || 'wide', NOTEX = Q.get('notex') === '1', TEST = Q.get('test') === '1';
+if (Q.get('out') === '0') CH.CHR.outline.on = false;
+const PR = TIER === 'low' ? 1.0 : 1.25;
+const r = new THREE.WebGLRenderer({ antialias: false, powerPreference: 'high-performance' }); r.setPixelRatio(PR); r.setSize(innerWidth, innerHeight);
+r.shadowMap.enabled = TIER !== 'low'; r.shadowMap.autoUpdate = false; r.shadowMap.needsUpdate = true; document.body.appendChild(r.domElement);
+const sc = new THREE.Scene(), cam = new THREE.PerspectiveCamera(50, innerWidth / innerHeight, 0.5, 120);
+sc.background = new THREE.Color(0x2a2233); sc.fog = new THREE.Fog(0x2a2233, 45, 85);
+const D = CAM === 'close' ? 23 * 0.75 : 23, P = THREE.MathUtils.degToRad(40), LOOK = new THREE.Vector3(0, 0, -3);
+cam.position.set(0, Math.sin(P) * D, LOOK.z + Math.cos(P) * D); cam.lookAt(LOOK); cam.updateMatrixWorld();
+sc.add(new THREE.HemisphereLight(0xd9c9ff, 0x3a2a22, 0.9));
+const sun = new THREE.DirectionalLight(0xffe2b8, 1.6); sun.position.set(10, 22, 8); sun.castShadow = true; sun.shadow.mapSize.set(2048, 2048);
+Object.assign(sun.shadow.camera, { left: -26, right: 26, top: 26, bottom: -26, near: 1, far: 70 }); sc.add(sun, sun.target);
+CH.setOutlineSize(innerWidth, innerHeight, PR);
+const T0 = performance.now(), LT = {};
+const ktx = new KTX2Loader().setTranscoderPath('/lib/jsm/libs/basis/').detectSupport(r);
+const SHEETS = ['suit_lamellar', 'suit_bronze', 'suit_cloth', 'bronze_trim_brass', 'bronze_trim_patina', 'fodder_trim', 'tread_belt', 'apex_patina'], TEX = {};
+// INT's texture getter stand-in: KTX2 from assets/c/desk, PNG fallback; glTF UVs (flipY false), sRGB, repeat, anisotropy 4; loaded before building.
+async function loadTex(name) {
+  const k = await ktx.loadAsync(`/assets/c/desk/${name}.ktx2`).catch(() => new THREE.TextureLoader().loadAsync(`/assets/tex/${name}.png`));
+  k.colorSpace = THREE.SRGBColorSpace; k.wrapS = k.wrapT = THREE.RepeatWrapping; k.anisotropy = 4; k.flipY = false; k.needsUpdate = true; TEX[name] = k;
+}
+if (!NOTEX) await Promise.all(SHEETS.map(loadTex));
+const tex = (name) => TEX[name] || null;
+const matFor = CH.charMaterials(tex);
+const loader = new GLTFLoader(); loader.setMeshoptDecoder(MeshoptDecoder);
+const info = await (await fetch('/' + CH.CHR.suitInfo)).json(), INFO = {}; for (const s of info) INFO[s.id] = s;
+const files = [...CH.charFiles('/assets/models/').filter((f) => f.key.startsWith('suit_')), ...CH.charFiles('/assets/c/models/').filter((f) => !f.key.startsWith('suit_'))];
+const GL = {}; await Promise.all(files.map(async (f) => { GL[f.key] = await loader.loadAsync(f.url); }));
+LT.load = performance.now() - T0;
+// The suit cloth colour as stored in each file (check C16 compares the built materials with it).
+const fileCloth = {}; for (const id of Object.values(CH.CHR.suitIds)) GL['suit_' + id].scene.traverse((o) => { if (o.isMesh && o.material.name.startsWith('sCloth')) fileCloth[id] = o.material.color.clone(); });
+const t1 = performance.now();
+const TPL = {}, SCH = Object.keys(CH.CHR.suitIds);
+for (const k of SCH) { const id = CH.CHR.suitIds[k]; TPL['suit_' + id] = CH.makeTemplate(GL['suit_' + id], { kind: 'suit', id, mat: matFor, outline: true, floorY: INFO[id].floor_y, runV: INFO[id].run_v, lodDist: CH.CHR.lod.suit }); }
+const variantOf = (n) => { const m = /_w_([a-z]+)/.exec(n); return m ? m[1] : null; };
+for (const t of [...CH.CHR.guardTypes, ...CH.CHR.rebelTypes]) TPL[t] = CH.makeTemplate(GL[t], { kind: 'crowd', id: t, mat: matFor, lodDist: CH.CHR.lod.guard, variantOf });
+TPL.tiger = CH.makeTemplate(GL.tiger, { kind: 'tiger', id: 'tiger', mat: matFor, states: ['dormant', 'awake'], lodDist: CH.CHR.lod.tiger });
+for (const k of ['stalker', 'howler']) TPL[k] = CH.makeTemplate(GL[k], { kind: k, id: k, mat: matFor, states: ['dormant', 'awake'], lodDist: CH.CHR.lod.cub });
+const GI = []; for (let i = 0; i < 12; i++) { const h = 'giant_g' + String(i).padStart(2, '0') + '_'; GI.push(CH.makeTemplate(GL.giants, { kind: 'giant', id: 'g' + i, mat: matFor, states: ['dormant', 'awake'], lodDist: CH.CHR.lod.giant, keep: (n) => n.startsWith('giant_body') || n === 'giant_flakes' || n.startsWith(h) })); }
+LT.templates = performance.now() - t1;
+// Floor: the approved hall floor (A1), 48 x 30 m forecourt.
+const floorTex = NOTEX ? null : await ktx.loadAsync('/assets/c/desk/hall_floor.ktx2').catch(() => null);
+if (floorTex) { floorTex.colorSpace = THREE.SRGBColorSpace; floorTex.wrapS = floorTex.wrapT = THREE.RepeatWrapping; floorTex.repeat.set(12, 7.5); floorTex.anisotropy = 4; }
+const fl = new THREE.Mesh(new THREE.PlaneGeometry(48, 30), new THREE.MeshStandardMaterial({ map: floorTex, color: floorTex ? 0xffffff : 0x5a2a22, roughness: 0.9 }));
+fl.rotation.x = -Math.PI / 2; fl.position.z = -4; fl.receiveShadow = true; fl.matrixAutoUpdate = false; fl.updateMatrix(); sc.add(fl);
+// ---- cast ----
+const t2 = performance.now();
+const SUITS = [];
+SCH.forEach((k, i) => SUITS.push({ rig: CH.spawnRig(TPL['suit_' + CH.CHR.suitIds[k]]), cx: -12 + i * 3, cz: 5, ph: i * 0.7, rad: 1.4, sp: 5.6 + (i % 3) * 0.4, atk: 1.5 + i * 0.37 }));
+SUITS.push({ rig: CH.spawnRig(TPL.suit_ming), cx: 12 + 3, cz: 8, ph: 2, rad: 0, sp: 0, atk: 99 });
+const TIG = { rig: CH.spawnRig(TPL.tiger), cx: 0, cz: -15, ph: 0, rad: 0, sp: 0, atk: 2 };
+const CUBS = [{ rig: CH.spawnRig(TPL.stalker), cx: -5, cz: -12, ph: 0, rad: 1.6, sp: 4 }, { rig: CH.spawnRig(TPL.howler), cx: 5, cz: -12, ph: 1, rad: 1.6, sp: 4 }];
+const GIANTS = [0, 1, 2].map((i) => ({ rig: CH.spawnRig(GI[i]), cx: -16 + i * 16, cz: -19 + (i === 1 ? -2 : 0), ph: i, rad: 1.2, sp: 1.2, atk: 3 + i }));
+const STATUES = []; for (let i = 0; i < (+Q.get('dorm') || 0); i++) { const s = CH.makeStatue(GI[3 + (i % 9)], 'dormant', 0); s.place(-20 + i * 5, 0, -24, 0, 1); sc.add(s.root); STATUES.push(s); }
+const RIGS = [...SUITS, TIG, ...CUBS, ...GIANTS];
+for (const u of [TIG, ...CUBS, ...GIANTS]) u.rig.setState(1);
+const MIX = { zu: 10, nu: 6, dun: 4, che: 2, wz: 2, ls: 8, fs: 1, ss: 3, qs: 1 }, CT = {};
+for (const t in MIX) CT[t] = TPL[t];
+const crowd = CH.makeCrowd(CT, { pool: MIX });
+for (const m of crowd.meshes) sc.add(m);
+const UNITS = []; let k = 0;
+for (const t of Object.keys(MIX)) for (let i = 0; i < MIX[t]; i++, k++) {
+  const st = crowd.makeState(t, i); crowd.setClip(st, 'move', -k * 0.37);
+  UNITS.push({ st, t, cx: (k % 8) * 3.2 - 11.2, cz: Math.floor(k / 8) * 3.0 - 10.5, ph: k * 0.37, next: 2 + (k % 5) * 0.8, atkEnd: 0, v: t === 'ls' ? 'mo' : null });
+}
+LT.spawn = performance.now() - t2;
+for (const u of RIGS) { u.rig.show(sc); u.rig.play(u.rig.actions.idle ? 'idle' : 'move'); }
+// Warm-up under a black frame: every rig and batch drawn once (compile + upload), then the shadow map once.
+crowd.setTime(0); crowd.warmAll(0, -50, 0);
+CH.lodHold(RIGS.map((u) => u.rig), true); r.compile(sc, cam); r.render(sc, cam); CH.lodHold(RIGS.map((u) => u.rig), false);
+const progWarm = r.info.programs.length;
+// ---- per frame (allocation free, like the game's PERFRAME code) ----
+const S = { t: 0, last: 0, alive: true, frames: 0 };
+const fx = (u, a) => -Math.sin(a), fz = (u, a) => Math.cos(a);
+function moveRig(u, dt) {
+  const a = S.t * (u.sp / Math.max(u.rad, 0.01)) * 0.5 + u.ph, x = u.cx + Math.cos(a) * u.rad, z = u.cz + Math.sin(a) * u.rad;
+  u.rig.place(x, 0, z, u.rad ? -Math.sin(a) : 0, u.rad ? Math.cos(a) : 1);
+  if (u.rig.tpl.kind === 'suit') u.rig.setRun(u.sp * 0.5);
+  else if (u.rig.actions.move && u.sp) { if (u.rig.base !== u.rig.actions.move) u.rig.play('move'); }
+  else if (u.rig.actions.walk && u.sp) { if (u.rig.base !== u.rig.actions.walk) u.rig.play('walk'); }
+  if (u.rig.tpl.tread) u.rig.addTread(u.sp * 0.5 * dt);
+  if (u.atk && S.t >= u.atk) { u.atk = S.t + 3 + (u.ph % 2); u.rig.play(u.rig.actions.attack ? 'attack' : u.rig.actions.pounce ? 'pounce' : 'sweep'); }
+  u.rig.update(dt);
+}
+function frame(now) {
+  requestAnimationFrame(frame);
+  const dt = S.last ? Math.min((now - S.last) / 1000, 0.05) : 0.016; S.last = now; S.t += dt; S.frames++;
+  CH.beginFrame(cam);
+  if (S.alive) for (let i = 0; i < RIGS.length; i++) moveRig(RIGS[i], dt);
+  crowd.setTime(S.t); crowd.begin(cam);
+  if (S.alive) for (let i = 0; i < UNITS.length; i++) {
+    const u = UNITS[i], a = S.t * 0.6 + u.ph, x = u.cx + Math.cos(a) * 1.5, z = u.cz + Math.sin(a) * 1.5;
+    if (S.t >= u.next) { u.next = S.t + 4 + (i % 3); u.atkEnd = S.t + 1.1; crowd.setClip(u.st, 'attack', S.t); }
+    else if (u.atkEnd && S.t >= u.atkEnd) { u.atkEnd = 0; crowd.setClip(u.st, 'move', S.t); }
+    crowd.addTread(u.st, 0.9 * dt);
+    crowd.put(u.st, x, 0, z, -Math.sin(a), Math.cos(a), null, u.v);
+  }
+  crowd.end();
+  r.render(sc, cam);
+}
+// Memory cycles: despawn everything (rigs leave the graph, no crowd puts) for 30 frames, spawn again for 60 frames.
+const nextFrames = (n) => new Promise((res) => { let c = 0; const f = () => { if (++c >= n) res(); else requestAnimationFrame(f); }; requestAnimationFrame(f); });
+async function cycles(n) {
+  const out = [];
+  for (let c = 1; c <= n; c++) {
+    S.alive = false; for (const u of RIGS) u.rig.hide(); await nextFrames(30);
+    S.alive = true; for (const u of RIGS) { u.rig.show(sc); u.rig.play(u.rig.actions.idle ? 'idle' : 'move'); } await nextFrames(60);
+    if (window.gc) window.gc();
+    const m = r.info.memory;
+    out.push({ cycle: c, geoms: m.geometries, texs: m.textures, programs: r.info.programs.length, heapMB: performance.memory ? +(performance.memory.usedJSHeapSize / 1048576).toFixed(2) : -1 });
+  }
+  return out;
+}
+const tris = (tp) => tp.lods.map((L) => L.parts.reduce((s, p) => s + p.geo.index.count / 3, 0));
+window.__game = { render: () => ({ calls: r.info.render.calls, tris: r.info.render.triangles, programs: r.info.programs.length, geoms: r.info.memory.geometries, texs: r.info.memory.textures }) };
+window.__probe = { fileCloth, CH, THREE, r, sc, cam, crowd, RIGS, UNITS, TPL, GI, INFO, S, cycles, progWarm, STATUES,
+  info: () => ({ load: Math.round(LT.load), templates: Math.round(LT.templates), spawn: Math.round(LT.spawn), progWarm, mixers: CH.stats().mixers, offscreen: CH.stats().offscreen, crowdDrawn: crowd.drawn,
+    bindErr: Math.max(...Object.values(TPL).map((t) => t.bindErr), ...GI.map((t) => t.bindErr)).toExponential(2), weightGapCm: +(Math.max(...Object.values(TPL).map((t) => t.weightGap)) * 100).toFixed(2),
+    tris: Object.fromEntries([...Object.entries(TPL), ['giant0', GI[0]]].map(([k2, t]) => [k2, tris(t).map(Math.round).join('/')])) }) };
+requestAnimationFrame(frame);
+if (TEST) { const m = await import('/tests_draft/chars-page-checks.mjs'); window.__checks = await m.run(window.__probe); }
+window.__ready = true;
+</script>
+</body></html>
