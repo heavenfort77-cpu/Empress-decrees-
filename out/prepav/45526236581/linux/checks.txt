@@ -1,0 +1,55 @@
+== static-src
+SRC-STATIC PASS (6 files, 4 perframe blocks)
+exit 0
+== fx-map
+SKIP unit moves (needs index.html with TEXT)
+SKIP guard moves (needs index.html with TEXT)
+SKIP stinger keys (needs index.html with TEXT)
+SKIP options keys in TEXT (needs index.html with TEXT)
+FX-MAP PASS 9 of 9 checks (242 events, 97 items), 4 skipped
+exit 0
+== fx-runtime
+PASS T1 unlock
+PASS T2 every sound and loop renders
+PASS T3 event plays sound and card
+PASS T4 pause holds cards and sound
+PASS T5 hidden tab suspends audio
+PASS T6 dt clamped
+FAIL T7 all events fire, warm-up complete {"n":242,"unknown":0,"newProg":0,"progsAfterWarm":5,"warmed":13,"live":0}
+PASS T8 intensity levels and hold
+PASS T9 options: Esc, slider, save, mute
+PASS T10 settings survive a reload
+PASS T12 no page errors (main page)
+PASS T13 storage blocked
+PASS T14 44 px targets on phone
+PASS T15 low tier
+FX-RUNTIME FAIL 13 of 14
+exit 1
+== mutate
+MUT CAUGHT pause ignored by fxEvent (by T4)
+MUT CAUGHT card clock runs while paused (by T4)
+MUT CAUGHT pause does not suspend audio (by T4)
+MUT MISSED hidden tab ignored (by T5)
+
+MUT MISSED unlock never resumes (by T1)
+PASS T1 unlock
+FX-RUNTIME PASS 1 of 1
+MUT MISSED dt not clamped (by T6)
+PASS T6 dt clamped
+FX-RUNTIME PASS 1 of 1
+MUT CAUGHT warm-up skipped (by T7)
+MUT CAUGHT intensity never falls (by T8)
+MUT CAUGHT danger level lost (by T8)
+MUT CAUGHT slider change not saved (by T9)
+MUT CAUGHT mute lets sounds through (by T9)
+MUT CAUGHT mute not saved (by T10)
+MUT CAUGHT storage not guarded (by T13)
+MUT CAUGHT slider 30 px (by T14)
+MUT CAUGHT low tier keeps smoke states (by T15)
+MUT CAUGHT sound name typo (by sounds)
+MUT CAUGHT tell under 0.4 s (by tell hold)
+MUT CAUGHT map item dropped (by vfx map items)
+MUT CAUGHT object per event (by perframe object literal)
+MUT CAUGHT closure per frame (by perframe)
+MUTATIONS 17 of 20 caught
+exit 1
