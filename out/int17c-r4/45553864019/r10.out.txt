@@ -1,0 +1,43 @@
+SHARD 10 of 12: statements 496, prelude 13, always 18, valid cuts 206, cuts at lines 262,665,1400,1723,2210,2766,3286,3824,4014,4070,4072; weight ms
+FAIL 1704 fallback: blocked KTX2 -> its PNG; KTX2 and PNG blocked -> the whole set on box colours, ledger names it; recovers after; no page error :: {"f1":["failed",[]],"f2":["failed",["door"],[false,false,false,false,false]],"f3":"ready","errs":[],"blocked":4}
+FAIL 1708 old saves and garbage saves: page loads with no error, the palace set loads :: [{"errs":[],"palace":"failed"},{"errs":[],"palace":"failed"}]
+RUNTIME 12 of 14 pass
+ok   01 load without errors 
+ok   02 budget follow view (calls<500, tris<500k) :: calls 35, tris 8464
+ok   03 budget overview, all sections (calls<500, tris<500k) :: calls 84, tris 10550
+ok   1701 palace set: 5 images from assets/c as KTX2 (flipped v), all on, warm draw under the card, within the cap, +5 textures :: {"shown":true,"led":{"kind":"palace","draws":535,"prog0":17,"prog1":46,"tex0":53,"tex1":87,"fmt":["hall_floor:ktx2","hall_wall:ktx2","pillar:ktx2","door:ktx2","lion_stone:ktx2"],"failed":[],"capped":f
+ok   1702 no program or texture built in palace play after the card (600 steps drawn every 20) :: {"at0":{"geoms":668,"texs":87,"programs":46},"worst":null,"at1":{"geoms":668,"texs":87,"programs":46},"room":"hall","t":0.09999999999999999}
+ok   1703 memory flat over 5 Rumble/palace cycles (geometries, textures, programs); Rumble holds no palace image :: [{"r":{"geoms":455,"texs":53,"programs":20,"palace":"none","ptex":0,"pset":0},"p":{"geoms":668,"texs":87,"programs":46,"palace":"ready","ptex":5,"pset":34}},{"r":{"geoms":455,"texs":53,"programs":20,"
+FAIL 1704 fallback: blocked KTX2 -> its PNG; KTX2 and PNG blocked -> the whole set on box colours, ledger names it; recovers after; no page error :: {"f1":["failed",[]],"f2":["failed",["door"],[false,false,false,false,false]],"f3":"ready","errs":[],"blocked":4}
+ok   1711 page load event before the boot warm-up (2560x1080): loadEventStart < boot end :: {"load":254.19999999998254,"ready":18383.899999999994}
+ok   1705 context lost and restored in the palace: restore card ran (one draw under it), frames draw again, textures equal, no page error :: {"led":{"kind":"restore","draws":1591,"prog0":0,"prog1":43,"tex0":0,"tex1":87,"fmt":[],"failed":[],"capped":false,"ms":925,"t0":161234.8,"n":1},"calls":46,"texs":[87,87],"errs":[]}
+ok   1706 tier changed in play: adjust card each time (one draw under it), programs back to the same count on the same tier :: [{"kind":"adjust","n":1,"draws":46,"programs":63},{"kind":"adjust","n":1,"draws":46,"programs":63},{"kind":"adjust","n":1,"draws":46,"programs":63},{"kind":"adjust","n":1,"draws":46,"programs":63}]
+ok   1707 tab hidden mid-load: card clock frozen while hidden (still busy), the set finishes after the tab shows :: {"h0":["busy",0],"h1":["busy",0],"h2":["idle","ready"]}
+FAIL 1708 old saves and garbage saves: page loads with no error, the palace set loads :: [{"errs":[],"palace":"failed"},{"errs":[],"palace":"failed"}]
+ok   1709 encode manifest fresh (file and source hashes), desktop and phone file for every palace image :: 136 files; 
+ok   1710 KTX2 look vs the PNG route in the start hall: mean dE2000 <= 2 (every 4th pixel) :: dE 0.730; png route hall_floor:png,hall_wall:png,pillar:png,door:png,lion_stone:png
+STMT 42 136
+STMT 43 669
+STMT 46 2209
+STMT 48 16
+STMT 50 16
+STMT 52 7
+STMT 53 4
+STMT 55 9
+STMT 57 2
+STMT 365 2
+STMT 626 2
+STMT 876 29
+STMT 1248 3
+STMT 1479 3
+STMT 1641 3
+STMT 1781 2
+STMT 1942 5
+STMT 2121 3
+STMT 2276 3
+STMT 2470 3
+STMT 2648 3
+STMT 2829 5
+STMT 3038 4
+STMT 4070 324151
+STMT 4084 3578

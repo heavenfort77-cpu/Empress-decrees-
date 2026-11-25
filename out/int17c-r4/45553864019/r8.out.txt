@@ -1,0 +1,51 @@
+SHARD 8 of 12: statements 496, prelude 13, always 18, valid cuts 206, cuts at lines 262,665,1400,1723,2210,2766,3286,3824,4014,4070,4072; weight ms
+RUNTIME 13 of 13 pass
+ok   01 load without errors 
+ok   02 budget follow view (calls<500, tris<500k) :: calls 35, tris 8464
+ok   03 budget overview, all sections (calls<500, tris<500k) :: calls 84, tris 10550
+ok   709 palace sun follows the room you enter (shadow box on the current room), largest room fits the shadow box :: {"bad":[],"fit":true}
+ok   800 palace pieces built in the BP01 rooms (2 lions, 1 华表, 3 mercury, 3 smoke, 1 鼎, 1 side list), at rest; Royal Rumble: own 5 hazards (4 lions) and 3 altars, pieces never stepped :: {"n":{"lions":2,"hb":1,"merc":3,"smoke":3,"ding":1,"sides":3},"rest":true,"rooms":"bridge,court,garden,hall","rumbleStill":true,"rumbleHaz":5,"rumbleAltars":3,"rumbleLions":4}
+ok   801 palace lions: tell (ring) >= 0.4 s with nobody hurt; the strike hits player, bot and another side (damage, knockback out); cooldown :: {"tell":{"state":1,"ring":true},"mid":{"hp":100,"bot":100,"probe":100,"state":1},"after":{"state":2,"ring":false,"hp":80,"bot":{"hp":80,"dead":false,"markT":0,"marker":false,"kx":-9.432422182837987,"k
+ok   802 mercury: shimmer tell >= 0.4 s and harmless, then the burn hurts player, bot and another side in the channel (~dps x on); 2 m off the channel nothing; look follows state :: {"atBurn":{"warnHp":100,"hp":100,"bot":100,"probe":100},"warnLen":0.6000000000000002,"end":{"hp":85.5999999999998,"bot":85.5999999999998,"probe":85.5999999999998},"off":100,"looksOk":true}
+ok   803 smoke blocks sight both ways through a cloud (palSight, bot vision of the player); within revealM or beside the cloud sight is clear :: {"through":{"blocks":true,"sight":false,"back":false},"beside":{"blocks":false,"sight":true},"close":{"blocks":false,"sight":true},"hidden":false,"near":true,"clear":true}
+ok   804 华表: suits wake it (tell >= 0.4 s, ring and eyes, nobody marked yet), its look marks suits in reach (her line); marked = seen through a shut door until it ends; other sides never wake it; cooldown :: {"probeOnly":0,"tell":{"state":1,"ring":true,"eyes":true},"mid":{"pMark":0,"bot":0},"look":{"state":2,"eyes":false,"pMark":4.966666666666667,"marker":true,"bot":4.966666666666667,"botMarker":true,"rul
+ok   805 鼎 cauldron heals player, bot and another side at the altar rate from its charge; empty look; refills after emptyS; Royal Rumble altars untouched :: {"oneS":{"hp":57.99999999999997,"bot":57.99999999999997,"probe":57.99999999999997,"charge":16.000000000000085},"empty":{"room":"hall","x":405,"z":41.5,"charge":0,"on":false},"refill":{"room":"hall","x
+ok   806 bot danger from the pieces after its reaction time: lion tell (out away from the lion), mercury shimmer (out across the channel); none at rest or before reacting :: {"lionEarly":false,"lionLate":true,"lionOut":true,"rest":false,"shimEarly":false,"shimLate":true,"across":true}
+ok   807 pieces budget (every room and the busiest, calls<500, tris<500k), all mercury looks drawn with programs flat (warmed at load), new run back to rest :: {"rooms":{"hall":[16,1002],"court":[10,610],"corridor":[12,618],"garden":[18,1346],"bridge":[10,518],"core":[13,1194]},"busy":[17,1382],"looks":"0,1,2","programs":[43,43],"rest":true,"maxCalls":18,"ma
+ok   808 full palace pieces built from the plan (counts match), every lion in a pair beside a door of its room, only the plan in use listed, guard is a side :: {"want":{"lion":20,"huabiao":6,"ding":9,"mercury":7,"smoke":6},"got":{"lion":20,"huabiao":6,"ding":9,"mercury":7,"smoke":6},"layout":"full","sides":3,"far":[],"protoLions":2}
+STMT 42 121
+STMT 43 557
+STMT 46 1976
+STMT 48 7
+STMT 50 6
+STMT 52 3
+STMT 53 6
+STMT 55 2
+STMT 57 2
+STMT 365 2
+STMT 626 2
+STMT 876 31
+STMT 1248 3
+STMT 1479 2
+STMT 1641 6
+STMT 1781 3
+STMT 1942 3
+STMT 2121 3
+STMT 2276 3
+STMT 2470 4
+STMT 2648 3
+STMT 2829 3
+STMT 3038 4
+STMT 3824 164
+STMT 3839 2221
+STMT 3842 9
+STMT 3857 32
+STMT 3875 27
+STMT 3900 10
+STMT 3916 22
+STMT 3935 67
+STMT 3953 17
+STMT 3971 100
+STMT 3991 17
+STMT 4013 18
+STMT 4084 4373

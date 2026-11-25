@@ -1,0 +1,87 @@
+SHARD 7 of 12: statements 496, prelude 13, always 18, valid cuts 206, cuts at lines 262,665,1400,1723,2210,2766,3286,3824,4014,4070,4072; weight ms
+RUNTIME 29 of 29 pass
+ok   01 load without errors 
+ok   02 budget follow view (calls<500, tris<500k) :: calls 35, tris 8464
+ok   03 budget overview, all sections (calls<500, tris<500k) :: calls 84, tris 10550
+ok   14 pause when tab hidden :: {"frozen":true,"resumed":true}
+ok   400 mode menu: The Burning Palace / Royal Rumble (44 px, keys 1-2, Enter last), frozen while open, then the school select (M returns); Rumble = royale map, Palace = rooms; pick stored :: {"open":true,"n":2,"small":0,"texts":"1. The Burning Palace|2. Royal Rumble","lastRumble":true,"frozen":true,"keysIgnored":true,"toSelect":true,"rumble":{"phase":"royale","on":false,"floors":true,"roy
+ok   401 palace rooms attach/detach: start = hall only (doors shut, solid); door opens within reach and draws the room behind; shut behind you, old room out; calls follow; 5 round trips flat :: {"start":{"attached":"hall","doorsIn":1,"open":0,"inSolids":true},"far":false,"near":{"open":true,"solid":false,"panel":false,"attached":"hall,court"},"inCourt":{"cur":"court","attached":"hall,court",
+ok   402 door travel: hall > court > garden, and hall > court > corridor > bridge > core; the core hall wakes the apex (palace out, wake banner); H does nothing in the palace :: {"hNoop":true,"ok":true,"garden":"hall>court>garden","ok2":true,"core":"hall>court>corridor>bridge","end":{"phase":"wake","on":false,"n":5,"banner":"block","voice":true}}
+ok   403 door previews: the card names the room behind (type, decree, reward, stirs/quiet) near a door only; every room text key exists; hidden in Royal Rumble :: {"hallStart":"none","hall":true,"mid":"none","corridor":true,"cardC":"Corridor\nDecree: no dashing\nReward: ultimate charge\nAll is quiet.","garden":true,"cardG":"Garden\nDecree: none\nReward: a boon\
+ok   404 walls block sight in the palace: shut door blocks; open door in line sees; off the opening blocked; same room sees; palace fog radius :: {"shut":{"sight":false,"sees":false},"open":{"door":true,"sight":true,"sees":true},"off":{"sight":false,"sees":false},"same":{"sight":true,"sees":true},"fow":true}
+ok   405 context camera: wide idle, blends to the fight framing with an enemy within enterR (between at 0.2 s, >= 0.98 by 1.0 s, close..wide), Z = auto/wide/close, beyond exitR stays wide, Rumble at 1 :: {"start":{"b":0,"k":1.0303328051231802,"wd":14.424659271724522},"idle":{"b":0,"k":1.0303328051231802,"wd":14.424659271724522},"mid":{"b":0.4191935937754514,"k":0.9262167032866033,"wd":14.4246592717245
+ok   405b phone: a palace run starts wide with the phone floor (minPx / phone, player at least that), touch help, no page errors :: {"on":true,"px":167.45890190141586,"floor":141.1764705882353,"want":141.1764705882353,"b":0,"help":true} 
+ok   406 Royal Rumble unchanged after a palace run (floors, solids, sections, abyss, sun, fog, help, camera 1, same draw counts) :: {"palFloors":true,"palSolids":true,"floors":true,"solids":true,"on":false,"phase":"royale","attached":0,"doorsIn":0,"lake":false,"abyss":true,"royaleIn":12,"camK":1,"fow":true,"sun":true,"help":true,"
+ok   407 palace budget per room, tier medium (calls<500, tris<500k; one room drawn per room) :: {"rooms":{"hall+court":[64,15862,2],"hall":[34,9470,1],"court":[24,4722,1],"corridor":[28,7366,1],"garden":[48,13400,1],"bridge":[19,4584,1],"bridge+core":[33,6446,2]},"maxCalls":64,"maxTris":15862,"o
+ok   408 palace new run in the same page: start hall, doors shut, hall only, camera, Z and card reset; New run from the end screen starts again :: {"reset":{"cur":"hall","attached":"hall","shut":true,"man":0,"camK":true,"card":"none","n":1,"phase":"palace","banner":"none","x":true},"ended":"palend","again":{"phase":"palace","cur":"hall","banner"
+ok   600 burning waves: wings named at 40/80/120/160 s in order, each falls 5 s after its naming and leaves the scene; warned floors glow; her line + countdown; next-to-burn line on change; fallen door stays shut, card says so :: {"warn":[["outer",40.01666666666568],["court",80.03333333333008],["west",120.04999999999447],["east",160.0500000000195]],"fall":[["outer",45.03333333333206],["court",85.04999999999646],["west",125.066
+ok   601 no fall death without the 5 s warning: told at 40 s (banner, countdown to 1 s), falls only after 45 s (cause fall); a late entrant also dies only after the fall; monitor clean :: {"t40":{"voice":"Let the outer hall burn.","banner":"block","st":1,"alive":true},"t44":{"rule":"the outer hall falls into the lake in 1 s. Get out.","alive":true,"phase":"palace"},"a":{"phase":"palend
+ok   602 a locked room is never warned: the wave waits (HUD says so), is named when it unlocks, falls 5 s later; next wing 40 s after that naming; warned/fallen rooms may not lock :: {"canBefore":true,"locked":{"st":0,"waiting":true,"waits":1,"warned":false,"next":"Next to burn: the outer hall, when the fight there ends","bad":0},"named":{"st":1,"warnAt":60.04999999999787,"t0":60.
+ok   603 fairness monitor every tick: a warned room that gets locked is counted at once (locked / hall) :: {"clean":0,"after":{"bad":3,"why":"locked","room":"hall","ticks":3}}
+ok   604 Royal Rumble never burns; new run (twice) restores every room (standing, level, floors, materials, hall only, clock); Rumble counts/floors same after a burned palace :: {"rumble":{"i":0,"st":0,"checks":0,"rooms":true},"runs":[{"burned":4,"i":0,"st":0,"bad":0,"nextAt":40,"rooms":true,"attached":"hall","cur":"hall","next":"Next to burn: the outer hall in 40 s"},{"burne
+ok   605 burning budget (tier medium): warned hall + court, falling room in view under 500 calls / 0.5M tris; programs, geometries, textures flat after a full burn + new run :: {"warned":[51,13644,"hall,court",1],"fall":[40,5796,"court"],"prog":[45,45,45,45],"geo":[668,668],"tex":[87,87]}
+ok   700 full palace plan: default layout full; 25-30 rooms; 9 school halls, one per school; all room types; 6 wings, every room in one; hall names from TEXT :: {"cfg":"full","layout":"full","n":29,"halls":9,"schools":"dao,fa,ming,mo,nong,ru,yinyang,za,zongheng","want":"dao,fa,ming,mo,nong,ru,yinyang,za,zongheng","types":"bridge,core,corridor,court,garden,hal
+ok   701 full palace reachability: every room reaches the core; every school hall passes >= 5 rooms to the core; one wing burnt cuts no other hall off; depth = doors from the core :: {"reach":true,"depthOk":true,"passed":{"hall_ru":5,"hall_dao":5,"hall_yinyang":7,"hall_fa":7,"hall_ming":5,"hall_za":5,"hall_nong":5,"hall_zongheng":7,"hall_mo":7},"minPassed":5,"cfgMin":5,"cut":{"wes
+ok   702 a palace run starts in the player's own school hall (all nine schools): on its spawn, that hall alone drawn, doors shut :: {"bad":[]}
+ok   703 palace pieces: lions in pairs at hall/gate doors, mercury on bridges + forecourt, smoke in gardens, 华表 in courts, 鼎 in all 9 halls, a clock per burning wing, vats, giants 0-11 on the approach; all inside their rooms :: {"count":{"giant":12,"lion":20,"mercury":7,"huabiao":6,"vat":7,"clock":5,"ding":9,"smoke":6},"inside":true,"lionsAtDoors":true,"lionHalls":9,"ding":true,"clock":"east,south,southeast,southwest,west","
+ok   704 full palace walk: Ru hall > corridor > courtyard > bridge > forecourt > bridge > core (5 rooms between), only the current room + rooms behind its open doors drawn, the core wakes the apex :: {"bad":0,"maxAtt":2,"ok":true,"route":"hall_ru>corr_w>court_w>bridge_wf>fore>approach>","phase":"wake","n":7}
+ok   705 full palace budget per room, tier medium, each door open in turn (calls<500, tris<500k, at most 2 rooms drawn) :: {"maxCalls":22,"maxTris":2958,"worst":"core+approach","maxAtt":2}
+ok   706 palace room minimap: shown; your dot; type colours; warned room red, fallen room an outline, back again; current room outlined; right-click walks there; Rumble minimap back :: {"shown":true,"you":true,"garden":true,"court":true,"warned":true,"fallen":true,"back":true,"curEdge":true,"walked":"corr_w","rumbleMini":true}
+ok   707 palace guard escalation: core 0 always; approach 2, forecourt 3 (cap 3 late); rim hall 1, 2 after lateAt[0], 3 after lateAt[1]; unit lists by depth band :: {"core":[0,0],"approach":2,"fore":[3,3],"hall":[1,2,3,3],"mix":["zu,zu,zu","dun,zu,zu,nu,nu,wz","dun,dun,zu,zu,nu,nu,che,wz"],"want":["zu,zu,zu","dun,zu,zu,nu,nu,wz","dun,dun,zu,zu,nu,nu,che,wz"]}
+ok   708 plan switch full > proto > full and back to Rumble: floors, solids, rooms drawn, lake as a fresh start of each; new full run in the start hall, doors shut; Rumble unchanged :: {"full1":{"layout":"full","rooms":29,"floors":29,"solids":364,"palSolids":323,"attached":"hall_ru","lake":true,"lakeW":368,"scene":14},"proto":{"layout":"proto","rooms":6,"floors":6,"solids":113,"palS
+STMT 42 174
+STMT 43 836
+STMT 46 2673
+STMT 48 30
+STMT 50 3
+STMT 52 8
+STMT 53 4
+STMT 55 2
+STMT 57 3
+STMT 365 3
+STMT 626 3
+STMT 876 34
+STMT 1248 4
+STMT 1479 4
+STMT 1641 3
+STMT 1781 3
+STMT 1942 3
+STMT 2121 5
+STMT 2276 4
+STMT 2470 3
+STMT 2648 7
+STMT 2829 5
+STMT 3038 6
+STMT 3286 3991
+STMT 3300 16
+STMT 3303 1228
+STMT 3331 8411
+STMT 3357 81
+STMT 3376 18
+STMT 3394 15
+STMT 3412 26
+STMT 3431 19417
+STMT 3441 5502
+STMT 3455 71
+STMT 3471 19
+STMT 3488 9
+STMT 3492 243
+STMT 3516 24
+STMT 3530 155
+STMT 3547 29
+STMT 3557 129
+STMT 3574 17
+STMT 3583 44
+STMT 3597 400
+STMT 3617 16
+STMT 3626 168
+STMT 3649 19
+STMT 3664 12
+STMT 3685 21
+STMT 3700 8
+STMT 3724 178
+STMT 3741 194
+STMT 3759 32127
+STMT 3790 19
+STMT 3804 14
+STMT 4084 2094
