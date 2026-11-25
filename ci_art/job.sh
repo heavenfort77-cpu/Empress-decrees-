@@ -1,5 +1,5 @@
 #!/bin/bash
-# PIECES round 4 (owner 25 Nov 13:08 and 14:13; lead notes on run 45560766962): art for everything still drawn as plain shapes: Kaymuse (pieces_kaymuse.py), the crab and the wanderer
+# PIECES round 5 (owner 25 Nov 18:42: Kaymuse only; the other six builders and their gates are as round 4): art for everything still drawn as plain shapes: Kaymuse (pieces_kaymuse.py), the crab and the wanderer
 # (pieces_creatures.py), the plate pickup, leader crown, 墨 wall and decree mark (pieces_small.py). Steps: build (Blender gates), builder
 # mutations (wrong CONFIG values must fail their gates), GLB gates with mutations (pieces_check.py), review shots in three (pieces_shoot.mjs:
 # close-ups, play size beside in-game art, masks, silhouettes), play-size measures with mutations (pieces_measure.py) and sheets
@@ -38,11 +38,14 @@ cp /tmp/pieces/*.glb $O/models/ 2>/dev/null; ls -la /tmp/pieces
 step "builder mutations"
 # a wrong CONFIG value must fail its gate: (builder, output, PIECES_MUT, the FAIL line expected)
 mut() { PIECES_MUT="$3" $BPY $T/$1 $2 > /tmp/pmut/log.txt 2>&1; if grep -q "^FAIL $4" /tmp/pmut/log.txt; then echo "MUT caught: $1 with $3 -> $(grep -m1 "^FAIL $4" /tmp/pmut/log.txt | cut -c1-120)"; else echo "MUT MISSED: $1 with $3 (no line 'FAIL $4')"; fi; }
-{ mut pieces_kaymuse.py /tmp/pmut/kaymuse.glb "LIPS_MAT='kmSkin'" "kaymuse lower face"
-  mut pieces_kaymuse.py /tmp/pmut/kaymuse.glb "STR_LEN=0.35" "kaymuse 冕 veil"
-  mut pieces_kaymuse.py /tmp/pmut/kaymuse.glb "TORSO=[(0.60,0.0,0.37,0.27),(0.72,-0.01,0.39,0.27),(0.95,-0.02,0.45,0.26),(1.10,-0.02,0.47,0.24),(1.18,-0.02,0.40,0.21),(1.23,-0.02,0.20,0.15)]" "kaymuse reads as a woman"
-  mut pieces_kaymuse.py /tmp/pmut/kaymuse.glb "BOARD_REAR=0.50" "kaymuse crown: board"
-  mut pieces_kaymuse.py /tmp/pmut/kaymuse.glb "FINGER=0.0001;HAND_C=(0.3,0.1,0.9)" "kaymuse hands"
+{ mut pieces_kaymuse.py /tmp/pmut/kaymuse.glb "LIPS_MAT='kmSkin'" "kaymuse face"
+  mut pieces_kaymuse.py /tmp/pmut/kaymuse.glb "STR_LEN=0.25" "kaymuse veil lifted"
+  mut pieces_kaymuse.py /tmp/pmut/kaymuse.glb "TORSO=[(0.62,0.0,0.27,0.2),(0.80,0.0,0.27,0.2),(0.96,0.0,0.3,0.2),(1.06,0.0,0.34,0.2),(1.14,-0.01,0.36,0.2),(1.20,-0.02,0.12,0.1)]" "kaymuse figure"
+  mut pieces_kaymuse.py /tmp/pmut/kaymuse.glb "HAIR_FALL=False" "kaymuse hair"
+  mut pieces_kaymuse.py /tmp/pmut/kaymuse.glb "TALLY=False" "kaymuse posture"
+  mut pieces_kaymuse.py /tmp/pmut/kaymuse.glb "SLEEVE_N=5" "kaymuse round forms"
+  mut pieces_kaymuse.py /tmp/pmut/kaymuse.glb "CHEST_LINES=False" "kaymuse colour"
+  mut pieces_kaymuse.py /tmp/pmut/kaymuse.glb "SWAY_T=0.0" "kaymuse idle"
   mut pieces_kaymuse.py /tmp/pmut/kaymuse.glb "BUDGET=(1000,2600,900)" "kaymuse_lod0 tris"
   mut pieces_kaymuse.py /tmp/pmut/kaymuse.glb "REST_X=2.4" "kaymuse sits within"
   mut pieces_creatures.py /tmp/pmut "C_KNEE=(0.84,1.35)" "crab .* low and wide"

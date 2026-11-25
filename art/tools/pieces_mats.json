@@ -66,9 +66,9 @@
     "roughness": 0.7
   },
   "kmSkin": {
-    "color": "#deb393",
+    "color": "#ecc9ab",
     "metalness": 0,
-    "roughness": 0.75
+    "roughness": 0.7
   },
   "moEarthLine": {
     "tex": "rammed_earth",
