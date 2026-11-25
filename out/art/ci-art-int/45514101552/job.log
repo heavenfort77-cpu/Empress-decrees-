@@ -1,0 +1,133 @@
+== tools
+curl: (22) The requested URL returned error: 403
+Traceback (most recent call last):
+  File "<string>", line 1, in <module>
+    import json,sys; a=json.load(sys.stdin)['assets']; print(next(x['browser_download_url'] for x in a if x['name'].endswith('Linux-x86_64.deb')))
+                       ~~~~~~~~~^^^^^^^^^^^
+  File "/opt/hostedtoolcache/Python/3.13.18/x64/lib/python3.13/json/__init__.py", line 298, in load
+    return loads(fp.read(),
+        cls=cls, object_hook=object_hook,
+        parse_float=parse_float, parse_int=parse_int,
+        parse_constant=parse_constant, object_pairs_hook=object_pairs_hook, **kw)
+  File "/opt/hostedtoolcache/Python/3.13.18/x64/lib/python3.13/json/__init__.py", line 352, in loads
+    return _default_decoder.decode(s)
+           ~~~~~~~~~~~~~~~~~~~~~~~^^^
+  File "/opt/hostedtoolcache/Python/3.13.18/x64/lib/python3.13/json/decoder.py", line 345, in decode
+    obj, end = self.raw_decode(s, idx=_w(s, 0).end())
+               ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/hostedtoolcache/Python/3.13.18/x64/lib/python3.13/json/decoder.py", line 363, in raw_decode
+    raise JSONDecodeError("Expecting value", s, err.value) from None
+json.decoder.JSONDecodeError: Expecting value: line 1 column 1 (char 0)
+KTX deb 
+curl: option : blank argument where content is expected
+curl: try 'curl --help' or 'curl --manual' for more information
+ci_art/job.sh: line 7: toktx: command not found
+TOKTX MISSING
+4.5.1
+MUTM written: dropclip zu, shiftbone ru joint head
+== encode
+MESHOPT ok ./arch/flag_1.glb 1728 -> 2500
+MESHOPT ok ./arch/flag_2.glb 1728 -> 2500
+MESHOPT ok ./arch/flag_3.glb 1728 -> 2500
+MESHOPT ok ./arch/flag_4.glb 1728 -> 2500
+MESHOPT ok ./arch/flag_5.glb 1728 -> 2500
+MESHOPT ok ./arch/flag_6.glb 1728 -> 2500
+MESHOPT ok ./arch/flag_7.glb 1728 -> 2500
+MESHOPT ok ./arch/flag_8.glb 1728 -> 2500
+MESHOPT ok ./arch/flag_pole.glb 2236 -> 2588
+MESHOPT ok ./arch/lake_rubble.glb 15508 -> 9544
+MESHOPT ok ./arch/parapet_seg.glb 3820 -> 4612
+MESHOPT ok ./arch/pillar.glb 14800 -> 9508
+MESHOPT ok ./arch/plant_grass.glb 1680 -> 2344
+MESHOPT ok ./arch/plant_millet.glb 1680 -> 2344
+MESHOPT ok ./arch/plant_shrub.glb 1680 -> 2348
+MESHOPT ok ./arch/plant_wheat.glb 1680 -> 2344
+MESHOPT ok ./arch/que_pair.glb 168372 -> 72608
+MESHOPT ok ./arch/slip_bundle.glb 2892 -> 2648
+MESHOPT ok ./arch/slip_rack.glb 8192 -> 4724
+MESHOPT ok ./arch/terrace_edge.glb 3452 -> 5356
+MESHOPT ok ./arch/throne_dais.glb 63548 -> 24048
+MESHOPT ok ./arch/tile_end.glb 2968 -> 2852
+MESHOPT ok ./arch/walk_beam.glb 2852 -> 3936
+MESHOPT ok ./arch/walk_post.glb 8440 -> 8232
+MESHOPT ok ./arch/wall_earth_seg.glb 2664 -> 3484
+MESHOPT ok ./arch/wall_low.glb 3800 -> 5012
+MESHOPT ok ./arch/wall_mural_seg.glb 4228 -> 5232
+MESHOPT ok ./arch/wall_seg.glb 4216 -> 5220
+MESHOPT ok ./arch/wall_walk_seg.glb 10408 -> 7932
+MESHOPT ok ./beast.glb 843540 -> 310884
+MESHOPT ok ./bells.glb 87312 -> 49888
+MESHOPT ok ./censer.glb 123960 -> 68732
+MESHOPT ok ./clock.glb 142544 -> 69988
+MESHOPT ok ./crane.glb 135716 -> 72328
+MESHOPT ok ./ding.glb 234264 -> 123284
+MESHOPT ok ./giants/giants.glb 6572836 -> 2241904
+MESHOPT ok ./guard/che.glb 412920 -> 144696
+MESHOPT ok ./guard/dun.glb 463516 -> 170252
+MESHOPT ok ./guard/nu.glb 477780 -> 176800
+MESHOPT ok ./guard/wz.glb 464000 -> 169116
+MESHOPT ok ./guard/zu.glb 430024 -> 160444
+MESHOPT ok ./huabiao.glb 133920 -> 80136
+MESHOPT ok ./lamp.glb 54860 -> 32476
+MESHOPT ok ./merc.glb 12780 -> 13188
+MESHOPT ok ./rebels/fs.glb 220976 -> 104352
+MESHOPT ok ./rebels/ls.glb 487852 -> 233348
+MESHOPT ok ./rebels/qs.glb 253096 -> 122652
+MESHOPT ok ./rebels/ss.glb 229224 -> 115908
+MESHOPT ok ./standard.glb 43432 -> 31024
+MESHOPT ok ./suits/dao.glb 650588 -> 216992
+MESHOPT ok ./suits/fa.glb 812496 -> 243156
+MESHOPT ok ./suits/ming.glb 729844 -> 212620
+MESHOPT ok ./suits/mo.glb 726308 -> 216796
+MESHOPT ok ./suits/nong.glb 757848 -> 219520
+MESHOPT ok ./suits/ru.glb 862668 -> 255628
+MESHOPT ok ./suits/yy.glb 764540 -> 232352
+MESHOPT ok ./suits/za.glb 832304 -> 247752
+MESHOPT ok ./suits/zh.glb 794800 -> 250772
+MESHOPT ok ./tally.glb 160260 -> 88560
+MESHOPT ok ./vat.glb 193192 -> 108012
+encode wall 30 s
+info: tally.glb (160.26 KB) → tally.glb (88.56 KB)
+info: prune: Removed types... Accessor (71)
+warn: quantize: Skipping TEXCOORD_0; out of [0,1] range.
+warn: quantize: Skipping TEXCOORD_0; out of [0,1] range.
+warn: quantize: Skipping TEXCOORD_0; out of [0,1] range.
+warn: quantize: Skipping TEXCOORD_0; out of [0,1] range.
+warn: quantize: Skipping TEXCOORD_0; out of [0,1] range.
+warn: quantize: Skipping TEXCOORD_0; out of [0,1] range.
+warn: quantize: Skipping TEXCOORD_0; out of [0,1] range.
+warn: quantize: Skipping TEXCOORD_0; out of [0,1] range.
+warn: quantize: Skipping TEXCOORD_0; out of [0,1] range.
+warn: quantize: Skipping TEXCOORD_0; out of [0,1] range.
+warn: quantize: Skipping TEXCOORD_0; out of [0,1] range.
+warn: quantize: Skipping TEXCOORD_0; out of [0,1] range.
+warn: quantize: Skipping TEXCOORD_0; out of [0,1] range.
+warn: quantize: Skipping TEXCOORD_0; out of [0,1] range.
+warn: quantize: Skipping TEXCOORD_0; out of [0,1] range.
+warn: quantize: Skipping TEXCOORD_0; out of [0,1] range.
+info: prune: Removed types... Accessor (38)
+info: vat.glb (193.19 KB) → vat.glb (108.01 KB)
+== decode
+TEX rgba: 0 of 0 loaded, page errors 0
+TEX gpu: 0 of 0 loaded, page errors 0
+MODELS 72 of 72 loaded, page errors 0
+== gates
+FAIL T1 encode + load (rgba route): 0 of 152 bad desk/etc1s/apex_patina desk/uastc/apex_patina desk/etc1s/black_lake desk/uastc/black_lake desk/etc1s/bronze_trim_brass desk/uastc/bronze_trim_brass desk/etc1s/bronze_trim_patina desk/uastc/bronze_trim_patina
+PASS T2 desk PSNR >= 35 and dE <= 2: 38 of 38
+PASS T3 phone PSNR >= 35 and dE <= 2: 38 of 38
+PASS T4 alpha flips <= 1%: alpha textures checked; worst 0
+PASS T5 tex_check ratchet (decoded vs source): source FAIL lines 2, decoded 0, new 0
+PASS T6 GPU route loads every picked file with full mips: 0 of 0; formats []; caps {"renderer": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)", "parallelCompile": false, "astc": true, "bptc": true, "s3tc": true, "etc": true, "etc1": true, "maxTex": 8192, "aniso": 16}
+FAIL TM texture mutants caught: 
+PASS M1 compressed and loaded: 69 of 69
+FAIL M2 triangles per mesh equal: 66 of 69 bad bells.glb clock.glb huabiao.glb  
+FAIL M3 bounds within 2 mm: 66 of 69 bad bells.glb clock.glb huabiao.glb  
+PASS M4 clips equal: 69 of 69
+PASS M5 joints equal: 69 of 69
+FAIL M6 vertices within 2 mm in every pose: 66 of 69; worst 5788.79 mm (huabiao.glb rest huabiao_lod0_1) bad bells.glb clock.glb huabiao.glb  
+PASS M7 UVs within 1/2048: 69 of 69; worst 0.000042 (suits/za.glb)
+PASS MM model mutants caught: decim->M2:caught, dropclip->M4:caught, shiftbone->M6:caught
+INFO models 22.72 MB -> 8.29 MB; giants 2.24 MB
+INFO textures desk 0.00 MB, phone 0.00 MB (PNG sources 27.83 MB); modes {"etc1s": 0, "uastc": 0}
+INFO orient []
+RESULT FAIL gates 10 of 15
