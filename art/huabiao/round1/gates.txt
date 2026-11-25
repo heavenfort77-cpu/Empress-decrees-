@@ -1,0 +1,11 @@
+PASS huabiao lod0 + head tris 1284 (budget 1500)
+PASS huabiao lod1 + head tris 428 (budget 500)
+PASS huabiao lod2 tris 144 (budget 200)
+PASS footprint below 2.2 m 1.36 x 1.36 m (solid 1.4 x 1.4); cloud board overhang above it 0.45 m (max 0.5)
+PASS height 6.20 m (range (5.6, 6.6); box about 6 m)
+PASS eye inlay material palEye on the LOD0 and LOD1 heads; each eye 13 cm across (min 12), pair spans 29 cm
+PASS head nodes parented to their LOD; clip watch 60 frames at 60 fps (windup 0.5 s, dip 22, turn 35 deg)
+PASS watch moves the eyes 14 cm sideways and 9 cm down (min 5 sideways or 3 down)
+PASS materials: lacquer column (approved A3 texture), bronze sleeves and board, silver inlay rings, stone plinth
+PASS smooth-shaded share 74% (min 50%)
+10 of 10 pass

@@ -1,0 +1,100 @@
+{
+ "gates": [
+  {
+   "ok": true,
+   "line": "stalker LOD0 tris 3566 (budget 4000)"
+  },
+  {
+   "ok": true,
+   "line": "stalker LOD1 tris 1208 (budget 1500)"
+  },
+  {
+   "ok": true,
+   "line": "stalker LOD2 tris 450 (budget 500)"
+  },
+  {
+   "ok": true,
+   "line": "stalker every vertex on one bone (3 skinned LODs, 21 bones)"
+  },
+  {
+   "ok": true,
+   "line": "stalker attack tell 0.5 s (min 0.4): head tip moved 0.24 m (min 0.15), jaw 34 deg (min 25)"
+  },
+  {
+   "ok": true,
+   "line": "stalker move: 8 wheel bones roll 360 deg per 1.0 s (quarter clip turn 90 deg)"
+  },
+  {
+   "ok": true,
+   "line": "stalker size 1.18 w x 1.93 l x 0.98 h m (width <= hit circle 1.0 + 0.25; under the 2.05 m suit), lowest +0.000 m"
+  },
+  {
+   "ok": true,
+   "line": "stalker shares the tiger casting language: materials ['apexBronze', 'apexCrack', 'apexInlay'] (bronze trim, crack inlay, gold inlay), mark and flanges"
+  },
+  {
+   "ok": true,
+   "line": "stalker smooth-shaded share 93% of surface area (round forms, min 50%)"
+  },
+  {
+   "ok": true,
+   "line": "stalker GLB clips ['attack', 'idle', 'move']"
+  },
+  {
+   "ok": true,
+   "line": "howler LOD0 tris 3474 (budget 4000)"
+  },
+  {
+   "ok": true,
+   "line": "howler LOD1 tris 1384 (budget 1500)"
+  },
+  {
+   "ok": true,
+   "line": "howler LOD2 tris 438 (budget 500)"
+  },
+  {
+   "ok": true,
+   "line": "howler every vertex on one bone (3 skinned LODs, 21 bones)"
+  },
+  {
+   "ok": true,
+   "line": "howler attack tell 0.5 s (min 0.4): head tip moved 0.36 m (min 0.15), jaw 42 deg (min 25)"
+  },
+  {
+   "ok": true,
+   "line": "howler move: 4 wheel bones roll 360 deg per 1.0 s (quarter clip turn 90 deg)"
+  },
+  {
+   "ok": true,
+   "line": "howler size 1.23 w x 1.44 l x 1.68 h m (width <= hit circle 1.0 + 0.25; under the 2.05 m suit), lowest -0.002 m"
+  },
+  {
+   "ok": true,
+   "line": "howler shares the tiger casting language: materials ['apexBronze', 'apexCrack', 'apexDark', 'apexInlay'] (bronze trim, crack inlay, gold inlay), mark and flanges"
+  },
+  {
+   "ok": true,
+   "line": "howler smooth-shaded share 95% of surface area (round forms, min 50%)"
+  },
+  {
+   "ok": true,
+   "line": "howler GLB clips ['attack', 'idle', 'move']"
+  },
+  {
+   "ok": true,
+   "line": "distinct silhouettes: height Howler/Stalker 1.72 (min 1.4); Stalker L/H 1.97 (min 1.5); Howler L/H 0.86 (max 1.0)"
+  }
+ ],
+ "stalker": {
+  "w": 1.1799999475479126,
+  "l": 1.929509162902832,
+  "h": 0.9784367680549622,
+  "zmin": 7.450580596923828e-09
+ },
+ "howler": {
+  "w": 1.2300000190734863,
+  "l": 1.4434759020805359,
+  "h": 1.6802582740783691,
+  "zmin": -0.0016152724856510758
+ }
+}

@@ -1,0 +1,201 @@
+<!doctype html>
+<!-- Review viewer for the cast-bronze props (art tool, not shipped). Same camera FOV and pitch, the same two lights and the approved hall
+     floor texture as the game; a player-size box and the current box version of the prop beside it for scale.
+     ?model=beast (default) | ding | vat | crane | censer | clock | huabiao | lamp | bells | tally | merc   (assets/models/<model>.glb; objects
+     <model>_lod0/1/2, optional rig <model>_rig, state objects below; W1b props: crane to merc)
+     &view=play (fight framing, 0.75 x 14 m) | wide (22 m) | turn (close turntable, &yaw=deg) | lods (LOD0, LOD1, LOD2 side by side)
+     &mode=tex | shade | flat | sil (passes) &t=seconds into the model's clip (beast: 'strike'; omit = rest pose)
+     &state= the model's state (ding: lit | dry; vat: intact | cracked | shards) &school=0-8 (ding accent, CONFIG.SCHOOLS order)
+     &metal= &rough= bronze material override (look tests only); &sheet=brass uses the brass trim sheet variant
+     &level=0-1 water clock level (1 full, 0 empty: the countdown; clock nodes carry extras full/empty heights) &look=0-1 huabiao head turn
+     (0 rest, 1 turned to the passer) &state= for W1b props: merc idle | warn | hot; lamp lit | out; &eye=awake (huabiao eyes; with &t= in the
+     watch clip, e.g. t=0.5 = the end of the windup)
+     C12 school standard: ?model=standard&school=0-8 (banner atlas cell, CONFIG.SCHOOLS order) &lineup=1 (all nine in a row at the play or
+     wide camera; window.__dump = banner boxes on screen + banner material flags) &t= seconds into its 'idle' sway clip.
+     glTF UVs: the trim sheet loads with flipY false (glTF convention; the round 1 shots showed patina on fresh plates without it). -->
+<html><head><meta charset="utf-8"><style>html,body{margin:0;background:#120d16;overflow:hidden}</style>
+<script type="importmap">{"imports":{"three":"../../lib/three.module.min.js"}}</script></head><body>
+<script type="module">
+import * as THREE from 'three';
+import { GLTFLoader } from './vendor/loaders/GLTFLoader.js';
+const Q = new URLSearchParams(location.search), VIEW = Q.get('view') || 'play', MODE = Q.get('mode') || 'tex', T = Q.get('t');
+const MODEL = Q.get('model') || 'beast';
+const METAL = Q.get('metal') !== null ? +Q.get('metal') : 0.4, ROUGH = Q.get('rough') !== null ? +Q.get('rough') : 0.6;
+const SHEET = Q.get('sheet') || '';  // '' = assets/tex/bronze_trim.png; 'brass' = the brass variant (bronze_trim_brass.png)
+const W = innerWidth, H = innerHeight;
+const r = new THREE.WebGLRenderer({ antialias: true }); r.setPixelRatio(1); r.setSize(W, H); r.shadowMap.enabled = MODE !== 'sil' && MODE !== 'flat'; document.body.appendChild(r.domElement);
+const scene = new THREE.Scene(); scene.background = new THREE.Color(MODE === 'sil' ? 0xffffff : 0x120d16);
+const cam = new THREE.PerspectiveCamera(50, W / H, 0.5, 200);
+// game lights (index.html: hemi 1.1, sun 2.2 from (-30, 60, 25) toward (0, 0, -12))
+scene.add(new THREE.HemisphereLight(0xd9c9ff, 0x3a2a22, 1.1));
+const sun = new THREE.DirectionalLight(0xffe2b8, 2.2); sun.position.set(-30, 60, 25); sun.target.position.set(0, 0, -12); sun.castShadow = true;
+Object.assign(sun.shadow.camera, { left: -12, right: 12, top: 12, bottom: -12, near: 10, far: 150 }); sun.shadow.mapSize.set(2048, 2048);
+scene.add(sun, sun.target);
+const tl = new THREE.TextureLoader();
+const tex = (f, rep) => { const t = tl.load(f); t.colorSpace = THREE.SRGBColorSpace; t.wrapS = t.wrapT = THREE.RepeatWrapping; t.anisotropy = 4; if (rep) t.repeat.set(rep, rep); return t; };
+const floor = new THREE.Mesh(new THREE.PlaneGeometry(24, 24), new THREE.MeshStandardMaterial({ map: tex('../../assets/tex/hall_floor.png', 6), roughness: 0.9 }));
+floor.rotation.x = -Math.PI / 2; floor.receiveShadow = true; if (MODE === 'tex' || MODE === 'shade') scene.add(floor);
+// ding accents in CONFIG.SCHOOLS order (ru dao fa mo yinyang za ming zongheng nong); the GLB's extras.accents overrides this list
+let ACCENTS = ['#a8321e', '#2f8a5c', '#1a1614', '#c8ccd0', '#d9d2c3', '#b8862e', '#e2b84a', '#2e5a9c', '#5b3f8c'];
+const SCHOOL = +(Q.get('school') || 0);
+// C12 standard banner: one atlas (assets/tex/school_standards.png, 5 x 2 cells), school = UV offset; alpha-tested cloth, never blended
+const LINEUP = Q.get('lineup') !== null;
+// &atlas=NAME swaps the banner atlas file (measurement variants only, e.g. school_standards_zacool); default the shipped atlas
+const ATLAS = /^[a-z_]+$/.test(Q.get('atlas') || '') ? Q.get('atlas') : 'school_standards';
+const BANNER_TEX = MODEL === 'standard' ? await tl.loadAsync(`../../assets/tex/${ATLAS}.png`) : null;
+function bannerMat(i, mode) {
+  const t = BANNER_TEX.clone(); t.colorSpace = THREE.SRGBColorSpace; t.flipY = false; t.wrapS = t.wrapT = THREE.ClampToEdgeWrapping; t.anisotropy = 4;
+  t.offset.set((i % 5) * 0.2, Math.floor(i / 5) * 0.5); t.needsUpdate = true;
+  const p = { map: t, alphaTest: 0.5, side: THREE.DoubleSide };
+  if (mode === 'sil') return new THREE.MeshBasicMaterial({ ...p, color: 0x000000 });
+  if (mode === 'flat') return new THREE.MeshBasicMaterial(p);
+  return new THREE.MeshStandardMaterial({ ...p, roughness: 0.9 });
+}
+let ACC_METAL = [];  // from the GLB extras accentMetal (metal inlays shine, pigments matte)
+function glowTex() {  // soft radial ember glow for the lit card (additive; no neon: warm, low saturation at the edge)
+  const c = document.createElement('canvas'); c.width = c.height = 128; const g = c.getContext('2d'), gr = g.createRadialGradient(64, 64, 4, 64, 64, 62);
+  gr.addColorStop(0, 'rgba(255,190,110,1)'); gr.addColorStop(0.4, 'rgba(232,116,42,0.55)'); gr.addColorStop(1, 'rgba(232,116,42,0)'); g.fillStyle = gr; g.fillRect(0, 0, 128, 128);
+  const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; return t;
+}
+// CONFIG (FIXB mercury): per state material colour (linear multiplier on the matcap), ripple normal strength, shimmer slide speed (UV per s);
+// ripple tile repeat on the surface UVs (trim UVs: 0.25 per m, so 8 = a 0.5 m ripple tile); still-shot phase s (&t= overrides).
+// round 2 (FIXB run 45462167005: warn only +24 lum over idle; the 0.5 m ripple tile read as chain mail): warn colour 1.3 -> 1.7 with a softer
+// ripple, a 1.33 m irregular ripple tile, idle almost calm.
+const MERC = { idle: { col: [0.6, 0.62, 0.66], ns: 0.12, speed: 0.02 }, warn: { col: [1.7, 1.74, 1.8], ns: 0.45, speed: 0.35 }, hot: { col: [2.6, 2.6, 2.65], ns: 0.3, speed: 0.6 } };
+const RIPPLE_REP = 3, SHIMMER_T = Q.get('t') !== null ? +Q.get('t') : 0.4;
+let RIP = null;
+function rippleTex() {  // tileable ripple normal map from whole sine cycles (generated once; shared by every mercury surface)
+  if (RIP) return RIP; const N = 128, c = document.createElement('canvas'); c.width = c.height = N; const g = c.getContext('2d'), im = g.createImageData(N, N);
+  const W = [[3, 1, 0.5, 0], [1, 4, 0.35, 1.3], [5, -2, 0.25, 2.1], [-2, 7, 0.2, 0.7], [7, 3, 0.12, 4.0], [-5, -6, 0.15, 2.9], [11, -4, 0.06, 1.1]];
+  const hgt = (x, y) => W.reduce((a, [fx, fy, A, ph]) => a + A * Math.sin(2 * Math.PI * (fx * x + fy * y) / N + ph), 0);
+  for (let y = 0; y < N; y++) for (let x = 0; x < N; x++) { const dx = (hgt(x + 1, y) - hgt(x - 1, y)) * 2.5, dy = (hgt(x, y + 1) - hgt(x, y - 1)) * 2.5, l = Math.hypot(dx, dy, 1), i = (y * N + x) * 4;
+    im.data[i] = 128 - 127 * dx / l; im.data[i + 1] = 128 - 127 * dy / l; im.data[i + 2] = 128 + 127 / l; im.data[i + 3] = 255; }
+  g.putImageData(im, 0, 0); RIP = new THREE.CanvasTexture(c); RIP.wrapS = RIP.wrapT = THREE.RepeatWrapping; RIP.repeat.set(RIPPLE_REP, RIPPLE_REP); return RIP;
+}
+const MASK = Q.get('mask');  // FIXB: &mask=<material name>: unlit white for that material, black for the rest (on-screen measurement)
+const MATS = {
+  tex: { palBronze: () => { const t = tex(`../../assets/tex/bronze_trim${SHEET ? '_' + SHEET : ''}.png`); t.flipY = false; return new THREE.MeshStandardMaterial({ map: t, metalness: METAL, roughness: ROUGH }); },
+    palInlay: () => new THREE.MeshStandardMaterial({ color: 0xc8ccd0, metalness: 0.6, roughness: 0.35 }),
+    palDark: () => new THREE.MeshStandardMaterial({ color: 0x2a1f14, roughness: 0.9 }),
+    palAccent: () => { const m = ACC_METAL[SCHOOL] || 0; return new THREE.MeshStandardMaterial({ color: new THREE.Color(ACCENTS[SCHOOL]), metalness: m, roughness: m > 0 ? 0.35 : 0.85 }); },
+    palEmber: () => new THREE.MeshBasicMaterial({ color: 0xe8742a }),
+    palCoal: () => new THREE.MeshStandardMaterial({ color: 0x3a1a0e, roughness: 1 }),
+    palGlow: () => new THREE.MeshBasicMaterial({ map: glowTex(), transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, side: THREE.DoubleSide }),
+    palSpray: () => new THREE.MeshStandardMaterial({ color: 0xcfe4ee, roughness: 0.4, transparent: true, opacity: 0.85 }),
+    palAsh: () => new THREE.MeshStandardMaterial({ color: 0x4a443e, roughness: 1 }),
+    palWater: () => new THREE.MeshStandardMaterial({ color: 0x2a6a9a, roughness: 0.3, metalness: 0.1 }),  // the game's vat water (CONFIG.PIECES2.colors.water, p2WaterMat)
+    palStone: () => new THREE.MeshStandardMaterial({ map: tex('../../assets/tex/lion_stone.png'), roughness: 0.9 }),
+    // W1b props: smoke and flame cards (klad, art/tools/w1b_tex.py), cinnabar decoration, black lacquer, inlay eyes, mercury (matcap A14)
+    palSmoke: () => { const t = tex('../../assets/tex/smoke_card.png'); return new THREE.MeshStandardMaterial({ map: t, transparent: true, depthWrite: false, roughness: 1, side: THREE.DoubleSide, opacity: 0.55 / 0.6 }); },
+    palFlame: () => new THREE.MeshBasicMaterial({ map: tex('../../assets/tex/flame_card.png'), transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, side: THREE.DoubleSide }),
+    palCinnabar: () => new THREE.MeshStandardMaterial({ color: 0xa8321e, roughness: 0.7 }),
+    palLacquer: () => new THREE.MeshStandardMaterial({ map: tex('../../assets/tex/pillar.png'), roughness: 0.55 }),
+    palLacquerPlain: () => new THREE.MeshStandardMaterial({ color: 0x1c1512, roughness: 0.6 }),
+    palGold: () => new THREE.MeshStandardMaterial({ color: 0xe2b84a, metalness: 0.25, roughness: 0.5 }),  // laid matte (W1a: gold as metal measured dE 7.3 from brass)
+    palEye: () => (STATE === 'awake' || Q.get('eye') === 'awake') ? new THREE.MeshStandardMaterial({ color: 0xf0c860, emissive: 0xc08020, emissiveIntensity: 1.0, metalness: 0.6, roughness: 0.3 })
+      : new THREE.MeshStandardMaterial({ color: 0x241a10, metalness: 0.3, roughness: 0.6 }),  // awake: gold inlay, warm low glow; asleep: dark
+    // mercury-silvered lamp reflector: the mercury matcap (A14, W2's assets/tex/mercury_matcap.png)
+    palMercRef: () => new THREE.MeshMatcapMaterial({ matcap: tex('../../assets/tex/mercury_matcap.png'), side: THREE.DoubleSide }),
+    palMerc: () => { const t = tex('../../assets/tex/mercury_matcap.png'); const m = new THREE.MeshMatcapMaterial({ matcap: t });
+      // FIXB 25 Nov (owner 02:2x: 'brighter mercury texture + shimmer'): the brighter A14 matcap, a ripple normal map that slides (the
+      // shimmer: the matcap glints move), held calm when idle, strong and over-bright in the warn tell, white-hot when it burns. MERC below.
+      const S = MERC[STATE] || MERC.idle; m.color = new THREE.Color(...S.col);
+      m.normalMap = rippleTex(); m.normalScale.set(S.ns, S.ns); m.normalMap.offset.set(S.speed * SHIMMER_T, S.speed * SHIMMER_T * 0.37); return m; },
+    palBanner: () => bannerMat(SCHOOL, 'tex') },
+  shade: { palBronze: () => new THREE.MeshStandardMaterial({ color: 0x9a7a48, metalness: METAL, roughness: ROUGH }), palInlay: () => new THREE.MeshStandardMaterial({ color: 0xc8ccd0, metalness: 0.6, roughness: 0.35 }), palStone: () => new THREE.MeshStandardMaterial({ color: 0x9a968c, roughness: 0.9 }), palBanner: () => bannerMat(SCHOOL, 'shade') },
+  flat: { palBronze: () => new THREE.MeshBasicMaterial({ color: 0x9a7a48 }), palInlay: () => new THREE.MeshBasicMaterial({ color: 0xc8ccd0 }), palStone: () => new THREE.MeshBasicMaterial({ color: 0x9a968c }), palBanner: () => bannerMat(SCHOOL, 'flat') },
+  sil: { palBronze: () => new THREE.MeshBasicMaterial({ color: 0x000000 }), palInlay: () => new THREE.MeshBasicMaterial({ color: 0x000000 }), palStone: () => new THREE.MeshBasicMaterial({ color: 0x000000 }), palBanner: () => bannerMat(SCHOOL, 'sil') },
+};
+const made = {}; const matFor = (n) => { const k = MODE === 'tex' || MATS[MODE][n] ? n : (n === 'palGlow' ? 'palGlow' : 'palBronze'); return made[k] || (made[k] = (MATS[MODE][k] || MATS.tex[k] || MATS[MODE].palBronze)()); };
+const boxMat = () => new THREE.MeshStandardMaterial({ color: 0x9a968c, roughness: 0.9 });
+function boxes(x, list, geo) { const m = boxMat(), g = new THREE.Group(); for (const [a, b, c, y, z] of list) { const o = new THREE.Mesh(geo(a, b, c), m); o.position.set(x, y, z); o.castShadow = o.receiveShadow = true; g.add(o); } return g; }
+// per model: GLB, clip, the box version it replaces (index.html), its states (object name prefixes shown per state), camera look point
+const SPEC = {
+  beast: { clip: 'strike', box: (x) => boxes(x, [[1.6, 0.6, 2.2, 0.3, 0], [1.2, 1.2, 1.6, 1.2, 0], [1.0, 1.0, 0.8, 2.1, 0.6]], (w, h, d) => new THREE.BoxGeometry(w, h, d)),
+    states: null, lookY: 1.1, turnY: 1.25, turnD: 4.2, boxX: -3.4 },
+  ding: { clip: null, box: (x) => boxes(x, [[0.85, 1.0, 0, 0.75, 0], [0.95, 0.12, 0, 1.3, 0]], (rr, h) => new THREE.CylinderGeometry(rr, rr, h, 16)),
+    states: { lit: ['ding_lit'], dry: ['ding_dry'] }, def: 'lit', lookY: 0.6, turnY: 0.7, turnD: 3.4, boxX: -3.0 },
+  vat: { clip: null, box: (x) => boxes(x, [[0.8, 1.4, 0, 0.7, 0]], (rr, h) => new THREE.CylinderGeometry(rr, rr, h, 16)),
+    states: { intact: ['vat_body', 'vat_water'], cracked: ['vat_body', 'vat_cracks', 'vat_water'], shards: ['vat_shards', 'vat_puddle'] }, def: 'intact', lookY: 0.6, turnY: 0.7, turnD: 3.6, boxX: -3.0 },
+  // W1b props (box versions from index.html's palace pieces build)
+  crane: { clip: null, box: (x) => { const g = boxes(x, [[0.8, 0.8, 0.8, 0.4, 0], [0.6, 0.6, 1.2, 2.3, 0]], (w, h, d) => new THREE.BoxGeometry(w, h, d));
+      g.add(boxes(x, [[0.1, 1.2, 0, 1.4, 0], [0.08, 1.0, 0, 3.0, -0.5]], (rr, h) => new THREE.CylinderGeometry(rr, rr, h, 6))); return g; },
+    states: null, lookY: 1.5, turnY: 1.6, turnD: 5.2, boxX: -3.0 },
+  huabiao: { clip: 'watch', box: (x) => { const g = boxes(x, [[1.4, 0.4, 1.4, 0.2, 0], [1.6, 0.25, 0.4, 4.4, 0], [0.9, 0.6, 1.1, 5.7, 0]], (w, h, d) => new THREE.BoxGeometry(w, h, d));
+      g.add(boxes(x, [[0.45, 5, 0, 2.9, 0]], (rr, h) => new THREE.CylinderGeometry(rr, rr, h, 12))); return g; },
+    states: null, lookY: 2.6, turnY: 4.6, turnD: 4.2, boxX: -3.2 },
+  clock: { clip: '*', box: (x) => { const g = boxes(x, [[1.4, 0.3, 1.4, 0.15, 0], [0.2, 2.4, 0.2, 1.2, -0.6], [1.4, 0.2, 0.2, 2.4, -0.6]], (w, h, d) => new THREE.BoxGeometry(w, h, d));
+      const w = new THREE.Mesh(new THREE.BoxGeometry(0.9, 2, 0.9), new THREE.MeshStandardMaterial({ color: 0x2a6a9a, roughness: 0.3 })); w.position.set(x, 1.3, 0); g.add(w); return g; },
+    states: null, lookY: 1.3, turnY: 1.5, turnD: 4.6, boxX: -3.2 },
+  lamp: { clip: null, box: () => new THREE.Group(), states: { lit: ['lamp_flames'], out: [] }, def: 'lit', lookY: 1.2, turnY: 1.4, turnD: 3.6, boxX: -3.0 },
+  bells: { clip: null, box: () => new THREE.Group(), states: null, lookY: 1.3, turnY: 1.4, turnD: 6.5, boxX: 0, lodGap: 5, lodD: 15 },
+  tally: { clip: null, box: () => new THREE.Group(), states: null, lookY: 0.7, turnY: 0.85, turnD: 4.3, boxX: 0, lodGap: 3.4, lodD: 11 },  // FIXB round 3: 2.7 m stand
+  merc: { clip: null, box: (x) => boxes(x, [[2, 0.06, 6, 0.03, 0]], (w, h, d) => new THREE.BoxGeometry(w, h, d)), states: { idle: [], warn: [], hot: [] }, def: 'idle', lookY: 0.2, turnY: 0.3, turnD: 6.5, boxX: -3.4 },
+  censer: { clip: null, box: (x) => boxes(x, [[1.2, 1.0, 1.2, 0.5, 0], [0.8, 0.5, 0.8, 1.25, 0]], (w, h, d) => new THREE.BoxGeometry(w, h, d)),
+    states: null, lookY: 0.9, turnY: 0.9, turnD: 4.0, boxX: -3.0 },
+  // C12 school standard (W6): no box version in index.html
+  standard: { clip: 'idle', box: () => new THREE.Group(), states: null, lookY: 1.6, turnY: 2.2, turnD: 6.5, boxX: 0, lodGap: 2.5, lodD: 11 },
+}[MODEL];
+const STATE = SPEC.states ? (Q.get('state') || SPEC.def) : null;
+const player = new THREE.Mesh(new THREE.BoxGeometry(0.9, 2.05, 0.9), new THREE.MeshStandardMaterial({ color: 0x3a7bd5, roughness: 0.6 })); player.position.set(2.2, 1.025, 2.6); player.castShadow = true;
+if (LINEUP) lineup(); else new GLTFLoader().load(`../../assets/models/${MODEL}.glb`, (g) => {
+  const root = g.scene;
+  root.traverse((o) => { if (o.userData && o.userData.accents) { ACCENTS = o.userData.accents; ACC_METAL = o.userData.accentMetal || []; } });
+  root.traverse((o) => { if (o.isMesh) { const n0 = o.material.name; o.userData.m0 = n0; o.material = matFor(n0); o.castShadow = o.material.name !== 'palGlow' && !o.material.transparent; o.receiveShadow = true;
+    if (MODE !== 'tex' && (n0 === 'palSmoke' || n0 === 'palFlame')) o.visible = false; } });  // cards only in the textured view (W1b)
+  // state objects: shown only in their state (and in the lods view, only LOD0-level state objects with LOD0)
+  if (SPEC.states) {
+    const mine = SPEC.states[STATE] || [], all = [].concat(...Object.values(SPEC.states));
+    for (const o of root.children) { const tagged = all.find((p) => o.name.startsWith(p)); if (tagged) o.visible = mine.some((p) => o.name.startsWith(p)); }
+  }
+  // top-level objects by LOD: name ends _lod1 / _lod2; everything else (LOD0, the rig, state objects without LODs) counts as LOD0
+  const lodOf = (o) => (/_lod([12])$/.exec(o.name) || [0, 0])[1] | 0;
+  for (const o of root.children) {
+    const i = lodOf(o);
+    if (VIEW === 'lods') o.position.x = (i - 1) * (SPEC.lodGap || 3);  // a skinned LOD0 is placed by its bones: its rig moves, not the mesh (round 1 viewer bug)
+    else if (i > 0) o.visible = false;
+  }
+  if (MASK) { scene.background = new THREE.Color(0); r.shadowMap.enabled = false; const Wm = new THREE.MeshBasicMaterial({ color: 0xffffff }), Bm = new THREE.MeshBasicMaterial({ color: 0 });
+    root.traverse((o) => { if (o.isMesh) o.material = o.userData.m0 === MASK ? Wm : Bm; }); floor.material = Bm; player.material = Bm; }
+  scene.add(root);
+  // clip '*' = every clip in the file (the clock's three countdown clips); &level=L sets t = 1 - L (clock: 1 full, 0 empty)
+  const TT = Q.get('level') !== null ? 1 - +Q.get('level') : T;
+  if (TT !== null && SPEC.clip) { const mix = new THREE.AnimationMixer(root); for (const clip of g.animations.filter((a) => SPEC.clip === '*' || a.name === SPEC.clip)) mix.clipAction(clip).play(); mix.setTime(+TT); }
+  if (VIEW === 'play' || VIEW === 'wide') { scene.add(player); if (!MASK && (MODE === 'tex' || MODE === 'shade')) scene.add(SPEC.box(SPEC.boxX)); }
+  const pitch = 40 * Math.PI / 180, look = new THREE.Vector3(VIEW === 'play' || VIEW === 'wide' ? -0.4 : 0, SPEC.lookY, 0.6);
+  let dist = VIEW === 'play' ? 10.5 : VIEW === 'wide' ? 22 : VIEW === 'lods' ? (SPEC.lodD || 9) : SPEC.turnD, yaw = (+(Q.get('yaw') || (VIEW === 'turn' ? 30 : 0))) * Math.PI / 180;
+  if (VIEW === 'turn') look.set(0, SPEC.turnY, 0.1);
+  const p2 = VIEW === 'turn' ? (+(Q.get('pitch') || 15)) * Math.PI / 180 : pitch;
+  cam.position.set(look.x + Math.sin(yaw) * Math.cos(p2) * dist, look.y + Math.sin(p2) * dist, look.z + Math.cos(yaw) * Math.cos(p2) * dist); cam.lookAt(look);
+  const go = () => { r.render(scene, cam); window.__ready = true; };
+  setTimeout(go, 800);
+});
+// C12 lineup: the nine school standards in a row (one shared mesh, banner material per school), player box at the right end for scale
+async function lineup() {
+  const ld = new GLTFLoader(), GAP = 1.7, gs = await Promise.all([0, 1, 2, 3, 4, 5, 6, 7, 8].map(() => ld.loadAsync(`../../assets/models/${MODEL}.glb`)));
+  gs.forEach((g, i) => {
+    const root = g.scene;
+    root.traverse((o) => { if (o.isMesh) { const n0 = o.material.name; o.material = n0 === 'palBanner' ? bannerMat(i, MODE) : matFor(n0); o.castShadow = true; o.receiveShadow = true; } });
+    for (const o of root.children) if (/_lod[12]$/.test(o.name)) o.visible = false;
+    root.position.x = (i - 4) * GAP; scene.add(root);
+    if (T !== null) { const mix = new THREE.AnimationMixer(root); for (const c of g.animations) mix.clipAction(c).play(); mix.setTime(+T + i * 0.13); }
+  });
+  player.position.x = 7.9; scene.add(player);
+  const pitch = 40 * Math.PI / 180, look = new THREE.Vector3(-0.4, SPEC.lookY, 0.6), dist = VIEW === 'wide' ? 22 : 10.5;
+  cam.position.set(look.x, look.y + Math.sin(pitch) * dist, look.z + Math.cos(pitch) * dist); cam.lookAt(look); cam.updateMatrixWorld();
+  // boxes: screen bounding box per banner; quads: its rest-pose corners on screen (top-left, top-right, bottom-left, bottom-right of the
+  // atlas cell), so standard_check.py can rectify the perspective before comparing with the painted cell
+  const boxes = [], quads = [];
+  for (let i = 0; i < 9; i++) {
+    let a = [1e9, 1e9, -1e9, -1e9]; const q = [];
+    for (const [dx, y] of [[-0.4, 3.3], [0.4, 3.3], [-0.4, 1.3], [0.4, 1.3]]) {
+      const v = new THREE.Vector3((i - 4) * GAP + dx, y, 0.075).project(cam), px = (v.x + 1) / 2 * W, py = (1 - v.y) / 2 * H;
+      a = [Math.min(a[0], px), Math.min(a[1], py), Math.max(a[2], px), Math.max(a[3], py)]; q.push([px, py]);
+    }
+    boxes.push(a); quads.push(q);
+  }
+  const bm = bannerMat(0, MODE);
+  window.__dump = { boxes, quads, banner: { alphaTest: bm.alphaTest, transparent: bm.transparent, blending: bm.blending, depthWrite: bm.depthWrite, side: bm.side } };
+  setTimeout(() => { r.render(scene, cam); window.__ready = true; }, 800);
+}
+</script></body></html>

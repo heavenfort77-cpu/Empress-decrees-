@@ -1,0 +1,95 @@
+{
+  "format": "klad/7",
+  "canvas": {
+    "width": 64,
+    "height": 64
+  },
+  "timeline": {
+    "fps": 12,
+    "frames": 1
+  },
+  "palette": [
+    {
+      "color": "#1b1d2e",
+      "name": "ink",
+      "id": "p7"
+    },
+    {
+      "color": "#3a4560",
+      "name": "steel-1",
+      "id": "p3"
+    },
+    {
+      "color": "#5f6d8c",
+      "name": "steel-2",
+      "id": "p5"
+    },
+    {
+      "color": "#8f9db8",
+      "name": "steel-3",
+      "id": "p6"
+    },
+    {
+      "color": "#c5cfdd",
+      "name": "steel-4",
+      "id": "p4"
+    },
+    {
+      "color": "#f4f7fb",
+      "name": "steel-5",
+      "id": "p8"
+    },
+    {
+      "color": "#8c5a1e",
+      "name": "brass-1",
+      "id": "p12"
+    },
+    {
+      "color": "#d99a2b",
+      "name": "brass-2",
+      "id": "p9"
+    },
+    {
+      "color": "#ffd765",
+      "name": "brass-3",
+      "id": "p11"
+    },
+    {
+      "color": "#25503a",
+      "name": "cloth-1",
+      "id": "p14"
+    },
+    {
+      "color": "#3f8454",
+      "name": "cloth-2",
+      "id": "p15"
+    },
+    {
+      "color": "#a8f4ee",
+      "name": "glow-1",
+      "id": "p10"
+    },
+    {
+      "color": "#b8403a",
+      "name": "leather-1",
+      "id": "p13"
+    }
+  ],
+  "layers": [
+    {
+      "id": "l1",
+      "name": "pixel 1",
+      "kind": "paint",
+      "cels": [
+        {
+          "id": "c2",
+          "frame": 0
+        }
+      ],
+      "pixel": true,
+      "opacity": 1.0,
+      "blend": "normal",
+      "visible": true
+    }
+  ]
+}

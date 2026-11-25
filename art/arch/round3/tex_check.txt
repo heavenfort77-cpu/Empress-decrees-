@@ -1,0 +1,261 @@
+PASS hall_floor density: 256 x 256 px/m
+PASS hall_floor brush scale: 10.0 cm
+PASS hall_floor contrast: lum sd 9.1
+PASS hall_floor saturation: 0.52 (cap 0.55)
+PASS hall_wall density: 256 x 256 px/m
+PASS hall_wall brush scale: 14.1 cm
+PASS hall_wall contrast: lum sd 10.6
+PASS hall_wall saturation: 0.20 (cap 0.55)
+PASS hall_wall value: mean lum 169 (150-185)
+PASS pillar density: 272 x 256 px/m
+PASS pillar brush scale: 11.0 cm
+PASS pillar contrast: lum sd 8.6
+PASS pillar saturation: 0.39 (cap 0.6)
+PASS door density: 256 x 293 px/m
+PASS door brush scale: 4.6 cm
+PASS door contrast: lum sd 8.5
+PASS door saturation: 0.39 (cap 0.6)
+PASS lion_stone density: 256 x 256 px/m
+PASS lion_stone brush scale: 4.5 cm
+PASS lion_stone contrast: lum sd 9.6
+PASS lion_stone saturation: 0.09 (cap 0.55)
+PASS bronze_trim density: 256 x 256 px/m
+PASS bronze_trim brush scale: 10.1 cm
+PASS bronze_trim contrast: lum sd 9.6
+PASS bronze_trim saturation: 0.54 (cap 0.6)
+PASS bronze_trim value: mean lum 104
+PASS bronze_trim_brass density: 256 x 256 px/m
+PASS bronze_trim_brass brush scale: 8.5 cm
+PASS bronze_trim_brass contrast: lum sd 10.7
+PASS bronze_trim_brass saturation: 0.56 (cap 0.6)
+PASS bronze_trim_brass value: mean lum 137
+PASS bronze_trim_brass hue: mean hue 41 deg
+PASS apex_patina density: 256 x 256 px/m
+PASS apex_patina brush scale: 4.8 cm
+PASS apex_patina contrast: lum sd 11.8
+PASS apex_patina saturation: 0.29 (cap 0.6)
+PASS apex_patina patina hue: mean G - R 21.6 (min 4)
+PASS apex_patina patina value: mean lum 89 (55-105)
+PASS fodder_trim density: 256 x 256 px/m
+PASS fodder_trim brush scale: 4.9 cm
+PASS fodder_trim contrast: lum sd 9.4
+PASS fodder_trim saturation: 0.27 (cap 0.55)
+PASS fodder_trim lacquer value: mean lum 31 (22-45)
+PASS fodder_trim lacquer saturation: 0.30 (cap 0.6)
+PASS fodder_trim blue cloth value: mean lum 100 (70-110)
+PASS fodder_trim blue cloth saturation: 0.48 (cap 0.6)
+PASS fodder_trim headband value: mean lum 153 (140-180)
+PASS fodder_trim headband saturation: 0.56 (cap 0.62)
+PASS fodder_trim hemp value: mean lum 127 (90-130)
+PASS fodder_trim hemp saturation: 0.27 (cap 0.55)
+PASS fodder_trim patch value: mean lum 179 (160-210)
+PASS fodder_trim patch saturation: 0.07 (cap 0.12)
+PASS rammed_earth density: 256 x 256 px/m
+PASS rammed_earth brush scale: 7.2 cm
+PASS rammed_earth contrast: lum sd 8.3
+PASS rammed_earth saturation: 0.28 (cap 0.55)
+PASS rammed_earth value: mean lum 138 (105-145)
+PASS rammed_earth seam x: edge step 1.6 vs inside mean 1.6, p99 2.2
+PASS rammed_earth seam y: edge step 1.3 vs inside mean 1.8, p99 2.8
+PASS rammed_earth repeat: 50 cm block sd 3.0 (max 3.5)
+PASS rammed_earth_core density: 256 x 256 px/m
+PASS rammed_earth_core brush scale: 7.4 cm
+PASS rammed_earth_core contrast: lum sd 9.5
+PASS rammed_earth_core saturation: 0.41 (cap 0.55)
+PASS rammed_earth_core value: mean lum 115 (80-120)
+PASS rammed_earth_core seam x: edge step 1.7 vs inside mean 1.5, p99 2.1
+PASS rammed_earth_core seam y: edge step 1.6 vs inside mean 2.1, p99 4.6
+PASS rammed_earth_core repeat: 50 cm block sd 3.0 (max 3.5)
+PASS earth_burnt density: 256 x 256 px/m
+PASS earth_burnt brush scale: 7.4 cm
+PASS earth_burnt contrast: lum sd 8.4
+PASS earth_burnt saturation: 0.51 (cap 0.55)
+PASS earth_burnt value: mean lum 94 (60-105)
+PASS earth_burnt seam x: edge step 1.5 vs inside mean 1.6, p99 2.2
+PASS earth_burnt seam y: edge step 1.7 vs inside mean 1.7, p99 2.7
+PASS earth_burnt repeat: 50 cm block sd 3.3 (max 3.5)
+PASS earth_burnt reddened: red minus green 49 vs unburnt 16 (min +8)
+PASS river_stone density: 256 x 256 px/m
+PASS river_stone brush scale: 5.6 cm
+PASS river_stone contrast: lum sd 28.9
+PASS river_stone saturation: 0.17 (cap 0.55)
+PASS river_stone value: mean lum 106 (90-140)
+PASS river_stone seam x: edge step 2.2 vs inside mean 1.8, p99 3.4
+PASS river_stone seam y: edge step 2.7 vs inside mean 2.1, p99 3.7
+PASS river_stone repeat: 50 cm block sd 3.3 (max 3.5)
+PASS stone_paving density: 256 x 256 px/m
+PASS stone_paving brush scale: 6.2 cm
+PASS stone_paving contrast: lum sd 9.1
+PASS stone_paving saturation: 0.10 (cap 0.55)
+PASS stone_paving value: mean lum 136 (115-150)
+PASS stone_paving seam x: edge step 1.3 vs inside mean 1.5, p99 6.0
+PASS stone_paving seam y: edge step 1.3 vs inside mean 2.2, p99 25.4
+PASS stone_paving repeat: 50 cm block sd 1.8 (max 3.5)
+PASS floor_tiles density: 256 x 256 px/m
+PASS floor_tiles brush scale: 4.0 cm
+PASS floor_tiles contrast: lum sd 9.2
+PASS floor_tiles saturation: 0.10 (cap 0.55)
+PASS floor_tiles value: mean lum 112 (95-130)
+PASS floor_tiles seam x: edge step 1.0 vs inside mean 1.9, p99 22.6
+PASS floor_tiles seam y: edge step 0.9 vs inside mean 2.8, p99 23.6
+PASS floor_tiles repeat: 50 cm block sd 1.8 (max 3.5)
+PASS hollow_brick density: 256 x 256 px/m
+PASS hollow_brick brush scale: 5.5 cm
+PASS hollow_brick contrast: lum sd 13.8
+PASS hollow_brick saturation: 0.10 (cap 0.55)
+PASS hollow_brick value: mean lum 124 (100-135)
+PASS hollow_brick seam x: edge step 0.7 vs inside mean 1.4, p99 10.2
+PASS hollow_brick seam y: edge step 0.5 vs inside mean 4.0, p99 28.7
+PASS mural_wall density: 256 x 256 px/m
+PASS mural_wall brush scale: 13.6 cm
+PASS mural_wall contrast: lum sd 10.5
+PASS mural_wall saturation: 0.20 (cap 0.55)
+PASS mural_wall value: mean lum 168 (150-185)
+PASS mural_wall seam x: edge step 1.5 vs inside mean 3.7, p99 17.2
+PASS mural_wall mural ink: figure share 0.10 of the band (0.08-0.4)
+PASS wall_burnt density: 256 x 256 px/m
+PASS wall_burnt brush scale: 12.1 cm
+PASS wall_burnt contrast: lum sd 21.5
+PASS wall_burnt saturation: 0.24 (cap 0.55)
+PASS wall_burnt value: mean lum 76 (70-125)
+PASS wall_burnt seam x: edge step 1.1 vs inside mean 1.2, p99 1.6
+PASS wall_burnt darker than unburnt: mean lum 76 vs 169 (at least 25 darker)
+PASS roof_tile density: 256 x 256 px/m
+PASS roof_tile brush scale: 7.7 cm
+PASS roof_tile contrast: lum sd 8.4
+PASS roof_tile saturation: 0.02 (cap 0.55)
+PASS roof_tile value: mean lum 78 (60-95)
+PASS roof_tile seam x: edge step 0.5 vs inside mean 1.3, p99 17.0
+PASS roof_tile seam y: edge step 1.5 vs inside mean 1.2, p99 7.0
+PASS tile_ends density: 256 x 256 px/m
+PASS tile_ends contrast: lum sd 10.3 inside the discs
+PASS tile_ends saturation: 0.04 (cap 0.55)
+PASS timber density: 256 x 256 px/m
+PASS timber brush scale: 4.4 cm
+PASS timber contrast: lum sd 11.3
+PASS timber saturation: 0.47 (cap 0.55)
+PASS timber value: mean lum 83 (65-100)
+PASS timber seam x: edge step 0.9 vs inside mean 1.8, p99 4.0
+PASS timber seam y: edge step 0.7 vs inside mean 0.6, p99 0.8
+PASS timber_burnt density: 256 x 256 px/m
+PASS timber_burnt brush scale: 4.9 cm
+PASS timber_burnt contrast: lum sd 11.9
+PASS timber_burnt saturation: 0.26 (cap 0.55)
+PASS timber_burnt value: mean lum 38 (25-55)
+PASS timber_burnt seam x: edge step 2.6 vs inside mean 1.9, p99 11.0
+PASS timber_burnt seam y: edge step 1.2 vs inside mean 2.0, p99 3.8
+PASS mercury_matcap contrast: lum sd 41.6 (matcap 30-80: a mirror shows hard reflections)
+PASS mercury_matcap saturation: 0.06 (cap 0.12, cool grey)
+PASS mercury_matcap value: mean lum 149 (145-190)
+PASS mercury_matcap cool: blue minus red 9.1 (min 4)
+PASS mercury_matcap not hazard cyan: nearest pixel to #3FE6F0 at distance 134 (min 80)
+PASS black_lake density: 256 x 256 px/m
+PASS black_lake brush scale: 13.2 cm
+PASS black_lake contrast: lum sd 10.3
+PASS black_lake saturation: 0.50 (cap 0.55)
+PASS black_lake value: mean lum 28 (12-35)
+PASS black_lake seam x: edge step 0.9 vs inside mean 1.0, p99 1.3
+PASS black_lake seam y: edge step 2.6 vs inside mean 2.5, p99 4.0
+PASS black_lake repeat: 50 cm block sd 1.7 (max 3.5)
+PASS black_lake teal tint: green minus red 13.9 (min 4; not cloth black)
+PASS garden_ground density: 256 x 256 px/m
+PASS garden_ground brush scale: 9.1 cm
+PASS garden_ground contrast: lum sd 8.5
+PASS garden_ground saturation: 0.34 (cap 0.55)
+PASS garden_ground value: mean lum 106 (85-125)
+PASS garden_ground seam x: edge step 1.6 vs inside mean 1.4, p99 2.1
+PASS garden_ground seam y: edge step 1.4 vs inside mean 1.5, p99 2.2
+PASS garden_ground repeat: 50 cm block sd 1.8 (max 3.5)
+PASS garden_plants density: 256 x 256 px/m
+PASS garden_plants brush scale: 4.5 cm
+PASS garden_plants contrast: lum sd 25.9
+PASS garden_plants saturation: 0.44 (cap 0.55)
+PASS garden_plants coverage: opaque share per cell 0.08-0.19 (0.06-0.6)
+PASS garden_plants alpha test: 0.17 of drawn pixels fall under the 0.5 alpha test (max 0.2)
+PASS star_ceiling density: 256 x 256 px/m
+PASS star_ceiling brush scale: 13.1 cm
+PASS star_ceiling contrast: lum sd 14.9
+PASS star_ceiling saturation: 0.21 (cap 0.55)
+PASS star_ceiling value: mean lum 29 (22-50)
+PASS star_ceiling seam x: edge step 1.2 vs inside mean 1.6, p99 3.0
+PASS star_ceiling seam y: edge step 1.0 vs inside mean 1.7, p99 3.0
+PASS signal_flags density: 256 x 256 px/m
+PASS signal_flags brush scale: 7.9 cm
+FAIL signal_flags contrast: lum sd 30.5
+PASS signal_flags saturation: 0.22 (cap 0.6)
+PASS signal_flags coverage: opaque share per cell 0.54-0.54 (0.25-0.7)
+PASS signal_flags alpha test: 0.01 of drawn pixels fall under the 0.5 alpha test (max 0.2)
+PASS signal_flags school colours: owner mapping, all 9 within 40
+PASS signal_flags band reads: all 9 bands >= 30 over the field
+PASS slips density: 256 x 256 px/m
+PASS slips brush scale: 4.9 cm
+PASS slips contrast: lum sd 15.4
+PASS slips saturation: 0.44 (cap 0.55)
+PASS slips value: mean lum 149 (120-165)
+PASS slips seam x: edge step 1.3 vs inside mean 2.5, p99 7.1
+PASS slips_burnt density: 256 x 256 px/m
+PASS slips_burnt brush scale: 4.2 cm
+PASS slips_burnt contrast: lum sd 10.6
+PASS slips_burnt saturation: 0.40 (cap 0.55)
+PASS slips_burnt value: mean lum 46 (28-70)
+PASS slips_burnt seam x: edge step 1.5 vs inside mean 1.7, p99 2.9
+PASS pond_water density: 256 x 256 px/m
+PASS pond_water brush scale: 14.5 cm
+PASS pond_water contrast: lum sd 9.1
+PASS pond_water saturation: 0.33 (cap 0.55)
+PASS pond_water value: mean lum 134 (115-155)
+PASS pond_water seam x: edge step 1.3 vs inside mean 1.0, p99 1.3
+PASS pond_water seam y: edge step 1.8 vs inside mean 2.2, p99 3.5
+PASS pond_water repeat: 50 cm block sd 2.2 (max 3.5)
+PASS pond_water teal tint: green minus red 47.2 (min 4; not cloth black)
+PASS star_inlay density: 256 x 256 px/m
+PASS star_inlay saturation: 0.54 (cap 0.6)
+PASS star_inlay coverage: opaque share per cell 0.02-0.06 (0.01-0.08)
+PASS star_inlay alpha test: 0.17 of drawn pixels fall under the 0.5 alpha test (max 0.2)
+PASS star_inlay floor read: mean lum +2.4 (max 8), mean hue shift 1.4 deg (max 6) over hall_floor
+PASS star_inlay subtle: inlay minus floor lum 62 (25-75: seen, not loud)
+PASS star_inlay not hazard ring: nearest inlay pixel to #ff2a10 at 138 (min 120)
+PASS star_inlay not warned: nearest inlay pixel to #b33a2a at 73 (min 60)
+PASS star_inlay edge clear: opaque share in the 24 px border 0.0000 (0: cells turn without a seam)
+PASS suit_lamellar density: 256 px/m
+PASS suit_lamellar plate_black brush scale: 16.4 cm
+PASS suit_lamellar plate_black contrast: lum sd 3.8
+PASS suit_lamellar plate_black saturation: 0.15 (cap 0.6)
+PASS suit_lamellar plate_black value: mean lum 36
+PASS suit_lamellar plate_brown brush scale: 6.8 cm
+PASS suit_lamellar plate_brown contrast: lum sd 4.9
+PASS suit_lamellar plate_brown saturation: 0.59 (cap 0.6)
+PASS suit_lamellar plate_brown value: mean lum 43
+PASS suit_lamellar plate_cinnabar brush scale: 5.1 cm
+PASS suit_lamellar plate_cinnabar contrast: lum sd 6.4
+PASS suit_lamellar plate_cinnabar saturation: 0.74 (cap 0.8)
+PASS suit_lamellar plate_cinnabar value: mean lum 72
+PASS suit_lamellar plate_white brush scale: 6.3 cm
+PASS suit_lamellar plate_white contrast: lum sd 11.4
+PASS suit_lamellar plate_white saturation: 0.12 (cap 0.2)
+PASS suit_lamellar plate_white value: mean lum 184
+PASS suit_lamellar cord fa colour: median #a63c29 vs #b0402c, distance 11
+PASS suit_lamellar cord ru colour: median #be9c46 vs #c9a54a, distance 15
+PASS suit_lamellar cord dao colour: median #cfcabd vs #e4ded0, distance 35
+PASS suit_lamellar cord mo colour: median #ad7e2b vs #b8862e, distance 14
+PASS suit_lamellar cord yy colour: median #1c1919 vs #1e1b1a, distance 3
+PASS suit_lamellar cord za colour: median #2b5593 vs #2e5a9c, distance 11
+PASS suit_lamellar cord ming colour: median #b4b8bb vs #bfc3c6, distance 19
+PASS suit_lamellar cord zh colour: median #563b84 vs #5b3f8c, distance 10
+PASS suit_lamellar cord nong colour: median #2c8257 vs #2f8a5c, distance 10
+PASS suit_lamellar lamella row 0 width: 7.8 cm
+PASS suit_lamellar lamella row 1 width: 7.8 cm
+PASS suit_lamellar lamella row 2 width: 7.8 cm
+PASS suit_lamellar lamella row 3 width: 7.8 cm
+PASS suit_bronze density: 256 px/m
+FAIL suit_bronze plain brush scale: 3.9 cm
+PASS suit_bronze plain contrast: lum sd 7.1
+PASS suit_bronze plain saturation: 0.56 (cap 0.6)
+PASS suit_bronze plain value: mean lum 109
+PASS suit_cloth density: 256 px/m
+PASS suit_cloth cloth brush scale: 2.1 cm
+PASS suit_cloth cloth contrast: lum sd 6.9
+PASS suit_cloth cloth saturation: 0.05 (cap 0.12)
+PASS suit_cloth cloth value: mean lum 223
+PASS mercury_matcap brightest highlights: p95 221 vs next hall_wall 187 (min +10)
+258 of 260 pass

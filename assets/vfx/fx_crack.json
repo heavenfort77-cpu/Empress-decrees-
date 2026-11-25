@@ -1,0 +1,56 @@
+{
+ "name": "crack",
+ "atlas": "ground",
+ "blend": "cut",
+ "orient": "ground",
+ "frames": 10,
+ "fps": 20,
+ "loop": null,
+ "cellPx": [
+  144,
+  144
+ ],
+ "originPx": [
+  2,
+  494
+ ],
+ "stridePx": [
+  148,
+  148
+ ],
+ "cols": 6,
+ "pivotPx": [
+  72,
+  72
+ ],
+ "texelM": 0.0167,
+ "sizeM": [
+  2.405,
+  2.405
+ ],
+ "pivotM": [
+  1.202,
+  1.202
+ ],
+ "durationS": 0.5,
+ "alphaSum": [
+  285.3,
+  1054.4,
+  1515.7,
+  1464.9,
+  1464.9,
+  1396.1,
+  1035.8,
+  497.7,
+  0.0,
+  0.0
+ ],
+ "ref": "pixelfx impacts/ground-slam (shape and timing only)",
+ "anchorHeightM": 0.0,
+ "ashMix": 0.0,
+ "unitRadiusM": 1.0,
+ "atlasSize": [
+  1024,
+  1020
+ ]
+}

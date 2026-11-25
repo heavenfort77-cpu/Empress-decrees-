@@ -1,0 +1,451 @@
+{
+ "terrace_edge": {
+  "tris": 12,
+  "budget": 300,
+  "dens_share": 1.0,
+  "mats": [
+   "palStone",
+   "palEarth",
+   "palRiver"
+  ]
+ },
+ "_files": [
+  "terrace_edge.glb",
+  "wall_seg.glb",
+  "wall_mural_seg.glb",
+  "wall_earth_seg.glb",
+  "wall_low.glb",
+  "door.glb",
+  "pillar.glb",
+  "eave_seg.glb",
+  "tile_end.glb",
+  "que_pair.glb",
+  "wall_walk_seg.glb",
+  "parapet_seg.glb",
+  "walk_post.glb",
+  "walk_beam.glb",
+  "bridge_bay_8.glb",
+  "bridge_bay_12.glb",
+  "throne_dais.glb",
+  "lake_rubble.glb",
+  "debris.glb",
+  "slip_rack.glb",
+  "slip_bundle.glb",
+  "flag_pole.glb",
+  "flag_0.glb",
+  "flag_1.glb",
+  "flag_2.glb",
+  "flag_3.glb",
+  "flag_4.glb",
+  "flag_5.glb",
+  "flag_6.glb",
+  "flag_7.glb",
+  "flag_8.glb",
+  "plant_wheat.glb",
+  "plant_millet.glb",
+  "plant_shrub.glb",
+  "plant_grass.glb"
+ ],
+ "wall_seg": {
+  "tris": 22,
+  "budget": 300,
+  "dens_share": 1.0,
+  "mats": [
+   "palWall",
+   "palStone",
+   "palLacquer"
+  ]
+ },
+ "wall_mural_seg": {
+  "tris": 22,
+  "budget": 300,
+  "dens_share": 1.0,
+  "mats": [
+   "palMural",
+   "palStone",
+   "palLacquer"
+  ]
+ },
+ "wall_earth_seg": {
+  "tris": 12,
+  "budget": 300,
+  "dens_share": 1.0,
+  "mats": [
+   "palRiver",
+   "palEarthCore"
+  ]
+ },
+ "wall_low": {
+  "tris": 16,
+  "budget": 300,
+  "dens_share": 1.0,
+  "mats": [
+   "palWall",
+   "palStone",
+   "palRoof"
+  ]
+ },
+ "door_frame": {
+  "tris": 52,
+  "budget": 400,
+  "dens_share": 1.0,
+  "mats": [
+   "palLacquer",
+   "palStone",
+   "palWall"
+  ]
+ },
+ "door_leaf_L": {
+  "tris": 12,
+  "budget": 300,
+  "dens_share": 1.0,
+  "mats": [
+   "palDoor"
+  ]
+ },
+ "door_leaf_R": {
+  "tris": 12,
+  "budget": 300,
+  "dens_share": 1.0,
+  "mats": [
+   "palDoor"
+  ]
+ },
+ "door_bar": {
+  "tris": 120,
+  "budget": 300,
+  "dens_share": 1.0,
+  "mats": [
+   "palBronze"
+  ]
+ },
+ "pillar": {
+  "tris": 282,
+  "budget": 300,
+  "dens_share": 1.0,
+  "mats": [
+   "palStone",
+   "palPillar",
+   "palBronze"
+  ]
+ },
+ "eave_seg": {
+  "tris": 222,
+  "budget": 300,
+  "dens_share": 1.0,
+  "mats": [
+   "palTimber",
+   "palRoof"
+  ]
+ },
+ "tile_end": {
+  "tris": 28,
+  "budget": 60,
+  "dens_share": 0.954,
+  "mats": [
+   "palTileEnd"
+  ]
+ },
+ "que_pair_lod0": {
+  "tris": 1852,
+  "budget": 7000,
+  "dens_share": 1.0,
+  "mats": [
+   "palRiver",
+   "palEarth",
+   "palStone",
+   "palWall",
+   "palLacquer",
+   "palTimber",
+   "palRoof",
+   "palTileEnd",
+   "palFlag"
+  ]
+ },
+ "que_pair_lod1": {
+  "tris": 412,
+  "budget": 2500,
+  "dens_share": 1.0,
+  "mats": [
+   "palRiver",
+   "palEarth",
+   "palStone",
+   "palWall",
+   "palLacquer",
+   "palTimber",
+   "palRoof"
+  ]
+ },
+ "que_pair_lod2": {
+  "tris": 100,
+  "budget": 800,
+  "dens_share": 1.0,
+  "mats": [
+   "palEarth",
+   "palStone",
+   "palWall",
+   "palRoof"
+  ]
+ },
+ "wall_walk_seg": {
+  "tris": 108,
+  "budget": 300,
+  "dens_share": 1.0,
+  "mats": [
+   "palRiver",
+   "palEarth",
+   "palTimber"
+  ]
+ },
+ "parapet_seg": {
+  "tris": 18,
+  "budget": 300,
+  "dens_share": 1.0,
+  "mats": [
+   "palStone",
+   "palBrick",
+   "palTimber"
+  ]
+ },
+ "walk_post": {
+  "tris": 72,
+  "budget": 300,
+  "dens_share": 1.0,
+  "mats": [
+   "palStone",
+   "palLacquer",
+   "palTimber",
+   "palBronze"
+  ]
+ },
+ "walk_beam": {
+  "tris": 12,
+  "budget": 300,
+  "dens_share": 1.0,
+  "mats": [
+   "palTimber",
+   "palRoof"
+  ]
+ },
+ "bridge_bay_8": {
+  "tris": 194,
+  "budget": 300,
+  "dens_share": 1.0,
+  "mats": [
+   "palTimber"
+  ]
+ },
+ "bridge_bay_12": {
+  "tris": 208,
+  "budget": 300,
+  "dens_share": 1.0,
+  "mats": [
+   "palTimber"
+  ]
+ },
+ "throne_dais_lod0": {
+  "tris": 434,
+  "budget": 7000,
+  "dens_share": 1.0,
+  "mats": [
+   "palStone",
+   "palFloor",
+   "palLacquer",
+   "palBronze",
+   "palPillar"
+  ]
+ },
+ "throne_dais_lod1": {
+  "tris": 182,
+  "budget": 2500,
+  "dens_share": 1.0,
+  "mats": [
+   "palStone",
+   "palFloor",
+   "palLacquer",
+   "palPillar"
+  ]
+ },
+ "throne_dais_lod2": {
+  "tris": 182,
+  "budget": 800,
+  "dens_share": 1.0,
+  "mats": [
+   "palStone",
+   "palFloor",
+   "palLacquer",
+   "palPillar"
+  ]
+ },
+ "lake_rubble": {
+  "tris": 140,
+  "budget": 300,
+  "dens_share": 1.0,
+  "mats": [
+   "palStone"
+  ]
+ },
+ "debris_lod0": {
+  "tris": 484,
+  "budget": 7000,
+  "dens_share": 1.0,
+  "mats": [
+   "palFloor",
+   "palWall",
+   "palPillar",
+   "palTimber",
+   "palRoof",
+   "palEarth"
+  ]
+ },
+ "debris_lod1": {
+  "tris": 88,
+  "budget": 2500,
+  "dens_share": 1.0,
+  "mats": [
+   "palFloor",
+   "palWall",
+   "palPillar",
+   "palTimber"
+  ]
+ },
+ "debris_lod2": {
+  "tris": 88,
+  "budget": 800,
+  "dens_share": 1.0,
+  "mats": [
+   "palFloor",
+   "palWall",
+   "palPillar",
+   "palTimber"
+  ]
+ },
+ "slip_rack": {
+  "tris": 100,
+  "budget": 300,
+  "dens_share": 1.0,
+  "mats": [
+   "palLacquer"
+  ]
+ },
+ "slip_bundle": {
+  "tris": 28,
+  "budget": 60,
+  "dens_share": 1.0,
+  "mats": [
+   "palSlips"
+  ]
+ },
+ "flag_pole": {
+  "tris": 16,
+  "budget": 60,
+  "dens_share": 1.0,
+  "mats": [
+   "palTimber"
+  ]
+ },
+ "flag_0": {
+  "tris": 8,
+  "budget": 60,
+  "dens_share": 1.0,
+  "mats": [
+   "palFlag"
+  ]
+ },
+ "flag_1": {
+  "tris": 8,
+  "budget": 60,
+  "dens_share": 1.0,
+  "mats": [
+   "palFlag"
+  ]
+ },
+ "flag_2": {
+  "tris": 8,
+  "budget": 60,
+  "dens_share": 1.0,
+  "mats": [
+   "palFlag"
+  ]
+ },
+ "flag_3": {
+  "tris": 8,
+  "budget": 60,
+  "dens_share": 1.0,
+  "mats": [
+   "palFlag"
+  ]
+ },
+ "flag_4": {
+  "tris": 8,
+  "budget": 60,
+  "dens_share": 1.0,
+  "mats": [
+   "palFlag"
+  ]
+ },
+ "flag_5": {
+  "tris": 8,
+  "budget": 60,
+  "dens_share": 1.0,
+  "mats": [
+   "palFlag"
+  ]
+ },
+ "flag_6": {
+  "tris": 8,
+  "budget": 60,
+  "dens_share": 1.0,
+  "mats": [
+   "palFlag"
+  ]
+ },
+ "flag_7": {
+  "tris": 8,
+  "budget": 60,
+  "dens_share": 1.0,
+  "mats": [
+   "palFlag"
+  ]
+ },
+ "flag_8": {
+  "tris": 8,
+  "budget": 60,
+  "dens_share": 1.0,
+  "mats": [
+   "palFlag"
+  ]
+ },
+ "plant_wheat": {
+  "tris": 8,
+  "budget": 60,
+  "dens_share": 1.0,
+  "mats": [
+   "palPlant"
+  ]
+ },
+ "plant_millet": {
+  "tris": 8,
+  "budget": 60,
+  "dens_share": 1.0,
+  "mats": [
+   "palPlant"
+  ]
+ },
+ "plant_shrub": {
+  "tris": 8,
+  "budget": 60,
+  "dens_share": 1.0,
+  "mats": [
+   "palPlant"
+  ]
+ },
+ "plant_grass": {
+  "tris": 8,
+  "budget": 60,
+  "dens_share": 1.0,
+  "mats": [
+   "palPlant"
+  ]
+ }
+}

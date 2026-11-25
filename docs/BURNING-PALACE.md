@@ -1,0 +1,94 @@
+# The Burning Palace (design note, panel 24 Nov 13:30; waiting for the owner's go)
+
+Owner 24 Nov 13:18-13:28: the map is too small; zoom out in rooms, zoom in at attack range; don't render unseen areas.
+Direction chosen: a royale played room by room ("option 1, expand"), with more cannon fodder so rooms are never empty walking.
+The current open-map royale stays as a second mode, "Royal Rumble" (owner 13:28: "keep the royal rumble").
+
+## Owner decisions (24 Nov 13:26-13:28)
+- Doors show: the room type, the decree in force there, the reward, and "something stirs" (not who), unless the rival was seen or announced.
+- No fleeing: doors lock while a fight is on in the room.
+- Off-screen rival fights: only Kaymuse's announcements and the traces left behind; the room map shows fallen rooms only.
+- Keep Royal Rumble as a second mode (menu choice).
+- More cannon fodder (owner 13:26): the 皇家 guard, Kaymuse's own imperial household guard (owner 13:30: 皇家, not 兵家) (below).
+
+## The palace (阿房宫 model)
+- A rammed-earth platform over a black lake (the Qin water virtue). Fallen rooms drop into the lake.
+- About 25-30 rooms, each 20-60 m: the nine schools' halls on the rim -> courtyards, corridors, gardens -> bridges over the lake -> the core hall (throne, apex). Central axis plus east and west routes.
+- Room types change fights: courtyards open (ranged kits, chariots), corridors are chokepoints (墨 wall, 名 lines), gardens have curtains (hiding: 道, 法), bridges (silence decree, knockback into the lake), halls with pillars and an altar.
+- About 3-4x today's area, but only the current room and what shows through an open door are in the scene (build once, detach on leaving).
+
+## A run
+1. Pick a school (select + random, as built). Each suit starts in its own school's hall.
+2. Choose one of 2-3 doors from what they show (above).
+3. Entering a room with enemies (fodder or rivals) locks its doors until every enemy there is broken. A locked room is sealed both ways: no one else enters.
+4. Out of sight, rivals move room to room, farm fodder and meet each other; their fights are resolved by a simulation seeded per run (deterministic: checks and replays still work), using the measured win shares of the kits, health, plates and meter. She announces each result; the loser drops its plates in that room.
+5. Behind a door you may find: an empty room with a reward; fodder; one rival in whatever state it is in; two rivals mid-fight (three-way, locked); the leader with a bounty; the hunter that tracks you between rooms.
+6. The burning: about every 40 s she names a wing, 5 s warning, its rooms fall. FAIRNESS RULE: a locked room is never warned; a wave that needs it waits until its fight is over (no unavoidable death behind locked doors).
+- Owner 24 Nov 14:16: walking to the core in the ticket-01 prototype took under 5 min and was too easy. The core stays sealed until you are the last suit; the route from any rim hall passes at least 5 rooms.
+7. Two suits left: she seals all other doors so the two meet in one hall. The winner opens the core hall: the 兵家 apex.
+- Target length 4-5 min (owner 23 Nov 21:28); about 6-10 rooms, 3-5 rivals met in person; no more than about 5 s without something to fight, dodge or choose.
+
+## Cannon fodder: the 皇家 guard (owner 24 Nov 13:30)
+Kaymuse's own imperial household guard, not 兵家: the 兵家 is the tiger under her throne; the 皇家 guard is her palace's men-at-arms. Bronze soldiers on treads in her court's black and water-blue (look decided at the art stage, distinct from the cubs, which are the tiger's plates). Every attack shows its tell >= 0.4 s; low damage per hit; numbers in CONFIG.
+- 卒 foot soldiers: line thrust; packs of 3-6; die in 2-3 hits.
+- 弩手 crossbowmen: volley on a ground marker, from behind the 卒.
+- 盾 shieldbearers: block from the front, shove; go around or break with skills.
+- 车 chariots (courtyards only): line charge shown on the ground.
+- 伍长 squad leader: keeps the 方阵 formation and buffs it; kill it first to break the formation.
+- Rewards: ultimate charge (like creep XP; also eases the measured low R use), small heal and short boons; plates stay with the cubs.
+- Escalation: rim rooms 1 small squad; near the core 2-3 squads with crossbows and a chariot; her decree can call reinforcements.
+- Performance: pooled, drawn as instances (about one draw call per unit type), cap about 12 per room, spawned when the door opens; simple brain (follow formation, one attack).
+- Rivals farm them too (off-screen in the simulation, on-screen with the bot brain).
+
+## Third side: the 反贼 (owner 24 Nov 13:47; ideology picked by the lead: 黄巾, with assassins inside it)
+Rebels of the 太平道 in yellow headbands, wearing bootleg 甲: cheap copies of the nine suits. Slogan reworked for the suits: 岁在甲子 (the year of the 甲). They are out to assassinate Kaymuse, and anyone wearing a real suit is in their way, so they come for the player too.
+- Bootleg 甲: each rebel copies one move of one school (a random school per squad), weaker and flawed: longer tell, the suit sparks and stalls after a few uses. Visual: yellow headband, patched armour in the school's colour, so you can read which move is coming.
+- 黄巾力士: the mob; packs of 4-8; die in 1-2 hits; the bootleg move.
+- 符水道人: talisman-water healer from behind; kill it first.
+- 死士 assassins: hide in curtains and dark corners (gardens, corridors), lunge at whoever leads the run (most plates or kills, so usually the player). Tell: yellow glint and a whispered chant, at least 0.4 s.
+- 渠帅: squad leader; killing it breaks the squad and drops a bootleg charge (one free use of that school's move).
+- Three-way fights: rebels and the 皇家 guard attack each other on sight, so a room can hold a fight you walk into or wait out.
+- Placement: some doors show "something stirs" for rebels; more of them near rooms that burn; her announcements name rebel ambushes off-screen.
+- Same rules as the guard: shared spawn API with a faction field, fixed pools, instances, numbers in CONFIG, a CONFIG switch (off in Royal Rumble).
+
+## Palace pieces (owner picks 24 Nov 14:27; 石狮 from 14:24)
+Hazards and tools from traditional palaces (Qin first). Every hit shows a tell >= 0.4 s; they hit every side (player, rivals, 皇家 guard, 反贼), so luring enemies into them is a play. Numbers in CONFIG; one on/off switch each.
+- 石狮 stone lions: a pair beside big hall and gate doors; 0.6 s red ring, strike within 3.5 m (reuses the Royal Rumble lion code).
+- 水银 mercury channels (Qin tomb): silver channels across bridges and halls; standing in them hurts over time; crossed between pulses (shimmer before each pulse).
+- 十二金人 twelve bronze giants (Qin): stand along the approach to the core; she wakes one each time a wing burns; a woken giant slowly hunts the nearest suit (slow, big tells, heavy hits); cap on awake giants in CONFIG. Killable mini-bosses (owner 24 Nov 15:41): an awake giant has health and a bar; every side hurts it (suits, 皇家 guard, 反贼, mercury, lions, a vat's splash); the suit that breaks it gains ultimate charge; it collapses and lies there for the run, and her line marks it; a dormant giant cannot be hurt.
+- 门海 bronze water vats: break one to flood a spot: douses the burning there for a few seconds and knocks back anyone in it.
+- 铜鹤 / 香炉 bronze cranes and incense burners: smoke clouds that block sight; anyone can hide in them, the 死士 assassins too. Few, small smoke cards (transparency budget).
+- 鼎 cauldrons: replace the healing altars in the palace, nine, one in each school's hall (lore: the 九鼎 Qin lost). Royal Rumble keeps its altars.
+- 铜壶滴漏 water clock: one per wing, its water level counts down to her next burning in that wing (the timer shown in the scene, as well as the HUD).
+- 华表 pillar beasts: the beast on top watches its room; passing it marks you for a few seconds (seen by all, the existing mark).
+
+## Camera
+- Wide when no enemy is within reach, tighter when one is; eased over about 0.4 s; never jumps. Corridors closer, courtyards wider.
+- Dynamic combat framing (owner 24 Nov 19:33; CONFIG.PAL_FRAME; checks 1204, 1209-1213): explore = the wide framing (room fit, or look-ahead held so the player stays within 45% of the half-screen on every screen shape: the old look-ahead was in metres and put a phone-portrait player off screen); fight = a two-shot, look point 70% player / 30% the nearest four foes' centre, at the nearest distance (close up to wide) that keeps the player and those foes within 70% of the half-screen. Hysteresis: in when a foe in sight is within 9 m, out when none is within 13 m for 1.5 s. Critically damped springs (0.15 s) for the blend and the fight framing; camera step still capped at 0.4 m. Foes off screen within 30 m get red edge arrows. Her announcement and the door card stack in one column (they overlapped on phones).
+- A manual zoom key overrides it (MOBA players expect a fixed zoom). Phones start closer.
+- Walls block sight (pulled forward from batch 18 hiding).
+
+## Reused as built
+All nine kits and the bot brain, decrees and their bags, collapses (per room), plates, cubs and boons, leader/bounty/hunter cap, the 兵家 apex, school select, the ultimate meter.
+
+## New work (for tickets after the go)
+Room graph and doors with previews; room build/detach; door locks; off-screen simulation (seeded) and announcements; spawning rivals in their current state; the 皇家 guard (5 unit types, formation, pool, instancing); context camera; walls block sight; room minimap; mode menu (Burning Palace / Royal Rumble); checks for each (fairness: no warned locked room; tells; budget per room; determinism per seed).
+
+## Premortem (panel)
+- The simulation must feel fair: every off-screen death is announced and leaves a trace.
+- Locked doors + burning: the fairness rule above must be a checked invariant.
+- Two modes double the test surface: Royal Rumble keeps its current checks; Burning Palace gets its own.
+- Map size and room count change pacing again: balance after it is playable (owner rule: results first).
+- Phone: room-only rendering helps; fodder instancing must hold the budget in the heaviest room.
+
+## Panel note 17: scale, explore, meet (proposal, 24 Nov 22:1x; waiting for the owner's go)
+Owner 24 Nov 22:04-22:0x: "the map is small, not to the scale of palaces"; "the idea is to run, explore and fight. Currently it is small, so you neither explore nor meet the others."
+Measured today: palace 248 x 172 m, 29 rooms of 20-60 m (index.html PAL_FULL_ROOMS); walking across at 6 m/s about 41 s. The real 阿房宫 rammed-earth platform is about 1270 x 426 m, built on a drained lake (excavation reports 2002-04 and 2025).
+Causes (from the design as built, not yet measured in play): only the current room and the one behind an open door are drawn; rivals out of sight are simulated, so most rival fights are announced, not seen; doors lock during fights; a run is about 6-10 small rooms, so there is little to discover.
+Proposal (panel vote pending):
+1. Scale: the platform at the real 1270 x 426 m footprint over the black lake; courts and forecourt 60-120 m, halls 40-60 m on terraces, long corridors and bridges between wings (real proportions, from the research as reference).
+2. Explore: see out. Courts, terraces and bridges are open: neighbouring rooms, rivals moving and fights in progress are visible at a distance (lighter detail far away, same draw budget); side rooms off the main route hold rewards, cubs, school relics and pieces worth a detour; the room map fills in as you see rooms.
+3. Meet: rivals are simulated only when nobody can see them; within sight they are real bots. Routes funnel through shared courts and bridges; the burning drives every suit inward wing by wave, so meetings rise as the palace shrinks (the ring of this royale). Noise of a fight (her announcement plus a sound and a minimap ping) draws you to it.
+4. Pacing (owner to choose): the real footprint makes the shortest route longer. Either keep 4-5 min with faster travel (a run/sprint state out of combat, chariot lanes on the axis) or let a run grow to about 8-10 min.
+5. Performance: build-once rooms stay; far rooms as merged low-detail blocks, near rooms full; heaviest view under 500 calls and 0.5M triangles on medium; the perf gate runs before and after.
+Premortem: larger draw distance is the main perf risk (far LOD and culling first); sim/real hand-over must be seamless when a rival comes into sight; check 65-style pacing gates and the fairness rule (no warned locked room) re-run on the new layout; asset scale (pillars, doors) follows the real proportions, so the bronze beast sample is unaffected.

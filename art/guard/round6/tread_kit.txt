@@ -1,0 +1,9 @@
+PASS tread selftest thick=None: right belt passes (mpr 0.536 m, 4 repeats)
+PASS tread selftest thick=None: mutation (one run 10% off) caught
+PASS tread selftest thick=None: mutation (unsnapped repeat, span 3.738) caught
+PASS tread selftest thick=0.04: right belt passes (mpr 0.536 m, 4 repeats)
+PASS tread selftest thick=0.04: mutation (one run 10% off) caught
+PASS tread selftest thick=0.04: mutation (unsnapped repeat, span 3.738) caught
+PASS tread selftest thick=None: band faces turned outward (0 turned in)
+PASS tread selftest thick=0.04: band faces turned outward (0 turned in)
+tread selftest: 8 of 8 pass

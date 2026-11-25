@@ -1,0 +1,55 @@
+{
+ "name": "impact",
+ "atlas": "soft_a",
+ "blend": "blend",
+ "orient": "bill",
+ "frames": 10,
+ "fps": 30,
+ "loop": null,
+ "cellPx": [
+  96,
+  96
+ ],
+ "originPx": [
+  2,
+  642
+ ],
+ "stridePx": [
+  100,
+  100
+ ],
+ "cols": 10,
+ "pivotPx": [
+  48,
+  48
+ ],
+ "texelM": 0.03,
+ "sizeM": [
+  2.88,
+  2.88
+ ],
+ "pivotM": [
+  1.44,
+  1.44
+ ],
+ "durationS": 0.333,
+ "alphaSum": [
+  276.3,
+  276.5,
+  197.6,
+  8.8,
+  8.0,
+  6.6,
+  4.7,
+  2.6,
+  0.0,
+  0.0
+ ],
+ "ref": "pixelfx impacts/hit-spark (shape and timing only)",
+ "anchorHeightM": 1.0,
+ "ashMix": 0.0,
+ "atlasSize": [
+  1024,
+  956
+ ]
+}

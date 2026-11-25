@@ -1,0 +1,159 @@
+{
+  "format": "klad/7",
+  "canvas": {
+    "width": 64,
+    "height": 64
+  },
+  "timeline": {
+    "fps": 2,
+    "frames": 4
+  },
+  "palette": [
+    {
+      "color": "#10131c",
+      "name": "ink",
+      "id": "p3"
+    },
+    {
+      "color": "#4d668c",
+      "name": "steel-1",
+      "id": "p12",
+      "ramp": "steel"
+    },
+    {
+      "color": "#6b80a0",
+      "name": "steel-2",
+      "id": "p14",
+      "ramp": "steel"
+    },
+    {
+      "color": "#8b9bb4",
+      "name": "steel-3",
+      "id": "p13",
+      "ramp": "steel"
+    },
+    {
+      "color": "#acb7c8",
+      "name": "steel-4",
+      "id": "p8",
+      "ramp": "steel"
+    },
+    {
+      "color": "#ced3dc",
+      "name": "steel-5",
+      "id": "p10",
+      "ramp": "steel"
+    },
+    {
+      "color": "#121d35",
+      "name": "gun-1",
+      "id": "p9",
+      "ramp": "gun"
+    },
+    {
+      "color": "#2c3446",
+      "name": "gun-2",
+      "id": "p6",
+      "ramp": "gun"
+    },
+    {
+      "color": "#484c57",
+      "name": "gun-3",
+      "id": "p4",
+      "ramp": "gun"
+    },
+    {
+      "color": "#a87514",
+      "name": "brass-1",
+      "id": "p17",
+      "ramp": "brass"
+    },
+    {
+      "color": "#c98f24",
+      "name": "brass-2",
+      "id": "p16",
+      "ramp": "brass"
+    },
+    {
+      "color": "#ebaa33",
+      "name": "brass-3",
+      "id": "p15",
+      "ramp": "brass"
+    },
+    {
+      "color": "#2cb9d5",
+      "name": "glow-1",
+      "id": "p23",
+      "ramp": "glow"
+    },
+    {
+      "color": "#5fd6ea",
+      "name": "glow-2",
+      "id": "p11",
+      "ramp": "glow"
+    },
+    {
+      "color": "#88f4ff",
+      "name": "glow-3",
+      "id": "p7",
+      "ramp": "glow"
+    },
+    {
+      "color": "#005136",
+      "name": "cloth-1",
+      "id": "p20",
+      "ramp": "cloth"
+    },
+    {
+      "color": "#2f6a45",
+      "name": "cloth-2",
+      "id": "p19",
+      "ramp": "cloth"
+    },
+    {
+      "color": "#518454",
+      "name": "cloth-3",
+      "id": "p21",
+      "ramp": "cloth"
+    },
+    {
+      "color": "#f4f7fb",
+      "name": "shine",
+      "id": "p5"
+    },
+    {
+      "color": "#a8322a",
+      "name": "grip",
+      "id": "p18"
+    }
+  ],
+  "layers": [
+    {
+      "id": "l1",
+      "name": "pixel 1",
+      "kind": "paint",
+      "cels": [
+        {
+          "id": "c2",
+          "frame": 0
+        },
+        {
+          "id": "c22",
+          "frame": 1
+        },
+        {
+          "id": "c24",
+          "frame": 2
+        },
+        {
+          "id": "c25",
+          "frame": 3
+        }
+      ],
+      "pixel": true,
+      "opacity": 1.0,
+      "blend": "normal",
+      "visible": true
+    }
+  ]
+}

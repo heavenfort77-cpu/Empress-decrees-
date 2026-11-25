@@ -1,0 +1,89 @@
+<!doctype html>
+<!-- Review viewer for the 皇家 guard and 反贼 rebel units (art tool, not shipped; worker W5). Copied from beast.html: same FOV 50, pitch 40,
+     the game's hemisphere and sun, the approved hall floor; a player-size box (2.05 m suit) for scale.
+     ?view=lineup&faction=guard|rebels|all (play framing at &dist=10.5, or 22 for the wide view) | turn&unit=zu&yaw=deg (close turntable)
+     | tell&unit=zu (rest | windup | strike side by side) | schools (the nine 黄巾力士 variants: weapon shape + patch colour) | lods&unit=zu
+     &mode=tex | sil (flat black on white). glTF UVs: trim sheets load with flipY false. -->
+<html><head><meta charset="utf-8"><style>html,body{margin:0;background:#120d16;overflow:hidden}</style>
+<script type="importmap">{"imports":{"three":"../../lib/three.module.min.js"}}</script></head><body>
+<script type="module">
+import * as THREE from 'three';
+import { GLTFLoader } from './vendor/loaders/GLTFLoader.js';
+const Q = new URLSearchParams(location.search), VIEW = Q.get('view') || 'lineup', MODE = Q.get('mode') || 'tex', UNIT = Q.get('unit') || 'zu';
+const W = innerWidth, H = innerHeight, SIL = MODE === 'sil';
+const r = new THREE.WebGLRenderer({ antialias: true }); r.setPixelRatio(1); r.setSize(W, H); r.shadowMap.enabled = !SIL; document.body.appendChild(r.domElement);
+const scene = new THREE.Scene(); scene.background = new THREE.Color(SIL ? 0xffffff : 0x120d16);
+const cam = new THREE.PerspectiveCamera(50, W / H, 0.5, 200);
+scene.add(new THREE.HemisphereLight(0xd9c9ff, 0x3a2a22, 1.1));
+const sun = new THREE.DirectionalLight(0xffe2b8, 2.2); sun.position.set(-30, 60, 25); sun.target.position.set(0, 0, -12); sun.castShadow = true;
+Object.assign(sun.shadow.camera, { left: -14, right: 14, top: 14, bottom: -14, near: 10, far: 150 }); sun.shadow.mapSize.set(2048, 2048);
+scene.add(sun, sun.target);
+const tl = new THREE.TextureLoader();
+const tex = (f, rep, flip) => { const t = tl.load(f); t.colorSpace = THREE.SRGBColorSpace; t.wrapS = t.wrapT = THREE.RepeatWrapping; t.anisotropy = 4; if (rep) t.repeat.set(rep, rep); if (flip === false) t.flipY = false; return t; };
+if (!SIL) { const floor = new THREE.Mesh(new THREE.PlaneGeometry(40, 40), new THREE.MeshStandardMaterial({ map: tex('../../assets/tex/hall_floor.png', 10), roughness: 0.9 }));
+  floor.rotation.x = -Math.PI / 2; floor.receiveShadow = true; scene.add(floor); }
+// FIX-A: bronze = the brass sheet (owner 25 Nov 02:1x); tread belts scroll (tread_belt.png, &scroll=metres forward travelled, &mpr=metres per repeat from the gates).
+const BRONZE = SIL ? null : tex('../../assets/tex/bronze_trim_brass.png', 0, false), FOD = SIL ? null : tex('../../assets/tex/fodder_trim.png', 0, false);
+const TREAD = SIL ? null : tex('../../assets/tex/tread_belt.png', 0, false), SCROLL = +(Q.get('scroll') || 0), MPR = +(Q.get('mpr') || 0.5);
+const SCHOOLS = ['ru', 'dao', 'fa', 'mo', 'yinyang', 'za', 'ming', 'zongheng', 'nong'];
+// rebel patch colours (rebel_build.py PATCH_COL, variant i wears [i % 3]; never a school colour)
+const SCOL = SCHOOLS.map((s, i) => [0x6f6a34, 0x6a4a32, 0x8e5a52][i % 3]);
+function mat(name, school) {
+  if (SIL) return new THREE.MeshBasicMaterial({ color: 0x000000 });
+  if (name === 'gdBronze') return new THREE.MeshStandardMaterial({ map: BRONZE, metalness: 0.4, roughness: 0.6 });
+  if (name === 'treadBelt') { const t = TREAD.clone(); t.needsUpdate = true; t.offset.x = SCROLL / MPR; return new THREE.MeshStandardMaterial({ map: t, metalness: 0.4, roughness: 0.6 }); }
+  if (name === 'gdLacquer') return new THREE.MeshStandardMaterial({ map: FOD, metalness: 0.05, roughness: 0.8 });
+  if (name === 'rbPatch') return new THREE.MeshStandardMaterial({ map: FOD, roughness: 0.85, color: school != null ? SCOL[school] : 0xffffff });
+  if (name === 'rbGlint') return new THREE.MeshBasicMaterial({ color: 0xffe066 });
+  return new THREE.MeshStandardMaterial({ map: FOD, roughness: 0.85 });
+}
+const loader = new GLTFLoader();
+const FAC = { guard: ['zu', 'nu', 'dun', 'che', 'wz'], rebels: ['ls', 'fs', 'ss', 'qs'] };
+const dir = (u) => (FAC.guard.includes(u) ? 'guard' : 'rebels');
+// place one unit: lod = 0 (skinned, animated) / 1 / 2; school = index for 黄巾力士; clip + time for a pose
+function place(u, x, z, { lod = 0, school = 0, clip = null, t = 0, yaw = 0 } = {}) {
+  return new Promise((res) => loader.load(`../../assets/models/${dir(u)}/${u}.glb`, (g) => {
+    const root = g.scene;
+    root.traverse((o) => {
+      if (!o.isMesh) return;
+      o.material = mat(o.material.name, u === 'ls' ? school : null); o.castShadow = o.receiveShadow = true;
+      let n = o.name; if (!/(_lod[0-2]|_w_[a-z]+(_lod1)?)$/.test(n) && o.parent) n = o.parent.name;  // multi-material meshes load as a group of primitives
+      const isW = n.includes('_w_'), wl1 = n.endsWith('_lod1') && isW;
+      if (isW) o.visible = (lod === 0 && n === `${u}_w_${SCHOOLS[school]}`) || (lod === 1 && wl1 && n === `${u}_w_${SCHOOLS[school]}_lod1`);
+      else if (n === `${u}_lod1`) o.visible = lod === 1;
+      else if (n === `${u}_lod2`) o.visible = lod === 2;
+      else if (n === `${u}_lod0`) o.visible = lod === 0;
+      if (o.visible && lod > 0) { let top = o; while (top.parent && top.parent !== root) top = top.parent; top.position.x = 0; }
+    });
+    root.position.set(x, 0, z); root.rotation.y = yaw; scene.add(root);
+    if (clip) { const mix = new THREE.AnimationMixer(root), c = g.animations.find((a) => a.name === clip); if (c) { mix.clipAction(c).play(); mix.setTime(t); } }
+    res(root);
+  }));
+}
+const player = new THREE.Mesh(new THREE.BoxGeometry(0.9, 2.05, 0.9), new THREE.MeshStandardMaterial({ color: SIL ? 0 : 0x3a7bd5, roughness: 0.6 }));
+const WIND = { zu: 0.5, nu: 0.8, dun: 0.5, che: 0.9, wz: 0.5, ls: 0.8, fs: 0.8, ss: 0.6, qs: 0.6 };
+const jobs = []; let look = new THREE.Vector3(0, 0.9, 0), dist = +(Q.get('dist') || 10.5), yaw = (+(Q.get('yaw') || 0)) * Math.PI / 180, pitch = 40;
+if (VIEW === 'lineup') {
+  const list = Q.get('faction') === 'rebels' ? FAC.rebels : Q.get('faction') === 'guard' ? FAC.guard : [...FAC.guard, ...FAC.rebels];
+  const sp = list.length > 5 ? 1.9 : 2.4;
+  list.forEach((u, i) => jobs.push(place(u, (i - (list.length - 1) / 2) * sp, 0, { clip: 'idle', t: 0, school: +(Q.get('school') || 0) })));
+  if (!SIL && Q.get('player') !== '0') { player.position.set((list.length / 2 + 0.3) * sp, 1.025, 0.6); player.castShadow = true; scene.add(player); }
+  if (list.length > 5) dist = Math.max(dist, 13.5);
+} else if (VIEW === 'turn') {
+  jobs.push(place(UNIT, 0, 0, { clip: 'idle', t: 0, school: +(Q.get('school') || 0) })); dist = UNIT === 'che' || UNIT === 'qs' || UNIT === 'wz' ? 5.6 : 4.4; pitch = 15; look.set(0, UNIT === 'ss' ? 0.65 : 1.05, 0);
+} else if (VIEW === 'tell') {
+  const w = WIND[UNIT]; [[0, -1.6], [w, 0], [w + 0.16, 1.6]].forEach(([t, x]) => jobs.push(place(UNIT, x * (UNIT === 'che' ? 1.8 : 1), 0, { clip: 'attack', t, school: +(Q.get('school') || 0) })));
+  dist = UNIT === 'che' ? 9 : 6.5; look.set(0, 0.9, 0); yaw = 35 * Math.PI / 180;
+} else if (VIEW === 'schools') {
+  SCHOOLS.forEach((s, i) => jobs.push(place('ls', (i - 4) * 1.35, 0, { clip: 'idle', t: 0, school: i })));
+  dist = 11; look.set(0, 0.9, 0);
+} else if (VIEW === 'lods') {
+  [0, 1, 2].forEach((l) => jobs.push(place(UNIT, (l - 1) * (UNIT === 'che' ? 2.6 : 1.6), 0, { lod: l, clip: l ? null : 'idle', t: 0 })));
+  dist = 7; pitch = 25; look.set(0, 1, 0); yaw = 30 * Math.PI / 180;
+}
+Promise.all(jobs).then(() => {
+  const p = pitch * Math.PI / 180;
+  cam.position.set(look.x + Math.sin(yaw) * Math.cos(p) * dist, look.y + Math.sin(p) * dist, look.z + Math.cos(yaw) * Math.cos(p) * dist); cam.lookAt(look);
+  setTimeout(() => { r.render(scene, cam); const i = r.info.render; window.__info = { calls: i.calls, triangles: i.triangles }; window.__ready = true; }, 900);
+});
+</script></body></html>

@@ -1,0 +1,150 @@
+{
+  "frames": [
+    {
+      "duration": 167,
+      "filename": "knight_back_idle 0",
+      "frame": {
+        "h": 60,
+        "w": 32,
+        "x": 2,
+        "y": 2
+      },
+      "rotated": false,
+      "sourceSize": {
+        "h": 64,
+        "w": 64
+      },
+      "spriteSourceSize": {
+        "h": 60,
+        "w": 32,
+        "x": 16,
+        "y": 2
+      },
+      "trimmed": true
+    },
+    {
+      "duration": 166,
+      "filename": "knight_back_idle 1",
+      "frame": {
+        "h": 60,
+        "w": 32,
+        "x": 36,
+        "y": 2
+      },
+      "rotated": false,
+      "sourceSize": {
+        "h": 64,
+        "w": 64
+      },
+      "spriteSourceSize": {
+        "h": 60,
+        "w": 32,
+        "x": 16,
+        "y": 2
+      },
+      "trimmed": true
+    },
+    {
+      "duration": 167,
+      "filename": "knight_back_idle 2",
+      "frame": {
+        "h": 61,
+        "w": 32,
+        "x": 70,
+        "y": 2
+      },
+      "rotated": false,
+      "sourceSize": {
+        "h": 64,
+        "w": 64
+      },
+      "spriteSourceSize": {
+        "h": 61,
+        "w": 32,
+        "x": 16,
+        "y": 1
+      },
+      "trimmed": true
+    },
+    {
+      "duration": 167,
+      "filename": "knight_back_idle 3",
+      "frame": {
+        "h": 61,
+        "w": 32,
+        "x": 2,
+        "y": 65
+      },
+      "rotated": false,
+      "sourceSize": {
+        "h": 64,
+        "w": 64
+      },
+      "spriteSourceSize": {
+        "h": 61,
+        "w": 32,
+        "x": 16,
+        "y": 1
+      },
+      "trimmed": true
+    },
+    {
+      "duration": 166,
+      "filename": "knight_back_idle 4",
+      "frame": {
+        "h": 60,
+        "w": 32,
+        "x": 36,
+        "y": 2
+      },
+      "rotated": false,
+      "sourceSize": {
+        "h": 64,
+        "w": 64
+      },
+      "spriteSourceSize": {
+        "h": 60,
+        "w": 32,
+        "x": 16,
+        "y": 2
+      },
+      "trimmed": true
+    },
+    {
+      "duration": 167,
+      "filename": "knight_back_idle 5",
+      "frame": {
+        "h": 60,
+        "w": 32,
+        "x": 36,
+        "y": 65
+      },
+      "rotated": false,
+      "sourceSize": {
+        "h": 64,
+        "w": 64
+      },
+      "spriteSourceSize": {
+        "h": 60,
+        "w": 32,
+        "x": 16,
+        "y": 2
+      },
+      "trimmed": true
+    }
+  ],
+  "meta": {
+    "app": "klad",
+    "format": "RGBA8888",
+    "frameTags": [],
+    "image": "knight_back_idle_sheet.png",
+    "layers": [],
+    "scale": "1",
+    "size": {
+      "h": 128,
+      "w": 104
+    },
+    "slices": [],
+    "version": "0.1.19"
+  }
+}

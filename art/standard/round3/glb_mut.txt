@@ -1,0 +1,6 @@
+glb mutation blend: 1 FAIL lines (must be > 0)
+glb mutation skin: 1 FAIL lines (must be > 0)
+glb mutation clip: 1 FAIL lines (must be > 0)
+glb mutation late: 1 FAIL lines (must be > 0)
+glb mutation uv: 3 FAIL lines (must be > 0)
+glb mutation schools: 1 FAIL lines (must be > 0)

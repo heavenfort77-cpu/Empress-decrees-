@@ -1,0 +1,56 @@
+PASS che glb che_lod0 skinned
+PASS che glb lod1 and lod2 present
+PASS che glb clip idle: 12 channels, 2.02 s
+PASS che glb clip move: 12 channels, 1.02 s
+PASS che glb clip attack: 12 channels, 1.67 s
+INFO che meshes che_lod1 1240 tris gdBronze+gdLacquer+treadBelt, che_lod2 333 tris gdBronze+gdLacquer+treadBelt, che_lod0 3052 tris gdBronze+gdLacquer+treadBelt
+PASS dun glb dun_lod0 skinned
+PASS dun glb lod1 and lod2 present
+PASS dun glb clip idle: 27 channels, 2.02 s
+PASS dun glb clip move: 27 channels, 1.02 s
+PASS dun glb clip attack: 27 channels, 1.10 s
+INFO dun meshes dun_lod1 1222 tris gdBronze+gdLacquer+treadBelt, dun_lod2 343 tris gdBronze+gdLacquer+treadBelt, dun_lod0 3684 tris gdBronze+gdLacquer+treadBelt
+PASS nu glb nu_lod0 skinned
+PASS nu glb lod1 and lod2 present
+PASS nu glb clip idle: 27 channels, 2.02 s
+PASS nu glb clip move: 27 channels, 1.02 s
+PASS nu glb clip attack: 27 channels, 1.40 s
+INFO nu meshes nu_lod1 1322 tris gdBronze+gdLacquer+treadBelt, nu_lod2 370 tris gdBronze+gdLacquer+treadBelt, nu_lod0 3760 tris gdBronze+gdLacquer+treadBelt
+PASS wz glb wz_lod0 skinned
+PASS wz glb lod1 and lod2 present
+PASS wz glb clip idle: 30 channels, 2.02 s
+PASS wz glb clip move: 30 channels, 1.02 s
+PASS wz glb clip attack: 30 channels, 1.10 s
+INFO wz meshes wz_lod1 1226 tris gdBronze+gdLacquer+treadBelt, wz_lod2 338 tris gdBronze+gdLacquer+treadBelt, wz_lod0 3616 tris gdBronze+gdLacquer+treadBelt
+PASS zu glb zu_lod0 skinned
+PASS zu glb lod1 and lod2 present
+PASS zu glb clip idle: 27 channels, 2.02 s
+PASS zu glb clip move: 27 channels, 1.02 s
+PASS zu glb clip attack: 27 channels, 1.10 s
+INFO zu meshes zu_lod1 1186 tris gdBronze+gdLacquer+treadBelt, zu_lod2 332 tris gdBronze+gdLacquer+treadBelt, zu_lod0 3400 tris gdBronze+gdLacquer+treadBelt
+PASS fs glb fs_lod0 skinned
+PASS fs glb lod1 and lod2 present
+PASS fs glb clip idle: 48 channels, 2.02 s
+PASS fs glb clip move: 48 channels, 1.02 s
+PASS fs glb clip attack: 48 channels, 1.48 s
+INFO fs meshes fs_lod1 552 tris rbCloth, fs_lod2 155 tris rbCloth, fs_lod0 1304 tris rbCloth
+PASS ls glb ls_lod0 skinned
+PASS ls glb lod1 and lod2 present
+PASS ls glb clip idle: 48 channels, 2.02 s
+PASS ls glb clip move: 48 channels, 1.02 s
+PASS ls glb clip attack: 48 channels, 1.48 s
+INFO ls meshes ls_lod1 700 tris rbCloth+rbPatch, ls_lod2 202 tris rbCloth+rbPatch, ls_lod0 1634 tris rbCloth+rbPatch, ls_w_dao 276 tris rbCloth, ls_w_fa 84 tris rbCloth, ls_w_ming 224 tris rbCloth, ls_w_mo 108 tris rbCloth, ls_w_nong 60 tris rbCloth, ls_w_ru 188 tris rbCloth, ls_w_yinyang 176 tris rbCloth, ls_w_za 96 tris rbCloth, ls_w_zongheng 208 tris rbCloth, ls_w_dao_lod1 108 tris rbCloth, ls_w_fa_lod1 36 tris rbCloth, ls_w_ming_lod1 160 tris rbCloth, ls_w_mo_lod1 76 tris rbCloth, ls_w_nong_lod1 28 tris rbCloth, ls_w_ru_lod1 92 tris rbCloth, ls_w_yinyang_lod1 40 tris rbCloth, ls_w_za_lod1 80 tris rbCloth, ls_w_zongheng_lod1 124 tris rbCloth
+INFO ls extras [{'schools': '["ru", "dao", "fa", "mo", "yinyang", "za", "ming", "zongheng", "nong"]', 'patchColours': '["#6f6a34", "#6a4a32", "#8e5a52", "#6f6a34", "#6a4a32", 
+PASS qs glb qs_lod0 skinned
+PASS qs glb lod1 and lod2 present
+PASS qs glb clip idle: 51 channels, 2.02 s
+PASS qs glb clip move: 51 channels, 1.02 s
+PASS qs glb clip attack: 51 channels, 1.28 s
+INFO qs meshes qs_lod1 748 tris rbCloth, qs_lod2 215 tris rbCloth, qs_lod0 1472 tris rbCloth
+PASS ss glb ss_lod0 skinned
+PASS ss glb lod1 and lod2 present
+PASS ss glb clip idle: 54 channels, 2.02 s
+PASS ss glb clip move: 54 channels, 1.02 s
+PASS ss glb clip attack: 54 channels, 1.23 s
+INFO ss meshes ss_lod1 536 tris rbCloth, ss_lod2 155 tris rbCloth, ss_lod0 1308 tris rbCloth+rbGlint
+45 of 45 pass

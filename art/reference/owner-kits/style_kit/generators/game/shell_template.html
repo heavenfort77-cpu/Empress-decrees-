@@ -1,0 +1,976 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+<title>B.O.I: Battle of Ideal</title>
+<style>
+/* ===== CSS: BASE ===== */
+:root { --bg: #14110f; --panel: #1f1a16; --ink: #ecdcc0; --dim: #9a8a72; --line: #4a3a2c; --gold: #d29a2a; --ember: #d1773a; --gap: 12px; --btn: 52px; }
+* { box-sizing: border-box; margin: 0; }
+html, body { height: 100%; background: var(--bg); color: var(--ink); font: 15px/1.4 system-ui, "Noto Sans CJK SC", sans-serif; overflow: hidden; touch-action: none; user-select: none; -webkit-user-select: none; }
+/* ===== CSS: LAYOUT ===== */
+.stage { position: fixed; inset: 0; }
+.stage__canvas { display: block; width: 100%; height: 100%; image-rendering: pixelated; }
+.hud { position: fixed; left: calc(env(safe-area-inset-left) + 8px); top: calc(env(safe-area-inset-top) + 8px); padding: 6px 8px; background: rgb(20 17 15 / 0.8); border: 1px solid var(--line); white-space: pre; font-size: 13px; pointer-events: none; }
+.mini { position: fixed; right: calc(env(safe-area-inset-right) + 8px); top: calc(env(safe-area-inset-top) + 64px); image-rendering: pixelated; border: 1px solid var(--line); background: #000; pointer-events: none; }
+.top { position: fixed; top: calc(env(safe-area-inset-top) + 8px); right: calc(env(safe-area-inset-right) + 8px); display: flex; gap: 6px; }
+.pad { position: fixed; left: calc(env(safe-area-inset-left) + 16px); bottom: calc(env(safe-area-inset-bottom) + 16px); width: calc(var(--btn) * 3); height: calc(var(--btn) * 3); display: none; }
+.act { position: fixed; right: calc(env(safe-area-inset-right) + 16px); bottom: calc(env(safe-area-inset-bottom) + 16px); width: calc(var(--btn) * 3.2); height: calc(var(--btn) * 3.1); display: none; }
+.is-touch .pad, .is-touch .act { display: block; }
+.pad__btn, .act__btn { position: absolute; width: var(--btn); height: var(--btn); }
+.pad__btn--up { left: var(--btn); top: 0; } .pad__btn--left { left: 0; top: var(--btn); } .pad__btn--right { left: calc(var(--btn) * 2); top: var(--btn); } .pad__btn--down { left: var(--btn); top: calc(var(--btn) * 2); }
+.act__btn--atk { right: 0; top: calc(var(--btn) * 1.1); } .act__btn--dash { right: calc(var(--btn) * 1.1); top: calc(var(--btn) * 2.1); } .act__btn--skill { right: calc(var(--btn) * 1.1); top: 0; }
+/* ===== CSS: UI ===== */
+.btn:disabled { opacity: 0.5; }
+.btn { min-width: 44px; min-height: 44px; padding: 8px 14px; font: inherit; color: var(--ink); background: var(--panel); border: 1px solid var(--line); border-radius: 8px; touch-action: none; }
+.btn:focus-visible { outline: 2px solid var(--gold); }
+.btn--main { background: var(--gold); color: #1a0d0a; border-color: var(--gold); font-weight: 600; }
+.btn--small { min-width: 44px; padding: 6px 10px; }
+.btn--pick { text-align: left; min-width: 150px; border-left-width: 5px; width: min(440px, 92vw); text-align: left; }
+.btn--pick small { display: block; color: var(--dim); font-size: 11px; }
+.btn--pick { display: flex; align-items: center; gap: 10px; padding: 4px 12px 4px 6px; }
+.btn__suit { width: 64px; height: 64px; flex: none; image-rendering: pixelated; background: #1a232b; border-radius: 4px; }
+.btn__text { display: block; }
+.school { max-width: 460px; }
+.school__head { display: flex; gap: 12px; align-items: center; margin-bottom: 8px; }
+.school__pic { width: 96px; height: 96px; flex: none; image-rendering: pixelated; background: #1a232b; border-radius: 6px; }
+.school__role { color: var(--dim); margin-top: 2px; }
+.school__skill { padding: 8px 10px; border-left: 3px solid var(--gold); background: #191512; margin: 6px 0; }
+.school__rules { margin: 6px 0 0; padding-left: 18px; display: flex; flex-direction: column; gap: 4px; }
+@media (max-height: 520px) { .school__pic { width: 64px; height: 64px; } .school { font-size: 14px; } }
+.panel:not(.panel--title) > :first-child { margin-top: auto; } .panel:not(.panel--title) > :last-child { margin-bottom: auto; }   /* centred when it fits, scrolls from the top when it does not */
+@media (orientation: landscape) and (max-height: 520px) { #picks { display: grid; grid-template-columns: repeat(2, min(400px, 46vw)); gap: 6px; max-width: none; } #picks .btn--pick { width: auto; } #picks small { font-size: 10px; } }
+@media (max-height: 760px) { .btn__suit { width: 48px; height: 48px; } }
+.panel { position: fixed; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: safe center; gap: var(--gap); padding: 16px; background: rgb(20 17 15 / 0.94); text-align: center; overflow-y: auto; touch-action: pan-y; }
+.panel__title { font-size: 26px; letter-spacing: 2px; color: var(--gold); }
+.panel--title { background: transparent; justify-content: flex-end; padding-bottom: calc(env(safe-area-inset-bottom) + 10vh); }
+.title__spacer { flex: 1; }
+.title__tag { color: var(--ink); text-shadow: 0 2px 0 #000, 0 0 8px #000; }
+.sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+.panel__title--sub { font-size: 16px; letter-spacing: 6px; margin-top: -8px; }
+.panel__sub { color: var(--dim); max-width: 460px; }
+.panel__row { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; max-width: 560px; }
+.card { max-width: 420px; padding: 16px; background: var(--panel); border: 1px solid var(--line); border-radius: 8px; text-align: left; }
+.card__title { color: var(--gold); font-size: 18px; margin-bottom: 6px; }
+.card__step { color: var(--dim); font-size: 12px; margin-top: 8px; }
+.keys { color: var(--dim); font-size: 12px; max-width: 460px; }
+.arrival__stage { image-rendering: pixelated; border: 1px solid var(--line); border-radius: 6px; background: #1b1f27; }
+.arrival { list-style: none; padding: 0; max-width: 440px; text-align: left; display: flex; flex-direction: column; gap: 10px; }
+.arrival__line { padding-left: 12px; border-left: 3px solid var(--line); color: var(--dim); animation: rise 0.6s ease-out both; transition: color 0.3s, border-color 0.3s; }
+.arrival__line.is-active { color: var(--ink); border-color: var(--gold); }
+.arrival__line:nth-child(1) { animation-delay: 0.1s; } .arrival__line:nth-child(2) { animation-delay: 0.6s; } .arrival__line:nth-child(3) { animation-delay: 1.1s; }
+.arrival__line:nth-child(4) { animation-delay: 1.6s; } .arrival__line:nth-child(5) { animation-delay: 2.1s; } .arrival__line:nth-child(6) { animation-delay: 2.6s; }
+@media (max-height: 720px) { .arrival { gap: 4px; font-size: 14px; } }
+@keyframes rise { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+@media (prefers-reduced-motion: reduce) { .arrival__line { animation: none; } }
+/* ===== CSS: STATES ===== */
+.is-hidden { display: none !important; }
+</style>
+</head>
+<body>
+<noscript><p style="padding:16px">B.O.I: Battle of Ideal needs JavaScript.</p></noscript>
+<main class="stage"><canvas id="view" class="stage__canvas" aria-label="B.O.I battlefield"></canvas></main>
+<p id="hud" class="hud is-hidden"></p>
+<canvas id="mini" class="mini is-hidden" width="64" height="64"></canvas>
+<div id="top" class="top is-hidden"><button id="helpBtn" class="btn btn--small" type="button" aria-label="How to play">?</button><button id="pauseBtn" class="btn btn--small" type="button" aria-label="Pause">II</button></div>
+<div id="pad" class="pad is-hidden"><button class="btn pad__btn pad__btn--up" data-act="up" type="button" aria-label="Up">▲</button><button class="btn pad__btn pad__btn--left" data-act="left" type="button" aria-label="Left">◀</button><button class="btn pad__btn pad__btn--right" data-act="right" type="button" aria-label="Right">▶</button><button class="btn pad__btn pad__btn--down" data-act="down" type="button" aria-label="Down">▼</button></div>
+<div id="act" class="act is-hidden"><button class="btn act__btn act__btn--atk" data-act="attack" type="button">ATK</button><button class="btn act__btn act__btn--dash" data-act="dash" type="button">DASH</button><button class="btn act__btn act__btn--skill" data-act="skill" type="button">SKL</button></div>
+<section id="title" class="panel panel--title" aria-labelledby="titleH"><h1 id="titleH" class="sr-only">B.O.I: Battle of Ideal</h1><div class="title__spacer"></div><p class="panel__sub title__tag">The hundred schools contend. One ideal remains.</p><div class="panel__row"><button id="startBtn" class="btn btn--main" type="button" disabled>Loading…</button><button id="credBtn" class="btn" type="button">Credits</button></div></section>
+<section id="arrival" class="panel is-hidden" aria-labelledby="arrH"><h2 id="arrH" class="panel__title">The Contest</h2><canvas id="arrCv" class="arrival__stage" aria-label="Suits fighting on the field"></canvas><ol class="arrival"><li class="arrival__line">Sixty-four by sixty-four tiles. Twenty suits. One suit to a tile.</li><li class="arrival__line">Bushes hide a suit. Ore feeds it. All stats grow from both.</li><li class="arrival__line">Every suit sees five tiles. Strike a bush and it breaks open.</li><li class="arrival__line">The storm closes the field. Its edge burns.</li><li class="arrival__line">The fallen stay as wrecks. They feed the living.</li><li class="arrival__line">The last suit standing carries the ideal.</li></ol><div class="panel__row"><button id="arrBtn" class="btn btn--main" type="button">Continue</button></div></section>
+<section id="menu" class="panel is-hidden" aria-labelledby="menuH"><h2 id="menuH" class="panel__title">Choose your school</h2><p class="panel__sub">One hundred schools contend. One ideal remains.</p><div id="picks" class="panel__row"></div><div class="panel__row"><button id="howBtn" class="btn" type="button">How to play</button></div><p id="keyHint" class="keys"></p></section>
+<section id="tut" class="panel is-hidden" aria-labelledby="tutH"><div class="card"><h2 id="tutH" class="card__title"></h2><p id="tutText"></p><p id="tutStep" class="card__step"></p></div><div class="panel__row"><button id="tutSkip" class="btn" type="button">Skip</button><button id="tutNext" class="btn btn--main" type="button">Next</button></div></section>
+<section id="school" class="panel is-hidden" aria-labelledby="schoolH"><div class="card school"><div class="school__head"><canvas id="schoolPic" class="school__pic" width="96" height="96" aria-hidden="true"></canvas><div><h2 id="schoolH" class="card__title"></h2><p id="schoolRole" class="school__role"></p></div></div><p id="schoolSkill" class="school__skill"></p><ul id="schoolRules" class="school__rules"></ul></div><div class="panel__row"><button id="schoolGo" class="btn btn--main" type="button">Fight</button><button id="schoolBack" class="btn" type="button">Back</button></div></section>
+<section id="pause" class="panel is-hidden" aria-labelledby="pauseH"><h2 id="pauseH" class="panel__title">Paused</h2><div class="panel__row"><button id="resumeBtn" class="btn btn--main" type="button">Resume</button><button id="pSchool" class="btn" type="button">Your school</button><button id="pHow" class="btn" type="button">How to play</button><button id="soundBtn" class="btn" type="button">Sound: on</button><button id="pCred" class="btn" type="button">Credits</button><button id="quitBtn" class="btn" type="button">Quit to menu</button></div></section>
+<section id="over" class="panel is-hidden" aria-labelledby="overH"><h2 id="overH" class="panel__title"></h2><p id="overText" class="panel__sub"></p><div class="panel__row"><button id="againBtn" class="btn btn--main" type="button">Again</button></div></section>
+<section id="credits" class="panel is-hidden" aria-labelledby="credH"><h2 id="credH" class="panel__title">Credits</h2><div id="credText" class="card"></div><div class="panel__row"><button id="credBack" class="btn btn--main" type="button">Back</button></div></section>
+<section id="fail" class="panel is-hidden" aria-labelledby="failH"><h2 id="failH" class="panel__title">Something broke</h2><p id="failText" class="panel__sub"></p><div class="panel__row"><button id="reloadBtn" class="btn btn--main" type="button">Reload</button></div></section>
+<script>
+(() => {
+'use strict';
+// ===== MAP =====
+// CONFIG   TEXT (tone), KEYMAP, TUTORIAL, UI colours
+// ASSETS   LOGIC (sandbox-tested rules, spliced from proto; createGame)
+// STATE    ui, G, saves
+// INPUT    keyToAction, auditKeys, bindInput, readAction
+// RENDER   resize, draw, drawBackdrop
+// UI       show, buildMenu, schoolText/showSchool (rules card per school), tutorial, hud, showCredits, showFail
+// STORMFX  drawStormEdge, drawStormTint, drawStormEmbers, drawStormBolt, drawStormCaught, drawStormBanner (cosmetic)
+// TITLE    drawTitleField, drawWordmark, drawTitleWipe
+// ARRIVAL  sizeArrival, arrFrame, drawArrival (scripted duels)
+// AUDIO    initAudio, setMuted, tone, noise, bell, SFX, playSfx, audioTick
+// SCENES   scenes (loading, title, play, pause, over)
+// LOOP     frame
+// BOOT     boot (guarded; any failure shows the fail panel, never a blank screen)
+
+// ===== CONFIG =====
+const UI = Object.freeze({
+  bigScale: 2, bigMin: 700, bigDpr: 1.5, walkHold: 0.5,   // scale 2 only on dense (phone) screens; a 768 px laptop keeps scale 1   // whole-number display scale for the 64 art on screens whose short side is at least bigMin device px
+  viewTiles: 11, trailAges: [6, 14, 22], trailMax: 400, dpiCap: 2, dtMax: 0.1, saveKey: 'suitmyth.v1',
+  bg: '#14110f', grid: '#2a221b', gold: '#d29a2a',
+});
+// Tone: ink and circuit. Short, flat, a little ominous. No jokes, no slang, no exclamation marks.
+const AUDIO = Object.freeze({
+  master: 0.3, hearTiles: 9, minGap: 0.05, droneVol: 0.05, pluckEvery: [5, 12], pluckVol: 0.11,
+  pitch: { tianbing: 1, wushi: 0.8, tianlong: 0.7, jianxian: 1.5, mingjiang: 1.2, mojiang: 0.6, gushi: 0.9, yuanmo: 0.5 },
+  scale: [1, 9 / 8, 5 / 4, 3 / 2, 5 / 3], root: 220,
+});
+const SCENE = Object.freeze({
+  // suit-style scene set (approved 2026-11-06): sheet order and light levels baked by pack_scene.py
+  T: { ground0: 0, ground1: 1, ground2: 2, ground3: 3, ground4: 4, bush: 5, bushS: 6, bushDown: 7, ore: 8, oreDown: 9, wreck: 10, storm: 11, stele: 12, lantern: 13, rubble: 14 },
+  FX: { shadowSuit: 0, shadowBush: 1, shadowOre: 2, shadowProp: 3, ring: 4 },
+  light: [[1, 0], [3, 1], [5, 2], [99, 3]],   // chebyshev distance limit -> sheet level (0 lit, 1 normal, 2 dim, 3 dark); beyond vision is always dark
+  propEvery: 41, propSalt: 7,                 // a cosmetic prop sits on ground tiles where (x*73 + y*31 + salt) % propEvery == 0
+  hud: { px: 2, w: 0.75, h: 6, ok: '#4f9a6c', okHi: '#7bb565', low: '#c8432c', lowHi: '#ff925c', back: '#171d23', out: '#0d1418' },
+});
+const TITLE = Object.freeze({
+  // the title field: plating lit from the centre, the eight suits in a line, embers, the storm burning along the top, a pixel wordmark
+  cast: ['tianbing', 'wushi', 'tianlong', 'jianxian', 'mingjiang', 'mojiang', 'gushi', 'yuanmo3'],
+  lineRow: 0.66, stormRows: 1.2, embers: 60, emberSpeed: 0.04, sway: 2200, bigScale: 2, bigMin: 700,   // on dense phone screens the title field draws at whole-number scale 2 (nearest-neighbour)
+  mark: { ramp: ['#8a5a2b', '#c48c3c', '#f2cb6a'], out: '#0d1418', sub: '#aebfcc', px: 3.5, widthShare: 0.8, top: 0.14, gap: 1 },   // wordmark pixel = TS / px, capped so the mark fits widthShare of the screen
+  font: { // 7x9 glyphs with 2 px strokes, rows top to bottom
+    B: ['111111.', '111111.', '11...11', '11...11', '111111.', '11...11', '11...11', '111111.', '111111.'],
+    O: ['.11111.', '1111111', '11...11', '11...11', '11...11', '11...11', '11...11', '1111111', '.11111.'],
+    I: ['1111111', '1111111', '..111..', '..111..', '..111..', '..111..', '..111..', '1111111', '1111111'],
+    '.': ['.......', '.......', '.......', '.......', '.......', '.......', '.......', '..111..', '..111..'],
+  }, gw: 7, gh: 9, reserve: 170,   // reserve: CSS px kept clear at the bottom for the tagline and buttons
+  wipe: 1.4,   // seconds: on Start the storm sweeps the title field before the arrival
+});
+const STORMFX = Object.freeze({
+  glow: ['#ff3c1e', '#ff7a1e', '#ffd25a'], wall: '#ffe9ff', tint: '#5a1a8a', embers: 90, emberSpeed: 0.05, emberCol: ['#ffb040', '#ff5a20', '#ffe08a'],
+  boltEvery: 2600, boltLen: 150, shakePx: 2, vignette: '#c01040', warnAt: 20, tintAlpha: [0.12, 0.28],
+});
+const ARRIVAL = Object.freeze({
+  cols: 5, rows: 3, per: 4.5, fade: 0.35,   // one scene per rule line, `per` seconds each; the stage and the line light up together
+  // scenes are drawn by drawArrScene(index, tl); suits used per scene are listed here so the art stays data
+  cast: ['tianbing', 'wushi', 'tianlong', 'jianxian', 'mingjiang', 'mojiang', 'gushi', 'yuanmo2'],
+});
+const CREDITS = Object.freeze([
+  'B.O.I: Battle of Ideal.',
+  'Art: every suit, tile and effect is original pixel art drawn in code by the project owner with Claude (Anthropic).',
+  'Sound: synthesised in your browser as the game runs. No recordings.',
+  'Code: original. No third-party assets, fonts or libraries are in this build.',
+  'The suits and their schools belong to this game\'s own lore.',
+]);
+const TEXT = Object.freeze({
+  win: 'The ideal stands.', lose: 'Your school falls silent.', again: 'Again',
+  hintKeys: 'Move: arrows or WASD.  Strike: J.  Dash: K.  Skill: L.  Pause: P or Esc.  Help: H.  Mute: M.',
+  hintTouch: 'Move with the pad. ATK strikes. DASH leaps. SKL is your school\'s art.',
+});
+const FACTION_TEXT = Object.freeze({
+  tianbing: ['Heavenly Soldier', 'Balanced. Skill: Overdrive, faster and harder for 8 s, with a short shield.'],
+  yuanmo: ['Ape Demon', 'Weakest at dawn, a titan by dusk. Grows with time alone. Reach lengthens at each stage.'],
+  wushi: ['Shaman', 'Tough and swift. Skill: stun at range 3, or raise a fallen suit as a follower.'],
+  mojiang: ['Ink General', 'Slow. Cannot strike. Skill: set turrets that see into bushes.'],
+  jianxian: ['Sword Immortal', 'Hits hardest, breaks easiest. Skill: sword array around you.'],
+  mingjiang: ['Nether General', 'Fastest. Skill: cloak. Unseen strikes do double harm. Kills feed it.'],
+  tianlong: ['Sky Dragon', 'Strikes from afar. Skill: channel to raise your strike to a sword-saint\'s.'],
+  gushi: ['Gu Master', 'Rots the ground around you. Skill: plant decay zones that also grant sight.'],
+});
+const TUTORIAL = Object.freeze([
+  { title: 'One suit, one tile', key: 'Move with the arrow keys or WASD. Every suit holds a single tile.', touch: 'Move with the pad on the left. Every suit holds a single tile.' },
+  { title: 'Strike', key: 'Press J to strike the nearest suit in reach. Facing a bush, J breaks it.', touch: 'Tap ATK to strike the nearest suit in reach. Facing a bush, it breaks the bush.' },
+  { title: 'Bush and ore', key: 'Bushes hide you. Ore is open ground, and it feeds your growth faster. Hide and feed, and all your stats rise.', touch: 'Bushes hide you. Ore is open ground, and it feeds your growth faster. Hide and feed, and all your stats rise.' },
+  { title: 'Dash and art', key: 'K dashes ahead. L uses your school\'s art. Each has its own wait.', touch: 'DASH leaps ahead. SKL uses your school\'s art. Each has its own wait.' },
+  { title: 'The storm', key: 'The purple zone burns. It closes in over time. Stay inside the light.', touch: 'The purple zone burns. It closes in over time. Stay inside the light.' },
+  { title: 'The fallen', key: 'Fallen suits remain as wrecks. They feed the living, and the Shaman raises them.', touch: 'Fallen suits remain as wrecks. They feed the living, and the Shaman raises them.' },
+  { title: 'Last one standing', key: 'Twenty suits enter. Seeing reaches five tiles. One remains.', touch: 'Twenty suits enter. Seeing reaches five tiles. One remains.' },
+]);
+// One key, one action. auditKeys() proves it at boot and in the test hook.
+const KEYMAP = Object.freeze({
+  up: ['ArrowUp', 'KeyW'], down: ['ArrowDown', 'KeyS'], left: ['ArrowLeft', 'KeyA'], right: ['ArrowRight', 'KeyD'],
+  attack: ['KeyJ'], dash: ['KeyK'], skill: ['KeyL'], pause: ['KeyP', 'Escape'], help: ['KeyH'], mute: ['KeyM'],
+});
+
+// ===== ASSETS =====
+// Approved idle views, copied pixel for pixel (pack_sprites.py). One sheet per suit and size: front, left, back, right.
+/*SPRITES_HERE*/
+/*ANIMS_HERE*/
+const ANIMS = Object.create(null); // key -> size -> anim -> {img, w, h, ox, oy, n, ms}
+const TILES = Object.create(null);
+const SCENES = Object.create(null); // size -> {sheets: [lit, normal, dim, dark], fx} // size -> Image, 9 tiles in a row
+const PROPS = Object.create(null); // key -> {size: Image}: turret (intact, half, damaged), trail (straight/turn x fresh/old/fading)
+const SPRITES = Object.create(null); // key -> {96: Image, 64: Image}, filled by loadSprites()
+//@@LOGIC
+/*LOGIC_HERE*/
+//@@END
+
+// ===== STATE =====
+const CFG = CONFIG;
+let G = null, mode = 'loading', last = 0, tutFirst = false, tutIdx = 0, tutThen = 'menu', playerFaction = null;
+const held = Object.create(null), tapped = Object.create(null);
+let isTouch = false, muted = false;
+const $ = (id) => document.getElementById(id);
+const view = $('view'), ctx = view.getContext('2d'), mini = $('mini'), mctx = mini.getContext('2d');
+function loadSave() { try { return JSON.parse(localStorage.getItem(UI.saveKey)) || {}; } catch (e) { return {}; } }
+function writeSave(o) { try { localStorage.setItem(UI.saveKey, JSON.stringify(Object.assign(loadSave(), o))); } catch (e) { /* storage blocked: game still runs */ } }
+
+// ===== SYSTEMS (shell-side, cosmetic) =====
+// Erosion trail left by the Gu Master: purely visual, tracked here from suit positions so the sandbox-tested LOGIC stays untouched.
+const trails = []; // {x, y, turn, rot, flip, t}
+const lastPos = Object.create(null); // suit id -> {x, y, dx, dy}
+const lastHp = Object.create(null); // suit id -> hp, to spot a hit
+const anim = Object.create(null); // suit id -> {name, t}
+const lastAlive = Object.create(null); // suit id -> alive last frame, for the death sound
+let lastZone = false;
+const lastXY = Object.create(null); // suit id -> {x, y, t}: last tile and when it last moved, for the walk
+const lastAct = Object.create(null); // suit id -> {a, d, k}: attack, dash and skill timers last frame
+const ACTION_ALIAS = { wushi: { skill: 'attack' } }; // 巫师's stun-cast uses its attack frames
+function startAnim(s, name) {
+  const key = s.f === 'yuanmo' ? 'yuanmo' + s.stage : s.f, al = ACTION_ALIAS[s.f] && ACTION_ALIAS[s.f][name], nm = al || name;
+  if (!(ANIMS[key] && ANIMS[key][TS] && ANIMS[key][TS][nm])) return;
+  const cur = anim[s.id]; if (cur && cur.name === 'hit' && cur.t < 0.2) return; // a hit reaction is not cut short
+  anim[s.id] = { name: nm, t: 0 };
+}
+function trackActions() {
+  for (const s of G.suits) {
+    const p = lastAct[s.id];
+    if (p && s.alive) {
+      for (const [fld, key, nm] of [['atkT', 'a', 'attack'], ['dashT', 'd', 'dash'], ['sklT', 'k', 'skill']]) {
+        if (s[fld] > p[key] + 0.05) { playSfx(nm, s); startAnim(s, nm); }
+      }
+    }
+    lastAct[s.id] = { a: s.atkT, d: s.dashT, k: s.sklT };
+  }
+}
+function trackWalks(dt) { // a suit that changed tile walks; it stops walking UI.walkHold s after its last step
+  for (const s of G.suits) {
+    if (!s.alive) continue;
+    const p = lastXY[s.id]; if (!p) { lastXY[s.id] = { x: s.x, y: s.y, t: 9 }; continue; }
+    if (p.x !== s.x || p.y !== s.y) { p.x = s.x; p.y = s.y; p.t = 0; if (!anim[s.id]) anim[s.id] = { name: 'walk', t: 0, loop: true }; }
+    else {
+      const pushing = s.isPlayer && (held.up || held.down || held.left || held.right); // the player keeps walking while a direction is held
+      p.t = pushing ? 0 : p.t + dt; const a = anim[s.id]; if (a && a.name === 'walk' && p.t > UI.walkHold) delete anim[s.id];
+    }
+  }
+}
+function trackHits(dt) {
+  trackActions(); trackWalks(dt);
+  for (const s of G.suits) {
+    const prev = lastHp[s.id];
+    if (prev !== undefined && s.alive && s.hp < prev - 0.5 && !(anim[s.id] && anim[s.id].name === 'hit' && anim[s.id].t < 0.1)) { anim[s.id] = { name: 'hit', t: 0 }; playSfx('hit', s); }
+    if (lastAlive[s.id] && !s.alive) { playSfx('death', s); anim[s.id] = { name: 'defeat', t: 0 }; }
+    lastAlive[s.id] = s.alive; lastHp[s.id] = s.hp;
+  }
+  for (const id in anim) { anim[id].t += dt; }
+}
+function animFrame(s) {
+  const a = anim[s.id]; if (!a) return null;
+  const key = s.f === 'yuanmo' ? 'yuanmo' + s.stage : s.f, d = ANIMS[key] && ANIMS[key][TS] && ANIMS[key][TS][a.name];
+  if (!d) { delete anim[s.id]; return null; }
+  let t = a.t * 1000;
+  if (a.loop) { let total = 0; for (let i = 1; i < d.n; i++) total += d.ms[i]; t %= total; }
+  for (let i = 1; i < d.n; i++) { if (t < d.ms[i]) return { d, i }; t -= d.ms[i]; }
+  delete anim[s.id]; return null;
+}
+const ROT_OF = { '1,0': 0, '0,1': 1, '-1,0': 2, '0,-1': 3 }; // quarter turns for a tile drawn left-to-right
+function trackTrails(dt) {
+  for (const s of G.suits) {
+    if (s.f !== 'gushi' || !s.alive) continue;
+    const p = lastPos[s.id];
+    if (!p) { lastPos[s.id] = { x: s.x, y: s.y, dx: 1, dy: 0 }; continue; }
+    if (p.x === s.x && p.y === s.y) continue;
+    const dx = Math.sign(s.x - p.x), dy = Math.sign(s.y - p.y), turn = !(dx === p.dx && dy === p.dy);
+    if (trails.length < UI.trailMax) trails.push({ x: p.x, y: p.y, turn, rot: ROT_OF[(turn ? p.dx : dx) + ',' + (turn ? p.dy : dy)] || 0, flip: turn && ((p.dx === 1 && dy === -1) || (p.dy === 1 && dx === 1) || (p.dx === -1 && dy === 1) || (p.dy === -1 && dx === -1)), t: 0 });
+    p.x = s.x; p.y = s.y; p.dx = dx; p.dy = dy;
+  }
+  let w = 0;
+  for (const tr of trails) { tr.t += dt; if (tr.t < UI.trailAges[2]) trails[w++] = tr; }
+  trails.length = w;
+}
+
+// ===== INPUT =====
+const keyToAction = Object.create(null);
+function auditKeys() {
+  const dupes = [], seen = Object.create(null);
+  for (const act of Object.keys(KEYMAP)) for (const code of KEYMAP[act]) {
+    if (seen[code]) dupes.push(code + ': ' + seen[code] + ' and ' + act); else { seen[code] = act; keyToAction[code] = act; }
+  }
+  return dupes;
+}
+function setAct(act, on) { held[act] = on; if (on) tapped[act] = true; }
+function bindInput() {
+  addEventListener('keydown', (e) => {
+    const act = keyToAction[e.code]; if (!act) return;
+    e.preventDefault(); if (!e.repeat) setAct(act, true); else held[act] = true;
+  });
+  addEventListener('keyup', (e) => { const act = keyToAction[e.code]; if (act) held[act] = false; });
+  addEventListener('blur', () => { for (const k in held) held[k] = false; });
+  document.querySelectorAll('[data-act]').forEach((b) => {
+    const act = b.dataset.act;
+    b.addEventListener('pointerdown', (e) => { e.preventDefault(); isTouch = true; document.body.classList.add('is-touch'); b.setPointerCapture(e.pointerId); setAct(act, true); });
+    for (const ev of ['pointerup', 'pointercancel', 'lostpointercapture']) b.addEventListener(ev, () => { held[act] = false; });
+    b.addEventListener('contextmenu', (e) => e.preventDefault());
+  });
+}
+function takeTap(act) { const v = tapped[act]; tapped[act] = false; return !!v; }
+
+// ===== RENDER =====
+let W = 0, H = 0, TS = 64, K = 1;
+function resize() {
+  const dpr = Math.min(window.devicePixelRatio || 1, UI.dpiCap);
+  const dw = Math.max(1, Math.round(innerWidth * dpr)), dh = Math.max(1, Math.round(innerHeight * dpr));
+  view.width = dw; view.height = dh;
+  TS = Math.min(dw, dh) >= UI.viewTiles * 96 ? 96 : 64; // tile = approved sprite size: 96 on big screens, 64 elsewhere, never scaled
+  K = (TS === 64 && dpr >= UI.bigDpr && Math.min(dw, dh) >= UI.bigMin) ? UI.bigScale : 1; // dense phones: the 64 art is shown at whole-number scale 2 (nearest-neighbour), so a suit is 64 CSS px
+  W = Math.round(dw / K); H = Math.round(dh / K); // W, H are logical pixels; the canvas transform scales them up
+  const m = Math.round(Math.min(128, innerWidth / 4));
+  mini.style.width = mini.style.height = m + 'px';
+}
+function drawBackdrop(msg) {
+  ctx.fillStyle = UI.bg; ctx.fillRect(0, 0, W, H);
+  ctx.fillStyle = UI.grid;
+  for (let y = 0; y < H; y += TS) for (let x = ((y / TS) % 2) * TS; x < W; x += TS * 2) ctx.fillRect(x, y, TS - 1, TS - 1);
+  if (msg) { ctx.fillStyle = UI.gold; ctx.font = Math.round(TS * 0.9) + 'px sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText(msg, W / 2, H / 2); }
+}
+function loadSprites() {
+  for (const key of Object.keys(ANIM_DATA)) for (const sz of Object.keys(ANIM_DATA[key])) for (const an of Object.keys(ANIM_DATA[key][sz])) {
+    const d = ANIM_DATA[key][sz][an], im = new Image(); im.onload = () => { ((ANIMS[key] = ANIMS[key] || {})[sz] = ANIMS[key][sz] || {})[an] = { img: im, w: d.w, h: d.h, ox: d.ox, oy: d.oy, n: d.n, ms: d.ms }; }; im.src = d.src;
+  }
+  for (const key of Object.keys(PROP_DATA)) for (const sz of Object.keys(PROP_DATA[key])) { const im = new Image(); im.onload = () => { (PROPS[key] = PROPS[key] || {})[sz] = im; }; im.src = PROP_DATA[key][sz]; }
+  for (const sz of Object.keys(TILE_DATA)) { const im = new Image(); im.onload = () => { TILES[sz] = im; }; im.src = TILE_DATA[sz]; }
+  for (const sz of Object.keys(SCENE_DATA)) {
+    const d = SCENE_DATA[sz]; SCENES[sz] = { sheets: [], fx: null };
+    d.sheets.forEach((u, i) => { const im = new Image(); im.onload = () => { SCENES[sz].sheets[i] = im; }; im.src = u; });
+    const fx = new Image(); fx.onload = () => { SCENES[sz].fx = fx; }; fx.src = d.fx;
+  }
+  for (const key of Object.keys(SPRITE_DATA)) for (const sz of Object.keys(SPRITE_DATA[key])) {
+    const img = new Image(); img.onload = () => { (SPRITES[key] = SPRITES[key] || {})[sz] = img; }; img.src = SPRITE_DATA[key][sz]; // a failed load leaves the box fallback
+  }
+}
+const VIEW_OF = { '0,1': 0, '-1,0': 1, '0,-1': 2, '1,0': 3 };
+function spriteFor(s) {
+  const key = s.f === 'yuanmo' ? 'yuanmo' + s.stage : s.f;
+  return SPRITES[key] && SPRITES[key][TS] ? SPRITES[key][TS] : null;
+}
+function drawSuit(s, X, Y, sz) {
+  const img = spriteFor(s);
+  if (!img) { ctx.fillStyle = s.F.col; ctx.fillRect(Math.round(X - sz / 2), Math.round(Y - sz / 2), sz, sz); ctx.fillStyle = '#000'; ctx.fillText(s.F.ch, X, Y); return; }
+  const v = VIEW_OF[s.dir[0] + ',' + s.dir[1]] || 0, fr = animFrame(s), tx = Math.round(X - TS / 2), ty = Math.round(Y - TS / 2);
+  if (fr) { ctx.drawImage(fr.d.img, fr.i * fr.d.w, v * fr.d.h, fr.d.w, fr.d.h, tx - fr.d.ox, ty - fr.d.oy, fr.d.w, fr.d.h); return; }
+  ctx.drawImage(img, v * TS, 0, TS, TS, tx, ty, TS, TS);
+}
+const TILE_ID = { ground: 0, bush: 3, bushDown: 4, ore: 5, oreDown: 6, wreck: 7, storm: 8 };
+function tileIndex(t, x, y) { return t == 1 ? TILE_ID.bush : t == 2 ? TILE_ID.ore : t == 3 ? TILE_ID.bushDown : t == 4 ? TILE_ID.oreDown : (x * 7 + y * 13) % 3; }
+function sceneIndex(t, x, y) { // ground variant and bush size by position hash, no two neighbours alike in a row
+  const T = SCENE.T, h = (x * 7 + y * 13 + ((x * 31 + y * 17) >> 2)) % 5;
+  return t == 1 ? ((x + y) & 1 ? T.bush : T.bushS) : t == 2 ? T.ore : t == 3 ? T.bushDown : t == 4 ? T.oreDown : h;
+}
+function sceneProp(t, x, y) { // cosmetic prop index or -1
+  if (t !== 0 || (x * 73 + y * 31 + SCENE.propSalt) % SCENE.propEvery) return -1;
+  return SCENE.T.stele + ((x * 5 + y * 3) % 3);
+}
+function lightLevel(p, x, y) {
+  if (!p) return 1;
+  const d = Math.max(Math.abs(x - p.x), Math.abs(y - p.y)); if (d > CFG.VISION) return 3;
+  for (const [lim, lv] of SCENE.light) if (d <= lim) return lv;
+  return 3;
+}
+function drawFx(i, px, py) { const sc = SCENES[TS]; if (sc && sc.fx) ctx.drawImage(sc.fx, i * TS, 0, TS, TS, px, py, TS, TS); }
+function drawTile(img, n, px, py) { ctx.drawImage(img, n * TS, 0, TS, TS, px, py, TS, TS); }
+function tileColour(t) { return t == 1 ? '#2d5a34' : t == 2 ? '#8a7a2a' : t == 3 ? '#243a28' : t == 4 ? '#4a4426' : '#2a2f3a'; }
+function drawWorld() {
+  const p = G.player, ts = TS, vis = CFG.VISION;
+  const ox = Math.round(W / 2 - ((p ? p.x : 32) + 0.5) * ts), oy = Math.round(H / 2 - ((p ? p.y : 32) + 0.5) * ts);
+  ctx.fillStyle = UI.bg; ctx.fillRect(0, 0, W, H);
+  const x0 = Math.max(0, Math.floor(-ox / ts)), y0 = Math.max(0, Math.floor(-oy / ts));
+  const x1 = Math.min(CFG.N, Math.ceil((W - ox) / ts)), y1 = Math.min(CFG.N, Math.ceil((H - oy) / ts));
+  for (let y = y0; y < y1; y++) for (let x = x0; x < x1; x++) {
+    const i = G.idx(x, y);
+    const sc = SCENES[TS], lv = lightLevel(p, x, y), simg = sc && sc.sheets[lv], timg = TILES[TS];
+    if (simg) { // suit-style scene: terrain at its light level, shadow under bush/ore, props, wreck and storm overlays
+      const t = G.tiles[i], px = ox + x * ts, py = oy + y * ts;
+      drawTile(simg, sceneIndex(t, x, y), px, py);
+      if (t == 1 || t == 2) drawFx(t == 1 ? SCENE.FX.shadowBush : SCENE.FX.shadowOre, px, py + (ts * 0.40 | 0));
+      const pr = sceneProp(t, x, y);
+      if (pr >= 0) { drawFx(SCENE.FX.shadowProp, px, py + (ts * 0.38 | 0)); drawTile(simg, pr, px, py); }
+      if (G.wreck.has(i)) drawTile(simg, SCENE.T.wreck, px, py);
+      if (!G.inZone(x, y)) drawTile(simg, SCENE.T.storm, px, py);
+      continue;
+    }
+    if (timg) {
+      drawTile(timg, tileIndex(G.tiles[i], x, y), ox + x * ts, oy + y * ts);
+      if (G.wreck.has(i)) drawTile(timg, TILE_ID.wreck, ox + x * ts, oy + y * ts);
+      if (!G.inZone(x, y)) drawTile(timg, TILE_ID.storm, ox + x * ts, oy + y * ts);
+    } else { // fallback until the tile sheet loads or if it fails
+      ctx.fillStyle = tileColour(G.tiles[i]); ctx.fillRect(ox + x * ts, oy + y * ts, ts - 1, ts - 1);
+      if (G.wreck.has(i)) { ctx.fillStyle = '#777'; ctx.fillRect(ox + x * ts + (ts >> 2), oy + y * ts + (ts >> 2), ts >> 1, ts >> 1); }
+      if (!G.inZone(x, y)) { ctx.fillStyle = '#5a2a8a66'; ctx.fillRect(ox + x * ts, oy + y * ts, ts, ts); }
+    }
+    if (p && Math.max(Math.abs(x - p.x), Math.abs(y - p.y)) > vis) { ctx.fillStyle = '#0007'; ctx.fillRect(ox + x * ts, oy + y * ts, ts, ts); }
+  }
+  return { ox, oy, x0, y0, x1, y1 };
+}
+function drawHpBar(cx, top, frac, c) {
+  c = c || ctx; // 2 px block bar with an outline, on the pixel grid
+  const H = SCENE.hud, px = H.px, w = Math.round(TS * H.w / px) * px, h = H.h, x0 = Math.round(cx - w / 2), fw = Math.round(Math.max(0, frac) * w / px) * px, low = frac <= 0.35;
+  c.fillStyle = H.out; c.fillRect(x0 - px, top - px, w + 2 * px, h + 2 * px);
+  c.fillStyle = H.back; c.fillRect(x0, top, w, h);
+  c.fillStyle = low ? H.low : H.ok; c.fillRect(x0, top, fw, h);
+  c.fillStyle = low ? H.lowHi : H.okHi; c.fillRect(x0, top, fw, px);
+}
+function drawActors(ox, oy) {
+  const p = G.player, ts = TS;
+  if (G.zoneTo) { ctx.strokeStyle = '#fff8'; ctx.lineWidth = 2; ctx.strokeRect(ox + G.zoneTo.x0 * ts, oy + G.zoneTo.y0 * ts, G.zoneTo.side * ts, G.zoneTo.side * ts); }
+  const dimg = PROPS.decay && PROPS.decay[TS];
+  for (const z of G.decays) {
+    if (p && z.owner !== p && Math.max(Math.abs(z.x - p.x), Math.abs(z.y - p.y)) > 2) continue;
+    if (!dimg) { ctx.fillStyle = '#b88d6244'; ctx.fillRect(ox + (z.x - 2) * ts, oy + (z.y - 2) * ts, 5 * ts, 5 * ts); continue; }
+    for (let dy = -2; dy <= 2; dy++) for (let dx = -2; dx <= 2; dx++) {
+      if (z.x + dx < 0 || z.y + dy < 0 || z.x + dx >= CFG.N || z.y + dy >= CFG.N) continue;
+      ctx.drawImage(dimg, (dx === 0 && dy === 0 ? 1 : 0) * ts, 0, ts, ts, ox + (z.x + dx) * ts, oy + (z.y + dy) * ts, ts, ts);
+    }
+  }
+  drawTrails(ox, oy);
+  const timg = PROPS.turret && PROPS.turret[TS];
+  for (const t of G.turrets) {
+    if (!timg) { ctx.fillStyle = '#5fa0a8'; ctx.fillRect(ox + t.x * ts + 2, oy + t.y * ts + 2, ts - 5, ts - 5); continue; }
+    const full = t.owner.maxhp * CFG.TURRET.hpShare, st = t.hp > full * 0.66 ? 0 : t.hp > full * 0.33 ? 1 : 2;
+    ctx.drawImage(timg, st * ts, 0, ts, ts, ox + t.x * ts, oy + t.y * ts, ts, ts);
+  }
+  ctx.font = Math.floor(ts * 0.6) + 'px sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+  for (const s of G.suits) {
+    const dying = !s.alive && anim[s.id] && anim[s.id].name === 'defeat';
+    if ((!s.alive && !dying) || (p && s !== p && !G.canSee(p, s))) continue;
+    if (dying) { const X = ox + (s.x + 0.5) * ts, Y = oy + (s.y + 0.5) * ts; if (animFrame(s)) drawSuit(s, X, Y, Math.round(ts * 0.8)); continue; } // the defeat frames play over the wreck tile, then the wreck stays
+    const sz = Math.round(s.f == 'yuanmo' ? ts * (0.55 + 0.2 * s.stage) : ts * 0.8), X = ox + (s.x + 0.5) * ts, Y = oy + (s.y + 0.5) * ts;
+    const tx = Math.round(X - ts / 2), ty = Math.round(Y - ts / 2);
+    if (s === p) drawFx(SCENE.FX.ring, tx, ty + (ts * 0.42 | 0));
+    if (!(s.cloak > 0)) drawFx(SCENE.FX.shadowSuit, tx, ty + (ts * 0.42 | 0));
+    ctx.globalAlpha = s.cloak > 0 ? 0.4 : 1; drawSuit(s, X, Y, sz);
+    if (s.owner) { ctx.strokeStyle = '#b8343c'; ctx.lineWidth = 2; ctx.strokeRect(Math.round(X - sz / 2), Math.round(Y - sz / 2), sz, sz); }
+    if (s.shield > 0) { ctx.strokeStyle = '#8fd0ff'; ctx.lineWidth = 2; ctx.strokeRect(Math.round(X - sz / 2) - 2, Math.round(Y - sz / 2) - 2, sz + 4, sz + 4); }
+    ctx.globalAlpha = 1;
+    drawHpBar(X, ty + 2, s.hp / s.maxhp);
+  }
+  for (const f of G.fx) {
+    if (p && Math.max(Math.abs(f.x0 - p.x), Math.abs(f.y0 - p.y)) > CFG.VISION && Math.max(Math.abs(f.x1 - p.x), Math.abs(f.y1 - p.y)) > CFG.VISION) continue;
+    ctx.strokeStyle = f.miss ? '#888' : '#fff'; ctx.lineWidth = f.miss ? 2 : 3; ctx.beginPath();
+    ctx.moveTo(ox + (f.x0 + 0.5) * ts, oy + (f.y0 + 0.5) * ts); ctx.lineTo(ox + (f.x1 + 0.5) * ts, oy + (f.y1 + 0.5) * ts); ctx.stroke();
+  }
+}
+function drawTrails(ox, oy) {
+  const img = PROPS.trail && PROPS.trail[TS], ts = TS, p = G.player;
+  if (!img) return;
+  for (const tr of trails) {
+    if (p && Math.max(Math.abs(tr.x - p.x), Math.abs(tr.y - p.y)) > CFG.VISION) continue;
+    const age = tr.t < UI.trailAges[0] ? 0 : tr.t < UI.trailAges[1] ? 1 : 2, frame = (tr.turn ? 3 : 0) + age;
+    ctx.save(); ctx.translate(ox + tr.x * ts + ts / 2, oy + tr.y * ts + ts / 2); ctx.rotate(tr.rot * Math.PI / 2); if (tr.flip) ctx.scale(1, -1);
+    ctx.drawImage(img, frame * ts, 0, ts, ts, -ts / 2, -ts / 2, ts, ts); ctx.restore();
+  }
+}
+function drawMini() {
+  const im = mctx.createImageData(64, 64), p = G.player;
+  for (let y = 0; y < 64; y++) for (let x = 0; x < 64; x++) {
+    const t = G.tiles[G.idx(x, y)]; let c = t == 1 ? [45, 90, 52] : t == 2 ? [138, 122, 42] : [42, 47, 58];
+    if (!G.inZone(x, y)) c = [90, 42, 138];
+    const i = (y * 64 + x) * 4; im.data[i] = c[0]; im.data[i + 1] = c[1]; im.data[i + 2] = c[2]; im.data[i + 3] = 255;
+  }
+  if (p) { const i = (p.y * 64 + p.x) * 4; im.data[i] = im.data[i + 1] = im.data[i + 2] = 255; }
+  mctx.putImageData(im, 0, 0);
+}
+function draw() {
+  if (!G) {
+    const now = performance.now();
+    if (mode === 'title' || mode === 'wipe' || (mode === 'credits' && credBack === 'title')) { drawTitleField(now); if (mode === 'wipe') drawTitleWipe(now); }
+    else drawBackdrop('');
+    return;
+  }
+  const now = performance.now(), p = G.player, caught = p && p.alive && !G.inZone(p.x, p.y);
+  ctx.save();
+  if (caught) ctx.translate(Math.round((hash01(Math.floor(now / 55)) - 0.5) * 2 * STORMFX.shakePx), Math.round((hash01(Math.floor(now / 55) + 7) - 0.5) * 2 * STORMFX.shakePx));
+  const o = drawWorld(); drawStormFx(o); drawActors(o.ox, o.oy);
+  ctx.restore();
+  drawStormCaught(now); drawStormBanner(now); drawMini();
+}
+
+// ===== UI =====
+const panels = ['title', 'arrival', 'menu', 'tut', 'pause', 'over', 'credits', 'school', 'fail'];
+function showPanel(name) {
+  for (const id of panels) $(id).classList.toggle('is-hidden', id !== name);
+  const playing = mode === 'play';
+  for (const id of ['hud', 'mini', 'top']) $(id).classList.toggle('is-hidden', !playing);
+  $('pad').classList.toggle('is-hidden', !playing); $('act').classList.toggle('is-hidden', !playing);
+}
+function keyHint() { return isTouch ? TEXT.hintTouch : TEXT.hintKeys + '  ' + TEXT.hintTouch; }
+function schoolText(f) { // every number comes from the game's CONFIG (CFG), so the card stays true when balance changes
+  const C = CFG, K = isTouch ? { skl: 'SKL', dash: 'DASH', hold: 'hold SKL' } : { skl: 'L', dash: 'K', hold: 'hold L' };
+  const pc = (v) => Math.round(v * 100) + '%', dash = 'Dash (' + K.dash + '): leap ' + C.DASH_TILES + ' tiles. Wait ' + C.DASH_CD + ' s.';
+  const T = {
+    tianbing: ['Balanced: holds its own at every range of the match.', 'Overdrive (' + K.skl + '): strike and speed x' + C.OVERDRIVE[0] + ' for ' + C.OVERDRIVE[1] + ' s, and a shield of ' + pc(C.OD_SHIELD) + ' of your max health. Wait ' + C.OVERDRIVE[2] + ' s.', [dash]],
+    yuanmo: ['Weakest at the start, a titan by the end.', 'Vault (' + K.skl + ' or ' + K.dash + '): leap ' + C.DASH_TILES + ' tiles. Wait ' + C.DASH_CD + ' s. You have no other art.',
+      ['You grow with time alone, up to x' + C.F.yuanmo.cap + ' power at 10 minutes.', 'You evolve at ' + (C.YM_STAGE2 / 60) + ' and ' + (C.YM_STAGE3 / 60) + ' minutes. Your reach grows from 1 to 3 tiles.', 'Others hunt you while you are small. Hide in bushes and grow.']],
+    wushi: ['Tough and swift.', 'Stun (' + K.skl + '): a foe within 3 tiles is stunned ' + C.STUN[1] + ' s and takes ' + C.STUN[0] + '. Wait ' + C.STUN[2] + ' s. Against the Nether General the reach is ' + C.STUN_VS_MJ + '.',
+      ['Raise (' + K.skl + ' beside a wreck): the fallen suit rises as your follower at ' + pc(C.FOLLOWER.share) + ' strength. Up to ' + C.FOLLOWER.max + '.', dash]],
+    mojiang: ['Slow. Cannot strike and cannot dash.', 'Turret (' + K.skl + '): set a crossbow turret on the tile ahead. You carry ' + C.TURRET.start + '; up to ' + C.TURRET.max + ' on the field. Turrets strike at ' + C.TURRET.rg + ' tiles and see into bushes.',
+      ['Pack up (' + K.hold + ' beside your turret for ' + C.TURRET.packT + ' s): carry it to a new spot.', 'Stand behind your turrets: they do your fighting.']],
+    jianxian: ['Hits hardest, breaks easiest.', 'Sword Array (' + K.skl + '): strike every foe you can see within 2 tiles for ' + C.ARRAY[0] + 'x your strike. You cannot be stunned for 1 s. Wait ' + C.ARRAY[1] + ' s.', [dash, 'Strike first and keep moving.']],
+    mingjiang: ['The fastest suit.', 'Cloak (' + K.skl + '): unseen for ' + C.CLOAK[0] + ' s. Wait ' + C.CLOAK[1] + ' s. Striking ends it.',
+      ['A strike on a foe that cannot see you does double.', 'Every kill resets your dash and cloak and makes you stronger (+' + C.MJ_KILL[0] + ' power, up to +' + C.MJ_KILL[1] + ').', 'Shadow step (' + K.dash + '): ' + C.MJ_DASH[0] + ' tiles. Wait ' + C.MJ_DASH[1] + ' s.']],
+    tianlong: ['Strikes from ' + C.F.tianlong.rg + ' tiles.', 'Channel (' + K.hold + '): standing still charges your strike, up to +125%. Moving drops the charge.',
+      ['From inside a bush you see and strike 8 tiles away. Each strike from a bush shows you for 1 s.', dash]],
+    gushi: ['Rots the ground.', 'Decay (' + K.skl + '): plant a 5 x 5 rot zone where you stand. Up to ' + C.DECAY.max + '; the oldest fades. Wait 3 s.',
+      ['Foes inside are slowed ' + pc(C.DECAY.slow) + ' and lose ' + pc(C.DECAY.pct) + ' of their max health each second (' + pc(C.DECAY.pctLate) + ' in the last waves).', 'You see into bushes inside your zones.', dash]],
+  };
+  return T[f];
+}
+let schoolFrom = 'menu', schoolF = null;
+function showSchool(f, from) {
+  schoolF = f; schoolFrom = from; const t = schoolText(f), name = (FACTION_TEXT[f] || [f])[0];
+  $('schoolH').textContent = CFG.F[f].ch + ' ' + name; $('schoolRole').textContent = t[0]; $('schoolSkill').textContent = t[1];
+  const ul = $('schoolRules'); ul.textContent = '';
+  for (const line of t[2]) { const li = document.createElement('li'); li.textContent = line; ul.appendChild(li); }
+  drawPickSuit($('schoolPic'), f === 'yuanmo' ? 'yuanmo1' : f, 96);
+  $('schoolGo').classList.toggle('is-hidden', from !== 'menu'); $('schoolGo').textContent = 'Fight as ' + name;
+  $('schoolBack').textContent = from === 'menu' ? 'Back' : 'Resume';
+  if (from === 'menu') mode = 'school';
+  showPanel('school');
+}
+function leaveSchool() { if (schoolFrom === 'pause') togglePause(); else { mode = 'menu'; showPanel('menu'); } }
+function drawPickSuit(cv, key, size) { // the suit's approved front view at its own size (64 or 96), drawn 1:1 from its sheet
+  const sz0 = String(size || 64), d = SPRITE_DATA[key] && (SPRITE_DATA[key][sz0] || SPRITE_DATA[key]['64']); if (!d) return;
+  const im = new Image(); im.onload = () => { const c = cv.getContext('2d'), sz = im.height; cv.width = cv.height = sz; c.imageSmoothingEnabled = false; c.clearRect(0, 0, sz, sz); c.drawImage(im, 0, 0, sz, sz, 0, 0, sz, sz); }; im.src = d;
+}
+function buildMenu() {
+  const box = $('picks'); box.textContent = '';
+  for (const f of Object.keys(CFG.F)) {
+    const b = document.createElement('button'); b.type = 'button'; b.className = 'btn btn--pick'; b.style.borderLeftColor = CFG.F[f].col;
+    const t = FACTION_TEXT[f] || [f, ''];
+    const pic = document.createElement('canvas'); pic.className = 'btn__suit'; pic.width = pic.height = 64; pic.setAttribute('aria-hidden', 'true');
+    drawPickSuit(pic, f === 'yuanmo' ? 'yuanmo1' : f); b.appendChild(pic);
+    const txt = document.createElement('span'); txt.className = 'btn__text'; txt.textContent = CFG.F[f].ch + ' ' + t[0];
+    const s = document.createElement('small'); s.textContent = t[1]; txt.appendChild(s); b.appendChild(txt);
+    b.addEventListener('click', () => showSchool(f, 'menu')); box.appendChild(b); // the school card first: every rule before the fight
+  }
+  $('keyHint').textContent = keyHint();
+}
+function showTutorial(then) {
+  tutIdx = 0; tutThen = then; mode = 'tut'; tutFirst = !loadSave().tutDone; $('tutSkip').classList.toggle('is-hidden', tutFirst); showPanel('tut'); renderTutorial();
+}
+function renderTutorial() {
+  const c = TUTORIAL[tutIdx];
+  $('tutH').textContent = c.title; $('tutText').textContent = isTouch ? c.touch : c.key;
+  $('tutStep').textContent = (tutIdx + 1) + ' / ' + TUTORIAL.length;
+  $('tutNext').textContent = tutIdx === TUTORIAL.length - 1 ? 'Done' : 'Next';
+}
+function endTutorial() {
+  writeSave({ tutDone: true });
+  if (tutThen === 'pause') { mode = 'pause'; showPanel('pause'); } else if (tutThen === 'match') startMatch(); else { mode = 'menu'; showPanel('menu'); }
+}
+function drawHud() {
+  const p = G.player, ph = CFG.STORM[G.phase], left = ph ? Math.max(0, ph[0] - G.phaseT) : 0;
+  let s = 't ' + (G.t | 0) + 's  alive ' + G.suits.filter((x) => x.alive && !x.owner).length + '  storm ' + (G.phase + 1) + (G.zoneTo ? ' closing' : ' in ' + (left | 0) + 's');
+  if (p) { const st = G.stats(p); s += '\n' + p.F.ch + ' hp ' + (p.hp | 0) + '/' + (p.maxhp | 0) + ' atk ' + st.atk.toFixed(0) + ' rg ' + st.rg + ' x' + p.mult.toFixed(2) + (p.f == 'yuanmo' ? ' stage ' + p.stage : '') + (p.f == 'mojiang' ? ' units ' + p.units : '') + ' dash ' + Math.max(0, p.dashT).toFixed(0) + ' art ' + Math.max(0, p.sklT).toFixed(0); }
+  $('hud').textContent = s;
+}
+function showFail(msg) {
+  mode = 'fail'; $('failText').textContent = String(msg).slice(0, 300); showPanel('fail');
+  ctx.fillStyle = UI.bg; ctx.fillRect(0, 0, W, H);
+}
+
+// ===== AUDIO =====
+// Synthesised here; no files. The context is made on the first tap or key (browsers block sound before that). Every sound has a 1-4 kHz click so
+// phone and laptop speakers carry it. Math.random below only shapes noise; it never touches game rules.
+let actx = null, abus = null, droneG = null, noiseBuf = null, sv = 1, pluckIn = 4, burnIn = 0;
+const lastSfx = Object.create(null);
+function initAudio() {
+  if (actx) { if (actx.state === 'suspended') actx.resume(); return; }
+  try {
+    if (navigator.audioSession) navigator.audioSession.type = 'playback';
+    const AC = window.AudioContext || window.webkitAudioContext; if (!AC) return;
+    actx = new AC(); const comp = actx.createDynamicsCompressor();
+    abus = actx.createGain(); abus.gain.value = muted ? 0 : AUDIO.master; abus.connect(comp); comp.connect(actx.destination);
+    noiseBuf = actx.createBuffer(1, actx.sampleRate, actx.sampleRate);
+    const d = noiseBuf.getChannelData(0); for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1;
+    startDrone();
+  } catch (e) { actx = null; }
+}
+function setMuted(m) {
+  muted = m; $('soundBtn').textContent = 'Sound: ' + (m ? 'off' : 'on');
+  if (abus) abus.gain.setTargetAtTime(m ? 0 : AUDIO.master, actx.currentTime, 0.05);
+}
+function tone(f0, f1, dur, type, vol, delay) {
+  const t = actx.currentTime + (delay || 0), o = actx.createOscillator(), g = actx.createGain();
+  o.type = type; o.frequency.setValueAtTime(f0, t); o.frequency.exponentialRampToValueAtTime(Math.max(20, f1), t + dur);
+  g.gain.setValueAtTime(vol * sv, t); g.gain.exponentialRampToValueAtTime(0.001, t + dur);
+  o.connect(g); g.connect(abus); o.start(t); o.stop(t + dur + 0.02);
+}
+function noise(dur, f0, f1, q, vol) {
+  const t = actx.currentTime, src = actx.createBufferSource(), f = actx.createBiquadFilter(), g = actx.createGain();
+  src.buffer = noiseBuf; f.type = 'bandpass'; f.Q.value = q;
+  f.frequency.setValueAtTime(f0, t); f.frequency.exponentialRampToValueAtTime(Math.max(40, f1), t + dur);
+  g.gain.setValueAtTime(vol * sv, t); g.gain.exponentialRampToValueAtTime(0.001, t + dur);
+  src.connect(f); f.connect(g); g.connect(abus); src.start(t, Math.random() * 0.5, dur + 0.02);
+}
+function bell(base, vol, dur) { // inharmonic partials; higher ones die sooner
+  [[1, 1], [2.76, 0.5], [5.4, 0.25]].forEach(([r, v], i) => tone(base * r, base * r * 0.995, dur / (1 + i * 0.7), 'sine', vol * v));
+  noise(0.03, 3500, 2500, 1, vol * 0.4);
+}
+function startDrone() {
+  droneG = actx.createGain(); droneG.gain.value = 0; const lp = actx.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = 420;
+  [[55, 'triangle', 1], [55.35, 'triangle', 1], [110, 'sine', 0.5], [165, 'sine', 0.25]].forEach(([f, ty, v]) => {
+    const o = actx.createOscillator(), g = actx.createGain(); o.type = ty; o.frequency.value = f; g.gain.value = v * 0.5; o.connect(g); g.connect(lp); o.start();
+  });
+  lp.connect(droneG); droneG.connect(abus);
+}
+const SFX = {
+  attack: (p) => { noise(0.09, 3200 * p, 1200 * p, 1.2, 0.5); tone(380 * p, 120 * p, 0.12, 'triangle', 0.5); },
+  hit: () => { tone(150, 45, 0.16, 'sine', 0.8); noise(0.05, 3000, 2000, 0.8, 0.45); },
+  dash: (p) => noise(0.26, 500 * p, 2800 * p, 2, 0.55),
+  skill: (p) => bell(520 * p, 0.45, 0.7),
+  death: () => { tone(260, 40, 0.6, 'sawtooth', 0.3); noise(0.4, 1800, 200, 0.7, 0.5); },
+  storm: () => { bell(110, 0.6, 1.8); noise(0.9, 200, 90, 0.7, 0.5); },
+  burn: () => { noise(0.22, 2600, 700, 1.5, 0.55); tone(90, 50, 0.2, 'sawtooth', 0.3); },
+  win: () => AUDIO.scale.forEach((r, i) => tone(AUDIO.root * 2 * r, AUDIO.root * 2 * r, 0.5, 'triangle', 0.3, i * 0.12)),
+  lose: () => AUDIO.scale.slice().reverse().forEach((r, i) => tone(AUDIO.root * r, AUDIO.root * r * 0.98, 0.6, 'triangle', 0.25, i * 0.18)),
+};
+function playSfx(name, s) {
+  if (!actx || muted || !G) return;
+  const p = G.player; sv = 1;
+  if (s && p && s !== p) { const d = G.dist(p, s); if (d > AUDIO.hearTiles) return; sv = 1 - d / AUDIO.hearTiles; }
+  if (sv < 0.08 || actx.currentTime - (lastSfx[name] || 0) < AUDIO.minGap) return;
+  lastSfx[name] = actx.currentTime; SFX[name]((s && AUDIO.pitch[s.f]) || 1);
+}
+function audioTick(dt) {
+  if (!actx) return;
+  const on = mode === 'play' && !muted;
+  droneG.gain.setTargetAtTime(on ? AUDIO.droneVol * (1 + 0.25 * (G ? G.phase : 0)) : 0, actx.currentTime, 0.4);
+  if (!on) return;
+  burnIn -= dt; if (burnIn <= 0 && G && G.player && G.player.alive && !G.inZone(G.player.x, G.player.y)) { burnIn = 0.45; playSfx('burn'); } // the storm bites at the player
+  pluckIn -= dt; if (pluckIn > 0) return;
+  pluckIn = AUDIO.pluckEvery[0] + Math.random() * (AUDIO.pluckEvery[1] - AUDIO.pluckEvery[0]);
+  sv = 1; const f = AUDIO.root * AUDIO.scale[(Math.random() * AUDIO.scale.length) | 0] * (Math.random() < 0.4 ? 2 : 1);
+  tone(f, f * 0.99, 1.2, 'triangle', AUDIO.pluckVol); tone(f * 6, f * 5, 0.04, 'square', AUDIO.pluckVol * 0.3);
+}
+
+// ===== TITLE =====
+// The title field, drawn on the main canvas under the transparent title panel. Reads only; nothing here touches game state.
+let titleT0 = 0, wipeT0 = 0;
+function titleScale() { return 1; } // the match-wide scale K already applies to the whole canvas
+function drawTitleField(now) {
+  const T = TITLE, S = TS, k = titleScale(), ts = S * k, cols = Math.ceil(W / ts) + 1, rows = Math.ceil(H / ts) + 1, sc = SCENES[S];
+  ctx.imageSmoothingEnabled = false;
+  const dpr = Math.min(window.devicePixelRatio || 1, UI.dpiCap), reserve = Math.round(Math.min(H * 0.32, T.reserve * dpr / K));
+  const cx = Math.floor(cols / 2), lineRow = Math.max(2, Math.floor((H - reserve - ts * 1.1) / ts));
+  const t = (now - titleT0) / 1000, drift = Math.floor((t * ts * 0.08) % ts); // a slow drift of the plating
+  for (let y = 0; y < rows; y++) for (let x = 0; x < cols; x++) {
+    const d = Math.max(Math.abs(x - cx) * 0.5, Math.abs(y - lineRow)), lv = d <= 1 ? 0 : d <= 2.5 ? 1 : d <= 4 ? 2 : 3;
+    const sh = sc && sc.sheets[lv]; if (!sh) { ctx.fillStyle = UI.bg; ctx.fillRect(x * ts, y * ts, ts, ts); continue; }
+    ctx.drawImage(sh, ((x * 7 + y * 13) % 5) * S, 0, S, S, x * ts - drift, y * ts, ts, ts);
+  }
+  const stormH = Math.round(T.stormRows * ts);   // the storm along the top: tiles, then the burn wall
+  if (sc && sc.sheets[1]) for (let x = 0; x < cols; x++) for (let y = 0; y * ts < stormH; y++) ctx.drawImage(sc.sheets[1], SCENE.T.storm * S, 0, S, S, x * ts - drift, y * ts - (ts - stormH % ts) % ts, ts, ts);
+  const lw = Math.max(2, ts >> 4), pulse = 0.65 + 0.35 * Math.sin(now / 160);
+  STORMFX.glow.forEach((col, k) => { ctx.globalAlpha = (0.55 - k * 0.17) * pulse; ctx.fillStyle = col; ctx.fillRect(0, stormH, W, (k + 1) * lw * 2); });
+  ctx.globalAlpha = 1; ctx.fillStyle = (Math.floor(now / 90) % 3) ? STORMFX.wall : STORMFX.glow[2]; ctx.fillRect(0, stormH - lw, W, lw);
+  // the eight suits in a line, each swaying on its own clock, shadows under them
+  const n = T.cast.length, fit = n * ts * 1.15 <= W - ts, span = Math.min(W - ts, n * ts * 1.15), x0 = (W - span) / 2, py = lineRow * ts;
+  const order = T.cast.map((k, i) => i).sort((a, b) => ((!fit && b % 2 === 1) ? 1 : 0) - ((!fit && a % 2 === 1) ? 1 : 0)); // back row first
+  order.forEach((i) => {
+    const key = T.cast[i], back = !fit && (i % 2 === 1), px = Math.round(x0 + (span - ts) * (n > 1 ? i / (n - 1) : 0.5)) , bob0 = 0;
+    const img = SPRITES[key] && SPRITES[key][S], py2 = py - (back ? Math.round(ts * 0.55) : 0), bob = Math.round(Math.sin(now / T.sway + i * 1.3)) * k * (S >> 5);
+    if (sc && sc.fx) ctx.drawImage(sc.fx, SCENE.FX.shadowSuit * S, 0, S, S, px, py2 + (ts * 0.42 | 0), ts, ts);
+    if (img) ctx.drawImage(img, 0, 0, S, S, px, py2 + bob, ts, ts);
+  });
+  // embers drifting up from the burn
+  const ep = Math.max(2, ts >> 5);
+  for (let k = 0; k < T.embers; k++) {
+    const ex = Math.floor(hash01(k) * W), ey = Math.floor(stormH + ((now * T.emberSpeed * (0.5 + hash01(k + 9)) + hash01(k + 3) * H) % (H - stormH)));
+    ctx.fillStyle = STORMFX.emberCol[k % 3]; ctx.fillRect(ex + Math.round(Math.sin(now / 400 + k) * ep * 2), ey, ep, ep);
+  }
+  drawWordmark(now);
+}
+function drawWordmark(now) {
+  const M = TITLE.mark, F = TITLE.font, GW = TITLE.gw, GH = TITLE.gh, text = 'B.O.I', units = text.length * (GW + M.gap) - M.gap;
+  const p = Math.max(2, Math.min(Math.round(TS * titleScale() / M.px), Math.floor(W * M.widthShare / units), Math.floor(H * 0.14 / GH))), gw = GW * p + M.gap * p, tw = text.length * gw - M.gap * p;
+  const stormH = Math.round(TITLE.stormRows * TS * titleScale()), x0 = Math.round((W - tw) / 2), y0 = Math.max(Math.round(H * M.top), stormH + (TS >> 1)), out = M.out;
+  const cell = (gx, gy, col) => { ctx.fillStyle = col; ctx.fillRect(gx, gy, p, p); };
+  [...text].forEach((ch, i) => {
+    const g = F[ch]; if (!g) return;
+    g.forEach((row, r) => [...row].forEach((v, c) => {
+      if (v !== '1') return;
+      const gx = x0 + i * gw + c * p, gy = y0 + r * p, up = r > 0 && g[r - 1][c] === '1', left = c > 0 && row[c - 1] === '1';
+      const down = r < GH - 1 && g[r + 1][c] === '1', right = c < GW - 1 && row[c + 1] === '1';
+      cell(gx, gy, M.ramp[1]);
+      if (!up || !left) cell(gx, gy, M.ramp[2]);                        // light band on the upper-left edges, like the suit plates
+      if (!down) { ctx.fillStyle = out; ctx.fillRect(gx, gy + p - Math.max(1, p >> 2), p, Math.max(1, p >> 2)); } // seam below
+      if (!right) { ctx.fillStyle = out; ctx.fillRect(gx + p - Math.max(1, p >> 2), gy, Math.max(1, p >> 2), p); } // seam right
+      if (down && right && !(r > 0 && left)) cell(gx, gy, M.ramp[0]);  // a shade pixel in the lower-right mass
+    }));
+  });
+  ctx.fillStyle = M.sub; ctx.font = 'bold ' + Math.max(12, Math.round(TS * 0.22)) + 'px system-ui, sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'top';
+  const sub = 'B A T T L E   O F   I D E A L'; ctx.fillStyle = out; ctx.fillText(sub, W / 2 + 1, y0 + (GH + 1) * p + 1); ctx.fillStyle = M.sub; ctx.fillText(sub, W / 2, y0 + (GH + 1) * p);
+}
+function drawTitleWipe(now) { // the storm sweeps left to right over the title field, then the arrival shows
+  const u = Math.min(1, (now - wipeT0) / 1000 / TITLE.wipe), ex = Math.round(W * u), sc = SCENES[TS], S = TS, ts = TS * titleScale();
+  if (sc && sc.sheets[1]) for (let y = 0; y * ts < H; y++) for (let x = 0; x * ts < ex; x++) ctx.drawImage(sc.sheets[1], SCENE.T.storm * S, 0, S, S, x * ts, y * ts, ts, ts);
+  const lw = Math.max(2, ts >> 4);
+  STORMFX.glow.forEach((col, k) => { ctx.globalAlpha = 0.55 - k * 0.17; ctx.fillStyle = col; ctx.fillRect(ex, 0, (k + 1) * lw * 2, H); });
+  ctx.globalAlpha = 1; ctx.fillStyle = STORMFX.wall; ctx.fillRect(ex - lw, 0, lw, H);
+  if (u >= 1) { mode = 'arrival'; arrT0 = performance.now(); arrLine = -1; arrSeen = 0; arrLocked = !loadSave().tutDone; $('arrBtn').disabled = arrLocked; $('arrBtn').textContent = arrLocked ? 'Watching 0 / ' + ARR_SCENES.length : 'Continue'; sizeArrival(); showPanel('arrival'); }
+}
+
+// ===== ARRIVAL =====
+// The arrival scene: scripted duels played with the real sprites and animation sheets (no game rules). One duel per row, looping.
+const arrCv = $('arrCv'), arrCtx = arrCv.getContext('2d');
+let arrT0 = 0;
+function sizeArrival() {
+  const dpr = Math.min(window.devicePixelRatio || 1, UI.dpiCap), w = ARRIVAL.cols * TS, h = ARRIVAL.rows * TS;
+  const m = Math.max(1, Math.floor(Math.min((innerWidth - 32) / (w / dpr), innerHeight * 0.55 / (h / dpr)))); // whole-number scale: as big as fits in the width and about half the height
+  arrCv.width = w; arrCv.height = h; arrCv.style.width = (w / dpr * m) + 'px'; arrCv.style.height = (h / dpr * m) + 'px';
+}
+function arrFrame(key, events, t) { // the latest scripted animation for this actor, as {d, i} (or null for idle)
+  let ev = null; for (const e of events) if (e[0] <= t) ev = e;
+  const d = ev && ANIMS[key] && ANIMS[key][TS] && ANIMS[key][TS][ev[2]]; if (!d) return null;
+  let ms = (t - ev[0]) * 1000;
+  for (let i = 1; i < d.n; i++) { if (ms < d.ms[i]) return { d, i }; ms -= d.ms[i]; }
+  return ev[2] === 'defeat' ? { d, i: d.n - 1 } : null; // a defeated suit stays down
+}
+function drawArrActor(key, x, y, view, events, t) {
+  const img = SPRITES[key] && SPRITES[key][TS], px = Math.round(x * TS), py = Math.round(y * TS), fr = arrFrame(key, events, t);
+  if (fr) arrCtx.drawImage(fr.d.img, fr.i * fr.d.w, view * fr.d.h, fr.d.w, fr.d.h, px - fr.d.ox, py - fr.d.oy, fr.d.w, fr.d.h);
+  else if (img) arrCtx.drawImage(img, view * TS, 0, TS, TS, px, py, TS, TS);
+}
+function arrTile(idx, x, y, lv) { // a scene tile at a light level (0 lit .. 3 dark) from the baked sheets; the old tile sheet is the fallback
+  const sc = SCENES[TS], sh = sc && sc.sheets[lv == null ? 1 : lv];
+  if (sh) arrCtx.drawImage(sh, idx * TS, 0, TS, TS, Math.round(x * TS), Math.round(y * TS), TS, TS);
+  else if (TILES[TS]) arrCtx.drawImage(TILES[TS], 0, 0, TS, TS, Math.round(x * TS), Math.round(y * TS), TS, TS);
+}
+function arrFx(i, x, y) { const sc = SCENES[TS]; if (sc && sc.fx) arrCtx.drawImage(sc.fx, i * TS, 0, TS, TS, Math.round(x * TS), Math.round(y * TS + TS * 0.42), TS, TS); }
+function arrSuit(key, x, y, view, events, t, hp) { // shadow, sprite, hp bar
+  arrFx(SCENE.FX.shadowSuit, x, y); drawArrActor(key, x, y, view, events, t);
+  if (hp != null) drawHpBar(Math.round(x * TS + TS / 2), Math.round(y * TS) + 2, hp, arrCtx);
+}
+function arrGround(lvFn) { const A = ARRIVAL; for (let y = 0; y < A.rows; y++) for (let x = 0; x < A.cols; x++) arrTile(SCENE.T.ground0 + ((x * 7 + y * 13) % 5), x, y, lvFn ? lvFn(x, y) : 1); }
+const ARR_SCENES = [
+  (t) => { // 1: the field. Suits on their own tiles, one to a tile.
+    arrGround(); const C = ARRIVAL.cast, spots = [[0, 0, 0], [2, 0, 1], [4, 0, 0], [1, 1, 3], [3, 1, 1], [0, 2, 0], [2, 2, 0], [4, 2, 0]];
+    spots.forEach(([x, y, v], i) => arrSuit(C[i], x, y, v, [], t, 1));
+  },
+  (t) => { // 2: a bush hides a suit; ore feeds one.
+    arrGround(); const k = Math.min(1, t / 1.6), ease = 1 - (1 - k) * (1 - k), x = -0.6 + ease * 1.6;
+    if (t < 1.6) arrSuit('tianbing', x, 1, 3, [], t, 1);
+    arrTile(SCENE.T.bush, 1, 1); arrFx(SCENE.FX.shadowBush, 1, 1);
+    if (t >= 1.6) drawHpBar(Math.round(1.5 * TS), TS + 2, 1, arrCtx); // only the bar shows: the suit is hidden
+    arrTile(t > 3.8 ? SCENE.T.oreDown : SCENE.T.ore, 4, 1); arrFx(SCENE.FX.shadowOre, 4, 1);
+    arrSuit('gushi', 3, 1, 3, [], t, 0.4 + 0.6 * Math.min(1, Math.max(0, (t - 0.8) / 3)));
+  },
+  (t) => { // 3: vision five tiles; strike a bush and it breaks open.
+    arrGround((x, y) => (Math.max(Math.abs(x - 1), Math.abs(y - 1)) <= 1 ? 0 : Math.max(Math.abs(x - 1), Math.abs(y - 1)) <= 2 ? 1 : 3));
+    const open = t >= 2.0; arrTile(open ? SCENE.T.bushDown : SCENE.T.bush, 2, 1); arrFx(SCENE.FX.shadowBush, 2, 1);
+    arrSuit('mingjiang', 1, 1, 3, [[1.6, 0, 'attack']], t, 1);
+    if (open) arrSuit('wushi', 2, 1, 1, [[2.0, 0, 'hit']], t, 0.7);
+  },
+  (t) => { // 4: the storm closes the field; its edge burns.
+    const edge = 4.6 - Math.min(1, t / 3.6) * 3.2; arrGround();
+    for (let y = 0; y < ARRIVAL.rows; y++) for (let x = 0; x < ARRIVAL.cols; x++) if (x + 0.5 > edge) arrTile(SCENE.T.storm, x, y);
+    const c = arrCtx, ex = Math.round(edge * TS), lw = Math.max(2, TS >> 4), pulse = 0.65 + 0.35 * Math.sin(t * 40);
+    STORMFX.glow.forEach((col, k) => { c.globalAlpha = (0.55 - k * 0.17) * pulse; c.fillStyle = col; c.fillRect(ex - (k + 1) * lw * 2, 0, (k + 1) * lw * 2, ARRIVAL.rows * TS); });
+    c.globalAlpha = 1; c.fillStyle = (Math.floor(t * 11) % 3) ? STORMFX.wall : STORMFX.glow[2]; c.fillRect(ex - lw, 0, lw, ARRIVAL.rows * TS);
+    const caught = edge < 2.6, x = caught ? 2.1 - Math.min(1, (t - 2.3) / 1.2) * 1.4 : 2.1;
+    arrSuit('tianlong', x, 1, 1, caught ? [[2.25, 0, 'hit'], [2.6, 0, 'dash']] : [], t, caught ? Math.max(0.2, 1 - (t - 2.2) * 0.6) : 1);
+  },
+  (t) => { // 5: the fallen stay as wrecks; they feed the living.
+    arrGround(); if (t > 1.6) arrTile(SCENE.T.wreck, 1, 1);
+    if (t <= 1.7) arrSuit('jianxian', 1, 1, 0, [[0.4, 0, 'defeat']], t, Math.max(0, 0.3 - t * 0.4));
+    arrSuit('mojiang', 2, 1, 1, [], t, 0.5 + 0.5 * Math.min(1, Math.max(0, (t - 1.8) / 2)));
+  },
+  (t) => { // 6: the last suit standing carries the ideal.
+    arrGround((x, y) => (Math.max(Math.abs(x - 2), Math.abs(y - 1)) <= 1 ? 0 : 2));
+    [[0, 0], [4, 0], [1, 2], [3, 2], [0, 2]].forEach(([x, y]) => arrTile(SCENE.T.wreck, x, y));
+    arrFx(SCENE.FX.ring, 2, 1); arrSuit('yuanmo3', 2, 1, 0, [], t, 1);
+  },
+];
+let arrLine = -1, arrSeen = 0, arrLocked = false; // arrSeen counts scenes shown this visit; the first visit locks Continue until all six have played
+function drawArrival(now) {
+  const A = ARRIVAL, total = A.per * ARR_SCENES.length, t = (((now - arrT0) / 1000) % total + total) % total, idx = Math.min(ARR_SCENES.length - 1, Math.floor(t / A.per)), tl = t - idx * A.per;
+  if (idx !== arrLine) {
+    arrLine = idx; arrSeen++; document.querySelectorAll('.arrival__line').forEach((el, i) => el.classList.toggle('is-active', i === idx));
+    if (arrLocked) { const left = ARR_SCENES.length - arrSeen; if (left <= 0) { arrLocked = false; $('arrBtn').disabled = false; $('arrBtn').textContent = 'Continue'; } else $('arrBtn').textContent = 'Watching ' + arrSeen + ' / ' + ARR_SCENES.length; }
+  }
+  arrCtx.globalAlpha = 1; ARR_SCENES[idx](tl);
+  const f = Math.min(1, tl / A.fade, (A.per - tl) / A.fade); // fade the whole stage between scenes
+  if (f < 1) { arrCtx.globalAlpha = 1 - f; arrCtx.fillStyle = '#14110f'; arrCtx.fillRect(0, 0, arrCv.width, arrCv.height); arrCtx.globalAlpha = 1; }
+}
+
+// ===== STORM FX =====
+// Cosmetic only (reads state, never writes it): a burning wall at the ring, a roiling storm with embers and lightning, a red pulse and shake when the
+// player is caught, and a warning before each shrink. The approved storm tile is kept underneath. Pixel-sized to the tile, no blur.
+const hash01 = (n) => { const v = Math.sin(n * 127.1 + 311.7) * 43758.5453; return v - Math.floor(v); };
+function drawStormEdge(b, now) {
+  const lw = Math.max(2, TS >> 4), pulse = 0.65 + 0.35 * Math.sin(now / 160);
+  for (let y = b.y0; y < b.y1; y++) for (let x = b.x0; x < b.x1; x++) {
+    if (!G.inZone(x, y)) continue;
+    const px = b.ox + x * TS, py = b.oy + y * TS;
+    for (const [dx, dy] of [[-1, 0], [1, 0], [0, -1], [0, 1]]) {
+      if (G.inZone(x + dx, y + dy) || x + dx < 0 || y + dy < 0 || x + dx >= CFG.N || y + dy >= CFG.N) continue;
+      const hor = dy !== 0, ex = dx > 0 ? px + TS : px, ey = dy > 0 ? py + TS : py;
+      for (let k = 0; k < STORMFX.glow.length; k++) { // a stepped burn glow stretching inward
+        ctx.globalAlpha = (0.55 - k * 0.17) * pulse; ctx.fillStyle = STORMFX.glow[k];
+        const d = (k + 1) * lw * 2, off = (dx > 0 || dy > 0) ? -d : 0;
+        if (hor) ctx.fillRect(px, ey + off, TS, d); else ctx.fillRect(ex + off, py, d, TS);
+      }
+      ctx.globalAlpha = 1; ctx.fillStyle = hash01(x * 7 + y * 13 + Math.floor(now / 90)) > 0.3 ? STORMFX.wall : STORMFX.glow[2]; // the wall itself flickers
+      if (hor) ctx.fillRect(px, ey - (dy < 0 ? 0 : lw), TS, lw); else ctx.fillRect(ex - (dx < 0 ? 0 : lw), py, lw, TS);
+    }
+  }
+  ctx.globalAlpha = 1;
+}
+function drawStormTint(b, now) { // a slow purple roil over every storm tile
+  const a = STORMFX.tintAlpha[0] + (STORMFX.tintAlpha[1] - STORMFX.tintAlpha[0]) * (0.5 + 0.5 * Math.sin(now / 700));
+  ctx.fillStyle = STORMFX.tint;
+  for (let y = b.y0; y < b.y1; y++) for (let x = b.x0; x < b.x1; x++) {
+    if (G.inZone(x, y)) continue;
+    ctx.globalAlpha = a * (0.6 + 0.8 * hash01(x * 3 + y * 17 + Math.floor(now / 500)));
+    ctx.fillRect(b.ox + x * TS, b.oy + y * TS, TS, TS);
+  }
+  ctx.globalAlpha = 1;
+}
+function inStormAt(b, sx, sy) {
+  const tx = Math.floor((sx - b.ox) / TS), ty = Math.floor((sy - b.oy) / TS);
+  return tx >= 0 && ty >= 0 && tx < CFG.N && ty < CFG.N && !G.inZone(tx, ty);
+}
+function drawStormEmbers(b, now) { // sparks rising through the storm; positions are a pure function of time
+  const px = Math.max(2, TS >> 5);
+  for (let k = 0; k < STORMFX.embers; k++) {
+    const sx = Math.floor(hash01(k) * W), sy = Math.floor(H - ((now * STORMFX.emberSpeed * (0.5 + hash01(k + 9)) + hash01(k + 3) * H) % H));
+    if (!inStormAt(b, sx, sy)) continue;
+    ctx.fillStyle = STORMFX.emberCol[k % 3]; ctx.fillRect(sx + Math.round(Math.sin(now / 400 + k) * px * 2), sy, px, px);
+  }
+}
+function drawStormBolt(b, now) { // a lightning strike somewhere in the storm every couple of seconds
+  const slot = Math.floor(now / STORMFX.boltEvery), age = now - slot * STORMFX.boltEvery;
+  if (age > 160) return;
+  let x = Math.floor(hash01(slot) * W); const seg = Math.max(3, TS >> 3);
+  if (!inStormAt(b, x, H / 2)) return;
+  ctx.globalAlpha = 0.12 * (1 - age / 160); ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, W, H); ctx.globalAlpha = 1;
+  ctx.fillStyle = age < 80 ? '#fff' : '#d7a8ff';
+  for (let y = 0; y < H; y += seg) { x += Math.round((hash01(slot * 31 + y) - 0.5) * seg * 3); ctx.fillRect(x, y, Math.max(2, TS >> 5), seg); }
+}
+function drawStormCaught(now) { // the player is outside the ring: red pulse, shake, warning
+  const p = G.player; if (!p || !p.alive || G.inZone(p.x, p.y)) return false;
+  const a = 0.25 + 0.2 * Math.sin(now / 130), g = ctx.createRadialGradient(W / 2, H / 2, Math.min(W, H) * 0.25, W / 2, H / 2, Math.max(W, H) * 0.7);
+  g.addColorStop(0, 'rgba(192,16,64,0)'); g.addColorStop(1, STORMFX.vignette);
+  ctx.globalAlpha = a + 0.2; ctx.fillStyle = g; ctx.fillRect(0, 0, W, H); ctx.globalAlpha = 1;
+  return true;
+}
+function drawStormBanner(now) {
+  const p = G.player, ph = CFG.STORM[G.phase]; if (!p || !ph) return;
+  const left = ph[0] - G.phaseT, caught = !G.inZone(p.x, p.y);
+  const pct = Math.round(CFG.STORM_DPS[Math.min(G.phase, 6)] * 100);
+  const text = caught ? 'IN THE STORM  -' + pct + '% HP/s  RUN FOR THE LIGHT' : G.zoneTo ? 'THE STORM IS CLOSING' : left < STORMFX.warnAt ? 'STORM CLOSES IN ' + Math.ceil(left) : '';
+  if (!text) return;
+  const fs = Math.max(14, Math.floor(TS * 0.3)); ctx.font = 'bold ' + fs + 'px system-ui, sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+  const on = caught ? (Math.floor(now / 250) % 2 === 0) : true, w = ctx.measureText(text).width + fs, y = Math.round(H * 0.16);
+  ctx.fillStyle = '#000b'; ctx.fillRect(Math.round(W / 2 - w / 2), y - fs, Math.round(w), fs * 2);
+  ctx.fillStyle = caught ? (on ? '#ff5a3a' : '#ffd25a') : '#ffd25a'; ctx.fillText(text, W / 2, y);
+}
+function drawStormFx(b) {
+  const now = performance.now();
+  drawStormTint(b, now); drawStormEdge(b, now); drawStormEmbers(b, now); drawStormBolt(b, now);
+}
+
+// ===== SCENES =====
+function beginMatch(f) { playerFaction = f; startMatch(); }
+function toArrival() { mode = 'wipe'; wipeT0 = performance.now(); showPanel(null); if (actx && !muted) { sv = 1; SFX.storm(); } } // the storm sweeps the title; drawTitleWipe opens the arrival
+function leaveArrival() { if (loadSave().tutDone) { mode = 'menu'; showPanel('menu'); } else showTutorial('menu'); }
+function startMatch() {
+  G = createGame({ seed: Date.now() % 100000, player: playerFaction }); trails.length = 0; for (const k in lastPos) delete lastPos[k]; for (const k in lastHp) delete lastHp[k]; for (const k in anim) delete anim[k];
+  for (const k in lastAct) delete lastAct[k]; for (const k in lastXY) delete lastXY[k]; for (const k in lastAlive) delete lastAlive[k]; lastZone = false; pluckIn = 4;
+  mode = 'play'; last = performance.now(); for (const k in held) held[k] = false; showPanel(null);
+}
+let credBack = 'title';
+function showCredits(from) {
+  credBack = from; $('credText').innerHTML = ''; mode = from === 'pause' ? 'pause' : 'title';
+  for (const line of CREDITS) { const p = document.createElement('p'); p.textContent = line; $('credText').appendChild(p); }
+  showPanel('credits');
+}
+function toMenu() { G = null; mode = 'menu'; showPanel('menu'); }
+function toTitle() { G = null; mode = 'title'; titleT0 = performance.now(); showPanel('title'); }
+function togglePause() {
+  if (mode === 'play') { mode = 'pause'; showPanel('pause'); } else if (mode === 'pause') { mode = 'play'; last = performance.now(); showPanel(null); }
+}
+function playerStep() {
+  const p = G.player; if (!p || !p.alive) return;
+  let d = null;
+  if (held.up) d = [0, -1]; if (held.down) d = [0, 1]; if (held.left) d = [-1, 0]; if (held.right) d = [1, 0];
+  if (d) G.tryMove(p, d[0], d[1]);
+  let tgt = null, best = 99;
+  for (const o of G.alive()) { if (o === p || o.owner === p || !G.canSee(p, o)) continue; const dd = G.dist(p, o); if (dd < best) { best = dd; tgt = o; } }
+  if (held.attack || takeTap('attack')) {
+    if (tgt && best <= G.stats(p).rg) G.attack(p, tgt);
+    else if (!G.attackBush(p) && p.atkT <= 0) { p.atkT = 0.3; G.fx.push({ x0: p.x, y0: p.y, x1: p.x + p.dir[0], y1: p.y + p.dir[1], t: 0.12, miss: true }); }
+  }
+  if (takeTap('dash')) G.dash(p);
+  if (held.skill || takeTap('skill')) { G.skill(p, tgt); if (p.f !== 'tianlong') { held.skill = false; tapped.skill = false; } }
+}
+function metaKeys() {
+  if (takeTap('pause')) { if (mode === 'tut') { if (!tutFirst) endTutorial(); } else if (mode === 'school') leaveSchool(); else if (mode !== 'arrival') togglePause(); }
+  if (takeTap('help') && (mode === 'play' || mode === 'menu')) { if (mode === 'play') togglePause(); showTutorial(mode === 'pause' ? 'pause' : 'menu'); }
+  if (takeTap('mute')) { initAudio(); setMuted(!muted); }
+}
+function stepPlay(dt) {
+  playerStep(); G.step(dt); trackTrails(dt); trackHits(dt); audioTick(dt); drawHud();
+  if (!!G.zoneTo !== lastZone) { lastZone = !!G.zoneTo; if (lastZone) playSfx('storm'); }
+  if (G.over) {
+    const won = G.player && G.player.alive, w = G.winner;
+    $('overH').textContent = won ? TEXT.win : TEXT.lose;
+    $('overText').textContent = 'Victor: ' + (w ? w.F.ch + ' ' + FACTION_TEXT[w.f][0] : 'none') + '.  Time: ' + (G.t | 0) + ' s.';
+    playSfx(won ? 'win' : 'lose'); mode = 'over'; showPanel('over');
+  }
+}
+
+// ===== LOOP =====
+function frame(now) {
+  try {
+    const dt = Math.min(UI.dtMax, (now - last) / 1000 || 0); last = now;
+    metaKeys();
+    if (mode === 'play' && G) stepPlay(dt);
+    ctx.setTransform(K, 0, 0, K, 0, 0); ctx.imageSmoothingEnabled = false;
+    draw(); if (mode === 'arrival') drawArrival(now);
+  } catch (e) { showFail(e && e.message); return; }
+  requestAnimationFrame(frame);
+}
+
+// ===== BOOT =====
+function wire() {
+  $('startBtn').addEventListener('click', toArrival);
+  $('arrBtn').addEventListener('click', leaveArrival);
+  $('howBtn').addEventListener('click', () => showTutorial('menu'));
+  $('pHow').addEventListener('click', () => showTutorial('pause'));
+  $('helpBtn').addEventListener('click', () => { togglePause(); showTutorial('pause'); });
+  $('pauseBtn').addEventListener('click', togglePause);
+  $('resumeBtn').addEventListener('click', togglePause);
+  $('quitBtn').addEventListener('click', toMenu);
+  $('credBtn').addEventListener('click', () => showCredits('title'));
+  $('schoolGo').addEventListener('click', () => beginMatch(schoolF));
+  $('schoolBack').addEventListener('click', leaveSchool);
+  $('pSchool').addEventListener('click', () => { if (G && G.player) showSchool(G.player.f, 'pause'); });
+  $('pCred').addEventListener('click', () => showCredits('pause'));
+  $('credBack').addEventListener('click', () => showPanel(credBack));
+  $('soundBtn').addEventListener('click', () => { initAudio(); setMuted(!muted); });
+  addEventListener('pointerdown', initAudio); addEventListener('keydown', initAudio);
+  $('againBtn').addEventListener('click', toMenu);
+  $('reloadBtn').addEventListener('click', () => location.reload());
+  $('tutSkip').addEventListener('click', endTutorial);
+  $('tutNext').addEventListener('click', () => { if (tutIdx >= TUTORIAL.length - 1) endTutorial(); else { tutIdx++; renderTutorial(); } });
+  addEventListener('resize', resize); addEventListener('orientationchange', resize);
+  document.addEventListener('visibilitychange', () => { if (document.hidden && mode === 'play') togglePause(); if (actx) { if (document.hidden) actx.suspend(); else actx.resume(); } });
+  addEventListener('error', (e) => showFail(e.message));
+  addEventListener('unhandledrejection', (e) => showFail(e.reason && e.reason.message));
+}
+function boot() {
+  resize(); drawBackdrop('');
+  const dupes = auditKeys();
+  if (dupes.length) throw new Error('double-mapped keys: ' + dupes.join('; '));
+  isTouch = matchMedia('(pointer: coarse)').matches || navigator.maxTouchPoints > 0;
+  document.body.classList.toggle('is-touch', isTouch);
+  bindInput(); wire(); buildMenu(); loadSprites();
+  if (new URLSearchParams(location.search).has('test')) window.__game = { newRun: () => { beginMatch('tianbing'); }, start: beginMatch, held, state: () => G, keyDupes: () => auditKeys(), mode: () => mode, keymap: KEYMAP, anim: (id) => anim[id] && anim[id].name, K: () => K, arrUnlock: () => { arrT0 = performance.now() - ARRIVAL.per * (ARR_SCENES.length - 0.5) * 1000; arrSeen = ARR_SCENES.length - 1; arrLine = -2; }, audio: () => (actx ? actx.state : null), muted: () => muted, sfx: (n, id) => playSfx(n, G.suits.find((x) => x.id === id)), sprites: () => ({ tile: TS, scene: !!(SCENES[TS] && SCENES[TS].sheets.length === 4 && SCENES[TS].fx), loaded: Object.keys(SPRITES).length, expected: Object.keys(SPRITE_DATA).length, tiles: !!TILES[TS], props: Object.keys(PROPS).length, anims: Object.keys(ANIMS).length, trails: () => trails.length }) };
+  mode = 'title'; titleT0 = performance.now(); showPanel('title'); $('startBtn').disabled = false; $('startBtn').textContent = 'Start'; last = performance.now(); requestAnimationFrame(frame);
+}
+try { boot(); } catch (e) { showFail(e && e.message); }
+})();
+</script>
+</body>
+</html>
