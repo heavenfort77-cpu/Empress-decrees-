@@ -15,7 +15,7 @@
  ],
  "originPx": [
   2,
-  282
+  2
  ],
  "stridePx": [
   104,
@@ -54,6 +54,6 @@
  "anchorHeightM": 0.0,
  "atlasSize": [
   1024,
-  912
+  984
  ]
 }
