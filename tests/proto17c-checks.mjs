@@ -186,5 +186,22 @@ export async function proto17cChecks(g, check, page, browser, URL0) {
     oc.near.rooms > 0 && oc.near.cut.length >= 1 && oc.near.cut.every((c) => c.n > 0 && Math.abs(c.k - oc.lowK) < 1e-6) && oc.near.doors.length >= 1
     && oc.past.cut.length === 0 && oc.past.doors.length === 0 && oc.inSolids, JSON.stringify(oc));
 
+  // 1739 (owner 25 Nov 20:06) With the art on no hall or court draws a plain box part besides its floor: the hall's stone bench block and
+  // the court's two blocks are stone plinths from the kit (their box hidden, solids kept), the hall's spawn disc is hidden; a 鼎's reach
+  // mark is a thin ring (not a disc) and shows only while the 鼎 can heal.
+  const pl = await g(() => {
+    const G = __game, o = {}; G.setSeed(12345); G.setLayout('full'); G.pickMode('palace'); G.pickSchool(1); return o;
+  });
+  await idle(page);
+  const pl2 = await g(() => {
+    const G = __game, a = G.art(), o = { bad: a.plain.filter((r) => (r.type === 'hall' || r.type === 'court') && r.keys.length > 0).map((r) => r.room + ':' + r.keys.join('+')) };
+    o.halls = a.plain.filter((r) => r.type === 'hall').map((r) => r.plinths); o.courts = a.plain.filter((r) => r.type === 'court').map((r) => r.plinths);
+    o.garden = a.plain.filter((r) => r.type === 'garden').map((r) => r.keys.join('+')); o.ding = G.pieces().ding.map((d) => d.on);
+    G.setLayout('proto'); G.pickMode('rumble'); G.pickSchool(0); return o;
+  });
+  await idle(page);
+  check('1739 no plain block or spawn disc in halls and courts with the art on (stone plinths: 1 per hall, 2 per court); garden leftovers listed',
+    pl2.bad.length === 0 && pl2.halls.length === 9 && pl2.halls.every((n) => n === 1) && pl2.courts.length >= 3 && pl2.courts.every((n) => n === 2), JSON.stringify(pl2));
+
   check('1732 no page error during the 17c and prototype checks', errs.length === 0, errs.slice(0, 4).join(' | '));
 }

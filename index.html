@@ -159,8 +159,10 @@ const CONFIG = {
   STATUE: { range: 6, radius: 6.5, windup: 0.6, cooldown: 3, dmg: 30, kb: 14 },
   // Stone lions: trigger range, strike radius, tell, cooldown, damage, knockback speed.
   LION: { range: 3.5, radius: 4, windup: 0.6, cooldown: 4, dmg: 20, kb: 11 },
-  // Healing altars: radius (m), heal per second, heal stored per charge, seconds empty, seconds a hit pauses healing.
-  ALTAR: { radius: 2.2, rate: 8, charge: 40, emptyS: 30, hitPauseS: 2 },
+  // Healing altars: radius (m), heal per second, heal stored per charge, seconds empty, seconds a hit pauses healing. ringW = width of the
+  // thin ring that marks a palace 鼎's healing reach (m; owner 25 Nov 20:06: a ring in the 鼎's own colour, shown only while it can heal,
+  // in place of the solid disc).
+  ALTAR: { radius: 2.2, rate: 8, charge: 40, emptyS: 30, hitPauseS: 2, ringW: 0.12 },
   // Vision radius around the player (fog of war): terrain beyond is dimmed, units beyond are hidden, metres.
   VISION_R: 11,
   // Brightness of terrain outside vision (0 black, 1 no dimming).
@@ -2787,9 +2789,10 @@ for (const LK in PAL_LAYOUTS) {
     }
     // Props per room type (boxes until the art stage): pillars, a dais, stones, shrubs, silk curtains (walk-through), the throne.
     // Batch 17d: pillar spots and the core dais spot are kept for the palace art (src/palace_art.js builds on them).
-    r.spots = { pillars: [], dais: null };
+    r.spots = { pillars: [], dais: null, blocks: [] };
     const pillar = (x, z) => { palPart(r, 'palPillar', cyl(0.6, PC.wallH, x, PC.wallH / 2, z)); palSolid(r, x - 0.6, x + 0.6, z - 0.6, z + 0.6); r.spots.pillars.push([x, z]); };
-    const block = (m, sx, sy, sz, x, z) => { palPart(r, m, box(sx, sy, sz, x, sy / 2, z)); palSolid(r, x - sx / 2, x + sx / 2, z - sz / 2, z + sz / 2); };
+    // Batch 17d (owner 25 Nov 20:06): each block's footprint and height is kept too: the palace art draws a stone plinth there instead of the box.
+    const block = (m, sx, sy, sz, x, z) => { palPart(r, m, box(sx, sy, sz, x, sy / 2, z)); palSolid(r, x - sx / 2, x + sx / 2, z - sz / 2, z + sz / 2); if (r.type !== 'core') r.spots.blocks.push([x - sx / 2, x + sx / 2, z - sz / 2, z + sz / 2, sy]); };
     const curtain = (x, z) => { palPart(r, 'silk', box(4, 3.5, 0.15, x, 1.75 + 0.3, z)); palPart(r, 'wall', box(4.4, 0.25, 0.25, x, 3.9, z)); };
     if (r.type === 'hall') {
       pillar(r.x0 + 3, r.z0 + 3); pillar(r.x1 - 3, r.z0 + 3); pillar(r.x0 + 3, r.z1 - 5); pillar(r.x1 - 3, r.z1 - 5);
@@ -2902,7 +2905,7 @@ PIECE_SIDES.push({ list: P2_GIANT_T, hurt(u, n) { hitGiant(u, n, null, 'piece');
         add('bronze', cyl(0.85, 1.0, x, 0.75, z, 16)); add('bronze', cyl(0.95, 0.12, x, 1.3, z, 16));
         for (const [lx, lz] of [[0.5, 0.4], [-0.5, 0.4], [0, -0.6]]) add('bronze', cyl(0.12, 0.5, x + lx, 0.25, z + lz, 6));
         palSolid(r, x - 0.9, x + 0.9, z - 0.9, z + 0.9);
-        const A = CONFIG.ALTAR, disc = still(r, new THREE.Mesh(new THREE.CylinderGeometry(A.radius, A.radius, 0.06, 28).translate(x, 0.03, z), M.altarOn), false);
+        const A = CONFIG.ALTAR, disc = still(r, new THREE.Mesh(new THREE.RingGeometry(A.radius - A.ringW, A.radius, 48).rotateX(-Math.PI / 2).translate(x, 0.04, z), M.altarOn), false);
         PIECE_DING.push({ x, z, y: 0, s: r, mesh: disc, charge: A.charge, emptyT: 0, src: p, art: null });
       } else if (p.type === 'smoke') {
         if (p.src === 'crane') {
@@ -3040,7 +3043,12 @@ function stepPieces(dt) {
   }
   for (let i = 0; i < PIECE_MERC.length; i++) { const m = PIECE_MERC[i]; if (m.s.lay === L && m.s.state < 2 && !m.s.fallen) mercStep(m, dt); }
   const A = CONFIG.ALTAR, dry = decOn('dry');
-  for (let i = 0; i < PIECE_DING.length; i++) { const a = PIECE_DING[i]; if (a.s.lay === L && a.s.state < 2 && !a.s.fallen) altarStep(a, dt, A, dry); }
+  for (let i = 0; i < PIECE_DING.length; i++) {
+    const a = PIECE_DING[i]; if (a.s.lay !== L || a.s.state >= 2 || a.s.fallen) continue;
+    altarStep(a, dt, A, dry);
+    // The reach ring shows only while the 鼎 can heal (full look, not dry); written on change.
+    const v = !dry && a.mesh.material === M.altarOn; if (a.mesh.visible !== v) a.mesh.visible = v;
+  }
 }
 // Smoke blocks sight: the segment a-b passes through a cloud, unless the two points are within revealM of each other.
 function smokeBlocks(ax, az, bx, bz) {
@@ -7899,7 +7907,7 @@ function chrFrame(dt) {
 // Racks, lamps, bell stands and standards would add collision (gameplay): CONFIG.PAL_ART.solidProps keeps them off.
 function artRoom(r) {
   const A = LD.art, K = A.kit, blocked = PAL.solids.filter((b) => b.s === r);
-  const art = PA.buildRoom(K, r, PAL.rooms, { pillars: r.spots ? r.spots.pillars : [], dais: r.spots ? r.spots.dais : null, blocked });
+  const art = PA.buildRoom(K, r, PAL.rooms, { pillars: r.spots ? r.spots.pillars : [], dais: r.spots ? r.spots.dais : null, blocks: r.spots ? r.spots.blocks : [], blocked });
   const si = r.school ? Math.max(0, CONFIG.SCHOOLS.indexOf(r.school)) : 0;
   if (PA.PAL_ART.props) {
     for (const h of PIECE_HAZ) if (h.s === r && h.kind === 'lion') h.art = PA.addTo(art, PA.prop(K, 'beast', h.x, h.z, (h.src && h.src.fz || 1) > 0 ? 0 : Math.PI));
@@ -8474,6 +8482,8 @@ window.__game = {
     const A = LD.art, que = [];
     if (A) for (const r of A.rooms) if (r.art) for (const h of r.art.props) if (h.kind.startsWith('arch/que_pair')) { const P = A.kit.props[h.kind]; que.push({ room: r.id, x: h.root.position.x, z: h.root.position.z, z0: r.z0, cx: r.cx, inner: PA.queInnerOf(P), shift: P.queShift || 0, levels: h.lod.levels.length }); }
     return { on: !!(A && A.on), rooms: A ? A.rooms.length : 0, failed: A ? A.failed.slice() : null, doors: A ? A.doors.length : 0, texN: A && A.kit ? new Set(A.kit.texList).size : 0, lodDropped: A && A.kit ? A.kit.lodDropped.slice() : [], que,
+      // Plain room parts still drawn with the art on (check 1739): per room, the box part keys that are visible (floors apart).
+      plain: A && A.on ? A.rooms.map((r) => ({ room: r.id, type: r.type, keys: Object.keys(r.box || {}).filter((k) => r.box[k].visible && !k.startsWith('floor:')), plinths: r.art ? r.art.counts.plinths : 0 })) : [],
       // Cut-away (check 1738): rooms whose north wall is lowered now (with the wall batches' height factor), doors lowered now.
       cut: A ? A.rooms.filter((r) => r.art && r.art.cutOn).map((r) => ({ room: r.id, n: r.art.cut.length, k: r.art.cut.length ? r.art.cut[0].scale.y : 1 })) : [],
       cutDoors: A ? A.doors.filter((d) => d.cutOn).map((d) => ({ x: d.x, z: d.z, k: d.art.root.scale.y })) : [], cutRooms: A ? A.rooms.filter((r) => r.art && r.art.cut.length > 0).length : 0 };

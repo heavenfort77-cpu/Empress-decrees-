@@ -172,8 +172,12 @@ export const PAL_ART = {
   // Floor material per room type drawn by this module ('' = keep the game's box floor: hall and core keep the approved A1 floor).
   floors: { hall: '', core: '', court: 'palStone', corridor: 'palTiles', garden: 'palGround', bridge: 'palTimber' },
   // Box part keys (index.html palPart) the art replaces per room type; the integration skips building those box meshes.
-  replaces: { hall: ['palWall', 'palPillar'], core: ['palWall', 'palPillar', 'pillar', 'gold'], court: ['palWall', 'floor:court'],
-    corridor: ['palWall', 'floor:bridge'], garden: ['palWall', 'floor:court'], bridge: ['palWall', 'floor:bridge'] },
+  replaces: { hall: ['palWall', 'palPillar', 'stone', 'spawn'], core: ['palWall', 'palPillar', 'pillar', 'gold'], court: ['palWall', 'floor:court', 'stone'],
+    corridor: ['palWall', 'floor:bridge'], garden: ['palWall', 'floor:court', 'pillar'], bridge: ['palWall', 'floor:bridge'] },
+  // Stone plinths (terrace family: the kit's stone paving on a slab with world UVs) drawn where index.html's plain stone blocks stand (the
+  // hall's long bench block, the court's two blocks, the garden's three): material, and tile size of its texture in metres. The box blocks
+  // and the hall's plain spawn disc are hidden with the art on (replaces above); their solids stay.
+  plinth: { mat: 'palStone', tileM: 4 },
   // Tile ends per eave segment and their place on the eave (arch viewer: x0 + i * step along, y, z outward), m.
   tileEnds: { n: 8, x0: 0.3867, step: 0.5, y: 4.09, z: -1.26 },
   // Bridge bays: deck lowered under the module's plain deck slab (the deck slab carries the burn tint), m; rail centre inside the edge, m.
@@ -573,7 +577,7 @@ function rng(seed) { let s = seed >>> 0 || 1; return () => (s = (s * 16807) % 21
 // Returns art { group, floorMeshes, floorMats, solids [{ x0, x1, z0, z1 }] (new props only), replaces [box part keys], burn, inst, geos, props }.
 export function buildRoom(kit, r, rooms, spots) {
   const C = PAL_ART, art = { room: r, group: new THREE.Group(), floorMeshes: [], floorMats: [], solids: [], replaces: (C.replaces[r.type] || []).slice(),
-    burn: [], inst: [], cut: [], cutOn: false, geos: [], props: [], doors: [], skipped: 0, counts: { inst: 0, meshes: 0 } };
+    burn: [], inst: [], cut: [], cutOn: false, geos: [], props: [], doors: [], skipped: 0, counts: { inst: 0, meshes: 0, plinths: 0 } };
   art.group.name = 'palArt_' + r.id; kit.rooms++;
   if (!C.arch) { art.replaces.length = 0; finish(art); return art; }
   const acc = {}, blocked = (spots && spots.blocked) || [];
@@ -598,6 +602,12 @@ export function buildRoom(kit, r, rooms, spots) {
   if (C.on.terrace && r.type !== 'bridge') for (const side of ['n', 'w', 'e', 's']) for (const [a, b] of lakeRuns(r, side, rooms)) put('terrace_edge', runMats(side, r, a, b, 0, C.segM));
   // Pillars on the game's pillar spots.
   if (spots && spots.pillars) put('pillar', spots.pillars.map(([x, z]) => mat4(x, 0, z, 0)));
+  // Stone plinths on the game's block footprints [x0, x1, z0, z1, height] (same place and size as the solids).
+  if (spots && spots.blocks && kit.mats[C.plinth.mat]) for (const [bx0, bx1, bz0, bz1, bh] of spots.blocks) {
+    const g = slabGeo(bx0, bx1, bz0, bz1, bh, C.plinth.tileM), m = new THREE.Mesh(g, kit.mats[C.plinth.mat]);
+    m.position.y = bh; m.castShadow = true; m.receiveShadow = true; still(art, m); art.geos.push(g); art.counts.plinths++;
+    if (kit.burnt[C.plinth.mat]) art.burn.push(m, kit.mats[C.plinth.mat], kit.burnt[C.plinth.mat]);
+  }
   // Floors drawn here (court, corridor, garden, bridge); hall and core keep the approved box floor.
   const fm = C.floors[r.type];
   if (fm && kit.mats[fm]) {
