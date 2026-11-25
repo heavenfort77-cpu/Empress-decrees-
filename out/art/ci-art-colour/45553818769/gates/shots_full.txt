@@ -1,0 +1,34 @@
+id_px2_d10.5 ok
+id_px2_d14 ok
+id_px3_d10.5 ok
+id_px3_d14 ok
+old_cur_d10.5 ok
+old_cur_d14 ok
+old_rim_d10.5 ok
+old_rim_d14 ok
+new_cur_d10.5 ok
+new_cur_d14 ok
+new_rimonly_d10.5 ok
+new_rimonly_d14 ok
+new_rim_d10.5 ok
+new_rim_d14 ok
+new_rim3_d10.5 ok
+new_rim3_d14 ok
+new_fres_d10.5 ok
+new_fres_d14 ok
+new_rim_fres_d10.5 ok
+new_rim_fres_d14 ok
+close_old_cur_0 ok
+close_old_cur_1 ok
+close_old_cur_2 ok
+close_new_rim_0 ok
+close_new_rim_1 ok
+close_new_rim_2 ok
+floor_stone_paving ok
+floor_floor_tiles ok
+floor_floor_tiles_cand ok
+floor_garden_ground ok
+floor_garden_ground_cand ok
+floor_timber ok
+shots 32 of 32 ok
+PASS colour shots: all rendered

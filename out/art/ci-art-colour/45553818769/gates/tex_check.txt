@@ -1,0 +1,20 @@
+PASS hall_floor density: 256 x 256 px/m
+PASS hall_floor brush scale: 7.7 cm
+PASS hall_floor contrast: lum sd 6.6 (walkable floor: 5.5-8)
+PASS hall_floor saturation: 0.44 (cap 0.55)
+PASS hall_floor value: mean lum 121 (114-130)
+PASS hall_floor seam x: edge step 1.5 vs inside mean 1.5, p99 1.9
+PASS hall_floor seam y: edge step 1.6 vs inside mean 1.5, p99 2.0
+PASS hall_floor repeat: 50 cm block sd 2.1 (max 3.5)
+FAIL signal_flags contrast: lum sd 30.5
+PASS star_inlay density: 256 x 256 px/m
+PASS star_inlay saturation: 0.54 (cap 0.6)
+PASS star_inlay coverage: opaque share per cell 0.02-0.06 (0.01-0.08)
+PASS star_inlay alpha test: 0.17 of drawn pixels fall under the 0.5 alpha test (max 0.2)
+PASS star_inlay floor read: mean lum +0.7 (max 8), mean hue shift 1.0 deg (max 6) over hall_floor
+FAIL star_inlay subtle: inlay minus floor lum 17 (25-75: seen, not loud)
+PASS star_inlay not hazard ring: nearest inlay pixel to #ff2a10 at 138 (min 120)
+PASS star_inlay not warned: nearest inlay pixel to #b33a2a at 73 (min 60)
+PASS star_inlay edge clear: opaque share in the 24 px border 0.0000 (0: cells turn without a seam)
+FAIL suit_bronze plain brush scale: 3.9 cm
+261 of 264 pass

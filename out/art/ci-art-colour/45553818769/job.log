@@ -1,0 +1,188 @@
+== preflight 05:39:12
+PREFLIGHT PASS
+== hall floor (klad, calibrated to the study targets) 05:39:14
+pass 1: G 1.0000 C 1.0000 B 1.000 N 2600 -> Y 0.2042 sd 5.81 run 9.4 cm ac 8 x 7 px blk 1.87 sat 0.438 marks 1.302 
+pass 2: G 0.9794 C 1.1366 B 1.000 N 2600 -> Y 0.1997 sd 6.55 run 7.7 cm ac 8 x 6 px blk 2.10 sat 0.439 marks 1.357 OK
+PASS hall_floor calibration: targets met with FLOOR_G=0.9794 FLOOR_C=1.1366 FLOOR_B=1.0 FLOOR_N=2600
+== candidates of the other floors (not replacing the approved files) 05:39:19
+floor_tiles 1588 ops
+garden_ground 3666 ops
+floor_tiles passes tone > marks > detail
+garden_ground passes tone > marks > detail
+== Qin proposal suit sheet 05:39:22
+suit_lamellar 6777 ops
+suit_bronze 905 ops
+suit_cloth 635 ops
+suit_lamellar 1024 passes base > tone > marks > detail
+== gates 05:39:25
+PASS hall_floor density: 256 x 256 px/m
+PASS hall_floor brush scale: 7.7 cm
+PASS hall_floor contrast: lum sd 6.6 (walkable floor: 5.5-8)
+PASS hall_floor saturation: 0.44 (cap 0.55)
+PASS hall_floor value: mean lum 121 (114-130)
+PASS hall_floor seam x: edge step 1.5 vs inside mean 1.5, p99 1.9
+PASS hall_floor seam y: edge step 1.6 vs inside mean 1.5, p99 2.0
+PASS hall_floor repeat: 50 cm block sd 2.1 (max 3.5)
+FAIL signal_flags contrast: lum sd 30.5
+PASS star_inlay density: 256 x 256 px/m
+PASS star_inlay saturation: 0.54 (cap 0.6)
+PASS star_inlay coverage: opaque share per cell 0.02-0.06 (0.01-0.08)
+PASS star_inlay alpha test: 0.17 of drawn pixels fall under the 0.5 alpha test (max 0.2)
+PASS star_inlay floor read: mean lum +0.7 (max 8), mean hue shift 1.0 deg (max 6) over hall_floor
+FAIL star_inlay subtle: inlay minus floor lum 17 (25-75: seen, not loud)
+PASS star_inlay not hazard ring: nearest inlay pixel to #ff2a10 at 138 (min 120)
+PASS star_inlay not warned: nearest inlay pixel to #b33a2a at 73 (min 60)
+PASS star_inlay edge clear: opaque share in the 24 px border 0.0000 (0: cells turn without a seam)
+FAIL suit_bronze plain brush scale: 3.9 cm
+261 of 264 pass
+CAUGHT hall_floor dull -> value
+CAUGHT hall_floor busy -> contrast
+CAUGHT hall_floor flat -> contrast
+CAUGHT hall_floor shear -> seam x
+27 of 27 caught
+PASS hall_floor floor luminance: texture relative luminance 0.200 (0.167-0.26); mean lum 121
+FAIL hall_floor own marks: p95/p5 contrast 1.36:1 (max 1.3)
+PASS hall_floor calm contrast: lum sd 6.6 (5.5-8.0)
+PASS hall_floor stroke scale: autocorrelation half-width 8 x 6 px (max 20, x:y max 2.0)
+PASS hall_floor saturation: 0.44 (0.38-0.5)
+PASS stone_paving floor luminance: texture relative luminance 0.249 (0.167-0.26); mean lum 136
+PASS stone_paving saturation: 0.10 (cap 0.5)
+NOTE stone_paving own marks p95/p5 1.31:1, lum sd 9.1, autocorrelation 6 x 3 px
+FAIL floor_tiles floor luminance: texture relative luminance 0.164 (0.167-0.26); mean lum 112
+PASS floor_tiles saturation: 0.10 (cap 0.5)
+NOTE floor_tiles own marks p95/p5 1.78:1, lum sd 9.2, autocorrelation 4 x 7 px
+FAIL garden_ground floor luminance: texture relative luminance 0.147 (0.167-0.26); mean lum 106
+PASS garden_ground saturation: 0.34 (cap 0.5)
+NOTE garden_ground own marks p95/p5 1.26:1, lum sd 8.5, autocorrelation 4 x 3 px
+FAIL timber floor luminance: texture relative luminance 0.092 (0.167-0.26); mean lum 83
+PASS timber saturation: 0.47 (cap 0.5)
+NOTE timber own marks p95/p5 1.73:1, lum sd 11.3, autocorrelation 8 x 65 px
+PASS floor_tiles_cand floor luminance: texture relative luminance 0.197 (0.167-0.26); mean lum 122
+PASS floor_tiles_cand saturation: 0.10 (cap 0.5)
+NOTE floor_tiles_cand own marks p95/p5 1.83:1, lum sd 9.8, autocorrelation 4 x 7 px
+PASS garden_ground_cand floor luminance: texture relative luminance 0.198 (0.167-0.26); mean lum 122
+PASS garden_ground_cand saturation: 0.33 (cap 0.5)
+NOTE garden_ground_cand own marks p95/p5 1.28:1, lum sd 9.7, autocorrelation 4 x 3 px
+CONTROL round 2 hall floor fails floor luminance: texture relative luminance 0.081 (0.167-0.26); mean lum 77
+CONTROL round 2 hall floor fails own marks: p95/p5 contrast 1.55:1 (max 1.3)
+CONTROL round 2 hall floor fails calm contrast: lum sd 9.1 (5.5-8.0)
+CONTROL round 2 hall floor fails stroke scale: autocorrelation half-width 39 x 10 px (max 20, x:y max 2.0)
+CONTROL round 2 hall floor fails saturation: 0.52 (0.38-0.5)
+13 of 22 pass
+MUT caught hall_floor dark -> floor luminance
+MUT caught hall_floor noisy -> own marks
+MUT caught hall_floor streak -> stroke scale
+3 of 3 mutations caught
+PASS suit_lamellar_qin fa cord: p70 relative luminance 0.568 (min 0.21)
+PASS suit_lamellar_qin ru cord: p70 relative luminance 0.241 (min 0.21)
+PASS suit_lamellar_qin dao cord: p70 relative luminance 0.466 (min 0.21)
+FAIL suit_lamellar_qin mo cord: p70 relative luminance 0.197 (min 0.21)
+PASS suit_lamellar_qin yy cord: p70 relative luminance 0.581 (min 0.21)
+PASS suit_lamellar_qin za cord: p70 relative luminance 0.463 (min 0.21)
+FAIL suit_lamellar_qin ming cord: p70 relative luminance 0.207 (min 0.21)
+PASS suit_lamellar_qin zh cord: p70 relative luminance 0.245 (min 0.21)
+PASS suit_lamellar_qin nong cord: p70 relative luminance 0.216 (min 0.21)
+PASS suit_lamellar_qin plate_brown lacquer value: mean lum 34 (20-45), saturation 0.35 (max 0.42)
+PASS suit_lamellar_qin lam_brown lacquer value: mean lum 31 (20-45), saturation 0.36 (max 0.42)
+PASS suit_lamellar_qin plate_black value: mean lum 36 (20-60)
+10 of 12 pass
+MUT caught approved sheet -> mo cord
+MUT caught approved sheet -> ming cord
+MUT caught approved sheet -> plate_brown lacquer value
+3 of 3 mutations caught
+floor texture sheet written
+== shots 05:41:40
+PASS colour shots: all rendered
+== measures and sheets 05:43:09
+MUT caught old_cur hall 10.5 m: 11 of 11 figures fail the outline rule on the old floor with the dark outline (control, min 6)
+MUT caught old_cur hall 14 m: 11 of 11 figures fail the outline rule on the old floor with the dark outline (control, min 6)
+FAIL new_rim hall 10.5 m ls outline >= 3.0:1 vs floor behind: 47% (min 50%); ring formula 45%; body median 1.25:1; area >= 3:1 10%; coloured px 15%
+FAIL new_rim hall 14 m ls outline >= 3.0:1 vs floor behind: 46% (min 50%); ring formula 42%; body median 1.21:1; area >= 3:1 11%; coloured px 15%
+FAIL new_rim stone_paving 10.5 m zu outline >= 3.0:1 vs floor behind: 47% (min 50%); ring formula 47%; body median 2.06:1; area >= 3:1 42%; coloured px 17%
+FAIL new_rim stone_paving 10.5 m ls outline >= 3.0:1 vs floor behind: 44% (min 50%); ring formula 42%; body median 1.44:1; area >= 3:1 11%; coloured px 14%
+FAIL new_rim floor_tiles 10.5 m floor on-screen luminance 0.117 (0.125-0.2)
+FAIL new_rim floor_tiles 10.5 m floor own marks p95/p5 contrast 1.45:1 (max 1.3); on-screen saturation 0.21
+FAIL new_rim floor_tiles_cand 10.5 m floor own marks p95/p5 contrast 1.48:1 (max 1.3); on-screen saturation 0.21
+FAIL new_rim garden_ground 10.5 m floor on-screen luminance 0.104 (0.125-0.2)
+FAIL new_rim timber 10.5 m floor on-screen luminance 0.069 (0.125-0.2)
+FAIL new_rim timber 10.5 m floor own marks p95/p5 contrast 1.52:1 (max 1.3); on-screen saturation 0.52
+TABLE variant | dist | figures >= 50% | min outline share | mean outline share | median body contrast | floor Y | floor marks
+TABLE old_cur hall | 10.5 | 0 of 11 | 0% | 1% | 1.65:1 | 0.058 | 1.41:1
+TABLE old_cur hall | 14 | 0 of 11 | 0% | 1% | 1.70:1 | 0.060 | 1.41:1
+TABLE old_rim hall | 10.5 | 11 of 11 | 60% | 75% | 1.58:1 | 0.058 | 1.41:1
+TABLE old_rim hall | 14 | 11 of 11 | 61% | 75% | 1.48:1 | 0.060 | 1.41:1
+TABLE new_cur hall | 10.5 | 7 of 11 | 45% | 55% | 2.94:1 | 0.142 | 1.28:1
+TABLE new_cur hall | 14 | 7 of 11 | 40% | 54% | 2.98:1 | 0.143 | 1.29:1
+TABLE new_rimonly hall | 10.5 | 10 of 11 | 47% | 63% | 2.22:1 | 0.142 | 1.28:1
+TABLE new_rimonly hall | 14 | 10 of 11 | 46% | 63% | 1.80:1 | 0.143 | 1.29:1
+TABLE new_rim hall | 10.5 | 10 of 11 | 47% | 64% | 2.26:1 | 0.142 | 1.28:1
+TABLE new_rim hall | 14 | 10 of 11 | 46% | 63% | 1.83:1 | 0.143 | 1.29:1
+TABLE new_rim3 hall | 10.5 | 11 of 11 | 53% | 71% | 1.85:1 | 0.142 | 1.28:1
+TABLE new_rim3 hall | 14 | 10 of 11 | 49% | 70% | 1.58:1 | 0.143 | 1.29:1
+TABLE new_fres hall | 10.5 | 5 of 11 | 38% | 49% | 2.76:1 | 0.142 | 1.28:1
+TABLE new_fres hall | 14 | 5 of 11 | 37% | 48% | 2.82:1 | 0.143 | 1.29:1
+TABLE new_rim_fres hall | 10.5 | 10 of 11 | 49% | 66% | 1.67:1 | 0.142 | 1.28:1
+TABLE new_rim_fres hall | 14 | 10 of 11 | 50% | 66% | 1.59:1 | 0.143 | 1.29:1
+TABLE new_rim stone_paving | 10.5 | 9 of 11 | 44% | 59% | 2.68:1 | 0.176 | 1.27:1
+TABLE new_rim floor_tiles | 10.5 | 11 of 11 | 54% | 67% | 1.98:1 | 0.117 | 1.45:1
+TABLE new_rim floor_tiles_cand | 10.5 | 11 of 11 | 53% | 66% | 2.23:1 | 0.139 | 1.48:1
+TABLE new_rim garden_ground | 10.5 | 11 of 11 | 54% | 68% | 1.85:1 | 0.104 | 1.23:1
+TABLE new_rim garden_ground_cand | 10.5 | 11 of 11 | 51% | 65% | 2.21:1 | 0.139 | 1.27:1
+TABLE new_rim timber | 10.5 | 11 of 11 | 58% | 73% | 1.67:1 | 0.069 | 1.52:1
+FAIL lines: 10
+?? ci_art_out/
+?? kladbin/
+?? node_modules/
+== summary
+FAIL signal_flags contrast: lum sd 30.5
+FAIL star_inlay subtle: inlay minus floor lum 17 (25-75: seen, not loud)
+FAIL suit_bronze plain brush scale: 3.9 cm
+261 of 264 pass
+27 of 27 caught
+FAIL hall_floor own marks: p95/p5 contrast 1.36:1 (max 1.3)
+FAIL floor_tiles floor luminance: texture relative luminance 0.164 (0.167-0.26); mean lum 112
+FAIL garden_ground floor luminance: texture relative luminance 0.147 (0.167-0.26); mean lum 106
+FAIL timber floor luminance: texture relative luminance 0.092 (0.167-0.26); mean lum 83
+13 of 22 pass
+3 of 3 mutations caught
+FAIL suit_lamellar_qin mo cord: p70 relative luminance 0.197 (min 0.21)
+FAIL suit_lamellar_qin ming cord: p70 relative luminance 0.207 (min 0.21)
+10 of 12 pass
+3 of 3 mutations caught
+FAIL new_rim hall 10.5 m ls outline >= 3.0:1 vs floor behind: 47% (min 50%); ring formula 45%; body median 1.25:1; area >= 3:1 10%; coloured px 15%
+FAIL new_rim hall 14 m ls outline >= 3.0:1 vs floor behind: 46% (min 50%); ring formula 42%; body median 1.21:1; area >= 3:1 11%; coloured px 15%
+FAIL new_rim stone_paving 10.5 m zu outline >= 3.0:1 vs floor behind: 47% (min 50%); ring formula 47%; body median 2.06:1; area >= 3:1 42%; coloured px 17%
+FAIL new_rim stone_paving 10.5 m ls outline >= 3.0:1 vs floor behind: 44% (min 50%); ring formula 42%; body median 1.44:1; area >= 3:1 11%; coloured px 14%
+FAIL new_rim floor_tiles 10.5 m floor on-screen luminance 0.117 (0.125-0.2)
+FAIL new_rim floor_tiles 10.5 m floor own marks p95/p5 contrast 1.45:1 (max 1.3); on-screen saturation 0.21
+FAIL new_rim floor_tiles_cand 10.5 m floor own marks p95/p5 contrast 1.48:1 (max 1.3); on-screen saturation 0.21
+FAIL new_rim garden_ground 10.5 m floor on-screen luminance 0.104 (0.125-0.2)
+FAIL new_rim timber 10.5 m floor on-screen luminance 0.069 (0.125-0.2)
+FAIL new_rim timber 10.5 m floor own marks p95/p5 contrast 1.52:1 (max 1.3); on-screen saturation 0.52
+TABLE variant | dist | figures >= 50% | min outline share | mean outline share | median body contrast | floor Y | floor marks
+TABLE old_cur hall | 10.5 | 0 of 11 | 0% | 1% | 1.65:1 | 0.058 | 1.41:1
+TABLE old_cur hall | 14 | 0 of 11 | 0% | 1% | 1.70:1 | 0.060 | 1.41:1
+TABLE old_rim hall | 10.5 | 11 of 11 | 60% | 75% | 1.58:1 | 0.058 | 1.41:1
+TABLE old_rim hall | 14 | 11 of 11 | 61% | 75% | 1.48:1 | 0.060 | 1.41:1
+TABLE new_cur hall | 10.5 | 7 of 11 | 45% | 55% | 2.94:1 | 0.142 | 1.28:1
+TABLE new_cur hall | 14 | 7 of 11 | 40% | 54% | 2.98:1 | 0.143 | 1.29:1
+TABLE new_rimonly hall | 10.5 | 10 of 11 | 47% | 63% | 2.22:1 | 0.142 | 1.28:1
+TABLE new_rimonly hall | 14 | 10 of 11 | 46% | 63% | 1.80:1 | 0.143 | 1.29:1
+TABLE new_rim hall | 10.5 | 10 of 11 | 47% | 64% | 2.26:1 | 0.142 | 1.28:1
+TABLE new_rim hall | 14 | 10 of 11 | 46% | 63% | 1.83:1 | 0.143 | 1.29:1
+TABLE new_rim3 hall | 10.5 | 11 of 11 | 53% | 71% | 1.85:1 | 0.142 | 1.28:1
+TABLE new_rim3 hall | 14 | 10 of 11 | 49% | 70% | 1.58:1 | 0.143 | 1.29:1
+TABLE new_fres hall | 10.5 | 5 of 11 | 38% | 49% | 2.76:1 | 0.142 | 1.28:1
+TABLE new_fres hall | 14 | 5 of 11 | 37% | 48% | 2.82:1 | 0.143 | 1.29:1
+TABLE new_rim_fres hall | 10.5 | 10 of 11 | 49% | 66% | 1.67:1 | 0.142 | 1.28:1
+TABLE new_rim_fres hall | 14 | 10 of 11 | 50% | 66% | 1.59:1 | 0.143 | 1.29:1
+TABLE new_rim stone_paving | 10.5 | 9 of 11 | 44% | 59% | 2.68:1 | 0.176 | 1.27:1
+TABLE new_rim floor_tiles | 10.5 | 11 of 11 | 54% | 67% | 1.98:1 | 0.117 | 1.45:1
+TABLE new_rim floor_tiles_cand | 10.5 | 11 of 11 | 53% | 66% | 2.23:1 | 0.139 | 1.48:1
+TABLE new_rim garden_ground | 10.5 | 11 of 11 | 54% | 68% | 1.85:1 | 0.104 | 1.23:1
+TABLE new_rim garden_ground_cand | 10.5 | 11 of 11 | 51% | 65% | 2.21:1 | 0.139 | 1.27:1
+TABLE new_rim timber | 10.5 | 11 of 11 | 58% | 73% | 1.67:1 | 0.069 | 1.52:1
+FAIL lines: 10
+FAIL lines: 20
+20M	/home/runner/work/Empress-decrees-/Empress-decrees-/ci_art_out
+RESULT done

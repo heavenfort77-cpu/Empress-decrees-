@@ -1,0 +1,5 @@
+CAUGHT hall_floor dull -> value
+CAUGHT hall_floor busy -> contrast
+CAUGHT hall_floor flat -> contrast
+CAUGHT hall_floor shear -> seam x
+27 of 27 caught
