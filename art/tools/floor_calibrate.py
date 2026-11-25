@@ -19,7 +19,8 @@ AC_MAX, BLK_MAX = 18, 3.0
 PASSES = 8
 K, WORK, SRC, OUT, STRIP = sys.argv[1:6]
 # Start values (the values the shipped round 3 floor was painted with, run 45553818769).
-p = dict(FLOOR_G=1.0, FLOOR_C=1.0, FLOOR_B=1.0, FLOOR_N=1400); done = None
+# Start values = the values the shipped floor was painted with (run 45557070732, pass 3).
+p = dict(FLOOR_G=1.0, FLOOR_C=1.0179, FLOOR_B=0.36, FLOOR_N=1910); done = None
 for i in range(PASSES):
     env = dict(os.environ, **{k: str(v) for k, v in p.items()})
     for cmd in ([sys.executable, f'{HERE}/palace_tex.py', WORK, '1024', 'floor'], [sys.executable, f'{HERE}/paint_palace.py', K, WORK, SRC, OUT, STRIP, 'hall_floor']):

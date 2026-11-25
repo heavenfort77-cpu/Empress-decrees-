@@ -156,3 +156,73 @@ What a person still sees (COLOUR looked at the play 10.5 m sheet, close-up sheet
 - The two changes partly work against each other: the pale rim reads best on the OLD dark floor (min 60%), the black body reads by itself on
   the NEW floor; on the new floor the pale hemp rebel has the floor's own value (1.25:1) and a pale rim cannot help it.
 - School colour: still carried by cloth only; the trim sheet does not change the read at play size.
+
+## 6. Round 2 (lead verdict on round 1: direction right, not shippable)
+
+Changed rules (they replace the round 1 numbers above where they differ):
+- Hall floor: cinnabar again, base #b26155 (hue 8 deg), saturation 0.48 to 0.55, texture relative luminance 0.185 (0.14 on screen), own marks
+  at most 1.30 on the texture too (the calibration now aims at the marks, not the sd), no grit, broad calm burnish strokes 20 to 55 cm.
+- Luminance sd band for walkable floors 4.5 to 7.5 (tex_check 4.5 to 8); round 1's 5.5 could not be met together with the marks rule.
+  tex_check counts same-tone runs with a step of 4 instead of 6 on walkable floors. Corridor tiles and the bridge deck carry these rows too.
+- Rim: outer silhouette only. Every character material writes stencil 1; the existing inverted-hull outline draws after them
+  (renderOrder 1) where stencil != 1. No extra draw beyond the outline draw the suits already have (one per suit material); guards and
+  rebels pay one draw per material if they get it. The renderer needs stencil: true (three.js default is false; a render target would
+  need stencilBuffer). Colour pale warm gold 0xe8c888 (relative luminance 0.60), unlit.
+- School colour: a per-school material tint on the sLam sheet and on the cloth; sheet suit_lamellar_qin.png holds black lacquer plus a
+  neutral light binding (cord rows, and a binding cord across every lamella row). Gate: at least 8% of a suit's pixels in the school
+  colour at play size (hue within 28 deg, or pale for 法 / 杂, or black for 阴阳; the rim is not counted).
+  Tint table (sLam and cloth; 阴阳 cloth stays its black): 法 0xefe9dc, 儒 0xc88c3e, 道 0xf0c450, 墨 0xe66044, 阴阳 0xefe9dc, 杂 0xc4cede,
+  名 0x9c7ae0, 纵横 0x3cac74, 农 0x5a92e4.
+- Rebel cloth tint 0x8c7860 (umber hemp) on rbCloth; guards unchanged.
+- Other floors: floor_tiles lifted 1.20 with mark contrast 0.6, garden_ground lifted 1.35, a bridge deck texture of its own
+  (bridge_deck: the timber boards lifted 2.15 with mark contrast 0.42), star inlay brass lifted to #cfae6a / #c2a060 / #dcbc7a.
+
+Results, run 45557070732 (commit 204cfa3; green tick; 44 FAIL lines in summary.txt). Files under out/art/ci-art-colour/45557070732/ on ci-out.
+
+| Hall floor | round 2 (approved) | COLOUR round 1 | COLOUR round 2 | rule | |
+|---|---|---|---|---|---|
+| texture relative luminance / on screen | 0.081 / 0.058 | 0.200 / 0.142 | 0.188 / 0.138 | 0.167-0.26 / 0.125-0.20 | PASS |
+| saturation | 0.52 | 0.44 | 0.52 | 0.48-0.55 | PASS |
+| own marks, texture / on screen | 1.55 / 1.41 | 1.36 / 1.28 | 1.26 / 1.22 | max 1.30 | PASS |
+| lum sd | 9.1 | 6.6 | 4.4 | 4.5-7.5 | FAIL by 0.1 |
+| autocorrelation half-width | 39 x 10 px | 8 x 6 px | 15 x 8 px | max 20, x:y max 2 | PASS |
+| run / 50 cm block sd / seams | 10.0 cm / 3.3 / clean | 7.7 / 2.1 / clean | 9.6 / 1.3 / clean | 4-15 / 3.5 | PASS |
+
+Calibration pass 3 of 8: FLOOR_G 1.0, FLOOR_C 1.0179, FLOOR_B 0.36, FLOOR_N 1910 (now the generator defaults).
+tex_check with all proposals in place: 268 of 271, 27 of 27 mutations caught; star_inlay subtle 63 (25-75) PASS; FAIL: hall_floor contrast
+4.4, and the two older ones (signal_flags, suit_bronze). floor_rule_check: tiles 0.200, garden 0.198, bridge deck 0.198, stone 0.249 PASS.
+
+Figures at 10.5 m / 14 m (figures with >= 50% of outline pixels at 3:1; min share; median body contrast at 10.5 m):
+
+| Variant | 10.5 m | 14 m | body |
+|---|---|---|---|
+| old floor, game now (control) | 0 of 11, 0% | 0 of 11, 0% | 1.65:1 |
+| old floor, proposal characters | 11 of 11, 53% | 11 of 11, 52% | 1.73:1 |
+| new floor, no rim | 1 of 11, 9% | 0 of 11, 8% | 3.05:1 |
+| new floor, dark outline as now | 8 of 11, 45% | 6 of 11, 43% | 3.18:1 |
+| new floor, silhouette rim gold 2 px (gated proposal) | 7 of 11, 43% | 7 of 11, 46% | 2.60:1 |
+| new floor, silhouette rim gold 3 px | 10 of 11, 48% | 11 of 11, 50% | 2.50:1 |
+| new floor, silhouette rim bronze-gold 0xd4a85a 2 px | 0 of 11, 7% | 0 of 11, 4% | 2.60:1 |
+| new floor, grazing rim term only | 0 of 11, 13% | 0 of 11, 9% | 2.66:1 |
+
+Proposal fails at 10.5 m: 道 49%, 农 49%, guard 43%, rebel 47%. Without any rim the bodies are at: 法 3.26, 儒 3.44, 道 1.19, 墨 3.25, 阴阳 3.14,
+杂 2.80, 名 3.05, 纵横 2.10, 农 3.33, guard 2.23, rebel 2.56 (round 1 rebel: 1.25).
+School colour share at 10.5 m: 法 2% FAIL, 儒 19%, 道 92%, 墨 12%, 阴阳 79% (black, always met), 杂 8% FAIL (7.6), 名 10%, 纵横 48%, 农 14%
+(game now: 0 to 2% on the armour suits). 儒 and 道 include their bronze masks and hands (same hue).
+Trim sheet 11 of 16: 墨 and 名 cords x tint 0.196 / 0.199 (min 0.21); the binding on the black, brown and cinnabar lamella rows is at 0.40-0.44
+(min 0.5: the cord's twist marks darken it).
+Other floors with the proposal: tiles, garden, bridge deck proposals at 0.139 on screen, marks 1.24 to 1.27, same 7 of 11 as the hall;
+stone_paving (0.176 on screen): 0 of 11 with the gold rim (0.60 against 0.176 is 2.9:1), bodies 3.09:1 median.
+
+What the numbers mean: on a mid-value floor a rim that is softer than white cannot reach 3:1 against the floor (the gold reaches 3.4:1 on
+the hall floor only where it is not blended by anti-aliasing, and 2.9:1 on the court paving). The black bodies read by themselves there
+(about 3:1). The outline gate was written for the dark floor; with the new floors the body contrast is the measure that matters.
+
+What a person still sees (COLOUR looked at play 10.5 m old vs new, the no rim / 3 px / bronze rows, close-up sheet 0, the floor sheet):
+- The floor is red again and calm, but it is a light vermilion / coral red, not the deep cinnabar of the approved floor; that follows from
+  the 0.14 on-screen value. Next to the plaster walls this has not been looked at (no hall render in this round).
+- The silhouette rim has no inner lines any more. At 2 px it is a thin gold contour; at 3 px it starts to look like a cut-out again.
+  The no-rim row reads as clearly as the rim rows for the black suits; 道 (yellow on red, 1.19:1) and 纵横 (2.10:1) are the weak ones.
+- The binding cords put horizontal stripes on every lamella skirt: school-coloured on 儒, 墨, 名, 农 (reads as lacing), white / grey on 法,
+  阴阳, 杂 (close to the stripes that were rejected). 道 lost its white breastplate: the tint turns it gold, the figure is one yellow mass.
+- 墨's brown-black plates take a red-brown cast from the tint.

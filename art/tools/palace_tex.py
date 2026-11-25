@@ -35,11 +35,11 @@ FLOOR_BASE = '#b26155'
 # default is the value the shipped texture was painted with.
 FLOOR_G = float(__import__('os').environ.get('FLOOR_G', '1.0'))
 # Hall floor mark contrast (1.0 = marks at the tones written in floor(); lower = calmer). Calibrated to the own-marks rule (p95/p5 <= 1.30).
-FLOOR_C = float(__import__('os').environ.get('FLOOR_C', '1.0'))
+FLOOR_C = float(__import__('os').environ.get('FLOOR_C', '1.0179'))
 # Hall floor broad tone-blot opacity scale (lower = less cloud at the 0.5 m scale, shorter stroke correlation).
-FLOOR_B = float(__import__('os').environ.get('FLOOR_B', '1.0'))
+FLOOR_B = float(__import__('os').environ.get('FLOOR_B', '0.36'))
 # Hall floor pebble-burnish dab count (short chalk dabs; more dabs keep the brush-scale run inside 4-15 cm on a low-contrast floor).
-FLOOR_N = int(__import__('os').environ.get('FLOOR_N', '1400'))
+FLOOR_N = int(__import__('os').environ.get('FLOOR_N', '1910'))
 # Colour gain for candidates of other textures (linear light on the background and every stroke colour; 1.0 = approved ops byte-identical).
 TEX_GAIN = float(__import__('os').environ.get('TEX_GAIN', '1.0'))
 # Mark contrast for candidates of other textures: every stroke colour pulled toward the background colour in linear light (1.0 = unchanged).
