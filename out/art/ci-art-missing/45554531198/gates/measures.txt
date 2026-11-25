@@ -1,0 +1,24 @@
+FAIL crab at play size (CAM_DIST 14, 1080p; 0 px high, 0 px): 0% of outline pixels >= 3.0:1 against what is beside it on the hall floor (min 50%); body median 0.0:1
+INFO crab on the calm stand-in floor (#7a2a1c): outline 0%, body median 0.0:1
+FAIL wanderer at play size (CAM_DIST 14, 1080p; 0 px high, 0 px): 0% of outline pixels >= 3.0:1 against what is beside it on the hall floor (min 50%); body median 0.0:1
+INFO wanderer on the calm stand-in floor (#7a2a1c): outline 0%, body median 0.0:1
+FAIL plate at play size (CAM_DIST 14, 1080p; 0 px high, 0 px): 0% of outline pixels >= 3.0:1 against what is beside it on the hall floor (min 50%); body median 0.0:1
+INFO plate on the calm stand-in floor (#7a2a1c): outline 0%, body median 0.0:1
+FAIL leader_crown at play size (CAM_DIST 14, 1080p; 0 px high, 0 px): 0% of outline pixels >= 3.0:1 against what is beside it on the hall floor (min 50%); body median 0.0:1
+INFO leader_crown on the calm stand-in floor (#7a2a1c): outline 0%, body median 0.0:1
+FAIL mo_wall at play size (CAM_DIST 14, 1080p; 0 px high, 0 px): 0% of outline pixels >= 3.0:1 against what is beside it on the hall floor (min 50%); body median 0.0:1
+INFO mo_wall on the calm stand-in floor (#7a2a1c): outline 0%, body median 0.0:1
+FAIL decree_mark at play size (CAM_DIST 14, 1080p; 0 px high, 0 px): 0% of outline pixels >= 3.0:1 against what is beside it on the hall floor (min 50%); body median 0.0:1
+INFO decree_mark on the calm stand-in floor (#7a2a1c): outline 0%, body median 0.0:1
+FAIL kaymuse on the throne, play framing (0 px high, 0 px): 0% of outline pixels >= 3.0:1 against the throne behind her (min 50%); body median 0.0:1
+FAIL kaymuse on the throne, approach framing (0 px high, 0 px): 0% of outline pixels >= 3.0:1 against the throne behind her (min 50%); body median 0.0:1
+Traceback (most recent call last):
+  File "/home/runner/work/Empress-decrees-/Empress-decrees-/art/tools/pieces_measure.py", line 65, in <module>
+    a, b = sil(f'sil_crab_{yaw}'), sil(f'sil_wanderer_{yaw}'); raw = iou(a, b); nor = iou(fit(a), fit(b))
+                                                                                          ~~~^^^
+  File "/home/runner/work/Empress-decrees-/Empress-decrees-/art/tools/pieces_measure.py", line 45, in fit
+    ys, xs = np.where(m); c = m[ys.min():ys.max() + 1, xs.min():xs.max() + 1]; w = max(1, round(c.shape[1] * h / c.shape[0]))
+                                ~~~~~~^^
+  File "/opt/hostedtoolcache/Python/3.13.18/x64/lib/python3.13/site-packages/numpy/_core/_methods.py", line 45, in _amin
+    return umr_minimum(a, axis, None, out, keepdims, initial, where)
+ValueError: zero-size array to reduction operation minimum which has no identity

@@ -1,0 +1,68 @@
+PASS plate_lod0 tris 440 (budget 499)
+PASS plate_lod1 tris 300 (budget 400)
+PASS plate_lod2 tris 148 (budget 220)
+PASS plate 0.74 x 0.74 m, 0.18 m high (game pickup 0.7 m)
+PASS plate lies on the ground, dome 0.18 m high (0.08-0.2)
+PASS plate materials ['palBronze', 'palInlay']
+6 of 6 pass
+ERROR Draco is not available because library could not be found at /opt/hostedtoolcache/Python/3.13.18/x64/lib/python3.13/site-packages/bpy/lib/libbf_intern_draco_bridge.so
+ERROR MeshOptimizer is not available because library could not be found at /opt/hostedtoolcache/Python/3.13.18/x64/lib/python3.13/site-packages/bpy/lib/libbf_intern_meshopt_bridge.so
+05:35:28 | INFO: Starting glTF 2.0 export
+05:35:28 | INFO: Extracting primitive: plate_lod0
+05:35:28 | INFO: Primitives created: 2
+05:35:28 | INFO: Extracting primitive: plate_lod1
+05:35:28 | INFO: Primitives created: 2
+05:35:28 | INFO: Extracting primitive: plate_lod2
+05:35:28 | INFO: Primitives created: 2
+05:35:28 | INFO: Finished glTF 2.0 export in 0.013033866882324219 s
+
+wrote /tmp/pieces/plate.glb 60864 bytes
+PASS leader_crown_lod0 tris 312 (budget 499)
+PASS leader_crown_lod1 tris 184 (budget 400)
+PASS leader_crown_lod2 tris 90 (budget 220)
+PASS leader crown 0.88 m high from its base (0.7-1.0; the band is 0.13 m, radius 0.3 as CONFIG.LEADER.crownR)
+PASS leader crown 0.90 m wide (max 1.0: stays over one suit)
+PASS leader crown materials ['palCinnabar', 'palGold', 'palLacquerPlain'] (gold, cinnabar stone)
+6 of 6 pass
+05:35:29 | INFO: Starting glTF 2.0 export
+05:35:29 | INFO: Extracting primitive: leader_crown_lod0
+05:35:29 | INFO: Primitives created: 3
+05:35:29 | INFO: Extracting primitive: leader_crown_lod1
+05:35:29 | INFO: Primitives created: 3
+05:35:29 | INFO: Extracting primitive: leader_crown_lod2
+05:35:29 | INFO: Primitives created: 3
+05:35:29 | INFO: Finished glTF 2.0 export in 0.010550498962402344 s
+
+wrote /tmp/pieces/leader_crown.glb 45588 bytes
+PASS mo_wall_lod0 tris 388 (budget 499)
+PASS mo_wall_lod1 tris 340 (budget 400)
+PASS mo_wall_lod2 tris 149 (budget 220)
+PASS 墨 wall 4.12 x 2.40 x 0.88 m (game cast 4.0 x 2.4 x 0.6; the timber and footing stand proud of the solid)
+PASS 墨 wall materials ['moEarth', 'moStone', 'moTimber', 'palBronze', 'palCinnabar', 'palLacquerPlain'] (rammed earth, timber, river stone, bronze sleeves, cinnabar plaque)
+5 of 5 pass
+05:35:29 | INFO: Starting glTF 2.0 export
+05:35:29 | INFO: Extracting primitive: mo_wall_lod0
+05:35:29 | INFO: Primitives created: 6
+05:35:29 | INFO: Extracting primitive: mo_wall_lod1
+05:35:29 | INFO: Primitives created: 6
+05:35:29 | INFO: Extracting primitive: mo_wall_lod2
+05:35:29 | INFO: Primitives created: 6
+05:35:29 | INFO: Finished glTF 2.0 export in 0.014366626739501953 s
+
+wrote /tmp/pieces/mo_wall.glb 72544 bytes
+PASS decree_mark_lod0 tris 168 (budget 499)
+PASS decree_mark_lod1 tris 168 (budget 400)
+PASS decree_mark_lod2 tris 74 (budget 220)
+PASS decree mark 0.30 m wide x 0.90 m high (game marker 0.3 x 0.9), tip down at z 0.00
+PASS decree mark materials ['palBronze', 'palCinnabar', 'palGold', 'palLacquerPlain'] (black lacquer, gold, cinnabar seal)
+5 of 5 pass
+05:35:29 | INFO: Starting glTF 2.0 export
+05:35:29 | INFO: Extracting primitive: decree_mark_lod0
+05:35:29 | INFO: Primitives created: 4
+05:35:29 | INFO: Extracting primitive: decree_mark_lod1
+05:35:29 | INFO: Primitives created: 4
+05:35:29 | INFO: Extracting primitive: decree_mark_lod2
+05:35:29 | INFO: Primitives created: 4
+05:35:29 | INFO: Finished glTF 2.0 export in 0.010923385620117188 s
+
+wrote /tmp/pieces/decree_mark.glb 35768 bytes

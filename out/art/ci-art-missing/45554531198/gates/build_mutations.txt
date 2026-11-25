@@ -1,0 +1,10 @@
+MUT caught: pieces_kaymuse.py with BEAD_N=2 -> FAIL kaymuse bead curtain covers 13% of the head front, level view (min 55%); no face modelled
+MUT caught: pieces_kaymuse.py with BUDGET=(1000,2600,900) -> FAIL kaymuse_lod0 tris 7044 (budget 1000)
+MUT caught: pieces_kaymuse.py with REST_X=2.4 -> FAIL kaymuse sits within the throne seat: 4.95 m wide (seat 4.06), f -0.60..0.80 m (seat half depth 0.91), base z -0.00
+MUT caught: pieces_creatures.py with C_KNEE=(0.84,1.35) -> FAIL crab 1.94 m wide x 1.41 m high (width (1.6, 2.2), height <= 1.2, width >= 1.6 x height): low and wide
+MUT caught: pieces_creatures.py with W_HIP=(1.0,-0.05,1.40) -> FAIL wanderer 2.77 m high x 2.12 m wide (height (2.2, 2.9), height >= 2.0 x width): tall and narrow
+MUT MISSED: pieces_creatures.py with C_MOVE=(0.8,0.0,0.0,0.0) (no line 'FAIL crab clip move')
+MUT caught: pieces_small.py with PL_LEN=1.2 -> FAIL plate 0.74 x 1.30 m, 0.18 m high (game pickup 0.7 m)
+MUT caught: pieces_small.py with CR_TOP=1.5 -> FAIL leader crown 1.50 m high from its base (0.7-1.0; the band is 0.13 m, radius 0.3 as CONFIG.LEADER.crownR)
+MUT caught: pieces_small.py with MW_POSTS=(-2.7,-0.94,0.0,0.94,2.7) -> FAIL 墨 wall 5.65 x 2.40 x 0.88 m (game cast 4.0 x 2.4 x 0.6; the timber and footing stand proud of the solid)
+MUT caught: pieces_small.py with DM_FRAME=1.7 -> FAIL decree mark 0.44 m wide x 0.90 m high (game marker 0.3 x 0.9), tip down at z 0.00

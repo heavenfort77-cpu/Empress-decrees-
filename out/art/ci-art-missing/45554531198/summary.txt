@@ -1,0 +1,22 @@
+11 of 11 pass
+11 of 11 pass
+FAIL wanderer feet on the ground (lowest z 0.017)
+10 of 11 pass
+6 of 6 pass
+6 of 6 pass
+5 of 5 pass
+5 of 5 pass
+MUT MISSED: pieces_creatures.py with C_MOVE=(0.8,0.0,0.0,0.0) (no line 'FAIL crab clip move')
+FAIL decree_mark LODs present and ordered: lod0 168, lod1 168, lod2 74 tris
+39 of 40 pass
+9 of 9 mutations caught
+FAIL crab at play size (CAM_DIST 14, 1080p; 0 px high, 0 px): 0% of outline pixels >= 3.0:1 against what is beside it on the hall floor (min 50%); body median 0.0:1
+FAIL wanderer at play size (CAM_DIST 14, 1080p; 0 px high, 0 px): 0% of outline pixels >= 3.0:1 against what is beside it on the hall floor (min 50%); body median 0.0:1
+FAIL plate at play size (CAM_DIST 14, 1080p; 0 px high, 0 px): 0% of outline pixels >= 3.0:1 against what is beside it on the hall floor (min 50%); body median 0.0:1
+FAIL leader_crown at play size (CAM_DIST 14, 1080p; 0 px high, 0 px): 0% of outline pixels >= 3.0:1 against what is beside it on the hall floor (min 50%); body median 0.0:1
+FAIL mo_wall at play size (CAM_DIST 14, 1080p; 0 px high, 0 px): 0% of outline pixels >= 3.0:1 against what is beside it on the hall floor (min 50%); body median 0.0:1
+FAIL decree_mark at play size (CAM_DIST 14, 1080p; 0 px high, 0 px): 0% of outline pixels >= 3.0:1 against what is beside it on the hall floor (min 50%); body median 0.0:1
+FAIL kaymuse on the throne, play framing (0 px high, 0 px): 0% of outline pixels >= 3.0:1 against the throne behind her (min 50%); body median 0.0:1
+FAIL kaymuse on the throne, approach framing (0 px high, 0 px): 0% of outline pixels >= 3.0:1 against the throne behind her (min 50%); body median 0.0:1
+Traceback (most recent call last):
+FAIL lines: 12
