@@ -1,0 +1,6 @@
+PASS mutant no-inst-dispose -> P14: FAIL P14 base {"buf":0,"tex":4,"prog":0,"geo":0,"itex":0,"progs":0} built {"buf":1104,"tex":32,"prog":17,"geo":190,"itex":28,"progs":17} / {"buf":1446,"tex":32,"prog":17,"geo":190,"itex":28,"progs":17} disposed {"buf":48
+PASS mutant auto-matrix -> P4: FAIL P4 2347 objects; auto-updating or unculled: 361 [Mesh,Mesh,Mesh,Mesh,Mesh]
+PASS mutant terrace-all -> P17: FAIL P17 686 terrace segments; under a room [core into approach,core into approach,fore into approach,fore into approach]
+PASS mutant missing-file -> P1: FAIL P1 files 41/42 failed [arch/flag_8x] textures 30/30 (ktx2 30) missing [ arch/flag_8x] load 453 ms build 147 ms
+PASS mutant aniso -> P9: FAIL P9 51 textures (47 compressed); over the limits [aniso 16,aniso 16,aniso 16,aniso 16,aniso 16]
+RESULT 5 of 5
