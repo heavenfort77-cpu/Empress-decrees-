@@ -25,7 +25,7 @@ export async function load17Checks(g, check, page, browser, URL0) {
   const shown = await page.waitForFunction(() => __game.load().shown || !__game.loadBusy(), null, { timeout: 120000 }).then(() => page.evaluate(() => __game.load().shown || __game.load().led.kind));
   await idle(page);
   const l1 = await g(() => __game.load());
-  check('1701 palace set: 5 images from assets/c as KTX2 (flipped v), all on, warm draw under the card, within the cap, +5 textures',
+  check('1701 palace set: 5 images from assets/c as KTX2 (flipped v), all on, warm draw under the card, within the cap, + the palace set textures (load().pset)',
     l1.palace === 'ready' && l1.led.kind === 'palace' && l1.led.failed.length === 0 && l1.led.fmt.length === 5 && l1.led.fmt.every((f) => f.endsWith(':ktx2'))
     && l1.maps.every((m) => m.map && m.compressed && m.flipV === -1 && m.w === 1024) && l1.led.n === 1 && l1.led.draws > 0 && !l1.led.capped && l1.led.ms <= C.cap * 1000
     && l1.pset >= 5 && l1.led.tex1 - l1.led.tex0 === l1.pset && l1.ptex === 5 && (shown === true || shown === 'palace'), JSON.stringify({ shown, led: l1.led, maps: l1.maps, palace: l1.palace, pset: l1.pset }));
