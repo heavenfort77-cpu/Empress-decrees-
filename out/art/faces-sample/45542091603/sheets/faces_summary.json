@@ -1,0 +1,69 @@
+{
+ "zu": {
+  "0": {
+   "tris_lod0": 3400,
+   "tris_lod1": 1186,
+   "delta": 0,
+   "face_tris": 0,
+   "materials": [
+    "gdBronze",
+    "gdLacquer",
+    "treadBelt"
+   ],
+   "calls": 4,
+   "contrast": 2.47
+  },
+  "M": {
+   "tris_lod0": 3836,
+   "tris_lod1": 1482,
+   "delta": 436,
+   "face_tris": 600,
+   "materials": [
+    "gdBronze",
+    "gdLacquer",
+    "treadBelt"
+   ],
+   "calls": 4,
+   "contrast": 3.28
+  }
+ },
+ "g00": {
+  "0": {
+   "tris_lod0": 6516,
+   "tris_lod1": 2752,
+   "delta": 0,
+   "face_tris": 0,
+   "materials": [
+    "palBronze",
+    "palTin"
+   ],
+   "calls": 5,
+   "contrast": 2.43
+  },
+  "M": {
+   "tris_lod0": 10392,
+   "tris_lod1": 2970,
+   "delta": 3876,
+   "face_tris": 4620,
+   "materials": [
+    "gdLacquer",
+    "palBronze",
+    "palTin"
+   ],
+   "calls": 6,
+   "contrast": 3.15
+  },
+  "T": {
+   "tris_lod0": 10392,
+   "tris_lod1": 2970,
+   "delta": 3876,
+   "face_tris": 4620,
+   "materials": [
+    "palBronze",
+    "palTin"
+   ],
+   "calls": 5,
+   "contrast": 2.04
+  }
+ }
+}

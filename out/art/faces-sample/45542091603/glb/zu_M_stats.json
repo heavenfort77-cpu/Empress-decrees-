@@ -1,0 +1,57 @@
+{
+ "char": "zu",
+ "opt": "M",
+ "face_tris_lod0": 600,
+ "face_parts": [
+  [
+   "fc_mask_zu",
+   420
+  ],
+  [
+   "fc_back_zu",
+   84
+  ],
+  [
+   "fc_rim_zu",
+   96
+  ]
+ ],
+ "probes": {
+  "mask": [
+   -0.03814,
+   1.5845,
+   0.11229
+  ],
+  "helm": [
+   -0.0,
+   1.7202,
+   0.066
+  ]
+ },
+ "meshes": {
+  "zu_lod0": {
+   "tris": 3836,
+   "mats": [
+    "gdBronze",
+    "gdLacquer",
+    "treadBelt"
+   ]
+  },
+  "zu_lod1": {
+   "tris": 1482,
+   "mats": [
+    "gdBronze",
+    "gdLacquer",
+    "treadBelt"
+   ]
+  },
+  "zu_lod2": {
+   "tris": 436,
+   "mats": [
+    "gdBronze",
+    "gdLacquer",
+    "treadBelt"
+   ]
+  }
+ }
+}

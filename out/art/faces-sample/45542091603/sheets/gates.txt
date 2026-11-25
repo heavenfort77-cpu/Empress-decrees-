@@ -1,0 +1,36 @@
+PASS zu 0 build stats present
+PASS zu M build stats present
+PASS zu 0 LOD0 tris 3400 (budget 4000)
+PASS zu 0 LOD1 tris 1186 (budget 1500)
+PASS zu 0 materials ['gdBronze', 'gdLacquer', 'treadBelt'] (no new one over now ['gdBronze', 'gdLacquer', 'treadBelt'])
+INFO zu 0 play contrast mask 0.0408 vs above 0.1739: ratio 2.47 (min 3.0) under the line (mutation case caught)
+PASS zu M LOD0 tris 3836 (budget 4000)
+PASS zu M LOD1 tris 1482 (budget 1500)
+PASS zu M materials ['gdBronze', 'gdLacquer', 'treadBelt'] (no new one over now ['gdBronze', 'gdLacquer', 'treadBelt'])
+PASS zu M mask built, 600 tris at LOD0, probes ['helm', 'mask']
+PASS zu M play contrast mask 0.0183 vs above 0.1739: ratio 3.28 (min 3.0)
+PASS zu play shots measured 2 of 2
+PASS zu 0 close and play shots present
+PASS zu M close and play shots present
+PASS g00 0 build stats present
+PASS g00 M build stats present
+PASS g00 T build stats present
+PASS g00 0 LOD0 tris 6516 (budget 15000)
+PASS g00 0 LOD1 tris 2752 (budget 3000)
+PASS g00 0 materials ['palBronze', 'palTin'] (no new one over now ['palBronze', 'palTin'])
+INFO g00 0 play contrast mask 0.0187 vs above 0.1171: ratio 2.43 (min 3.0) under the line (mutation case caught)
+PASS g00 M LOD0 tris 10392 (budget 15000)
+PASS g00 M LOD1 tris 2970 (budget 3000)
+PASS g00 M materials ['gdLacquer', 'palBronze', 'palTin'] (no new one over now ['palBronze', 'palTin']; allowed ['gdLacquer']: +1 draw call per unit, owner decision)
+PASS g00 M mask built, 4620 tris at LOD0, probes ['helm', 'mask']
+PASS g00 M play contrast mask 0.0031 vs above 0.1171: ratio 3.15 (min 3.0)
+PASS g00 T LOD0 tris 10392 (budget 15000)
+PASS g00 T LOD1 tris 2970 (budget 3000)
+PASS g00 T materials ['palBronze', 'palTin'] (no new one over now ['palBronze', 'palTin'])
+PASS g00 T mask built, 4620 tris at LOD0, probes ['helm', 'mask']
+FAIL g00 T play contrast mask 0.0318 vs above 0.1171: ratio 2.04 (min 3.0)
+PASS g00 play shots measured 3 of 3
+PASS g00 0 close and play shots present
+PASS g00 M close and play shots present
+PASS g00 T close and play shots present
+32 of 33 pass
