@@ -208,6 +208,8 @@ export const PAL_ART = {
   // LOD switch rule (INTEGRATION section 6): FOV 50 at 1080p = 1158 px focal length; LOD0 while the prop is over near px tall, LOD2 under far px;
   // phone distances x phoneK. Distances in metres per prop = height x focal / px (kit.info() lists them).
   lod: { focalPx: 1158, nearPx: 200, farPx: 70, phoneK: 0.6 },
+  // A LOD level whose floor is further than this from LOD0's is not used (it would float or sink), m.
+  lodFloorM: 0.1,
   // Props shorter than this cast no shadow (small props castShadow off), m.
   shadowMinH: 2.0,
   // Pieces that never cast shadows (small or below the floor).
@@ -292,6 +294,17 @@ function bake(node, pre, skin, skip) {
   for (const g of tmp) g.dispose();
   return out;
 }
+// LOD levels that do not stand on LOD0's floor (more than lodFloorM apart) are not used: the previous level stays to the end.
+// Listed in kit.lodDropped (an art note for the owner; que_pair LOD2 lacks its 0.5 m footing).
+function keepLevels(kit, name, levels) {
+  const b0 = boxOf(levels[0]), out = [levels[0]];
+  for (let i = 1; i < levels.length; i++) {
+    const b = boxOf(levels[i]), dy = b.min.y - b0.min.y;
+    if (Math.abs(dy) > PAL_ART.lodFloorM) { kit.lodDropped.push(name + ':' + i + ' floor ' + dy.toFixed(2) + ' m'); for (const p of levels[i]) p.geo.dispose(); continue; }
+    out.push(levels[i]);
+  }
+  return out;
+}
 function boxOf(parts) { const b = new THREE.Box3(); for (const p of parts) b.union(p.geo.boundingBox); return b; }
 function tris(parts) { let n = 0; for (const p of parts) n += p.geo.index.count / 3; return n; }
 
@@ -343,7 +356,7 @@ export function makeKit(gl, tex, opts) { const it = kitSteps(gl, tex, opts); let
 export function* kitSteps(gl, tex, opts) {
   const C = PAL_ART, o = opts || {};
   const kit = { mats: {}, pmats: {}, burnt: {}, accent: [], banner: [], merc: {}, pieces: {}, props: {}, door: null, mercKit: null, clock: null,
-    geos: [], matList: [], texList: [], missing: [], warm: null, schools: o.schools || [], phone: !!o.phone, lodDist: {}, ripples: [], rooms: 0 };
+    geos: [], matList: [], texList: [], missing: [], lodDropped: [], warm: null, schools: o.schools || [], phone: !!o.phone, lodDist: {}, ripples: [], rooms: 0 };
   const an = Math.min(C.aniso, o.maxAniso || C.aniso);
   const texFor = (name) => {
     const src = tex ? tex(name) : null;
@@ -394,7 +407,7 @@ export function* kitSteps(gl, tex, opts) {
     }
     const lods = [0, 1, 2].map((i) => g.scene.getObjectByName(n + '_lod' + i));
     if (lods[0]) {
-      const levels = lods.map((nd) => (nd ? bake(nd, I) : null)).filter(Boolean);
+      const levels = keepLevels(kit, n, lods.map((nd) => (nd ? bake(nd, I) : null)).filter(Boolean));
       for (const L of levels) for (const p of L) kit.geos.push(p.geo);
       const b = boxOf(levels[0]), h = b.max.y - Math.max(0, b.min.y);
       kit.props['arch/' + n] = { levels, states: {}, pose: {}, moving: null, h, dist: lodD(h), box: b }; kit.lodDist[n] = kit.props['arch/' + n].dist;
@@ -427,6 +440,7 @@ export function* kitSteps(gl, tex, opts) {
       if (n === 'clock' && i === 0) { P.levels.push(bake(nd, pre, false, ['clock_arrow', 'clock_catch', 'clock_water'])); continue; }
       P.levels.push(bake(nd, pre, true));
     }
+    P.levels = keepLevels(kit, n, P.levels);
     if (n === 'beast') {
       // Strike windup: the strike clip time where a fore paw stands highest (the raised-claw tell), baked as a second LOD0 pose.
       const clip = THREE.AnimationClip.findByName(g.animations, 'strike'); let best = 0, bestY = -1e9;
@@ -897,6 +911,6 @@ export function disposeKit(kit) {
 }
 // Counts for the card ledger and the HOOKS doc: geometries, materials, textures, missing files or images, LOD distances per prop.
 export function info(kit) {
-  return { geos: kit.geos.length, mats: kit.matList.length, texs: kit.texList.length, missing: kit.missing.slice(), lodDist: kit.lodDist, rooms: kit.rooms,
+  return { geos: kit.geos.length, mats: kit.matList.length, texs: kit.texList.length, missing: kit.missing.slice(), lodDropped: kit.lodDropped.slice(), lodDist: kit.lodDist, rooms: kit.rooms,
     windupT: kit.props.beast ? kit.props.beast.windupT : null };
 }

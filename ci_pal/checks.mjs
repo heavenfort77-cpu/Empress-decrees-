@@ -25,8 +25,9 @@ export async function run(P, X) {
       for (let i = 1; i < Pp.levels.length; i++) { const b = new THREE.Box3(); for (const p of Pp.levels[i]) b.union(p.geo.boundingBox); n++;
         const dx = (b.min.x + b.max.x - b0.min.x - b0.max.x) / 2, dz = (b.min.z + b.max.z - b0.min.z - b0.max.z) / 2;
         if (Math.abs(dx) > 0.5 || Math.abs(dz) > 0.5 || Math.abs(b.min.y - b0.min.y) > 0.1) bad.push(`${k}:${i} dx ${dx.toFixed(2)} dz ${dz.toFixed(2)}`); }
-      if (Pp.levels.length !== 3) bad.push(`${k} levels ${Pp.levels.length}`); }
-    ok('P3', n > 0 && !bad.length, `${n} LOD levels checked; off [${bad.join('; ')}]`); }
+      const dropped = kit.lodDropped.filter((x) => x.startsWith(k.replace('arch/', '') + ':')).length;
+      if (Pp.levels.length + dropped !== 3) bad.push(`${k} levels ${Pp.levels.length} + dropped ${dropped}`); }
+    ok('P3', n > 0 && !bad.length, `${n} LOD levels checked; off [${bad.join('; ')}]; not used (floor off): [${kit.lodDropped}]`); }
   // P4 frozen matrices and culling: every object under every art group and door has matrixAutoUpdate false and frustumCulled true.
   if (W('P4')) { let n = 0; const bad = [];
     const chk = (root) => root.traverse((o) => { n++; if (o.matrixAutoUpdate || o.frustumCulled === false) bad.push(o.name || o.type); });
@@ -36,7 +37,7 @@ export async function run(P, X) {
   // sits wallT / 2 inside the edge (0.02 m) and lies within a box wall's span.
   if (W('P5')) { let n = 0; const bad = [];
     for (const a of arts) { const rm = a.room, wallPieces = new Set([C.walls[rm.type], C.walls.low, C.walls.bridge]);
-      const sideOfSolid = (s) => (s.z0 === rm.z0 ? 'n' : s.z1 === rm.z1 ? 's' : s.x0 === rm.x0 ? 'w' : s.x1 === rm.x1 ? 'e' : '');
+      const sideOfSolid = (s) => (Math.abs(s.x1 - s.x0 - L.wallT) < 1e-6 && (s.x0 === rm.x0 || s.x1 === rm.x1) ? (s.x0 === rm.x0 ? 'w' : 'e') : s.z0 === rm.z0 ? 'n' : s.z1 === rm.z1 ? 's' : '');
       const want = { n: 0, s: 0, w: 0, e: 0 }, got = { n: 0, s: 0, w: 0, e: 0 }, spans = { n: [], s: [], w: [], e: [] };
       for (const s of rm.solids) if (s.kind === 'wall') { const sd = sideOfSolid(s); const len = sd === 'n' || sd === 's' ? s.x1 - s.x0 : s.z1 - s.z0;
         const longX = rm.x1 - rm.x0 >= rm.z1 - rm.z0;
@@ -98,7 +99,7 @@ export async function run(P, X) {
       for (const a of arts) { PA.setBurnt(a, k % 2 === 1); for (const p of a.props) { if (p.kind === 'vat') PA.setVat(p, k % 3); else if (p.kind === 'ding') PA.setDing(p, k % 2 === 0);
         else if (p.kind === 'clock') PA.setClock(p, k / 5); else if (p.kind === 'beast') PA.setBeast(p, k % 2 === 1); else if (p.kind === 'merc') PA.setMerc(kit, p, ['idle', 'warn', 'hot'][k % 3]); } }
       for (const d of L.doors) if (d.art) PA.setDoor(d.art, k % 2 === 1, k % 3 === 2);
-      for (const rr of [rm, ...L.rooms.filter((x) => x.type !== rm.type).slice(0, 6)]) { X.attachView(rr, true); X.frame(true); X.frame(false); frames += 2; }
+      for (const rr of L.rooms) { X.attachView(rr, true); X.frame(true); X.frame(false); frames += 2; }
     }
     for (const a of arts) PA.resetRoom(a);
     const links = window.__gl.link - l0;
@@ -138,7 +139,7 @@ export async function run(P, X) {
   // each build and back to the pre-build values after each dispose (the art drawn between).
   if (W('P14')) { const rec = () => { const g = window.__gl; return { buf: g.buf, tex: g.tex, prog: g.prog, geo: r.info.memory.geometries, itex: r.info.memory.textures, progs: r.info.programs.length }; };
     const draw = () => { for (const rm of L.rooms) { X.attachView(rm, true); X.frame(true); } };
-    for (const a of arts) { scene.remove(a.group); } P.teardown(); X.frame(false); X.frame(false);
+    draw(); P.teardown(); X.frame(false); X.frame(false);
     const base = rec(); const cyc = [];
     for (let c = 0; c < 2; c++) { P.build(); kit = P.kit; arts = P.arts; draw(); const b = rec(); P.teardown(); X.frame(false); X.frame(false); const d = rec(); cyc.push({ b, d }); }
     P.build(); kit = P.kit; arts = P.arts;

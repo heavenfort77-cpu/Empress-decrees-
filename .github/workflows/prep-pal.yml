@@ -37,13 +37,15 @@ jobs:
         run: |
           D=out/prep-pal/${GITHUB_RUN_ID}/${{ matrix.part }}
           mkdir -p /tmp/o && cp -r pal_out/. /tmp/o/ 2>/dev/null || true; cp preflight.txt /tmp/o/ 2>/dev/null || true
+          set +e
           git checkout -q -- . 2>/dev/null; git clean -qfd 2>/dev/null
           git config user.name Claude && git config user.email noreply@anthropic.com
-          git fetch -q origin ci-out && git checkout -q -B ci-out origin/ci-out
-          mkdir -p $D && cp -r /tmp/o/. $D/
-          echo "sha ${GITHUB_SHA} run ${GITHUB_RUN_ID} attempt ${GITHUB_RUN_ATTEMPT}" > $D/meta.txt
-          git add out && git commit -qm "prep-pal ${{ matrix.part }} ${GITHUB_RUN_ID}" || true
-          for k in 1 2 3 4 5 6; do git push -q origin ci-out && break; sleep $((RANDOM % 8 + 2)); git pull -q --rebase origin ci-out; done
+          for k in 1 2 3 4 5 6 7 8; do
+            git fetch -q --depth 1 origin ci-out && git checkout -q -B ci-out FETCH_HEAD && mkdir -p $D && cp -r /tmp/o/. $D/ \
+              && echo "sha ${GITHUB_SHA} run ${GITHUB_RUN_ID} attempt ${GITHUB_RUN_ATTEMPT}" > $D/meta.txt && git add out && git commit -qm "prep-pal ${{ matrix.part }} ${GITHUB_RUN_ID}" \
+              && git push -q origin ci-out && { echo "ci-out pushed (try $k)"; break; }
+            sleep $((RANDOM % 9 + 3 * k))
+          done
   mac:
     runs-on: macos-15
     timeout-minutes: 45
@@ -66,10 +68,12 @@ jobs:
         run: |
           D=out/prep-pal/${GITHUB_RUN_ID}/mac
           mkdir -p /tmp/o && cp -r pal_out/. /tmp/o/ 2>/dev/null || true; cp machine.txt preflight.txt /tmp/o/ 2>/dev/null || true
+          set +e
           git checkout -q -- . 2>/dev/null; git clean -qfd 2>/dev/null
           git config user.name Claude && git config user.email noreply@anthropic.com
-          git fetch -q origin ci-out && git checkout -q -B ci-out origin/ci-out
-          mkdir -p $D && cp -r /tmp/o/. $D/
-          echo "sha ${GITHUB_SHA} run ${GITHUB_RUN_ID} attempt ${GITHUB_RUN_ATTEMPT}" > $D/meta.txt
-          git add out && git commit -qm "prep-pal mac ${GITHUB_RUN_ID}" || true
-          for k in 1 2 3 4 5 6; do git push -q origin ci-out && break; sleep $((RANDOM % 8 + 2)); git pull -q --rebase origin ci-out; done
+          for k in 1 2 3 4 5 6 7 8; do
+            git fetch -q --depth 1 origin ci-out && git checkout -q -B ci-out FETCH_HEAD && mkdir -p $D && cp -r /tmp/o/. $D/ \
+              && echo "sha ${GITHUB_SHA} run ${GITHUB_RUN_ID} attempt ${GITHUB_RUN_ATTEMPT}" > $D/meta.txt && git add out && git commit -qm "prep-pal mac ${GITHUB_RUN_ID}" \
+              && git push -q origin ci-out && { echo "ci-out pushed (try $k)"; break; }
+            sleep $((RANDOM % 9 + 3 * k))
+          done
