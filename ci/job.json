@@ -1,1 +1,1 @@
-{"mode": "cmd", "label": "standalone-art", "cmd": "node probe-standalone/art.mjs probe-standalone/game.html results"}
+{"mode": "cmd", "label": "standalone-motion", "cmd": "node probe-standalone/motion.mjs probe-standalone/game.html"}
