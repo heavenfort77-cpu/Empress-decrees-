@@ -26,9 +26,9 @@ OUT = sys.argv[1]
 # Lacquer ramps (deep, shadow, base, light, polish highlight) per lacquer colour.
 LAC = {'black': ('#120f0f', '#1d1918', '#2a2524', '#3e3533', '#5e504a'), 'brown': ('#22140d', '#331f15', '#45291b', '#5e3a26', '#80583a'),
        'cinnabar': ('#5a1d13', '#7e2a1c', '#a33a28', '#bd4e34', '#d6765a'), 'white': ('#8c8577', '#b3ab9b', '#d2cab9', '#e2dccd', '#f1ece0')}
-# School binding colours (research palette; cord rows in this order).
-CORDS = [('fa', '#b0402c'), ('ru', '#c9a54a'), ('dao', '#e4ded0'), ('mo', '#b8862e'), ('yy', '#1e1b1a'), ('za', '#2e5a9c'),
-         ('ming', '#bfc3c6'), ('zh', '#5b3f8c'), ('nong', '#2f8a5c')]
+# School binding colours (cord rows in this order).
+# owner 25 Nov: the ONE school colour mapping (W1a 鼎 pigments; 儒 #94622c and 杂 #b2bccb as on the banners and effects); was the study palette.
+CORDS = [('fa', '#d9d2c3'), ('ru', '#94622c'), ('dao', '#e2b84a'), ('mo', '#a8321e'), ('yy', '#1a1614'), ('za', '#b2bccb'), ('ming', '#5b3f8c'), ('zh', '#2f8a5c'), ('nong', '#2e5a9c')]
 # Bronze ramp for suit fittings (fresh, live pieces: no patina) and inlay metals.
 BR = ('#3a2b1a', '#5e482b', '#8a6a3c', '#a88a52', '#c8a86a')
 GOLD, GOLD_D, SILVER, SILVER_D = '#d4b25a', '#9c7c34', '#c8ccd0', '#8e9396'

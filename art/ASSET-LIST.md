@@ -127,3 +127,17 @@ Checks for every mesh: triangle count against the budget above, texel density 25
 3. A6-A12 surfaces with the texture step 3 work (KTX2, phone set, per-level loading), B pieces per room type.
 4. C8 giants last among props (rig).
 Open item (g) (a long frame in the heaviest room) is paused; the perf gate runs before and after each batch.
+
+## Lead art review 25 Nov 11:0x (owner rule 10:46: would the lead ship it?)
+Judged from the latest sheets at close-up and play size (boards in session disk /home/claude/audit/). FAIL = same problem as faces A-D (passes gates, does not look right).
+| Asset | Verdict | Why |
+|---|---|---|
+| C1 guardian beast round 4 | FAIL | a Ming/Qing foo lion on a stone plinth: the look the owner retired 24 Nov 21:03 (stone lions are post-Qin; asked for a segmented bronze beast with silver inlay) |
+| C8 twelve giants | FAIL (heads) | flat face plate on a round head (faces round 2 covers g00 only); heads near-identical at play size (05-11 IoU 0.78). Shared body = owner's choice, kept |
+| C7 mercury channel | FAIL | reads as frosted glass/ice with a zigzag print, not liquid metal; idle/warn/hot look alike at play size |
+| C11 tiger tally | FAIL | faceted lumpy cat on a black box at close-up |
+| G suits | FAIL at play size | dark lumps on the red floor (outline fix = owner pick, in prep-chr); 6.4 heads tall vs concepts 7.5-8.5 reads toy-like; faces in faces round 2 |
+| G guards / rebels | WEAK | small and dark at the game camera; rebels' beige melts into the floor; faces in faces round 2 |
+| Cubs Stalker / Howler | WEAK | read as a box on legs and a turtle shell at play size |
+| C2 ding, C3 vat, C4 crane/censer, C5 clock, C6 huabiao, C9 lamp, C10 bells, C12 standards, apex tiger, A1-A4 textures | PASS | read at play size, fit Qin/tech fusion |
+| B rooms | NOTE | court and garden floors are large and empty at the wide camera; props arrive in 17d/17e, judge again in-game |

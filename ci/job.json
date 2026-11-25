@@ -1,1 +1,1 @@
-{"mode": "shard", "shards": 6, "label": "17b-final"}
+{"mode": "cmd", "label": "standalone", "cmd": "node probe-standalone/standalone.mjs probe-standalone/game.html"}
