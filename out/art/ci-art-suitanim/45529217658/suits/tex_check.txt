@@ -1,0 +1,30 @@
+PASS suit_lamellar density: 256 px/m
+PASS suit_lamellar plate_black brush scale: 16.4 cm
+PASS suit_lamellar plate_black contrast: lum sd 3.8
+PASS suit_lamellar plate_black saturation: 0.15 (cap 0.6)
+PASS suit_lamellar plate_black value: mean lum 36
+PASS suit_lamellar plate_brown brush scale: 6.8 cm
+PASS suit_lamellar plate_brown contrast: lum sd 4.9
+PASS suit_lamellar plate_brown saturation: 0.59 (cap 0.6)
+PASS suit_lamellar plate_brown value: mean lum 43
+PASS suit_lamellar plate_cinnabar brush scale: 5.1 cm
+PASS suit_lamellar plate_cinnabar contrast: lum sd 6.4
+PASS suit_lamellar plate_cinnabar saturation: 0.74 (cap 0.8)
+PASS suit_lamellar plate_cinnabar value: mean lum 72
+PASS suit_lamellar plate_white brush scale: 6.3 cm
+PASS suit_lamellar plate_white contrast: lum sd 11.4
+PASS suit_lamellar plate_white saturation: 0.12 (cap 0.2)
+PASS suit_lamellar plate_white value: mean lum 184
+PASS suit_lamellar cord fa colour: median #c5bfb1 vs #d9d2c3, distance 33
+PASS suit_lamellar cord ru colour: median #8c5c2a vs #94622c, distance 10
+PASS suit_lamellar cord dao colour: median #d0ad46 vs #e2b84a, distance 21
+PASS suit_lamellar cord mo colour: median #9e2f1c vs #a8321e, distance 11
+PASS suit_lamellar cord yy colour: median #191513 vs #1a1614, distance 2
+PASS suit_lamellar cord za colour: median #a8b1bf vs #b2bccb, distance 19
+PASS suit_lamellar cord ming colour: median #563c84 vs #5b3f8c, distance 10
+PASS suit_lamellar cord zh colour: median #2c8257 vs #2f8a5c, distance 10
+PASS suit_lamellar cord nong colour: median #2c5593 vs #2e5a9c, distance 10
+PASS suit_lamellar lamella row 0 width: 7.8 cm
+PASS suit_lamellar lamella row 1 width: 7.8 cm
+PASS suit_lamellar lamella row 2 width: 7.8 cm
+PASS suit_lamellar lamella row 3 width: 7.8 cm

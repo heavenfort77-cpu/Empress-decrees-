@@ -1,0 +1,28 @@
+PASS fa cloth albedo median #e5e1ca vs school #d9d2c3: dE 6.6 (max 10.0)
+PASS ru cloth albedo median #94622c vs school #94622c: dE 0.3 (max 10.0)
+PASS dao cloth albedo median #e2b84a vs school #e2b84a: dE 0.3 (max 10.0)
+PASS mo cloth albedo median #a8321e vs school #a8321e: dE 0.2 (max 10.0)
+PASS yy cloth albedo median #1a1614 vs school #1a1614: dE 0.4 (max 10.0)
+PASS za cloth albedo median #b2bccb vs school #b2bccb: dE 0.4 (max 10.0)
+PASS ming cloth albedo median #5b3f8c vs school #5b3f8c: dE 0.4 (max 10.0)
+PASS zh cloth albedo median #2f8a5c vs school #2f8a5c: dE 0.2 (max 10.0)
+PASS nong cloth albedo median #2e5a9c vs school #2e5a9c: dE 0.1 (max 10.0)
+PASS floor pairs: closest fa-za dE 11.9 (min 10.0); lit medians fa #8e7c71(870px) ru #653c1b(813px) dao #b08032(10801px) mo #701f13(1190px) yy #1b1510(5547px) za #7c747b(3713px) ming #321e46(681px) zh #2b633e(6209px) nong #263b60(1755px)
+PASS cord fa median #c5bfb1 vs #d9d2c3: RGB distance 33 (max 50), dE 6.9 (max 10)
+PASS cord ru median #8c5c2a vs #94622c: RGB distance 10 (max 50), dE 3.3 (max 10)
+PASS cord dao median #d0ad46 vs #e2b84a: RGB distance 21 (max 50), dE 6.2 (max 10)
+PASS cord mo median #9e2f1c vs #a8321e: RGB distance 11 (max 50), dE 3.8 (max 10)
+PASS cord yy median #191513 vs #1a1614: RGB distance 2 (max 50), dE 0.5 (max 10)
+PASS cord za median #a8b1bf vs #b2bccb: RGB distance 19 (max 50), dE 4.0 (max 10)
+PASS cord ming median #563c84 vs #5b3f8c: RGB distance 10 (max 50), dE 3.2 (max 10)
+PASS cord zh median #2c8257 vs #2f8a5c: RGB distance 10 (max 50), dE 3.5 (max 10)
+PASS cord nong median #2c5593 vs #2e5a9c: RGB distance 10 (max 50), dE 3.0 (max 10)
+PASS suit_lamellar outside the cord rows: 0 pixels differ from the approved sheet
+PASS suit_cloth.png byte-identical to the approved sheet: True
+PASS suit_bronze.png byte-identical to the approved sheet: True
+22 of 22 pass
+MUT caught cloth: za tint = fa tint
+MUT caught floor: shot with za cloth tinted as fa
+MUT caught cords: za cord row copied from fa
+MUT caught sheets: one pixel outside the cord rows changed
+colour mutations 4 of 4 caught
