@@ -1,0 +1,10 @@
+PASS fa merge: run,hit,death copied (149 accessors), rest pose same, 793 KB bin
+PASS ru merge: run,hit,death copied (144 accessors), rest pose same, 844 KB bin
+PASS dao merge: run,hit,death copied (139 accessors), rest pose same, 636 KB bin
+PASS mo merge: run,hit,death copied (148 accessors), rest pose same, 712 KB bin
+PASS yy merge: run,hit,death copied (147 accessors), rest pose same, 748 KB bin
+PASS za merge: run,hit,death copied (149 accessors), rest pose same, 814 KB bin
+PASS ming merge: run,hit,death copied (143 accessors), rest pose same, 713 KB bin
+PASS zh merge: run,hit,death copied (145 accessors), rest pose same, 777 KB bin
+PASS nong merge: run,hit,death copied (147 accessors), rest pose same, 742 KB bin
+merge 9 of 9

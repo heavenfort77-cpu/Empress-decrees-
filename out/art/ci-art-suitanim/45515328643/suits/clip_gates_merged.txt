@@ -1,0 +1,244 @@
+PASS fa clips: attack,death,hit,idle,run
+PASS fa attack_identical: 57 channels, 0 differ from the approved GLB
+PASS fa idle_identical: 57 channels, 0 differ from the approved GLB
+PASS fa mesh_identical: 54 accessors, 0 differ; joints same; inverse binds same
+PASS fa lod0_tris: 12924 (budget 10000-15000)
+PASS fa lod1_tris: 2599 (budget 2000-3000)
+PASS fa lod2_tris: 891 (budget 300-999)
+PASS fa weights: 12863 vertices, 0 sums off 1 (tol 0.01), max 4 influences (JOINTS_1 absent)
+FAIL fa run_keys: first key t=0.0000 s, quaternion flips 8, max joint step 27.6 deg/frame at shin.L key 26 (max 70)
+PASS fa hit_keys: first key t=0.0000 s, quaternion flips 0, max joint step 26.0 deg/frame at forearm.R key 1 (max 70)
+FAIL fa death_keys: first key t=0.0000 s, quaternion flips 5, max joint step 29.5 deg/frame at upper_arm.L key 38 (max 70)
+PASS fa run_length: 0.550 s (cycle 0.55 s at 6.4 m/s)
+PASS fa run_seam: closure 0.00 mm (max 1), seam accel 44.68 vs in-cycle max 97.75 mm/frame^2
+FAIL fa run_contact_R: 1 contact(s) per cycle, longest 11 frames (min 4), sole min -19.6 mm vs floor ref (170 foot vertices)
+PASS fa run_slide_R: 0.51 cm per cycle (max 2)
+FAIL fa run_contact_L: 1 contact(s) per cycle, longest 10 frames (min 4), sole min -18.5 mm vs floor ref (170 foot vertices)
+PASS fa run_slide_L: 1.13 cm per cycle (max 2)
+PASS fa run_info: 12 flight frames (both feet off) of 33; floor ref F = -24.6 mm
+FAIL fa run_floor: lowest vertex -19.6 mm vs floor ref, all LODs, all frames
+PASS fa hit_length: 0.300 s (0.25-0.35)
+FAIL fa hit_returns: end vs idle frame 0: 803.42 mm (max 2)
+PASS fa hit_feet: feet move 0.21 cm during the flinch (max 2)
+PASS fa hit_floor: lowest vertex -0.0 mm vs floor ref
+PASS fa death_length: 0.900 s (0.8-1.2)
+PASS fa death_floor: lowest vertex 0.2 mm vs floor ref (frame 1), all LODs, all frames
+PASS fa death_still: last 0.1 s max move 0.00 mm (max 1)
+PASS fa death_lying: end: top 0.45 m above the floor ref (max 0.9), lowest 2.0 mm (touching <= 20)
+PASS ru clips: attack,death,hit,idle,run
+PASS ru attack_identical: 57 channels, 0 differ from the approved GLB
+PASS ru idle_identical: 57 channels, 0 differ from the approved GLB
+PASS ru mesh_identical: 54 accessors, 0 differ; joints same; inverse binds same
+PASS ru lod0_tris: 13576 (budget 10000-15000)
+PASS ru lod1_tris: 2599 (budget 2000-3000)
+PASS ru lod2_tris: 886 (budget 300-999)
+PASS ru weights: 13720 vertices, 0 sums off 1 (tol 0.01), max 4 influences (JOINTS_1 absent)
+FAIL ru run_keys: first key t=0.0000 s, quaternion flips 8, max joint step 23.3 deg/frame at shin.L key 27 (max 70)
+PASS ru hit_keys: first key t=0.0000 s, quaternion flips 0, max joint step 22.1 deg/frame at shin.L key 1 (max 70)
+FAIL ru death_keys: first key t=0.0000 s, quaternion flips 5, max joint step 20.6 deg/frame at shin.L key 1 (max 70)
+PASS ru run_length: 0.567 s (cycle 0.566667 s at 6 m/s)
+PASS ru run_seam: closure 0.00 mm (max 1), seam accel 40.34 vs in-cycle max 81.38 mm/frame^2
+FAIL ru run_contact_R: 1 contact(s) per cycle, longest 11 frames (min 4), sole min -9.5 mm vs floor ref (172 foot vertices)
+PASS ru run_slide_R: 0.88 cm per cycle (max 2)
+FAIL ru run_contact_L: 1 contact(s) per cycle, longest 11 frames (min 4), sole min -9.5 mm vs floor ref (172 foot vertices)
+PASS ru run_slide_L: 0.88 cm per cycle (max 2)
+PASS ru run_info: 12 flight frames (both feet off) of 34; floor ref F = -35.0 mm
+FAIL ru run_floor: lowest vertex -9.9 mm vs floor ref, all LODs, all frames
+PASS ru hit_length: 0.300 s (0.25-0.35)
+FAIL ru hit_returns: end vs idle frame 0: 1787.67 mm (max 2)
+PASS ru hit_feet: feet move 0.20 cm during the flinch (max 2)
+PASS ru hit_floor: lowest vertex -0.0 mm vs floor ref
+PASS ru death_length: 1.000 s (0.8-1.2)
+PASS ru death_floor: lowest vertex 0.2 mm vs floor ref (frame 1), all LODs, all frames
+PASS ru death_still: last 0.1 s max move 0.00 mm (max 1)
+PASS ru death_lying: end: top 0.52 m above the floor ref (max 0.9), lowest 2.0 mm (touching <= 20)
+PASS dao clips: attack,death,hit,idle,run
+PASS dao attack_identical: 54 channels, 0 differ from the approved GLB
+PASS dao idle_identical: 54 channels, 0 differ from the approved GLB
+PASS dao mesh_identical: 54 accessors, 0 differ; joints same; inverse binds same
+PASS dao lod0_tris: 10896 (budget 10000-15000)
+PASS dao lod1_tris: 2600 (budget 2000-3000)
+PASS dao lod2_tris: 897 (budget 300-999)
+PASS dao weights: 9992 vertices, 0 sums off 1 (tol 0.01), max 4 influences (JOINTS_1 absent)
+FAIL dao run_keys: first key t=0.0000 s, quaternion flips 8, max joint step 28.8 deg/frame at shin.L key 27 (max 70)
+FAIL dao hit_keys: first key t=0.0000 s, quaternion flips 2, max joint step 27.6 deg/frame at shin.L key 1 (max 70)
+FAIL dao death_keys: first key t=0.0000 s, quaternion flips 5, max joint step 21.5 deg/frame at shin.L key 1 (max 70)
+PASS dao run_length: 0.583 s (cycle 0.583333 s at 6.4 m/s)
+PASS dao run_seam: closure 0.00 mm (max 1), seam accel 63.46 vs in-cycle max 115.14 mm/frame^2
+FAIL dao run_contact_R: 1 contact(s) per cycle, longest 11 frames (min 4), sole min -21.3 mm vs floor ref (170 foot vertices)
+FAIL dao run_slide_R: 2.43 cm per cycle (max 2)
+FAIL dao run_contact_L: 1 contact(s) per cycle, longest 10 frames (min 4), sole min -18.2 mm vs floor ref (170 foot vertices)
+PASS dao run_slide_L: 0.76 cm per cycle (max 2)
+PASS dao run_info: 14 flight frames (both feet off) of 35; floor ref F = -23.0 mm
+FAIL dao run_floor: lowest vertex -121.6 mm vs floor ref, all LODs, all frames
+PASS dao hit_length: 0.300 s (0.25-0.35)
+FAIL dao hit_returns: end vs idle frame 0: 773.93 mm (max 2)
+PASS dao hit_feet: feet move 0.22 cm during the flinch (max 2)
+FAIL dao hit_floor: lowest vertex -32.7 mm vs floor ref
+PASS dao death_length: 0.950 s (0.8-1.2)
+PASS dao death_floor: lowest vertex 0.0 mm vs floor ref (frame 1), all LODs, all frames
+PASS dao death_still: last 0.1 s max move 0.00 mm (max 1)
+PASS dao death_lying: end: top 0.83 m above the floor ref (max 0.9), lowest 2.0 mm (touching <= 20)
+PASS mo clips: attack,death,hit,idle,run
+PASS mo attack_identical: 57 channels, 0 differ from the approved GLB
+PASS mo idle_identical: 57 channels, 0 differ from the approved GLB
+PASS mo mesh_identical: 54 accessors, 0 differ; joints same; inverse binds same
+PASS mo lod0_tris: 11392 (budget 10000-15000)
+PASS mo lod1_tris: 2600 (budget 2000-3000)
+PASS mo lod2_tris: 893 (budget 300-999)
+PASS mo weights: 11370 vertices, 0 sums off 1 (tol 0.01), max 4 influences (JOINTS_1 absent)
+FAIL mo run_keys: first key t=0.0000 s, quaternion flips 6, max joint step 24.9 deg/frame at shin.L key 25 (max 70)
+FAIL mo hit_keys: first key t=0.0000 s, quaternion flips 2, max joint step 23.4 deg/frame at shin.L key 1 (max 70)
+FAIL mo death_keys: first key t=0.0000 s, quaternion flips 7, max joint step 31.3 deg/frame at weapon key 46 (max 70)
+PASS mo run_length: 0.500 s (cycle 0.5 s at 5.6 m/s)
+PASS mo run_seam: closure 0.00 mm (max 1), seam accel 35.97 vs in-cycle max 107.58 mm/frame^2
+FAIL mo run_contact_R: 1 contact(s) per cycle, longest 11 frames (min 4), sole min -17.2 mm vs floor ref (180 foot vertices)
+PASS mo run_slide_R: 0.92 cm per cycle (max 2)
+FAIL mo run_contact_L: 1 contact(s) per cycle, longest 11 frames (min 4), sole min -17.2 mm vs floor ref (180 foot vertices)
+PASS mo run_slide_L: 0.92 cm per cycle (max 2)
+PASS mo run_info: 8 flight frames (both feet off) of 30; floor ref F = -52.2 mm
+FAIL mo run_floor: lowest vertex -20.1 mm vs floor ref, all LODs, all frames
+PASS mo hit_length: 0.300 s (0.25-0.35)
+FAIL mo hit_returns: end vs idle frame 0: 726.16 mm (max 2)
+PASS mo hit_feet: feet move 0.24 cm during the flinch (max 2)
+PASS mo hit_floor: lowest vertex -0.0 mm vs floor ref
+PASS mo death_length: 1.100 s (0.8-1.2)
+PASS mo death_floor: lowest vertex 0.0 mm vs floor ref (frame 1), all LODs, all frames
+PASS mo death_still: last 0.1 s max move 0.00 mm (max 1)
+PASS mo death_lying: end: top 0.53 m above the floor ref (max 0.9), lowest 2.0 mm (touching <= 20)
+PASS yy clips: attack,death,hit,idle,run
+PASS yy attack_identical: 57 channels, 0 differ from the approved GLB
+PASS yy idle_identical: 57 channels, 0 differ from the approved GLB
+PASS yy mesh_identical: 54 accessors, 0 differ; joints same; inverse binds same
+PASS yy lod0_tris: 14036 (budget 10000-15000)
+PASS yy lod1_tris: 2600 (budget 2000-3000)
+PASS yy lod2_tris: 895 (budget 300-999)
+PASS yy weights: 11771 vertices, 0 sums off 1 (tol 0.01), max 4 influences (JOINTS_1 absent)
+FAIL yy run_keys: first key t=0.0000 s, quaternion flips 8, max joint step 24.0 deg/frame at shin.R key 13 (max 70)
+FAIL yy hit_keys: first key t=0.0000 s, quaternion flips 2, max joint step 27.3 deg/frame at shin.L key 1 (max 70)
+FAIL yy death_keys: first key t=0.0000 s, quaternion flips 6, max joint step 20.8 deg/frame at shin.L key 1 (max 70)
+PASS yy run_length: 0.567 s (cycle 0.566667 s at 6 m/s)
+PASS yy run_seam: closure 0.00 mm (max 1), seam accel 41.53 vs in-cycle max 88.91 mm/frame^2
+FAIL yy run_contact_R: 1 contact(s) per cycle, longest 11 frames (min 4), sole min -16.4 mm vs floor ref (170 foot vertices)
+PASS yy run_slide_R: 0.90 cm per cycle (max 2)
+FAIL yy run_contact_L: 1 contact(s) per cycle, longest 11 frames (min 4), sole min -16.4 mm vs floor ref (170 foot vertices)
+PASS yy run_slide_L: 0.90 cm per cycle (max 2)
+PASS yy run_info: 12 flight frames (both feet off) of 34; floor ref F = -26.3 mm
+FAIL yy run_floor: lowest vertex -16.4 mm vs floor ref, all LODs, all frames
+PASS yy hit_length: 0.300 s (0.25-0.35)
+FAIL yy hit_returns: end vs idle frame 0: 714.81 mm (max 2)
+PASS yy hit_feet: feet move 0.23 cm during the flinch (max 2)
+PASS yy hit_floor: lowest vertex -0.2 mm vs floor ref
+PASS yy death_length: 1.000 s (0.8-1.2)
+PASS yy death_floor: lowest vertex 0.5 mm vs floor ref (frame 43), all LODs, all frames
+PASS yy death_still: last 0.1 s max move 0.00 mm (max 1)
+PASS yy death_lying: end: top 0.54 m above the floor ref (max 0.9), lowest 2.0 mm (touching <= 20)
+PASS za clips: attack,death,hit,idle,run
+PASS za attack_identical: 57 channels, 0 differ from the approved GLB
+PASS za idle_identical: 57 channels, 0 differ from the approved GLB
+PASS za mesh_identical: 54 accessors, 0 differ; joints same; inverse binds same
+PASS za lod0_tris: 14196 (budget 10000-15000)
+PASS za lod1_tris: 2600 (budget 2000-3000)
+PASS za lod2_tris: 886 (budget 300-999)
+PASS za weights: 13097 vertices, 0 sums off 1 (tol 0.01), max 4 influences (JOINTS_1 absent)
+FAIL za run_keys: first key t=0.0000 s, quaternion flips 8, max joint step 26.3 deg/frame at shin.L key 27 (max 70)
+PASS za hit_keys: first key t=0.0000 s, quaternion flips 0, max joint step 24.9 deg/frame at shin.L key 1 (max 70)
+FAIL za death_keys: first key t=0.0000 s, quaternion flips 5, max joint step 42.8 deg/frame at weapon key 42 (max 70)
+PASS za run_length: 0.550 s (cycle 0.55 s at 6 m/s)
+PASS za run_seam: closure 0.00 mm (max 1), seam accel 50.44 vs in-cycle max 129.28 mm/frame^2
+FAIL za run_contact_R: 1 contact(s) per cycle, longest 11 frames (min 4), sole min -12.0 mm vs floor ref (171 foot vertices)
+PASS za run_slide_R: 0.86 cm per cycle (max 2)
+FAIL za run_contact_L: 1 contact(s) per cycle, longest 11 frames (min 4), sole min -14.8 mm vs floor ref (171 foot vertices)
+PASS za run_slide_L: 0.58 cm per cycle (max 2)
+PASS za run_info: 11 flight frames (both feet off) of 33; floor ref F = -31.5 mm
+FAIL za run_floor: lowest vertex -15.6 mm vs floor ref, all LODs, all frames
+PASS za hit_length: 0.300 s (0.25-0.35)
+FAIL za hit_returns: end vs idle frame 0: 825.00 mm (max 2)
+PASS za hit_feet: feet move 0.22 cm during the flinch (max 2)
+PASS za hit_floor: lowest vertex -0.0 mm vs floor ref
+PASS za death_length: 1.000 s (0.8-1.2)
+PASS za death_floor: lowest vertex 0.1 mm vs floor ref (frame 20), all LODs, all frames
+PASS za death_still: last 0.1 s max move 0.00 mm (max 1)
+PASS za death_lying: end: top 0.64 m above the floor ref (max 0.9), lowest 2.0 mm (touching <= 20)
+PASS ming clips: attack,death,hit,idle,run
+PASS ming attack_identical: 57 channels, 0 differ from the approved GLB
+PASS ming idle_identical: 57 channels, 0 differ from the approved GLB
+PASS ming mesh_identical: 54 accessors, 0 differ; joints same; inverse binds same
+PASS ming lod0_tris: 11032 (budget 10000-15000)
+PASS ming lod1_tris: 2600 (budget 2000-3000)
+PASS ming lod2_tris: 884 (budget 300-999)
+PASS ming weights: 11488 vertices, 0 sums off 1 (tol 0.01), max 4 influences (JOINTS_1 absent)
+FAIL ming run_keys: first key t=0.0000 s, quaternion flips 8, max joint step 20.3 deg/frame at shin.L key 25 (max 70)
+FAIL ming hit_keys: first key t=0.0000 s, quaternion flips 2, max joint step 31.2 deg/frame at forearm.R key 1 (max 70)
+FAIL ming death_keys: first key t=0.0000 s, quaternion flips 5, max joint step 21.4 deg/frame at shin.L key 1 (max 70)
+PASS ming run_length: 0.533 s (cycle 0.533333 s at 6 m/s)
+PASS ming run_seam: closure 0.00 mm (max 1), seam accel 51.65 vs in-cycle max 90.93 mm/frame^2
+FAIL ming run_contact_R: 1 contact(s) per cycle, longest 10 frames (min 4), sole min -17.3 mm vs floor ref (170 foot vertices)
+PASS ming run_slide_R: 0.68 cm per cycle (max 2)
+FAIL ming run_contact_L: 1 contact(s) per cycle, longest 10 frames (min 4), sole min -17.3 mm vs floor ref (170 foot vertices)
+PASS ming run_slide_L: 0.68 cm per cycle (max 2)
+PASS ming run_info: 12 flight frames (both feet off) of 32; floor ref F = -23.1 mm
+FAIL ming run_floor: lowest vertex -17.3 mm vs floor ref, all LODs, all frames
+PASS ming hit_length: 0.300 s (0.25-0.35)
+FAIL ming hit_returns: end vs idle frame 0: 867.25 mm (max 2)
+PASS ming hit_feet: feet move 0.22 cm during the flinch (max 2)
+PASS ming hit_floor: lowest vertex -0.2 mm vs floor ref
+PASS ming death_length: 0.950 s (0.8-1.2)
+PASS ming death_floor: lowest vertex 0.0 mm vs floor ref (frame 0), all LODs, all frames
+PASS ming death_still: last 0.1 s max move 0.00 mm (max 1)
+PASS ming death_lying: end: top 0.84 m above the floor ref (max 0.9), lowest 2.0 mm (touching <= 20)
+PASS zh clips: attack,death,hit,idle,run
+PASS zh attack_identical: 57 channels, 0 differ from the approved GLB
+PASS zh idle_identical: 57 channels, 0 differ from the approved GLB
+PASS zh mesh_identical: 54 accessors, 0 differ; joints same; inverse binds same
+PASS zh lod0_tris: 13804 (budget 10000-15000)
+PASS zh lod1_tris: 2599 (budget 2000-3000)
+PASS zh lod2_tris: 897 (budget 300-999)
+PASS zh weights: 12420 vertices, 0 sums off 1 (tol 0.01), max 4 influences (JOINTS_1 absent)
+FAIL zh run_keys: first key t=0.0000 s, quaternion flips 6, max joint step 25.9 deg/frame at shin.R key 10 (max 70)
+FAIL zh hit_keys: first key t=0.0000 s, quaternion flips 2, max joint step 38.2 deg/frame at forearm.R key 1 (max 70)
+FAIL zh death_keys: first key t=0.0000 s, quaternion flips 7, max joint step 61.5 deg/frame at weapon key 47 (max 70)
+PASS zh run_length: 0.583 s (cycle 0.583333 s at 6 m/s)
+PASS zh run_seam: closure 0.00 mm (max 1), seam accel 43.05 vs in-cycle max 98.35 mm/frame^2
+FAIL zh run_contact_R: 1 contact(s) per cycle, longest 11 frames (min 4), sole min -15.2 mm vs floor ref (170 foot vertices)
+PASS zh run_slide_R: 0.99 cm per cycle (max 2)
+FAIL zh run_contact_L: 1 contact(s) per cycle, longest 11 frames (min 4), sole min -16.8 mm vs floor ref (170 foot vertices)
+PASS zh run_slide_L: 0.43 cm per cycle (max 2)
+PASS zh run_info: 13 flight frames (both feet off) of 35; floor ref F = -28.6 mm
+FAIL zh run_floor: lowest vertex -16.8 mm vs floor ref, all LODs, all frames
+PASS zh hit_length: 0.300 s (0.25-0.35)
+FAIL zh hit_returns: end vs idle frame 0: 849.96 mm (max 2)
+PASS zh hit_feet: feet move 0.21 cm during the flinch (max 2)
+PASS zh hit_floor: lowest vertex -0.2 mm vs floor ref
+PASS zh death_length: 1.000 s (0.8-1.2)
+PASS zh death_floor: lowest vertex 0.0 mm vs floor ref (frame 0), all LODs, all frames
+PASS zh death_still: last 0.1 s max move 0.00 mm (max 1)
+PASS zh death_lying: end: top 0.71 m above the floor ref (max 0.9), lowest 2.0 mm (touching <= 20)
+PASS nong clips: attack,death,hit,idle,run
+PASS nong attack_identical: 57 channels, 0 differ from the approved GLB
+PASS nong idle_identical: 57 channels, 0 differ from the approved GLB
+PASS nong mesh_identical: 54 accessors, 0 differ; joints same; inverse binds same
+PASS nong lod0_tris: 11800 (budget 10000-15000)
+PASS nong lod1_tris: 2600 (budget 2000-3000)
+PASS nong lod2_tris: 893 (budget 300-999)
+PASS nong weights: 11914 vertices, 0 sums off 1 (tol 0.01), max 4 influences (JOINTS_1 absent)
+FAIL nong run_keys: first key t=0.0000 s, quaternion flips 6, max joint step 23.5 deg/frame at shin.L key 26 (max 70)
+FAIL nong hit_keys: first key t=0.0000 s, quaternion flips 2, max joint step 31.2 deg/frame at forearm.R key 1 (max 70)
+FAIL nong death_keys: first key t=0.0000 s, quaternion flips 9, max joint step 96.6 deg/frame at weapon key 47 (max 70)
+PASS nong run_length: 0.517 s (cycle 0.516667 s at 5.6 m/s)
+PASS nong run_seam: closure 0.00 mm (max 1), seam accel 37.57 vs in-cycle max 135.41 mm/frame^2
+FAIL nong run_contact_R: 1 contact(s) per cycle, longest 11 frames (min 4), sole min -5.8 mm vs floor ref (176 foot vertices)
+PASS nong run_slide_R: 0.56 cm per cycle (max 2)
+PASS nong run_contact_L: 1 contact(s) per cycle, longest 12 frames (min 4), sole min -4.6 mm vs floor ref (176 foot vertices)
+PASS nong run_slide_L: 1.03 cm per cycle (max 2)
+PASS nong run_info: 8 flight frames (both feet off) of 31; floor ref F = -42.2 mm
+FAIL nong run_floor: lowest vertex -6.6 mm vs floor ref, all LODs, all frames
+PASS nong hit_length: 0.300 s (0.25-0.35)
+FAIL nong hit_returns: end vs idle frame 0: 776.79 mm (max 2)
+PASS nong hit_feet: feet move 0.22 cm during the flinch (max 2)
+PASS nong hit_floor: lowest vertex -0.3 mm vs floor ref
+PASS nong death_length: 1.100 s (0.8-1.2)
+PASS nong death_floor: lowest vertex 0.0 mm vs floor ref (frame 0), all LODs, all frames
+PASS nong death_still: last 0.1 s max move 0.00 mm (max 1)
+PASS nong death_lying: end: top 0.68 m above the floor ref (max 0.9), lowest 2.0 mm (touching <= 20)
+173 of 234 pass

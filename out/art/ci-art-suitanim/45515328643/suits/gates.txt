@@ -1,0 +1,154 @@
+PASS fa lod0 tris 12924 (budget 10000-15000)
+PASS fa lod1 tris 2599 (budget 2000-3000)
+PASS fa lod2 tris 898 (budget 300-999)
+PASS fa lod0 unweighted vertices 0
+PASS fa lod0 weight sums off 1: 0
+PASS fa max influences 2 (glTF 4)
+PASS fa cloth heat weights solved (0 parts fell back to nearest bone: )
+PASS fa materials (draw calls) 3 (max 3)
+PASS fa attack tell 0.45 s (min 0.4)
+PASS fa tell travel 1.15 m (weapon tip, rest to windup; min 0.3)
+PASS fa idle 1.00 s
+PASS fa height with crest 2.40 m (1.7-2.9)
+PASS fa 7.51 heads tall (crown 2.02 m, head 0.27 m; band (7.3, 7.7)); mutation round-3 body 6.41 heads caught
+PASS fa run stance legs within reach every frame (0 stance frames clamped); hip drop 0.124 m, lowest hip 0.879 m, cycle 0.55 s (33 frames, 3.636 steps/s, step 1.76 m) at 6.4 m/s
+FAIL fa death floor solve: largest lift 0.282 m (fall front, 0.90 s); floor ref -0.0246 m (rest sole)
+PASS fa texel density min 0.86 of 256 px/m (min 0.8; 16 parts squeezed; lowest [('tlam0', 0.86), ('tlam1', 0.86), ('tlam2', 0.86), ('tasR0', 0.86)])
+PASS fa GLB re-import: 3 skinned meshes, actions ['attack', 'death', 'hit', 'idle', 'run'], 857 KB
+PASS ru lod0 tris 13576 (budget 10000-15000)
+PASS ru lod1 tris 2599 (budget 2000-3000)
+PASS ru lod2 tris 899 (budget 300-999)
+PASS ru lod0 unweighted vertices 0
+PASS ru lod0 weight sums off 1: 0
+PASS ru max influences 3 (glTF 4)
+PASS ru cloth heat weights solved (0 parts fell back to nearest bone: )
+PASS ru materials (draw calls) 3 (max 3)
+PASS ru attack tell 0.50 s (min 0.4)
+PASS ru tell travel 2.83 m (weapon tip, rest to windup; min 0.3)
+PASS ru idle 1.00 s
+PASS ru height with crest 2.33 m (1.7-2.9)
+PASS ru 7.51 heads tall (crown 2.07 m, head 0.28 m; band (7.3, 7.7)); mutation round-3 body 6.41 heads caught
+PASS ru run stance legs within reach every frame (0 stance frames clamped); hip drop 0.12 m, lowest hip 0.9 m, cycle 0.566667 s (34 frames, 3.529 steps/s, step 1.7 m) at 6.0 m/s
+PASS ru death floor solve: largest lift 0.13 m (fall back, 1.00 s); floor ref -0.035 m (rest sole)
+PASS ru texel density min 0.85 of 256 px/m (min 0.8; 16 parts squeezed; lowest [('torso', 0.85), ('tlam0', 0.86), ('tlam1', 0.86), ('tlam2', 0.86)])
+PASS ru GLB re-import: 3 skinned meshes, actions ['attack', 'death', 'hit', 'idle', 'run'], 907 KB
+PASS dao lod0 tris 10896 (budget 10000-15000)
+PASS dao lod1 tris 2600 (budget 2000-3000)
+PASS dao lod2 tris 899 (budget 300-999)
+PASS dao lod0 unweighted vertices 0
+PASS dao lod0 weight sums off 1: 0
+PASS dao max influences 4 (glTF 4)
+PASS dao cloth heat weights solved (0 parts fell back to nearest bone: )
+PASS dao materials (draw calls) 3 (max 3)
+PASS dao attack tell 0.42 s (min 0.4)
+PASS dao tell travel 0.82 m (hand.R tip, rest to windup; min 0.3)
+PASS dao idle 1.00 s
+PASS dao height with crest 2.02 m (1.7-2.9)
+PASS dao 7.51 heads tall (crown 1.98 m, head 0.26 m; band (7.3, 7.7)); mutation round-3 body 6.41 heads caught
+PASS dao run stance legs within reach every frame (0 stance frames clamped); hip drop 0.123 m, lowest hip 0.835 m, cycle 0.583333 s (35 frames, 3.429 steps/s, step 1.867 m) at 6.4 m/s
+PASS dao death floor solve: largest lift 0.151 m (fall back, 0.95 s); floor ref -0.023 m (rest sole)
+PASS dao texel density min 0.86 of 256 px/m (min 0.8; 4 parts squeezed; lowest [('tlam0', 0.86), ('tlam1', 0.86), ('waistlam0', 0.86), ('torso', 0.9)])
+PASS dao GLB re-import: 3 skinned meshes, actions ['attack', 'death', 'hit', 'idle', 'run'], 697 KB
+PASS mo lod0 tris 11392 (budget 10000-15000)
+PASS mo lod1 tris 2600 (budget 2000-3000)
+PASS mo lod2 tris 900 (budget 300-999)
+PASS mo lod0 unweighted vertices 0
+PASS mo lod0 weight sums off 1: 0
+PASS mo max influences 1 (glTF 4)
+PASS mo cloth heat weights solved (0 parts fell back to nearest bone: )
+PASS mo materials (draw calls) 3 (max 3)
+PASS mo attack tell 0.50 s (min 0.4)
+PASS mo tell travel 0.61 m (weapon tip, rest to windup; min 0.3)
+PASS mo idle 1.00 s
+PASS mo height with crest 1.85 m (1.7-2.9)
+PASS mo 7.51 heads tall (crown 1.82 m, head 0.24 m; band (7.3, 7.7)); mutation round-3 body 6.41 heads caught
+PASS mo run stance legs within reach every frame (0 stance frames clamped); hip drop 0.149 m, lowest hip 0.757 m, cycle 0.5 s (30 frames, 4.0 steps/s, step 1.4 m) at 5.6 m/s
+PASS mo death floor solve: largest lift 0.22 m (fall front, 1.10 s); floor ref -0.0522 m (rest sole)
+PASS mo texel density min 0.86 of 256 px/m (min 0.8; 6 parts squeezed; lowest [('skirt0', 0.86), ('skirt1', 0.86), ('tlam0', 0.86), ('tlam1', 0.86)])
+PASS mo GLB re-import: 3 skinned meshes, actions ['attack', 'death', 'hit', 'idle', 'run'], 776 KB
+PASS yy lod0 tris 14036 (budget 10000-15000)
+PASS yy lod1 tris 2600 (budget 2000-3000)
+PASS yy lod2 tris 898 (budget 300-999)
+PASS yy lod0 unweighted vertices 0
+PASS yy lod0 weight sums off 1: 0
+PASS yy max influences 4 (glTF 4)
+PASS yy cloth heat weights solved (0 parts fell back to nearest bone: )
+PASS yy materials (draw calls) 3 (max 3)
+PASS yy attack tell 0.60 s (min 0.4)
+PASS yy tell travel 1.58 m (weapon tip, rest to windup; min 0.3)
+PASS yy idle 1.00 s
+PASS yy height with crest 2.24 m (1.7-2.9)
+PASS yy 7.51 heads tall (crown 2.02 m, head 0.27 m; band (7.3, 7.7)); mutation round-3 body 6.41 heads caught
+PASS yy run stance legs within reach every frame (0 stance frames clamped); hip drop 0.13 m, lowest hip 0.884 m, cycle 0.566667 s (34 frames, 3.529 steps/s, step 1.7 m) at 6.0 m/s
+PASS yy death floor solve: largest lift 0.141 m (fall back, 1.00 s); floor ref -0.0263 m (rest sole)
+PASS yy texel density min 0.85 of 256 px/m (min 0.8; 5 parts squeezed; lowest [('orbL', 0.85), ('tlam0', 0.86), ('tlam1', 0.86), ('waistlam0', 0.86)])
+PASS yy GLB re-import: 3 skinned meshes, actions ['attack', 'death', 'hit', 'idle', 'run'], 812 KB
+PASS za lod0 tris 14196 (budget 10000-15000)
+PASS za lod1 tris 2600 (budget 2000-3000)
+PASS za lod2 tris 899 (budget 300-999)
+PASS za lod0 unweighted vertices 0
+PASS za lod0 weight sums off 1: 0
+PASS za max influences 4 (glTF 4)
+PASS za cloth heat weights solved (0 parts fell back to nearest bone: )
+PASS za materials (draw calls) 3 (max 3)
+PASS za attack tell 0.45 s (min 0.4)
+PASS za tell travel 1.45 m (weapon tip, rest to windup; min 0.3)
+PASS za idle 1.00 s
+PASS za height with crest 2.09 m (1.7-2.9)
+PASS za 7.51 heads tall (crown 2.02 m, head 0.27 m; band (7.3, 7.7)); mutation round-3 body 6.41 heads caught
+PASS za run stance legs within reach every frame (0 stance frames clamped); hip drop 0.124 m, lowest hip 0.87 m, cycle 0.55 s (33 frames, 3.636 steps/s, step 1.65 m) at 6.0 m/s
+FAIL za death floor solve: largest lift 0.302 m (fall front, 1.00 s); floor ref -0.0315 m (rest sole)
+PASS za texel density min 0.86 of 256 px/m (min 0.8; 7 parts squeezed; lowest [('tlam0', 0.86), ('tlam1', 0.86), ('waistlam0', 0.86), ('paulR0', 0.86)])
+PASS za GLB re-import: 3 skinned meshes, actions ['attack', 'death', 'hit', 'idle', 'run'], 879 KB
+PASS ming lod0 tris 11032 (budget 10000-15000)
+PASS ming lod1 tris 2600 (budget 2000-3000)
+PASS ming lod2 tris 900 (budget 300-999)
+PASS ming lod0 unweighted vertices 0
+PASS ming lod0 weight sums off 1: 0
+PASS ming max influences 1 (glTF 4)
+PASS ming cloth heat weights solved (0 parts fell back to nearest bone: )
+PASS ming materials (draw calls) 3 (max 3)
+PASS ming attack tell 0.50 s (min 0.4)
+PASS ming tell travel 1.64 m (weapon tip, rest to windup; min 0.3)
+PASS ming idle 1.00 s
+PASS ming height with crest 2.06 m (1.7-2.9)
+PASS ming 7.51 heads tall (crown 2.02 m, head 0.27 m; band (7.3, 7.7)); mutation round-3 body 6.41 heads caught
+PASS ming run stance legs within reach every frame (0 stance frames clamped); hip drop 0.089 m, lowest hip 0.9 m, cycle 0.533333 s (32 frames, 3.75 steps/s, step 1.6 m) at 6.0 m/s
+PASS ming death floor solve: largest lift 0.046 m (fall back, 0.95 s); floor ref -0.0231 m (rest sole)
+PASS ming texel density min 0.86 of 256 px/m (min 0.8; 7 parts squeezed; lowest [('tlam0', 0.86), ('tlam1', 0.86), ('tlam2', 0.86), ('skirt0', 0.86)])
+PASS ming GLB re-import: 3 skinned meshes, actions ['attack', 'death', 'hit', 'idle', 'run'], 776 KB
+PASS zh lod0 tris 13804 (budget 10000-15000)
+PASS zh lod1 tris 2599 (budget 2000-3000)
+PASS zh lod2 tris 899 (budget 300-999)
+PASS zh lod0 unweighted vertices 0
+PASS zh lod0 weight sums off 1: 0
+PASS zh max influences 4 (glTF 4)
+PASS zh cloth heat weights solved (0 parts fell back to nearest bone: )
+PASS zh materials (draw calls) 3 (max 3)
+PASS zh attack tell 0.45 s (min 0.4)
+PASS zh tell travel 1.41 m (weapon tip, rest to windup; min 0.3)
+PASS zh idle 1.00 s
+PASS zh height with crest 2.35 m (1.7-2.9)
+PASS zh 7.51 heads tall (crown 2.02 m, head 0.27 m; band (7.3, 7.7)); mutation round-3 body 6.41 heads caught
+PASS zh run stance legs within reach every frame (0 stance frames clamped); hip drop 0.118 m, lowest hip 0.876 m, cycle 0.583333 s (35 frames, 3.429 steps/s, step 1.75 m) at 6.0 m/s
+PASS zh death floor solve: largest lift 0.094 m (fall back, 1.00 s); floor ref -0.0286 m (rest sole)
+PASS zh texel density min 0.86 of 256 px/m (min 0.8; 7 parts squeezed; lowest [('tlam0', 0.86), ('tlam1', 0.86), ('tlam2', 0.86), ('waistlam0', 0.86)])
+PASS zh GLB re-import: 3 skinned meshes, actions ['attack', 'death', 'hit', 'idle', 'run'], 841 KB
+PASS nong lod0 tris 11800 (budget 10000-15000)
+PASS nong lod1 tris 2600 (budget 2000-3000)
+PASS nong lod2 tris 898 (budget 300-999)
+PASS nong lod0 unweighted vertices 0
+PASS nong lod0 weight sums off 1: 0
+PASS nong max influences 1 (glTF 4)
+PASS nong cloth heat weights solved (0 parts fell back to nearest bone: )
+PASS nong materials (draw calls) 3 (max 3)
+PASS nong attack tell 0.50 s (min 0.4)
+PASS nong tell travel 1.42 m (weapon tip, rest to windup; min 0.3)
+PASS nong idle 1.00 s
+PASS nong height with crest 2.10 m (1.7-2.9)
+PASS nong 7.51 heads tall (crown 1.94 m, head 0.26 m; band (7.3, 7.7)); mutation round-3 body 6.41 heads caught
+PASS nong run stance legs within reach every frame (0 stance frames clamped); hip drop 0.123 m, lowest hip 0.84 m, cycle 0.516667 s (31 frames, 3.871 steps/s, step 1.447 m) at 5.6 m/s
+FAIL nong death floor solve: largest lift 0.253 m (fall front, 1.10 s); floor ref -0.0422 m (rest sole)
+PASS nong texel density min 0.86 of 256 px/m (min 0.8; 6 parts squeezed; lowest [('skirt0', 0.86), ('skirt1', 0.86), ('tlam0', 0.86), ('tlam1', 0.86)])
+PASS nong GLB re-import: 3 skinned meshes, actions ['attack', 'death', 'hit', 'idle', 'run'], 806 KB
+150 of 153 pass
