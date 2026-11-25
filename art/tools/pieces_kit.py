@@ -18,6 +18,9 @@ TILE_M = {'tile4': 4.0, 'tile2': 2.0}
 LOD2_RATIO = 0.5
 
 BONE = {'cur': 'root'}
+# Which LOD is being built (0, 1, 2): builders drop parts by level, so LOD2 is built lean and keeps thin limbs (round 1: decimating LOD1
+# to LOD2 ate the wanderer's legs and the wall's posts; decimation is now only the fallback when a LOD is over its budget).
+LEVEL = {'n': 0}
 _put = K.put
 
 def _tagged_put(name, bm, mat, row, rnd):
@@ -71,7 +74,9 @@ def unskin(ob):
 
 def fit(ob, limit, ratio=1.0):
     """decimate to the ratio, then further until the triangle limit holds."""
-    n = K.tris(ob); r = min(ratio, limit * 0.97 / max(n, 1))
+    n = K.tris(ob)
+    if n <= limit and ratio >= 1.0: return ob
+    r = min(ratio, limit * 0.97 / max(n, 1))
     for _ in range(6):
         if r >= 0.999 and n <= limit: break
         K.decimate(ob, min(r, 0.999)); n = K.tris(ob)
@@ -92,7 +97,7 @@ def tilt(obs, pivot, axis, deg):
 
 def shell(name, fn, nu, nv, mat, row='plain', rnd=True):
     """a curved cast plate: fn(u, v, k) -> design point, u and v in 0-1, k 0 = outer face, 1 = inner face; closed around the rim."""
-    nu, nv = K.segs(nu, 3), K.segs(nv, 2); bm = bmesh.new()
+    nu, nv = K.segs(nu, 3), K.segs(nv, 1); bm = bmesh.new()
     g = [[[bm.verts.new(P(*fn(i / nu, j / nv, k))) for j in range(nv + 1)] for i in range(nu + 1)] for k in (0, 1)]
     for i in range(nu):
         for j in range(nv):
@@ -107,11 +112,11 @@ def shell(name, fn, nu, nv, mat, row='plain', rnd=True):
     bmesh.ops.recalc_face_normals(bm, faces=bm.faces)
     return K.put(name, bm, mat, row, rnd)
 
-def lods_static(prefix, build, budget, ratio2=LOD2_RATIO):
+def lods_static(prefix, build, budget):
     """LOD0 (full detail, bevels), LOD1 (half segments, no small parts), LOD2 (LOD1 decimated); all static."""
-    K.Q['seg'] = 0.5; build(False); l1 = unskin(finish(prefix + '_lod1')); fit(l1, budget[1])
-    build(False); l2 = unskin(finish(prefix + '_lod2')); fit(l2, budget[2], ratio2)
-    K.Q['seg'] = 1.0; build(True); l0 = unskin(finish(prefix + '_lod0', True))
+    LEVEL['n'] = 1; K.Q['seg'] = 0.5; build(False); l1 = unskin(finish(prefix + '_lod1')); fit(l1, budget[1])
+    LEVEL['n'] = 2; K.Q['seg'] = 0.35; build(False); l2 = unskin(finish(prefix + '_lod2')); fit(l2, budget[2])
+    LEVEL['n'] = 0; K.Q['seg'] = 1.0; build(True); l0 = unskin(finish(prefix + '_lod0', True))
     return l0, l1, l2
 
 # rig and clips -------------------------------------------------------------------------------------------------------
@@ -201,9 +206,9 @@ def build_rigged(key, build, bones, clips_fn, out, budget, gap, extras=None, ext
     """build(detail) fills prop_kit.PARTS (each part tagged by bone()); clips_fn(arm) -> [(action, seconds, probe bone, min travel m)].
     Writes <key>_lod0 skinned to <key>_rig, <key>_lod1 and <key>_lod2 static (moved aside by gap, 2 x gap). Returns the gate fail count."""
     K.reset(); K.PARTS.clear(); bpy.context.scene.render.fps = FPS
-    K.Q['seg'] = 0.5; build(False); l1 = unskin(finish(f'{key}_lod1')); fit(l1, budget[1])
-    build(False); l2 = unskin(finish(f'{key}_lod2')); fit(l2, budget[2], LOD2_RATIO)
-    K.Q['seg'] = 1.0; build(True); l0 = finish(f'{key}_lod0', True)
+    LEVEL['n'] = 1; K.Q['seg'] = 0.5; build(False); l1 = unskin(finish(f'{key}_lod1')); fit(l1, budget[1])
+    LEVEL['n'] = 2; K.Q['seg'] = 0.35; build(False); l2 = unskin(finish(f'{key}_lod2')); fit(l2, budget[2])
+    LEVEL['n'] = 0; K.Q['seg'] = 1.0; build(True); l0 = finish(f'{key}_lod0', True)
     arm = make_rig(f'{key}_rig', bones); stray, bad = skin(arm, l0)
     G = K.Gates()
     for ob, lim in zip((l0, l1, l2), budget): G(K.tris(ob) <= lim, f'{ob.name} tris {K.tris(ob)} (budget {lim})')

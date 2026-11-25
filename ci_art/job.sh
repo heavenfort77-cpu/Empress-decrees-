@@ -1,5 +1,5 @@
 #!/bin/bash
-# PIECES round 1 (owner 25 Nov 13:08): art for everything still drawn as plain shapes: Kaymuse (pieces_kaymuse.py), the crab and the wanderer
+# PIECES round 2 (owner 25 Nov 13:08; lead verdict on run 45555140630): art for everything still drawn as plain shapes: Kaymuse (pieces_kaymuse.py), the crab and the wanderer
 # (pieces_creatures.py), the plate pickup, leader crown, 墨 wall and decree mark (pieces_small.py). Steps: build (Blender gates), builder
 # mutations (wrong CONFIG values must fail their gates), GLB gates with mutations (pieces_check.py), review shots in three (pieces_shoot.mjs:
 # close-ups, play size beside in-game art, masks, silhouettes), play-size measures with mutations (pieces_measure.py) and sheets
@@ -18,7 +18,7 @@ $BPY -c "import bpy, numpy, PIL" 2>/dev/null || miss "bpy python imports (bpy nu
 python3 -c "import numpy, PIL, scipy, json" 2>/dev/null || miss "python3 imports (numpy PIL scipy)"
 node -e "import('playwright').then(m=>m.chromium.executablePath()).then(p=>require('fs').existsSync(p)||process.exit(1)).catch(()=>process.exit(1))" || miss "playwright chromium"
 for f in $T/prop_kit.py $T/pieces_kit.py $T/pieces_kaymuse.py $T/pieces_creatures.py $T/pieces_small.py $T/pieces_check.py $T/pieces_measure.py $T/pieces_sheets.py $T/pieces_shoot.mjs \
-         $T/pieces_mats.json art/viewer/pieces.html art/viewer/vendor/loaders/GLTFLoader.js lib/three.module.min.js lib/three.core.min.js \
+         $T/pieces_mats.json art/pieces/floor_candidate.png art/viewer/pieces.html art/viewer/vendor/loaders/GLTFLoader.js lib/three.module.min.js lib/three.core.min.js \
          assets/models/arch/throne_dais.glb assets/models/ding.glb assets/models/suits/mo.glb assets/models/suits/fa.glb assets/models/guard/zu.glb; do [ -s "$f" ] || miss "input $f"; done
 for x in bronze_trim_brass suit_cloth rammed_earth timber river_stone hall_floor suit_lamellar suit_bronze fodder_trim tread_belt stone_paving pillar; do [ -s assets/tex/$x.png ] || miss "input assets/tex/$x.png"; done
 $BPY -c "import sys; sys.argv=['x']; sys.path.insert(0,'art/tools'); import pieces_kit, pieces_kaymuse, pieces_creatures, pieces_small" >/dev/null 2>$O/preflight_import.txt || miss "builders import under bpy ($(tail -1 $O/preflight_import.txt))"
@@ -38,16 +38,22 @@ cp /tmp/pieces/*.glb $O/models/ 2>/dev/null; ls -la /tmp/pieces
 step "builder mutations"
 # a wrong CONFIG value must fail its gate: (builder, output, PIECES_MUT, the FAIL line expected)
 mut() { PIECES_MUT="$3" $BPY $T/$1 $2 > /tmp/pmut/log.txt 2>&1; if grep -q "^FAIL $4" /tmp/pmut/log.txt; then echo "MUT caught: $1 with $3 -> $(grep -m1 "^FAIL $4" /tmp/pmut/log.txt | cut -c1-120)"; else echo "MUT MISSED: $1 with $3 (no line 'FAIL $4')"; fi; }
-{ mut pieces_kaymuse.py /tmp/pmut/kaymuse.glb "BEAD_N=2" "kaymuse bead curtain"
+{ mut pieces_kaymuse.py /tmp/pmut/kaymuse.glb "HEAD_MAT='kmJade'" "kaymuse head dark"
+  mut pieces_kaymuse.py /tmp/pmut/kaymuse.glb "STR_DEG=3" "kaymuse 冕: "
   mut pieces_kaymuse.py /tmp/pmut/kaymuse.glb "BUDGET=(1000,2600,900)" "kaymuse_lod0 tris"
   mut pieces_kaymuse.py /tmp/pmut/kaymuse.glb "REST_X=2.4" "kaymuse sits within"
   mut pieces_creatures.py /tmp/pmut "C_KNEE=(0.84,1.35)" "crab .* low and wide"
   mut pieces_creatures.py /tmp/pmut "W_HIP=(1.0,-0.05,1.40)" "wanderer .* tall and narrow"
-  mut pieces_creatures.py /tmp/pmut "C_MOVE=(0.8,0.0,0.0,0.0)" "crab clip move"
-  mut pieces_small.py /tmp/pmut "PL_LEN=1.2" "plate "
-  mut pieces_small.py /tmp/pmut "CR_TOP=1.5" "leader crown "
-  mut pieces_small.py /tmp/pmut "MW_POSTS=(-2.7,-0.94,0.0,0.94,2.7)" "墨 wall "
-  mut pieces_small.py /tmp/pmut "DM_FRAME=1.7" "decree mark "; } 2>&1 | tee $O/gates/build_mutations.txt
+  mut pieces_creatures.py /tmp/pmut "C_MOVE=(0.6,0.0,0.0,0.0,0.0,0.0)" "crab clip move"
+  mut pieces_creatures.py /tmp/pmut "C_MOVE=(0.6,2.0,1.0,0.0,0.0,16.0)" "crab move reads apart"
+  mut pieces_creatures.py /tmp/pmut "C_STUDS=(4,0.665,0.03)" "crab lid relief"
+  mut pieces_creatures.py /tmp/pmut "W_LEG_W=(0.16,0.03,0.075)" "wanderer limbs"
+  mut pieces_small.py /tmp/pmut "PL_LEN=1.2" "plate 0"
+  mut pieces_small.py /tmp/pmut "PL_LAMES=1" "plate reads as armour"
+  mut pieces_small.py /tmp/pmut "CR_BOARD_Z=0.9" "leader crown 0"
+  mut pieces_small.py /tmp/pmut "MW_BRACES=4" "墨 wall frame"
+  mut pieces_small.py /tmp/pmut "MW_POSTS=(-2.7,-0.94,0.0,0.94,2.7)" "墨 wall [0-9]"
+  mut pieces_small.py /tmp/pmut "DM_SIGIL=[(0,0,0.02,0.12,0),(0.04,0.05,0.08,0.02,0),(0.04,0,0.08,0.02,0),(0.04,-0.05,0.08,0.02,0)]" "decree seal sigil"; } 2>&1 | tee $O/gates/build_mutations.txt
 step "glb gates"
 python3 $T/pieces_check.py /tmp/pieces --mutate 2>&1 | tee $O/gates/glb_gates.txt
 step "shots"

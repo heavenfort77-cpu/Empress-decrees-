@@ -7,7 +7,8 @@
                               crab, wanderer, 卒 guard, plate, 法 suit (decree mark over it), the 墨 wall behind. &clip= &t= pose the creatures.
      ?scene=throne&view=play|approach|wide|close   Kaymuse on throne_dais.glb with a suit and a guard at the dais foot (&yaw= &pitch= close)
      &mode=tex | sil (black on white, no floor) | mask (&mask=ID: that piece unlit white, the rest black: on-screen measurement)
-     &floor=tex | calm (flat mid-value cinnabar #7a2a1c: the floor repaint is another worker's; a stand-in only)
+     &floor=tex (the current hall floor) | light (the lighter floor candidate of branch ci-art-colour, a copy at art/pieces/floor_candidate.png:
+            the contrast gate is judged on it; the throne's 丹 top takes it too) | calm (flat #7a2a1c)
      &dir=path of the pieces GLBs (default ../../assets/models/pieces/). Materials: art/tools/pieces_mats.json. -->
 <html><head><meta charset="utf-8"><style>html,body{margin:0;background:#120d16;overflow:hidden}</style>
 <script type="importmap">{"imports":{"three":"../../lib/three.module.min.js"}}</script></head><body>
@@ -25,10 +26,11 @@ scene.add(new THREE.HemisphereLight(0xd9c9ff, 0x3a2a22, 1.1));
 const sun = new THREE.DirectionalLight(0xffe2b8, 2.2); sun.position.set(-30, 60, 25); sun.target.position.set(0, 0, -12); sun.castShadow = true;
 Object.assign(sun.shadow.camera, { left: -14, right: 14, top: 14, bottom: -14, near: 10, far: 150 }); sun.shadow.mapSize.set(2048, 2048); scene.add(sun, sun.target);
 const TL = new THREE.TextureLoader(), TEX = {};
-const tex = (f, flip = false, rep = 0) => { const k = f + flip + rep; if (TEX[k]) return TEX[k]; const t = TL.load(`../../assets/tex/${f}.png`); t.colorSpace = THREE.SRGBColorSpace; t.wrapS = t.wrapT = THREE.RepeatWrapping; t.anisotropy = 4; t.flipY = flip; if (rep) t.repeat.set(rep, rep); return (TEX[k] = t); };
+const FLOOR = Q.get('floor') || 'tex';
+const tex = (f, flip = false, rep = 0) => { const k = f + flip + rep; if (TEX[k]) return TEX[k]; const t = TL.load(f === 'hall_floor' && FLOOR === 'light' ? '../pieces/floor_candidate.png' : `../../assets/tex/${f}.png`); t.colorSpace = THREE.SRGBColorSpace; t.wrapS = t.wrapT = THREE.RepeatWrapping; t.anisotropy = 4; t.flipY = flip; if (rep) t.repeat.set(rep, rep); return (TEX[k] = t); };
 const BLACK = new THREE.MeshBasicMaterial({ color: 0x000000 }), WHITE = new THREE.MeshBasicMaterial({ color: 0xffffff });
 if (MODE !== 'sil') {
-  const fm = MODE === 'mask' ? BLACK : Q.get('floor') === 'calm' ? new THREE.MeshStandardMaterial({ color: 0x7a2a1c, roughness: 0.9 }) : new THREE.MeshStandardMaterial({ map: tex('hall_floor', true, 10), roughness: 0.9 });
+  const fm = MODE === 'mask' ? BLACK : FLOOR === 'calm' ? new THREE.MeshStandardMaterial({ color: 0x7a2a1c, roughness: 0.9 }) : new THREE.MeshStandardMaterial({ map: tex('hall_floor', true, 10), roughness: 0.9 });
   const floor = new THREE.Mesh(new THREE.PlaneGeometry(40, 40), fm); floor.rotation.x = -Math.PI / 2; floor.receiveShadow = true; scene.add(floor);
 }
 const TABLE = await (await fetch('../tools/pieces_mats.json')).json();

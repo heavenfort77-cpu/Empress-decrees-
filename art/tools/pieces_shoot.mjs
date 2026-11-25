@@ -15,7 +15,7 @@ const server = createServer(async (req, res) => {
 const BASE = `http://127.0.0.1:${server.address().port}/art/viewer/pieces.html`;
 await mkdir(OUT, { recursive: true });
 // CONFIG: close-up framing per piece: [distance m, look height m, pitch deg]
-const CLOSE = { crab: [3.6, 0.5, 15], wanderer: [5.4, 1.35, 12], plate: [1.7, 0.08, 35], leader_crown: [2.4, 0.45, 12], mo_wall: [7.0, 1.2, 15], decree_mark: [2.2, 0.45, 8], kaymuse: [5.0, 0.85, 10] };
+const CLOSE = { crab: [3.6, 0.5, 15], wanderer: [6.0, 1.4, 12], plate: [1.7, 0.08, 35], leader_crown: [1.9, 0.14, 22], mo_wall: [7.0, 1.2, 15], decree_mark: [2.2, 0.45, 8], kaymuse: [5.0, 0.85, 10] };
 const S = 720, FULL = [1920, 1080];
 const shots = [];
 for (const [id, [d, ly, p]] of Object.entries(CLOSE)) {
@@ -25,21 +25,22 @@ for (const [id, [d, ly, p]] of Object.entries(CLOSE)) {
   shots.push([`${id}_lods`, `scene=one&model=${id}&lod=all&dist=${d * 2.4}&ly=${ly}&lx=${id === 'mo_wall' ? 5 : id === 'kaymuse' ? 4 : d * 0.6}&pitch=${p}&yaw=0`, 1440, S]);
 }
 // clips: four poses each (same camera)
-for (const [id, clip, ts] of [['crab', 'move', [0, 0.2, 0.4, 0.6]], ['crab', 'idle', [0, 0.6, 1.2, 1.8]], ['wanderer', 'move', [0, 0.4, 0.8, 1.2]], ['wanderer', 'idle', [0, 0.8, 1.6, 2.4]]]) {
+for (const [id, clip, ts] of [['crab', 'move', [0, 0.15, 0.3, 0.45]], ['crab', 'idle', [0, 0.6, 1.2, 1.8]], ['wanderer', 'move', [0, 0.4, 0.8, 1.2]], ['wanderer', 'idle', [0, 0.8, 1.6, 2.4]]]) {
   const [d, ly, p] = CLOSE[id];
   ts.forEach((t, i) => shots.push([`${id}_${clip}_${i}`, `scene=one&model=${id}&dist=${d}&ly=${ly}&pitch=${p}&yaw=60&clip=${clip}&t=${t}`, S, S]));
 }
 // silhouettes at the game camera, same place and scale (crab against wanderer: pieces_measure.py)
 for (const id of ['crab', 'wanderer']) for (const yaw of [0, 90]) shots.push([`sil_${id}_${yaw}`, `scene=one&model=${id}&view=cam&yaw=${yaw}&mode=sil`, 960, 960]);
 // play size on the hall floor beside in-game art, and one mask per piece (same camera)
-shots.push(['lineup_play', 'scene=lineup', ...FULL], ['lineup_calm', 'scene=lineup&floor=calm', ...FULL], ['lineup_wide', 'scene=lineup&view=wide', ...FULL], ['lineup_move', 'scene=lineup&clip=move&t=0.2', ...FULL]);
+shots.push(['lineup_light', 'scene=lineup&floor=light', ...FULL], ['lineup_play', 'scene=lineup', ...FULL], ['lineup_wide', 'scene=lineup&view=wide&floor=light', ...FULL], ['lineup_move', 'scene=lineup&clip=move&t=0.15&floor=light', ...FULL]);
 for (const id of ['crab', 'wanderer', 'plate', 'leader_crown', 'mo_wall', 'decree_mark']) shots.push([`mask_${id}`, `scene=lineup&mode=mask&mask=${id}`, ...FULL]);
 // Kaymuse on the throne: play size (three framings), close-ups, the bead curtain, idle poses, masks
-shots.push(['throne_play', 'scene=throne&view=play', ...FULL], ['throne_approach', 'scene=throne&view=approach', ...FULL], ['throne_wide', 'scene=throne&view=wide', ...FULL],
+shots.push(['throne_play', 'scene=throne&view=play', ...FULL], ['throne_approach', 'scene=throne&view=approach', ...FULL], ['throne_wide', 'scene=throne&view=wide&floor=light', ...FULL],
+  ['throne_play_light', 'scene=throne&view=play&floor=light', ...FULL], ['throne_approach_light', 'scene=throne&view=approach&floor=light', ...FULL], ['throne_close_back', 'scene=throne&view=close&yaw=150&dist=4', 960, 960],
   ['mask_kaymuse_play', 'scene=throne&view=play&mode=mask&mask=kaymuse', ...FULL], ['mask_kaymuse_approach', 'scene=throne&view=approach&mode=mask&mask=kaymuse', ...FULL],
   ['throne_close_front', 'scene=throne&view=close&yaw=0', 960, 960], ['throne_close_34', 'scene=throne&view=close&yaw=35', 960, 960], ['throne_close_side', 'scene=throne&view=close&yaw=80', 960, 960],
   ['throne_close_cam', 'scene=throne&view=close&yaw=0&pitch=40&dist=6', 960, 960],
-  ['beads_front', 'scene=throne&view=close&yaw=0&dist=1.9&ly=3.62&pitch=5', S, S], ['beads_34', 'scene=throne&view=close&yaw=40&dist=1.9&ly=3.62&pitch=5', S, S],
+  ['beads_front', 'scene=throne&view=close&yaw=0&dist=1.9&ly=3.62&pitch=5', S, S], ['beads_side', 'scene=throne&view=close&yaw=90&dist=1.9&ly=3.62&pitch=5', S, S], ['beads_34', 'scene=throne&view=close&yaw=40&dist=1.9&ly=3.62&pitch=5', S, S],
   ['beads_idle_1', 'scene=throne&view=close&yaw=70&dist=1.9&ly=3.62&pitch=5&clip=idle&t=1', S, S], ['beads_idle_3', 'scene=throne&view=close&yaw=70&dist=1.9&ly=3.62&pitch=5&clip=idle&t=3', S, S]);
 const browser = await chromium.launch({ args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--ignore-gpu-blocklist'] });
 let bad = 0;

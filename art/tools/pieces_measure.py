@@ -2,7 +2,8 @@
 """Play-size measures for the PIECES round, from pieces_shoot.mjs shots (same camera for the lit shot and its mask):
   floor contrast   per piece: the share of its outline pixels whose contrast (WCAG relative luminance) against what is beside it at the
                    game camera is >= 3:1 (the rule of art/tools/suit_contrast.py), its body median contrast, and its size on screen;
-                   Kaymuse is measured on the throne (play and approach framings); the calm-floor stand-in is reported as INFO only.
+                   Kaymuse is measured on the throne (play and approach framings). Round 2 (lead): the gate is judged on the lighter
+                   floor candidate (branch ci-art-colour, copy at art/pieces/floor_candidate.png); the current floor is reported as INFO.
   silhouettes      crab against wanderer at the game camera, front and side: IoU at the same scale and place, and IoU after scaling
                    both to one height (bottom-centre aligned); every one must be <= 0.6.
 --mutate: contrast gate against the piece repainted in its surround's median colour; visibility gate against an empty mask; silhouette
@@ -54,13 +55,15 @@ def gate(ok, line):
     global n, fails
     n += 1; fails += not ok; print(('PASS ' if ok else 'FAIL ') + line)
 
-_, Y = lum(f'{S}/lineup_play.png'); _, Yc = lum(f'{S}/lineup_calm.png')
+_, Y = lum(f'{S}/lineup_light.png'); _, Yc = lum(f'{S}/lineup_play.png')
+fm = ~np.any([mask(f'mask_{p}') for p in FLOOR], axis=0); print(f'INFO floor on screen (lineup, relative luminance, median of the lower third): lighter candidate {np.median(Y[720:][fm[720:]]):.3f}, current {np.median(Yc[720:][fm[720:]]):.3f}')
 for pid in FLOOR:
     m = mask(f'mask_{pid}'); ok, share, med, area, hpx = contrast(Y, m)
-    gate(ok, f'{pid} at play size (CAM_DIST 14, 1080p; {hpx} px high, {area} px): {share:.0%} of outline pixels >= {RATIO}:1 against what is beside it on the hall floor (min {EDGE_SHARE:.0%}); body median {med:.1f}:1')
-    _, s2, m2, _, _ = contrast(Yc, m); print(f'INFO {pid} on the calm stand-in floor (#7a2a1c): outline {s2:.0%}, body median {m2:.1f}:1')
+    gate(ok, f'{pid} at play size (CAM_DIST 14, 1080p; {hpx} px high, {area} px): {share:.0%} of outline pixels >= {RATIO}:1 against what is beside it on the lighter floor candidate (min {EDGE_SHARE:.0%}); body median {med:.1f}:1')
+    _, s2, m2, _, _ = contrast(Yc, m); print(f'INFO {pid} on the current hall floor: outline {s2:.0%}, body median {m2:.1f}:1')
 for view in ('play', 'approach'):
-    _, Yt = lum(f'{S}/throne_{view}.png'); m = mask(f'mask_kaymuse_{view}'); ok, share, med, area, hpx = contrast(Yt, m)
+    _, Yt = lum(f'{S}/throne_{view}_light.png'); m = mask(f'mask_kaymuse_{view}'); ok, share, med, area, hpx = contrast(Yt, m)
+    _, Yo = lum(f'{S}/throne_{view}.png'); _, s2, m2, _, _ = contrast(Yo, m); print(f'INFO kaymuse {view} framing with the current floor on the dais top: outline {s2:.0%}, body median {m2:.1f}:1')
     gate(ok, f'kaymuse on the throne, {view} framing ({hpx} px high, {area} px): {share:.0%} of outline pixels >= {RATIO}:1 against the throne behind her (min {EDGE_SHARE:.0%}); body median {med:.1f}:1')
 for yaw in (0, 90):
     a, b = sil(f'sil_crab_{yaw}'), sil(f'sil_wanderer_{yaw}'); raw = iou(a, b); nor = iou(fit(a), fit(b))
@@ -69,9 +72,9 @@ print(f'{n - fails} of {n} pass')
 
 if '--mutate' in sys.argv:
     res = []
-    img, _ = lum(f'{S}/lineup_play.png'); m = mask('mask_wanderer'); ring = ndimage.binary_dilation(m, iterations=10) & ~ndimage.binary_dilation(m, iterations=2)
+    img, _ = lum(f'{S}/lineup_light.png'); m = mask('mask_wanderer'); ok0, share0, *_ = contrast(Y, m); ring = ndimage.binary_dilation(m, iterations=10) & ~ndimage.binary_dilation(m, iterations=2)
     img2 = img.copy(); img2[m] = np.median(img[ring], axis=0); lin = np.where(img2 <= 0.04045, img2 / 12.92, ((img2 + 0.055) / 1.055) ** 2.4)
-    ok, share, *_ = contrast(lin @ [0.2126, 0.7152, 0.0722], m); res.append((not ok, f'contrast gate against the wanderer repainted in its surround colour -> outline {share:.0%}'))
+    ok, share, *_ = contrast(lin @ [0.2126, 0.7152, 0.0722], m); res.append((not ok and share < share0, f'contrast gate against the wanderer repainted in its surround colour -> outline {share:.0%} (unmutated {share0:.0%}{"" if ok0 else ": the unmutated piece fails too, so this proves less"})'))
     ok, _, _, area, _ = contrast(Y, np.zeros_like(m)); res.append((not ok, f'visibility gate against an empty mask -> {area} px'))
     a = sil('sil_crab_0'); v = iou(a, a); res.append((v > IOU_MAX, f'silhouette gate against the crab compared with itself -> IoU {v:.2f}'))
     v2 = iou(fit(a), fit(a)); res.append((v2 > IOU_MAX, f'scaled silhouette gate against the crab compared with itself -> IoU {v2:.2f}'))
