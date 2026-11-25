@@ -219,7 +219,7 @@ SUIT = {
     'suit_cloth': (512, 2.0, {'cloth': ((0, 512), (2, 30), (3, 25), 0.12, (180, 240))}),
 }
 # school binding colours (cord rows of suit_lamellar, 32 px each from y 736, school order) and the largest RGB distance of the row median
-CORD = [('fa', '#b0402c'), ('ru', '#c9a54a'), ('dao', '#e4ded0'), ('mo', '#b8862e'), ('yy', '#1e1b1a'), ('za', '#2e5a9c'), ('ming', '#bfc3c6'), ('zh', '#5b3f8c'), ('nong', '#2f8a5c')]
+CORD = [('fa', '#d9d2c3'), ('ru', '#94622c'), ('dao', '#e2b84a'), ('mo', '#a8321e'), ('yy', '#1a1614'), ('za', '#b2bccb'), ('ming', '#5b3f8c'), ('zh', '#2f8a5c'), ('nong', '#2e5a9c')]
 CORD_DIST = 50
 # lamella width (the plate pitch across a lamellar row), cm
 LAM_CM = (7, 9)
