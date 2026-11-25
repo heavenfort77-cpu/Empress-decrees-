@@ -1,0 +1,14 @@
+PREFLIGHT start
+PREFLIGHT PASS
+Not building database; man-db/auto-update is not 'true'.
+toktx v4.3.0~28
+PREP suit_lamellar RGB (1024, 1024)
+ENC desk suit_lamellar uastc 719667 bytes
+ENC phone suit_lamellar uastc 222145 bytes
+MANIFEST assets/c/desk/suit_lamellar.ktx2 c38b4d38e1ab 1eba06bd1294
+MANIFEST assets/c/phone/suit_lamellar.ktx2 86e3fe4d2b2e 1eba06bd1294
+remote: 
+remote: Create a pull request for 'ci-enc-int' on GitHub by visiting:        
+remote:      https://github.com/heavenfort77-cpu/Empress-decrees-/pull/new/ci-enc-int        
+remote: 
+PUSHED ci-enc-int db98a10
