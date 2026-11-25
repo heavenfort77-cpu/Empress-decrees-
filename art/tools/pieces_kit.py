@@ -26,6 +26,8 @@ _put = K.put
 def _tagged_put(name, bm, mat, row, rnd):
     ob = _put(name, bm, mat, row, rnd); ob['bone'] = BONE['cur']; return ob
 
+K.put = _tagged_put
+
 def mutate(ns):
     """mutation runs (ci_art/job.sh): PIECES_MUT='NAME=value;NAME=value' overrides CONFIG values of the calling builder, so its gates can
     be shown to fail on a wrong build. Unset = nothing changes."""
