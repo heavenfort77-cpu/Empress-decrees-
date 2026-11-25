@@ -17,7 +17,8 @@ enc() { # set mode name
   esac || echo "ENCFAIL $set $mode $n"
 }
 export -f enc; export S
-for set in desk phone; do for f in "$S/src/$set"/*.png; do n=$(basename "$f" .png); echo "$set etc1s $n"; echo "$set uastc $n"; echo "$set uastc4 $n"; done; done | xargs -P 4 -L 1 bash -c 'enc $0 $1 $2'
+# SKIPMAIN=1: the main encodes already sit in STAGE (re-check of an earlier run's files); only the mutants are encoded.
+[ -z "${SKIPMAIN:-}" ] && for set in desk phone; do for f in "$S/src/$set"/*.png; do n=$(basename "$f" .png); echo "$set etc1s $n"; echo "$set uastc $n"; echo "$set uastc4 $n"; done; done | xargs -P 4 -L 1 bash -c 'enc $0 $1 $2'
 # Mutants (must each fail a gate): quality 1 (reported), red/blue swapped input, blurred input (detail lost), no mips, alpha dropped, posterised input.
 if [ -n "$MUT" ]; then
   M="$S/mut"; mkdir -p "$M"
@@ -36,6 +37,7 @@ if [ -n "$MUT" ]; then
   for f in "$S/mutsrc"/*__*.glb; do $GT meshopt "$f" "$S/mutm/$(basename "$f")" $QF >>"$S/gt.log" 2>&1; done
   ls "$S/mutm"
 fi
+[ -n "${SKIPMAIN:-}" ] && exit 0
 cd "$R/assets/models"
 find . -name '*.glb' | sort | while read -r g; do
   mkdir -p "$S/models/$(dirname "$g")"

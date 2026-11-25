@@ -74,14 +74,19 @@ for st in ('desk', 'phone'):
             fk, ftxt = texcheck(d)
             for n in src[st]:
                 if (st, mode, n) in res: res[(st, mode, n)]['newkeys'] = sorted(k for k in fk - fs if k.split()[1] == n); res[(st, mode, n)]['ktxt'] = [ftxt[k] for k in res[(st, mode, n)]['newkeys']]
-pick, t2bad, t3bad, t4bad, t5bad = {}, [], [], [], []
+pick, t2bad, t3bad, t4bad, t5bad, pngs = {}, [], [], [], [], []
 for st in ('desk', 'phone'):
     for n in src[st]:
         ok = lambda c: c['psnr'] >= 35 and c['de'] <= 2 and c['aflip'] <= 0.01 and not c.get('newkeys')
         m = next((m for m in MODES if (st, m, n) in res and ok(res[(st, m, n)])), None)
         if m is None:
-            m = max((m for m in MODES if (st, m, n) in res), key=lambda k: res[(st, k, n)]['psnr'], default=None)
-            if m is None: (t2bad if st == 'desk' else t3bad).append(f'{n} not decoded'); continue
+            # No KTX2 mode keeps the texture within the gates: it ships as its PNG (exact; assemble.py), listed, never as a failing KTX2.
+            if any((st, k, n) in res for k in MODES):
+                pngs.append(f'{st}/{n} (best KTX2 ' + ', '.join(f'{k} {res[(st, k, n)]["psnr"]:.1f} dB dE {res[(st, k, n)]["de"]:.2f}' for k in MODES if (st, k, n) in res) + ')')
+                pick[f'{st}/{n}'] = {'mode': 'png', 'psnr': 99.0, 'de': 0.0, 'de95': 0.0, 'aflip': 0.0, 'orient': 'top-first', 'bytes': os.path.getsize(f'{S}/src/{st}/{n}.png'),
+                                     'tried': {k: [round(res[(st, k, n)]['psnr'], 1), round(res[(st, k, n)]['de'], 2), len(res[(st, k, n)].get('newkeys', []))] for k in MODES if (st, k, n) in res}}
+            else: (t2bad if st == 'desk' else t3bad).append(f'{n} not decoded')
+            continue
         c = res[(st, m, n)]
         pick[f'{st}/{n}'] = {'mode': m, 'psnr': round(c['psnr'], 2), 'de': round(c['de'], 3), 'de95': round(c['de95'], 2), 'aflip': round(c['aflip'], 4), 'orient': c['orient'],
                              'bytes': os.path.getsize(f'{S}/{st}/{m}/{n}.ktx2'), **({'psnr_vis': round(c['psnr_vis'], 2)} if 'psnr_vis' in c else {}),
@@ -93,17 +98,19 @@ ntot = sum(len(v) for v in src.values()) * len(MODES)
 gate('T1 encode + load (rgba route)', not t1bad and ntot > 0, f'{ntot - len(t1bad)} of {ntot}' + (' bad ' + ' '.join(t1bad[:8]) if t1bad else ''))
 gate('T2 desk PSNR >= 35 and dE <= 2', not t2bad and len(src['desk']) > 0, f'{len(src["desk"]) - len(t2bad)} of {len(src["desk"])}' + (' bad ' + '; '.join(t2bad) if t2bad else ''))
 gate('T3 phone PSNR >= 35 and dE <= 2', not t3bad and len(src['phone']) > 0, f'{len(src["phone"]) - len(t3bad)} of {len(src["phone"])}' + (' bad ' + '; '.join(t3bad) if t3bad else ''))
+lines.append('INFO shipped as PNG (no KTX2 mode within the gates): ' + ('; '.join(pngs) if pngs else 'none'))
 nalpha = sum(1 for k in pick if k.startswith('desk/') and np.asarray(Image.open(f'{S}/src/desk/{k[5:]}.png').convert('RGBA'))[..., 3].min() < 255)
 gate('T4 alpha flips <= 1%', not t4bad and nalpha >= 6, f'{nalpha} alpha textures (desk) checked; worst ' + str(max([v['aflip'] for v in pick.values()] + [0])) + (' bad ' + ' '.join(t4bad) if t4bad else ''))
 gate('T5 tex_check ratchet (no new FAIL rule on a picked decode)', not t5bad and len([k for k in pick if k.startswith('desk/')]) == len(src['desk']), f'source FAIL rules {sorted(fs)}; new on picks {len(t5bad)}' + (' : ' + ' || '.join(t5bad) if t5bad else ''))
 t6bad = []
 for k, v in pick.items():
     st, n = k.split('/'); g = gpu.get(f'gpu/{st}/{v["mode"]}/{n}')
+    if v['mode'] == 'png': continue
     w = Image.open(f'{S}/src/{st}/{n}.png').size[0]; want = int(np.log2(w)) + 1
     if not g or not g.get('ok') or g.get('mips', 0) < want or g.get('err'): t6bad.append(f'{k} {g and (g.get("mips"), g.get("err"), g.get("ok"))}')
 caps = json.load(open(f'{O}/caps_gpu.json'))
 fmts = sorted(set(str(gpu[t]['format']) for t in gpu if gpu[t].get('ok')))
-gate('T6 GPU route loads every picked file with full mips', not t6bad and len(pick) == len(src['desk']) + len(src['phone']) and len(pick) > 0, f'{len(pick) - len(t6bad)} of {len(pick)}; formats {fmts}; caps ' + json.dumps({k: caps[k] for k in caps if k != 'workerConfig'}) + (' bad ' + '; '.join(t6bad[:6]) if t6bad else ''))
+gate('T6 GPU route loads every picked file with full mips', not t6bad and len(pick) == len(src['desk']) + len(src['phone']) and len(pick) > 0, f'{len(pick) - len(t6bad) - len(pngs)} of {len(pick) - len(pngs)} KTX2 picks; formats {fmts}; caps ' + json.dumps({k: caps[k] for k in caps if k != 'workerConfig'}) + (' bad ' + '; '.join(t6bad[:6]) if t6bad else ''))
 # Texture mutants: each must fail its named gate (q1 = quality 1 is reported with its numbers and by any gate).
 mm, mnum = {}, []
 for f in sorted(glob.glob(f'{S}/mut/*.ktx2')):
@@ -150,7 +157,7 @@ sz_src = sum(os.path.getsize(f) for f in glob.glob(f'{R}/assets/models/**/*.glb'
 gi = f'{S}/models/giants/giants.glb'
 lines.append(f'INFO models {sz_src / 1e6:.2f} MB -> {sz_c / 1e6:.2f} MB; giants {os.path.getsize(gi) / 1e6 if os.path.exists(gi) else -1:.2f} MB')
 td = sum(v['bytes'] for k, v in pick.items() if k.startswith('desk/')); tp = sum(v['bytes'] for k, v in pick.items() if k.startswith('phone/'))
-lines.append(f'INFO textures desk {td / 1e6:.2f} MB, phone {tp / 1e6:.2f} MB (PNG sources {sum(os.path.getsize(f) for f in glob.glob(R + "/assets/tex/*.png")) / 1e6:.2f} MB); modes ' + json.dumps({m: sum(1 for v in pick.values() if v['mode'] == m) for m in MODES}))
+lines.append(f'INFO textures desk {td / 1e6:.2f} MB, phone {tp / 1e6:.2f} MB (PNG sources {sum(os.path.getsize(f) for f in glob.glob(R + "/assets/tex/*.png")) / 1e6:.2f} MB); modes ' + json.dumps({m: sum(1 for v in pick.values() if v['mode'] == m) for m in MODES + ('png',)}))
 lines.append('INFO orient ' + json.dumps(sorted(set(v['orient'] for v in pick.values()))))
 json.dump(pick, open(f'{O}/manifest_pick.json', 'w'), indent=1)
 print('\n'.join(lines)); print(f'RESULT {"PASS" if not fails else "FAIL"} gates {len([l for l in lines if l.startswith(("PASS", "FAIL"))]) - len(fails)} of {len([l for l in lines if l.startswith(("PASS", "FAIL"))])}')
