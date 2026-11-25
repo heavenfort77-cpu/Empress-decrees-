@@ -6,7 +6,7 @@ OUT=${1:-chr_out}
 fail() { echo "PREFLIGHT FAIL $*"; exit 1; }
 for t in node git; do command -v $t >/dev/null || fail "tool $t"; done
 node -e "import('playwright').then(async (m) => { const p = m.chromium.executablePath(); require('fs').accessSync(p); console.log('chromium ' + p); }).catch((e) => { console.log('PREFLIGHT FAIL playwright ' + e.message); process.exit(1); })"
-for f in src/chars.js ci_probe/chars.html ci_probe/chrperf.mjs tests_draft/chars-static.mjs tests_draft/chars-checks.mjs tests_draft/chars-page-checks.mjs \
+for f in ci/job.sh src/chars.js ci_probe/chars.html ci_probe/chrperf.mjs tests_draft/chars-static.mjs tests_draft/chars-checks.mjs tests_draft/chars-page-checks.mjs \
   lib/three.module.min.js lib/three.core.min.js lib/jsm/loaders/GLTFLoader.js lib/jsm/loaders/KTX2Loader.js lib/jsm/libs/meshopt_decoder.module.js \
   lib/jsm/libs/basis/basis_transcoder.js lib/jsm/libs/basis/basis_transcoder.wasm art/suits/anim/suits_info.json index.html assets/c/desk/hall_floor.ktx2; do
   [ -s "$f" ] || fail "input $f"; done
