@@ -78,7 +78,8 @@ RUN = {
     # 儒 君子: upright and measured, sword arm steady, bow arm swings
     'ru': dict(tier='Mid', cad=3.5, duty=0.28, lean=0.08, bob=0.03, swing=(14, 26), elbow=(60, 75), kick=0.36, width=0.6, twist=5, out=0.22, head=0.02, sway=0.012),
     # 道 真人: light and long, the most flight, loose open arms in the sleeves
-    'dao': dict(tier='High', cad=3.4, duty=0.26, lean=0.16, bob=0.05, swing=(38, 38), elbow=(55, 55), kick=0.46, width=0.45, twist=7, out=0.3, head=0.04, sway=0.01),
+    # round 2: quick bounding steps with a short contact (round 1: cad 3.4, duty 0.26 dropped the hips 0.17 m and the robe hem went 12 cm under the floor)
+    'dao': dict(tier='High', cad=4.0, duty=0.19, lean=0.14, bob=0.02, swing=(38, 38), elbow=(55, 55), kick=0.3, width=0.45, twist=7, out=0.3, head=0.04, sway=0.01),
     # 法 廷尉: rigid, upright, mechanical; sword held point-forward, short swing
     'fa': dict(tier='High', cad=3.6, duty=0.27, lean=0.06, bob=0.025, swing=(8, 30), elbow=(40, 85), kick=0.4, width=0.5, twist=3, out=0.18, head=0.0, sway=0.008),
     # 墨 墨守: heavy and stocky, short quick steps, low and forward, crossbow kept at the hip, wide track
@@ -103,6 +104,8 @@ K_REACH = 0.97
 # Hit flinch: length s; time to full flinch s (plate 51 shape at hit speed); hold s; strength by the kit's armour tier (heavier flinches less).
 HIT_S, HIT_UP, HIT_HOLD = 0.3, 0.06, 0.04
 HIT_K = {'Low': 1.0, 'Mid': 0.85, 'High': 0.7}
+# Long robes (legs 'robe'): the hit's hip drop is capped here, m (round 1: dao's hem went 33 mm under the floor at 0.07 m).
+HIT_ROBE_DROP = 0.02
 # Death per school: fall = 'back' or 'front'; s = length (1.0 s nominal; key times scale with it).
 DEATH = {'ru': dict(fall='back', s=1.0), 'dao': dict(fall='back', s=0.95), 'fa': dict(fall='front', s=0.9), 'mo': dict(fall='front', s=1.1),
          'yy': dict(fall='back', s=1.0), 'za': dict(fall='front', s=1.0), 'ming': dict(fall='back', s=0.95), 'zh': dict(fall='back', s=1.0),
@@ -819,6 +822,7 @@ def keyed_clip(arm, name, snaps):
             prev[pb.name] = q; pb.rotation_quaternion = q; pb.location = loc
         key_all(arm, f)
     tr = arm.animation_data.nla_tracks.new(); tr.name = name; tr.strips.new(name, 0, act)
+    tr.mute = True   # round 2: an unmuted new track overrode the pose while the next clip was authored (round 1 hit started from a run pose)
     arm.animation_data.action = None
 
 class Legs:
@@ -831,18 +835,24 @@ class Legs:
             hip, knee = bones[f'thigh.{side}']; ank = bones[f'shin.{side}'][1]; toe = bones[f'foot.{side}'][1]
             gi = lod0.vertex_groups[f'foot.{side}'].index
             fv = [co[v.index] for v in lod0.data.vertices if any(g.group == gi and g.weight >= 0.99 for g in v.groups)]
-            zmin = min(p.z for p in fv); front = max(p.y for p in fv if p.z <= zmin + 0.01)
-            piv = Vector((ank.x, front, zmin))
-            s.L[side] = dict(m=m, hip=hip, Lt=(knee - hip).length, Ls=(ank - knee).length, ank=ank, piv=piv, r=Vector((0, ank.y - piv.y, ank.z - piv.z)),
+            zmin = min(p.z for p in fv)
+            # round 2: rolling contact. For each heel-rise angle, the lowest point of the turned foot (relative to the ankle) and the front-most
+            # point at that height; the ankle is placed so that point is on the floor at a fixed spot (round 1 turned about one fixed toe
+            # vertex and the boot nose in front of it went 6-21 mm under the floor)
+            rel = [p - ank for p in fv]; roll = []
+            for i in range(int(THETA_MAX) + 1):
+                q = [rotfz(r, float(i)) for r in rel]; zm = min(r.z for r in q); roll.append((zm, max(r.y for r in q if r.z <= zm + 0.002)))
+            s.L[side] = dict(m=m, hip=hip, Lt=(knee - hip).length, Ls=(ank - knee).length, ank=ank, roll=roll,
                              fd=(toe - ank).normalized(), pole=Vector((m * 0.1, 1, 0)).normalized(), sole=zmin)
 
 def run_clip(arm, b, sid, legs):
     R_ = RUN[sid]; v = SPEED[R_['tier']]
     N = int(round(2 * FPS / R_['cad'])); T = N / FPS; tc = R_['duty'] * T; tsw = T - tc; Lc = v * tc
     def stance(L, tau):
-        P = Vector((L['ank'].x * R_['width'], Lc * AHEAD - L['r'].y - v * tau, L['piv'].z))
-        th = THETA_MAX * smooth((tau / tc - HEEL0) / (1 - HEEL0))
-        return P + rotfz(L['r'], th), rotfz(L['fd'], th)
+        th = THETA_MAX * smooth((tau / tc - HEEL0) / (1 - HEEL0)); i = min(int(th), len(L['roll']) - 2); w = th - i
+        zm, fc = (L['roll'][i][k] * (1 - w) + L['roll'][i + 1][k] * w for k in (0, 1)); z0, f0 = L['roll'][0]
+        cf = Lc * AHEAD - v * tau + f0                       # contact point (moves back at ground speed: fixed on the floor)
+        return Vector((L['ank'].x * R_['width'], cf - fc, L['ank'].z + z0 - zm)), rotfz(L['fd'], th)
     def foot(L, tau):
         if tau <= tc: return stance(L, tau) + (True,)
         s = (tau - tc) / tsw; A0, F0 = stance(L, tc); A1, F1 = stance(L, 0)
@@ -903,6 +913,7 @@ HIT_POSE = {'hips': (0, -0.05, -0.07), 'spine': (0, -0.12, 1), 'chest': (0, -0.3
 def hit_clip(arm, sid, legs):
     k = HIT_K[ARMOUR[sid]]; N = int(round(HIT_S * FPS))
     rest = full_key(arm, {}); hp = dict(HIT_POSE)
+    if SUITS[sid]['legs'] == 'robe': hp['hips'] = (0, -0.03, -HIT_ROBE_DROP / k)
     peak = full_key(arm, planted(hp, legs, D0(hp['hips'])))
     snaps = []
     for f in range(N + 1):
@@ -927,41 +938,53 @@ def death_poses(fall):
                   'upper_arm.R': (0.75, -0.2, -0.35), 'forearm.R': (0.6, 0.3, 0.3), 'upper_arm.L': (-0.75, -0.2, -0.35), 'forearm.L': (-0.6, 0.3, 0.3)}
         impact = {'hips': (0, -0.9, -0.85), 'hips_dir': (0, -1, 0.03), 'spine': (0, -1, 0.0), 'chest': (0, -1, 0.0), 'neck': (0, -1, 0.12), 'head': (0.05, -1, 0.3),
                   'thigh.R': (0.06, 1, 0.22), 'shin.R': (0.03, 1, -0.22), 'foot.R': (0.15, 0.3, 1), 'thigh.L': (-0.06, 1, 0.22), 'shin.L': (-0.03, 1, -0.22), 'foot.L': (-0.15, 0.3, 1),
-                  'upper_arm.R': (0.9, -0.35, 0.2), 'forearm.R': (0.7, 0.3, 0.25), 'upper_arm.L': (-0.9, -0.35, 0.2), 'forearm.L': (-0.7, 0.3, 0.25), 'weapon': (0.75, 0.65, 0.0)}
+                  'upper_arm.R': (0.9, -0.35, 0.2), 'forearm.R': (0.7, 0.3, 0.25), 'upper_arm.L': (-0.9, -0.35, 0.2), 'forearm.L': (-0.7, 0.3, 0.25)}
         settle = dict(impact, **{'head': (0.35, -1, 0.0), 'neck': (0, -1, 0.04), 'thigh.R': (0.06, 1, 0.1), 'shin.R': (0.03, 1, -0.1), 'thigh.L': (-0.06, 1, 0.1),
                                  'shin.L': (-0.03, 1, -0.1), 'upper_arm.R': (0.92, -0.3, 0.0), 'forearm.R': (0.6, 0.45, -0.03), 'upper_arm.L': (-0.92, -0.3, 0.0),
                                  'forearm.L': (-0.6, 0.45, -0.03)})
     else:
-        buckle = {'hips': (0, 0.12, -0.5), 'hips_dir': (0, 0.25, 1), 'spine': (0, 0.4, 1), 'chest': (0, 0.6, 1), 'neck': (0, 0.7, 1), 'head': (0, 1, 0.5),
+        # round 2: the knees reach the floor (shins back along it), then the body falls forward over the knees (round 1 kept the feet planted and
+        # interpolated to lying: the shins swept through the floor and the floor solve lifted the body up to 0.3 m, a dive in mid-air)
+        buckle = {'hips': (0, 0.05, -0.5), 'hips_dir': (0, 0.2, 1), 'spine': (0, 0.4, 1), 'chest': (0, 0.6, 1), 'neck': (0, 0.7, 1), 'head': (0, 1, 0.5),
+                  'thigh.R': (0.05, 0.25, -1), 'shin.R': (0.03, -1, 0.04), 'foot.R': (0.02, -1, -0.45), 'thigh.L': (-0.05, 0.25, -1), 'shin.L': (-0.03, -1, 0.04),
+                  'foot.L': (-0.02, -1, -0.45),
                   'upper_arm.R': (0.2, 0.45, -1), 'forearm.R': (0.1, 0.7, -1), 'upper_arm.L': (-0.2, 0.45, -1), 'forearm.L': (-0.1, 0.7, -1)}
         impact = {'hips': (0, 0.85, -0.8), 'hips_dir': (0, 1, -0.03), 'spine': (0, 1, 0.0), 'chest': (0, 1, 0.0), 'neck': (0, 1, 0.1), 'head': (0.2, 1, 0.3),
                   'thigh.R': (0.06, -1, -0.02), 'shin.R': (0.03, -1, 0.06), 'foot.R': (0.05, -1, -0.35), 'thigh.L': (-0.06, -1, -0.02), 'shin.L': (-0.03, -1, 0.06), 'foot.L': (-0.05, -1, -0.35),
-                  'upper_arm.R': (0.65, 0.75, 0.1), 'forearm.R': (0.3, 0.95, 0.1), 'upper_arm.L': (-0.65, 0.75, 0.1), 'forearm.L': (-0.3, 0.95, 0.1), 'weapon': (0.8, 0.6, 0.0)}
+                  'upper_arm.R': (0.65, 0.75, 0.1), 'forearm.R': (0.3, 0.95, 0.1), 'upper_arm.L': (-0.65, 0.75, 0.1), 'forearm.L': (-0.3, 0.95, 0.1)}
         settle = dict(impact, **{'head': (0.6, 1, -0.05), 'neck': (0, 1, 0.02), 'upper_arm.R': (0.7, 0.7, -0.02), 'forearm.R': (0.35, 0.94, -0.03),
                                  'upper_arm.L': (-0.7, 0.7, -0.02), 'forearm.L': (-0.35, 0.94, -0.03)})
     return recoil, buckle, impact, settle
 
 def death_clip(arm, sid, legs, lods, floor):
     Dd = DEATH[sid]; dur = Dd['s']; N = int(round(dur * FPS)); tr, tb, ti, ts = (x * dur for x in DEATH_T)
-    recoil, buckle, impact, settle = death_poses(Dd['fall'])
+    recoil, buckle, impact, settle = death_poses(Dd['fall']); front = Dd['fall'] == 'front'
     K0 = full_key(arm, {})
     K1 = full_key(arm, planted(dict(recoil), legs, D0(recoil['hips'])))
-    K2 = full_key(arm, planted(dict(buckle), legs, D0(buckle['hips'])))
     # lying keys: hips height solved so the lowest vertex (all LODs) rests LIE_GAP above the floor reference
     def lying(p):
         apply_pose(arm, p); lift_hips(arm, floor + LIE_GAP - lowest(lods))
         k = posed_dirs(arm); pb = arm.pose.bones['hips']; off = pb.bone.matrix_local.to_3x3() @ pb.location
         k['hips'] = (-off.x, -off.y, off.z); return k
+    knees = None
+    if front:
+        K2 = lying(dict(buckle))                                                    # kneeling: knees on the floor
+        knees = {sd: Vector((-arm.pose.bones[f'shin.{sd}'].head.x, -arm.pose.bones[f'shin.{sd}'].head.y, arm.pose.bones[f'shin.{sd}'].head.z)) for sd in ('R', 'L')}
+        for p in (impact, settle): p['hips'] = pivot_hips(p, knees, legs)
+    else:
+        K2 = full_key(arm, planted(dict(buckle), legs, D0(buckle['hips'])))
     K4 = lying(dict(settle)); K3 = lying(dict(impact))
     snaps, lifted = [], 0.0
     for f in range(N + 1):
         t = f / FPS
         if t <= tr: pose = blend(K0, K1, 1 - (1 - t / tr) ** 2)
         elif t <= tb: pose = blend(K1, K2, smooth((t - tr) / (tb - tr)))
-        elif t <= ti: u = (t - tb) / (ti - tb); pose = blend(K2, K3, u * u)          # falling: accelerates
+        elif t <= ti:
+            u = (t - tb) / (ti - tb); pose = blend(K2, K3, u * u)                     # falling: accelerates
+            if front: pose['hips'] = pivot_hips(pose, knees, legs)                    # over the knees, which stay on the floor
         elif t <= ts: pose = blend(K3, K4, smooth((t - ti) / (ts - ti)))
         else: pose = dict(K4)
-        if t <= tb: pose = planted(pose, legs, D0(pose['hips']))                     # feet stay put until the legs give
+        if t <= (tr if front else tb): pose = planted(pose, legs, D0(pose['hips']))  # feet stay put until the legs give
         apply_pose(arm, pose)
         lo = lowest(lods)
         if t > ti: lift_hips(arm, floor + LIE_GAP - lo)                              # lying: exactly on the floor
@@ -969,6 +992,13 @@ def death_clip(arm, sid, legs, lods, floor):
         snaps.append(snap(arm))
     keyed_clip(arm, 'death', snaps)
     return dict(death_s=N / FPS, death_fall=Dd['fall'], death_lift_max=round(lifted, 3))
+
+def pivot_hips(p, knees, legs):
+    """hip joint offset that keeps both knees where they are for the pose's thigh directions (front fall over the knees)."""
+    o = Vector((0, 0, 0))
+    for sd in ('R', 'L'):
+        L = legs.L[sd]; o += (knees[sd] - Vector(tuple(p[f'thigh.{sd}'])).normalized() * L['Lt']) - L['hip']
+    o /= 2; return (o.x, o.y, o.z)
 
 def movement_clips(arm, b, sid, lods):
     """author run, hit and death on the shared rig (all NLA tracks muted while posing, restored after)."""
