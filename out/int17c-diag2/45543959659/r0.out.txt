@@ -1,0 +1,21 @@
+SNAP base {"calls":35,"programs":17,"geoms":454,"texs":53}
+SNAP after3s {"calls":35,"programs":17,"geoms":454,"texs":53}
+SNAP bots {"programs":17,"geoms":454,"texs":53}
+SNAP afterBots {"calls":35,"programs":17,"geoms":454,"texs":53}
+DIFF base->after3s {"plus":[],"minus":[]}
+DIFF base->bots {"plus":[],"minus":[]}
+DIFF base->afterBots {"plus":[],"minus":[]}
+MEM [{"geometries":454,"textures":53},{"geometries":454,"textures":53},{"geometries":454,"textures":53},{"geometries":454,"textures":53}]
+SNAP rumble0 {"calls":35,"programs":17,"geoms":454,"texs":53}
+SNAP palace0 {"calls":46,"programs":46,"geoms":543,"texs":87}
+ART {"art":true,"que":[],"tc":{"c":91,"d":0},"load":"ready","chars":1}
+SNAP rumble1 {"calls":27,"programs":22,"geoms":455,"texs":54}
+SNAP palace1 {"calls":46,"programs":46,"geoms":543,"texs":88}
+ART {"art":true,"que":[],"tc":{"c":126,"d":34},"load":"ready","chars":1}
+SNAP rumble2 {"calls":27,"programs":22,"geoms":455,"texs":55}
+SNAP palace2 {"calls":46,"programs":46,"geoms":543,"texs":89}
+ART {"art":true,"que":[],"tc":{"c":161,"d":68},"load":"ready","chars":1}
+SNAP rumble3 {"calls":27,"programs":22,"geoms":455,"texs":56}
+SNAP palace3 {"calls":46,"programs":46,"geoms":543,"texs":90}
+ART {"art":true,"que":[],"tc":{"c":196,"d":102},"load":"ready","chars":1}
+AV {"fx":{"ready":true,"t":6.516666666666649,"paused":false,"tier":"medium","live":0,"events":6,"sounds":0,"spawned":2,"unknown":0,"errs":0,"items":242,"draws":3,"warmProg":9,"warmCalls":4},"snd":140}
