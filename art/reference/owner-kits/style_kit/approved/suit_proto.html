@@ -1,0 +1,228 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no">
+<title>Suit Mythology prototype</title>
+<style>
+html,body{margin:0;height:100%;background:#1a1d24;color:#ddd;font:14px/1.3 system-ui,sans-serif;overflow:hidden;touch-action:none}
+#c{display:block;width:100vw;height:100vh}
+#hud{position:fixed;left:8px;top:8px;background:#0008;padding:6px 8px;border-radius:6px;pointer-events:none;white-space:pre;font-size:13px}
+#mini{position:fixed;right:8px;top:8px;image-rendering:pixelated;border:1px solid #666;background:#000}
+.pad{position:fixed;bottom:18px;left:18px;width:150px;height:150px}
+.pad button,.act button{position:absolute;width:48px;height:48px;border-radius:10px;border:1px solid #777;background:#333c;color:#eee;font-size:18px;touch-action:none;user-select:none}
+.act{position:fixed;bottom:18px;right:18px;width:160px;height:150px}
+#menu{position:fixed;inset:0;background:#1a1d24ee;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px}
+#menu button{font-size:16px;padding:8px 14px;margin:3px;border-radius:8px;border:1px solid #888;background:#2a2f3a;color:#eee}
+#over{position:fixed;inset:0;display:none;align-items:center;justify-content:center;background:#000a;font-size:22px;text-align:center;white-space:pre}
+</style></head><body>
+<canvas id="c"></canvas>
+<div id="hud"></div><canvas id="mini" width="64" height="64"></canvas>
+<div class="pad"><button style="left:51px;top:0" data-d="0,-1">▲</button><button style="left:0;top:51px" data-d="-1,0">◀</button><button style="left:102px;top:51px" data-d="1,0">▶</button><button style="left:51px;top:102px" data-d="0,1">▼</button></div>
+<div class="act"><button id="bA" style="right:0;top:51px">ATK</button><button id="bD" style="right:56px;top:102px">DASH</button><button id="bS" style="right:56px;top:0">SKL</button></div>
+<div id="menu"><div>Pick a suit (box prototype)</div><div id="picks"></div><div style="font-size:12px;max-width:320px;text-align:center">Arrows/WASD move, J attack, K dash, L skill. 20 suits, storm closes in about 10 min.</div></div>
+<div id="over"></div>
+<script>
+//@@LOGIC
+const CONFIG = {
+  N: 64, SUITS: 20, VISION: 5, SPAWN_GAP: 16, FLEE_HP: 0.5, EARLY_PEACE: 200, AG_SCALE: 0.7, HP_SCALE: 2, DECIDE: 8, HUNT_YM: 25, MJ_KILL: [0.25, 1.2],   // 冥将 grows by kills: +0.25x per kill, up to +1.2x MOVE_BASE: 0.4,          // seconds per tile at speed 2.5 (speed = 2.5 -> 0.4 s)
+  BUSH_CLUSTERS: 40, BUSH_MIN: 5, BUSH_MAX: 14, RESOURCES: 90,
+  RES_USE: 20, RES_REGROW: 90, BUSH_REGROW: 60, WRECK_STORM: 10,
+  GROW_BUSH: 1.5, GROW_RES: 2.0, RES_HEAL: 0.02, RES_BURST: 0.15, REGEN: 0.005, REGEN_DELAY: 5, KILL_HEAL: 0.25,
+  STORM: [[150,60,52],[90,50,40],[80,45,28],[70,40,18],[60,35,10],[45,30,4],[30,20,0]],   // 805 s total   // wait, shrink, side after
+  STORM_DPS: [0.01,0.015,0.02,0.03,0.05,0.08,0.12],
+  DASH_TILES: 3, DASH_CD: 8, MJ_DASH: [4, 3], ATK_PERIOD: 1.0,
+  // hp, atk, speed(tiles/s), range, growth cap, cap time, aggression, colour, letter
+  F: {
+    tianbing:{hp:100,atk:10,spd:2.5,rg:1,cap:2.5,capT:420,ag:0.6,col:"#4fa96a",ch:"兵"},
+    yuanmo:  {hp:70, atk:6, spd:2.0,rg:1,cap:4,  capT:600,ag:0.5,col:"#d1773a",ch:"猿"},
+    wushi:   {hp:130,atk:8, spd:3.2,rg:3,cap:2.2,capT:420,ag:0.5,col:"#b8343c",ch:"巫"},
+    mojiang: {hp:160,atk:0, spd:1.5,rg:0,cap:3,  capT:600,ag:0.2,col:"#5fa0a8",ch:"墨"},
+    jianxian:{hp:70, atk:18,spd:2.5,rg:2,cap:2.0,capT:300,ag:0.8,col:"#d4e4f6",ch:"剑"},
+    mingjiang:{hp:70,atk:14,spd:3.3,rg:1,cap:1.4,capT:150,ag:0.9,col:"#8a7ab0",ch:"冥"},
+    tianlong:{hp:100,atk:8, spd:2.5,rg:3,cap:2.2,capT:420,ag:0.5,col:"#2f6fa8",ch:"龙"},
+    gushi:   {hp:100,atk:5, spd:2.3,rg:0,cap:3,  capT:600,ag:0.3,col:"#b88d62",ch:"蛊"},
+  },
+  YM_STAGE2: 180, YM_STAGE3: 420, OVERDRIVE: [1.5,8,40], STUN:[8,1.5,12], CLOAK:[6,25,0], CHANNEL: 6, ARRAY:[1.5,10],
+  TURRET:{atk:8,rg:3,max:4,hpShare:0.7,start:2,packT:2}, DECAY:{r:2,pct:0.02,pctLate:0.04,max:5,slow:0.3}, FOLLOWER:{share:0.7,max:3},
+};
+function mulberry(seed){return function(){seed|=0;seed=seed+0x6D2B79F5|0;let t=Math.imul(seed^seed>>>15,1|seed);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
+
+function createGame(opts){
+  const C=CONFIG,N=C.N,rnd=mulberry(opts.seed||1),facs=Object.keys(C.F);
+  const G={t:0,phase:0,phaseT:0,zone:{x0:0,y0:0,side:N},zoneFrom:null,zoneTo:null,
+    fx:[],tiles:new Uint8Array(N*N),tileT:new Float32Array(N*N),wreck:new Map(),suits:[],turrets:[],decays:[],log:[],over:false,winner:null};
+  const T={EMPTY:0,BUSH:1,RES:2,BUSH_DOWN:3,RES_DOWN:4};
+  const idx=(x,y)=>y*N+x, inb=(x,y)=>x>=0&&y>=0&&x<N&&y<N;
+  // map: bush clusters >=5, resources exposed
+  for(let k=0;k<C.BUSH_CLUSTERS;k++){const n=C.BUSH_MIN+Math.floor(rnd()*(C.BUSH_MAX-C.BUSH_MIN+1));let x=Math.floor(rnd()*N),y=Math.floor(rnd()*N);const cells=[[x,y]];
+    while(cells.length<n){const [cx,cy]=cells[Math.floor(rnd()*cells.length)];const d=[[1,0],[-1,0],[0,1],[0,-1]][Math.floor(rnd()*4)];const nx=cx+d[0],ny=cy+d[1];if(inb(nx,ny)&&!cells.some(c=>c[0]==nx&&c[1]==ny))cells.push([nx,ny])}
+    cells.forEach(([a,b])=>G.tiles[idx(a,b)]=T.BUSH)}
+  for(let k=0;k<C.RESOURCES;k++){const x=Math.floor(rnd()*N),y=Math.floor(rnd()*N);if(G.tiles[idx(x,y)]==T.EMPTY)G.tiles[idx(x,y)]=T.RES}
+  // suits
+  function mk(f,i,isPlayer){const F=C.F[f];let x,y;do{x=Math.floor(rnd()*N);y=Math.floor(rnd()*N)}while(G.suits.some(s=>Math.abs(s.x-x)+Math.abs(s.y-y)<C.SPAWN_GAP));
+    return {id:i,f,F,x,y,hp:F.hp*C.HP_SCALE,maxhp:F.hp*C.HP_SCALE,clock:0,mult:1,alive:true,isPlayer:!!isPlayer,moveT:0,atkT:0,dashT:0,sklT:0,noDmgT:0,resT:0,
+      stage:1,od:0,stun:0,cloak:0,chan:0,units:f=="mojiang"?C.TURRET.start:0,packT:0,follow:[],owner:null,dir:[0,1],aiT:rnd()*2,aiGoal:null,kills:0}}
+  for(let i=0;i<(opts.suits||C.SUITS);i++){const f=opts.factions?opts.factions[i]:(i==0&&opts.player)?opts.player:facs[Math.floor(rnd()*facs.length)];G.suits.push(mk(f,i,i==0&&opts.player))}
+  G.player=opts.player?G.suits[0]:null;
+  const alive=()=>G.suits.filter(s=>s.alive);
+  const inZone=(x,y)=>x>=G.zone.x0&&y>=G.zone.y0&&x<G.zone.x0+G.zone.side&&y<G.zone.y0+G.zone.side;
+  const dist=(a,b)=>Math.max(Math.abs(a.x-b.x),Math.abs(a.y-b.y));
+  const inBush=s=>G.tiles[idx(s.x,s.y)]==T.BUSH;
+  function stats(s){const m=s.mult;return {hp:s.F.hp*m,atk:s.F.atk*m*(s.od>0?C.OVERDRIVE[0]:1)*(s.f=="tianlong"?1+1.25*Math.min(1,s.chan/C.CHANNEL):1),
+    spd:s.F.spd*(s.od>0?C.OVERDRIVE[0]:1)*(s.slow?1-C.DECAY.slow:1),rg:s.f=="yuanmo"?s.stage:(s.f=="tianlong"&&inBush(s)?8:s.F.rg)}}
+  function canSee(a,b){if(!b.alive)return false;const d=dist(a,b);if(b.cloak>0&&d>C.CLOAK[2])return false;
+    if(inBush(b)&&!(inBush(a)&&d<=1)&&!G.decays.some(z=>z.owner===a&&Math.max(Math.abs(z.x-b.x),Math.abs(z.y-b.y))<=C.DECAY.r)&&!b.revealT)return false;return d<=(a.f=="tianlong"&&inBush(a)?8:C.VISION)}   // 天龙 in a bush sees as far as it shoots (prototype assumption, to confirm)
+  function damage(tgt,amt,src){if(!tgt.alive)return;tgt.hp-=amt;tgt.noDmgT=0;if(tgt.hp<=0){tgt.hp=0;tgt.alive=false;G.wreck.set(idx(tgt.x,tgt.y),{f:tgt.f,mult:tgt.mult,F:tgt.F,t:0,used:0});
+    if(src){src.kills++;if(src.f=="mingjiang"){src.dashT=0;src.sklT=0}if(src.f=="mingjiang")src.killBonus=(src.killBonus||0)+C.MJ_KILL[0];src.hp=Math.min(src.maxhp,src.hp+C.KILL_HEAL*src.maxhp)}G.log.push([G.t|0,tgt.f,src?src.f:"storm"]);
+    tgt.follow.forEach(fl=>fl.alive=false)}}
+  function tryMove(s,dx,dy){if(s.moveT>0||s.stun>0)return false;const nx=s.x+dx,ny=s.y+dy;if(!inb(nx,ny))return false;
+    if(G.suits.some(o=>o.alive&&o!==s&&o.x==nx&&o.y==ny)||G.turrets.some(o=>o.x==nx&&o.y==ny))return false;
+    s.x=nx;s.y=ny;s.dir=[dx,dy];s.moveT=C.MOVE_BASE*2.5/stats(s).spd;if(s.chan>0)s.chan=0;
+    const w=G.wreck.get(idx(nx,ny));if(w&&s.f=="mojiang"){s.units+=3;G.wreck.delete(idx(nx,ny))}return true}
+  function attack(s,tgt){const st=stats(s);if(s.atkT>0||st.atk<=0||!tgt)return;s.atkT=C.ATK_PERIOD;let a=st.atk;if(s.f=="mingjiang"){if(!canSee(tgt,s))a*=2;if(s.cloak>0)s.cloak=0}   // 冥将: any hit the target cannot see coming is doubled (cloak, bush, decay-blind)
+    if(inBush(s)&&s.f=="tianlong")s.revealT=1;G.fx.push({x0:s.x,y0:s.y,x1:tgt.x,y1:tgt.y,t:0.18});damage(tgt,a,s)}
+  function dash(s){if(s.dashT>0||s.f=="mojiang")return;const mj=s.f=="mingjiang";s.dashT=mj?C.MJ_DASH[1]:C.DASH_CD;for(let k=0;k<(mj?C.MJ_DASH[0]:C.DASH_TILES);k++){const nx=s.x+s.dir[0],ny=s.y+s.dir[1];if(!inb(nx,ny)||G.suits.some(o=>o.alive&&o!==s&&o.x==nx&&o.y==ny))break;s.x=nx;s.y=ny}}
+  function skill(s,tgt){if(s.sklT>0)return;const st=stats(s);
+    switch(s.f){
+      case "tianbing":s.od=C.OVERDRIVE[1];s.sklT=C.OVERDRIVE[2];break;
+      case "wushi":{const w=[...G.wreck.entries()].find(([k,w])=>Math.abs(k%N-s.x)<=1&&Math.abs(Math.floor(k/N)-s.y)<=1);
+        if(w&&s.follow.filter(f=>f.alive).length<C.FOLLOWER.max){const [k,wr]=w;const fl=mk(wr.f,900+s.id*10+s.follow.length,false);fl.x=k%N;fl.y=Math.floor(k/N);fl.mult=wr.mult*C.FOLLOWER.share;fl.maxhp=fl.hp=wr.F.hp*fl.mult*C.HP_SCALE;fl.owner=s;fl.F={...wr.F,ag:1};G.suits.push(fl);s.follow.push(fl);G.wreck.delete(k);s.sklT=2}
+        else if(tgt&&dist(s,tgt)<=C.STUN[0]/C.STUN[0]*3){if(!(tgt.guard>0))tgt.stun=C.STUN[1];damage(tgt,C.STUN[0]*s.mult,s);s.sklT=C.STUN[2]}break}
+      case "mojiang":{const t=G.turrets.find(t=>t.owner===s&&dist(s,t)<=1);if(t){s.packT+=1;if(s.packT>=C.TURRET.packT){G.turrets.splice(G.turrets.indexOf(t),1);s.units++;s.packT=0}s.sklT=1;break}
+        if(s.units>=1&&G.turrets.filter(t=>t.owner===s).length<C.TURRET.max){const nx=s.x+s.dir[0],ny=s.y+s.dir[1];if(inb(nx,ny)&&!G.suits.some(o=>o.alive&&o.x==nx&&o.y==ny)){s.units--;G.turrets.push({owner:s,x:nx,y:ny,hp:s.maxhp*C.TURRET.hpShare,atkT:0,mult:s.mult});s.sklT=1}}break}
+      case "jianxian":s.guard=1;alive().forEach(o=>{if(o!==s&&o.owner!==s&&dist(s,o)<=2&&canSee(s,o))damage(o,st.atk*C.ARRAY[0],s)});s.sklT=C.ARRAY[1];break;
+      case "mingjiang":s.cloak=C.CLOAK[0];s.sklT=C.CLOAK[1];break;
+      case "tianlong":s.chan=Math.min(C.CHANNEL,s.chan+1);s.sklT=0.5;break;
+      case "gushi":if(G.decays.filter(z=>z.owner===s).length>=C.DECAY.max){const i=G.decays.findIndex(z=>z.owner===s);G.decays.splice(i,1)}G.decays.push({owner:s,x:s.x,y:s.y});s.sklT=3;break;
+      case "yuanmo":dash(s);break;
+    }}
+  // ---- bot AI: plays like a player. threat check, kiting, skill timing per faction, bushes to heal, storm margin ----
+  function power(o){const st=stats(o);return o.hp*Math.max(st.atk*(o.f=="mingjiang"&&(o.cloak>0||o.sklT<=0)?1.8:1),o.f=="mojiang"?C.TURRET.atk*o.mult:1)}
+  function stepAway(s,from){const dx=-Math.sign(from.x-s.x),dy=-Math.sign(from.y-s.y);const opts=[[dx,0],[0,dy],[dx,dy?0:1],[dx,dy?0:-1],[dy?1:0,dy],[dy?-1:0,dy]].filter(d=>d[0]||d[1]);
+    for(const d of opts){const nx=s.x+d[0],ny=s.y+d[1];if(inb(nx,ny)&&inZone(nx,ny)&&tryMove(s,d[0],d[1]))return true}return false}
+  function stepToward(s,x,y){const dx=Math.sign(x-s.x),dy=Math.sign(y-s.y);if(Math.abs(x-s.x)>=Math.abs(y-s.y)){return tryMove(s,dx,0)||tryMove(s,0,dy)}return tryMove(s,0,dy)||tryMove(s,dx,0)}
+  function nearestTile(s,pred,limit=14){let best=null,bd=99;for(let y=Math.max(0,s.y-limit);y<=Math.min(N-1,s.y+limit);y++)for(let x=Math.max(0,s.x-limit);x<=Math.min(N-1,s.x+limit);x++){if(!pred(x,y))continue;const d=Math.abs(x-s.x)+Math.abs(y-s.y);if(d<bd){bd=d;best=[x,y]}}return best}
+  function zoneTarget(){const z=G.zoneTo||G.zone;return {x0:z.x0,y0:z.y0,side:z.side,cx:z.x0+z.side/2,cy:z.y0+z.side/2}}
+  function safeIn(x,y,z,m){return x>=z.x0+m&&y>=z.y0+m&&x<z.x0+z.side-m&&y<z.y0+z.side-m}
+  function ai(s,dt){s.aiT-=dt;if(s.aiT>0)return;s.aiT=0.2+rnd()*0.2;const st=stats(s),ag=s.F.ag;
+    const foes=alive().filter(o=>o!==s&&o.owner!==s&&!(s.owner&&o===s.owner)&&canSee(s,o));
+    // pick the target a player would: the weakest in reach, else the nearest
+    let tgt=null,score=-1e9;foes.forEach(o=>{const d=dist(s,o);const sc=-d*3-o.hp/50+(o.f=="mojiang"?-30:0)+(o.f=="yuanmo"&&o.stage<3?C.HUNT_YM:0);if(sc>score){score=sc;tgt=o}});
+    const best=tgt?dist(s,tgt):99;
+    const hurt=s.hp<0.45*s.maxhp, rg=st.rg;
+    // storm: keep a margin of 2 tiles inside the coming ring, move early when the ring is about to shrink
+    const z=zoneTarget();const ph=C.STORM[G.phase];const soon=ph&&(G.zoneTo||ph[0]-G.phaseT<25);
+    if(!inZone(s.x,s.y)||(soon&&!safeIn(s.x,s.y,z,2))){if(s.f=="mojiang"&&s.units<1){const t=G.turrets.find(t=>t.owner===s&&dist(s,t)<=1);if(t){skill(s,null)}}
+      if(!stepToward(s,Math.round(z.cx),Math.round(z.cy))&&s.dashT<=0){const dx=Math.sign(z.cx-s.x),dy=Math.sign(z.cy-s.y);s.dir=Math.abs(z.cx-s.x)>Math.abs(z.cy-s.y)?[dx,0]:[0,dy];dash(s)}
+      if(tgt&&best<=rg)attack(s,tgt);return}
+    if(tgt){
+      // fight-or-avoid decided once per encounter, from relative power and aggression; early game is cautious
+      if(!s.decT||s.decT<G.t||s.decFoe!==tgt){s.decT=G.t+C.DECIDE;s.decFoe=tgt;const early=G.t<C.EARLY_PEACE;const edge=power(s)/(power(tgt)+1);
+        s.fight=best<=rg||rnd()<ag*(early&&ag<0.8?0.25:C.AG_SCALE)*Math.min(2,edge)*(tgt.f=="yuanmo"&&tgt.stage<3?2.5:1)||edge>2.2||(tgt.f=="yuanmo"&&tgt.stage<3&&edge>0.8)}
+      const run=hurt&&!(tgt.hp<s.hp*0.6)||!s.fight;
+      if(run){ if(s.f=="mingjiang"&&s.sklT<=0&&s.cloak<=0)skill(s,null); if(s.f=="gushi"&&s.sklT<=0&&best<=3)skill(s,tgt);
+        if(s.f=="yuanmo"&&s.dashT<=0&&best<=3){s.dir=[-Math.sign(tgt.x-s.x)||s.dir[0],0];if(!s.dir[0])s.dir=[0,-Math.sign(tgt.y-s.y)];dash(s)}
+        if(!stepAway(s,tgt)&&best<=rg)attack(s,tgt);
+        if(best>rg+1&&s.f!="mingjiang"&&s.dashT<=0&&stats(tgt).spd>st.spd){s.dir=[-Math.sign(tgt.x-s.x),0];if(!s.dir[0])s.dir=[0,-Math.sign(tgt.y-s.y)];dash(s)}return}
+      // engage: faction openers
+      switch(s.f){
+        case "tianbing":if(best<=rg+1&&s.sklT<=0)skill(s,tgt);break;
+        case "mingjiang":if(best>rg&&best<=4&&s.cloak<=0&&s.sklT<=0)skill(s,null);else if(best>rg&&s.cloak<=0&&s.sklT>0&&!inBush(s)){const b=nearestTile(s,(x,y)=>G.tiles[idx(x,y)]==T.BUSH&&inZone(x,y),5);if(b){stepToward(s,b[0],b[1]);return}}break;          // cloak on the approach for the 2x hit
+        case "wushi":if(best<=3&&best>1&&s.sklT<=0)skill(s,tgt);break;                             // stun on the way in
+        case "mojiang":if(s.units>=1&&s.sklT<=0){s.dir=[Math.sign(tgt.x-s.x)||0,Math.sign(tgt.x-s.x)?0:Math.sign(tgt.y-s.y)];skill(s,tgt)}       // turret toward the enemy
+          else{const t=G.turrets.find(t=>t.owner===s);if(t&&dist(s,t)>1)stepToward(s,t.x,t.y);else if(best<=2)stepAway(s,tgt)}return;
+        case "jianxian":if(best<=2&&s.sklT<=0)skill(s,tgt);break;
+        case "tianlong":if(!inBush(s)){const b=nearestTile(s,(x,y)=>G.tiles[idx(x,y)]==T.BUSH&&inZone(x,y)&&Math.max(Math.abs(x-tgt.x),Math.abs(y-tgt.y))<=7,8);if(b&&best>2){stepToward(s,b[0],b[1]);break}} if(best<=rg)skill(s,tgt);break;
+        case "gushi":if(s.sklT<=0&&best<=2)skill(s,tgt);break;
+        case "yuanmo":if(best>rg&&best<=rg+3&&s.dashT<=0){s.dir=[Math.sign(tgt.x-s.x),0];if(!s.dir[0])s.dir=[0,Math.sign(tgt.y-s.y)];dash(s)}break;
+      }
+      if(best<=rg){attack(s,tgt);
+        // kite: step out of the enemy's reach while the attack cools, if this suit outranges it or is faster
+        const trg=stats(tgt).rg;if(s.atkT>0&&(rg>trg||st.spd>stats(tgt).spd*1.15)&&best<=trg)stepAway(s,tgt)}
+      else if(best>rg&&!(s.f=="tianlong"&&inBush(s)&&best<=8))stepToward(s,tgt.x,tgt.y);
+      return}
+    // nobody in sight: heal in a bush if hurt, else grow on resources / wrecks, hide near the ring edge late
+    s.decT=0;
+    if(hurt&&!inBush(s)){const b=nearestTile(s,(x,y)=>G.tiles[idx(x,y)]==T.BUSH&&inZone(x,y),10);if(b){stepToward(s,b[0],b[1]);return}}
+    if(hurt&&inBush(s))return;
+    if(s.f=="mojiang"&&s.units>=1&&G.turrets.filter(t=>t.owner===s).length<2&&rnd()<0.3){skill(s,null);return}
+    if(s.f=="gushi"&&s.sklT<=0&&(G.tiles[idx(s.x,s.y)]==T.RES)&&!G.decays.some(z=>z.x==s.x&&z.y==s.y)){skill(s,null)}
+    if(!s.aiGoal||rnd()<0.04||(s.aiGoal&&!inZone(s.aiGoal[0],s.aiGoal[1]))){
+      const wantWreck=(s.f=="wushi"||s.f=="mojiang");let goal=null;
+      if(wantWreck){let bd=99;G.wreck.forEach((w,k)=>{const x=k%N,y=Math.floor(k/N);const d=Math.abs(x-s.x)+Math.abs(y-s.y);if(d<bd&&inZone(x,y)&&safeIn(x,y,z,1)){bd=d;goal=[x,y]}})}
+      if(!goal&&s.f!="yuanmo")goal=nearestTile(s,(x,y)=>G.tiles[idx(x,y)]==T.RES&&safeIn(x,y,z,1)&&!G.decays.some(d=>d.owner===s&&d.x==x&&d.y==y),16);
+      if(!goal)goal=nearestTile(s,(x,y)=>G.tiles[idx(x,y)]==T.BUSH&&safeIn(x,y,z,1),16);
+      s.aiGoal=goal}
+    if(s.aiGoal){const [gx,gy]=s.aiGoal;if(gx==s.x&&gy==s.y){const tt=G.tiles[idx(gx,gy)];if(tt!=T.RES&&tt!=T.BUSH&&!G.wreck.has(idx(gx,gy)))s.aiGoal=null;return}
+      if(!stepToward(s,gx,gy)&&rnd()<0.3)s.aiGoal=null}
+    else stepToward(s,Math.round(z.cx),Math.round(z.cy))}
+  function step(dt){if(G.over)return;G.t+=dt;G.fx=G.fx.filter(f=>(f.t-=dt)>0);
+    // storm
+    const ph=C.STORM[G.phase];if(ph){G.phaseT+=dt;if(G.phaseT>=ph[0]&&!G.zoneTo){const side=ph[2];const z=G.zone;const x0=z.x0+Math.floor(rnd()*(z.side-side+1)),y0=z.y0+Math.floor(rnd()*(z.side-side+1));G.zoneTo={x0,y0,side};G.zoneFrom={...z}}
+      if(G.zoneTo){const u=Math.min(1,(G.phaseT-ph[0])/ph[1]);G.zone={x0:Math.round(G.zoneFrom.x0+(G.zoneTo.x0-G.zoneFrom.x0)*u),y0:Math.round(G.zoneFrom.y0+(G.zoneTo.y0-G.zoneFrom.y0)*u),side:Math.round(G.zoneFrom.side+(G.zoneTo.side-G.zoneFrom.side)*u)};
+        if(u>=1){G.zone={...G.zoneTo};G.zoneTo=null;G.phase++;G.phaseT=0}}}
+    const dps=C.STORM_DPS[Math.min(G.phase,6)];
+    // tiles
+    for(let k=0;k<N*N;k++){const tt=G.tiles[k];if(tt==T.RES_DOWN||tt==T.BUSH_DOWN){G.tileT[k]-=dt;if(G.tileT[k]<=0)G.tiles[k]=tt==T.RES_DOWN?T.RES:T.BUSH}}
+    G.wreck.forEach((w,k)=>{if(!inZone(k%N,Math.floor(k/N))){w.t+=dt;if(w.t>C.WRECK_STORM)G.wreck.delete(k)}});
+    // suits
+    for(const s of G.suits){if(!s.alive)continue;
+      s.moveT-=dt;s.atkT-=dt;s.dashT-=dt;s.sklT-=dt;s.noDmgT+=dt;if(s.od>0)s.od-=dt;if(s.guard>0)s.guard-=dt;if(s.stun>0)s.stun-=dt;if(s.cloak>0)s.cloak-=dt;if(s.revealT>0)s.revealT-=dt;if(s.f=="tianlong"&&s.sklT<-0.6)s.chan=Math.max(0,s.chan-dt*2);
+      if(s.owner)continue; // followers do not grow
+      const k=idx(s.x,s.y),tt=G.tiles[k];const onRes=tt==T.RES,onWreck=G.wreck.has(k),onBush=tt==T.BUSH;
+      const rate=s.f=="yuanmo"?1:(onRes||onWreck?C.GROW_RES:onBush?C.GROW_BUSH:1);s.clock+=rate*dt;
+      if(s.f=="yuanmo"){s.mult=1+(s.F.cap-1)*Math.pow(Math.min(1,s.clock/600),2);s.stage=s.clock>=C.YM_STAGE3?3:s.clock>=C.YM_STAGE2?2:1}
+      else s.mult=1+(s.F.cap-1)*Math.min(1,s.clock/s.F.capT)+Math.min(C.MJ_KILL[1],(s.killBonus||0));
+      const nm=s.F.hp*s.mult*C.HP_SCALE;s.hp+=nm-s.maxhp;s.maxhp=nm;
+      if(onRes||onWreck){s.hp=Math.min(s.maxhp,s.hp+C.RES_HEAL*s.maxhp*dt);const o=onWreck?G.wreck.get(k):null;if(o){o.used+=dt;if(o.used>=C.RES_USE){G.wreck.delete(k);s.hp=Math.min(s.maxhp,s.hp+C.RES_BURST*s.maxhp)}}else{G.tileT[k]+=dt;if(G.tileT[k]>=C.RES_USE){G.tiles[k]=T.RES_DOWN;G.tileT[k]=C.RES_REGROW;s.hp=Math.min(s.maxhp,s.hp+C.RES_BURST*s.maxhp);if(s.f=="mojiang")s.units+=3}}}
+      s.slow=false;let decayed=false;for(const z of G.decays){if(z.owner!==s&&Math.max(Math.abs(z.x-s.x),Math.abs(z.y-s.y))<=C.DECAY.r){decayed=true;s.slow=true;const pct=G.phase>=4?C.DECAY.pctLate:C.DECAY.pct;damage(s,pct*s.maxhp*dt,z.owner);if(z.x==s.x&&z.y==s.y){G.decays.splice(G.decays.indexOf(z),1)}break}}
+      const storm=!inZone(s.x,s.y);if(storm)damage(s,dps*s.maxhp*dt,null);
+      else if(s.noDmgT>C.REGEN_DELAY&&!decayed)s.hp=Math.min(s.maxhp,s.hp+C.REGEN*s.maxhp*dt);
+      if(!s.isPlayer)ai(s,dt)}
+    // followers inherit ai; turrets
+    for(const t of G.turrets){t.atkT-=dt;if(t.atkT>0)continue;const foe=alive().find(o=>o!==t.owner&&o.owner!==t.owner&&dist(t,o)<=C.TURRET.rg);if(foe){t.atkT=C.ATK_PERIOD;damage(foe,C.TURRET.atk*t.mult,t.owner)}}
+    // end
+    const a=G.suits.filter(s=>s.alive&&!s.owner);if(a.length<=1||G.t>900){G.over=true;G.winner=a[0]||null}}
+  G.step=step;G.tryMove=tryMove;G.attack=attack;G.dash=dash;G.skill=skill;G.stats=stats;G.canSee=canSee;G.alive=alive;G.inZone=inZone;G.T=T;G.idx=idx;G.dist=dist;G.inBush=inBush;
+  G.attackBush=(s)=>{const nx=s.x+s.dir[0],ny=s.y+s.dir[1];if(inb(nx,ny)&&G.tiles[idx(nx,ny)]==T.BUSH&&s.atkT<=0){G.tiles[idx(nx,ny)]=T.BUSH_DOWN;G.tileT[idx(nx,ny)]=C.BUSH_REGROW;s.atkT=C.ATK_PERIOD;return true}return false};
+  return G;}
+if(typeof module!=="undefined")module.exports={createGame,CONFIG};
+//@@END
+if(typeof document!=="undefined"){
+const cv=document.getElementById("c"),ctx=cv.getContext("2d"),hud=document.getElementById("hud"),mini=document.getElementById("mini"),mctx=mini.getContext("2d");
+let G=null,keys={},held=null,last=0;
+const picks=document.getElementById("picks");Object.keys(CONFIG.F).forEach(f=>{const b=document.createElement("button");b.textContent=CONFIG.F[f].ch+" "+f;b.style.borderColor=CONFIG.F[f].col;b.onclick=()=>start(f);picks.appendChild(b)});
+function start(f){G=createGame({seed:Date.now()%100000,player:f});document.getElementById("menu").style.display="none";document.getElementById("over").style.display="none";last=performance.now();requestAnimationFrame(loop)}
+function resize(){cv.width=innerWidth*devicePixelRatio;cv.height=innerHeight*devicePixelRatio;cv.style.width=innerWidth+"px";cv.style.height=innerHeight+"px"}addEventListener("resize",resize);resize();
+document.querySelectorAll(".pad button").forEach(b=>{const d=b.dataset.d.split(",").map(Number);const on=e=>{e.preventDefault();b.setPointerCapture(e.pointerId);held=d};const off=e=>{e.preventDefault();if(held===d)held=null};b.addEventListener("pointerdown",on);b.addEventListener("pointerup",off);b.addEventListener("pointercancel",off);b.addEventListener("contextmenu",e=>e.preventDefault())});
+const press={};["bA","bD","bS"].forEach(id=>{const b=document.getElementById(id);b.addEventListener("pointerdown",e=>{e.preventDefault();b.setPointerCapture(e.pointerId);press[id]=true});["pointerup","pointercancel"].forEach(ev=>b.addEventListener(ev,e=>{e.preventDefault();press[id]=false}));b.addEventListener("contextmenu",e=>e.preventDefault())});
+addEventListener("keydown",e=>keys[e.key.toLowerCase()]=true);addEventListener("keyup",e=>keys[e.key.toLowerCase()]=false);
+function playerInput(){const p=G.player;if(!p||!p.alive)return;let d=held;if(keys.arrowup||keys.w)d=[0,-1];if(keys.arrowdown||keys.s)d=[0,1];if(keys.arrowleft||keys.a)d=[-1,0];if(keys.arrowright||keys.d)d=[1,0];
+  if(d)G.tryMove(p,d[0],d[1]);
+  const foes=G.alive().filter(o=>o!==p&&o.owner!==p&&G.canSee(p,o));let tgt=null,best=99;foes.forEach(o=>{const dd=G.dist(p,o);if(dd<best){best=dd;tgt=o}});
+  if(press.bA||keys.j){if(tgt&&best<=G.stats(p).rg)G.attack(p,tgt);else if(!G.attackBush(p)&&p.atkT<=0){p.atkT=0.3;G.fx.push({x0:p.x,y0:p.y,x1:p.x+p.dir[0],y1:p.y+p.dir[1],t:0.12,miss:true})}}
+  if(press.bD||keys.k){G.dash(p);press.bD=false;keys.k=false}
+  if(press.bS||keys.l){G.skill(p,tgt);if(p.f!=="tianlong"){press.bS=false;keys.l=false}}}
+function loop(now){const dt=Math.min(0.1,(now-last)/1000);last=now;playerInput();G.step(dt);draw();if(G.over){const o=document.getElementById("over");o.style.display="flex";const w=G.winner;o.textContent=(G.player&&G.player.alive?"YOU WIN":"DEFEATED")+"\nwinner: "+(w?w.F.ch+" "+w.f:"nobody")+"\ntime "+(G.t|0)+" s\n(reload to play again)";return}requestAnimationFrame(loop)}
+function draw(){const N=CONFIG.N,p=G.player,W=cv.width,H=cv.height;const ts=Math.floor(Math.min(W,H)/13);ctx.fillStyle="#1a1d24";ctx.fillRect(0,0,W,H);
+  const cx=p?p.x:32,cy=p?p.y:32;const ox=W/2-(cx+0.5)*ts,oy=H/2-(cy+0.5)*ts;const vis=CONFIG.VISION;
+  const x0=Math.max(0,Math.floor(-ox/ts)),y0=Math.max(0,Math.floor(-oy/ts)),x1=Math.min(N,Math.ceil((W-ox)/ts)),y1=Math.min(N,Math.ceil((H-oy)/ts));
+  for(let y=y0;y<y1;y++)for(let x=x0;x<x1;x++){const t=G.tiles[G.idx(x,y)];const seen=p?Math.max(Math.abs(x-p.x),Math.abs(y-p.y))<=vis:true;
+    ctx.fillStyle=t==1?"#2d5a34":t==2?"#8a7a2a":t==3?"#243a28":t==4?"#4a4426":"#2a2f3a";ctx.fillRect(ox+x*ts,oy+y*ts,ts-1,ts-1);
+    if(G.wreck.has(G.idx(x,y))){ctx.fillStyle="#777";ctx.fillRect(ox+x*ts+ts*0.25,oy+y*ts+ts*0.25,ts*0.5,ts*0.5)}
+    if(!G.inZone(x,y)){ctx.fillStyle="#5a2a8a66";ctx.fillRect(ox+x*ts,oy+y*ts,ts,ts)}
+    if(!seen){ctx.fillStyle="#0007";ctx.fillRect(ox+x*ts,oy+y*ts,ts,ts)}}
+  if(G.zoneTo){ctx.strokeStyle="#fff8";ctx.lineWidth=2;ctx.strokeRect(ox+G.zoneTo.x0*ts,oy+G.zoneTo.y0*ts,G.zoneTo.side*ts,G.zoneTo.side*ts)}
+  G.decays.forEach(z=>{if(p&&z.owner!==p&&!(Math.max(Math.abs(z.x-p.x),Math.abs(z.y-p.y))<=2))return;ctx.fillStyle="#b88d6244";ctx.fillRect(ox+(z.x-2)*ts,oy+(z.y-2)*ts,5*ts,5*ts);ctx.fillStyle="#e0a030";ctx.fillRect(ox+z.x*ts+ts*0.4,oy+z.y*ts+ts*0.4,ts*0.2,ts*0.2)});
+  G.turrets.forEach(t=>{ctx.fillStyle="#5fa0a8";ctx.fillRect(ox+t.x*ts+2,oy+t.y*ts+2,ts-5,ts-5);ctx.fillStyle="#000";ctx.fillRect(ox+t.x*ts+ts*0.35,oy+t.y*ts+ts*0.35,ts*0.3,ts*0.3)});
+  ctx.font=Math.floor(ts*0.6)+"px sans-serif";ctx.textAlign="center";ctx.textBaseline="middle";
+  for(const s of G.suits){if(!s.alive)continue;if(p&&s!==p&&!G.canSee(p,s))continue;const sz=s.f=="yuanmo"?ts*(0.55+0.2*s.stage):ts*0.8;const X=ox+(s.x+0.5)*ts,Y=oy+(s.y+0.5)*ts;
+    ctx.globalAlpha=s.cloak>0?0.4:1;ctx.fillStyle=s.F.col;ctx.fillRect(X-sz/2,Y-sz/2,sz,sz);if(s.owner){ctx.strokeStyle="#b8343c";ctx.lineWidth=2;ctx.strokeRect(X-sz/2,Y-sz/2,sz,sz)}
+    ctx.fillStyle="#000";ctx.fillText(s.F.ch,X,Y);ctx.globalAlpha=1;
+    ctx.fillStyle="#300";ctx.fillRect(X-ts*0.4,Y-ts*0.5,ts*0.8,3);ctx.fillStyle="#4f4";ctx.fillRect(X-ts*0.4,Y-ts*0.5,ts*0.8*s.hp/s.maxhp,3);
+    if(s===p){ctx.strokeStyle="#fff";ctx.lineWidth=2;ctx.strokeRect(X-sz/2-2,Y-sz/2-2,sz+4,sz+4)}}
+  G.fx.forEach(f=>{if(p&&Math.max(Math.abs(f.x0-p.x),Math.abs(f.y0-p.y))>vis&&Math.max(Math.abs(f.x1-p.x),Math.abs(f.y1-p.y))>vis)return;ctx.strokeStyle=f.miss?"#888":"#fff";ctx.lineWidth=f.miss?2:3;ctx.beginPath();ctx.moveTo(ox+(f.x0+0.5)*ts,oy+(f.y0+0.5)*ts);ctx.lineTo(ox+(f.x1+0.5)*ts,oy+(f.y1+0.5)*ts);ctx.stroke()});
+  const ph=CONFIG.STORM[G.phase];const left=ph?Math.max(0,ph[0]-G.phaseT):0;
+  hud.textContent=`t ${G.t|0}s  alive ${G.suits.filter(s=>s.alive&&!s.owner).length}  phase ${G.phase+1}${G.zoneTo?" SHRINKING":" next in "+(left|0)+"s"}\n`+(p?`${p.F.ch} hp ${p.hp|0}/${p.maxhp|0} atk ${G.stats(p).atk.toFixed(0)} rg ${G.stats(p).rg} x${p.mult.toFixed(2)}${p.f=="yuanmo"?" stage "+p.stage:""}${p.f=="mojiang"?" units "+p.units:""}${p.f=="tianlong"?" chan "+p.chan.toFixed(1):""} dash ${Math.max(0,p.dashT).toFixed(0)} skl ${Math.max(0,p.sklT).toFixed(0)}`:"");
+  const im=mctx.createImageData(64,64);for(let y=0;y<64;y++)for(let x=0;x<64;x++){const t=G.tiles[G.idx(x,y)];let c=t==1?[45,90,52]:t==2?[138,122,42]:[42,47,58];if(!G.inZone(x,y))c=[90,42,138];const i=(y*64+x)*4;im.data[i]=c[0];im.data[i+1]=c[1];im.data[i+2]=c[2];im.data[i+3]=255}
+  if(p){const i=(p.y*64+p.x)*4;im.data[i]=255;im.data[i+1]=255;im.data[i+2]=255}mctx.putImageData(im,0,0);mini.style.width=mini.style.height=Math.min(128,innerWidth/4)+"px"}
+}
+</script></body></html>

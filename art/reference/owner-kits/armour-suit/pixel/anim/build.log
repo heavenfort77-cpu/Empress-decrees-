@@ -1,0 +1,26 @@
+idle gif: out/idle_3x.gif
+288x288  4 frames (4 pictures), 500 ms, loops  17.6 KB
+20 ms
+walk_left gif: out/walk_left_3x.gif
+288x288  6 frames (6 pictures), 750 ms, loops  24.0 KB
+33 ms
+walk_right gif: out/walk_right_3x.gif
+288x288  6 frames (6 pictures), 750 ms, loops  24.1 KB
+31 ms
+idle_0 klad check: {'stray': 41, 'corner': 34, 'jagged': 1, 'banding': 5}
+idle_1 klad check: {'stray': 32, 'corner': 20, 'banding': 7}
+idle_2 klad check: {'stray': 28, 'corner': 28, 'banding': 6}
+idle_3 klad check: {'stray': 32, 'corner': 20, 'banding': 7}
+walk_left_0 klad check: {'stray': 40, 'corner': 25, 'jagged': 3, 'banding': 10}
+walk_left_1 klad check: {'stray': 32, 'corner': 18, 'jagged': 2, 'banding': 13}
+walk_left_2 klad check: {'stray': 35, 'corner': 17, 'jagged': 3, 'banding': 9}
+walk_left_3 klad check: {'stray': 37, 'corner': 23, 'jagged': 3, 'banding': 9}
+walk_left_4 klad check: {'stray': 36, 'corner': 18, 'jagged': 2, 'banding': 12}
+walk_left_5 klad check: {'stray': 37, 'corner': 15, 'jagged': 3, 'banding': 8}
+walk_right_0 klad check: {'stray': 36, 'corner': 23, 'jagged': 3, 'banding': 7}
+walk_right_1 klad check: {'stray': 28, 'corner': 31, 'jagged': 2, 'banding': 6}
+walk_right_2 klad check: {'stray': 37, 'corner': 29, 'jagged': 3, 'banding': 4}
+walk_right_3 klad check: {'stray': 32, 'corner': 21, 'jagged': 3, 'banding': 7}
+walk_right_4 klad check: {'stray': 28, 'corner': 30, 'jagged': 2, 'banding': 6}
+walk_right_5 klad check: {'stray': 37, 'corner': 34, 'jagged': 3, 'banding': 5}
+battle_0 klad check: {'stray': 25, 'corner': 32, 'jagged': 2, 'banding': 5}
