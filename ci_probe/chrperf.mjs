@@ -93,4 +93,10 @@ console.log('scene          fps     p50   p95   worst  >20ms%  calls  tris     p
 for (const r of rows) if (r.fps !== undefined) console.log([r.scene.padEnd(13), String(r.fps).padStart(6), String(r.p50).padStart(6), String(r.p95).padStart(5), String(r.worst).padStart(6), String(r.over20).padStart(6), String(r.calls).padStart(6), String(r.tris).padStart(8), String(r.programs).padStart(5), String(r.texUpPerFrame).padStart(7), String(r.bufUpPerFrame).padStart(7), String(r.linksInTimed).padStart(5), (r.heap0 + '-' + r.heap1).padStart(11), String(r.mixersPerFrame).padStart(7), r.errs ? ' ERR ' + r.err0 : ''].join(' '));
 for (const r of rows) if (r.cycles) console.log(`CYCLES ${r.scene}: ${r.flat ? 'FLAT' : 'FAIL not flat'} ${JSON.stringify(r.cycles.map((c) => [c.geoms, c.texs, c.programs, c.heapMB]))}`);
 for (const r of rows) if (r.err) console.log(`FAIL ${r.scene}: ${r.err.slice(0, 200)}`);
+// Gates count what they measured: a timed scene with no frames, or a probe scene that drew no characters, is a FAIL (lead RULE 25 Nov).
+let bad = rows.filter((r) => r.err).length;
+for (const r of rows) if (r.fps !== undefined && (!r.frames || (r.scene.startsWith('chr') && (!r.info || !r.info.crowdDrawn || !r.mixersPerFrame)))) { console.log(`FAIL ${r.scene}: measured nothing (frames ${r.frames}, crowd ${r.info && r.info.crowdDrawn}, mixers ${r.mixersPerFrame})`); bad++; }
+for (const r of rows) if (r.cycles && (!r.cycles.length || !r.flat)) { console.log(`FAIL ${r.scene}: cycles ${r.cycles.length} flat ${r.flat}`); bad++; }
+if (!rows.length) { console.log('FAIL no scene ran'); bad++; }
+console.log(`PROBE ${bad ? 'FAIL' : 'PASS'} scenes ${rows.length}`); process.exitCode = bad ? 1 : 0;
 await browser.close(); server.close();

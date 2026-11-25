@@ -31,17 +31,15 @@ export async function run(P) {
     const k = L.sphere.radius / s.radius; worst = Math.min(worst, k); if (k < CH.CHR.sphereK * 0.999) bad++;
   }
   let outside = 0; const v = new THREE.Vector3(), m4 = new THREE.Matrix4();
-  for (const B of crowd.batches) for (let i = 0; i < B.count; i++) { m4.fromArray(B.mat.array, i * 16); v.setFromMatrixPosition(m4); if (v.distanceTo(B.sphere.center) > B.sphere.radius - 1) outside++; }
+  for (const B of crowd.batches) for (let i = 0; i < B.count; i++) { m4.fromArray(B.mat.array, i * 16); v.setFromMatrixPosition(m4); if (!(v.distanceTo(B.sphere.center) <= B.sphere.radius - 1)) outside++; }
   add('C4_spheres', bad === 0 && outside === 0 && crowd.batches.some((B) => B.count > 0), `rig spheres below k: ${bad} (min ratio ${worst.toFixed(2)}), crowd instances outside: ${outside}`);
 
-  // C5 animation gating: a unit behind the camera does not animate; a unit past nearM steps at <= farHz.
-  const u0 = RIGS[0].rig, a0 = u0.base;
-  const save = [u0.x, u0.z];
-  const holdPlace = (x, z) => { u0.update = ((f) => function (dt) { this.place(x, 0, z, 0, 1); return f.call(this, dt); })(Object.getPrototypeOf(u0).update); };
-  holdPlace(cam.position.x, cam.position.z + 30); const tA = a0.time; const s0 = u0.animSteps; await frames(30); const behind = u0.animSteps - s0;
-  holdPlace(0, -3 - (CH.CHR.anim.nearM + 2)); const s1 = u0.animSteps, t1 = performance.now(); await frames(60); const far = (u0.animSteps - s1) / ((performance.now() - t1) / 1000);
-  delete u0.update; u0.place(save[0], 0, save[1], 0, 1);
-  add('C5_anim_gating', behind === 0 && far <= CH.CHR.anim.farHz * 1.25 && far > 0, `behind camera steps ${behind} (time ${tA.toFixed(3)}), far steps/s ${far.toFixed(1)} (farHz ${CH.CHR.anim.farHz})`);
+  // C5 animation gating, frame-rate independent: 60 calls of update(1/60) after beginFrame. Behind the camera: 0 mixer steps;
+  // past nearM in view: at most farHz x 1 s + 1 steps; near in view: every call.
+  const u0 = RIGS[0].rig, save = [u0.x, u0.z], steps = (x, z) => { u0.place(x, 0, z, 0, 1); u0.root.updateMatrixWorld(true); const s0 = u0.animSteps; for (let i = 0; i < 60; i++) { CH.beginFrame(cam); u0.update(1 / 60); } return u0.animSteps - s0; };
+  const behind = steps(cam.position.x, cam.position.z + 30), far = steps(0, -3 - (CH.CHR.anim.nearM + 2)), nearS = steps(0, -3);
+  u0.place(save[0], 0, save[1], 0, 1);
+  add('C5_anim_gating', behind === 0 && far <= CH.CHR.anim.farHz + 1 && far > 0 && nearS === 60, `60 calls of 1/60 s: behind camera ${behind} steps, far ${far} (farHz ${CH.CHR.anim.farHz}), near ${nearS}`);
 
   // C6 suit placement y = -floor_y; run timeScale = speed / run_v.
   let pl = 0, ts = 0;
@@ -58,8 +56,8 @@ export async function run(P) {
   // C8 treads: offset = metres / mpr (wrapped to [0, 1)).
   const cub = RIGS.find((u) => u.rig.tpl.id === 'stalker').rig; cub.treadM = 0; cub.addTread(0.2);
   const st = crowd.makeState('zu'); crowd.addTread(st, 0.2);
-  const ok8 = Math.abs(cub.tread.value - 0.2 / CH.CHR.tread.stalker) < 1e-9 && Math.abs(st.treadM - 0.2 / CH.CHR.tread.zu) < 1e-9;
-  add('C8_tread_scroll', ok8, `stalker ${cub.tread.value.toFixed(4)} want ${(0.2 / CH.CHR.tread.stalker).toFixed(4)}, zu ${st.treadM.toFixed(4)} want ${(0.2 / CH.CHR.tread.zu).toFixed(4)}`);
+  const ok8 = Math.abs(cub.tread.value - 0.2 / CH.CHR.tread.stalker) < 1e-9 && Math.abs(st.a[4] - 0.2 / CH.CHR.tread.zu) < 1e-9;
+  add('C8_tread_scroll', ok8, `stalker ${cub.tread.value.toFixed(4)} want ${(0.2 / CH.CHR.tread.stalker).toFixed(4)}, zu ${st.a[4].toFixed(4)} want ${(0.2 / CH.CHR.tread.zu).toFixed(4)}`);
 
   // C9 hit capsules fitted to the models: hit at the model edge, miss 0.3 m beyond (tiger: head to the 4.9 m body end; the tail is outside).
   const H = CH.HIT, res9 = [];
@@ -158,5 +156,11 @@ export async function run(P) {
   // C18 statue (dormant giant): plain meshes, no skeleton, matrices frozen.
   const stt = CH.makeStatue(GI[5], 'dormant', 0); stt.place(0, 0, -40, 0, 1); let sk18 = 0, auto = 0; stt.root.traverse((o) => { if (o.isSkinnedMesh) sk18++; if (o.isMesh && o.matrixAutoUpdate) auto++; });
   add('C18_statue_static', sk18 === 0 && auto === 0 && stt.meshes.length > 0, `skinned ${sk18}, auto-matrix meshes ${auto}, meshes ${stt.meshes.length}`);
+  // C20 dispose (palace set leaving): a crowd built, drawn and disposed leaves GPU geometry and texture counts where they were.
+  const m0 = { g: r.info.memory.geometries, t: r.info.memory.textures };
+  const c2 = CH.makeCrowd({ zu: TPL.zu, ls: TPL.ls }, { pool: { zu: 4, ls: 4 } }); for (const m of c2.meshes) sc.add(m);
+  c2.warmAll(0, 0, -3); r.render(sc, cam); const m1 = { g: r.info.memory.geometries, t: r.info.memory.textures };
+  c2.dispose(); r.render(sc, cam); const m2 = { g: r.info.memory.geometries, t: r.info.memory.textures };
+  add('C20_dispose', m1.g > m0.g && m1.t > m0.t && m2.g === m0.g && m2.t === m0.t && c2.meshes.length === 0, `before ${m0.g}/${m0.t}, drawn ${m1.g}/${m1.t}, disposed ${m2.g}/${m2.t} (geometries/textures)`);
   return out;
 }

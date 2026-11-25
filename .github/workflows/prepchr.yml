@@ -27,12 +27,15 @@ jobs:
           node-version: 22
       - name: Install Playwright Chromium
         run: npm install --no-save --no-audit --no-fund playwright@${PW_VERSION} && npx playwright install chromium
+      - name: Preflight (lead RULE 25 Nov)
+        run: sh ci_probe/chr_preflight.sh chr_out
       - name: Machine
         run: (sysctl -n machdep.cpu.brand_string; system_profiler SPDisplaysDataType | grep -E "Chipset|Metal|Resolution" || true) | tee machine.txt
       - name: Probe (real GPU, vsync off)
+        if: ${{ !contains(github.event.head_commit.message, '[preflight]') }}
         run: |
           if [ "${{ matrix.part }}" = "A" ]; then S=reference,chr_wide,chr_close,chr_noout,chr_wide,reference; else S=reference,chr_low,chr_dorm,chr_cycles,webglmin,reference; fi
-          SCENES=$S OUT=chr_out node ci_probe/chrperf.mjs 2>&1 | tee perf.txt
+          set -o pipefail; SCENES=$S OUT=chr_out node ci_probe/chrperf.mjs 2>&1 | tee perf.txt
       - name: Commit to ci-out
         if: always()
         run: |
@@ -61,10 +64,14 @@ jobs:
           node-version: 22
       - name: Install Playwright Chromium
         run: npm install --no-save --no-audit --no-fund playwright@${PW_VERSION} && npx playwright install --with-deps chromium
+      - name: Preflight (lead RULE 25 Nov)
+        run: sh ci_probe/chr_preflight.sh chr_out
       - name: Static
-        run: node tests_draft/chars-static.mjs 2>&1 | tee static.txt
+        if: ${{ !contains(github.event.head_commit.message, '[preflight]') }}
+        run: set -o pipefail; node tests_draft/chars-static.mjs 2>&1 | tee static.txt
       - name: Checks and mutants
-        run: MUT_SHARD=${{ matrix.shard }}/3 node tests_draft/chars-checks.mjs --mutants 2>&1 | tee checks.txt
+        if: ${{ !contains(github.event.head_commit.message, '[preflight]') }}
+        run: set -o pipefail; MUT_SHARD=${{ matrix.shard }}/3 node tests_draft/chars-checks.mjs --mutants 2>&1 | tee checks.txt
       - name: Commit to ci-out
         if: always()
         run: |

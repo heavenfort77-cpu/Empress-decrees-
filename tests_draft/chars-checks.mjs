@@ -17,7 +17,7 @@ export const MUTANTS = [
   ['no off-screen gate', 'C5_anim_gating', 'if (!FR.frustum.intersectsSphere(FR.sph)) { FR.skipped++; return; }', 'FR.skipped += 0;'],
   ['no far rate', 'C5_anim_gating', 'this.acc < 1 / CHR.anim.farHz) return;', 'this.acc < 0) return;'],
   ['sphere not enlarged', 'C4_spheres', 's.radius *= CHR.sphereK;', 's.radius *= 1;'],
-  ['crowd sphere stale', 'C4_spheres', 'B.sphere.center.set(', 'B.sphere.center.add('],
+  ['crowd sphere too small', 'C4_spheres', 'B.sphere.radius = 0.5 * Math.sqrt(', 'B.sphere.radius = 0.05 * Math.sqrt('],
   ['floor offset dropped', 'C6_suit_floor_run', 'rig.position.y = -tpl.floorY;', 'rig.position.y = 0;'],
   ['run rate fixed', 'C6_suit_floor_run', 'const r = speed / this.tpl.runV;', 'const r = 1;'],
   ['clip start kept', 'C7_clips_start_0', 'if (t0 > 0 && t0 < Infinity)', 'if (t0 < 0)'],
@@ -28,11 +28,12 @@ export const MUTANTS = [
   ['drawn sector off centre', 'C10_sweep_sector', 'Math.PI / 2 - t / 2, t);', 'Math.PI / 2 - t / 3, t);'],
   ['bake without bind inverse', 'C11_bake_matches_skin', 'M.multiplyMatrices(bones[b].matrixWorld, tpl.boneInv[b]);', 'M.copy(bones[b].matrixWorld);'],
   ['nearest weights from a far vertex', 'C19_lod_deform', 'for (let k = 0; k < 4; k++) { si[i * 4 + k] = ssi[best * 4 + k];', 'best = (best + 997) % n0; for (let k = 0; k < 4; k++) { si[i * 4 + k] = ssi[best * 4 + k];'],
-  ['no weight transfer', 'C12_lod_weights', 'if (geo.userData.needWeights) weightGap', 'if (!1) weightGap'],
+  ['no weight transfer', 'C12_lod_weights', 'if (geo.userData.needWeights) { const gp', 'if (!1) { const gp'],
   ['outline width ignores pixel ratio', 'C13_outline_hull', 'OUT.px.value = CHR.outline.px * pr;', 'OUT.px.value = CHR.outline.px;'],
   ['memory grows per spawn', 'C15_memory_flat', 'show(scene) { if (!this.root.parent) scene.add(this.root); this.on = true; }', 'show(scene) { if (!this.root.parent) scene.add(this.root); this.on = true; this.root.add(new THREE.Mesh(new THREE.BoxGeometry(0.01, 0.01, 0.01), outlineMaterial())); }'],
   ['cloth colour hard-coded', 'C16_cloth_from_file', "color: src.color.clone(), metalness: 0, roughness: 0.85", "color: new THREE.Color(0xb8862e), metalness: 0, roughness: 0.85"],
   ['statue skinned', 'C18_statue_static', "const g = poseGeo(p.geo, M), m = new THREE.Mesh(g, p.mats[0]);", "const g = p.geo, m = new THREE.SkinnedMesh(g, p.mats[0]); m.bind(new THREE.Skeleton(bones, tpl.boneInv), I4);"],
+  ['bake texture kept on dispose', 'C20_dispose', 'for (const t in this.types) this.types[t].bake.tex.dispose();', 'for (const t in this.types) this.types[t].bake.tex.name += "";'],
 ];
 function serve(srcOverride) {
   return new Promise((res) => {
@@ -61,18 +62,19 @@ const main = async () => {
   const browser = await chromium.launch({ args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--ignore-gpu-blocklist', '--js-flags=--expose-gc', '--enable-precise-memory-info'] });
   const base = await once(browser, null);
   let fails = 0;
-  if (!base.checks) { console.log('FAIL page did not finish: ' + base.errs.join(' | ')); fails++; }
+  if (!base.checks || !base.checks.length) { console.log('FAIL page did not finish or measured 0 checks: ' + base.errs.join(' | ')); fails++; }
   else for (const c of base.checks) { console.log(`${c.pass ? 'PASS' : 'FAIL'} ${c.name}: ${c.detail}`); if (!c.pass) fails++; }
   if (base.errs.length) console.log('PAGE ERRORS ' + base.errs.length + ': ' + base.errs.slice(0, 3).join(' | '));
   console.log(`CHECKS ${base.checks ? base.checks.filter((c) => c.pass).length : 0} of ${base.checks ? base.checks.length : '?'}`);
   if (process.argv.includes('--mutants')) {
-    const src = await readFile(join(ROOT, 'src/chars.js'), 'utf8'), dir = await mkdtemp(join(tmpdir(), 'chrmut-'));
+    // Mutation target must exist (lead RULE 25 Nov): a missing file fails the run.
+    const src = await readFile(join(ROOT, 'src/chars.js'), 'utf8').catch(() => { console.log('FAIL mutation target src/chars.js missing'); process.exit(1); }), dir = await mkdtemp(join(tmpdir(), 'chrmut-'));
     let caught = 0, named = 0, tried = 0;
     // MUT_SHARD=k/n runs every n-th mutant from k (parallel runner jobs); the base checks run in every shard.
     const [sk, sn] = (process.env.MUT_SHARD || '0/1').split('/').map(Number);
     for (const [mi, [name, want, a, b]] of MUTANTS.entries()) {
       if (mi % sn !== sk) continue; tried++;
-      if (!src.includes(a)) { console.log(`MUTANT ${name}: NOT APPLIED (text not found)`); continue; }
+      if (!src.includes(a)) { console.log(`MUTANT ${name}: FAIL NOT APPLIED (target text not found in src/chars.js)`); continue; }
       const f = join(dir, 'chars.js'); await writeFile(f, src.replace(a, b));
       const r = await once(browser, f), failed = r.checks ? r.checks.filter((c) => !c.pass).map((c) => c.name) : ['(page failed)'];
       const isCaught = failed.length > 0, isNamed = failed.includes(want);
@@ -80,7 +82,7 @@ const main = async () => {
       console.log(`MUTANT ${name}: ${isNamed ? 'CAUGHT by ' + want : isCaught ? 'caught (not by ' + want + ')' : 'MISSED'}; failing: ${failed.join(',')}${r.errs.length ? ' errs ' + r.errs[0] : ''}`);
     }
     console.log(`MUTANTS shard ${sk}/${sn}: caught ${caught} of ${tried}, by the named check ${named} of ${tried}`);
-    if (named < tried) fails++;
+    if (named < tried || tried === 0) fails++;
   }
   await browser.close();
   console.log(fails ? 'RESULT FAIL' : 'RESULT PASS');

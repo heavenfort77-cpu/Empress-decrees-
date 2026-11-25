@@ -13,7 +13,7 @@
 // FILES     charFiles(base)
 // GEOMETRY  nodeName(), lodOf(), rigSpaceGeo(), mergeGeos(), transferWeights(), fitSphere()
 // TEMPLATE  makeTemplate(gltf, opts): rig-space parts per LOD and material, one bone list, clips starting at 0 s
-// MATERIALS charMaterials(tex, opts): the name table (brass sheet, apex glow, suit cloth from the file); chainCompile()
+// MATERIALS charMaterials(tex): the name table (brass sheet, apex glow, suit cloth from the file), .dispose(); chainCompile(); disposeTemplate()
 // OUTLINE   outlineMaterial(), setOutlineSize(w, h, pr)   suits: 2 px inverted hull, one extra draw per suit material
 // RIGS      spawnRig(tpl, opts) -> rig: place(), show(), hide(), play(), setRun(), setState(), addTread(), update() [PERFRAME]; lodHold()
 // STATUE    makeStatue(tpl, clip, t): a skinned pose frozen into static meshes (dormant giants)
@@ -279,14 +279,19 @@ export function charMaterials(tex) {
     palTin: (s) => s === 'dormant' ? std({ color: 0x7c9c88, metalness: 0.15, roughness: 0.75 }) : std({ color: 0xd8cda8, metalness: 0.6, roughness: 0.35 }),
     palPatina: () => std({ map: tex('bronze_trim_patina'), metalness: 0.15, roughness: 0.8 }),
   };
-  return (name, src, state) => {
+  const get = (name, src, state) => {
     const cloth = name.startsWith('sCloth'), key = name + '|' + (state || 'awake') + (cloth ? '|' + src.color.getHexString() : '');
     if (cache.has(key)) return cache.get(key);
     const m = cloth ? std({ map: tex('suit_cloth'), color: src.color.clone(), metalness: 0, roughness: 0.85 }) : (T[name] || T.rbCloth)(state);
     m.name = name; cache.set(key, m);
     return m;
   };
+  // Palace set leaving (Royal Rumble): dispose every material this table made (textures belong to INT's loader).
+  get.dispose = () => { for (const m of cache.values()) m.dispose(); cache.clear(); };
+  return get;
 }
+// Dispose a template's rig-space geometries (palace set: guards, rebels, giants). Shared-set templates (suits, tiger, cubs) are kept.
+export function disposeTemplate(tpl) { for (const L of tpl.lods) for (const p of L.parts) p.geo.dispose(); }
 // Add our vertex code to a material after the game's own onBeforeCompile (fog of war), sharing one program per key.
 function chainCompile(base, key, inject) {
   const m = base.clone(), prev = base.onBeforeCompile, pk = base.customProgramCacheKey();
@@ -384,6 +389,8 @@ class Rig {
   setState(i) { if (this.state === i) return; this.state = i; for (const p of this.parts) p.mesh.material = p.mats[i] || p.mats[0]; }
   // Tread belts: map.offset.x += metres / mpr (ASSET-LIST H), kept in [0, 1).
   addTread(m) { if (!this.tpl.tread) return; this.treadM = (this.treadM + m / this.tpl.tread) % 1; if (this.treadM < 0) this.treadM += 1; this.tread.value = this.treadM; }
+  // Leaving for good (palace set): out of the graph, bone texture and per-unit tread materials released.
+  dispose() { this.hide(); this.mixer.stopAllAction(); this.mixer.uncacheRoot(this.rig); this.skel.dispose(); for (const p of this.parts) for (const m of p.mats) if (m.name === 'treadBelt' && m.onBeforeCompile !== Object.getPrototypeOf(m).onBeforeCompile) m.dispose(); }
   // Distinct skeletons used by this unit's meshes (the gate wants 1).
   skeletons() { const s = new Set(); for (const p of this.parts) s.add(p.mesh.skeleton); this.root.traverse((o) => { if (o.isSkinnedMesh) s.add(o.skeleton); }); return s.size; }
 }
@@ -534,7 +541,7 @@ function newBatch(n, key) {
   const col = dyn(new THREE.InstancedBufferAttribute(new Float32Array(n * 3).fill(1), 3)), patchCol = dyn(new THREE.InstancedBufferAttribute(new Float32Array(n * 3).fill(1), 3));
   return { key, n, count: 0, meshes: [], mat: dyn(new THREE.InstancedBufferAttribute(new Float32Array(n * 16), 16)), col, patchCol,
     anim: dyn(new THREE.InstancedBufferAttribute(new Float32Array(n * 4), 4)), tread: dyn(new THREE.InstancedBufferAttribute(new Float32Array(n), 1)),
-    sphere: new THREE.Sphere(), x0: 0, x1: 0, y0: 0, y1: 0, z0: 0, z1: 0 };
+    sphere: new THREE.Sphere(), bb: new Float64Array(6) };
 }
 // The crowd geometry: the template part with its skin as aBoneIdx / aBoneW (not a SkinnedMesh) plus the batch's per-instance attributes.
 function crowdGeo(src, B) {
@@ -547,17 +554,24 @@ function crowdGeo(src, B) {
 class Crowd {
   constructor(C, lodK) { Object.assign(this, C); this.lodK = lodK; this.cx = 0; this.cy = 0; this.cz = 0; }
   // Per unit (pool time): its animation and LOD state. type = crowd type key.
-  makeState(type, patch = 0) { return { type, T: this.types[type], clip: null, row0: 0, frames: 1, t0: 0, rate: 1, lod: 0, treadM: 0, patch: patch % CHR.patch.length }; }
+  makeState(type, patch = 0) { return { type, T: this.types[type], clip: null, a: new Float64Array([0, 1, 0, 1, 0]), lod: 0, patch: patch % CHR.patch.length }; }
   // Event time: start clip name at game time t0 (rate = playback speed). Unknown names keep the current clip.
   setClip(st, name, t0, rate = 1) {
     const e = st.T.bake.table[name]; if (!e) return false;
-    st.clip = name; st.row0 = e.row0; st.frames = e.frames; st.t0 = t0; st.rate = e.loop ? rate : -rate;
+    st.clip = name; st.a[0] = e.row0; st.a[1] = e.frames; st.a[2] = t0; st.a[3] = e.loop ? rate : -rate;
     return true;
   }
-  addTread(st, m) { if (!st.T.tread) return; st.treadM = (st.treadM + m / st.T.tread) % 1; if (st.treadM < 0) st.treadM += 1; }
+  addTread(st, m) { if (!st.T.tread) return; const a = st.a; a[4] = (a[4] + m / st.T.tread) % 1; if (a[4] < 0) a[4] += 1; }
+  // Palace set leaving: every crowd mesh out of the graph; its geometries, material clones and bake textures disposed.
+  dispose() {
+    for (const im of this.meshes) { if (im.parent) im.parent.remove(im); im.geometry.dispose(); im.material.dispose(); if (im.customDepthMaterial) im.customDepthMaterial.dispose(); }
+    for (const t in this.types) this.types[t].bake.tex.dispose();
+    this.meshes.length = 0; this.batches.length = 0;
+  }
   // Everything the warm-up draw needs: one instance in every batch (INT draws once under the card, then calls begin/end).
   warmAll(x, y, z) { for (const B of this.batches) { B.count = 0; writeInst(B, x, y, z, 0, null, null, this); } this.endBatches(); }
 }
+const ZERO_ANIM = new Float64Array([0, 1, 0, 1, 0]);
 const CW = { m: new THREE.Matrix4(), q: new THREE.Quaternion(), p: new THREE.Vector3(), s: new THREE.Vector3(1, 1, 1), up: new THREE.Vector3(0, 1, 0) };
 // PERFRAME-BEGIN
 // Game time for every crowd clip (stops while paused: the game passes its own clock).
@@ -586,13 +600,14 @@ Crowd.prototype.put = function (st, x, y, z, fx, fz, col, variant) {
 function writeInst(B, x, y, z, yaw, s, col, C) {
   const i = B.count; if (i >= B.n) return;
   CW.q.setFromAxisAngle(CW.up, yaw); CW.p.set(x, y, z); CW.m.compose(CW.p, CW.q, CW.s); CW.m.toArray(B.mat.array, i * 16);
-  const a = B.anim.array; a[i * 4] = s ? s.row0 : 0; a[i * 4 + 1] = s ? s.frames : 1; a[i * 4 + 2] = s ? s.t0 : 0; a[i * 4 + 3] = s ? s.rate : 1;
-  B.tread.array[i] = s ? s.treadM : 0;
+  const a = B.anim.array, sa = s ? s.a : ZERO_ANIM; a[i * 4] = sa[0]; a[i * 4 + 1] = sa[1]; a[i * 4 + 2] = sa[2]; a[i * 4 + 3] = sa[3];
+  B.tread.array[i] = sa[4];
   const c = col || C.white, pc = s ? C.patch[s.patch] : C.white;
   B.col.array[i * 3] = c.r; B.col.array[i * 3 + 1] = c.g; B.col.array[i * 3 + 2] = c.b;
   B.patchCol.array[i * 3] = c.r * pc.r; B.patchCol.array[i * 3 + 1] = c.g * pc.g; B.patchCol.array[i * 3 + 2] = c.b * pc.b;
-  if (i === 0) { B.x0 = B.x1 = x; B.y0 = B.y1 = y; B.z0 = B.z1 = z; }
-  else { if (x < B.x0) B.x0 = x; if (x > B.x1) B.x1 = x; if (y < B.y0) B.y0 = y; if (y > B.y1) B.y1 = y; if (z < B.z0) B.z0 = z; if (z > B.z1) B.z1 = z; }
+  const bb = B.bb;
+  if (i === 0) { bb[0] = bb[1] = x; bb[2] = bb[3] = y; bb[4] = bb[5] = z; }
+  else { if (x < bb[0]) bb[0] = x; if (x > bb[1]) bb[1] = x; if (y < bb[2]) bb[2] = y; if (y > bb[3]) bb[3] = y; if (z < bb[4]) bb[4] = z; if (z > bb[5]) bb[5] = z; }
   B.count = i + 1;
 }
 // End of the frame's puts: counts, visibility (a batch with no units draws nothing), culling spheres around the instances, uploads.
@@ -602,8 +617,9 @@ Crowd.prototype.endBatches = function () {
   for (let i = 0; i < bs.length; i++) {
     const B = bs[i], n = B.count, on = n > 0;
     if (on) {
-      B.sphere.center.set((B.x0 + B.x1) * 0.5, (B.y0 + B.y1) * 0.5, (B.z0 + B.z1) * 0.5);
-      B.sphere.radius = 0.5 * Math.sqrt((B.x1 - B.x0) * (B.x1 - B.x0) + (B.y1 - B.y0) * (B.y1 - B.y0) + (B.z1 - B.z0) * (B.z1 - B.z0)) + CHR.crowdPad;
+      const bb = B.bb, ex = bb[1] - bb[0], ey = bb[3] - bb[2], ez = bb[5] - bb[4];
+      B.sphere.center.set((bb[0] + bb[1]) * 0.5, (bb[2] + bb[3]) * 0.5, (bb[4] + bb[5]) * 0.5);
+      B.sphere.radius = 0.5 * Math.sqrt(ex * ex + ey * ey + ez * ez) + CHR.crowdPad;
       B.mat.needsUpdate = true; B.anim.needsUpdate = true; B.col.needsUpdate = true; B.patchCol.needsUpdate = true; B.tread.needsUpdate = true;
     }
     for (let m = 0; m < B.meshes.length; m++) { const im = B.meshes[m]; if (im.count !== n) im.count = n; if (im.visible !== on) im.visible = on; }
