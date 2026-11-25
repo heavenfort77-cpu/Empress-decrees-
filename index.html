@@ -7684,7 +7684,7 @@ function reset() {
 // school; the nine suits of a run have nine schools), the Tiger Demon and the two hunt minions, the royale cubs, twelve giant rigs (one per head) and
 // the guard and rebel crowd. Gameplay, timers, collision and hit areas stay in this file; the box bodies stay built (hidden while the models are on).
 const CHRS = { drawN: 0, rigN: 0, fxN: 0, tex: {}, gl: null, info: null, mat: null, tpl: {}, gi: [], steps: null, si: 0, suit: {}, units: [], giants: [], crowd: null, ready: false, failed: [], rigs: [] };
-const CHR_SHEETS = ['suit_lamellar', 'suit_bronze', 'suit_cloth', 'bronze_trim_brass', 'bronze_trim_patina', 'fodder_trim', 'tread_belt', 'apex_patina'];
+const CHR_SHEETS = ['suit_lamellar_qin', 'suit_bronze', 'suit_cloth', 'bronze_trim_brass', 'bronze_trim_patina', 'fodder_trim', 'tread_belt', 'apex_patina'];
 const CHR_HIDE = new THREE.MeshBasicMaterial({ visible: false });
 // PERFRAME-BEGIN
 // Checks only (306, 907): crowd batches the renderer drew in its main pass since __game.render last zeroed the count (culled batches do not count).

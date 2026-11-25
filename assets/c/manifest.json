@@ -2398,6 +2398,60 @@
    "source": "assets/models/vat.glb",
    "source_sha256": "bdf806d0c4e6601448dd443fa0e071bf265605ac8321223fba1a7ae19ea191bc",
    "mode": "meshopt"
+  },
+  "assets/c/desk/suit_lamellar_qin.ktx2": {
+   "bytes": 719667,
+   "sha256": "c38b4d38e1ab8b023011c6d1255800379ee5392b8e6cab5caf49b05a952cd0ce",
+   "source": "assets/tex/suit_lamellar_qin.png",
+   "source_sha256": "1eba06bd129417ec9fa242da7232384e15295ed1498c5d8db1474190552346e8",
+   "mode": "uastc",
+   "psnr": 50.21,
+   "de": 0.419,
+   "tried": {
+    "etc1s": [
+     33.7,
+     2.48,
+     3
+    ],
+    "uastc": [
+     50.2,
+     0.42,
+     0
+    ],
+    "uastc4": [
+     50.3,
+     0.44,
+     0
+    ]
+   },
+   "stale_metrics": true
+  },
+  "assets/c/phone/suit_lamellar_qin.ktx2": {
+   "bytes": 222145,
+   "sha256": "86e3fe4d2b2e444659c89948ea6f31d81c6267c4c59fd287cf91a7f99bc85842",
+   "source": "assets/tex/suit_lamellar_qin.png",
+   "source_sha256": "1eba06bd129417ec9fa242da7232384e15295ed1498c5d8db1474190552346e8",
+   "mode": "uastc",
+   "psnr": 47.22,
+   "de": 0.583,
+   "tried": {
+    "etc1s": [
+     31.8,
+     2.92,
+     0
+    ],
+    "uastc": [
+     47.2,
+     0.58,
+     0
+    ],
+    "uastc4": [
+     47.7,
+     0.59,
+     0
+    ]
+   },
+   "stale_metrics": true
   }
  }
 }

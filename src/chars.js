@@ -63,6 +63,11 @@ export const CHR = {
   patch: [0x6f6a34, 0x6a4a32, 0x8e5a52],
   // Suit outline (owner pick 25 Nov 02:1x: 2 px on screen, renderer-side): inverted hull, one extra draw per suit material.
   outline: { on: true, px: 2, color: 0x0b0908 },
+  // Suit cloth colour by suit id (owner 25 Nov 14:08 colour option A, art/Colour-Clarity-Study.md section 8): sRGB. A suit not listed keeps the
+  // colour in its file (道 keeps its gold, section 9; 阴阳 keeps its near black).
+  clothTint: { fa: 0xefe9dc, ru: 0xc88c3e, mo: 0xe66044, za: 0xdfe6f2, ming: 0x9c7ae0, zh: 0x22754a, nong: 0x5a92e4 },
+  // Rebel cloth tint (same decision): sRGB multiplier on the fodder sheet.
+  rebelCloth: 0x8c7860,
   // Faces (owner picking A-D, 25 Nov): suit materials named with this prefix (fcBrass, fcFace in the face samples run 45533099431).
   // No face is chosen here: the suit file carries the face and its material is built from the file's own values, unless INT sets
   // mat = (name, srcMaterial, tex, state) -> Material before charMaterials builds; Rig.setFace(material) swaps it on a spawned rig.
@@ -266,12 +271,12 @@ export function charMaterials(tex) {
   const std = (o) => new THREE.MeshStandardMaterial(o);
   const brassTint = new THREE.Color(1, 1, 1).multiplyScalar(B.gain);
   const T = {
-    sLam: () => std({ map: tex('suit_lamellar'), metalness: 0, roughness: 0.5 }),
+    sLam: () => std({ map: tex('suit_lamellar_qin'), metalness: 0, roughness: 0.5 }),
     sBronze: () => std({ map: tex('suit_bronze'), metalness: 0.5, roughness: 0.45 }),
     gdBronze: () => std({ map: tex('bronze_trim_brass'), metalness: 0.4, roughness: 0.6 }),
     gdLacquer: () => std({ map: tex('fodder_trim'), metalness: 0.05, roughness: 0.8 }),
     treadBelt: (s) => std({ map: tex('tread_belt'), color: s === 'dormant' ? 0x8a8a7a : 0xffffff, metalness: 0.4, roughness: 0.6 }),
-    rbCloth: () => std({ map: tex('fodder_trim'), roughness: 0.85 }),
+    rbCloth: () => std({ map: tex('fodder_trim'), color: CHR.rebelCloth, roughness: 0.85 }),
     rbPatch: () => std({ map: tex('fodder_trim'), roughness: 0.85 }),
     rbGlint: () => new THREE.MeshBasicMaterial({ color: 0xffe066 }),
     apexBronze: (s) => s === 'dormant' ? std({ map: tex('apex_patina'), metalness: 0.15, roughness: 0.85 }) : std({ map: tex('bronze_trim_brass'), color: brassTint, metalness: B.metalness, roughness: B.roughness }),
@@ -289,7 +294,7 @@ export function charMaterials(tex) {
     const key = name + '|' + (state || 'awake') + (cloth ? '|' + src.color.getHexString() : '') + (face ? '|' + src.uuid : '');
     if (cache.has(key)) return cache.get(key);
     let m;
-    if (cloth) m = std({ map: tex('suit_cloth'), color: src.color.clone(), metalness: 0, roughness: 0.85 });
+    if (cloth) { const tint = CHR.clothTint[name.slice(name.indexOf('_') + 1)]; m = std({ map: tex('suit_cloth'), color: tint !== undefined ? new THREE.Color(tint) : src.color.clone(), metalness: 0, roughness: 0.85 }); }
     else if (face) m = (CHR.face.mat && CHR.face.mat(name, src, tex, state || 'awake')) || std({ map: src.map || null, color: src.color.clone(),
       metalness: src.metalness !== undefined ? src.metalness : 0, roughness: src.roughness !== undefined ? src.roughness : 0.5, side: src.side });
     else if (T[name]) m = T[name](state);

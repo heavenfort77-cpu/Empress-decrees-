@@ -182,6 +182,9 @@ export async function guardChecks(g, check, base) {
   // no shader compile, geometry flat; after all are broken, no guard mesh stays in the scene.
   const d306 = await g(() => {
     const G = __game, o = {}; const { A } = __gs(0);
+    // One step first: sight is worked out in the step, so the empty scene shows what the fight rows show (a training dummy out of sight
+    // was still drawn right after the new run: diag 45597082961, M.dummy + its M.camp base at 0,-18 in the empty scene only).
+    G.step(1);
     const empty = G.render(true), ec = G.census();
     const full = ['wz', 'dun', 'dun', 'zu', 'zu', 'zu', 'zu', 'zu', 'nu', 'nu', 'nu', 'che'];
     o.q = [G.guardSpawn('huangjia', full, A[0], A[1] + 5, { fz: -1, open: true }), G.guardSpawn('huangjia', full, A[0], A[1] - 5, { fz: 1, open: true })];

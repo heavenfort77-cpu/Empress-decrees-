@@ -1,1 +1,1 @@
-{"mode": "cmd", "label": "int17c-diag13", "cmd": "for i in 1 2 3 4; do node ci/shard.mjs 6 12 -v 2>&1 | grep -E \"^(FAIL 306|ok   306|RUNTIME)\" | head -2 | cut -c1-1600; done"}
+{"mode": "cmd", "label": "int17c-enc3", "cmd": "bash art/tools/int17/reencode.sh ci-enc-int hall_floor suit_lamellar_qin 2>&1 | tail -15"}
