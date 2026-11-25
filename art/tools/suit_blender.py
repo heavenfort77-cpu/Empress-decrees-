@@ -839,9 +839,17 @@ class Legs:
             # round 2: rolling contact. For each heel-rise angle, the lowest point of the turned foot (relative to the ankle) and the front-most
             # point at that height; the ankle is placed so that point is on the floor at a fixed spot (round 1 turned about one fixed toe
             # vertex and the boot nose in front of it went 6-21 mm under the floor)
-            rel = [p - ank for p in fv]; roll = []
-            for i in range(int(THETA_MAX) + 1):
-                q = [rotfz(r, float(i)) for r in rel]; zm = min(r.z for r in q); roll.append((zm, max(r.y for r in q if r.z <= zm + 0.002)))
+            # round 3: the round-2 'lowest point held' let the contact jump from mid-sole (+0.05 m) to the boot nose (+0.15 m) at about 12 deg,
+            # so the foot slid back 13-15 cm per cycle (run 45518008969). Now the sole's lower hull (forward, up; relative to the ankle) rolls
+            # without slipping: turn about one hull vertex until the next one meets the floor, then switch (world contact advances by the chord).
+            rel = sorted(set((round(p.y - ank.y, 6), round(p.z - ank.z, 6)) for p in fv)); lo = []
+            for q in rel:
+                while len(lo) >= 2 and (lo[-1][0] - lo[-2][0]) * (q[1] - lo[-2][1]) - (lo[-1][1] - lo[-2][1]) * (q[0] - lo[-2][0]) <= 0: lo.pop()
+                lo.append(q)
+            i0 = min(range(len(lo)), key=lambda i: (round(lo[i][1], 4), -lo[i][0])); roll = [(0.0, lo[i0], 0.0)]
+            for q in lo[i0 + 1:]:
+                dq = (q[0] - roll[-1][1][0], q[1] - roll[-1][1][1]); a = math.degrees(math.atan2(dq[1], dq[0]))
+                if a >= roll[-1][0]: roll.append((a, q, roll[-1][2] + math.hypot(*dq)))
             s.L[side] = dict(m=m, hip=hip, Lt=(knee - hip).length, Ls=(ank - knee).length, ank=ank, roll=roll,
                              fd=(toe - ank).normalized(), pole=Vector((m * 0.1, 1, 0)).normalized(), sole=zmin)
 
@@ -849,10 +857,11 @@ def run_clip(arm, b, sid, legs):
     R_ = RUN[sid]; v = SPEED[R_['tier']]
     N = int(round(2 * FPS / R_['cad'])); T = N / FPS; tc = R_['duty'] * T; tsw = T - tc; Lc = v * tc
     def stance(L, tau):
-        th = THETA_MAX * smooth((tau / tc - HEEL0) / (1 - HEEL0)); i = min(int(th), len(L['roll']) - 2); w = th - i
-        zm, fc = (L['roll'][i][k] * (1 - w) + L['roll'][i + 1][k] * w for k in (0, 1)); z0, f0 = L['roll'][0]
-        cf = Lc * AHEAD - v * tau + f0                       # contact point (moves back at ground speed: fixed on the floor)
-        return Vector((L['ank'].x * R_['width'], cf - fc, L['ank'].z + z0 - zm)), rotfz(L['fd'], th)
+        th = THETA_MAX * smooth((tau / tc - HEEL0) / (1 - HEEL0))
+        a, (pf, pz), off = [r for r in L['roll'] if r[0] <= th + 1e-9][-1]; f0, z0 = L['roll'][0][1]
+        q = rotfz(Vector((0, pf, pz)), th)                   # active hull pivot, turned with the foot
+        cf = Lc * AHEAD - v * tau + f0 + off                 # its floor spot (moves back at ground speed: fixed on the floor)
+        return Vector((L['ank'].x * R_['width'], cf - q.y, L['ank'].z + z0 - q.z)), rotfz(L['fd'], th)
     def foot(L, tau):
         if tau <= tc: return stance(L, tau) + (True,)
         s = (tau - tc) / tsw; A0, F0 = stance(L, tc); A1, F1 = stance(L, 0)
