@@ -98,5 +98,18 @@ let bad = rows.filter((r) => r.err).length;
 for (const r of rows) if (r.fps !== undefined && (!r.frames || (r.scene.startsWith('chr') && (!r.info || !r.info.crowdDrawn || !r.mixersPerFrame)))) { console.log(`FAIL ${r.scene}: measured nothing (frames ${r.frames}, crowd ${r.info && r.info.crowdDrawn}, mixers ${r.mixersPerFrame})`); bad++; }
 for (const r of rows) if (r.cycles && (!r.cycles.length || !r.flat)) { console.log(`FAIL ${r.scene}: cycles ${r.cycles.length} flat ${r.flat}`); bad++; }
 if (!rows.length) { console.log('FAIL no scene ran'); bad++; }
+// Budget gate (owner rule 32): every character scene, the heaviest included, under 500 draw calls and 0.5M triangles; a scene with
+// 0 calls or triangles measured nothing and fails. The gate is self-tested first on rows at the limits (mutation test of the monitor).
+const BUDGET = { calls: 500, tris: 500000 };
+const overBudget = (r) => !(r.calls > 0 && r.tris > 0 && r.calls < BUDGET.calls && r.tris < BUDGET.tris);
+const selfOk = overBudget({ calls: BUDGET.calls, tris: 1 }) && overBudget({ calls: 1, tris: BUDGET.tris }) && overBudget({ calls: 0, tris: 0 }) && !overBudget({ calls: 499, tris: 499999 });
+if (!selfOk) { console.log('FAIL budget gate self-test'); bad++; }
+const chrRows = rows.filter((r) => r.fps !== undefined && r.scene.startsWith('chr'));
+for (const r of chrRows) if (overBudget(r)) { console.log(`FAIL ${r.scene}: budget calls ${r.calls} (< ${BUDGET.calls}) triangles ${r.tris} (< ${BUDGET.tris})`); bad++; }
+if (!chrRows.length) { console.log('FAIL budget: no character scene measured'); bad++; }
+if (chrRows.length) {
+  const hc = chrRows.reduce((a, b) => (b.calls > a.calls ? b : a)), ht = chrRows.reduce((a, b) => (b.tris > a.tris ? b : a));
+  console.log(`BUDGET ${selfOk ? 'self-test ok' : 'self-test FAIL'}; heaviest calls ${hc.calls} (${hc.scene}), heaviest triangles ${ht.tris} (${ht.scene}); limits < ${BUDGET.calls} / < ${BUDGET.tris}`);
+}
 console.log(`PROBE ${bad ? 'FAIL' : 'PASS'} scenes ${rows.length}`); process.exitCode = bad ? 1 : 0;
 await browser.close(); server.close();

@@ -36,6 +36,8 @@ export const MUTANTS = [
   ['face from another sheet', 'C21_face_swap', "else if (face) m = (CHR.face.mat", "else if (!face) m = (CHR.face.mat"],
   ['unknown name silent', 'C21_face_swap', "else throw new Error('chars.js charMaterials: no material for", "else m = T.rbCloth(state); if (0) throw new Error('chars.js charMaterials: no material for"],
   ['setFace swaps every part', 'C21_face_swap', "for (const p of this.parts) if (p.matName.startsWith(CHR.face.prefix)) {", "for (const p of this.parts) if (p.matName) {"],
+  ['20 outline hulls per part', 'C22_draw_budget', 'if (outline) { const o = new THREE.SkinnedMesh', 'if (outline) for (let q = 0; q < 20; q++) { const o = new THREE.SkinnedMesh'],
+  ['4th face material on suits', 'C23_material_budget', 'parts[lod].push({ geo: g, src: o.material, matName: o.material.name, variant: vkey });', "parts[lod].push({ geo: g, src: o.material, matName: o.material.name, variant: vkey }); if (opts.kind === 'suit' && o.material.name === 'sLam') parts[lod].push({ geo: g.clone(), src: o.material, matName: 'fcFace', variant: null });"],
   ['bake texture kept on dispose', 'C20_dispose', 'for (const t in this.types) this.types[t].bake.tex.dispose();', 'for (const t in this.types) this.types[t].bake.tex.name += "";'],
 ];
 function serve(srcOverride) {

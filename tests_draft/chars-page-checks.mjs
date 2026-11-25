@@ -8,6 +8,11 @@ export async function run(P) {
   const tpls = [...Object.values(TPL), ...GI];
   await frames(20);
 
+  // C22 draw budget (owner rule 32): the probe's full cast at tier medium, one drawn frame, under 500 draw calls and 0.5M triangles.
+  // The limits are the owner's rule, kept here in the test (not read from chars.js, so the module cannot loosen them).
+  const BUDGET = { calls: 500, tris: 500000 }, calls22 = r.info.render.calls, tris22 = r.info.render.triangles;
+  add('C22_draw_budget', calls22 > 0 && tris22 > 0 && calls22 < BUDGET.calls && tris22 < BUDGET.tris, `calls ${calls22} (< ${BUDGET.calls}), triangles ${tris22} (< ${BUDGET.tris})`);
+
   // C1 one skeleton per unit (all parts, LOD levels and outline hulls share it).
   const sk = RIGS.map((u) => u.rig.skeletons());
   add('C1_one_skeleton', sk.every((n) => n === 1), 'skeletons per rig ' + sk.join(','));
@@ -162,6 +167,12 @@ export async function run(P) {
   c2.warmAll(0, 0, -3); r.render(sc, cam); const m1 = { g: r.info.memory.geometries, t: r.info.memory.textures };
   c2.dispose(); r.render(sc, cam); const m2 = { g: r.info.memory.geometries, t: r.info.memory.textures };
   add('C20_dispose', m1.g > m0.g && m1.t > m0.t && m2.g === m0.g && m2.t === m0.t && c2.meshes.length === 0, `before ${m0.g}/${m0.t}, drawn ${m1.g}/${m1.t}, disposed ${m2.g}/${m2.t} (geometries/textures)`);
+  // C23 material budget (owner 25 Nov: a face is a region of the existing texture, never a 4th material): every loaded suit, guard,
+  // rebel and giant template has at most this many materials (draws) per LOD level, weapon variants of one material counted once.
+  const MATS = { suit: 3, crowd: 3, giant: 3 }; let n23 = 0; const over23 = [];
+  for (const t of tpls) if (MATS[t.kind]) { n23++; for (const L of t.lods) { const m = new Set(L.parts.map((q) => q.matName)).size; if (m > MATS[t.kind]) { over23.push(t.id + ' ' + m); break; } } }
+  add('C23_material_budget', n23 > 0 && over23.length === 0, `templates ${n23}, over budget (suit/crowd/giant ${MATS.suit}/${MATS.crowd}/${MATS.giant}): ${over23.length ? over23.join(', ') : 'none'}`);
+
   // C21 faces stay swappable (owner picking A-D): an fc* material in a suit file is built from the file's own values (never another
   // sheet), CHR.face.mat overrides it, Rig.setFace swaps only the face parts, the face part has its outline hull, an unknown name stops the load.
   let base21 = null; GL.suit_fa.scene.traverse((o) => { if (!base21 && o.isSkinnedMesh && CH.lodOf(CH.nodeName(o)) === 0) base21 = o; });
