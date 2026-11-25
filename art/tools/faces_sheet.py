@@ -1,9 +1,11 @@
 #!/usr/bin/env python3
-"""Face options sample (FACES worker): one sheet per character, options side by side (now, A, B, C, D), labelled.
+"""Face masks round 2 (FACES worker): one sheet per character, now and the round-2 mask side by side, labelled.
 Row 1: close-up (head and shoulders, 3/4). Row 2: play size at 1:1 pixels (FOV 50, pitch 40, 10.5 m, 1920 x 1080, the 丹 floor).
 Row 3: the play-size head at 4x (giant 2x), nearest neighbour, so the owner sees what the pixels are. Triangle counts from the builds.
 Usage: python3 faces_sheet.py SHOTDIR STATSDIR OUTDIR
-Gates: every shot present and measured (a missing one FAILS), painted options have face UVs, LOD0 triangles within the budget."""
+Gates: every shot present and measured (a missing one FAILS); LOD0 and LOD1 triangles within the budget; no material added over now;
+play-size contrast mask vs hood/crown >= CONTRAST_MIN for M (now is measured the same way and printed as INFO: the mutation case, a face
+in the head's own material, must come out under the line). Probe spots are ticked beside the zoomed head (row 3)."""
 import json, os, sys
 from PIL import Image, ImageDraw, ImageFont
 
@@ -11,11 +13,12 @@ SHOT, STATS, OUT = sys.argv[1:4]
 os.makedirs(OUT, exist_ok=True)
 # ---- CONFIG -------------------------------------------------------------------------------------------------------------------------
 # Options in sheet order with their labels.
-OPTS = [('0', 'now (current face)'), ('A', 'A  bronze war mask'), ('B', 'B  closed visor'), ('C', 'C  painted face'), ('D', 'D  lacquer mask')]
-# Characters: title, LOD0 mesh names counted, LOD0 triangle budget, head crop half-size at play size (px), head zoom.
-CHARS = {'fa': ('suit 法 fa (法甲 廷尉)', ['fa_lod0'], 15000, 30, 4),
-         'zu': ('guard 卒 zu', ['zu_lod0'], 4000, 22, 4),
-         'g00': ('giant 00', ['giant_body_lod0', 'giant_g00_lod0'], 15000, 60, 2)}
+OPTS = [('0', 'now (current face)'), ('M', 'round 2: sculpted mask')]
+# Characters: title, LOD0 meshes, LOD0 budget, LOD1 meshes, LOD1 budget, head crop half-size at play size (px), head zoom.
+CHARS = {'zu': ('guard 卒 zu', ['zu_lod0'], 4000, ['zu_lod1'], 1500, 22, 4),
+         'g00': ('giant 00', ['giant_body_lod0', 'giant_g00_lod0'], 15000, ['giant_body_lod1', 'giant_g00_lod1'], 3000, 60, 2)}
+# Play-size contrast ratio mask vs the surface above it, minimum (palace study 3:1).
+CONTRAST_MIN = 3.0
 # Close-up cell size, px.
 CELL = 420
 FONT = '/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf'
@@ -36,18 +39,25 @@ def gate(ok, line):
     if not ok: fails.append(line)
 
 summary = {}
-for c, (title, meshes, budget, hh, zoom) in CHARS.items():
+for c, (title, meshes, budget, meshes1, budget1, hh, zoom) in CHARS.items():
     st = {}
     for o, _ in OPTS:
         p = os.path.join(STATS, f'{c}_{o}_stats.json')
         st[o] = json.load(open(p)) if os.path.exists(p) else None
         gate(st[o] is not None, f'{c} {o} build stats present')
     tri = {o: (sum(st[o]['meshes'].get(m, {}).get('tris', 0) for m in meshes) if st[o] else 0) for o, _ in OPTS}
+    tri1 = {o: (sum(st[o]['meshes'].get(m, {}).get('tris', 0) for m in meshes1) if st[o] else 0) for o, _ in OPTS}
+    mats = {o: sorted({m for k in meshes for m in (st[o]['meshes'].get(k, {}).get('mats', []) if st[o] else [])}) for o, _ in OPTS}
     for o, _ in OPTS:
         if st[o]:
             gate(0 < tri[o] <= budget, f'{c} {o} LOD0 tris {tri[o]} (budget {budget})')
-            if o in ('C', 'D'): gate(st[o]['uv_fixed_polys'] > 0, f"{c} {o} painted face polygons projected {st[o]['uv_fixed_polys']} (> 0)")
-            if o != '0': gate(st[o]['face_tris_lod0'] > 0, f"{c} {o} face parts built, {st[o]['face_tris_lod0']} tris at LOD0")
+            gate(0 < tri1[o] <= budget1, f'{c} {o} LOD1 tris {tri1[o]} (budget {budget1})')
+            gate(set(mats[o]) <= set(mats['0']), f"{c} {o} materials {mats[o]} (no new one over now {mats['0']})")
+            if o != '0': gate(st[o]['face_tris_lod0'] > 0 and len(st[o].get('probes', {})) == 2, f"{c} {o} mask built, {st[o]['face_tris_lod0']} tris at LOD0, probes {sorted(st[o].get('probes', {}))}")
+        pr = shots.get(f'{c}_{o}_play', {}).get('probe', {})
+        line = f"{c} {o} play contrast mask {pr.get('mask', {}).get('L')} vs above {pr.get('helm', {}).get('L')}: ratio {pr.get('ratio')} (min {CONTRAST_MIN})"
+        if o == '0': print('INFO ' + line + (' under the line (mutation case caught)' if (pr.get('ratio') or 0) < CONTRAST_MIN else ' NOT under the line'))
+        else: gate((pr.get('ratio') or 0) >= CONTRAST_MIN, line)
     # play crop: union of the screen boxes over the options, plus a margin
     bx = [shots.get(f'{c}_{o}_play', {}).get('bbox') for o, _ in OPTS]; bx = [b for b in bx if b]
     gate(len(bx) == len(OPTS), f'{c} play shots measured {len(bx)} of {len(OPTS)}')
@@ -57,8 +67,8 @@ for c, (title, meshes, budget, hh, zoom) in CHARS.items():
     colw = max(CELL, pw, 2 * hh * zoom)
     W = 30 + len(OPTS) * (colw + 20); Hh = 90 + 40 + CELL + 30 + ph + 30 + 2 * hh * zoom + 80
     sheet = Image.new('RGB', (W, Hh), (24, 20, 26)); d = ImageDraw.Draw(sheet)
-    d.text((30, 20), f'{title}: face options, SAMPLE ONLY (not in the game)', font=font(30, True), fill=(240, 236, 228))
-    d.text((30, 58), 'row 1 close-up 3/4 | row 2 play size 1:1 (FOV 50, pitch 40, 10.5 m) | row 3 play-size head x%d nearest' % zoom, font=font(18), fill=(190, 186, 180))
+    d.text((30, 20), f'{title}: face mask round 2, SAMPLE ONLY (not in the game)', font=font(30, True), fill=(240, 236, 228))
+    d.text((30, 58), 'row 1 close-up 3/4 | row 2 play size 1:1 (FOV 50, pitch 40, 10.5 m) | row 3 play-size head x%d nearest (ticks: contrast probes, cyan mask, pink above)' % zoom, font=font(18), fill=(190, 186, 180))
     rec = {}
     for i, (o, lab) in enumerate(OPTS):
         X = 30 + i * (colw + 20); Y = 100
@@ -72,13 +82,18 @@ for c, (title, meshes, budget, hh, zoom) in CHARS.items():
             hx, hy = shots.get(f'{c}_{o}_play', {}).get('head', [0, 0])
             hd = im.crop((hx - hh, hy - hh, hx + hh, hy + hh)).resize((2 * hh * zoom, 2 * hh * zoom), Image.NEAREST)
             sheet.paste(hd, (X, Y + ph + 30))
+            for k, colr in (('mask', (80, 220, 255)), ('helm', (255, 120, 220))):
+                q = shots.get(f'{c}_{o}_play', {}).get('probe', {}).get(k)
+                if q:
+                    qx = X + (q['px'][0] - (hx - hh)) * zoom; qy = Y + ph + 30 + (q['px'][1] - (hy - hh)) * zoom
+                    d.line((qx - 6 * zoom, qy, qx - 3 * zoom, qy), fill=colr, width=2); d.line((qx + 3 * zoom, qy, qx + 6 * zoom, qy), fill=colr, width=2)
         Y += ph + 30 + 2 * hh * zoom + 10
         dt = tri[o] - tri['0'] if st[o] and st['0'] else 0
         calls = shots.get(f'{c}_{o}_play', {}).get('calls')
-        mats = sorted({m for k in meshes for m in (st[o]['meshes'].get(k, {}).get('mats', []) if st[o] else [])})
-        d.text((X, Y), f'LOD0 {tri[o]:,} tris ({dt:+,} vs now)', font=font(18), fill=(230, 230, 230))
-        d.text((X, Y + 24), f'face parts {st[o]["face_tris_lod0"] if st[o] else 0:,} tris | {len(mats)} materials | draw calls {calls}', font=font(16), fill=(170, 170, 170))
-        rec[o] = dict(tris_lod0=tri[o], delta=dt, face_tris=st[o]['face_tris_lod0'] if st[o] else None, materials=mats, calls=calls)
+        ratio = shots.get(f'{c}_{o}_play', {}).get('probe', {}).get('ratio')
+        d.text((X, Y), f'LOD0 {tri[o]:,} tris ({dt:+,} vs now) | LOD1 {tri1[o]:,}', font=font(18), fill=(230, 230, 230))
+        d.text((X, Y + 24), f'mask parts {st[o]["face_tris_lod0"] if st[o] else 0:,} tris | {len(mats[o])} materials | calls {calls} | play contrast {ratio}:1', font=font(16), fill=(170, 170, 170))
+        rec[o] = dict(tris_lod0=tri[o], tris_lod1=tri1[o], delta=dt, face_tris=st[o]['face_tris_lod0'] if st[o] else None, materials=mats[o], calls=calls, contrast=ratio)
     sheet.save(os.path.join(OUT, f'faces_{c}.png')); sheet.convert('RGB').save(os.path.join(OUT, f'faces_{c}.jpg'), quality=90)
     summary[c] = rec
 json.dump(summary, open(os.path.join(OUT, 'faces_summary.json'), 'w'), indent=1, ensure_ascii=False)

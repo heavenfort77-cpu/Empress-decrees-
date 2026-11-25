@@ -1,92 +1,118 @@
-# Face options sample (FACES worker, owner 25 Nov 09:44 "i hate the face"): shared face layout for faces_sample.py (Blender) and
-# faces_tex.py (klad textures). Pure Python, no bpy. A face is a patch over the front of a head: s = across (-1 left .. 1 right, share of
-# the face half-width Fx(t)), t = up (0 chin .. 1 top of the face area). Feature displacements are in units of the face half-width at the
-# eye line, pushed forward (design f). Texture space of painted faces (C, D): u = 0.5 + 0.5 s, v = t (image row from the top = (1 - t) H).
-# Own designs; Qin terracotta faces and Warring States bronze masks are reference for technique only.
+# Face masks round 2 (FACES worker; owner GO 25 Nov 10:47, order 10:52): the mask shapes, pure Python (no bpy), used by faces_sample.py.
+# Method (owner's armour-suit kit, technique only, re-implemented): ONE continuous sculpted shell per mask, its relief a height function
+# over the head wrap, cut by marching squares over a signed field (outline, eye slits, mouth); a pale or dark backing sits deep behind the
+# cuts, joined to the shell by walls, so the slits read as sockets, not paint. Guard 卒 zu and giant 00 only (suit 法 fa moved to SUITS).
+# Mask space: s across (-1 left .. 1 right, share of the face half-width fx(t)); t up (0 chin .. 1 top of the face span).
+# Heights are in units of the face half-width at the eye line, pushed forward. Fields are in t units (positive = metal, negative = cut).
 import math
 
 # ---- CONFIG -------------------------------------------------------------------------------------------------------------------------
-# Landmarks as a share of the face height (chin 0, top of the face area 1): mouth line, nose base, eye line, brow line.
-T_MOUTH, T_NOSE, T_EYE, T_BROW = 0.2, 0.34, 0.6, 0.73
-# Eye centre across the face (share of the half-width) and eye half-length (share of the half-width).
-S_EYE, S_EYE_HALF = 0.36, 0.17
-# Superellipse exponent of the head wrap under the face.
-N_WRAP = 2.3
-# Widest share of the face patch (stops short of the side of the head).
-S_MAX = 0.97
-# Jaw: half-width share at the chin, rising to 1 by JAW_T.
-JAW0, JAW_T = 0.74, 0.42
-# Visor (option B) bands: (bottom t, top t) from the top down; the eye slit shows between the first and second band.
-VISOR_BANDS = [(0.76, 1.03), (0.42, 0.64), (0.2, 0.46), (-0.03, 0.24)]
-# Visor band lip: how far each band's lower edge stands proud, share of the half-width.
-VISOR_LIP = 0.07
+# Per group: s half-range of the shell domain, t range, grid columns and rows at full detail (rows are packed around the eye band).
+DOMAIN = {'zu': (1.0, -0.12, 1.06, 14, 14), 'g00': (1.2, -0.2, 1.45, 44, 44)}
+# t of the eye band centre and its half-width, where grid rows are packed (share of rows packed there).
+EYE_BAND = {'zu': (0.56, 0.12, 0.45), 'g00': (0.56, 0.14, 0.35)}
+# Metres per s unit / metres per t unit (set by the builder from the head; only scales s into t units for the fields).
+ASPECT = {'zu': 0.5, 'g00': 0.65}
+# How far the backing sits behind the shell, height units (also the wall depth of every cut edge and the outline).
+DEPTH = {'zu': 0.16, 'g00': 0.2}
+# Backing margin beyond each cut, t units (so the wall always lands on the backing).
+BACK_MARGIN = {'zu': 0.03, 'g00': 0.03}
 
 
 def g(x): return math.exp(-x * x)
 def tent(x): return max(0.0, 1.0 - abs(x))
 def clamp(x, a=0.0, b=1.0): return a if x < a else b if x > b else x
 def sstep(a, b, x): u = clamp((x - a) / (b - a)); return u * u * (3 - 2 * u)
-def jaw(t): return JAW0 + (1 - JAW0) * sstep(0.0, JAW_T, t)
+def seg_dist(px, py, ax, ay, bx, by):
+    k = clamp(((px - ax) * (bx - ax) + (py - ay) * (by - ay)) / ((bx - ax) ** 2 + (by - ay) ** 2))
+    return math.hypot(px - ax - k * (bx - ax), py - ay - k * (by - ay))
+def tri_wave(x, period): return abs((x / period) % 2 - 1) * 2 - 1
 
 
-def brow_t(s):
-    """option A brow line: a stern V (lower at the centre, rising outward)."""
-    return T_BROW - 0.05 + 0.09 * abs(s)
+# ---- guard 卒 zu: broad brutal mask, flat brow shelf, angry slits, flat wide nose, jagged grimace ---------------------------------------
+def zu_eye_t(a): return 0.56 + 0.16 * (a - 0.36)
+def zu_mouth_t(a): return 0.16 + 0.05 * a
 
 
-def feat_A(s, t):
-    """bronze war mask: hard planes. Wedge nose, V brow bar, recessed eye plane, cheek ridge, mouth bar, raised border."""
+def zu_holes(s, t):
+    """signed field of the cuts only (negative inside a cut): two angry eye slits and a jagged grimace."""
+    a = abs(s); A = ASPECT['zu']
+    u, v = (a - 0.36) * A, t - zu_eye_t(a)
+    taper = 0.055 * (1 - 0.55 * clamp(abs(a - 0.36) / 0.2))
+    eye = (math.hypot(u / (0.2 * A), v / taper) - 1) * taper
+    mouth = 1.0
+    if a < 0.46:
+        mouth = abs(t - (zu_mouth_t(a) + 0.018 * tri_wave(a, 0.115))) - 0.028 * (1 - (a / 0.46) ** 2)
+    return min(eye, mouth)
+
+
+def zu_field(s, t):
+    a = abs(s); A = ASPECT['zu']
+    jaw = -0.06 + 0.12 * a ** 3
+    out = min((0.98 - a) * A, 1.0 - t, t - jaw)
+    return min(out, zu_holes(s, t))
+
+
+def zu_height(s, t):
     a = abs(s); d = 0.0
-    nose_t = sstep(T_NOSE - 0.04, T_NOSE, t) * (1 - sstep(0.7, 0.76, t))
-    d += (0.13 + 0.15 * (1 - sstep(T_NOSE, 0.7, t))) * nose_t * max(0.0, 1 - a / (0.1 + 0.06 * (1 - sstep(T_NOSE, 0.7, t))))
-    tb = brow_t(s)
-    d += 0.11 * tent((t - tb) / 0.055) * (1 - sstep(0.78, 0.9, a))
-    eye = sstep(0.12, 0.17, a) * (1 - sstep(0.62, 0.68, a)) * sstep(T_EYE - 0.1, T_EYE - 0.07, t) * (1 - sstep(tb - 0.06, tb - 0.035, t))
-    d -= 0.05 * eye
-    # cheek ridge: a line from (0.62, 0.5) down to (0.3, 0.22)
-    px, py, qx, qy = 0.62, 0.5, 0.3, 0.22
-    k = clamp(((a - px) * (qx - px) + (t - py) * (qy - py)) / ((qx - px) ** 2 + (qy - py) ** 2))
-    dist = math.hypot(a - (px + k * (qx - px)), t - (py + k * (qy - py)))
-    d += 0.05 * tent(dist / 0.07)
-    d -= 0.05 * tent((t - T_MOUTH) / 0.025) * (1 - sstep(0.26, 0.32, a))
-    d += 0.035 * tent((t - T_MOUTH - 0.05) / 0.035) * (1 - sstep(0.28, 0.34, a))
-    d += 0.04 * tent((t - 0.06) / 0.08) * (1 - sstep(0.28, 0.38, a))
-    d += 0.035 * tent((a - 0.95) / 0.05) + 0.03 * tent((t - 0.98) / 0.04)
+    d += 0.17 * sstep(0.62, 0.68, t) * (1 - sstep(0.8, 0.92, t)) * (1 - sstep(0.82, 0.98, a))        # flat brow shelf, sharp underside
+    d -= 0.05 * tent((t - 0.56) / 0.1)                                                                  # eye band set back under it
+    nz = sstep(0.28, 0.33, t) * (1 - sstep(0.58, 0.65, t))
+    d += (0.13 + 0.07 * (1 - clamp((t - 0.3) / 0.3))) * nz * (1 - sstep(0.1, 0.17, a))                # flat wide nose wedge
+    d += 0.08 * (1 - sstep(0.6, 0.9, a)) * sstep(0.26, 0.32, t) * (1 - sstep(0.46, 0.52, t))           # cheek planes
+    d += 0.07 * (1 - sstep(0.42, 0.62, a)) * tent((t - 0.16) / 0.13)                                  # mouth guard bulge
+    d += 0.04 * (1 - sstep(0.5, 0.7, a)) * (1 - sstep(-0.02, 0.06, t))                                  # square chin
+    d -= 0.06 * sstep(0.8, 1.0, a)                                                                      # sides turn back
     return d
 
 
-def feat_C(s, t):
-    """a calm human face (terracotta-warrior reference for proportion only): nose, brow, sockets, eyeballs, cheeks, lips, chin."""
+# ---- giant 00: colossal taotie-like mask wider than the head, horned brow corners, round deep sockets, fanged snarl ----------------------
+def g_top(a): return 1.04 + 0.36 * sstep(0.55, 1.2, a)
+def g_eye_t(a): return 0.56 + 0.14 * (a - 0.36)
+def g_mouth_t(a): return 0.13 + 0.13 * a * a
+
+
+def g00_holes(s, t):
+    a = abs(s); A = ASPECT['g00']
+    u, v = (a - 0.37) * A, t - g_eye_t(a)
+    eye = (math.hypot(u / (0.19 * A), v / 0.085) - 1) * 0.085
+    mouth = 1.0
+    if a < 0.62:
+        mouth = abs(t - (g_mouth_t(a) + 0.02 * tri_wave(a, 0.13))) - 0.04 * (1 - (a / 0.62) ** 2)
+    return min(eye, mouth)
+
+
+def g00_field(s, t):
+    a = abs(s); A = ASPECT['g00']
+    jaw = -0.17 + 0.14 * a * a
+    out = min((1.18 - a) * A, g_top(a) - t, t - jaw)
+    return min(out, g00_holes(s, t))
+
+
+def g00_height(s, t):
     a = abs(s); d = 0.0
-    up = 1 - sstep(T_NOSE, T_BROW, t)
-    d += (0.1 + 0.22 * up) * sstep(T_NOSE - 0.06, T_NOSE, t) * (1 - sstep(T_BROW - 0.02, T_BROW + 0.06, t)) * g(s / (0.09 + 0.07 * up))
-    d += 0.06 * g((a - 0.13) / 0.06) * g((t - T_NOSE - 0.02) / 0.04)
-    d += 0.07 * g((t - T_BROW) / 0.045) * (1 - sstep(0.6, 0.85, a))
-    d -= 0.09 * g((a - S_EYE) / 0.16) * g((t - T_EYE) / 0.07)
-    d += 0.035 * g((a - S_EYE) / 0.1) * g((t - T_EYE) / 0.035)
-    d += 0.05 * g((a - 0.52) / 0.16) * g((t - 0.44) / 0.1)
-    d += 0.06 * g(s / 0.26) * g((t - T_MOUTH) / 0.06) - 0.035 * math.exp(-(s / 0.24) ** 4) * g((t - T_MOUTH) / 0.014)
-    d += 0.02 * g(s / 0.08) * g((t - T_MOUTH - 0.07) / 0.04)
-    d += 0.05 * g(s / 0.25) * g((t - 0.05) / 0.06)
-    d -= 0.03 * g((a - 0.75) / 0.12) * g((t - 0.72) / 0.12)
+    d += 0.26 * tent(seg_dist(a, t, 0.03, 0.68, 0.8, 0.92) / 0.075)                                       # V brow ridges into the horns
+    d += 0.15 * tent(s / 0.05) * sstep(0.66, 0.72, t)                                                       # central flange up the forehead
+    d += 0.26 * g(s / 0.17) * g((t - 0.35) / 0.08)                                                          # broad nose bulb
+    d += 0.13 * tent(s / 0.1) * sstep(0.36, 0.42, t) * (1 - sstep(0.6, 0.68, t))                            # nose bridge
+    d += 0.16 * g((a - 0.62) / 0.18) * g((t - 0.36) / 0.12)                                                 # cheek masses
+    r = math.hypot((a - 0.37) / 0.19, (t - g_eye_t(a)) / 0.085)
+    d += 0.08 * tent((r - 1.25) / 0.35)                                                                     # raised socket rims
+    d += 0.09 * g(s / 0.42) * g((t + 0.05) / 0.09)                                                          # heavy lower jaw
+    d -= 0.28 * sstep(0.88, 1.18, a)                                                                        # flaring wings sweep back
     return d
 
 
-def feat_D(s, t):
-    """lacquer mask: smooth and calm, flatter than C, a soft rim at the edge."""
-    a = abs(s); d = 0.0
-    up = 1 - sstep(T_NOSE, T_BROW, t)
-    d += (0.07 + 0.13 * up) * sstep(T_NOSE - 0.05, T_NOSE, t) * (1 - sstep(T_BROW - 0.02, T_BROW + 0.06, t)) * g(s / (0.1 + 0.05 * up))
-    d += 0.05 * g((t - T_BROW) / 0.05) * (1 - sstep(0.6, 0.85, a))
-    d -= 0.05 * g((a - S_EYE) / 0.16) * g((t - T_EYE) / 0.07)
-    d += 0.03 * g(s / 0.24) * g((t - T_MOUTH) / 0.05)
-    d += 0.03 * g((a - 0.95) / 0.04) + 0.025 * g((t - 0.99) / 0.03)
-    return d
+SHAPES = {'zu': (zu_height, zu_field, zu_holes), 'g00': (g00_height, g00_field, g00_holes)}
 
 
-FEAT = {'A': feat_A, 'C': feat_C, 'D': feat_D, 'B': lambda s, t: 0.0}
-
-
-def slit_t(s):
-    """centre line of an eye slit (A, D): rises toward the outer end."""
-    return T_EYE + 0.025 * (abs(s) - S_EYE) / S_EYE_HALF
+def axes(group, k=1.0):
+    """grid columns (s) and rows (t) for marching squares; rows packed around the eye band, columns denser at the centre third."""
+    S, t0, t1, nx, ny = DOMAIN[group]; nx = max(8, int(round(nx * k / 2)) * 2); ny = max(8, int(round(ny * k)))
+    te, hw, share = EYE_BAND[group]
+    nb = max(3, round(ny * share)); rest = ny - nb
+    a, b = te - hw, te + hw
+    lo = max(1, round(rest * (a - t0) / ((a - t0) + (t1 - b))))
+    T = [t0 + (a - t0) * i / lo for i in range(lo)] + [a + (b - a) * i / nb for i in range(nb)] + [b + (t1 - b) * i / (rest - lo) for i in range(rest - lo + 1)]
+    U = [S * math.copysign(abs(w) ** 1.15, w) for w in [-1 + 2 * i / nx for i in range(nx + 1)]]
+    return U, T

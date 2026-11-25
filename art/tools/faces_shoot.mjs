@@ -1,6 +1,6 @@
-// Face options sample (FACES worker): screenshots of art/viewer/faces.html for every character and option, close (head and shoulders,
+// Face masks round 2 (FACES worker): screenshots of art/viewer/faces.html for guard zu and giant 00, now and M, close (head and shoulders,
 // 3/4) and play size (FOV 50, pitch 40, 10.5 m, 1920 x 1080). Serves the repo root; writes OUTDIR/<c>_<o>_<view>.png and shots.json
-// (calls, triangles, screen boxes per shot). Software GL on the runner: look only, no frame rate.
+// (calls, triangles, screen boxes, contrast probes per shot). Software GL on the runner: look only, no frame rate.
 // Usage: node art/tools/faces_shoot.mjs OUTDIR [chars] [opts]
 import { createServer } from 'node:http';
 import { readFile, mkdir, writeFile } from 'node:fs/promises';
@@ -8,8 +8,8 @@ import { extname, join, normalize } from 'node:path';
 let chromium;
 try { ({ chromium } = await import('playwright')); } catch { ({ chromium } = await import('/opt/npm-tools/node_modules/playwright/index.mjs')); }
 const ROOT = new URL('../..', import.meta.url).pathname, OUT = process.argv[2] || '/tmp/fshots';
-const CH = (process.argv[3] || 'fa,zu,g00').split(','), OP = (process.argv[4] || '0,A,B,C,D').split(',');
-const TYPES = { '.html': 'text/html', '.js': 'text/javascript', '.mjs': 'text/javascript', '.png': 'image/png', '.glb': 'model/gltf-binary' };
+const CH = (process.argv[3] || 'zu,g00').split(','), OP = (process.argv[4] || '0,M').split(',');
+const TYPES = { '.html': 'text/html', '.js': 'text/javascript', '.mjs': 'text/javascript', '.png': 'image/png', '.glb': 'model/gltf-binary', '.json': 'application/json' };
 const server = createServer(async (req, res) => {
   const p = normalize(join(ROOT, decodeURIComponent(req.url.split('?')[0])));
   try { const b = await readFile(p); res.writeHead(200, { 'content-type': TYPES[extname(p)] || 'application/octet-stream' }); res.end(b); } catch { res.writeHead(404); res.end(); }
