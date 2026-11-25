@@ -25,6 +25,7 @@ const URL0 = `http://127.0.0.1:${server.address().port}/?lock&tier=medium&bots=0
 
 import { guardChecks } from './guard-checks.mjs';
 import { fanzeiChecks } from './fanzei-checks.mjs';
+import { load17Checks } from './load17-checks.mjs';
 const results = [], SIMS = [];
 function check(name, ok, detail) { results.push({ name, ok: !!ok, detail }); }
 
@@ -33,7 +34,8 @@ const page = await browser.newPage({ viewport: { width: 1366, height: 768 } });
 const errors = [];
 page.on('pageerror', (e) => errors.push(String(e)));
 page.on('console', (m) => { if (m.type() === 'error') errors.push(m.text()); });
-const g = (fn, arg) => page.evaluate(fn, arg);
+// Batch 17b: every evaluate starts once the loader is idle (a set loads between evaluates, never inside one); before the game exists, at once.
+const g = async (fn, arg) => { await page.waitForFunction(() => !window.__game || !__game.loadBusy || !__game.loadBusy(), null, { timeout: 120000 }); return page.evaluate(fn, arg); };
 
 try {
   await page.goto(URL0);
@@ -4062,6 +4064,9 @@ try {
     return G.render(true);
   });
   check('15 context lost and restored', ctx.calls > 0 && errors.length === errBefore, `calls ${ctx.calls}, new errors ${errors.slice(errBefore).join(' | ')}`);
+
+  // 1701-1710 Batch 17b: loading cards, the palace set, dispose, restore and adjust cards, hidden tab, old saves, manifest, KTX2 look: tests/load17-checks.mjs.
+  await load17Checks(g, check, page, browser, URL0);
 
   // 16 OpenGame resolutions: canvas follows the window, no errors.
   const sizes = [[1920, 1080], [1366, 768], [2560, 1440], [3440, 1440], [1024, 640]], bad = [];
