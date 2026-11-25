@@ -1,0 +1,11 @@
+MUT caught fa mask_vs_helm: mask painted to the helm value
+MUT caught fa silhouette: fa outline replaced by ru
+MUT caught fa value_range: figure darkened x0.25
+MUT caught fa floor_contrast: round-4 fa lineup
+fa_measure mutations 4 of 4 caught
+FAIL fa floor contrast (suit_contrast.py, lineup_play): fa lineup_play outline vs hall floor: 30% of outline pixels >= 3.0:1 (min 50%); body median 3.3:1
+PASS fa mask vs helm at play size 9.2:1 (mask Y 0.507 over 147 px, helm Y 0.011 over 152 px; min 3.0:1)
+PASS fa silhouette front at play size: most alike ru IoU 0.61 (max 0.75)
+FAIL fa silhouette 34 at play size: most alike ru IoU 0.77 (max 0.75)
+PASS fa value range P10 44.7 / P50 182.6 / P90 206.5 (spread min 120), dark share 9% (max 45%); round 4 fa: P10 7.4 / P50 27.1 / P90 115.3, dark 71%
+fa_measure 3 of 5 pass

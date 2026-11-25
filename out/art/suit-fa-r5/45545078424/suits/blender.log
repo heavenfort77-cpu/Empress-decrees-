@@ -1,0 +1,43 @@
+/home/runner/work/Empress-decrees-/Empress-decrees-/art/tools/fa_r5.py:421: DeprecationWarning: 'Material.use_nodes' is expected to be removed in Blender 6.0
+  m = bpy.data.materials.new(name); m.use_nodes = True; bsdf = m.node_tree.nodes.get('Principled BSDF')
+ERROR Draco is not available because library could not be found at /opt/hostedtoolcache/Python/3.13.18/x64/lib/python3.13/site-packages/bpy/lib/libbf_intern_draco_bridge.so
+ERROR MeshOptimizer is not available because library could not be found at /opt/hostedtoolcache/Python/3.13.18/x64/lib/python3.13/site-packages/bpy/lib/libbf_intern_meshopt_bridge.so
+04:12:50 | INFO: Starting glTF 2.0 export
+04:12:50 | INFO: Extracting primitive: fa_lod0
+04:12:50 | INFO: Primitives created: 3
+04:12:50 | INFO: Extracting primitive: fa_lod1
+04:12:50 | INFO: Primitives created: 3
+04:12:50 | WARNING: Mesh fa_lod2 is not valid, and may be exported wrongly
+04:12:50 | INFO: Extracting primitive: fa_lod2
+04:12:50 | INFO: Primitives created: 3
+04:12:51 | INFO: Finished glTF 2.0 export in 0.4480154514312744 s
+
+04:12:51 | INFO: Data are loaded, start creating Blender stuff
+04:12:51 | INFO: Blender create Mesh node fa_lod0
+04:12:51 | INFO: Blender create Mesh node fa_lod1
+04:12:51 | INFO: Blender create Mesh node fa_lod2
+04:12:51 | INFO: glTF import finished in 0.10s
+FAIL fa lod0 tris 6644 (budget 10000-15000)
+PASS fa lod1 tris 2600 (budget 2000-3000)
+PASS fa lod2 tris 900 (budget 300-999)
+PASS fa lod0 unweighted vertices 0
+PASS fa lod0 weight sums off 1: 0
+PASS fa max influences 3 (glTF 4)
+PASS fa cloth heat weights solved (0 parts fell back to nearest bone: )
+PASS fa materials (draw calls) 3 (max 3)
+PASS fa attack tell 0.45 s (min 0.4)
+PASS fa tell travel 1.15 m (weapon tip, rest to windup; min 0.3)
+PASS fa idle 1.00 s
+PASS fa height with crest 2.37 m (1.7-2.9)
+PASS fa 7.51 heads tall (crown 2.02 m, head 0.27 m; band (7.3, 7.7)); mutation round-3 body 6.41 heads caught
+PASS fa run stance legs within reach every frame (0 stance frames clamped); hip drop 0.111 m, lowest hip 0.893 m, cycle 0.55 s (33 frames, 3.636 steps/s, step 1.76 m) at 6.4 m/s
+PASS fa death floor solve: largest lift 0.136 m at frame 15 (fall front, 0.90 s); floor ref -0.0431 m (rest sole)
+PASS fa texel density min 1.00 of 256 px/m (min 0.8; 0 parts squeezed; lowest [])
+PASS fa GLB re-import: 3 skinned meshes, actions ['attack', 'death', 'hit', 'idle', 'run'], 819 KB
+PASS fa visual heads 7.37 (helmet top 2.037 m, mask chin 1.755 m, sole -0.043 m; band (7.0, 7.6)); mutation 6.4 (round 4) caught
+PASS fa shoulder span 0.942 m = 3.34 heads (band (2.8, 3.8); kit rogue 2.6, knight 4.1); mutation round-4 caps 2.00 caught
+PASS fa bracer thickness 0.159 m = 0.56 head (min 0.45); mutation round-4 limb 0.33 caught
+PASS fa greave thickness 0.178 m = 0.63 head (min 0.45); mutation round-4 limb 0.37 caught
+PASS fa sky-bent normals (K 0.8) on ['fa_lod0', 'fa_lod1', 'fa_lod2']
+PASS fa one sculpted shell: 1052 triangles cut by marching squares, 159 in the mask region, the rest helm
+22 of 23 pass

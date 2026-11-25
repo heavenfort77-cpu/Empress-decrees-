@@ -1,0 +1,118 @@
+== preflight 04:12:43
+PREFLIGHT PASS
+== atlases 04:12:45
+PASS fa_tex suit_fa_armour density 256 px/m (study 256)
+PASS fa_tex suit_fa_metal density 256 px/m (study 256)
+PASS fa_tex suit_fa_cloth density 256 px/m (study 256)
+PASS fa_tex plate median value 233 (band (205, 235))
+PASS fa_tex plate median saturation 0.09 (cap 0.12)
+PASS fa_tex lacq median value 31 (band (15, 45))
+PASS fa_tex lacq median saturation 0.18 (cap 0.25)
+PASS fa_tex mask median value 235 (band (210, 245))
+PASS fa_tex mask median saturation 0.06 (cap 0.1)
+PASS fa_tex silk_w median value 220 (band (205, 235))
+PASS fa_tex silk_w median saturation 0.12 (cap 0.15)
+PASS fa_tex silk_b median value 27 (band (15, 45))
+PASS fa_tex gold median value 178 (band (140, 200))
+PASS fa_tex lamella seams: 10.5% dark (6-25%: plates, seams and bindings told apart)
+PASS fa_tex lamella gold inlay and studs: 7.7% (3-15%)
+MUT caught fa_tex lamella seams: flat-filled strip
+MUT caught fa_tex plate value: black plate field
+fa_tex 15 of 15 pass
+== build 04:12:47
+FAIL fa lod0 tris 6644 (budget 10000-15000)
+PASS fa lod1 tris 2600 (budget 2000-3000)
+PASS fa lod2 tris 900 (budget 300-999)
+PASS fa lod0 unweighted vertices 0
+PASS fa lod0 weight sums off 1: 0
+PASS fa max influences 3 (glTF 4)
+PASS fa cloth heat weights solved (0 parts fell back to nearest bone: )
+PASS fa materials (draw calls) 3 (max 3)
+PASS fa attack tell 0.45 s (min 0.4)
+PASS fa tell travel 1.15 m (weapon tip, rest to windup; min 0.3)
+PASS fa idle 1.00 s
+PASS fa height with crest 2.37 m (1.7-2.9)
+PASS fa 7.51 heads tall (crown 2.02 m, head 0.27 m; band (7.3, 7.7)); mutation round-3 body 6.41 heads caught
+PASS fa run stance legs within reach every frame (0 stance frames clamped); hip drop 0.111 m, lowest hip 0.893 m, cycle 0.55 s (33 frames, 3.636 steps/s, step 1.76 m) at 6.4 m/s
+PASS fa death floor solve: largest lift 0.136 m at frame 15 (fall front, 0.90 s); floor ref -0.0431 m (rest sole)
+PASS fa texel density min 1.00 of 256 px/m (min 0.8; 0 parts squeezed; lowest [])
+PASS fa GLB re-import: 3 skinned meshes, actions ['attack', 'death', 'hit', 'idle', 'run'], 819 KB
+PASS fa visual heads 7.37 (helmet top 2.037 m, mask chin 1.755 m, sole -0.043 m; band (7.0, 7.6)); mutation 6.4 (round 4) caught
+PASS fa shoulder span 0.942 m = 3.34 heads (band (2.8, 3.8); kit rogue 2.6, knight 4.1); mutation round-4 caps 2.00 caught
+PASS fa bracer thickness 0.159 m = 0.56 head (min 0.45); mutation round-4 limb 0.33 caught
+PASS fa greave thickness 0.178 m = 0.63 head (min 0.45); mutation round-4 limb 0.37 caught
+PASS fa sky-bent normals (K 0.8) on ['fa_lod0', 'fa_lod1', 'fa_lod2']
+PASS fa one sculpted shell: 1052 triangles cut by marching squares, 159 in the mask region, the rest helm
+22 of 23 pass
+PASS fa signfix: 125 keys negated in run,hit,death (4 channels reuse an accessor)
+== clip gates 04:12:51
+PASS fa clips: attack,death,hit,idle,run
+PASS fa identity_info: rebuilt suit (CFG.rebuilt): approved-GLB identity gates not applied
+FAIL fa lod0_tris: 6644 (budget 10000-15000)
+PASS fa lod1_tris: 2600 (budget 2000-3000)
+PASS fa lod2_tris: 891 (budget 300-999)
+PASS fa weights: 9828 vertices, 0 sums off 1 (tol 0.01), max 4 influences (JOINTS_1 absent)
+PASS fa run_keys: first key t=0.0000 s, quaternion flips 0, max joint step 18.3 deg/frame at shin.L key 26 (max 70)
+PASS fa hit_keys: first key t=0.0000 s, quaternion flips 0, max joint step 37.8 deg/frame at forearm.L key 1 (max 70)
+PASS fa death_keys: first key t=0.0000 s, quaternion flips 0, max joint step 29.5 deg/frame at upper_arm.L key 38 (max 70)
+PASS fa run_length: 0.550 s (cycle 0.55 s at 6.4 m/s)
+PASS fa run_seam: closure 0.00 mm (max 1), seam accel 47.41 vs in-cycle max 76.70 mm/frame^2
+PASS fa run_contact_R: 1 contact(s) per cycle, longest 10 frames (min 4), sole min 0.3 mm vs floor ref (193 foot vertices)
+PASS fa run_slide_R: 0.64 cm per cycle (max 2)
+PASS fa run_contact_L: 1 contact(s) per cycle, longest 10 frames (min 4), sole min 0.2 mm vs floor ref (193 foot vertices)
+PASS fa run_slide_L: 0.61 cm per cycle (max 2)
+PASS fa run_info: 13 flight frames (both feet off) of 33; floor ref F = -43.1 mm
+PASS fa robe_info: hem swing 0.565 m (not gated)
+PASS fa run_floor: lowest vertex 0.2 mm vs floor ref, all LODs, all frames
+PASS fa hit_length: 0.300 s (0.25-0.35)
+PASS fa hit_returns: end vs idle frame 0: 1.08 mm (max 2)
+PASS fa hit_feet: feet move 0.29 cm during the flinch (max 2)
+PASS fa hit_floor: lowest vertex -0.0 mm vs floor ref
+PASS fa death_length: 0.900 s (0.8-1.2)
+PASS fa death_floor: lowest vertex 0.0 mm vs floor ref (frame 2), all LODs, all frames
+PASS fa death_still: last 0.1 s max move 0.00 mm (max 1)
+PASS fa death_lying: end: top 0.70 m above the floor ref (max 0.9), lowest 2.0 mm (touching <= 20)
+MUT caught fa run_slide_R: run played 20% faster than the ground speed
+MUT caught fa run_contact_R: run 5 cm above the floor
+MUT caught fa death_floor: death 5 cm into the floor
+MUT caught fa run_seam: run last key of the chest moved
+MUT n/a fa attack_identical: gate not applied to this suit (one attack key changed)
+MUT caught fa clips: hit clip dropped
+MUT caught fa death_still: death last key of the head moved
+MUT caught fa hit_returns: hit last key of the chest moved
+MUT caught fa weights: one weight scaled
+MUT n/a fa mesh_identical: gate not applied to this suit (one vertex moved)
+MUT caught fa run_keys: one run key sign-flipped
+MUT n/a fa weights_scope: gate not applied to this suit (one non-robe weight changed (sum kept))
+MUT n/a fa robe_flare: gate not applied to this suit (za robe weights put back to the pre-calm binding (64b7bd5))
+MUT n/a fa hit_frozen: gate not applied to this suit (one hit key changed)
+MUT caught fa hit_length: hit stretched to 0.5 s
+22 of 23 pass
+mutations 10 of 10 caught
+== shots 04:12:54
+== measures and sheets 04:14:48
+MUT caught fa mask_vs_helm: mask painted to the helm value
+MUT caught fa silhouette: fa outline replaced by ru
+MUT caught fa value_range: figure darkened x0.25
+MUT caught fa floor_contrast: round-4 fa lineup
+fa_measure mutations 4 of 4 caught
+FAIL fa floor contrast (suit_contrast.py, lineup_play): fa lineup_play outline vs hall floor: 30% of outline pixels >= 3.0:1 (min 50%); body median 3.3:1
+PASS fa mask vs helm at play size 9.2:1 (mask Y 0.507 over 147 px, helm Y 0.011 over 152 px; min 3.0:1)
+PASS fa silhouette front at play size: most alike ru IoU 0.61 (max 0.75)
+FAIL fa silhouette 34 at play size: most alike ru IoU 0.77 (max 0.75)
+PASS fa value range P10 44.7 / P50 182.6 / P90 206.5 (spread min 120), dark share 9% (max 45%); round 4 fa: P10 7.4 / P50 27.1 / P90 115.3, dark 71%
+fa_measure 3 of 5 pass
+== summary
+fa_tex 15 of 15 pass
+FAIL fa lod0 tris 6644 (budget 10000-15000)
+22 of 23 pass
+FAIL fa lod0_tris: 6644 (budget 10000-15000)
+22 of 23 pass
+mutations 10 of 10 caught
+fa_measure mutations 4 of 4 caught
+FAIL fa floor contrast (suit_contrast.py, lineup_play): fa lineup_play outline vs hall floor: 30% of outline pixels >= 3.0:1 (min 50%); body median 3.3:1
+FAIL fa silhouette 34 at play size: most alike ru IoU 0.77 (max 0.75)
+fa_measure 3 of 5 pass
+FAIL lines: 4
+26M	/home/runner/work/Empress-decrees-/Empress-decrees-/ci_art_out
+RESULT done

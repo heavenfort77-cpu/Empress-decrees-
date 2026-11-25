@@ -1,0 +1,11 @@
+fa_tex 15 of 15 pass
+FAIL fa lod0 tris 6644 (budget 10000-15000)
+22 of 23 pass
+FAIL fa lod0_tris: 6644 (budget 10000-15000)
+22 of 23 pass
+mutations 10 of 10 caught
+fa_measure mutations 4 of 4 caught
+FAIL fa floor contrast (suit_contrast.py, lineup_play): fa lineup_play outline vs hall floor: 30% of outline pixels >= 3.0:1 (min 50%); body median 3.3:1
+FAIL fa silhouette 34 at play size: most alike ru IoU 0.77 (max 0.75)
+fa_measure 3 of 5 pass
+FAIL lines: 4

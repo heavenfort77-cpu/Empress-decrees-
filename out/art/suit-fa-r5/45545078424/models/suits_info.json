@@ -1,0 +1,49 @@
+[
+ {
+  "id": "fa",
+  "title": "法甲 廷尉",
+  "tris": null,
+  "glb_kb": 819,
+  "tell": 0.45,
+  "travel": 1.149,
+  "strike_travel": 1.79,
+  "height": 2.366,
+  "run_v": 6.4,
+  "run_s": 0.55,
+  "run_frames": 33,
+  "run_tc": 0.1485,
+  "run_drop": 0.111,
+  "run_hip_min": 0.893,
+  "run_cad": 3.636,
+  "run_step": 1.76,
+  "hit_s": 0.3,
+  "hit_k": 0.85,
+  "death_s": 0.9,
+  "death_fall": "front",
+  "death_lift_max": 0.136,
+  "death_lift_frame": 15,
+  "floor_y": -0.0431,
+  "sole_R": -0.0431,
+  "r5": {
+   "helm_top": 2.037235736846924,
+   "shell_bottom": 1.7549992799758911,
+   "mask_chin": 1.7549974918365479,
+   "shell_tris_cut": 1052,
+   "shell_mask_tris": 159,
+   "seg_scale": 0.709,
+   "tris_parts": 6644,
+   "sole": -0.0431,
+   "head": 0.2822,
+   "height": 2.0804,
+   "span": 0.942,
+   "bracer": 0.1593,
+   "greave": 0.1777,
+   "heads": 7.371,
+   "sky_bent": [
+    "fa_lod0",
+    "fa_lod1",
+    "fa_lod2"
+   ]
+  }
+ }
+]
