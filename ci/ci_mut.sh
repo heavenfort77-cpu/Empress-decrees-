@@ -10,7 +10,7 @@ LABEL=$1; JOB=$2; REPO=${3:-/home/claude/empress-decrees-}; LANE=${CI_LANE:-ci-r
 WT=/home/claude/ci-wt; [ "$LANE" != ci-run ] && WT=/home/claude/ci-wt-$LANE
 [ -d "$WT" ] || git -C /home/claude/ci-wt worktree add -q -f "$WT" -B "$LANE" origin/ci-run
 exec 9>/home/claude/citools/.lock-$LANE; flock 9
-cd "$WT"; git fetch -q origin ci-run
+cd "$WT"; git fetch -q origin +refs/heads/ci-run:refs/remotes/origin/ci-run
 git reset -q --hard origin/ci-run
 KEEP=$(mktemp -d); cp -r .github ci "$KEEP"/
 find "$WT" -mindepth 1 -maxdepth 1 ! -name .git -exec rm -rf {} +; (cd "$REPO" && tar --exclude=.git --exclude=node_modules --exclude=backup --exclude="*_before_*" -cf - .) | (cd "$WT" && tar -xf -)
