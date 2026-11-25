@@ -295,3 +295,32 @@ Values: CHR.outline unchanged. sCloth colour per suit from this table instead of
 0xffe9a0), 墨 0xe66044, 阴阳 keep the GLB's 0x1e1b1a, 杂 0xdfe6f2, 名 0x9c7ae0, 纵横 0x22754a (A; B is 0x8fe0b0), 农 0x5a92e4. rbCloth colour 0x8c7860.
 KTX2 (INT encodes): all six are 1024 x 1024 sRGB colour maps; five are opaque (the PNGs are RGBA with full alpha), star_inlay needs its
 alpha; floors and deck repeat on both axes, the suit sheet on x. klad sources: art/colour/src/<name>.klad.
+
+## 9. Floor-only round (lead verdict on FINAL: wear patches rejected; 道 keeps the gold robe of its GLB)
+
+Asked: the luminance sd from a broad soft drift across 0.5-2 m, no pale marks, the original tex_check.py unchanged. Study rules restated
+for it, with reasons in art/tools/floor_rule_check.py: marks p95/p5 <= 1.30 inside a 1 m window, stroke scale measured without the drift,
+"no pale marks" (at most 0.3% of pixels more than 2 sd above their 32 px mean; replaces the outlier rule).
+
+Result, run 45560893893 (commit c5898c8; green tick; 24 FAIL lines): NOT met. The calibration did not converge in 10 passes.
+- Painted floor (art/colour/alt/hall_floor_drift.png): tex_check contrast sd 5.2 (min 8) FAIL, brush scale 2311.9 cm (max 15) FAIL,
+  saturation 0.52 PASS; on screen 0.142; no pale marks 0.00%; marks inside 1 m 1.25.
+- Cause, from the passes: a drift at 0.5-2 m lies inside a 1 m window, so it raises the local marks; the loop then lowered the stroke
+  contrast (FLOOR_C 0.86 -> 0.27), which took the sd back down and removed the stroke edges the brush-scale rule counts.
+  Pass 4 shows the trade: sd 9.22 with marks inside 1 m 1.47 (tile 1.57) and brush scale 51.7 cm; pass 2: sd 7.53, marks 1.39, 18.1 cm.
+  No pass had brush scale <= 15 cm.
+- Figures (dark outline, final characters) on the drift floor against the even floor in the same run: 6 of 11 against 8 of 11 at 10.5 m,
+  6 against 6 at 14 m; median body 3.00:1 against 3.05:1. The comparison gate FAILS at 10.5 m.
+- Not shown: whether sd >= 8 can be reached by drift with strokes strong enough for the brush-scale rule. It would need marks inside 1 m
+  of about 1.4 to 1.5 (pass 2 and 4), above the study's 1.30; that was not painted.
+
+Best even floor (art/colour/hall_floor.png, the COLOUR round 2 floor the owner's pick A was made on; the same file as
+art/colour/alt/hall_floor_even.png; source art/colour/src/hall_floor.klad, generator copy art/colour/alt/palace_tex_even.py) against the
+original tex_check.py: contrast sd 4.4 (min 8) FAIL, brush scale 38.0 cm (max 15) FAIL, saturation 0.52 PASS, density PASS.
+Round 2 reported its brush scale only with the changed step (9.6 cm); 38.0 cm is the original rule's number.
+Alternatives kept: art/colour/alt/hall_floor_patches.png (passes tex_check 4 of 4, look rejected), art/colour/alt/hall_floor_drift.png.
+The generator art/tools/palace_tex.py now holds the drift version with the last pass's values as defaults.
+Section 8 stands except: 道 has no cloth tint (GLB colour), and art/colour/hall_floor.png is the even floor.
+
+What a person sees on the drift floor (2 x 2 tile sheet and hall mock): a soft cloudy cinnabar with no brush strokes; the darker clouds
+repeat every 4 m and show as a regular mottle across the hall.
