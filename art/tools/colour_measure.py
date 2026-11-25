@@ -23,6 +23,8 @@ FLOOR_Y = (0.125, 0.20)
 FLOOR_MARKS = 1.30
 # Variant that is the proposal (gated); the control that must fail.
 PROPOSAL, CONTROL = 'new_a', 'old_cur'
+# The even floor's variant and the median body contrast the new floor must keep (lead 25 Nov: not below the even floor, body >= 3.0:1).
+EVEN, BODY_MED = 'even_a', 3.0
 # Body median contrast against the floor each figure must reach on the hall floor (FINAL, lead 25 Nov).
 BODY = 2.5
 # Share of a suit's pixels that must be in its school colour at play size (round 2, lead 25 Nov).
@@ -107,6 +109,13 @@ print('TABLE variant | dist | figures >= 50% | min outline share | mean outline 
 for sh in man['shots']:
     a = summ(sh['shot']); f = floorrows[sh['shot']]
     print(f"TABLE {sh['variant']} {sh['kind']} | {sh['dist']} | {a[3]} of {a[4]} | {a[0]:.0%} | {a[1]:.0%} | {a[2]:.2f}:1 | {f[0]:.3f} | {f[1]:.2f}:1 | {a[5]:.0%}")
+# floor-only round (lead 25 Nov): the new floor must not read worse than the even floor (variant even_a) with the same characters
+for d_ in (10.5, 14):
+    e = [s_ for s_ in man['shots'] if s_['variant'] == EVEN and s_['dist'] == d_]; n_ = [s_ for s_ in man['shots'] if s_['variant'] == PROPOSAL and s_['kind'] == 'hall' and s_['dist'] == d_]
+    if e and n_:
+        ae, an = summ(e[0]['shot']), summ(n_[0]['shot']); ok = an[3] >= ae[3] and an[2] >= BODY_MED
+        fails += 0 if ok else 1
+        print(f"{'PASS' if ok else 'FAIL'} new floor vs even floor at {d_} m: figures passing the outline rule {an[3]} (even floor {ae[3]}), median body {an[2]:.2f}:1 (even floor {ae[2]:.2f}:1, min {BODY_MED}:1)")
 # sheets (JPEG): same scale, same camera, stacked
 def bandcrop(shot, idn, pad=40):
     lab = idmask(idn); ys = np.where((lab > 0).any(1))[0]; y0, y1 = max(0, ys[0] - pad), min(lab.shape[0], ys[-1] + pad + 60)
@@ -123,7 +132,7 @@ by = {(s['variant'], s['kind'], s['dist']): s for s in man['shots']}
 for d in (10.5, 14):
     stack([(label(by[(v, 'hall', d)]), bandcrop(by[(v, 'hall', d)]['shot'], by[(v, 'hall', d)]['id'])) for v in (CONTROL, PROPOSAL)], f'{OUT}/sheet_play{d}_old_vs_new.jpg')
     stack([(label(s), bandcrop(s['shot'], s['id'])) for s in man['shots'] if s['kind'] == 'hall' and s['dist'] == d], f'{OUT}/sheet_play{d}_all_variants.jpg')
-stack([(label(s), bandcrop(s['shot'], s['id'])) for s in man['shots'] if s['kind'] != 'hall'], f'{OUT}/sheet_play10.5_other_floors.jpg')
+if any(s['kind'] != 'hall' for s in man['shots']): stack([(label(s), bandcrop(s['shot'], s['id'])) for s in man['shots'] if s['kind'] != 'hall'], f'{OUT}/sheet_play10.5_other_floors.jpg')
 for tag, nm in (('hall mock, 14 m, pitch 40', 'hall'), ('hall mock, low camera (pitch 14, 12 m)', 'hall_low')):
     stack([(f'{tag}: {v}', Image.open(f'{S}/{nm}_{v}.png').convert('RGB')) for v in (CONTROL, PROPOSAL)], f'{OUT}/sheet_{nm}_old_vs_new.jpg')
 for i in range(len(man['groups'])):

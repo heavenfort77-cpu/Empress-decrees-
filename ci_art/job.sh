@@ -1,4 +1,6 @@
 #!/bin/bash
+# Floor-only round after FINAL (lead 25 Nov: wear patches rejected; hall floor repainted with a broad soft drift; everything else as
+# delivered in run 45559220231 and read from art/colour). Steps 2 and 3 below are skipped.
 # COLOUR FINAL (owner 25 Nov 14:08: option A = new lighter hall floor + the game's existing dark outline, no rim; art/Colour-Clarity-Study.md):
 # 1 hall floor repainted in klad as a mid-value cinnabar floor that passes the ORIGINAL tex_check.py (floor_calibrate.py, seed 101),
 # 2 the other walkable floors (corridor tiles, garden ground, a bridge deck texture of its own) and the star inlay lifted,
@@ -21,7 +23,7 @@ python3 -c "import numpy, PIL, scipy, json" 2>/dev/null || miss "python3 imports
 node -e "import('playwright').then(m=>m.chromium.executablePath()).then(p=>require('fs').existsSync(p)||process.exit(1)).catch(()=>process.exit(1))" || miss "playwright chromium"
 for f in $T/palace_tex.py $T/paint_palace.py $T/arch_tex.py $T/suit_tex.py $T/suit_paint.py $T/tex_check.py $T/tex_check_mut.py $T/floor_rule_check.py \
          $T/floor_calibrate.py $T/trim_check.py $T/colour_shoot.mjs $T/colour_measure.py art/viewer/colour.html art/viewer/vendor/loaders/GLTFLoader.js \
-         art/viewer/vendor/utils/BufferGeometryUtils.js lib/three.module.min.js lib/three.core.min.js art/round2/tex/hall_floor.png \
+         art/viewer/vendor/utils/BufferGeometryUtils.js lib/three.module.min.js lib/three.core.min.js art/round2/tex/hall_floor.png art/colour/alt/hall_floor_even.png art/colour/suit_lamellar_qin.png art/colour/cand/floor_tiles.png art/colour/cand/garden_ground.png art/colour/cand/bridge_deck.png art/colour/cand/star_inlay.png \
          assets/tex/hall_floor.png assets/tex/stone_paving.png assets/tex/floor_tiles.png assets/tex/garden_ground.png assets/tex/timber.png assets/tex/star_inlay.png \
          assets/tex/suit_lamellar.png assets/tex/suit_cloth.png assets/tex/suit_bronze.png assets/tex/bronze_trim_brass.png assets/tex/fodder_trim.png \
          assets/tex/tread_belt.png assets/tex/hall_wall.png assets/tex/pillar.png assets/models/guard/zu.glb assets/models/rebels/ls.glb; do [ -s "$f" ] || miss "input $f"; done
@@ -38,13 +40,8 @@ if [ -f ci_art/PREFLIGHT_ONLY ]; then echo "RESULT preflight only (proof run)"; 
 step "hall floor (klad, calibrated to the study targets)"
 python3 $T/floor_calibrate.py $KLAD /tmp/fl/ops /tmp/fl/src /tmp/fl/out /tmp/fl/strip 2>&1 | tee $O/gates/floor_calibration.txt
 cp /tmp/fl/out/hall_floor.png assets/tex/hall_floor.png && cp /tmp/fl/out/hall_floor.png $O/tex/ && cp -r /tmp/fl/src/hall_floor.klad $O/src/ && cp /tmp/fl/strip/hall_floor_passes.png $O/sheets/ && cp /tmp/fl/ops/calib.json $O/gates/
-step "other floors and the star inlay (proposals, not replacing the approved files)"
-TEX_GAIN=1.20 TEX_CONTRAST=0.9 python3 $T/arch_tex.py /tmp/cand/ops 1024 floor_tiles && TEX_GAIN=1.35 python3 $T/arch_tex.py /tmp/cand/ops 1024 garden_ground && python3 $T/arch_tex.py /tmp/cand/ops 1024 bridge_deck,star_inlay
-python3 $T/paint_palace.py $KLAD /tmp/cand/ops /tmp/cand/src /tmp/cand/out /tmp/cand/strip floor_tiles,garden_ground,bridge_deck,star_inlay
-cp /tmp/cand/out/floor_tiles.png /tmp/cand/out/garden_ground.png /tmp/cand/out/bridge_deck.png /tmp/cand/out/star_inlay.png art/colour/cand/ && cp /tmp/cand/out/*.png $O/cand/ && cp -r /tmp/cand/src/*.klad $O/cand/
-step "Qin suit sheet"
-SUIT_QIN=1 python3 $T/suit_tex.py /tmp/sq/ops && python3 $T/suit_paint.py $KLAD /tmp/sq/ops /tmp/sq/src /tmp/sq/out /tmp/sq/strip suit_lamellar
-cp /tmp/sq/out/suit_lamellar.png assets/tex/suit_lamellar_qin.png && cp assets/tex/suit_lamellar_qin.png $O/tex/ && cp -r /tmp/sq/src/suit_lamellar.klad $O/src/suit_lamellar_qin.klad && cp /tmp/sq/strip/suit_lamellar_passes.png $O/sheets/suit_lamellar_qin_passes.png
+step "proposals as delivered in run 45559220231 (not repainted in the floor-only round)"
+cp art/colour/suit_lamellar_qin.png assets/tex/suit_lamellar_qin.png
 step "gates (the proposals under their final names)"
 cp assets/tex/*.png /tmp/texall/ && rm -f /tmp/texall/suit_lamellar_qin.png && cp art/colour/cand/floor_tiles.png art/colour/cand/garden_ground.png art/colour/cand/bridge_deck.png art/colour/cand/star_inlay.png /tmp/texall/
 python3 $T/tex_check.py /tmp/texall 1 4 > $O/gates/tex_check_full.txt 2>&1; grep -E "^FAIL|hall_floor|star_inlay|floor_tiles|garden_ground|bridge_deck|of .* pass|Traceback" $O/gates/tex_check_full.txt | tee $O/gates/tex_check.txt
@@ -75,7 +72,7 @@ step "measures and sheets"
 python3 $T/colour_measure.py /tmp/colshots $O/sheets 2>&1 | tee $O/measures.txt | grep -E "^FAIL|^MUT|^TABLE|FAIL lines|all colour|Traceback"
 for f in /tmp/colshots/*.png; do n=$(basename ${f%.png}); case $n in id_*) cp $f $O/shots/;; *) python3 -c "import sys;from PIL import Image;Image.open(sys.argv[1]).convert('RGB').save(sys.argv[2],quality=90)" $f $O/shots/$n.jpg;; esac; done
 cp /tmp/colshots/manifest.json $O/shots/
-rm -f assets/tex/suit_lamellar_qin.png art/colour/cand/bridge_deck.png art/colour/cand/star_inlay.png; git checkout -- assets art 2>/dev/null; git status --short | head -5
+rm -f assets/tex/suit_lamellar_qin.png; git checkout -- assets art 2>/dev/null; git status --short | head -5
 echo "== summary"
 cat $O/gates/floor_calibration.txt $O/gates/tex_check.txt $O/gates/tex_check_mut.txt $O/gates/floor_rules.txt $O/gates/trim.txt $O/gates/shots.txt $O/measures.txt 2>/dev/null | grep -E "^FAIL|MUT MISSED|MISSED |of .* pass|caught$|mutations caught|Traceback|^TABLE" | tee $O/summary.txt
 nf=$(grep -c "^FAIL\|MUT MISSED\|^MISSED \|Traceback" $O/summary.txt); echo "FAIL lines: $nf" | tee -a $O/summary.txt

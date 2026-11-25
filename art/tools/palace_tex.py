@@ -40,11 +40,10 @@ FLOOR_C = float(__import__('os').environ.get('FLOOR_C', '0.8589'))
 FLOOR_B = float(__import__('os').environ.get('FLOOR_B', '0.36'))
 # Hall floor pebble-burnish dab count.
 FLOOR_N = int(__import__('os').environ.get('FLOOR_N', '1910'))
-# Hall floor wear patches (FINAL round): places where the paint is worn through to the pale earth. They carry the luminance sd the palace
-# study asks for (tex_check.py: sd >= 8) while the burnish marks stay calm (own marks p95/p5 <= 1.30): about 3% of the surface, light.
-FLOOR_W = int(__import__('os').environ.get('FLOOR_W', '52'))
-# Hall floor wear patch lightness (1.0 = the earth tones written in floor(); the sd is tuned here so the patch area can stay small).
-FLOOR_E = float(__import__('os').environ.get('FLOOR_E', '1.15'))
+# Hall floor broad burnish drift (floor-only round, lead 25 Nov: wear patches rejected as confetti): amplitude of the large soft value
+# drift across 0.5-2 m, like polished cinnabar worn by feet. It carries the luminance sd the palace study asks for (tex_check.py: sd >= 8)
+# while the marks inside any 1 m stay calm.
+FLOOR_D = float(__import__('os').environ.get('FLOOR_D', '1.0'))
 # Hall floor fine burnish scratches (thin dark hairlines; they keep the brush-scale run of tex_check.py inside 4-15 cm).
 FLOOR_H = int(__import__('os').environ.get('FLOOR_H', '420'))
 # Colour gain for candidates of other textures (linear light on the background and every stroke colour; 1.0 = approved ops byte-identical).
@@ -144,7 +143,7 @@ def floor():
     # 丹地: cinnabar earth floor, burnished with pebbles; one continuous painted surface (no tiles). 4 m per repeat (256 px/m).
     # Round 4 (COLOUR round 2 and FINAL, 25 Nov, art/Colour-Clarity-Study.md): a mid-value cinnabar floor a black-lacquer figure reads on: texture
     # relative luminance 0.185, saturation 0.50-0.55, own marks p95/p5 <= 1.30, calm broad burnish strokes (shorter and less one-way than
-    # round 2), pebble dabs, no grit specks (round 3's read as sprinkles). Seed 101 kept. Round 2 (value 80, sd 9.1): art/round2/.
+    # round 2), pebble dabs, a broad soft value drift; no grit specks and no pale wear patches (both rejected). Seed 101 kept. Round 2 (value 80, sd 9.1): art/round2/.
     c0 = [_lin(int(FLOOR_BASE[i:i + 2], 16)) * FLOOR_G for i in (1, 3, 5)]
     def col(d, warm=0.0):
         """the base scaled by 1 + FLOOR_C x d in linear light; warm > 0 leans to the earth under the paint (less red)."""
@@ -154,6 +153,11 @@ def floor():
     t = Tex('hall_floor', col(0), True, True, 101)
     r = t.r
     t.stage = 1
+    drift = [col(-0.30 * FLOOR_D), col(0.34 * FLOOR_D), col(-0.20 * FLOOR_D), col(0.22 * FLOOR_D)]
+    for k in range(64):  # broad burnish drift: big soft sponge fields, 0.5-2 m, darker and lighter in turn, same hue
+        cx, cy = r.uniform(0, 1024), r.uniform(0, 1024); rad = r.uniform(110, 300); a = r.uniform(0, math.pi); L = r.uniform(0.4, 1.2) * rad
+        pts = t.wobble(cx - math.cos(a) * L, cy - math.sin(a) * L, cx + math.cos(a) * L, cy + math.sin(a) * L, 4, rad * 0.2)
+        t.stroke(pts, 'sponge', rad, drift[k % 4], r.uniform(0.3, 0.45), pressure=[0.5, 1, 0.5])
     tones = [col(-0.22), col(0.20), col(-0.14), col(0.26)]
     for _ in range(90):  # broad tone variation (kept low: nothing a figure edge can be lost in)
         t.blot(r.uniform(0, 1024), r.uniform(0, 1024), r.uniform(60, 160), 'sponge', r.uniform(70, 140), r.choice(tones), r.uniform(0.2, 0.34) * FLOOR_B, 3)
@@ -167,14 +171,7 @@ def floor():
         x, y = r.uniform(0, 1024), r.uniform(0, 1024); a = r.uniform(0, math.tau); L = r.uniform(10, 30)
         t.stroke([(x, y), (x + math.cos(a) * L, y + math.sin(a) * L)], 'chalk', r.uniform(6, 11), r.choice(dabs), r.uniform(0.3, 0.45))
     t.stage = 3
-    earth = [col(1.50 * FLOOR_E, 0.35), col(1.25 * FLOOR_E, 0.28)]
-    for _ in range(FLOOR_W):  # wear patches: the paint worn through to the pale earth: a soft sponge patch (about 12 cm) with a chalk core
-        cx, cy = r.uniform(0, 1024), r.uniform(0, 1024); a0 = r.uniform(0, math.pi); e = r.choice(earth)
-        t.blot(cx, cy, r.uniform(10, 16), 'sponge', r.uniform(14, 22), e, r.uniform(0.7, 0.85), 3)
-        for _ in range(3):
-            x, y = cx + r.uniform(-12, 12), cy + r.uniform(-8, 8); a = a0 + r.uniform(-0.5, 0.5); L = r.uniform(14, 32)
-            t.stroke(t.wobble(x, y, x + math.cos(a) * L, y + math.sin(a) * L, 3, 2), 'chalk', r.uniform(7, 12), e, r.uniform(0.6, 0.85))
-    for _ in range(14):  # hairline cracks
+    for _ in range(8):  # hairline cracks
         x, y = r.uniform(0, 1024), r.uniform(0, 1024); pts = [(x, y)]
         for _ in range(r.randint(5, 9)):
             x += r.uniform(-30, 30); y += r.uniform(-30, 30); pts.append((x, y))

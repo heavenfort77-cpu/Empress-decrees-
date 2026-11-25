@@ -15,18 +15,16 @@ const IDS = ['fa', 'ru', 'dao', 'mo', 'yy', 'za', 'ming', 'zh', 'nong', 'zu', 'l
 const DARK = '0b0908';
 // Proposed rebel cloth tint (umber hemp, off the floor's value).
 const RB = '8c7860';
-// Cloth tint tables. A (gated proposal): 道 pale gold robe, 纵横 deep malachite cloak. B (option): 道 dark robe, 纵横 light malachite.
-const CT_A = 'fa:efe9dc,ru:c88c3e,dao:ffe9a0,mo:e66044,za:dfe6f2,ming:9c7ae0,zh:22754a,nong:5a92e4';
-const CT_B = 'fa:efe9dc,ru:c88c3e,dao:2a2420,mo:e66044,za:dfe6f2,ming:9c7ae0,zh:8fe0b0,nong:5a92e4';
-// Floors: the approved round 2 hall floor (kept copy) and the repainted one.
-const OLD = 'art/round2/tex/hall_floor.png', NEW = 'assets/tex/hall_floor.png';
+// Cloth tint table (lead 25 Nov: 道 keeps the gold robe of its GLB, so it is not in the table; 阴阳 keeps its GLB black).
+const CT_A = 'fa:efe9dc,ru:c88c3e,mo:e66044,za:dfe6f2,ming:9c7ae0,zh:22754a,nong:5a92e4';
+// Floors: the approved round 2 hall floor (kept copy), the even COLOUR round 2 floor (the owner's pick A was made on it; sd 4.4), the new one.
+const OLD = 'art/round2/tex/hall_floor.png', EVEN = 'art/colour/alt/hall_floor_even.png', NEW = 'assets/tex/hall_floor.png';
 // Variants: name, floor, suit sheet, cloth table, rebel tint.
-const V = [['old_cur', OLD, 'suit_lamellar', '', ''], ['new_cur', NEW, 'suit_lamellar', '', ''], ['new_a', NEW, 'suit_lamellar_qin', CT_A, RB], ['new_b', NEW, 'suit_lamellar_qin', CT_B, RB]];
-// The proposal (shot on the other floors, in the hall mock and in the close-ups).
+const V = [['old_cur', OLD, 'suit_lamellar', '', ''], ['even_a', EVEN, 'suit_lamellar_qin', CT_A, RB], ['new_a', NEW, 'suit_lamellar_qin', CT_A, RB]];
+// The proposal (in the hall mock and in the close-ups).
 const PROP = V[2];
-// Other walkable floors (src/palace_art.js floors: court, corridor, garden, bridge): the approved court paving and the proposals.
-const FLOORS = [['stone_paving', 'assets/tex/stone_paving.png'], ['floor_tiles_prop', 'art/colour/cand/floor_tiles.png'],
-  ['garden_ground_prop', 'art/colour/cand/garden_ground.png'], ['bridge_deck_prop', 'art/colour/cand/bridge_deck.png']];
+// Other walkable floors: as delivered in run 45559220231, not shot again in the floor-only round.
+const FLOORS = [];
 // Close-up groups.
 const GROUPS = [['fa', 'ru', 'dao', 'mo'], ['yy', 'za', 'ming', 'zh'], ['nong', 'zu', 'ls']];
 const ROOT = new URL('../..', import.meta.url).pathname, OUTD = process.argv[2] || '/tmp/colshots';
