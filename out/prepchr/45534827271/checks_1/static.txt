@@ -1,0 +1,1 @@
+CHARS STATIC PASS (2 perframe blocks)
