@@ -1,0 +1,4 @@
+INFO heap ci_pal/pal.html?mode=perf&tier=low&toggles=0: after GC 73.21 -> 57.57 MB in 20 s; sampled live allocations 0.02 MB
+INFO        16 KB  loop pal.html?mode=perf&tier=low&toggles=0:121:16
+INFO         0 KB  (root) :0:0
+RESULT 0 of 0
