@@ -36,6 +36,8 @@ for (const [P, first] of [['', 'fa'], ['old/', 'fa_old']]) {
   SHOTS.push([`${P}lineup_play`, `ids=${all}&view=play`, 1920, 1080], [`${P}lineup_sil_front`, `ids=${all}&view=play&mode=sil`, 1920, 1080],
     [`${P}lineup_sil_34`, `ids=${all}&view=play&yaw=35&mode=sil`, 1920, 1080], [`${P}lineup_wide`, `ids=${all}&view=wide`, 1920, 1080]);
 }
+// silhouettes one suit at a time at play size, 3/4 (the 3/4 lineup overlaps neighbours: run 45539289794 found 7 blobs for 9 suits)
+for (const id of NINE) SHOTS.push([`sil34_${id}`, `id=${id}&view=play&yaw=35&mode=sil`, 1920, 1080]);
 SHOTS.push(['pair_play', 'ids=fa_old,fa&view=play', 1920, 1080], ['pair_turn', 'ids=fa_old,fa&view=turn&dist=4.6', 1280, 720]);
 let bad = 0;
 for (const [name, q, wd, ht] of SHOTS) {

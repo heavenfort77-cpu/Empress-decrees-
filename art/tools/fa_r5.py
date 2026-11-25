@@ -37,7 +37,7 @@ E_CHIN, E_BACK, E_TOP = -62.0, -38.0, 89.0
 MASK_W, MASK_WCHIN, BROW_E0, BROW_EK = 1.02, 0.52, 0.12, 0.10
 # Eye slits: centre (azimuth, elevation) rad, half length, half height, slant deg (outer end up: stern); mouth slot: elevation, half width,
 # half height, frown (the ends drop by this many rad).
-EYE = (0.40, 0.03, 0.235, 0.04, 22.0)
+EYE = (0.40, -0.07, 0.235, 0.045, 22.0)
 MOUTH = (-0.66, 0.26, 0.028, 0.045)
 # Sculpt heights, m: mask stands proud of the helm, brow ridge, nose ridge, cheekbones, cheek hollow, crest ridge, neck-guard flare.
 H_MASK, H_BROW, H_NOSE, H_CHEEK, H_HOLLOW, H_CREST, H_FLARE = 0.010, 0.016, 0.022, 0.008, -0.006, 0.012, 0.035
@@ -51,11 +51,19 @@ HEADS_VIS = (7.0, 7.6)
 SPAN_BAND = (2.8, 3.8)
 # Limb thickness (bracer and greave diameter) over the visual head height, min (kit rogue about 0.4, knight 0.8-1.0).
 LIMB_MIN = 0.45
-# LOD0 triangle target (budget 10-15k): ring segment scale is reduced until the parts fit.
-TRI_TARGET = 14300
+# LOD0 triangle target (budget 10-15k): the ring segment scale is solved (up or down) until the parts land near it (shakedown run 45539289794
+# built 7,540 at scale 1.0, under the 10k floor).
+TRI_TARGET = 13800
+# Sky-bent normals (stylised shading for the top-down game camera): every vertex normal is blended toward world up by this factor before
+# export (n' = normalize(n + K up)); side and lower faces then take more sun and sky. Cause it answers (run 45539289794): outline pixels
+# at grazing angles render at median Y 0.05-0.07 while 3:1 against the floor needs 0.27. Not an outline: the shape and the GLB topology are
+# unchanged, only the stored normals.
+SKY_BEND = 0.8
+# Mask tilt: the lower face is pushed forward by this much at the chin, m (the face plane leans back and faces up toward the camera and sun).
+MASK_TILT = 0.03
 # Material settings (three.js MeshStandardMaterial via glTF): roughness, metalness per atlas (no environment map in the game: metal stays
 # low so the albedo carries the value under hemisphere + sun).
-MATS = {'faA': (0.42, 0.0), 'faM': (0.35, 0.45), 'faC': (0.85, 0.0)}
+MATS = {'faA': (0.42, 0.0), 'faM': (0.35, 0.25), 'faC': (0.85, 0.0)}
 
 _R = json.load(open(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'fa_rows.json')))
 SB.SHEETS.update({k: tuple(v) for k, v in _R['sizes'].items()})
@@ -117,6 +125,9 @@ def c_body(b):
         hc = b.hand(m)
         loft(f'hand_{side}', [(wr, 0.042 * L, 0.032 * L, 2.2), ((hc[0], hc[1] + 0.005, hc[2]), 0.052 * L, 0.042 * L, 2.6),
                               ((m * (b.sx + 0.09), 0.075, b.zhand), 0.036 * L, 0.031 * L, 2.4)], 'faA', 'lacq', f'hand.{side}', N=segs(SB.SEG_SMALL))
+        # plate back of the gauntlet (lead white): the hands sit on the outline beside the skirt
+        loft(f'gaunt_{side}', [((wr[0] + m * 0.004, wr[1] - 0.004, wr[2] + 0.01), 0.05 * L, 0.04 * L, 2.6), ((hc[0] + m * 0.012, hc[1] - 0.004, hc[2]), 0.05 * L, 0.036 * L, 2.6),
+                               ((hc[0] + m * 0.01, hc[1] + 0.01, hc[2] - 0.045), 0.03 * L, 0.025 * L, 2.4)], 'faA', 'plate2', f'hand.{side}', N=segs(SB.SEG_SMALL))
         hp = (m * b.hx, 0, b.zhip); kn = (m * (b.hx + 0.01), 0.01, b.zknee); an = (m * (b.hx + 0.015), -0.01, b.zank)
         loft(f'thigh_{side}', [(hp, 0.1 * L, 0.1 * L, 2), (kn, 0.068 * L, 0.068 * L, 2)], 'faC', 'silk_b', f'thigh.{side}', caps=(False, True))
         loft(f'shin_{side}', [(kn, 0.06 * L, 0.06 * L, 2), (an, 0.045 * L, 0.045 * L, 2)], 'faC', 'silk_b', f'shin.{side}')
@@ -124,6 +135,8 @@ def c_body(b):
         loft(f'boot_{side}', [((x, -0.035, 0.15), 0.056 * L, 0.06 * L, 2.4), ((x, -0.01, 0.06), 0.06 * L, 0.075 * L, 2.8), ((x, 0.06, 0.035), 0.055 * L, 0.06 * L, 3.0),
                               ((x, 0.15, 0.03), 0.045 * L, 0.04 * L, 3.2), ((x, 0.2, 0.05), 0.035 * L, 0.02 * L, 3.2)], 'faA', 'lacq', f'foot.{side}',
              N=segs(SB.SEG_LIMB), ref=Vector((0, 0, 1)))
+        loft(f'sabaton_{side}', [((x, -0.0, 0.13), 0.06 * L, 0.05 * L, 2.6), ((x, 0.06, 0.085), 0.058 * L, 0.05 * L, 2.8), ((x, 0.14, 0.06), 0.045 * L, 0.035 * L, 3.0)],
+             'faA', 'plate2', f'foot.{side}', N=segs(SB.SEG_SMALL + 2), ref=Vector((0, 0, 1)))
         loft(f'sole_{side}', [((x, -0.04, 0.03), 0.06 * L, 0.06 * L, 3), ((x, 0.17, 0.02), 0.05 * L, 0.04 * L, 3)], 'faA', 'lacq', f'foot.{side}',
              N=segs(SB.SEG_SMALL), ref=Vector((0, 0, 1)))
 
@@ -161,7 +174,7 @@ def c_lower(b):
         def ab(zz, m=m):
             a, bb = b.torso_ab(b.z(0.86)); t = (b.zwaist - zz) / b.zwaist
             return (m * (0.088 * b.G + 0.035 * t), 0.0, 0.1 * b.G + 0.05 * t, bb + 0.04 + 0.06 * t)
-        lam_rows(f'tas{side}', b.zwaist - 0.02, 4, 'hips', ab, kind='cloth', allow=allowL(side), up=True, N=segs(SB.SEG_LIMB + 4))
+        lam_rows(f'tas{side}', b.zwaist - 0.02, 4, 'hips', ab, kind='cloth', allow=allowL(side), up=True, N=segs(SB.SEG_LIMB + 4), step=0.03)
     a0, b0 = b.torso_ab(b.zwaist)
     loft('apron', [((0, b0 + 0.06, b.zwaist - 0.03), 0.085, 0.01, 2.6), ((0, b0 + 0.085, b.zhip - 0.1), 0.08, 0.01, 2.6),
                    ((0, b0 + 0.1, b.zknee + 0.04), 0.07, 0.01, 2.6), ((0, b0 + 0.1, b.zknee - 0.02), 0.035, 0.008, 2.2)], 'faC', 'silk_w', 'hips',
@@ -176,7 +189,7 @@ def c_shoulders(b):
         def ab(zz):
             t = (b.zsh - 0.02 - zz) / (2 * LAM_H)
             return (c[0] + m * 0.03 * t, 0.0, 0.12 + 0.03 * t, 0.115 + 0.02 * t)
-        lam_rows(f'paul{side}', b.zsh - 0.02, 2, bone, ab, N=segs(SB.SEG_LIMB + 6), step=0.026)
+        lam_rows(f'paul{side}', b.zsh - 0.02, 2, bone, ab, N=segs(SB.SEG_LIMB + 6), step=0.035, up=True)
         loft(f'cap{side}', [((c[0] - m * 0.01, 0, c[2] + 0.095), 0.015, 0.015, 2), ((c[0], 0, c[2] + 0.07), 0.09, 0.085, 2.2), ((c[0] + m * 0.02, 0, c[2] + 0.02), 0.14, 0.125, 2.4),
                             ((c[0] + m * 0.03, 0, c[2] - 0.04), 0.155, 0.135, 2.4), ((c[0] + m * 0.03, 0, c[2] - 0.03), 0.14, 0.122, 2.4)], 'faA', 'plate', bone,
              N=segs(SB.SEG_BODY), caps=(True, False), flat=True)
@@ -220,7 +233,9 @@ def wrap(b, th, e, h):
     ce, se, ct, st = math.cos(e), math.sin(e), math.cos(th), math.sin(th)
     p = Vector((HEAD_A * ce * st, HEAD_F * ce * ct, az * se))
     n = Vector((p.x / HEAD_A ** 2, p.y / HEAD_F ** 2, p.z / az ** 2)).normalized()
-    return C + p + n * h, n
+    # mask tilt: the lower face moves straight forward (the face plane leans back and faces up toward the camera and sun)
+    tilt = MASK_TILT * smoothstep(-0.1, 0.1, mask_field(th, e)) * smoothstep(0.15, -1.0, e) * max(0.0, math.cos(th)) ** 2
+    return C + p + n * h + Vector((0.0, tilt, 0.0)), n
 
 def brow_e(th): return math.radians(0) + BROW_E0 + BROW_EK * min(1.0, abs(th) / 0.6)
 
@@ -336,9 +351,9 @@ def c_head(b):
     # brow eave: an arched band over the mask top, standing out from the helm (shades the eyes from above)
     pts, w, gold = [], [], []
     for k in range(11):
-        th = -1.05 + 2.1 * k / 10; e = brow_e(th) + 0.05
-        p, n = wrap(b, th, e, height(th, e) + 0.022 - 0.008 * abs(th)); pts.append(tuple(p)); w.append((0.024 - 0.008 * abs(th), 0.008))
-        g, _ = wrap(b, th, e - 0.004, height(th, e) + 0.046 - 0.016 * abs(th)); gold.append(tuple(g))
+        th = -1.05 + 2.1 * k / 10; e = brow_e(th) + 0.07
+        p, n = wrap(b, th, e, height(th, e) + 0.012 - 0.004 * abs(th)); pts.append(tuple(p)); w.append((0.014 - 0.004 * abs(th), 0.007))
+        g, _ = wrap(b, th, e - 0.004, height(th, e) + 0.026 - 0.008 * abs(th)); gold.append(tuple(g))
     path(pts, w, 'faA', 'lacq', 'head', 'eave', n=2.6, N=8, ref=Vector((0, 0, 1)))
     path(gold, [(0.005, 0.006)] * 11, 'faM', 'goldb', 'head', 'eavegold', n=2.2, N=6, ref=Vector((0, 0, 1)))
     # cheek flanges: plates from the temples down past the jaw, flaring out (frame the mask at the sides)
@@ -365,7 +380,7 @@ def c_sword(b, S):
     """long straight bronze jian held low and forward (approved direction and length; fa's own materials)."""
     g = b.hand(1); Lb = 0.95; d = Vector((0.45, 0.6, -0.66)).normalized(); gp = Vector(g)
     P_ = lambda t: tuple(gp + d * t)
-    loft('grip', [(P_(-0.1), 0.019, 0.019, 2), (P_(0.03), 0.021, 0.021, 2)], 'faA', 'cord', 'weapon', N=6)
+    loft('grip', [(P_(-0.1), 0.019, 0.019, 2), (P_(0.03), 0.021, 0.021, 2)], 'faA', 'lacq', 'weapon', N=6)   # lacq row: the cord row (8.6 cm) squeezed it to 0.66 density
     loft('pommel', [(P_(-0.14), 0.032, 0.032, 2), (P_(-0.1), 0.03, 0.03, 2)], 'faM', 'goldp', 'weapon', N=8)
     loft('guard', [(P_(0.03), 0.065, 0.026, 2.6), (P_(0.06), 0.052, 0.021, 2.4)], 'faM', 'goldp', 'weapon', N=8, ref=Vector((1, 0, 0)))
     loft('blade', [(P_(0.06), 0.03, 0.008, 1.4), (P_(0.06 + Lb * 0.7), 0.025, 0.007, 1.4), (P_(0.06 + Lb * 0.93), 0.017, 0.006, 1.4), (P_(0.06 + Lb), 0.001, 0.001, 1.4)],
@@ -385,9 +400,9 @@ def fa_build_parts(S):
         b, wb = fa_parts(S)
         n = sum(SB.tris(P_['ob']) for P_ in SB.PARTS)
         METRICS['seg_scale'] = round(SB.Q['seg'], 3); METRICS['tris_parts'] = n
-        if n <= TRI_TARGET or k == 5: break
+        if 0.93 * TRI_TARGET <= n <= TRI_TARGET or k == 5: break
         for P_ in SB.PARTS: bpy.data.objects.remove(P_['ob'], do_unlink=True)
-        SB.Q['seg'] *= max(0.6, (TRI_TARGET / n) ** 0.5 * 0.98)
+        SB.Q['seg'] *= min(1.6, max(0.6, (TRI_TARGET / n) ** 0.85 * 0.98))
     # proportions measured from the mesh (design z): sole, helmet top (horn excluded), pauldron span, limb thickness
     allz = lambda nm: [(P_['ob'].matrix_world @ v.co) for P_ in SB.PARTS if P_['ob'].name.startswith(nm) for v in P_['ob'].data.vertices]
     sole = min(p.z for p in allz('sole_') + allz('boot_'))
@@ -408,8 +423,29 @@ def fa_material(name, S):
     bsdf.inputs['Roughness'].default_value = r; bsdf.inputs['Metallic'].default_value = mt
     return m
 
+def sky_bend(ob):
+    me = ob.data; up = Vector((0, 0, 1)); ns = [Vector(c.vector) for c in me.corner_normals]
+    me.normals_split_custom_set([tuple((n + up * SKY_BEND).normalized()) for n in ns])
+    METRICS.setdefault('sky_bent', []).append(ob.name)
+
+_make_lod = SB.make_lod
+def fa_make_lod(src, arm, lvl):
+    ob = _make_lod(src, arm, lvl)
+    if lvl == 2:
+        for o in (src, [x for x in bpy.data.objects if x.name == src.name.replace('lod0', 'lod1')][0], ob): sky_bend(o)
+    return ob
+
 SB.build_parts = fa_build_parts
 SB.material = fa_material
+SB.make_lod = fa_make_lod
+
+class _Proxy:
+    """pass-through wrapper: only the named attributes are replaced."""
+    def __init__(s, o, over): s._o, s._over = o, over
+    def __getattr__(s, k): return s._over[k] if k in s._over else getattr(s._o, k)
+# export with vertex tangents (cause of the faceted lighting in run 45539289794: without tangents three.js builds the normal-map frame per
+# triangle from screen derivatives; removed by: MikkTSpace tangents in the GLB). Only SB's export call changes.
+SB.bpy = _Proxy(bpy, {'ops': _Proxy(bpy.ops, {'export_scene': _Proxy(bpy.ops.export_scene, {'gltf': lambda **kw: bpy.ops.export_scene.gltf(export_tangents=True, **kw)})})})
 
 if __name__ == '__main__':
     G, info = SB.build_suit('fa')
@@ -424,6 +460,7 @@ if __name__ == '__main__':
     for k in ('bracer', 'greave'):
         r = M[k] / M['head']; r0 = r * 0.9 / FA_L * 0.8
         gate(lm(r) and not lm(r0), f"{k} thickness {M[k]:.3f} m = {r:.2f} head (min {LIMB_MIN}); mutation round-4 limb {r0:.2f} caught")
+    gate(len(M.get('sky_bent', [])) == 3, f"sky-bent normals (K {SKY_BEND}) on {M.get('sky_bent')}")
     gate(M['shell_mask_tris'] > 0 and M['shell_tris_cut'] > M['shell_mask_tris'], f"one sculpted shell: {M['shell_tris_cut']} triangles cut by marching squares, "
          f"{M['shell_mask_tris']} in the mask region, the rest helm")
     for g in G: print(g)

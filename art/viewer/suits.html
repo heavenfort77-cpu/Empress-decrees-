@@ -50,7 +50,7 @@ function mat(m) {
   else if (MODE === 'flat') out = new THREE.MeshBasicMaterial({ color: base === 'sCloth' ? tint : new THREE.Color(flat) });
   else if (MODE === 'shade') out = new THREE.MeshStandardMaterial({ color: base === 'sCloth' ? tint : new THREE.Color(flat), metalness: metal, roughness: rough });
   else out = new THREE.MeshStandardMaterial({ map: tex(`../../assets/tex/${file}.png`, 0, false), color: tint, metalness: metal, roughness: rough });
-  if (nrm && MODE === 'tex') { const n = tex(`../../assets/tex/${file}_n.png`, 0, false); n.colorSpace = THREE.NoColorSpace; out.normalMap = n; out.normalScale.set(1, -1); }   // as GLTFLoader does for glTF (flipY false, derivative tangents)
+  if (nrm && MODE === 'tex') { const n = tex(`../../assets/tex/${file}_n.png`, 0, false); n.colorSpace = THREE.NoColorSpace; out.normalMap = n; out.normalScale.set(1, -1); }   // as GLTFLoader does for glTF without tangents (flipY false, derivative tangents); flipped back below when the mesh has tangents
   if (RIM && out.isMeshStandardMaterial) out.onBeforeCompile = (sh) => {
     sh.fragmentShader = sh.fragmentShader.replace('#include <opaque_fragment>', '#include <opaque_fragment>\n  { float f = 1.0 - abs(dot(normalize(normal), normalize(vViewPosition))); gl_FragColor.rgb += vec3(0.89, 0.87, 0.82) * smoothstep(0.55, 0.95, f) * 0.9; }');
   };
@@ -62,7 +62,7 @@ function place(id, x, lodShow) {
   pending++;
   loader.load(`../../assets/models/suits/${id}.glb`, (g) => {
     const root = g.scene; root.position.x = x;
-    root.traverse((o) => { if (o.isMesh) { o.material = mat(o.material); o.castShadow = o.receiveShadow = true; o.frustumCulled = true;
+    root.traverse((o) => { if (o.isMesh) { o.material = mat(o.material); if (o.material.normalMap && o.geometry.attributes.tangent) o.material.normalScale.y = 1; o.castShadow = o.receiveShadow = true; o.frustumCulled = true;
       const m = /_lod(\d)$/.exec(o.name); if (m) o.visible = +m[1] === lodShow; } });
     scene.add(root);
     if (T !== null || VIEW === 'strip') { const mix = new THREE.AnimationMixer(root), clip = g.animations.find((a) => a.name === CLIP); if (clip) { const ac = mix.clipAction(clip); if (CLIP !== 'run' && CLIP !== 'idle') { ac.setLoop(THREE.LoopOnce); ac.clampWhenFinished = true; } ac.play(); mix.setTime(+(T || 0)); mixers.push([mix, root]); } }

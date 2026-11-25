@@ -74,7 +74,7 @@ def worst_iou(B):
     ious = {IDS[k]: float((B[0] & B[k]).sum() / max((B[0] | B[k]).sum(), 1)) for k in range(1, 9)}; return ious
 SIL = {}
 for view in ('front', '34'):
-    B = blobs(f'{S}/lineup_sil_{view}.png'); SIL[view] = B
+    B = blobs(f'{S}/lineup_sil_front.png') if view == 'front' else sum((blobs(f'{S}/sil34_{i}.png')[:1] for i in IDS), []); SIL[view] = B
     if len(B) != 9: gate(False, f'silhouette {view}: {len(B)} figures found, 9 expected'); continue
     ious = worst_iou(B); worst = max(ious, key=ious.get); N[f'iou_{view}'] = {k: round(v, 3) for k, v in ious.items()}
     gate(ious[worst] <= IOU_MAX, f'silhouette {view} at play size: most alike {worst} IoU {ious[worst]:.2f} (max {IOU_MAX})')
