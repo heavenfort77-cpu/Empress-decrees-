@@ -1,0 +1,55 @@
+{
+ "name": "bolt",
+ "atlas": "soft_a",
+ "blend": "blend",
+ "orient": "bill",
+ "frames": 8,
+ "fps": 24,
+ "loop": [
+  0,
+  8
+ ],
+ "cellPx": [
+  96,
+  36
+ ],
+ "originPx": [
+  2,
+  806
+ ],
+ "stridePx": [
+  100,
+  40
+ ],
+ "cols": 8,
+ "pivotPx": [
+  78,
+  18
+ ],
+ "texelM": 0.03,
+ "sizeM": [
+  2.88,
+  1.08
+ ],
+ "pivotM": [
+  2.34,
+  0.54
+ ],
+ "durationS": 0.333,
+ "alphaSum": [
+  126.5,
+  128.0,
+  127.9,
+  127.2,
+  127.8,
+  127.9,
+  127.1,
+  126.4
+ ],
+ "ref": "pixelfx projectiles/magic-missile (shape and timing only)",
+ "anchorHeightM": 1.0,
+ "atlasSize": [
+  1024,
+  844
+ ]
+}

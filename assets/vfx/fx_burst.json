@@ -1,0 +1,56 @@
+{
+ "name": "burst",
+ "atlas": "soft_b",
+ "blend": "blend",
+ "orient": "bill",
+ "frames": 12,
+ "fps": 30,
+ "loop": null,
+ "cellPx": [
+  136,
+  136
+ ],
+ "originPx": [
+  2,
+  2
+ ],
+ "stridePx": [
+  140,
+  140
+ ],
+ "cols": 7,
+ "pivotPx": [
+  68,
+  68
+ ],
+ "texelM": 0.03,
+ "sizeM": [
+  4.08,
+  4.08
+ ],
+ "pivotM": [
+  2.04,
+  2.04
+ ],
+ "durationS": 0.4,
+ "alphaSum": [
+  398.8,
+  928.3,
+  1313.8,
+  1598.5,
+  1800.6,
+  1745.1,
+  1453.3,
+  1036.9,
+  624.4,
+  301.8,
+  106.4,
+  20.2
+ ],
+ "ref": "pixelfx arcane/mana-burst (shape and timing only)",
+ "anchorHeightM": 1.0,
+ "atlasSize": [
+  1024,
+  912
+ ]
+}

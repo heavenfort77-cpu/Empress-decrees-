@@ -1,0 +1,57 @@
+{
+ "name": "thrust",
+ "atlas": "soft_a",
+ "blend": "blend",
+ "orient": "bill",
+ "frames": 12,
+ "fps": 30,
+ "loop": null,
+ "cellPx": [
+  144,
+  40
+ ],
+ "originPx": [
+  2,
+  718
+ ],
+ "stridePx": [
+  148,
+  44
+ ],
+ "cols": 6,
+ "pivotPx": [
+  6,
+  20
+ ],
+ "texelM": 0.03,
+ "sizeM": [
+  4.32,
+  1.2
+ ],
+ "pivotM": [
+  0.18,
+  0.6
+ ],
+ "durationS": 0.4,
+ "alphaSum": [
+  676.0,
+  663.7,
+  597.7,
+  490.7,
+  355.3,
+  222.6,
+  108.7,
+  38.8,
+  14.9,
+  14.5,
+  14.5,
+  14.5
+ ],
+ "ref": "pixelfx melee/thrust (shape and timing only)",
+ "anchorHeightM": 1.1,
+ "unitLenM": 4.0,
+ "atlasSize": [
+  1024,
+  844
+ ]
+}

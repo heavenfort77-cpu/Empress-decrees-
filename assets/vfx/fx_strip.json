@@ -1,0 +1,59 @@
+{
+ "name": "strip",
+ "atlas": "ground",
+ "blend": "cut",
+ "orient": "ground",
+ "frames": 10,
+ "fps": 30,
+ "loop": [
+  3,
+  7
+ ],
+ "cellPx": [
+  56,
+  192
+ ],
+ "originPx": [
+  2,
+  2
+ ],
+ "stridePx": [
+  60,
+  196
+ ],
+ "cols": 10,
+ "pivotPx": [
+  28,
+  190
+ ],
+ "texelM": 0.0125,
+ "sizeM": [
+  0.7,
+  2.4
+ ],
+ "pivotM": [
+  0.35,
+  0.025
+ ],
+ "durationS": 0.333,
+ "alphaSum": [
+  2552.4,
+  3636.0,
+  3752.2,
+  3752.2,
+  3752.2,
+  3616.6,
+  3616.4,
+  5178.6,
+  1884.8,
+  5.5
+ ],
+ "ref": "pixelfx melee/thrust (shape and timing only)",
+ "anchorHeightM": 0.0,
+ "unitLenM": 2.35,
+ "unitWidthM": 0.6,
+ "atlasSize": [
+  1024,
+  1020
+ ]
+}

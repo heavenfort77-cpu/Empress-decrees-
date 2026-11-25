@@ -1,0 +1,59 @@
+{
+ "name": "heal",
+ "atlas": "soft_b",
+ "blend": "blend",
+ "orient": "bill",
+ "frames": 12,
+ "fps": 20,
+ "loop": [
+  0,
+  12
+ ],
+ "cellPx": [
+  72,
+  106
+ ],
+ "originPx": [
+  2,
+  634
+ ],
+ "stridePx": [
+  76,
+  110
+ ],
+ "cols": 12,
+ "pivotPx": [
+  36,
+  94
+ ],
+ "texelM": 0.03,
+ "sizeM": [
+  2.16,
+  3.18
+ ],
+ "pivotM": [
+  1.08,
+  0.36
+ ],
+ "durationS": 0.6,
+ "alphaSum": [
+  182.5,
+  188.1,
+  193.2,
+  194.8,
+  194.9,
+  195.1,
+  197.6,
+  202.3,
+  204.4,
+  200.7,
+  197.9,
+  191.4
+ ],
+ "ref": "pixelfx holy/heal (shape and timing only)",
+ "anchorHeightM": 0.0,
+ "atlasSize": [
+  1024,
+  912
+ ]
+}

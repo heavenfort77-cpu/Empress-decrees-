@@ -1,0 +1,37 @@
+# VFXP probe (painted card atlases) on a real-GPU macOS runner: reference vs heavy fight vs 4x stress, then play-size shots.
+# Triggered by a push to ci-vfxp only. Output is committed to ci-out under out/vfxp/<run id>/ (artifact downloads may be blocked).
+name: vfxp-run
+on:
+  push:
+    branches: [ci-vfxp]
+permissions:
+  contents: write
+concurrency:
+  group: vfxp-run
+  cancel-in-progress: false
+jobs:
+  vfx:
+    runs-on: macos-15
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Install Playwright Chromium
+        run: npm install --no-save --no-audit --no-fund playwright@1.63.0 && npx playwright install chromium
+      - name: Machine
+        run: (sysctl -n machdep.cpu.brand_string; system_profiler SPDisplaysDataType | grep -E "Chipset|Metal|Resolution" || true) | tee machine.txt
+      - name: Probe (real GPU, vsync off) and shots
+        run: mkdir -p vfx_out && OUT=vfx_out node ci_vfxp/perfvfxp.mjs 2>&1 | tee vfx_out/perf.txt
+      - name: Commit to ci-out
+        if: always()
+        run: |
+          D=out/vfxp/${GITHUB_RUN_ID}
+          mkdir -p /tmp/o && cp -r vfx_out/. /tmp/o/ 2>/dev/null || true; cp machine.txt /tmp/o/ 2>/dev/null || true
+          git config user.name Claude && git config user.email noreply@anthropic.com
+          git fetch -q origin ci-out && git checkout -q -B ci-out origin/ci-out
+          mkdir -p $D && cp -r /tmp/o/. $D/
+          echo "sha ${GITHUB_SHA} run ${GITHUB_RUN_ID} attempt ${GITHUB_RUN_ATTEMPT}" > $D/meta.txt
+          git add out && git commit -qm "vfxp ${GITHUB_RUN_ID}" || true
+          for k in 1 2 3 4 5 6; do git push -q origin ci-out && break; sleep $((RANDOM % 8 + 2)); git pull -q --rebase origin ci-out; done
