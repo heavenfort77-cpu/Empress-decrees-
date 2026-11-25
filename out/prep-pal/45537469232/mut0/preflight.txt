@@ -1,0 +1,4 @@
+== PREFLIGHT (preflight)
+chromium ok
+inputs ok: 42 GLBs, textures present
+PREFLIGHT PASS
