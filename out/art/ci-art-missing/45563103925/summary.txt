@@ -1,0 +1,17 @@
+15 of 15 pass
+16 of 16 pass
+15 of 15 pass
+8 of 8 pass
+7 of 7 pass
+8 of 8 pass
+7 of 7 pass
+40 of 40 pass
+9 of 9 mutations caught
+FAIL wanderer with the game renderer outline (simulated, 2 px) at play size (196 px high, 7305 px): 47% of outline pixels >= 3.0:1 on the lighter floor (min 50%); body median 2.2:1
+FAIL plate reads like the ding (52 px high, 2381 px, no outline): bright part 1.1:1, dark part 1.4:1, body median 1.1:1 against the ding 1.0 / 2.8 / 1.8 (stronger part >= 0.9 x the ding: 1.4 against 2.5)
+FAIL leader_crown reads like the ding (40 px high, 1690 px, no outline): bright part 1.2:1, dark part 2.3:1, body median 1.2:1 against the ding 1.0 / 2.8 / 1.8 (stronger part >= 0.9 x the ding: 2.3 against 2.5)
+FAIL crab brass mean colour rgb(103, 75, 40), luminance 0.096 = 1.38 x the ding brass (band 0.75-1.33), warm (r > g > b): True
+FAIL plate brass mean colour rgb(121, 88, 45), luminance 0.114 = 1.65 x the ding brass (band 0.75-1.33), warm (r > g > b): True
+9 of 14 pass
+6 of 6 mutations caught
+FAIL lines: 5

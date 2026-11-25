@@ -1,0 +1,55 @@
+PASS crab_lod0 tris 1864 (budget 3000)
+PASS crab_lod1 tris 1126 (budget 1200)
+PASS crab_lod2 tris 392 (budget 450)
+PASS crab skin: every lod0 vertex on one rig bone (0 bad, stray groups [])
+PASS crab clip idle: 2.4 s, claw_L travels 0.077 m (min 0.02)
+PASS crab clip move: 0.6 s, leg_L0 travels 0.111 m (min 0.08)
+PASS crab 1.94 m wide x 0.91 m high (width (1.6, 2.2), height <= 1.2, width >= 1.6 x height): low and wide
+PASS crab hull half width 0.62 m inside the game radius 0.7 (legs reach 0.97)
+PASS crab feet on the ground (lowest z -0.000)
+PASS crab is bronze: 77% of its surface brass (min 55%), dark bronze on the underside, joints and feet, no black and no baked outline; materials ['palBronze', 'palInlay', 'pcDarkBronze']
+PASS crab_lod0 tris 1864 (min 1500)
+PASS crab lid relief: 2 raised bands (1.2 cm proud), 12 cast studs
+PASS crab pincers: two fingers each, tips 0.21 m apart (min 0.12), fingers 14 cm broad at the root (min 10 cm)
+PASS crab move reads apart from idle: a leg travels 0.111 m in move against 0.006 m in idle (at least 3.0 x)
+PASS crab legs 8 cm wide (min 4.5 cm = 3 px at play size)
+PASS crab lower legs slim: 7.5 cm (max 8 cm)
+16 of 16 pass
+ERROR Draco is not available because library could not be found at /opt/hostedtoolcache/Python/3.13.18/x64/lib/python3.13/site-packages/bpy/lib/libbf_intern_draco_bridge.so
+ERROR MeshOptimizer is not available because library could not be found at /opt/hostedtoolcache/Python/3.13.18/x64/lib/python3.13/site-packages/bpy/lib/libbf_intern_meshopt_bridge.so
+06:47:33 | INFO: Starting glTF 2.0 export
+06:47:33 | INFO: Extracting primitive: crab_lod1
+06:47:33 | INFO: Primitives created: 3
+06:47:33 | INFO: Extracting primitive: crab_lod2
+06:47:33 | INFO: Primitives created: 2
+06:47:33 | INFO: Extracting primitive: crab_lod0
+06:47:33 | INFO: Primitives created: 3
+06:47:33 | INFO: Finished glTF 2.0 export in 0.09052348136901855 s
+
+wrote /tmp/pieces/crab.glb 328168 bytes
+PASS wanderer_lod0 tris 1772 (budget 3000)
+PASS wanderer_lod1 tris 916 (budget 1200)
+PASS wanderer_lod2 tris 336 (budget 450)
+PASS wanderer skin: every lod0 vertex on one rig bone (0 bad, stray groups [])
+PASS wanderer clip idle: 3.2 s, head travels 0.036 m (min 0.03)
+PASS wanderer clip move: 1.6 s, shin_L travels 0.237 m (min 0.1)
+PASS wanderer 2.85 m high x 1.27 m wide (height (2.2, 2.9), height >= 2.0 x width): tall and narrow
+PASS wanderer jar radius 0.42 m inside the game radius 0.5 (legs at 0.56)
+PASS wanderer feet on the ground (lowest z 0.002)
+PASS wanderer is bronze: 81% of its surface brass (min 55%), dark bronze on the underside, joints and feet, no black and no baked outline; materials ['palBronze', 'palCinnabar', 'palGold', 'palInlay', 'pcDarkBronze']
+PASS wanderer_lod0 tris 1772 (min 1500)
+PASS wanderer limbs: thinnest of legs, neck and bill base 7.5 cm (min 4.5 cm = 3 px at play size)
+PASS wanderer LOD1 and LOD2 keep the legs and the head: lowest z 0.002 / 0.002, LOD2 top 2.85 m (LOD0 2.85)
+PASS wanderer bill 0.55 m long (min 0.45), dropping 0.27 m (so it shows when it faces the camera); neck S swings 0.25 m forward of its ends (min 0.15)
+PASS wanderer vessel over its running gear: jar 0.85 m across against 0.44 m wheels (1.9 x, min 1.6), wheel hubs at 1.28 m below the jar centre 1.42 m, camber 15 deg, hub caps 0.14 m
+15 of 15 pass
+06:47:34 | INFO: Starting glTF 2.0 export
+06:47:34 | INFO: Extracting primitive: wanderer_lod1
+06:47:34 | INFO: Primitives created: 4
+06:47:34 | INFO: Extracting primitive: wanderer_lod2
+06:47:34 | INFO: Primitives created: 3
+06:47:34 | INFO: Extracting primitive: wanderer_lod0
+06:47:34 | INFO: Primitives created: 5
+06:47:34 | INFO: Finished glTF 2.0 export in 0.09051084518432617 s
+
+wrote /tmp/pieces/wanderer.glb 285964 bytes

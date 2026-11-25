@@ -1,0 +1,27 @@
+MUT caught: pieces_kaymuse.py with LIPS_MAT='kmSkin' -> FAIL kaymuse lower face modelled: 0 lip faces in cinnabar, 26 chin faces, 34 ear faces, 10 cheek-lock faces (no blank he
+MUT caught: pieces_kaymuse.py with STR_LEN=0.35 -> FAIL kaymuse 冕 veil: 12 + 12 bead strings, front span 0.32 m (head 0.21), 1.4 cm clear between strings, ends at z 1.238:
+MUT caught: pieces_kaymuse.py with TORSO=[(0.60,0.0,0.37,0.27),(0.72,-0.01,0.39,0.27),(0.95,-0.02,0.45,0.26),(1.10,-0.02,0.47,0.24),(1.18,-0.02,0.40,0.21),(1.23,-0.02,0.20,0.15)] -> FAIL kaymuse reads as a woman: shoulders 0.94 m, waist 79% of them under a 17 cm sash, hem 2.5 x the shoulders, bun top 
+MUT caught: pieces_kaymuse.py with BOARD_REAR=0.50 -> FAIL kaymuse crown: board 0.78 m long (max 0.6: not a block) x 0.40 m, gold cloud points and phoenix above it
+MUT caught: pieces_kaymuse.py with FINGER=0.0001;HAND_C=(0.3,0.1,0.9) -> FAIL kaymuse hands on the armrests: 0 skin faces (palms, fingers, thumbs)
+MUT caught: pieces_kaymuse.py with BUDGET=(1000,2600,900) -> FAIL kaymuse_lod0 tris 8298 (budget 1000)
+MUT caught: pieces_kaymuse.py with REST_X=2.4 -> FAIL kaymuse sits within the throne seat: 4.95 m wide (seat 4.06), f -0.71..0.91 m (seat half depth 0.91), base z -0.00
+MUT caught: pieces_creatures.py with C_KNEE=(0.84,1.35) -> FAIL crab 1.95 m wide x 1.41 m high (width (1.6, 2.2), height <= 1.2, width >= 1.6 x height): low and wide
+MUT caught: pieces_creatures.py with W_HIP=(1.1,-0.05,1.40) -> FAIL wanderer 2.85 m high x 2.30 m wide (height (2.2, 2.9), height >= 2.0 x width): tall and narrow
+MUT caught: pieces_creatures.py with C_MOVE=(0.6,0.0,0.0,0.0,0.0,0.0) -> FAIL crab clip move: 0.6 s, leg_L0 travels 0.000 m (min 0.08)
+MUT caught: pieces_creatures.py with C_MOVE=(0.6,2.0,1.0,0.0,0.0,16.0) -> FAIL crab move reads apart from idle: a leg travels 0.010 m in move against 0.006 m in idle (at least 3.0 x)
+MUT caught: pieces_creatures.py with C_STUDS=(4,0.665,0.03) -> FAIL crab lid relief: 2 raised bands (1.2 cm proud), 4 cast studs
+MUT caught: pieces_creatures.py with DK='pcBlack' -> FAIL crab is bronze: 77% of its surface brass (min 55%), dark bronze on the underside, joints and feet, no black and no 
+MUT caught: pieces_creatures.py with C_FINGER_B=[(0.63,0.78,0.83),(0.60,0.96,0.85),(0.52,1.06,0.83)] -> FAIL crab pincers: two fingers each, tips 0.04 m apart (min 0.12), fingers 14 cm broad at the root (min 10 cm)
+MUT caught: pieces_creatures.py with W_LEG_W=(0.16,0.03,0.075) -> FAIL wanderer limbs: thinnest of legs, neck and bill base 3.0 cm (min 4.5 cm = 3 px at play size)
+MUT caught: pieces_creatures.py with W_BILL=((0.0,0.635,2.65),(0.0,0.85,2.62)) -> FAIL wanderer bill 0.22 m long (min 0.45), dropping 0.03 m (so it shows when it faces the camera); neck S swings 0.25 m 
+MUT caught: pieces_creatures.py with W_WHEEL=(0.47,0.40,0.035,15,6,0.14) -> FAIL wanderer vessel over its running gear: jar 0.85 m across against 0.80 m wheels (1.1 x, min 1.6), wheel hubs at 1.28
+MUT caught: pieces_creatures.py with C_LEG_W=(0.13,0.11) -> FAIL crab lower legs slim: 11.0 cm (max 8 cm)
+MUT caught: pieces_small.py with PL_LEN=1.2 -> FAIL plate 0.69 x 1.30 m, 0.34 m high (game pickup 0.7 m)
+MUT caught: pieces_small.py with PL_RAKE=(0.02,0.62) -> FAIL plate reads as a curved armour plate: arc 10 cm high, 3 scallops on the lower edge, 3 claw marks raking 0.02 across
+MUT caught: pieces_small.py with PL_SCALLOPS=0 -> FAIL plate reads as a curved armour plate: arc 10 cm high, 0 scallops on the lower edge, 3 claw marks raking 0.22 across
+MUT caught: pieces_small.py with CR_LID=1 -> FAIL leader crown reads as a crown from above: an open ring, 5 points leaning out 12 deg, the front one tallest (0.3 m o
+MUT caught: pieces_small.py with CR_POINTS=[(0,0.17,0.9),(-38,0.14,0.22),(38,0.14,0.22),(-66,0.10,0.14),(66,0.10,0.14)] -> FAIL leader crown 0.65 x 0.79 m, 0.97 m high (height 0.3-0.5, width <= 0.7, length <= 0.75; ring radius 0.3 as CONFIG.LE
+MUT caught: pieces_small.py with MW_BRACES=3 -> FAIL 墨 wall frame: posts at spacings [0.98, 1.45, 1.33] m (3, uneven by at least 0.1: 0.12), 1 rail, 4 layer lines a fac
+MUT caught: pieces_small.py with MW_POSTS=(-1.88,-0.63,0.63,1.88) -> FAIL 墨 wall frame: posts at spacings [1.25, 1.26, 1.25] m (3, uneven by at least 0.1: 0.00), 1 rail, 4 layer lines a fac
+MUT caught: pieces_small.py with MW_POSTS=(-2.7,-0.9,0.55,2.7) -> FAIL 墨 wall 5.65 x 2.40 x 0.88 m (game cast 4.0 x 2.4 x 0.6; the timber and footing stand proud of the solid)
+MUT caught: pieces_small.py with DM_TIGER=[(-0.05,-0.05),(0.05,-0.05),(0.05,0.05),(-0.05,0.05)] -> FAIL decree seal: round (12 sides), a tiger tally outline of 4 points, 1.0 x as long as high, 0 concave corners, inside 

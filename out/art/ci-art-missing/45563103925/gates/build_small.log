@@ -1,0 +1,76 @@
+PASS plate_lod0 tris 328 (budget 499)
+PASS plate_lod1 tris 180 (budget 400)
+PASS plate_lod2 tris 36 (budget 220)
+PASS plate LODs ordered: 328 > 180 > 36 tris
+PASS plate 0.69 x 0.72 m, 0.25 m high (game pickup 0.7 m)
+PASS plate lies on the ground, dome up, the top end raised: lowest z 0.002, highest 0.25 m (0.14-0.32)
+PASS plate materials ['palBronze', 'palCinnabar', 'palGold', 'pcBlack'] (brass, gold claw marks, cinnabar strap, lacing holes; no outline)
+PASS plate reads as a curved armour plate: arc 10 cm high, 3 scallops on the lower edge, 3 claw marks raking 0.22 across and 0.62 along (one diagonal, not chevrons), 3.2 cm proud, tapering to 12%
+8 of 8 pass
+ERROR Draco is not available because library could not be found at /opt/hostedtoolcache/Python/3.13.18/x64/lib/python3.13/site-packages/bpy/lib/libbf_intern_draco_bridge.so
+ERROR MeshOptimizer is not available because library could not be found at /opt/hostedtoolcache/Python/3.13.18/x64/lib/python3.13/site-packages/bpy/lib/libbf_intern_meshopt_bridge.so
+06:47:34 | INFO: Starting glTF 2.0 export
+06:47:34 | INFO: Extracting primitive: plate_lod0
+06:47:34 | INFO: Primitives created: 4
+06:47:34 | INFO: Extracting primitive: plate_lod1
+06:47:34 | INFO: Primitives created: 3
+06:47:34 | INFO: Extracting primitive: plate_lod2
+06:47:34 | INFO: Primitives created: 1
+06:47:34 | INFO: Finished glTF 2.0 export in 0.015983104705810547 s
+
+wrote /tmp/pieces/plate.glb 43160 bytes
+PASS leader_crown_lod0 tris 240 (budget 499)
+PASS leader_crown_lod1 tris 200 (budget 400)
+PASS leader_crown_lod2 tris 96 (budget 220)
+PASS leader_crown LODs ordered: 240 > 200 > 96 tris
+PASS leader crown 0.65 x 0.66 m, 0.38 m high (height 0.3-0.5, width <= 0.7, length <= 0.75; ring radius 0.3 as CONFIG.LEADER.crownR)
+PASS leader crown materials ['kmJade', 'palCinnabar', 'palGold', 'palLacquerPlain'] (gold, cinnabar stone, jade studs; no outline)
+PASS leader crown reads as a crown from above: an open ring, 5 points leaning out 12 deg, the front one tallest (0.3 m over a 0.12 m ring), no lid (0)
+7 of 7 pass
+06:47:34 | INFO: Starting glTF 2.0 export
+06:47:34 | INFO: Extracting primitive: leader_crown_lod0
+06:47:34 | INFO: Primitives created: 4
+06:47:34 | INFO: Extracting primitive: leader_crown_lod1
+06:47:34 | INFO: Primitives created: 4
+06:47:34 | INFO: Extracting primitive: leader_crown_lod2
+06:47:34 | INFO: Primitives created: 1
+06:47:34 | INFO: Finished glTF 2.0 export in 0.012012243270874023 s
+
+wrote /tmp/pieces/leader_crown.glb 41360 bytes
+PASS mo_wall_lod0 tris 364 (budget 499)
+PASS mo_wall_lod1 tris 268 (budget 400)
+PASS mo_wall_lod2 tris 116 (budget 220)
+PASS mo_wall LODs ordered: 364 > 268 > 116 tris
+PASS 墨 wall 4.12 x 2.40 x 0.88 m (game cast 4.0 x 2.4 x 0.6; the timber and footing stand proud of the solid)
+PASS 墨 wall materials ['moEarth', 'moEarthLine', 'moStone', 'moTimber', 'moTimberLight', 'palBronze', 'palCinnabar', 'palLacquerPlain'] (loess rammed earth with layer lines, posts, lighter cap, river stone, bronze sleeves, cinnabar plaque; no outline)
+PASS 墨 wall frame: posts at spacings [0.98, 1.45, 1.33] m (3, uneven by at least 0.1: 0.12), 1 rail, 4 layer lines a face, 0 diagonal braces (must be 0): no even lattice
+PASS 墨 wall LOD2 keeps the posts (dark timber from the footing to the cap, end to end; 12 vertices on an inner post below 1 m)
+8 of 8 pass
+06:47:34 | INFO: Starting glTF 2.0 export
+06:47:34 | INFO: Extracting primitive: mo_wall_lod0
+06:47:34 | INFO: Primitives created: 8
+06:47:34 | INFO: Extracting primitive: mo_wall_lod1
+06:47:34 | INFO: Primitives created: 7
+06:47:34 | INFO: Extracting primitive: mo_wall_lod2
+06:47:34 | INFO: Primitives created: 4
+06:47:34 | INFO: Finished glTF 2.0 export in 0.016973257064819336 s
+
+wrote /tmp/pieces/mo_wall.glb 62560 bytes
+PASS decree_mark_lod0 tris 236 (budget 499)
+PASS decree_mark_lod1 tris 172 (budget 400)
+PASS decree_mark_lod2 tris 88 (budget 220)
+PASS decree_mark LODs ordered: 236 > 172 > 88 tris
+PASS decree mark 0.30 m wide x 0.90 m high (game marker 0.3 x 0.9), tip down at z 0.00
+PASS decree mark materials ['palBronze', 'palCinnabar', 'palGold', 'pcBlack'] (black lacquer, gold, cinnabar seal; no outline)
+PASS decree seal: round (12 sides), a tiger tally outline of 18 points, 1.8 x as long as high, 6 concave corners, inside the seal: one animal shape, no strokes (whether it reads as a tiger is judged on the sheet)
+7 of 7 pass
+06:47:35 | INFO: Starting glTF 2.0 export
+06:47:35 | INFO: Extracting primitive: decree_mark_lod0
+06:47:35 | INFO: Primitives created: 4
+06:47:35 | INFO: Extracting primitive: decree_mark_lod1
+06:47:35 | INFO: Primitives created: 4
+06:47:35 | INFO: Extracting primitive: decree_mark_lod2
+06:47:35 | INFO: Primitives created: 4
+06:47:35 | INFO: Finished glTF 2.0 export in 0.010841131210327148 s
+
+wrote /tmp/pieces/decree_mark.glb 37296 bytes
