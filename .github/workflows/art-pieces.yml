@@ -1,10 +1,10 @@
-# SUITS fa round 5 (owner GO 25 Nov 10:55): heavy art work on a GitHub runner (Blender via pip bpy, headless Chromium renders), copied from the
-# SUITANIM pattern (ci-art-suitanim: art-run.yml + ci_art/job.sh with PREFLIGHT, results to ci-out). Triggered by a push to suit-fa-r5.
-# Results are committed to ci-out under out/art/suit-fa-r5/<run id>/.
-name: art-fa-r5
+# PIECES round 1 (owner 25 Nov 13:08: art for everything still drawn as plain shapes): heavy art work on a GitHub runner (Blender via pip
+# bpy, headless Chromium renders), the suit-fa-r5 runner pattern (ci_art/job.sh with PREFLIGHT, results to ci-out). Triggered by a push to
+# ci-art-missing. Results are committed to ci-out under out/art/ci-art-missing/<run id>/.
+name: art-pieces
 on:
   push:
-    branches: ['suit-fa-r5']
+    branches: ['ci-art-missing']
 permissions:
   contents: write
 jobs:

@@ -1,0 +1,15 @@
+{
+  "_note": "Material table for the PIECES GLBs (PIECES round 1). The GLBs carry material names only (no images), as the other props. tex = file in assets/tex (glTF UVs: flipY false, repeat wrap); color = sRGB multiplier; kmRobe is the neutral cloth sheet under a Qin-black tint.",
+  "palBronze": { "tex": "bronze_trim_brass", "metalness": 0.4, "roughness": 0.6 },
+  "palInlay": { "color": "#c8ccd0", "metalness": 0.6, "roughness": 0.35 },
+  "palGold": { "color": "#e2b84a", "metalness": 0.25, "roughness": 0.5 },
+  "palCinnabar": { "color": "#a8321e", "metalness": 0, "roughness": 0.7 },
+  "palLacquerPlain": { "color": "#1c1512", "metalness": 0, "roughness": 0.6 },
+  "palDark": { "color": "#2a1f14", "metalness": 0, "roughness": 0.9 },
+  "kmRobe": { "tex": "suit_cloth", "color": "#2b2523", "metalness": 0, "roughness": 0.85 },
+  "kmJade": { "color": "#d9d2c3", "metalness": 0, "roughness": 0.45 },
+  "kmSkin": { "color": "#e6dccb", "metalness": 0, "roughness": 0.8 },
+  "moEarth": { "tex": "rammed_earth", "metalness": 0, "roughness": 0.95 },
+  "moTimber": { "tex": "timber", "metalness": 0, "roughness": 0.85 },
+  "moStone": { "tex": "river_stone", "metalness": 0, "roughness": 0.9 }
+}
