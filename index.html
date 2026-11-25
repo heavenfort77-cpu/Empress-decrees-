@@ -7681,12 +7681,15 @@ function reset() {
 // Characters: src/chars.js (docs/HOOKS-17fgh.md). One shared set for both modes, loaded once under the first card and kept: nine suit rigs (one per
 // school; the nine suits of a run have nine schools), the Tiger Demon and the two hunt minions, the royale cubs, twelve giant rigs (one per head) and
 // the guard and rebel crowd. Gameplay, timers, collision and hit areas stay in this file; the box bodies stay built (hidden while the models are on).
-const CHRS = { drawN: 0, tex: {}, gl: null, info: null, mat: null, tpl: {}, gi: [], steps: null, si: 0, suit: {}, units: [], giants: [], crowd: null, ready: false, failed: [], rigs: [] };
+const CHRS = { drawN: 0, rigN: 0, fxN: 0, tex: {}, gl: null, info: null, mat: null, tpl: {}, gi: [], steps: null, si: 0, suit: {}, units: [], giants: [], crowd: null, ready: false, failed: [], rigs: [] };
 const CHR_SHEETS = ['suit_lamellar', 'suit_bronze', 'suit_cloth', 'bronze_trim_brass', 'bronze_trim_patina', 'fodder_trim', 'tread_belt', 'apex_patina'];
 const CHR_HIDE = new THREE.MeshBasicMaterial({ visible: false });
 // PERFRAME-BEGIN
 // Checks only (306, 907): crowd batches the renderer drew in its main pass since __game.render last zeroed the count (culled batches do not count).
 function crowdTick() { CHRS.drawN++; }
+// Checks only (306, 907): draws of character rig meshes and of the painted-card batches in the main pass, counted the same way.
+function rigTick() { CHRS.rigN++; }
+function fxTick() { CHRS.fxN++; }
 // PERFRAME-END
 function chrFetch() {
   const ld = new GLTFLoader().setMeshoptDecoder(MeshoptDecoder), gl = {}, fail = CHRS.failed;
@@ -7733,6 +7736,7 @@ function chrWarm() {
   // Every rig stands in view on the ground point the camera looks at (8 per row, 2 m apart), so each level, material and texture is drawn here.
   const R = CHRS.rigs, d = camera.getWorldDirection(tmpV), reach = d.y < -0.05 ? Math.min(30, camera.position.y / -d.y) : 12;
   const x = camera.position.x + d.x * reach, z = camera.position.z + d.z * reach;
+  for (const r of R) r.root.traverse((o) => { if (o.isMesh) o.onAfterRender = rigTick; });
   CHR.beginFrame(camera);
   for (let i = 0; i < R.length; i++) { R[i].place(x + ((i % 8) - 3.5) * 2, 0, z + (Math.floor(i / 8) - 1.5) * 2, 0, 1); R[i].show(scene); R[i].play(R[i].actions.idle ? 'idle' : R[i].actions.move ? 'move' : 'dormant'); R[i].update(0.016); }
   CHRS.crowd.setTime(0); CHRS.crowd.warmAll(x, 0, z);
@@ -7915,7 +7919,7 @@ function ldRevert() {
   for (const t of PTEX.list) ldFree(t);
   if (LD.files) for (const f of LD.files) if (f && f.t && PTEX.list.indexOf(f.t) < 0) ldFree(f.t);
   PTEX.list.length = 0; PTEX.on = false; LD.files = null;
-  if (had && DEPTH.mat) { DEPTH.mat.map = null; DEPTH.mat.alphaMap = null; DEPTH.mat.dispose(); }
+  if (had && DEPTH.mat) { DEPTH.mat.map = null; DEPTH.mat.alphaMap = null; DEPTH.mat.dispose(); depthWarm(); }
 }
 // Warm draw: every palace room and door in the scene, seen from above the palace with the overview far plane, then the run's own view back.
 function ldWarmOn() {
@@ -7951,6 +7955,7 @@ function ldFx() {
   if (!LD.started) { LD.started = true; ldWait(fxLoad()); }
   if (!LD.waitDone) return false;
   LD.fxDrawn = FX.fxWarm(renderer, camera); LD.fx = true;
+  for (const m of FX.fxMeshes()) m.onAfterRender = fxTick;
   if (LD.fxDrawn > 0) LD.led.draws += FX.fxStatus().warmCalls;
   return true;
 }
@@ -7958,6 +7963,22 @@ function ldFx() {
 function ldChrFetch() { if (!CONFIG.CHARS.on || CHRS.gl || CHRS.failed.length) return true; if (!LD.started) { LD.started = true; ldWait(chrFetch()); } return LD.waitDone; }
 function ldChrBuild() { if (!CONFIG.CHARS.on || CHRS.ready || !CHRS.gl) return true; return chrBuildStep(); }
 function ldChrWarm() { if (!CONFIG.CHARS.on || CHRS.ready || !CHRS.crowd) return true; LD.led.draws += chrWarm(); return true; }
+// Shadow depth programs (plain and instanced casters) compile here, under a card or at the mode switch, never in a run's first frames:
+// one draw with the shadow pass on through a camera that sees nothing (main pass empty), with two probes (a mesh and a one-instance batch
+// on a shape already on the GPU) standing at the sun's target for that draw only.
+const DEPTH_CAM = new THREE.PerspectiveCamera(10, 1, 0.1, 0.2);
+DEPTH_CAM.position.set(0, -500, 0); DEPTH_CAM.lookAt(0, -600, 0); DEPTH_CAM.updateMatrixWorld();
+const DEPTH_PROBE = [new THREE.Mesh(tellLineGeo, M.bronze), new THREE.InstancedMesh(tellLineGeo, M.bronze, 1)];
+DEPTH_PROBE[1].setMatrixAt(0, new THREE.Matrix4());
+for (const o of DEPTH_PROBE) { o.castShadow = true; o.scale.setScalar(0.05); }
+function depthWarm() {
+  if (G.ctxLost || !renderer.shadowMap.enabled) return 0;
+  for (const o of DEPTH_PROBE) { sun.target.getWorldPosition(o.position); o.updateMatrix(); scene.add(o); o.updateMatrixWorld(true); }
+  renderer.shadowMap.needsUpdate = true; renderer.render(scene, DEPTH_CAM);
+  for (const o of DEPTH_PROBE) scene.remove(o);
+  renderer.shadowMap.needsUpdate = true;
+  return renderer.info.render.calls;
+}
 // Restore card: the same warm draw for rigs and crowd batches (their bone and bake textures and geometry upload under the card, not in play).
 // Rigs in use keep their place and clip; every rig gets its state back; hidden rigs stand in view for the draw only.
 function chrRewarm() {
@@ -7990,6 +8011,7 @@ function ldPalRewarm() {
 }
 const LD_SHARED = [{ key: 'fx', run: ldFx }, { key: 'chr_fetch', run: ldChrFetch }, { key: 'chr_build', run: ldChrBuild }, { key: 'chr_warm', run: ldChrWarm }];
 function ldDraw() {
+  LD.led.draws += depthWarm();
   renderer.render(scene, camera); LD.led.draws += renderer.info.render.calls; LD.led.n++;
   ldWarmOff(); return true;
 }
@@ -8595,8 +8617,8 @@ window.__game = {
     if (forceShadow) renderer.shadowMap.needsUpdate = true;
     // The draw the frame makes: placeView, then the character rigs shown, hidden and placed (chrFrame; dt 0 = no animation step), then the render.
     // Without chrFrame a rig left by the run before stayed in this draw until the next real frame (check 907 counted it).
-    CHRS.drawN = 0; placeView(1); chrFrame(0); renderer.render(scene, camera); renderer.shadowMap.needsUpdate = false;
-    return { calls: renderer.info.render.calls, tris: renderer.info.render.triangles, programs: renderer.info.programs.length,
+    CHRS.drawN = 0; CHRS.rigN = 0; CHRS.fxN = 0; placeView(1); chrFrame(0); renderer.render(scene, camera); renderer.shadowMap.needsUpdate = false;
+    return { crowd: CHRS.drawN, rigs: CHRS.rigN, fx: CHRS.fxN, calls: renderer.info.render.calls, tris: renderer.info.render.triangles, programs: renderer.info.programs.length,
       geoms: renderer.info.memory.geometries, texs: renderer.info.memory.textures };
   },
   setView, reset, startHunt, huntButton,

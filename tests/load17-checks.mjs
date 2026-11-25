@@ -58,7 +58,11 @@ export async function load17Checks(g, check, page, browser, URL0) {
   // 1704 A missing file (in its own page, so the blocked requests' console lines stay out of the main page's log): door.ktx2 blocked = the door
   // falls back to its PNG source (the rest stay KTX2); door.ktx2 and door.png both blocked = the whole set keeps its box colours (never half
   // textured), the ledger names the file; unblocked again = the set loads; no page error.
+  // Harness (25 Nov, control run 45558098194): the main page is paused in its options menu while the fresh page loads. With the main page
+  // drawing a live palace run on the runner's software GPU (6 fps, one shared GPU process) the fresh page got under 1 frame a second and its
+  // card hit the game's 15 s cap (ready at 45-50 s, capped); with the main page not drawing it loads in 3.6 s. The cap itself is not changed.
   const f4 = {};
+  f4.paused = await g(() => __game.openOptions());
   {
     const ctx = await browser.newContext({ viewport: { width: 1366, height: 768 } }), pg = await ctx.newPage(), e = [];
     // Expected here, and only here: the browser's console line for each deliberately blocked request, by exact text. Any other console error
@@ -76,11 +80,12 @@ export async function load17Checks(g, check, page, browser, URL0) {
     await pg.evaluate(toRumble); await pg.evaluate(toPalace); await idle(pg); f4.f3 = await pg.evaluate(() => __game.load());
     f4.errs = e; await ctx.close();
   }
+  await g(() => __game.closeOptions());
   const { f1, f2, f3 } = f4;
   check('1704 fallback: blocked KTX2 -> its PNG; KTX2 and PNG blocked -> the whole set on box colours, ledger names it; recovers after; no page error',
     f1.palace === 'ready' && f1.led.fmt.includes('door:png') && f1.led.fmt.filter((x) => x.endsWith(':ktx2')).length === 4
     && f2.palace === 'failed' && f2.led.failed.join() === 'door' && f2.maps.every((m) => !m.map) && f2.ptex === 0
-    && f3.palace === 'ready' && f3.maps.every((m) => m.map) && f4.errs.length === 0 && f4.blocked > 0,
+    && f3.palace === 'ready' && f3.maps.every((m) => m.map) && f4.errs.length === 0 && f4.blocked > 0 && f4.paused === true,
     JSON.stringify({ f1: [f1.palace, f1.led.fmt, f1.led.capped, f1.led.ms, f1.led.kind, f1.visS], f2: [f2.palace, f2.led.failed, f2.maps.map((m) => m.map)], f3: f3.palace, errs: f4.errs, blocked: f4.blocked }));
 
   // 1711 The page's load event fires before the boot's warm-up (a top-level yield): load event start < the boot's end mark, in a fresh page.
@@ -131,7 +136,7 @@ export async function load17Checks(g, check, page, browser, URL0) {
   // 1708 Saves from before batch 17 (mode, school, the audio key) and garbage in the same keys: the page loads with no error and runs a palace set.
   const saves = [{ [C.mode]: 'rumble', [C.school]: '3', 'empressDecrees.audio': '{"mode":"fx","reduce":true,"vol":{"music":0.5}}' },
     { [C.mode]: 'zzz', [C.school]: '{bad', 'empressDecrees.audio': '{bad json' }];
-  const s8 = [];
+  const s8 = [], paused8 = await g(() => __game.openOptions());
   for (const sv of saves) {
     const ctx = await browser.newContext({ viewport: { width: 1366, height: 768 } }); const pg = await ctx.newPage(); const e = [];
     pg.on('pageerror', (x) => e.push(String(x).slice(0, 160)));
@@ -140,7 +145,8 @@ export async function load17Checks(g, check, page, browser, URL0) {
     await pg.evaluate(toPalace); await idle(pg);
     s8.push({ errs: e, palace: await pg.evaluate(() => __game.load().palace), led: await pg.evaluate(() => { const l = __game.load(); return [l.led.kind, l.led.capped, l.led.ms, l.led.failed.join(), l.led.fmt.length]; }) }); await ctx.close();
   }
-  check('1708 old saves and garbage saves: page loads with no error, the palace set loads', s8.every((x) => x.errs.length === 0 && x.palace === 'ready'), JSON.stringify(s8));
+  await g(() => __game.closeOptions());
+  check('1708 old saves and garbage saves: page loads with no error, the palace set loads', paused8 === true && s8.every((x) => x.errs.length === 0 && x.palace === 'ready'), JSON.stringify(s8));
 
   // 1709 The encode manifest is fresh: every file in assets/c/manifest.json exists with its hash, its source has the hash it was encoded from, and
   // every palace image has a desktop and a phone file.

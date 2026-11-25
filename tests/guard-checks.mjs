@@ -175,9 +175,10 @@ export async function guardChecks(g, check, base) {
   check('305 rival bots farm the 皇家 guard: a bot goes for a squad in sight and breaks guards (kills >= 1)',
     !!d305 && d305.q >= 0 && d305.at >= 0 && d305.kills >= 1, JSON.stringify(d305));
 
-  // 306 Budget with two full squads drawn (24 guards, tells up): calls < 500, tris < 500k; one instanced draw call per crowd batch in view and nothing else
-  // (prototype, game changed on purpose: the guard models draw one batch per type x LOD x material, docs/HOOKS-17fgh.md section 4; calls added minus
-  // tells = the batches the crowd reports drawn, exactly; before the models it was one box batch per type, <= 5);
+  // 306 Budget with two full squads drawn (24 guards, tells up): calls < 500, tris < 500k; the guards draw only instanced crowd batches and their tells
+  // (prototype, game changed on purpose: the guard models draw one batch per type x LOD x material, docs/HOOKS-17fgh.md section 4; before the models
+  // it was one box batch per type, <= 5 calls added). Exact, counted by the renderer per draw: every draw that is not a tell, a crowd batch, a
+  // character rig mesh or a painted-card batch (other) is the same number as in the empty scene, and no crowd batch draws in the empty scene;
   // no shader compile, geometry flat; after all are broken, no guard mesh stays in the scene.
   const d306 = await g(() => {
     const G = __game, o = {}; const { A } = __gs(0);
@@ -189,17 +190,18 @@ export async function guardChecks(g, check, base) {
       G.step(10);
       const r = G.guards(), rr = G.render(true), tells = r.list.filter((u) => u.alive && u.tellStaged).length;
       const seen = r.list.filter((u) => u.seen).length, counts = Object.values(r.draw).reduce((a, d) => a + d.count, 0);
-      const row = { calls: rr.calls, tris: rr.tris, programs: rr.programs, geoms: rr.geoms, tells, seen, counts, alive: r.n, extra: rr.calls - empty.calls - tells, batches: G.chars().crowdDrawn };
+      const row = { calls: rr.calls, tris: rr.tris, programs: rr.programs, geoms: rr.geoms, tells, seen, counts, alive: r.n, extra: rr.calls - empty.calls - tells, batches: rr.crowd, rigs: rr.rigs, fx: rr.fx,
+        other: rr.calls - tells - rr.crowd - rr.rigs - rr.fx };
       if (!best || row.calls > best.calls) best = row;
     }
-    o.best = best; o.empty = { calls: empty.calls, tris: empty.tris };
+    o.best = best; o.empty = { calls: empty.calls, tris: empty.tris, crowd: empty.crowd, rigs: empty.rigs, fx: empty.fx, other: empty.calls - empty.crowd - empty.rigs - empty.fx };
     const r = G.guards(); r.list.forEach((u, i) => { if (u.alive) G.guardStrike(-1, i, 1000, false); });
     G.step(1); const after = G.render(true), ra = G.guards();
     o.after = { n: ra.n, staged: Object.values(ra.draw).filter((d) => d.staged).length, tells: ra.list.filter((u) => u.tellStaged).length, geoms: after.geoms, programs: after.programs };
     G.reset(); return o;
   });
-  check('306 budget two full squads: calls<500, tris<500k, calls added = the crowd batches drawn for 24 instanced guards, all seen drawn, no shader compile, geometry flat; none staged after',
-    !!d306 && d306.q.every((q) => q >= 0) && d306.best.calls < 500 && d306.best.tris < 500000 && d306.best.batches > 0 && d306.best.extra === d306.best.batches && d306.best.alive === 24 && d306.best.counts === d306.best.seen
+  check('306 budget two full squads: calls<500, tris<500k, every draw beyond tells, crowd batches, rigs and cards equals the empty scene for 24 instanced guards, all seen drawn, no shader compile, geometry flat; none staged after',
+    !!d306 && d306.q.every((q) => q >= 0) && d306.best.calls < 500 && d306.best.tris < 500000 && d306.best.batches > 0 && d306.empty.crowd === 0 && d306.best.other === d306.empty.other && d306.best.alive === 24 && d306.best.counts === d306.best.seen
     && d306.best.seen === 24 && d306.best.programs === base.programs && d306.best.geoms === base.geoms && d306.after.n === 0 && d306.after.staged === 0 && d306.after.tells === 0
     && d306.after.programs === base.programs && d306.after.geoms === base.geoms, JSON.stringify(d306));
 
