@@ -1,0 +1,6 @@
+PASS lineup silhouettes (wide view): 10 of 10 pairs under IoU 0.75 (closest zu/nu 0.65)
+INFO zu wide-view size 51 x 95 px
+INFO nu wide-view size 61 x 79 px
+INFO dun wide-view size 61 x 78 px
+INFO che wide-view size 106 x 114 px
+INFO wz wide-view size 56 x 143 px

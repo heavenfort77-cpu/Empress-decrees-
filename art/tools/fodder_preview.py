@@ -24,11 +24,12 @@ FOV, PITCH, FIGHT, WIDE = 50, 40, 10.5, 22
 SUN = np.array([-30, 25, 60], float); SUN /= np.linalg.norm(SUN)
 # Floor colour behind units (hall floor mean) and background.
 FLOOR, BG = (107, 61, 48), (18, 13, 22)
-# Preview colours per material/row (rows of bronze_trim.png and fodder_trim.png; patch = the school colour).
+# Preview colours per material/row (rows of bronze_trim.png and fodder_trim.png; patch = the rebel patch colour; tread = tread_belt.png mean).
 COL = {'gdBronze/plain': '#9a7a48', 'gdBronze/clouds': '#86683c', 'gdBronze/inlay': '#c8ccd0', 'gdBronze/lozenge': '#6e5532', 'gdBronze/flange': '#b2925e',
        'gdBronze/mask': '#86683c', 'gdBronze/mark': '#8a6c40', 'lacquer': '#221c18', 'cord': '#3a6e88', 'blue': '#3a6e88', 'yellow': '#c6a44c',
-       'hemp': '#8f8068', 'patch': '#c4c2bc', 'plates': '#5a4632', 'rope': '#a08a5a', 'skin': '#b08a68', 'dark': '#2e2a22', 'metal': '#7e796c', 'rbGlint/glint': '#ffe066'}
-SCHOOL = {'ru': 0xb05a2a, 'dao': 0xd5a03a, 'fa': 0x6a6a6a, 'mo': 0x8a2a3a, 'yinyang': 0x3a3a3a, 'za': 0xe8e8f0, 'ming': 0xc060a0, 'zongheng': 0x40c0c0, 'nong': 0x9a6ad5}
+       'hemp': '#8f8068', 'patch': '#c4c2bc', 'plates': '#5a4632', 'rope': '#a08a5a', 'skin': '#b08a68', 'dark': '#2e2a22', 'metal': '#7e796c', 'rbGlint/glint': '#ffe066', 'tread': '#8a7044'}
+# Rebel patch colour per 力士 variant (FIX-A: rebel_build.py PATCH_COL[i % 3], never a school colour).
+SCHOOL = {s: [0x6f6a34, 0x6a4a32, 0x8e5a52][i % 3] for i, s in enumerate(['ru', 'dao', 'fa', 'mo', 'yinyang', 'za', 'ming', 'zongheng', 'nong'])}
 
 def hexc(h): h = h.lstrip('#'); return np.array([int(h[i:i + 2], 16) for i in (0, 2, 4)], float)
 

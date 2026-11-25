@@ -4,7 +4,8 @@
 # Construction: every part is a loft of rounded superellipse sections (round where round, sharp where sharp; no boxes). Lamellar is
 # built as stacked flared rows, each row one strip of the lamellar trim sheet (32 px = 12.5 cm at 256 px/m), with cord bands between.
 # Rig: rigid segments (each plate part 100% on one bone) and Blender automatic (bone heat) weights for cloth (robes, sleeves, capes),
-# heat restricted to the bones each cloth part may follow. Clips: 'idle' 1 s loop and 'attack' with the kit's tell (windup >= 0.4 s).
+# heat restricted to the bones each cloth part may follow. Clips: 'idle' 1 s loop and 'attack' with the kit's tell (windup >= 0.4 s);
+# SUITANIM (25 Nov): 'run' loop at the kit's speed tier (IK-planted feet), 'hit' flinch 0.3 s back to idle, 'death' ending lying still.
 # LOD1 and LOD2 are decimated copies of LOD0, skinned to the same rig.
 # Output per suit: OUTDIR/<id>.glb (Y up, faces +Z in three.js), OUTDIR/<id>_sil.npz (projected triangles for suit_sil.py),
 # gate lines PASS/FAIL. No game code is touched.
@@ -55,8 +56,80 @@ ROWS = {
 # Silhouette cameras (viewer and game: FOV 50, pitch 40; fight framing 10.5 m = 110 px/m, wide 22 m = 52 px/m at 1920 x 1080).
 CAMS = {'play_front': (0, 40, 10.5), 'play_34': (35, 40, 10.5), 'play_side': (90, 40, 10.5), 'wide_34': (35, 40, 22.0)}
 LOOK_Y = 1.0
+# Proportions (FIX-A, owner 25 Nov 02:2x: suits taller, about 7.5 heads, from 6.4): heights up to the chin (V_CHIN of the study scale)
+# stretch by BODY_K, the head (chin to crown, and its width) scales by HEAD_K: crown 2.03 m at H 1.0 (study 1.86), head 0.27 m.
+BODY_K, HEAD_K, V_CHIN = 1.118, 0.93, 1.57
+# Heads-tall gate band (crown / head height).
+HEADS_BAND = (7.3, 7.7)
 # LOD decimation passes: target triangles.
 LOD_TARGET = {1: 2600, 2: 900}
+# --- Movement clips (SUITANIM, owner 25 Nov): 'run' loop, 'hit' flinch, 'death'. Keyed every frame from frame 0, in place (the game
+# moves the suit). Timing from Muybridge, The Human Figure in Motion: plate 10 (athlete running, 0.042 s intervals): one stride = 10
+# phases, each foot on the ground about 3 of them (duty about 0.3), a flight between steps, the landing foot a little ahead of the hip,
+# push-off well behind it with the heel rising off the toe. Plate 51 (startle) gives the flinch shape only (shoulders up, arms in,
+# head back); its 0.437 s interval is far slower than a hit. Plate 56 (sitting down on the ground, 0.232 s) paces the buckle.
+# Run ground speed = the game's speed tier per kit (index.html CONFIG.STATS.speed Low/Mid/High 5.6/6/6.4 m/s).
+SPEED = {'Low': 5.6, 'Mid': 6.0, 'High': 6.4}
+# Per school run style (the game's kit tier sets the speed): cad = steps per second; duty = share of the cycle each foot is down;
+# lean = spine/chest forward lean (forward per unit up); bob = extra hip drop at mid-stance, m; swing = arm swing deg (right, left;
+# None keeps the carry pose of that arm); elbow = elbow bend deg (right, left); kick = heel lift in swing, m; width = foot track as a
+# share of the rest stance; twist = chest counter-turn deg; out = arm spread; head = head pitch forward; sway = hip side shift, m.
+# Optional per school: m0k = swing start speed as a share of the ground speed (1 = the foot leaves at ground speed, below 0 = it swings
+# forward at once); kreach = stance stretch (default K_REACH); theta = heel rise deg (default THETA_MAX); ahead = landing share (default AHEAD).
+RUN = {
+    # 儒 君子: upright and measured, sword arm steady, bow arm swings
+    'ru': dict(tier='Mid', cad=3.5, duty=0.28, lean=0.08, bob=0.03, swing=(14, 26), elbow=(60, 75), kick=0.36, width=0.6, twist=5, out=0.22, head=0.02, sway=0.012),
+    # 道 真人: light and long, the most flight, loose open arms in the sleeves
+    # round 3 (owner 25 Nov: "shorter, gliding stride", robe weights unchanged): short quick steps (1.07 m at 6.4 m/s), no bob, nearly straight
+    # stance leg, feet tucked up under the robe in swing and swung forward from toe-off. Cause of the dip (runs 1-2: -122 / -76 mm): the robe's
+    # front hem is weighted to the shins, so a shin pitched back behind the body (foot trailing low after toe-off) pulls the hem down and back.
+    # Light estimate on the approved dao GLB (/home/claude/suitanim/robesim.py, 10-13 mm optimistic vs runs 1-2): robe 25-34 mm above the floor.
+    # robe round (calm binding): the robe no longer follows the shins, so the high heel tuck that kept it off the floor is not needed;
+    # kick 0.8 -> 0.4, m0k -0.3 -> 0.3 (feet stay under the robe; estimate: robe 45 mm above the floor, hem swing 0.151 m)
+    'dao': dict(tier='High', cad=6.0, duty=0.22, lean=0.1, bob=0.0, swing=(22, 22), elbow=(50, 50), kick=0.4, width=1.0, twist=4, out=0.3, head=0.03, sway=0.006,
+                m0k=0.3, kreach=0.99, theta=20.0),
+    # 法 廷尉: rigid, upright, mechanical; sword held point-forward, short swing
+    'fa': dict(tier='High', cad=3.6, duty=0.27, lean=0.06, bob=0.025, swing=(8, 30), elbow=(40, 85), kick=0.4, width=0.5, twist=3, out=0.18, head=0.0, sway=0.008),
+    # 墨 墨守: heavy and stocky, short quick steps, low and forward, crossbow kept at the hip, wide track
+    'mo': dict(tier='Low', cad=4.0, duty=0.32, lean=0.22, bob=0.02, swing=(6, 22), elbow=(70, 90), kick=0.26, width=0.85, twist=8, out=0.35, head=0.1, sway=0.02),
+    # 阴阳 太极: smooth glide (least bob), both orbs held out in front, balanced
+    'yy': dict(tier='Mid', cad=3.5, duty=0.28, lean=0.1, bob=0.015, swing=(14, 14), elbow=(65, 65), kick=0.34, width=0.45, twist=2, out=0.32, head=0.02, sway=0.006),
+    # 杂 门客: an even all-round runner, a little loose
+    'za': dict(tier='Mid', cad=3.6, duty=0.29, lean=0.13, bob=0.035, swing=(24, 34), elbow=(70, 75), kick=0.4, width=0.55, twist=8, out=0.24, head=0.03, sway=0.012),
+    # 名 辩者: quick and proud, chest up, wide-swinging free arm, wheel out at the side
+    'ming': dict(tier='Mid', cad=3.7, duty=0.27, lean=0.05, bob=0.04, swing=(16, 44), elbow=(40, 70), kick=0.44, width=0.5, twist=11, out=0.3, head=-0.04, sway=0.012),
+    # 纵横 说客: long confident strides, shoulders turning, staff carried upright in the right hand
+    'zh': dict(tier='Mid', cad=3.4, duty=0.27, lean=0.1, bob=0.035, swing=(None, 38), elbow=(None, 75), kick=0.4, width=0.55, twist=10, out=0.24, head=0.02, sway=0.012),
+    # 农 耕者: sturdy and lumbering, knees bent, hoe on the shoulder, wide track
+    'nong': dict(tier='Low', cad=3.9, duty=0.32, lean=0.18, bob=0.025, swing=(None, 26), elbow=(None, 85), kick=0.28, width=0.8, twist=6, out=0.3, head=0.08, sway=0.02),
+}
+# Landing point as a share of the contact length ahead of the hip joint (plate 10: lands a little ahead, pushes off further behind).
+AHEAD = 0.42
+# Heel rise at push-off: max foot pitch about the toe, deg, and the share of the contact after which the heel starts to rise.
+THETA_MAX, HEEL0 = 30.0, 0.6
+# Hip-to-ankle stretch allowed in stance as a share of thigh + shin (a locked knee looks wrong); the base hip drop is solved from it.
+K_REACH = 0.97
+# Hit flinch: length s; time to full flinch s (plate 51 shape at hit speed); hold s; strength by the kit's armour tier (heavier flinches less).
+HIT_S, HIT_UP, HIT_HOLD = 0.3, 0.06, 0.04
+HIT_K = {'Low': 1.0, 'Mid': 0.85, 'High': 0.7}
+# Long robes (legs 'robe'): the hit's hip drop is capped here, m (round 1: dao's hem went 33 mm under the floor at 0.07 m).
+HIT_ROBE_DROP = 0.02
+# Death per school: fall = 'back' or 'front'; s = length (1.0 s nominal; key times scale with it).
+# dao (owner 25 Nov, after the calm robe binding): 'topple' = a stiff backward fall with no hip squat; the whole body turns as one piece
+# about a floor point under its rear-most part (the robe's back hem), so nothing can pass below the floor (run 45522030493: the squat put
+# the hips-bound robe into the floor and the floor solve lifted the body 0.364 m).
+DEATH = {'ru': dict(fall='back', s=1.0), 'dao': dict(fall='back', s=0.95, style='topple'), 'fa': dict(fall='front', s=0.9), 'mo': dict(fall='front', s=1.1),
+         'yy': dict(fall='back', s=1.0), 'za': dict(fall='front', s=1.0), 'ming': dict(fall='back', s=0.95), 'zh': dict(fall='back', s=1.0),
+         'nong': dict(fall='front', s=1.1)}
+# Death key times at 1.0 s (recoil, buckle, impact, settle) and the gap kept above the floor once lying, m.
+DEATH_T, LIE_GAP = (0.12, 0.42, 0.72, 0.85), 0.002
+# Calm robe binding (owner 25 Nov "rebind robes calmer": dao, za, zh; meshes unchanged, only the robe's skin weights): after bone heat,
+# each robe vertex's shin weight moves to the thigh of the same side, mix = share of the leg weight spread evenly over both thighs (the
+# scissor cancels out), K = share of the leg weight kept (the rest goes to the hips). Estimate on the approved GLBs
+# (/home/claude/suitanim/robecalm.py): hem swing per run cycle dao 0.413 -> 0.151 m, za 0.454 -> 0.210 m, zh 0.538 -> 0.220 m.
+ROBE_CALM = {'dao': (0.2, 0.7), 'za': (0.4, 0.5), 'zh': (0.4, 0.5)}
+# Armour tier per school (index.html kits) for HIT_K.
+ARMOUR = {'ru': 'High', 'dao': 'Low', 'fa': 'Mid', 'mo': 'High', 'yy': 'Low', 'za': 'Mid', 'ming': 'Low', 'zh': 'Mid', 'nong': 'High'}
 
 # The nine suits as data (docs/SUITS.md; outline cues and colours from the study, art/Qin-Lamellar-Suits-Study.md).
 # H height scale, W shoulder width scale, G girth scale, L limb thickness scale. lac = plate lacquer (sheet rows), cord = binding row,
@@ -228,11 +301,13 @@ def bez(p0, p1, p2, k):
 
 # the shared humanoid base ----------------------------------------------------------------------------------------------
 class Body:
-    """measured proportions (study): crown 1.86 m at H 1.0 (6.4 heads), head 0.29 m, shoulders 0.46 m wide at W 1.0, legs 0.92 m."""
-    def __init__(s, S):
+    """measured proportions (study): crown 1.86 m at H 1.0 (6.4 heads), head 0.29 m, shoulders 0.46 m wide at W 1.0, legs 0.92 m.
+    FIX-A: study heights v map to v * BODY_K below the chin and the head part by HEAD_K (crown 2.03 m, 7.5 heads at H 1.0)."""
+    def __init__(s, S, body_k=None, head_k=None):
         s.S = S; H, W, G, L = S['H'], S['W'], S['G'], S['L']
         s.H, s.W, s.G, s.L = H, W, G, L
-        z = lambda v: v * H
+        bk = BODY_K if body_k is None else body_k; hk = HEAD_K if head_k is None else head_k; s.hk = hk
+        z = lambda v: (v * bk if v <= V_CHIN else V_CHIN * bk + (v - V_CHIN) * hk) * H
         s.z = z
         s.sx = 0.2 * W                       # shoulder joint x
         s.hx = 0.095 * G                     # hip joint x
@@ -244,7 +319,7 @@ class Body:
         H, W, G = s.H, s.W, s.G
         tab = [(0.86, 0.165 * G, 0.12 * G), (0.95, 0.17 * G, 0.125 * G), (1.03, 0.15 * G, 0.115 * G), (1.2, 0.17 * max(G, W), 0.13 * G),
                (1.32, 0.195 * W, 0.14 * G), (1.44, 0.19 * W, 0.12 * G), (1.52, 0.075, 0.075)]
-        zs = [t[0] * H for t in tab]
+        zs = [s.z(t[0]) for t in tab]
         if zz <= zs[0]: return tab[0][1:]
         for i in range(len(tab) - 1):
             if zz <= zs[i + 1]:
@@ -668,16 +743,23 @@ def apply_pose(arm, pose):
     if 'hips' in pose and isinstance(pose['hips'][0], (int, float)) and len(pose['hips']) == 3 and pose.get('_hips_offset', True):
         pass
     for n in ORDER:
+        if n == 'hips' and 'hips_dir' in pose and 'hips' in arm.pose.bones:   # SUITANIM: pelvis direction (death falls); offset below
+            pb = arm.pose.bones['hips']
+            if 'hips' in pose: pb.location = (pb.bone.matrix_local.to_3x3().inverted() @ D(*pose['hips'])); bpy.context.view_layer.update()
+            want = D(*tuple(pose['hips_dir'])[:3]).normalized(); M0 = pb.matrix.to_3x3(); cur = (M0 @ Vector((0, 1, 0))).normalized()
+            pb.rotation_quaternion = (M0.inverted() @ cur.rotation_difference(want).to_matrix() @ M0).to_quaternion()
+            bpy.context.view_layer.update(); continue
         if n not in pose or n not in arm.pose.bones: continue
         pb = arm.pose.bones[n]
         if n == 'hips':
             off = D(*pose['hips'])
             pb.location = (pb.bone.matrix_local.to_3x3().inverted() @ off)
             bpy.context.view_layer.update(); continue
-        want = D(*pose[n]).normalized()
+        want = D(*tuple(pose[n])[:3]).normalized()
         M0 = pb.matrix.to_3x3()        # current (rotation identity) armature-space basis
         cur = (M0 @ Vector((0, 1, 0))).normalized()
         R = cur.rotation_difference(want).to_matrix()
+        if len(pose[n]) > 3 and pose[n][3]: R = Quaternion(want, math.radians(pose[n][3])).to_matrix() @ R   # SUITANIM: twist about the bone (run chest)
         L = M0.inverted() @ R @ M0
         pb.rotation_quaternion = L.to_quaternion()
         bpy.context.view_layer.update()
@@ -698,6 +780,308 @@ def make_clip(arm, name, keys):
 def tip_world(arm, bone):
     pb = arm.pose.bones[bone]; return arm.matrix_world @ pb.tail
 
+# movement clips (SUITANIM) ---------------------------------------------------------------------------------------------------
+def smooth(u): u = max(0.0, min(1.0, u)); return u * u * (3 - 2 * u)
+
+def herm(p0, p1, m0, m1, s):
+    return (2 * s ** 3 - 3 * s * s + 1) * p0 + (s ** 3 - 2 * s * s + s) * m0 + (-2 * s ** 3 + 3 * s * s) * p1 + (s ** 3 - s * s) * m1
+
+def rotfz(v, th):
+    """turn a design vector in the forward-up plane: positive th pitches a toe down (the heel rises)."""
+    c, s = math.cos(math.radians(th)), math.sin(math.radians(th))
+    return Vector((v.x, v.y * c + v.z * s, -v.y * s + v.z * c))
+
+def slerp_dir(a, b, u):
+    a, b = Vector(a).normalized(), Vector(b).normalized(); d = max(-1.0, min(1.0, a.dot(b))); w = math.acos(d)
+    if w < 1e-4: return (a * (1 - u) + b * u).normalized()
+    return ((a * math.sin((1 - u) * w) + b * math.sin(u * w)) / math.sin(w)).normalized()
+
+def leg_ik(hip, ank, Lt, Ls, pole):
+    """two-bone leg in design coords: (thigh dir, shin dir, clamped?) with the knee bent toward pole."""
+    d = ank - hip; dist = d.length; reach = Lt + Ls
+    dc = min(max(dist, abs(Lt - Ls) + 1e-4), reach * 0.9995); u = d.normalized()
+    w = pole - u * pole.dot(u); w.normalize()
+    ca = max(-1.0, min(1.0, (Lt * Lt + dc * dc - Ls * Ls) / (2 * Lt * dc))); sa = math.sqrt(1 - ca * ca)
+    knee = hip + (u * ca + w * sa) * Lt
+    return (knee - hip).normalized(), (hip + u * dc - knee).normalized(), dist > reach * 0.9995
+
+def posed_dirs(arm):
+    """every deform bone's current direction in design coords ('hips' stored as 'hips_dir')."""
+    out = {}
+    for pb in arm.pose.bones:
+        if pb.name == 'root': continue
+        d = (pb.tail - pb.head).normalized(); out['hips_dir' if pb.name == 'hips' else pb.name] = Vector((-d.x, -d.y, d.z))
+    return out
+
+def snap(arm):
+    return {pb.name: (pb.rotation_quaternion.copy(), pb.location.copy()) for pb in arm.pose.bones}
+
+def lowest(lods):
+    """lowest evaluated vertex z over all LODs (current pose, no animation playing)."""
+    dg = bpy.context.evaluated_depsgraph_get(); m = 1e9
+    for ob in lods:
+        ev = ob.evaluated_get(dg); me = ev.to_mesh(); co = np.empty(len(me.vertices) * 3); me.vertices.foreach_get('co', co)
+        m = min(m, float(co[2::3].min()) + ob.matrix_world.translation.z); ev.to_mesh_clear()
+    return m
+
+def lift_hips(arm, dz):
+    pb = arm.pose.bones['hips']; pb.location = pb.location + pb.bone.matrix_local.to_3x3().inverted() @ Vector((0, 0, dz))
+    bpy.context.view_layer.update()
+
+def keyed_clip(arm, name, snaps):
+    """key one snapshot per frame from frame 0 (quaternion signs kept continuous) and push the action to its own NLA track."""
+    act = bpy.data.actions.new(name); arm.animation_data.action = act; prev = {}
+    for f, sn in enumerate(snaps):
+        for pb in arm.pose.bones:
+            q, loc = sn[pb.name]; q = q.copy()
+            if pb.name in prev and prev[pb.name].dot(q) < 0: q.negate()
+            prev[pb.name] = q; pb.rotation_quaternion = q; pb.location = loc
+        key_all(arm, f)
+    tr = arm.animation_data.nla_tracks.new(); tr.name = name; tr.strips.new(name, 0, act)
+    tr.mute = True   # round 2: an unmuted new track overrode the pose while the next clip was authored (round 1 hit started from a run pose)
+    arm.animation_data.action = None
+
+class Legs:
+    """leg data in design coords from the rig and the rest mesh: hip joints, bone lengths, ankle, toe pivot (front of the sole)."""
+    def __init__(s, b, lod0):
+        bones = {n: (Vector(h), Vector(t)) for n, h, t, p in b.bones()}
+        s.L = {}
+        co = {v.index: Vector((-v.co.x, -v.co.y, v.co.z)) for v in lod0.data.vertices}
+        for side, m in (('R', 1), ('L', -1)):
+            hip, knee = bones[f'thigh.{side}']; ank = bones[f'shin.{side}'][1]; toe = bones[f'foot.{side}'][1]
+            gi = lod0.vertex_groups[f'foot.{side}'].index
+            fv = [co[v.index] for v in lod0.data.vertices if any(g.group == gi and g.weight >= 0.99 for g in v.groups)]
+            zmin = min(p.z for p in fv)
+            # round 2: rolling contact. For each heel-rise angle, the lowest point of the turned foot (relative to the ankle) and the front-most
+            # point at that height; the ankle is placed so that point is on the floor at a fixed spot (round 1 turned about one fixed toe
+            # vertex and the boot nose in front of it went 6-21 mm under the floor)
+            # round 3: the round-2 'lowest point held' let the contact jump from mid-sole (+0.05 m) to the boot nose (+0.15 m) at about 12 deg,
+            # so the foot slid back 13-15 cm per cycle (run 45518008969). Now the sole's lower hull (forward, up; relative to the ankle) rolls
+            # without slipping: turn about one hull vertex until the next one meets the floor, then switch (world contact advances by the chord).
+            rel = sorted(set((round(p.y - ank.y, 6), round(p.z - ank.z, 6)) for p in fv)); lo = []
+            for q in rel:
+                while len(lo) >= 2 and (lo[-1][0] - lo[-2][0]) * (q[1] - lo[-2][1]) - (lo[-1][1] - lo[-2][1]) * (q[0] - lo[-2][0]) <= 0: lo.pop()
+                lo.append(q)
+            i0 = min(range(len(lo)), key=lambda i: (round(lo[i][1], 4), -lo[i][0])); roll = [(0.0, lo[i0], 0.0)]
+            for q in lo[i0 + 1:]:
+                dq = (q[0] - roll[-1][1][0], q[1] - roll[-1][1][1]); a = math.degrees(math.atan2(dq[1], dq[0]))
+                if a >= roll[-1][0]: roll.append((a, q, roll[-1][2] + math.hypot(*dq)))
+            s.L[side] = dict(m=m, hip=hip, Lt=(knee - hip).length, Ls=(ank - knee).length, ank=ank, roll=roll,
+                             fd=(toe - ank).normalized(), pole=Vector((m * 0.1, 1, 0)).normalized(), sole=zmin)
+
+def run_clip(arm, b, sid, legs):
+    R_ = RUN[sid]; v = SPEED[R_['tier']]
+    N = int(round(2 * FPS / R_['cad'])); T = N / FPS; tc = R_['duty'] * T; tsw = T - tc; Lc = v * tc
+    THM, AHD, KRE, M0K = R_.get('theta', THETA_MAX), R_.get('ahead', AHEAD), R_.get('kreach', K_REACH), R_.get('m0k', 1.0)
+    def stance(L, tau):
+        th = THM * smooth((tau / tc - HEEL0) / (1 - HEEL0))
+        a, (pf, pz), off = [r for r in L['roll'] if r[0] <= th + 1e-9][-1]; f0, z0 = L['roll'][0][1]
+        q = rotfz(Vector((0, pf, pz)), th)                   # active hull pivot, turned with the foot
+        cf = Lc * AHD - v * tau + f0 + off                 # its floor spot (moves back at ground speed: fixed on the floor)
+        return Vector((L['ank'].x * R_['width'], cf - q.y, L['ank'].z + z0 - q.z)), rotfz(L['fd'], th)
+    def foot(L, tau):
+        if tau <= tc: return stance(L, tau) + (True,)
+        s = (tau - tc) / tsw; A0, F0 = stance(L, tc); A1, F1 = stance(L, 0)
+        # heel lift: eases up off the toe (squared sine) and comes down onto the floor with some speed (plain sine), so the frame before
+        # touchdown is clear of the floor instead of skimming it
+        g = math.sin(math.pi * s ** 0.8); A = Vector((A0.x, herm(A0.y, A1.y, -v * tsw * M0K, -v * tsw, s), herm(A0.z, A1.z, 0, 0, s) + R_['kick'] * (g * g * (1 - s) + g * s)))
+        return A, rotfz(L['fd'], THM * (1 - smooth(s))), False
+    bump = lambda t: 0.5 * (1 + math.cos(2 * math.pi * (t - tc / 2) / (T / 2)))
+    # base hip drop solved so the stance leg never stretches past K_REACH of thigh + shin
+    drop = 0.02
+    for side, ph in (('R', 0.0), ('L', T / 2)):
+        L = legs.L[side]; C = (L['Lt'] + L['Ls']) * KRE
+        for i in range(41):
+            tau = tc * i / 40; A, _ = stance(L, tau); t = (tau + ph) % T
+            dx, df = A.x - L['hip'].x, A.y - L['hip'].y; room = C * C - dx * dx - df * df
+            zmax = A.z + math.sqrt(max(room, 0.0)); drop = max(drop, L['hip'].z - R_['bob'] * bump(t) - zmax)
+    snaps, clamped, minhip = [], 0, 9
+    for k in range(N + 1):
+        t = (k % N) / FPS; ph = 2 * math.pi * t / T
+        dz = -drop - R_['bob'] * bump(t); dx = R_['sway'] * math.cos(2 * math.pi * (t - tc / 2) / T)
+        pose = {'hips': (dx, 0, dz), 'spine': (0, R_['lean'], 1), 'chest': (0, R_['lean'] * 1.2, 1, R_['twist'] * math.cos(ph)),
+                'neck': (0, R_['lean'] * 0.4, 1), 'head': (0, R_['head'], 1)}
+        for i, (side, m, sg) in enumerate((('R', 1, -1), ('L', -1, 1))):
+            sw, el = R_['swing'][i], R_['elbow'][i]
+            if sw is None: continue
+            a = math.radians(sg * sw * math.cos(ph)); e = a + math.radians(el)
+            pose[f'upper_arm.{side}'] = (m * R_['out'], math.sin(a), -math.cos(a)); pose[f'forearm.{side}'] = (m * R_['out'] * 0.3, math.sin(e), -math.cos(e))
+        for side, off in (('R', 0.0), ('L', T / 2)):
+            L = legs.L[side]; tau = (t - off) % T; A, fdir, st = foot(L, tau)
+            hip = L['hip'] + Vector((dx, 0, dz)); th, sh, cl = leg_ik(hip, A, L['Lt'], L['Ls'], L['pole'])
+            if cl and st: clamped += 1
+            pose[f'thigh.{side}'], pose[f'shin.{side}'], pose[f'foot.{side}'] = th, sh, fdir
+        minhip = min(minhip, legs.L['R']['hip'].z + dz)
+        apply_pose(arm, pose); snaps.append(snap(arm))
+    keyed_clip(arm, 'run', snaps)
+    return dict(run_v=v, run_s=round(T, 6), run_frames=N, run_tc=round(tc, 4), run_drop=round(drop, 3), run_hip_min=round(minhip, 3),
+                run_cad=round(2 / T, 3), run_step=round(v * T / 2, 3)), clamped
+
+def planted(pose, legs, hips_off):
+    """add IK legs to a pose that keep both feet on their rest spot and rest angle while the hips move by hips_off."""
+    for side in ('R', 'L'):
+        L = legs.L[side]; hip = L['hip'] + Vector(hips_off)
+        th, sh, _ = leg_ik(hip, L['ank'], L['Lt'], L['Ls'], L['pole'])
+        pose[f'thigh.{side}'], pose[f'shin.{side}'], pose[f'foot.{side}'] = th, sh, L['fd']
+    return pose
+
+def full_key(arm, pose):
+    """a pose made complete: every bone's direction after applying it (for slerping between keys), plus the hips offset."""
+    apply_pose(arm, pose); d = posed_dirs(arm); d['hips'] = tuple(pose.get('hips', (0, 0, 0))); return d
+
+def blend(ka, kb, u):
+    out = {n: slerp_dir(ka[n], kb[n], u) for n in ka if n != 'hips'}
+    out['hips'] = tuple(ka['hips'][i] * (1 - u) + kb['hips'][i] * u for i in range(3)); return out
+
+HIT_POSE = {'hips': (0, -0.05, -0.07), 'spine': (0, -0.12, 1), 'chest': (0, -0.32, 1), 'neck': (0, -0.25, 1), 'head': (0.15, -0.5, 1),
+            'upper_arm.R': (0.35, 0.25, -1), 'forearm.R': (0.15, 1, 0.55), 'upper_arm.L': (-0.35, 0.25, -1), 'forearm.L': (-0.15, 1, 0.55)}
+
+def hit_clip(arm, sid, legs):
+    k = HIT_K[ARMOUR[sid]]; N = int(round(HIT_S * FPS))
+    rest = full_key(arm, {}); hp = dict(HIT_POSE)
+    if SUITS[sid]['legs'] == 'robe': hp['hips'] = (0, -0.03, -HIT_ROBE_DROP / k)
+    peak = full_key(arm, planted(hp, legs, D0(hp['hips'])))
+    snaps = []
+    for f in range(N + 1):
+        t = f / FPS
+        e = (1 - (1 - t / HIT_UP) ** 2) if t < HIT_UP else 1.0 if t < HIT_UP + HIT_HOLD else 1 - smooth((t - HIT_UP - HIT_HOLD) / (HIT_S - HIT_UP - HIT_HOLD))
+        pose = blend(rest, peak, e * k)
+        apply_pose(arm, planted(pose, legs, D0(pose['hips']))); snaps.append(snap(arm))
+    keyed_clip(arm, 'hit', snaps)
+    return dict(hit_s=N / FPS, hit_k=k)
+
+def D0(off):
+    """a design-coords hips offset as a Vector (x, f, z); leg data is in design coords too."""
+    return Vector(off)
+
+def death_poses(fall):
+    """key poses (design directions, absolute): recoil, buckle, impact, settle; 'hips' = hip joint offset, 'hips_dir' = pelvis direction."""
+    s = 1 if fall == 'back' else -1
+    recoil = {'hips': (0, -0.05, -0.08), 'spine': (0, -0.15, 1), 'chest': (0, -0.38, 1), 'neck': (0, -0.3, 1), 'head': (0.1, -0.55, 1),
+              'upper_arm.R': (0.6, 0.15, -0.6), 'forearm.R': (0.5, 0.5, 0.25), 'upper_arm.L': (-0.6, 0.15, -0.6), 'forearm.L': (-0.5, 0.5, 0.25)}
+    if fall == 'back':
+        buckle = {'hips': (0, -0.16, -0.4), 'hips_dir': (0, -0.25, 1), 'spine': (0, -0.45, 1), 'chest': (0, -0.65, 1), 'neck': (0, -0.45, 1), 'head': (0.1, -0.15, 1),
+                  'upper_arm.R': (0.75, -0.2, -0.35), 'forearm.R': (0.6, 0.3, 0.3), 'upper_arm.L': (-0.75, -0.2, -0.35), 'forearm.L': (-0.6, 0.3, 0.3)}
+        impact = {'hips': (0, -0.9, -0.85), 'hips_dir': (0, -1, 0.03), 'spine': (0, -1, 0.0), 'chest': (0, -1, 0.0), 'neck': (0, -1, 0.12), 'head': (0.05, -1, 0.3),
+                  'thigh.R': (0.06, 1, 0.22), 'shin.R': (0.03, 1, -0.22), 'foot.R': (0.15, 0.3, 1), 'thigh.L': (-0.06, 1, 0.22), 'shin.L': (-0.03, 1, -0.22), 'foot.L': (-0.15, 0.3, 1),
+                  'upper_arm.R': (0.9, -0.35, 0.2), 'forearm.R': (0.7, 0.3, 0.25), 'upper_arm.L': (-0.9, -0.35, 0.2), 'forearm.L': (-0.7, 0.3, 0.25)}
+        settle = dict(impact, **{'head': (0.35, -1, 0.0), 'neck': (0, -1, 0.04), 'thigh.R': (0.06, 1, 0.1), 'shin.R': (0.03, 1, -0.1), 'thigh.L': (-0.06, 1, 0.1),
+                                 'shin.L': (-0.03, 1, -0.1), 'upper_arm.R': (0.92, -0.3, 0.0), 'forearm.R': (0.6, 0.45, -0.03), 'upper_arm.L': (-0.92, -0.3, 0.0),
+                                 'forearm.L': (-0.6, 0.45, -0.03)})
+    else:
+        # round 2: the knees reach the floor (shins back along it), then the body falls forward over the knees (round 1 kept the feet planted and
+        # interpolated to lying: the shins swept through the floor and the floor solve lifted the body up to 0.3 m, a dive in mid-air)
+        buckle = {'hips': (0, 0.05, -0.5), 'hips_dir': (0, 0.2, 1), 'spine': (0, 0.4, 1), 'chest': (0, 0.6, 1), 'neck': (0, 0.7, 1), 'head': (0, 1, 0.5),
+                  'thigh.R': (0.05, 0.25, -1), 'shin.R': (0.03, -1, 0.04), 'foot.R': (0.02, -1, -0.45), 'thigh.L': (-0.05, 0.25, -1), 'shin.L': (-0.03, -1, 0.04),
+                  'foot.L': (-0.02, -1, -0.45),
+                  'upper_arm.R': (0.2, 0.45, -1), 'forearm.R': (0.1, 0.7, -1), 'upper_arm.L': (-0.2, 0.45, -1), 'forearm.L': (-0.1, 0.7, -1)}
+        impact = {'hips': (0, 0.85, -0.8), 'hips_dir': (0, 1, -0.03), 'spine': (0, 1, 0.0), 'chest': (0, 1, 0.0), 'neck': (0, 1, 0.1), 'head': (0.2, 1, 0.3),
+                  'thigh.R': (0.06, -1, -0.02), 'shin.R': (0.03, -1, 0.06), 'foot.R': (0.05, -1, -0.35), 'thigh.L': (-0.06, -1, -0.02), 'shin.L': (-0.03, -1, 0.06), 'foot.L': (-0.05, -1, -0.35),
+                  'upper_arm.R': (0.65, 0.75, 0.1), 'forearm.R': (0.3, 0.95, 0.1), 'upper_arm.L': (-0.65, 0.75, 0.1), 'forearm.L': (-0.3, 0.95, 0.1)}
+        settle = dict(impact, **{'head': (0.6, 1, -0.05), 'neck': (0, 1, 0.02), 'upper_arm.R': (0.7, 0.7, -0.02), 'forearm.R': (0.35, 0.94, -0.03),
+                                 'upper_arm.L': (-0.7, 0.7, -0.02), 'forearm.L': (-0.35, 0.94, -0.03)})
+    return recoil, buckle, impact, settle
+
+# Topple body pose (before turning): a small recoil with the legs straight (design directions; 'hips' = hip joint offset, m).
+TOPPLE_BODY = {'hips': (0, -0.02, -0.02), 'spine': (0, -0.08, 1), 'chest': (0, -0.15, 1), 'neck': (0, -0.1, 1), 'head': (0.05, -0.2, 1),
+               'upper_arm.R': (0.7, 0.2, -0.45), 'forearm.R': (0.55, 0.55, 0.3), 'upper_arm.L': (-0.7, 0.2, -0.45), 'forearm.L': (-0.55, 0.55, 0.3)}
+
+def topple_clip(arm, sid, legs, lods, floor):
+    """stiff backward topple: recoil, then the body turns as one piece about a floor point under its rear-most vertex (accelerating),
+    lands on its back at 90 deg, the head and arms settle to the floor; the floor solve only checks (it should not have to lift)."""
+    Dd = DEATH[sid]; dur = Dd['s']; N = int(round(dur * FPS)); tr, tb, ti, ts = (x * dur for x in DEATH_T)
+    def body_at(k, ph):
+        out = {n: rotfz(Vector(tuple(d)), ph) for n, d in k.items() if n != 'hips'}
+        h0 = Vector(legs.L['R']['hip']) - Vector((legs.L['R']['hip'].x, 0, 0)); hp = h0 + Vector(k['hips'])
+        out['hips'] = tuple(PIV + rotfz(hp - PIV, ph) - h0); return out
+    allv = [Vector((-v.co.x, -v.co.y, v.co.z)) for ob in lods for v in ob.data.vertices]
+    PIV = Vector((0, min(p.y for p in allv), floor))
+    K0 = full_key(arm, {}); B = full_key(arm, planted(dict(TOPPLE_BODY), legs, D0(TOPPLE_BODY['hips'])))
+    K3 = body_at(B, -90.0)
+    settle = dict(K3, **{'head': (0.3, -1, -0.2), 'neck': (0, -1, -0.08), 'upper_arm.R': (0.92, -0.3, 0.0), 'forearm.R': (0.6, 0.45, -0.03),
+                         'upper_arm.L': (-0.92, -0.3, 0.0), 'forearm.L': (-0.6, 0.45, -0.03)})
+    apply_pose(arm, settle); lift_hips(arm, floor + LIE_GAP - lowest(lods))
+    K4 = posed_dirs(arm); pb = arm.pose.bones['hips']; off = pb.bone.matrix_local.to_3x3() @ pb.location; K4['hips'] = (-off.x, -off.y, off.z)
+    snaps, lifted, lift_f = [], 0.0, -1
+    for f in range(N + 1):
+        t = f / FPS
+        if t <= tr: pose = planted(blend(K0, B, 1 - (1 - t / tr) ** 2), legs, D0(blend(K0, B, 1 - (1 - t / tr) ** 2)['hips']))
+        elif t <= ti: u = (t - tr) / (ti - tr); pose = body_at(B, -90.0 * u * u)        # falls as one piece, accelerating
+        elif t <= ts: pose = blend(K3, K4, smooth((t - ti) / (ts - ti)))
+        else: pose = dict(K4)
+        apply_pose(arm, pose); lo = lowest(lods)
+        if t > ts: lift_hips(arm, floor + LIE_GAP - lo)
+        elif lo < floor:
+            lift_hips(arm, floor - lo + 0.0005)
+            if floor - lo > lifted: lifted, lift_f = floor - lo, f
+        snaps.append(snap(arm))
+    keyed_clip(arm, 'death', snaps)
+    return dict(death_s=N / FPS, death_fall='topple', death_lift_max=round(lifted, 3), death_lift_frame=lift_f)
+
+def death_clip(arm, sid, legs, lods, floor):
+    if DEATH[sid].get('style') == 'topple': return topple_clip(arm, sid, legs, lods, floor)
+    Dd = DEATH[sid]; dur = Dd['s']; N = int(round(dur * FPS)); tr, tb, ti, ts = (x * dur for x in DEATH_T)
+    recoil, buckle, impact, settle = death_poses(Dd['fall']); front = Dd['fall'] == 'front'
+    K0 = full_key(arm, {})
+    K1 = full_key(arm, planted(dict(recoil), legs, D0(recoil['hips'])))
+    # lying keys: hips height solved so the lowest vertex (all LODs) rests LIE_GAP above the floor reference
+    def lying(p):
+        apply_pose(arm, p); lift_hips(arm, floor + LIE_GAP - lowest(lods))
+        k = posed_dirs(arm); pb = arm.pose.bones['hips']; off = pb.bone.matrix_local.to_3x3() @ pb.location
+        k['hips'] = (-off.x, -off.y, off.z); return k
+    knees = None
+    if front:
+        K2 = lying(dict(buckle))                                                    # kneeling: knees on the floor
+        knees = {sd: Vector((-arm.pose.bones[f'shin.{sd}'].head.x, -arm.pose.bones[f'shin.{sd}'].head.y, arm.pose.bones[f'shin.{sd}'].head.z)) for sd in ('R', 'L')}
+        for p in (impact, settle): p['hips'] = pivot_hips(p, knees, legs)
+    else:
+        K2 = full_key(arm, planted(dict(buckle), legs, D0(buckle['hips'])))
+    K4 = lying(dict(settle)); K3 = lying(dict(impact))
+    # round 3: the lying contact height differs from the knee-pivot height (mo's thick body and domes: the floor solve lifted 0.343 m in one
+    # step, run 45518008969); the pivot phase eases that difference in so the fall meets the lying pose without a jump
+    corr = (Vector(K3['hips']) - Vector(pivot_hips(K3, knees, legs))) if front else Vector((0, 0, 0))
+    snaps, lifted, lift_f = [], 0.0, -1
+    for f in range(N + 1):
+        t = f / FPS
+        if t <= tr: pose = blend(K0, K1, 1 - (1 - t / tr) ** 2)
+        elif t <= tb: pose = blend(K1, K2, smooth((t - tr) / (tb - tr)))
+        elif t <= ti:
+            u = (t - tb) / (ti - tb); pose = blend(K2, K3, u * u)                     # falling: accelerates
+            if front: pose['hips'] = tuple(Vector(pivot_hips(pose, knees, legs)) + corr * (u * u))   # over the knees, which stay on the floor
+        elif t <= ts: pose = blend(K3, K4, smooth((t - ti) / (ts - ti)))
+        else: pose = dict(K4)
+        if t <= (tr if front else tb): pose = planted(pose, legs, D0(pose['hips']))  # feet stay put until the legs give
+        apply_pose(arm, pose)
+        lo = lowest(lods)
+        if t > ti: lift_hips(arm, floor + LIE_GAP - lo)                              # lying: exactly on the floor
+        elif lo < floor:                                                             # never through it
+            lift_hips(arm, floor - lo + 0.0005)
+            if floor - lo > lifted: lifted, lift_f = floor - lo, f
+        snaps.append(snap(arm))
+    keyed_clip(arm, 'death', snaps)
+    return dict(death_s=N / FPS, death_fall=Dd['fall'], death_lift_max=round(lifted, 3), death_lift_frame=lift_f)
+
+def pivot_hips(p, knees, legs):
+    """hip joint offset that keeps both knees where they are for the pose's thigh directions (front fall over the knees)."""
+    o = Vector((0, 0, 0))
+    for sd in ('R', 'L'):
+        L = legs.L[sd]; o += (knees[sd] - Vector(tuple(p[f'thigh.{sd}'])).normalized() * L['Lt']) - L['hip']
+    o /= 2; return (o.x, o.y, o.z)
+
+def movement_clips(arm, b, sid, lods):
+    """author run, hit and death on the shared rig (all NLA tracks muted while posing, restored after)."""
+    ad = arm.animation_data; mutes = {tr.name: tr.mute for tr in ad.nla_tracks}
+    for tr in ad.nla_tracks: tr.mute = True
+    ad.action = None; apply_pose(arm, {})
+    floor = min(min(v.co.z for v in ob.data.vertices) for ob in lods)
+    legs = Legs(b, lods[0])
+    info, clamped = run_clip(arm, b, sid, legs)
+    info.update(hit_clip(arm, sid, legs)); info.update(death_clip(arm, sid, legs, lods, floor))
+    apply_pose(arm, {})
+    for tr in ad.nla_tracks: tr.mute = mutes.get(tr.name, False)
+    info['floor_y'] = round(floor, 4); info['sole_R'] = round(legs.L['R']['sole'], 4)
+    return info, clamped
+
 # build -------------------------------------------------------------------------------------------------------------------
 def build_parts(S):
     PARTS.clear(); DENS.clear()
@@ -707,7 +1091,10 @@ def build_parts(S):
     c_lower(b, S, *S['lower'])
     if S['arms'] == 'sleeves': c_sleeves(b, S)
     c_shoulders(b, S, *S['shoulders'])
-    c_helm(b, S, *S['helm'])
+    n0 = len(PARTS); c_helm(b, S, *S['helm'])
+    for P_ in PARTS[n0:]:  # FIX-A: the head is HEAD_K smaller across too (its heights already follow zchin..zcrown)
+        if P_['bone'] == 'head':
+            for v in P_['ob'].data.vertices: v.co.x *= b.hk; v.co.y *= b.hk
     wb = c_weapon(b, S, *S['weapon']) if S['weapon'] else None
     if S['back']: c_back(b, S, *S['back'])
     return b, wb
@@ -761,12 +1148,28 @@ def heat_weights(ob, arm, allow):
     ob.parent = None
     return ok
 
+def calm_weights(ob, K, mix):
+    """robe round: stiffer robe binding on one robe part (see ROBE_CALM); only weights change, never positions."""
+    g = {vg.index: vg.name for vg in ob.vertex_groups}
+    for n in ('hips', 'thigh.R', 'thigh.L'):
+        if n not in ob.vertex_groups: ob.vertex_groups.new(name=n)
+    for v in ob.data.vertices:
+        w = {}
+        for e in v.groups: w[g[e.group]] = w.get(g[e.group], 0.0) + e.weight
+        tot = sum(w.values()) or 1.0
+        tR = (w.get('thigh.R', 0) + w.get('shin.R', 0)) / tot; tL = (w.get('thigh.L', 0) + w.get('shin.L', 0)) / tot; legs = tR + tL
+        tR, tL = ((1 - mix) * tR + mix * legs / 2) * K, ((1 - mix) * tL + mix * legs / 2) * K
+        for e in list(v.groups): ob.vertex_groups[g[e.group]].remove([v.index])
+        for n, x in (('hips', 1 - tR - tL), ('thigh.R', tR), ('thigh.L', tL)):
+            if x > 1e-6: ob.vertex_groups[n].add([v.index], x, 'REPLACE')
+
 def finish_lod0(sid, S, arm):
     heat_fail = []
     for P_ in PARTS:
         ob = P_['ob']; ob.data.materials.append(material(P_['mat'] if P_['mat'] != 'sCloth' else f'sCloth_{sid}', S))
         if P_['kind'] == 'cloth':
             if not heat_weights(ob, arm, P_['allow']): heat_fail.append(ob.name)
+            if sid in ROBE_CALM and ob.name in ('robe', 'robe_in'): calm_weights(ob, *ROBE_CALM[sid])
         else:
             vg = ob.vertex_groups.new(name=P_['bone']); vg.add(list(range(len(ob.data.vertices))), 1.0, 'REPLACE')
     bpy.ops.object.select_all(action='DESELECT')
@@ -880,6 +1283,8 @@ def build_suit(sid):
     bpy.context.scene.frame_set(1)
     for tr in arm.animation_data.nla_tracks: tr.mute = False
     np.savez_compressed(os.path.join(OUTDIR, f'{sid}_sil.npz'), **sil)
+    # SUITANIM: run, hit and death on the same rig (after the silhouettes, which stay rest/windup only)
+    mv, clamped = movement_clips(arm, b, sid, [lods[0], lods[1], lods[2]])
     # gates
     G = []
     def gate(ok, line): G.append(('PASS ' if ok else 'FAIL ') + f'{sid} ' + line)
@@ -895,6 +1300,13 @@ def build_suit(sid):
     gate(abs((fi - 1) / FPS - IDLE_S) < 1e-6, f'idle {(fi - 1) / FPS:.2f} s')
     bb = [lod0.matrix_world @ Vector(c) for c in lod0.bound_box]; h = max(c.z for c in bb)
     gate(1.7 <= h <= 2.9, f'height with crest {h:.2f} m (1.7-2.9)')
+    # FIX-A proportion gate (owner: about 7.5 heads): crown / (crown - chin); the round-3 proportions must fail it (mutation)
+    heads = b.zcrown / (b.zcrown - b.zchin); b3 = Body(S, 1.0, 1.0); h3 = b3.zcrown / (b3.zcrown - b3.zchin)
+    gate(HEADS_BAND[0] <= heads <= HEADS_BAND[1] and not (HEADS_BAND[0] <= h3 <= HEADS_BAND[1]),
+         f'{heads:.2f} heads tall (crown {b.zcrown:.2f} m, head {b.zcrown - b.zchin:.2f} m; band {HEADS_BAND}); mutation round-3 body {h3:.2f} heads caught')
+    gate(clamped == 0, f"run stance legs within reach every frame ({clamped} stance frames clamped); hip drop {mv['run_drop']} m, lowest hip {mv['run_hip_min']} m, "
+                       f"cycle {mv['run_s']} s ({mv['run_frames']} frames, {mv['run_cad']} steps/s, step {mv['run_step']} m) at {mv['run_v']} m/s")
+    gate(mv['death_lift_max'] < 0.25, f"death floor solve: largest lift {mv['death_lift_max']} m at frame {mv['death_lift_frame']} (fall {mv['death_fall']}, {mv['death_s']:.2f} s); floor ref {mv['floor_y']} m (rest sole)")
     dmin = min([k for _, k in DENS], default=1.0); low = sorted(DENS, key=lambda d: d[1])[:4]
     gate(dmin >= 0.8, f'texel density min {dmin:.2f} of 256 px/m (min 0.8; {len(DENS)} parts squeezed; lowest {[(n, round(k, 2)) for n, k in low]})')
     # export: three LODs on one rig
@@ -905,9 +1317,9 @@ def build_suit(sid):
     bpy.ops.wm.read_factory_settings(use_empty=True); bpy.ops.import_scene.gltf(filepath=p)
     sk = [o for o in bpy.data.objects if o.type == 'MESH' and o.find_armature()]
     acts = sorted(a.name for a in bpy.data.actions)
-    gate(len(sk) == 3 and any('idle' in a for a in acts) and any('attack' in a for a in acts), f'GLB re-import: {len(sk)} skinned meshes, actions {acts}, {size // 1024} KB')
+    gate(len(sk) == 3 and all(any(c in a for a in acts) for c in ('idle', 'attack', 'run', 'hit', 'death')), f'GLB re-import: {len(sk)} skinned meshes, actions {acts}, {size // 1024} KB')
     info = dict(id=sid, title=S['title'], tris={lv: tris(o) for lv, o in lods.items()} if False else None, glb_kb=size // 1024,
-                tell=A['windup'], travel=round(trav, 3), strike_travel=round((t2 - t0).length, 3), height=round(h, 3))
+                tell=A['windup'], travel=round(trav, 3), strike_travel=round((t2 - t0).length, 3), height=round(h, 3), **mv)
     return G, info
 
 if __name__ == '__main__':

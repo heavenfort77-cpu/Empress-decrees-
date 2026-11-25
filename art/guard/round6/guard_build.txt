@@ -1,0 +1,70 @@
+PASS zu lod0 tris 3400 (budget 4000)
+PASS zu lod1 tris 1186 (budget 1500)
+PASS zu lod2 tris 342 (budget 500; weapons drop at LOD2)
+PASS zu every lod0 vertex weighted, sum 1 (0 bad)
+PASS zu clips ['attack', 'idle', 'move']
+PASS zu attack windup 0.50 s (tell >= 0.4)
+PASS zu weapon tip peaks at 0.50 s = windup 0.50 s
+PASS zu weapon tip moves 2.66 m by the windup (min 0.3)
+PASS zu body half-width 0.44 m (0.7-1.4 x radius 0.45)
+PASS zu body height 1.78 m (band 1.45-1.90)
+PASS zu body 6.4 heads tall (head 0.28 m incl. cap; min 6.0; round 3 about 4.9)
+PASS zu tread belts scroll: treadBelt U at 0.540 m per repeat (U rate spread 0.0%), loop U span 4.00 (whole); game: map.offset.x += metres forward / 0.540
+wrote /tmp/gb/zu.glb 430024 bytes
+PASS nu lod0 tris 3760 (budget 4000)
+PASS nu lod1 tris 1322 (budget 1500)
+PASS nu lod2 tris 384 (budget 500; weapons drop at LOD2)
+PASS nu every lod0 vertex weighted, sum 1 (0 bad)
+PASS nu clips ['attack', 'idle', 'move']
+PASS nu attack windup 0.80 s (tell >= 0.4)
+PASS nu weapon tip peaks at 0.83 s = windup 0.80 s
+PASS nu weapon tip moves 0.91 m by the windup (min 0.3)
+PASS nu body half-width 0.44 m (0.7-1.4 x radius 0.45)
+PASS nu body height 1.71 m (band 1.45-1.90)
+PASS nu body 6.2 heads tall (head 0.28 m incl. cap; min 6.0; round 3 about 4.9)
+PASS nu tread belts scroll: treadBelt U at 0.540 m per repeat (U rate spread 0.0%), loop U span 4.00 (whole); game: map.offset.x += metres forward / 0.540
+wrote /tmp/gb/nu.glb 477780 bytes
+PASS dun lod0 tris 3684 (budget 4000)
+PASS dun lod1 tris 1222 (budget 1500)
+PASS dun lod2 tris 350 (budget 500; weapons drop at LOD2)
+PASS dun every lod0 vertex weighted, sum 1 (0 bad)
+PASS dun clips ['attack', 'idle', 'move']
+PASS dun attack windup 0.50 s (tell >= 0.4)
+PASS dun weapon tip peaks at 0.50 s = windup 0.50 s
+PASS dun weapon tip moves 0.81 m by the windup (min 0.3)
+PASS dun body half-width 0.58 m (0.7-1.4 x radius 0.6)
+PASS dun body height 1.78 m (band 1.45-1.90)
+PASS dun body 6.4 heads tall (head 0.28 m incl. cap; min 6.0; round 3 about 4.9)
+PASS dun tread belts scroll: treadBelt U at 0.540 m per repeat (U rate spread 0.0%), loop U span 4.00 (whole); game: map.offset.x += metres forward / 0.540
+wrote /tmp/gb/dun.glb 463516 bytes
+PASS che lod0 tris 3052 (budget 4000)
+PASS che lod1 tris 1240 (budget 1500)
+PASS che lod2 tris 357 (budget 500; weapons drop at LOD2)
+PASS che every lod0 vertex weighted, sum 1 (0 bad)
+PASS che clips ['attack', 'idle', 'move']
+PASS che attack windup 0.90 s (tell >= 0.4)
+PASS che weapon tip peaks at 0.90 s = windup 0.90 s
+PASS che weapon tip moves 1.05 m by the windup (min 0.3)
+PASS che body half-width 1.00 m (0.7-1.4 x radius 0.9)
+PASS che chariot body length 1.92 m (>= 1.9), top 2.08 m (<= 2.2)
+PASS che tread belts scroll: treadBelt U at 0.527 m per repeat (U rate spread 0.0%), loop U span 8.00 (whole); game: map.offset.x += metres forward / 0.527
+wrote /tmp/gb/che.glb 412920 bytes
+PASS wz lod0 tris 3616 (budget 4000)
+PASS wz lod1 tris 1226 (budget 1500)
+PASS wz lod2 tris 352 (budget 500; weapons drop at LOD2)
+PASS wz every lod0 vertex weighted, sum 1 (0 bad)
+PASS wz clips ['attack', 'idle', 'move']
+PASS wz attack windup 0.50 s (tell >= 0.4)
+PASS wz weapon tip peaks at 0.48 s = windup 0.50 s
+PASS wz weapon tip moves 1.37 m by the windup (min 0.3)
+PASS wz body half-width 0.49 m (0.7-1.4 x radius 0.5)
+PASS wz body height 1.95 m (band 1.45-2.09)
+PASS wz body 6.5 heads tall (head 0.30 m incl. cap; min 6.0; round 3 about 4.9)
+PASS wz tread belts scroll: treadBelt U at 0.594 m per repeat (U rate spread 0.0%), loop U span 4.00 (whole); game: map.offset.x += metres forward / 0.594
+wrote /tmp/gb/wz.glb 464000 bytes
+PASS wz leader banner top 3.35 m >= 1.15 x tallest squad member 2.70 m
+SUMMARY zu 12 of 12 tris [3400, 1186, 342] top 2.70
+SUMMARY nu 12 of 12 tris [3760, 1322, 384] top 1.71
+SUMMARY dun 12 of 12 tris [3684, 1222, 350] top 1.78
+SUMMARY che 11 of 11 tris [3052, 1240, 357] top 2.08
+SUMMARY wz 13 of 13 tris [3616, 1226, 352] top 3.35

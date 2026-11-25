@@ -1,0 +1,15 @@
+PASS patch #6f6a34: nearest school colour (game 2) dE 31.3 (min 20.0)
+PASS patch #6f6a34: dE 20.2 from the hemp (min 15.0)
+PASS patch #6a4a32: nearest school colour (game 4) dE 24.4 (min 20.0)
+PASS patch #6a4a32: dE 22.2 from the hemp (min 15.0)
+PASS patch #8e5a52: nearest school colour (game 3) dE 24.1 (min 20.0)
+PASS patch #8e5a52: dE 21.5 from the hemp (min 15.0)
+PASS patch colours apart from each other: min dE 15.0 (min 10.0)
+PASS 死士 glint star 0.62 m = 68 px at the fight framing (min 60)
+rebel patch check: 8 of 8 pass
+PASS mutation patch = ru ochre caught: patch #b8862e: nearest school colour (ding 0) dE 0.0 (min 20.0)
+PASS mutation patch = game cinnabar caught: patch #8a2a3a: nearest school colour (game 3) dE 0.0 (min 20.0)
+PASS mutation patch = hemp caught: patch #8f8068: nearest school colour (game 2) dE 18.0 (min 20.0)
+PASS mutation two equal patches caught: patch colours apart from each other: min dE 0.0 (min 10.0)
+PASS mutation round 5 glint 0.36 m caught: 死士 glint star 0.36 m = 40 px at the fight framing (min 60)
+rebel patch mutations: 5 of 5 caught

@@ -1,0 +1,5 @@
+mesh gate mutation uv: 28 FAIL lines (must be > 0)
+mesh gate mutation budget: 27 FAIL lines (must be > 0)
+mesh gate mutation dims: 3 FAIL lines (must be > 0)
+mesh gate mutation dais: 1 FAIL lines (must be > 0)
+mesh gate mutation rack: 1 FAIL lines (must be > 0)

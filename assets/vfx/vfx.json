@@ -1,0 +1,839 @@
+{
+ "version": 1,
+ "atlases": {
+  "soft_a": {
+   "file": "vfx_soft_a.png",
+   "size": [
+    1024,
+    956
+   ],
+   "blend": "blend",
+   "cut": null,
+   "format": "RG8 (R value, G alpha), linear filter, no mipmaps",
+   "gpuMB": 1.87
+  },
+  "soft_b": {
+   "file": "vfx_soft_b.png",
+   "size": [
+    1024,
+    984
+   ],
+   "blend": "blend",
+   "cut": null,
+   "format": "RG8 (R value, G alpha), linear filter, no mipmaps",
+   "gpuMB": 1.92
+  },
+  "ground": {
+   "file": "vfx_ground.png",
+   "size": [
+    1024,
+    1020
+   ],
+   "blend": "cut",
+   "cut": 0.5,
+   "format": "RG8 (R value, G alpha), linear filter, no mipmaps",
+   "gpuMB": 1.99
+  }
+ },
+ "effects": {
+  "slash": {
+   "name": "slash",
+   "atlas": "soft_a",
+   "blend": "blend",
+   "orient": "bill",
+   "frames": 13,
+   "fps": 30,
+   "loop": null,
+   "cellPx": [
+    212,
+    156
+   ],
+   "originPx": [
+    2,
+    2
+   ],
+   "stridePx": [
+    216,
+    160
+   ],
+   "cols": 4,
+   "pivotPx": [
+    64,
+    151
+   ],
+   "texelM": 0.027,
+   "sizeM": [
+    5.724,
+    4.212
+   ],
+   "pivotM": [
+    1.728,
+    0.135
+   ],
+   "durationS": 0.433,
+   "alphaSum": [
+    2503.0,
+    2556.4,
+    2501.6,
+    2368.4,
+    1989.7,
+    1438.8,
+    805.5,
+    410.4,
+    177.6,
+    86.3,
+    26.3,
+    19.5,
+    14.8
+   ],
+   "ref": "pixelfx melee/sword-slash (shape and timing only)",
+   "anchorHeightM": 0.0,
+   "ashMix": 0.0,
+   "atlasSize": [
+    1024,
+    956
+   ]
+  },
+  "impact": {
+   "name": "impact",
+   "atlas": "soft_a",
+   "blend": "blend",
+   "orient": "bill",
+   "frames": 10,
+   "fps": 30,
+   "loop": null,
+   "cellPx": [
+    96,
+    96
+   ],
+   "originPx": [
+    2,
+    642
+   ],
+   "stridePx": [
+    100,
+    100
+   ],
+   "cols": 10,
+   "pivotPx": [
+    48,
+    48
+   ],
+   "texelM": 0.03,
+   "sizeM": [
+    2.88,
+    2.88
+   ],
+   "pivotM": [
+    1.44,
+    1.44
+   ],
+   "durationS": 0.333,
+   "alphaSum": [
+    276.3,
+    276.5,
+    197.6,
+    8.8,
+    8.0,
+    6.6,
+    4.7,
+    2.6,
+    0.0,
+    0.0
+   ],
+   "ref": "pixelfx impacts/hit-spark (shape and timing only)",
+   "anchorHeightM": 1.0,
+   "ashMix": 0.0,
+   "atlasSize": [
+    1024,
+    956
+   ]
+  },
+  "bolt": {
+   "name": "bolt",
+   "atlas": "soft_a",
+   "blend": "blend",
+   "orient": "bill",
+   "frames": 8,
+   "fps": 24,
+   "loop": [
+    0,
+    8
+   ],
+   "cellPx": [
+    136,
+    60
+   ],
+   "originPx": [
+    2,
+    742
+   ],
+   "stridePx": [
+    140,
+    64
+   ],
+   "cols": 7,
+   "pivotPx": [
+    108,
+    30
+   ],
+   "texelM": 0.03,
+   "sizeM": [
+    4.08,
+    1.8
+   ],
+   "pivotM": [
+    3.24,
+    0.9
+   ],
+   "durationS": 0.333,
+   "alphaSum": [
+    469.9,
+    474.7,
+    473.1,
+    471.3,
+    473.2,
+    474.2,
+    470.4,
+    467.8
+   ],
+   "ref": "pixelfx projectiles/magic-missile (shape and timing only)",
+   "anchorHeightM": 1.0,
+   "ashMix": 0.0,
+   "atlasSize": [
+    1024,
+    956
+   ]
+  },
+  "thrust": {
+   "name": "thrust",
+   "atlas": "soft_a",
+   "blend": "blend",
+   "orient": "bill",
+   "frames": 12,
+   "fps": 30,
+   "loop": null,
+   "cellPx": [
+    144,
+    40
+   ],
+   "originPx": [
+    2,
+    870
+   ],
+   "stridePx": [
+    148,
+    44
+   ],
+   "cols": 6,
+   "pivotPx": [
+    6,
+    20
+   ],
+   "texelM": 0.03,
+   "sizeM": [
+    4.32,
+    1.2
+   ],
+   "pivotM": [
+    0.18,
+    0.6
+   ],
+   "durationS": 0.4,
+   "alphaSum": [
+    676.0,
+    663.7,
+    597.7,
+    490.7,
+    355.3,
+    222.6,
+    108.7,
+    38.8,
+    14.9,
+    14.5,
+    14.5,
+    14.5
+   ],
+   "ref": "pixelfx melee/thrust (shape and timing only)",
+   "anchorHeightM": 1.1,
+   "ashMix": 0.0,
+   "unitLenM": 4.0,
+   "atlasSize": [
+    1024,
+    956
+   ]
+  },
+  "shield": {
+   "name": "shield",
+   "atlas": "soft_b",
+   "blend": "blend",
+   "orient": "bill",
+   "frames": 12,
+   "fps": 20,
+   "loop": [
+    4,
+    12
+   ],
+   "cellPx": [
+    100,
+    116
+   ],
+   "originPx": [
+    2,
+    2
+   ],
+   "stridePx": [
+    104,
+    120
+   ],
+   "cols": 9,
+   "pivotPx": [
+    50,
+    98
+   ],
+   "texelM": 0.03,
+   "sizeM": [
+    3.0,
+    3.48
+   ],
+   "pivotM": [
+    1.5,
+    0.54
+   ],
+   "durationS": 0.6,
+   "alphaSum": [
+    776.3,
+    829.4,
+    849.7,
+    852.4,
+    885.7,
+    909.9,
+    907.6,
+    905.5,
+    904.5,
+    905.5,
+    907.5,
+    910.0
+   ],
+   "ref": "pixelfx holy/divine-shield (shape and timing only)",
+   "anchorHeightM": 0.0,
+   "ashMix": 0.0,
+   "atlasSize": [
+    1024,
+    984
+   ]
+  },
+  "aura": {
+   "name": "aura",
+   "atlas": "soft_b",
+   "blend": "blend",
+   "orient": "bill",
+   "frames": 12,
+   "fps": 20,
+   "loop": [
+    0,
+    12
+   ],
+   "cellPx": [
+    84,
+    116
+   ],
+   "originPx": [
+    2,
+    242
+   ],
+   "stridePx": [
+    88,
+    120
+   ],
+   "cols": 11,
+   "pivotPx": [
+    42,
+    96
+   ],
+   "texelM": 0.03,
+   "sizeM": [
+    2.52,
+    3.48
+   ],
+   "pivotM": [
+    1.26,
+    0.6
+   ],
+   "durationS": 0.6,
+   "alphaSum": [
+    1206.0,
+    1228.1,
+    1204.8,
+    1165.0,
+    1121.3,
+    1039.7,
+    1030.1,
+    1114.9,
+    1133.7,
+    1143.7,
+    1095.3,
+    1155.1
+   ],
+   "ref": "pixelfx status/rage (shape and timing only)",
+   "anchorHeightM": 0.0,
+   "ashMix": 0.0,
+   "atlasSize": [
+    1024,
+    984
+   ]
+  },
+  "heal": {
+   "name": "heal",
+   "atlas": "soft_b",
+   "blend": "blend",
+   "orient": "bill",
+   "frames": 12,
+   "fps": 20,
+   "loop": [
+    0,
+    12
+   ],
+   "cellPx": [
+    80,
+    112
+   ],
+   "originPx": [
+    2,
+    482
+   ],
+   "stridePx": [
+    84,
+    116
+   ],
+   "cols": 12,
+   "pivotPx": [
+    40,
+    98
+   ],
+   "texelM": 0.03,
+   "sizeM": [
+    2.4,
+    3.36
+   ],
+   "pivotM": [
+    1.2,
+    0.42
+   ],
+   "durationS": 0.6,
+   "alphaSum": [
+    760.1,
+    757.2,
+    791.5,
+    790.0,
+    801.3,
+    789.5,
+    811.1,
+    844.3,
+    856.0,
+    863.8,
+    849.9,
+    812.8
+   ],
+   "ref": "pixelfx holy/heal (shape and timing only)",
+   "anchorHeightM": 0.0,
+   "ashMix": 0.0,
+   "atlasSize": [
+    1024,
+    984
+   ]
+  },
+  "burst": {
+   "name": "burst",
+   "atlas": "soft_b",
+   "blend": "blend",
+   "orient": "bill",
+   "frames": 12,
+   "fps": 30,
+   "loop": null,
+   "cellPx": [
+    102,
+    102
+   ],
+   "originPx": [
+    2,
+    598
+   ],
+   "stridePx": [
+    106,
+    106
+   ],
+   "cols": 9,
+   "pivotPx": [
+    51,
+    51
+   ],
+   "texelM": 0.04,
+   "sizeM": [
+    4.08,
+    4.08
+   ],
+   "pivotM": [
+    2.04,
+    2.04
+   ],
+   "durationS": 0.4,
+   "alphaSum": [
+    223.0,
+    519.4,
+    734.4,
+    891.8,
+    1004.9,
+    973.1,
+    808.8,
+    576.3,
+    346.2,
+    167.1,
+    57.6,
+    10.7
+   ],
+   "ref": "pixelfx arcane/mana-burst (shape and timing only)",
+   "anchorHeightM": 1.0,
+   "ashMix": 0.0,
+   "atlasSize": [
+    1024,
+    984
+   ]
+  },
+  "smoke": {
+   "name": "smoke",
+   "atlas": "soft_b",
+   "blend": "blend",
+   "orient": "bill",
+   "frames": 12,
+   "fps": 15,
+   "loop": null,
+   "cellPx": [
+    94,
+    84
+   ],
+   "originPx": [
+    2,
+    810
+   ],
+   "stridePx": [
+    98,
+    88
+   ],
+   "cols": 10,
+   "pivotPx": [
+    47,
+    78
+   ],
+   "texelM": 0.04,
+   "sizeM": [
+    3.76,
+    3.36
+   ],
+   "pivotM": [
+    1.88,
+    0.24
+   ],
+   "durationS": 0.8,
+   "alphaSum": [
+    18.8,
+    82.5,
+    241.4,
+    385.4,
+    478.3,
+    516.9,
+    485.9,
+    396.7,
+    245.1,
+    68.1,
+    0.0,
+    0.0
+   ],
+   "ref": "pixelfx explosions/smoke-bomb (shape and timing only)",
+   "anchorHeightM": 0.0,
+   "ashMix": 0.75,
+   "atlasSize": [
+    1024,
+    984
+   ]
+  },
+  "strip": {
+   "name": "strip",
+   "atlas": "ground",
+   "blend": "cut",
+   "orient": "ground",
+   "frames": 10,
+   "fps": 30,
+   "loop": [
+    3,
+    7
+   ],
+   "cellPx": [
+    56,
+    192
+   ],
+   "originPx": [
+    2,
+    2
+   ],
+   "stridePx": [
+    60,
+    196
+   ],
+   "cols": 10,
+   "pivotPx": [
+    28,
+    190
+   ],
+   "texelM": 0.0125,
+   "sizeM": [
+    0.7,
+    2.4
+   ],
+   "pivotM": [
+    0.35,
+    0.025
+   ],
+   "durationS": 0.333,
+   "alphaSum": [
+    2552.4,
+    3636.0,
+    3752.2,
+    3752.2,
+    3752.2,
+    3616.6,
+    3616.4,
+    5178.6,
+    1884.8,
+    5.5
+   ],
+   "ref": "pixelfx melee/thrust (shape and timing only)",
+   "anchorHeightM": 0.0,
+   "ashMix": 0.0,
+   "unitLenM": 2.35,
+   "unitWidthM": 0.6,
+   "atlasSize": [
+    1024,
+    1020
+   ]
+  },
+  "ring": {
+   "name": "ring",
+   "atlas": "ground",
+   "blend": "cut",
+   "orient": "ground",
+   "frames": 10,
+   "fps": 30,
+   "loop": [
+    3,
+    7
+   ],
+   "cellPx": [
+    144,
+    144
+   ],
+   "originPx": [
+    2,
+    198
+   ],
+   "stridePx": [
+    148,
+    148
+   ],
+   "cols": 6,
+   "pivotPx": [
+    72,
+    72
+   ],
+   "texelM": 0.0167,
+   "sizeM": [
+    2.405,
+    2.405
+   ],
+   "pivotM": [
+    1.202,
+    1.202
+   ],
+   "durationS": 0.333,
+   "alphaSum": [
+    2370.1,
+    3481.3,
+    3598.9,
+    4426.0,
+    4314.8,
+    4699.6,
+    4414.5,
+    3788.1,
+    2377.4,
+    8.3
+   ],
+   "ref": "pixelfx arcane/magic-circle-cast (shape and timing only)",
+   "anchorHeightM": 0.0,
+   "ashMix": 0.0,
+   "unitRadiusM": 1.0,
+   "atlasSize": [
+    1024,
+    1020
+   ]
+  },
+  "crack": {
+   "name": "crack",
+   "atlas": "ground",
+   "blend": "cut",
+   "orient": "ground",
+   "frames": 10,
+   "fps": 20,
+   "loop": null,
+   "cellPx": [
+    144,
+    144
+   ],
+   "originPx": [
+    2,
+    494
+   ],
+   "stridePx": [
+    148,
+    148
+   ],
+   "cols": 6,
+   "pivotPx": [
+    72,
+    72
+   ],
+   "texelM": 0.0167,
+   "sizeM": [
+    2.405,
+    2.405
+   ],
+   "pivotM": [
+    1.202,
+    1.202
+   ],
+   "durationS": 0.5,
+   "alphaSum": [
+    285.3,
+    1054.4,
+    1515.7,
+    1464.9,
+    1464.9,
+    1396.1,
+    1035.8,
+    497.7,
+    0.0,
+    0.0
+   ],
+   "ref": "pixelfx impacts/ground-slam (shape and timing only)",
+   "anchorHeightM": 0.0,
+   "ashMix": 0.0,
+   "unitRadiusM": 1.0,
+   "atlasSize": [
+    1024,
+    1020
+   ]
+  },
+  "mark": {
+   "name": "mark",
+   "atlas": "ground",
+   "blend": "cut",
+   "orient": "ground",
+   "frames": 10,
+   "fps": 30,
+   "loop": [
+    3,
+    7
+   ],
+   "cellPx": [
+    112,
+    112
+   ],
+   "originPx": [
+    2,
+    790
+   ],
+   "stridePx": [
+    116,
+    116
+   ],
+   "cols": 8,
+   "pivotPx": [
+    56,
+    56
+   ],
+   "texelM": 0.0217,
+   "sizeM": [
+    2.43,
+    2.43
+   ],
+   "pivotM": [
+    1.215,
+    1.215
+   ],
+   "durationS": 0.333,
+   "alphaSum": [
+    1483.3,
+    2019.8,
+    2088.4,
+    2669.8,
+    2732.3,
+    2600.6,
+    2467.6,
+    2188.2,
+    1549.0,
+    4.6
+   ],
+   "ref": "pixelfx holy/smite (shape and timing only)",
+   "anchorHeightM": 0.0,
+   "ashMix": 0.0,
+   "unitRadiusM": 1.0,
+   "atlasSize": [
+    1024,
+    1020
+   ]
+  }
+ },
+ "ramps": {
+  "file": "vfx_ramps.png",
+  "rows": [
+   "ru",
+   "dao",
+   "fa",
+   "mo",
+   "yinyang",
+   "za",
+   "ming",
+   "zongheng",
+   "nong",
+   "apex",
+   "rebel_olive",
+   "rebel_umber",
+   "rebel_madder",
+   "guard",
+   "bronze",
+   "jade",
+   "water",
+   "ash"
+  ],
+  "hex": {
+   "ru": "#94622c",
+   "dao": "#e2b84a",
+   "fa": "#d9d2c3",
+   "mo": "#a8321e",
+   "yinyang": "#1a1614",
+   "za": "#b2bccb",
+   "ming": "#5b3f8c",
+   "zongheng": "#2f8a5c",
+   "nong": "#2e5a9c",
+   "apex": "#2ea8e8",
+   "rebel_olive": "#6f6a34",
+   "rebel_umber": "#6a4a32",
+   "rebel_madder": "#8e5a52",
+   "guard": "#6e737a",
+   "bronze": "#c9a050",
+   "jade": "#5e9c7c",
+   "water": "#2a6a9a",
+   "ash": "#8c8a86"
+  },
+  "width": 64
+ }
+}

@@ -1,1 +1,1 @@
-{"mode": "suite", "label": "perf-g-suite"}
+{"mode": "shard", "shards": 5, "label": "17b-shard1"}

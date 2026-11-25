@@ -16,6 +16,16 @@ Usage: python3 palace_tex.py OUTDIR [SIZE]   (SIZE 1024 desktop, 512 phone)
 import json, math, random, sys
 
 OUT = sys.argv[1]
+# CONFIG (FIXB 25 Nov, owner 02:1x-02:2x: plaster 'can change but must align to surroundings')
+# Plaster value scale on the hall wall's lime-plaster colours (base, mottling, trowel strokes, stains; not the frieze, rules or dado).
+# 1.0 = the approved round 2 wall (mean lum 169 in rows 170-750); the env PLASTER_K paints a candidate for the side-by-side only.
+PLASTER_K = float(__import__('os').environ.get('PLASTER_K', '1.0'))
+
+
+def pk(h):
+    """a plaster colour scaled by PLASTER_K (unchanged string at 1.0, so the approved ops stay byte-identical)."""
+    if PLASTER_K == 1.0: return h
+    return '#' + ''.join('%02x' % min(255, round(int(h[i:i + 2], 16) * PLASTER_K)) for i in (1, 3, 5))
 S = int(sys.argv[2]) if len(sys.argv) > 2 else 1024
 K = S / 1024.0  # every coordinate below is written for 1024 px and scaled
 
@@ -122,20 +132,20 @@ def floor():
 
 def wall():
     # 4 m wide x 4 m high (image top = wall top). Black cornice, white-ground band of black lozenges, red rule, lime plaster, red rule, black dado.
-    t = Tex('hall_wall', '#b9ad95', True, False, 202)
+    t = Tex('hall_wall', pk('#b9ad95'), True, False, 202)
     r = t.r
     t.stage = 1
     for _ in range(80):  # plaster mottling (round 2: stronger)
         cx, cy = r.uniform(0, 1024), r.uniform(170, 760)
-        t.blot(cx, cy, r.uniform(40, 110), 'sponge', r.uniform(50, 110), r.choice(['#9f927a', '#c9bea7', '#a89a80', '#bdb099']), r.uniform(0.35, 0.55), 3)
+        t.blot(cx, cy, r.uniform(40, 110), 'sponge', r.uniform(50, 110), pk(r.choice(['#9f927a', '#c9bea7', '#a89a80', '#bdb099'])), r.uniform(0.35, 0.55), 3)
     t.stage = 2
     for _ in range(700):  # trowel strokes in the lime plaster, 4-15 cm
         x, y = r.uniform(0, 1024), r.uniform(170, 750); a = r.uniform(-0.6, 0.6); L = r.uniform(25, 80)
-        t.stroke(t.wobble(x, y, x + math.cos(a) * L, y + math.sin(a) * L, 3, 2), 'oil', r.uniform(10, 24), r.choice(['#9a8d75', '#d0c5ae', '#a99c83']), r.uniform(0.4, 0.6))
+        t.stroke(t.wobble(x, y, x + math.cos(a) * L, y + math.sin(a) * L, 3, 2), 'oil', r.uniform(10, 24), pk(r.choice(['#9a8d75', '#d0c5ae', '#a99c83'])), r.uniform(0.4, 0.6))
     t.stage = 3
     for _ in range(26):  # faint drips and water stains from the cornice
         x = r.uniform(0, 1024); y = r.uniform(160, 220)
-        t.stroke(t.wobble(x, y, x + r.uniform(-6, 6), y + r.uniform(80, 300), 5, 2), 'soft', r.uniform(8, 18), '#8f8068', r.uniform(0.12, 0.25), pressure=[1, 0.6, 0.1])
+        t.stroke(t.wobble(x, y, x + r.uniform(-6, 6), y + r.uniform(80, 300), 5, 2), 'soft', r.uniform(8, 18), pk('#8f8068'), r.uniform(0.12, 0.25), pressure=[1, 0.6, 0.1])
     # the band: white ground with two rows of black lozenges (咸阳宫 No. 1: 白地黑色菱形图案)
     band(t, 40, 150, '#d6ccb6', 'flat-bristle', 40, 1.0, 26, 1.5)
     w = 1024 / 16  # 16 lozenges per 4 m

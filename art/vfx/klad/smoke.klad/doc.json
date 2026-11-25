@@ -1,0 +1,75 @@
+{
+  "format": "klad/9",
+  "canvas": {
+    "width": 188,
+    "height": 168
+  },
+  "timeline": {
+    "fps": 15,
+    "frames": 13
+  },
+  "layers": [
+    {
+      "id": "l1",
+      "name": "paint 1",
+      "kind": "paint",
+      "cels": [
+        {
+          "id": "c2",
+          "frame": 0
+        },
+        {
+          "id": "f1",
+          "frame": 1
+        },
+        {
+          "id": "f2",
+          "frame": 2
+        },
+        {
+          "id": "f3",
+          "frame": 3
+        },
+        {
+          "id": "f4",
+          "frame": 4
+        },
+        {
+          "id": "f5",
+          "frame": 5
+        },
+        {
+          "id": "f6",
+          "frame": 6
+        },
+        {
+          "id": "f7",
+          "frame": 7
+        },
+        {
+          "id": "f8",
+          "frame": 8
+        },
+        {
+          "id": "f9",
+          "frame": 9
+        },
+        {
+          "id": "f10",
+          "frame": 10
+        },
+        {
+          "id": "f11",
+          "frame": 11
+        },
+        {
+          "id": "f12",
+          "frame": 12
+        }
+      ],
+      "opacity": 1.0,
+      "blend": "normal",
+      "visible": true
+    }
+  ]
+}
