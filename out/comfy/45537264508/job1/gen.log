@@ -1,0 +1,8 @@
+prompt: front view of the head of a colossal ancient chinese bronze giant statue, its face is a huge cast bronze taotie mask wider than the head, heavy curling brows, deep dark eye sockets, flaring cheek plates, snarling mouth with fangs, ritual bronze ornament, menacing, game concept art, head and shoulders, plain grey background, dramatic studio light, highly detailed sculpted armour
+probe_1step.png seed 1 steps 1 69 s
+face_6301.png seed 6301 steps 8 256 s
+face_6302.png seed 6302 steps 8 255 s
+face_6303.png seed 6303 steps 8 255 s
+face_6304.png seed 6304 steps 8 255 s
+face_6311_i2i_kit_mask_front.png seed 6311 steps 8 img2img kit_mask_front.png strength 0.6 162 s
+face_6312_i2i_kit_rogue_front.png seed 6312 steps 8 img2img kit_rogue_front.png strength 0.6 162 s
