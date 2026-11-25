@@ -1,0 +1,79 @@
+SHARD 5 of 12: statements 496, prelude 13, always 18, valid cuts 206, cuts at lines 262,665,1400,1723,2210,2766,3286,3824,4014,4070,4072; weight ms
+RUNTIME 28 of 28 pass
+ok   01 load without errors 
+ok   02 budget follow view (calls<500, tris<500k) :: calls 35, tris 8464
+ok   03 budget overview, all sections (calls<500, tris<500k) :: calls 84, tris 10550
+ok   126 名甲 signature: a bot reads the hanging line and steps out of it (no damage); held in it, it is hit :: {"fight":0,"free":{"hp":0,"dx":1.4},"held":{"hp":20,"dx":0}}
+ok   127 名甲 in whole matches: on a floor, nobody stuck > 3 s, shadows and lines end on time, hunter cap every tick, the 名甲 bot casts Q, W and R (player 名甲 autopilot reported) :: {"viol":[],"casts":{"q":4,"w":6,"r":2},"player":{"q":1,"w":3,"r":0},"decided":[189.4,233.8,191.9,164],"shadowMax":1,"hangMax":1,"clean":true}
+ok   128 budget with 名甲 effects: every suit + cubs + tells + wheel + shadow + both hanging lines (calls<500, tris<500k), no shader compile, geometry flat :: {"tells":5,"calls":40,"tris":2118,"programs":17,"geoms":454}
+ok   129 阴阳甲 lock: R locked until both halves; 阴 fills dark, 阳 light, a full half gains nothing; R empties both and starts its cooldown (no meter); taiji symbol on status and R button, written only on change; Low armor :: {"armor":20,"mode":"lock","start":[false,false,false],"text0":["Taiji ○","○","block"],"rLocked":false,"afterQ":[true,false,false],"text1":["Taiji ◐","◐"],"rOne":false,"quiet":0,"again":[true,false],"a
+ok   130 阴阳甲 attack: the orb is fired without walking in, drawn while it flies, lands for dmg; shots alternate dark and light; no half filled; a wall stops it :: {"moved":0,"flying":true,"looks":[true,false],"dealt":14,"halves":[false,false],"clear":true,"wall":true,"wallHp":0,"wallOrb":false}
+ok   131 阴阳甲 Q: an orb that hits nothing fills nothing; he steps back back m as it leaves; it lands about distance / speed s later: dmg, slow on the suit, drain to him, dark half filled; cooldown :: {"empty":[false,false],"cast":true,"back":1.2,"cd":true,"landS":0.783,"wantS":0.771,"dmg":14,"slow":[true,1.5],"hp":85,"dark":true}
+ok   132 阴阳甲 W: a sunburst on nothing fills nothing; at a suit it is shown delay s (>= 0.4) with no damage before, then dmg inside its radius, none outside; light half filled; cooldown :: {"empty":[false,false],"cast":true,"cd":true,"toldS":0.8,"early":false,"hit":24,"off":0,"light":true}
+ok   133 阴阳甲 R: locked without both halves; the disk is shown in full tellS s (>= 0.4) with no burn or pull; then dark half pulls and slows, light half burns; the halves swap; gone after; lock emptied, cooldown :: {"tellHit":false,"steps":[59,90,90],"pullD":[0,90,0],"pullL":[0,0,90],"slowD":[0,90,12],"locked":false,"cast":true,"lock":[false,false,30],"disk":{"in":true,"vis":true,"r":5},"toldS":1,"seg":3,"dmg":[
+ok   134 阴阳甲 lock rules: "Ultimates 2x" runs only the cooldown after use 2x (1x in the warning) and R stays locked at cooldown 0; no meter; a 阴 landing while he stands silenced on a bridge fills nothing, off the bridge it fills :: {"warnRate":1,"onRate":2,"cd0Locked":false,"ch":0,"silOk":true,"bridge":{"cast":true,"hit":14,"zone":"WB2","yin":false},"ground":{"cast":true,"hit":14,"zone":"C2","yin":true}}
+ok   135 阴阳甲 in the hunt: the wake fills the lock (R ready at the start); R empties it and starts its cooldown; 阴 on a minion fills the dark half :: {"start":[true,true,true,"hunt"],"cast":true,"after":[false,false,30],"dark":true,"minion":true}
+ok   136 阴阳甲 in whole matches: on a floor, nobody stuck > 3 s, orbs and disks end on time, hunter cap every tick, the 阴阳甲 bot casts Q and W and unlocks and casts R (player 阴阳甲 autopilot reported) :: {"viol":[],"casts":{"q":10,"w":5,"r":2},"player":{"q":2,"w":1,"r":0},"decided":[202.6,202.4,181.1,165],"orbMax":1.117,"diskMax":4,"clean":true,"orbLife":1.111,"diskLife":4}
+ok   137 budget with 阴阳甲 effects: every suit + cubs + tells + both orbs + 太极 (calls<500, tris<500k), no shader compile, geometry flat :: {"tells":4,"calls":41,"tris":2354,"programs":17,"geoms":454}
+ok   138 农甲 passive and attack: High armor, Low speed; plough-hoe melee dmg; a grown sprout he walks over heals him and feeds him (bonus, then gone); a seed is not eaten; a bot tramples one and gains nothing :: {"armorK":0.8235294117647058,"spd":5.6,"seeds":3,"seedEaten":0,"seedStill":3,"grown":3,"green":true,"hp":58,"eat":1,"feedT":4,"fedHit":11.5,"fedEnd":0,"plainHit":10,"trampled":[1,1,50],"dummy":10}
+ok   139 农甲 Q: seeds dark at a point (spread m), cooldown; green after growS s, gone lastS s later; the pool never exceeds pool and replaces the oldest; seeds over the void are lost :: {"maxPlanted":9,"cast":true,"cd":true,"planted":3,"ring":true,"growS":4.033,"lastS":20.017,"sproutN":0,"after4":9,"oldestGone":true,"sproutN4":9,"void":0}
+ok   140 农甲 W: the plough dashes range m and lays a furrow (width) along it; a bot on it is slowed, one beside it is not; seeds on it grow growK times as fast; no damage; the furrow ends after furrowS s :: {"cast":true,"dash":5,"furrow":{"t":3.9000000000000004,"inScene":true,"vis":true,"len":5,"ox":5,"oz":-24,"dx":1,"dz":0,"w":1.6},"hits":[0,0],"slow":[true,false,0.7],"onN":1,"grow":[2.02,4.02],"gone":t
+ok   141 农甲 R: locked without a full meter; seeds ripen, grown sprouts within radius eaten (heal each, a dmg pulse each within pulseR), those beyond stay grown; ring ringS s; meter emptied :: {"locked":false,"before":[9,3],"cast":true,"harvN":6,"hp":76,"left":[3,3],"bots":[72,0],"ring":[true,8],"ch":18,"ultN":1,"ringS":0.433}
+ok   142 农甲 plays with altars and collapses: under the dry decree an altar does not heal him but an eaten sprout does; a field on a section that falls is lost with it :: {"dry":true,"altar":50,"eat":58,"roof":[3,true],"roofAfter":[0,0,3]}
+ok   143 农甲 in the hunt: the wake clears the royale field; R ready at the start; it eats the grown sprouts near and pulses a minion within pulseR; then the 30 s cooldown :: {"royale":3,"wake":0,"cast":true,"harvN":3,"minion":36,"cd":30}
+ok   144 农甲 in whole matches: on a floor, nobody stuck > 3 s, pool <= pool, furrows and rings end on time, hunter cap every tick, the 农甲 bot sows, ploughs, harvests and eats (player 农甲 autopilot reported) :: {"viol":[],"casts":{"q":70,"w":5,"r":2},"player":{"q":18,"w":0,"r":0},"eat":40,"tramp":54,"decided":[202.6,202.4,181.1,193.7],"poolMax":9,"furrowMax":4.017,"ringMax":0.417,"clean":true}
+ok   145 budget with 农甲 effects: every suit + cubs + tells + seeds, sprouts, furrow and harvest ring (calls<500, tris<500k), no shader compile, geometry flat :: {"tells":3,"planted":6,"grown":3,"ring":true,"calls":39,"tris":2094,"programs":17,"geoms":454}
+ok   146 道甲 passive and attack: Low armor, High speed; open-hand melee dmg; still stillS s without acting = unseen (a bot in vision beyond the shimmer does not see him), not before; an attack restarts the wait; a step ends it :: {"armorK":1.1666666666666667,"spd":6.4,"early":[false,true],"on":[true,true,false],"moved":[false,0,true],"afterAtk":false,"afterAtk2":true,"dummy":10}
+ok   147 道甲 Q 柔: stance and shimmer for stance s, cooldown; the first basic attack does him nothing, the attacker takes it and is pushed away, +1 counter, half the cooldown back; the next lands; a skill is not countered :: {"stance":[0.8,true,1.1,1,6],"first":{"lost":0,"botLost":10,"push":12,"daoN":1,"rouT":0,"ring":false,"cd":3},"second":11.666666626930237,"skill":[23.333333373069763,1,true],"last":[true,true,0,false]}
+ok   148 道甲 W 不争: the first skill misses (no damage), he flows to beside m short of the caster, +1 counter, half the cooldown back; flowMax m at most; a basic attack in it lands; no move without a counter :: {"stance":[0.8,true,8],"hit":{"lost":0,"daoN":1,"zhengT":0,"dash":4.8,"cd":4},"endX":18.8,"farZ":-20,"basic":[11.666666626930237,true],"quiet":[0,2]}
+ok   149 道甲 R 反: damage, speed and armor x (1 + step x counters) for dur s, counters to 0; capped at maxN (1.4x); 0 counters = nothing; R button shows the counters; cooldown 1x in the 2x warning, 2x in force :: {"btn":"3","three":{"k":1.24,"daoN":0,"fanT":8,"armorK":1.1217948717948718,"spd":7.936,"cd":30,"hit":12.4,"on":true,"after":[0,1,6.4,1.1666666666666667]},"cap":1.4,"zero":[1,6.4],"zeroHit":10,"keep":5
+ok   150 道甲 in the hunt: 柔 counters the claw (demon takes it, shoved), 不争 counters Pounce (he flows) and Roar (no slow; slowed without it); counters build R (ready at the start); a stone lion strikes through both stances, no counter :: {"claw":{"hp":100,"demonLost":12,"shove":0.75,"daoN":1},"pounce":{"hp":100,"daoN":2,"dash":true,"flowed":4.8},"roar":{"slow":0,"daoN":3},"roarPlain":true,"rReady":true,"rK":1.24,"lion":{"hp":80,"daoN"
+STMT 42 192
+STMT 43 1929
+STMT 46 1560
+STMT 48 11
+STMT 50 8
+STMT 52 7
+STMT 53 4
+STMT 55 2
+STMT 57 3
+STMT 365 3
+STMT 626 3
+STMT 876 34
+STMT 1248 4
+STMT 1479 3
+STMT 1641 3
+STMT 1781 3
+STMT 1942 3
+STMT 2121 3
+STMT 2210 83
+STMT 2224 6755
+STMT 2258 506
+STMT 2276 21
+STMT 2284 125
+STMT 2304 66
+STMT 2323 63
+STMT 2338 80
+STMT 2353 56
+STMT 2387 174
+STMT 2409 41
+STMT 2422 10759
+STMT 2451 450
+STMT 2470 20
+STMT 2477 46
+STMT 2499 108
+STMT 2519 72
+STMT 2544 57
+STMT 2561 95
+STMT 2576 50
+STMT 2590 7769
+STMT 2622 591
+STMT 2648 31
+STMT 2655 56
+STMT 2674 20
+STMT 2694 18
+STMT 2713 87
+STMT 2741 57
+STMT 2829 24
+STMT 3038 5
+STMT 4084 5731
