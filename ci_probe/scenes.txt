@@ -1,1 +1,1 @@
-webglmin,reference,g_A0,g_B0,g_Alod,g_caps,reference,g_A0,g_B0
+webglmin,reference,room_base,palace_room,heavy_base,palace_heavy,palace_heavy_low,reference,room_base,palace_room,heavy_base,palace_heavy

@@ -212,6 +212,8 @@ SCENES.scale_med_scan = { ...SCENES.scale_med, q: 'tier=medium&coll=scan' };
 SCENES.scale_low = { ...SCENES.scale_med, q: 'tier=low' };
 SCENES.heavy_low = { ...SCENES.heavy, q: 'lock&tier=low&bots=8' };
 SCENES.palace_heavy_low = { ...SCENES.palace_heavy, q: 'lock&tier=low&bots=8&mode=palace' };
+// Batch 17b A/B: the build before 17b (index_base.html = ab0473f) in the same job.
+SCENES.room_base = { ...SCENES.palace_room, path: 'index_base.html' };
 SCENES.palace_garden = { ...SCENES.palace_heavy, pre: () => { window.__room = 'garden_se'; window.__stepN = 300; } };
 
 async function renderer(page) {
@@ -265,6 +267,8 @@ for (const name of LIST) {
   const t0 = Date.now();
   if (sc.pre) await page.evaluate(`(${sc.pre.toString()})()`);
   await page.evaluate(`(${sc.setup.toString()})()`);
+  // Batch 17b: a set the scene needs loads under its card first (the timing starts on play frames).
+  await page.waitForFunction(() => !window.__game || !__game.loadBusy || !__game.loadBusy(), null, { timeout: 120000 });
   const setupMs = Date.now() - t0;
   const drv = sc.driver ? sc.driver.toString() : '() => {}';
   const cdp = await page.context().newCDPSession(page);
