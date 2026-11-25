@@ -1,0 +1,32 @@
+toktx v4.3.0~28
+MUTM written: dropclip zu, shiftbone ru joint head
+== re-check of round 3 files: 228 KTX2, 60 GLB
+decim__ding.glb
+dropclip__guard~zu.glb
+shiftbone__suits~ru.glb
+== decode
+TEX rgba: 234 of 234 loaded, page errors 0
+TEX gpu: 234 of 234 loaded, page errors 0
+MODELS 63 of 63 loaded, page errors 0
+== gates
+PASS T1 encode + load (rgba route): 228 of 228
+PASS T2 desk PSNR >= 35 and dE <= 2: 38 of 38
+PASS T3 phone PSNR >= 35 and dE <= 2: 38 of 38
+INFO shipped as PNG (no KTX2 mode within the gates): phone/garden_plants (best KTX2 etc1s 26.8 dB dE 1.32, uastc 31.8 dB dE 1.06, uastc4 32.0 dB dE 1.04)
+PASS T4 alpha flips <= 1%: 6 alpha textures (desk) checked; worst 0.0026
+PASS T5 tex_check ratchet (no new FAIL rule on a picked decode): source FAIL rules ['FAIL signal_flags contrast', 'FAIL suit_bronze plain brush scale']; new on picks 0
+PASS T6 GPU route loads every picked file with full mips: 75 of 75 KTX2 picks; formats ['36492', '37808']; caps {"renderer": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)", "parallelCompile": false, "astc": true, "bptc": true, "s3tc": true, "etc": true, "etc1": true, "maxTex": 8192, "aniso": 16}
+PASS TM texture mutants caught by their named gate: blur__hall_wall->T2:caught, noalpha__smoke_card->T4:caught, nomip__pillar->T6:caught, poster__hall_floor->T5:caught, q1__hall_floor->T2:MISSED, swap__hall_wall->T2:caught
+INFO mutant numbers: blur__hall_wall psnr 25.8 dE 3.94 t5 True; noalpha__smoke_card psnr 42.3 dE 0.99 t5 False; nomip__pillar psnr 36.9 dE 2.39 t5 False; poster__hall_floor psnr 21.2 dE 17.32 t5 True; q1__hall_floor psnr 38.8 dE 1.83 t5 False; swap__hall_wall psnr 19.9 dE 16.22 t5 False
+PASS M1 compressed and loaded: 60 of 60
+PASS M2 triangles per mesh equal: 60 of 60
+PASS M3 bounds within 2 mm: 60 of 60
+PASS M4 clips equal: 60 of 60
+PASS M5 joints equal: 60 of 60
+PASS M6 vertices within 2 mm in every pose: 60 of 60; worst 1.54 mm (arch/que_pair.glb rest que_pair_lod0_7)
+PASS M7 UVs within 1/2048: 60 of 60; worst 0.000040 (vat.glb)
+PASS MM model mutants caught: decim->M2:caught, dropclip->M4:caught, shiftbone->M6:caught
+INFO models 22.72 MB -> 6.19 MB; giants 2.24 MB
+INFO textures desk 16.80 MB, phone 5.55 MB (PNG sources 27.83 MB); modes {"etc1s": 28, "uastc": 47, "uastc4": 0, "png": 1}
+INFO orient ["top-first"]
+RESULT PASS gates 15 of 15
