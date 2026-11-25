@@ -181,3 +181,22 @@ function artSolids(on) {
 - Giants (C8) are characters (17h).
 - The 华表 hazard, TEXT keys and check 804 removal is index.html work (INT).
 - Mercury channel lips are drawn only on the channel boxes listed in PAL_FULL_PIECES. The proto plan's PIECES_01 channels use the same call.
+
+## 9. Proof (run 45540525097, code at e82e902 on prep-pal; ci-out out/prep-pal/45540525097/)
+- Linux (SwiftShader, counts and correctness): P0 static PASS plus P1-P20 = 21 of 21. Mutants: 21 of 21 caught, each by its named check.
+- macOS real GPU (Apple M1 virtual, ANGLE Metal): 12 of 12. The heaviest view is corr_w with all its neighbours attached, in the frame that redraws shadows.
+  - Reference measured twice in the same job: 222.2 / 211.6 fps, p95 10.9 / 11.4 ms.
+
+  | View | fps | p95 (ms) | Worst frame (ms) | GL draws | Triangles |
+  |---|---|---|---|---|---|
+  | Medium | 206.9 | 11.1 | 27.4 | 200 (105 with no shadow redraw) | 132k |
+  | Low | 261.3 | 10.8 | 29.1 | 105 | 89k |
+
+  - In play, 0 programs are linked.
+  - Memory over two builds and disposes is flat: 146 GL buffers, 5 textures, 36 geometries before and after.
+- Heap item: CLOSED.
+  - Over 20 s of play, measured through DevTools after full GCs: medium 12.71 -> 12.83 MB, low 12.15 -> 12.23 MB. The reference went 8.17 -> 8.25 MB.
+  - The earlier "growth" (rounds 3-4) came from reading a single window.gc(), which is noisy: one reading showed 68.1 MB after GC against 66.1 MB before it. The sampling profiler found 0.06-0.16 MB of live allocations over the window.
+- Art notes for the owner:
+  - que_pair LOD2 floats 0.50 m (no footing), so it is not used. LOD1 stays to the end, and 235 m is beyond the 90 m far plane anyway.
+  - 阙 placement is an owner question (section 7).
