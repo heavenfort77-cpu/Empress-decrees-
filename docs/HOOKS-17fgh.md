@@ -73,4 +73,12 @@ Round 2, run 45530508832 (sha 1bc83d1): checks 20 of 20 in each of 3 shards, mut
 | chr_dorm (wide, + 9 dormant giant statues) | 154.7 | 14.4 | 54.2 | 115 | 123,016 | 10 | |
 Budget (< 500 calls, < 0.5M triangles): heaviest is chr_dorm 115 calls and chr_close 150,860 triangles. Outline cost (close camera, same scene): 85 - 64 = 21 calls and 150,860 - 100,838 = 50,022 triangles with the suit hulls on. Memory: chr_cycles flat over 5 despawn/spawn cycles (geometries 169, textures 34, programs 9 each cycle). Load (ms, one wide run): files 552, templates 273, spawn 38. Triangles per LOD0/1/2: suits 10,896-14,196 / ~2,600 / ~890; tiger 14,218 / 2,806 / 934; guards and rebels 1,304-3,760 at LOD0; giant 6,804 / 2,752 / 985.
 
-Round 3 (faces swappable, C21 and 3 mutants): see the log /home/claude/logs/prep-chr.log and the line below once its run is read.
+Round 3, run 45534827271 (sha d4e8581; faces swappable, check C21 and 3 mutants; job script ci/job.sh, preflight-only run 45534293587 PASS 5 of 5): checks 21 of 21 in each of 3 shards, mutants 25 of 25 caught by the named check, static PASS, perf probes PASS (6 + 6 scenes), 0 FAIL lines. Draw calls and triangles unchanged from round 2 (the probe loads today's suit files, which have no face part yet).
+| Scene | fps | p95 ms | worst ms | draw calls | triangles | reference fps (same job) |
+|---|---|---|---|---|---|---|
+| chr_wide | 158.2 / 160.1 | 13.8 / 13.4 | 33.1 / 41.6 | 97 | 97,610 | 196.0 / 131.2 |
+| chr_close | 160.5 | 13.5 | 49.7 | 85 | 150,860 | |
+| chr_noout | 163.3 | 13.3 | 25.7 | 64 | 100,838 | |
+| chr_low | 169.7 | 14.1 | 41.2 | 97 | 97,610 | 181.0 / 196.1 |
+| chr_dorm | 149.3 | 14.4 | 48.1 | 115 | 123,016 | |
+Memory: chr_cycles flat (geometries 169, textures 34, programs 9 over 5 cycles).
