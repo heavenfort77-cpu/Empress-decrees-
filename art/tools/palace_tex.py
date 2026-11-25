@@ -32,9 +32,9 @@ def pk(h):
 FLOOR_BASE = '#a4705c'
 # Hall floor value gain on the base and every mark (linear light). The runner's calibration (art/tools/floor_calibrate.py) sets the env; the
 # default is the value the shipped texture was painted with.
-FLOOR_G = float(__import__('os').environ.get('FLOOR_G', '1.0'))
+FLOOR_G = float(__import__('os').environ.get('FLOOR_G', '0.9794'))
 # Hall floor mark contrast (1.0 = marks at the tones written in floor(); lower = calmer).
-FLOOR_C = float(__import__('os').environ.get('FLOOR_C', '1.0'))
+FLOOR_C = float(__import__('os').environ.get('FLOOR_C', '1.1366'))
 # Hall floor broad tone-blot opacity scale (lower = less cloud at the 0.5 m scale, shorter stroke correlation).
 FLOOR_B = float(__import__('os').environ.get('FLOOR_B', '1.0'))
 # Hall floor grit speck count (fine pebble grit; keeps the brush-scale run inside 4-15 cm on a low-contrast floor).

@@ -98,4 +98,61 @@ Characters (every character: suits, guards, rebels)
 
 ## 5. Results
 
-RESULTS_PLACEHOLDER
+Run 45553818769 (branch ci-art-colour, commit 417b726; software GL: look and counts only). All files on branch ci-out under
+out/art/ci-art-colour/45553818769/. The run's tick is green; its summary.txt holds 20 FAIL lines (listed below).
+
+Hall floor round 3 (klad, calibration pass 2 of 8: FLOOR_G 0.9794, FLOOR_C 1.1366, now the generator defaults; file art/colour/hall_floor.png,
+bundle art/colour/src/hall_floor.klad; NOT yet copied over assets/tex/hall_floor.png):
+
+| Measure | round 2 | round 3 | rule | |
+|---|---|---|---|---|
+| texture relative luminance | 0.081 | 0.200 | 0.167-0.26 | PASS |
+| mean lum / sd | 77 / 9.1 | 121 / 6.6 | 114-130 / 5.5-8 | PASS |
+| saturation | 0.52 | 0.44 | 0.38-0.50 | PASS |
+| own marks p95/p5, texture | 1.55:1 | 1.36:1 | max 1.30 | FAIL (the calibration aimed at sd 6.6 and did not hold the marks rule; pass 1 had 1.30 at sd 5.8) |
+| own marks p95/p5, on screen | 1.41:1 | 1.28:1 | max 1.30 | PASS |
+| autocorrelation half-width | 39 x 10 px | 8 x 6 px | max 20, x:y max 2 | PASS |
+| brush-scale run / 50 cm block sd / seams | 10.0 cm / 3.3 / clean | 7.7 cm / 2.1 / clean | 4-15 / 3.5 | PASS |
+| on-screen luminance | 0.058 | 0.142 | 0.125-0.20 | PASS |
+
+tex_check.py with the new floor: 261 of 264 (27 of 27 mutations caught). New FAIL caused by the floor: star_inlay subtle, inlay minus floor
+lum 17 (25-75): the core floor's brass star inlay gets too close to the lighter floor. Two older FAILs unchanged (signal_flags contrast 30.5,
+suit_bronze brush scale 3.9 cm).
+
+Figures (11: nine suits, guard zu, rebel ls), share of outline pixels >= 3:1 against the floor behind them:
+
+| Variant | 10.5 m: figures >= 50% / min / mean | 14 m | median body contrast (10.5 m) |
+|---|---|---|---|
+| old floor, dark outline (the game now; control) | 0 of 11 / 0% / 1% | 0 of 11 / 0% / 1% | 1.65:1 |
+| old floor, pale rim 2 px + trim sheet | 11 of 11 / 60% / 75% | 11 of 11 / 61% / 75% | 1.58:1 |
+| new floor, dark outline, no trim | 7 of 11 / 45% / 55% | 7 of 11 / 40% / 54% | 2.94:1 |
+| new floor, pale rim 2 px, no trim | 10 of 11 / 47% / 63% | 10 of 11 / 46% / 63% | 2.22:1 |
+| new floor, pale rim 2 px + trim sheet (the proposal) | 10 of 11 / 47% / 64% | 10 of 11 / 46% / 63% | 2.26:1 |
+| new floor, pale rim 3 px + trim | 11 of 11 / 53% / 71% | 10 of 11 / 49% / 70% | 1.85:1 |
+| new floor, dark outline + view-facing rim term 0.9 | 5 of 11 / 38% / 49% | 5 of 11 / 37% / 48% | 2.76:1 |
+| new floor, pale rim 2 px + rim term 0.5 | 10 of 11 / 49% / 66% | 10 of 11 / 50% / 66% | 1.67:1 |
+
+Proposal per figure at 10.5 m (outline share; body median): 法 63% 3.01, 儒 63% 2.88, 道 58% 1.48, 墨 73% 2.90, 阴阳 70% 3.06, 杂 71% 1.77, 名 76% 2.26,
+纵横 66% 1.39, 农 59% 2.85, guard 52% 1.76, rebel 47% 1.25 (FAIL; 46% at 14 m). The body median includes the pale rim pixels, so it drops when
+the rim is on; without the rim the black suits are at 2.7 to 3.5:1 on the new floor (1.6 to 2.0 on the old).
+
+Other floors with the proposal (10.5 m): stone_paving on screen 0.176, 9 of 11 (guard 47%, rebel 44% FAIL); floor_tiles 0.117 FAIL (band),
+marks 1.45 FAIL, 11 of 11; candidate tiles 0.139, marks 1.48 FAIL, 11 of 11; garden_ground 0.104 FAIL, 11 of 11; candidate garden 0.139,
+11 of 11; timber deck 0.069 FAIL, marks 1.52 FAIL, 11 of 11. Texture rule: floor_tiles 0.164, garden_ground 0.147, timber 0.092 FAIL;
+both candidates PASS (0.197, 0.198).
+
+Trim sheet (art/colour/suit_lamellar_qin.png): 10 of 12; 墨 cord 0.197 and 名 cord 0.207 FAIL (min 0.21, painted a little darker than the
+written colour); brown rows now mean lum 34 / 31 at saturation 0.35 (were 43 / 41 at 0.59). Share of school-coloured pixels per suit at
+play size: unchanged by the sheet (0 to 3% on the armour suits, 道 61%): the cords are too small to carry the school at play size.
+
+Sheets (same camera and scale, stacked): sheets/sheet_play10.5_old_vs_new.jpg, sheet_play14_old_vs_new.jpg, sheet_close_old_vs_new_0/1/2.jpg,
+sheet_play10.5_all_variants.jpg, sheet_play14_all_variants.jpg, sheet_play10.5_other_floors.jpg, sheet_floor_texture_old_vs_new.jpg.
+
+What a person still sees (COLOUR looked at the play 10.5 m sheet, close-up sheet 0 and the floor sheet):
+- The figures now separate from the floor at a glance; the floor is no longer a cinnabar red but a salmon / faded terracotta, and its grit
+  specks read as sprinkles at 1:1. It is lighter than the palace study's value plan (55-75) and close to the plaster wall's value.
+- The pale 2 px rim also appears on inner edges (every lamella tier, belts, eye holes of the masks): white stripes across the armour, a
+  sticker / cel look that the rest of the game's art does not have. It is thin and aliased at play size.
+- The two changes partly work against each other: the pale rim reads best on the OLD dark floor (min 60%), the black body reads by itself on
+  the NEW floor; on the new floor the pale hemp rebel has the floor's own value (1.25:1) and a pale rim cannot help it.
+- School colour: still carried by cloth only; the trim sheet does not change the read at play size.
