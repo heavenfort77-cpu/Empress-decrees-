@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<base href="https://raw.githubusercontent.com/heavenfort77-cpu/Empress-decrees-/e36ec33/">
-<!-- single-file build of e36ec33; assets from https://raw.githubusercontent.com/heavenfort77-cpu/Empress-decrees-/e36ec33/ -->
+<base href="https://raw.githubusercontent.com/heavenfort77-cpu/Empress-decrees-/115bc48/">
+<!-- single-file build of 115bc48; assets from https://raw.githubusercontent.com/heavenfort77-cpu/Empress-decrees-/115bc48/ -->
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
 <title>Empress Decrees - box prototype (batch 8)</title>
@@ -17850,13 +17850,17 @@ var PAL_ART = {
   floors: { hall: "", core: "", court: "palStone", corridor: "palTiles", garden: "palGround", bridge: "palTimber" },
   // Box part keys (index.html palPart) the art replaces per room type; the integration skips building those box meshes.
   replaces: {
-    hall: ["palWall", "palPillar"],
+    hall: ["palWall", "palPillar", "stone", "spawn"],
     core: ["palWall", "palPillar", "pillar", "gold"],
-    court: ["palWall", "floor:court"],
+    court: ["palWall", "floor:court", "stone"],
     corridor: ["palWall", "floor:bridge"],
-    garden: ["palWall", "floor:court"],
+    garden: ["palWall", "floor:court", "pillar"],
     bridge: ["palWall", "floor:bridge"]
   },
+  // Stone plinths (terrace family: the kit's stone paving on a slab with world UVs) drawn where index.html's plain stone blocks stand (the
+  // hall's long bench block, the court's two blocks, the garden's three): material, and tile size of its texture in metres. The box blocks
+  // and the hall's plain spawn disc are hidden with the art on (replaces above); their solids stay.
+  plinth: { mat: "palStone", tileM: 4 },
   // Tile ends per eave segment and their place on the eave (arch viewer: x0 + i * step along, y, z outward), m.
   tileEnds: { n: 8, x0: 0.3867, step: 0.5, y: 4.09, z: -1.26 },
   // Bridge bays: deck lowered under the module's plain deck slab (the deck slab carries the burn tint), m; rail centre inside the edge, m.
@@ -18466,7 +18470,7 @@ function buildRoom(kit, r2, rooms, spots) {
     props: [],
     doors: [],
     skipped: 0,
-    counts: { inst: 0, meshes: 0 }
+    counts: { inst: 0, meshes: 0, plinths: 0 }
   };
   art.group.name = "palArt_" + r2.id;
   kit.rooms++;
@@ -18502,6 +18506,16 @@ function buildRoom(kit, r2, rooms, spots) {
   }
   if (C4.on.terrace && r2.type !== "bridge") for (const side of ["n", "w", "e", "s"]) for (const [a2, b2] of lakeRuns(r2, side, rooms)) put("terrace_edge", runMats(side, r2, a2, b2, 0, C4.segM));
   if (spots && spots.pillars) put("pillar", spots.pillars.map(([x2, z2]) => mat4(x2, 0, z2, 0)));
+  if (spots && spots.blocks && kit.mats[C4.plinth.mat]) for (const [bx0, bx1, bz0, bz1, bh2] of spots.blocks) {
+    const g4 = slabGeo(bx0, bx1, bz0, bz1, bh2, C4.plinth.tileM), m2 = new Vn(g4, kit.mats[C4.plinth.mat]);
+    m2.position.y = bh2;
+    m2.castShadow = true;
+    m2.receiveShadow = true;
+    still(art, m2);
+    art.geos.push(g4);
+    art.counts.plinths++;
+    if (kit.burnt[C4.plinth.mat]) art.burn.push(m2, kit.mats[C4.plinth.mat], kit.burnt[C4.plinth.mat]);
+  }
   const fm2 = C4.floors[r2.type];
   if (fm2 && kit.mats[fm2]) {
     const g4 = slabGeo(r2.x0, r2.x1, r2.z0, r2.z1, C4.floorTh, C4.tileM), m2 = new Vn(g4, kit.mats[fm2]);
@@ -21746,8 +21760,10 @@ var CONFIG2 = {
   STATUE: { range: 6, radius: 6.5, windup: 0.6, cooldown: 3, dmg: 30, kb: 14 },
   // Stone lions: trigger range, strike radius, tell, cooldown, damage, knockback speed.
   LION: { range: 3.5, radius: 4, windup: 0.6, cooldown: 4, dmg: 20, kb: 11 },
-  // Healing altars: radius (m), heal per second, heal stored per charge, seconds empty, seconds a hit pauses healing.
-  ALTAR: { radius: 2.2, rate: 8, charge: 40, emptyS: 30, hitPauseS: 2 },
+  // Healing altars: radius (m), heal per second, heal stored per charge, seconds empty, seconds a hit pauses healing. ringW = width of the
+  // thin ring that marks a palace 鼎's healing reach (m; owner 25 Nov 20:06: a ring in the 鼎's own colour, shown only while it can heal,
+  // in place of the solid disc).
+  ALTAR: { radius: 2.2, rate: 8, charge: 40, emptyS: 30, hitPauseS: 2, ringW: 0.12 },
   // Vision radius around the player (fog of war): terrain beyond is dimmed, units beyond are hidden, metres.
   VISION_R: 11,
   // Brightness of terrain outside vision (0 black, 1 no dimming).
@@ -25735,7 +25751,7 @@ for (const LK in PAL_LAYOUTS) {
         u3 = g1;
       }
     }
-    r2.spots = { pillars: [], dais: null };
+    r2.spots = { pillars: [], dais: null, blocks: [] };
     const pillar = (x2, z2) => {
       palPart(r2, "palPillar", cyl(0.6, PC.wallH, x2, PC.wallH / 2, z2));
       palSolid(r2, x2 - 0.6, x2 + 0.6, z2 - 0.6, z2 + 0.6);
@@ -25744,6 +25760,7 @@ for (const LK in PAL_LAYOUTS) {
     const block = (m2, sx, sy, sz, x2, z2) => {
       palPart(r2, m2, box(sx, sy, sz, x2, sy / 2, z2));
       palSolid(r2, x2 - sx / 2, x2 + sx / 2, z2 - sz / 2, z2 + sz / 2);
+      if (r2.type !== "core") r2.spots.blocks.push([x2 - sx / 2, x2 + sx / 2, z2 - sz / 2, z2 + sz / 2, sy]);
     };
     const curtain = (x2, z2) => {
       palPart(r2, "silk", box(4, 3.5, 0.15, x2, 1.75 + 0.3, z2));
@@ -25937,7 +25954,7 @@ PIECE_SIDES.push({ list: P2_GIANT_T, hurt(u3, n3) {
           add("bronze", cyl(0.95, 0.12, x2, 1.3, z2, 16));
           for (const [lx, lz] of [[0.5, 0.4], [-0.5, 0.4], [0, -0.6]]) add("bronze", cyl(0.12, 0.5, x2 + lx, 0.25, z2 + lz, 6));
           palSolid(r2, x2 - 0.9, x2 + 0.9, z2 - 0.9, z2 + 0.9);
-          const A3 = CONFIG2.ALTAR, disc = still2(r2, new Vn(new Sh(A3.radius, A3.radius, 0.06, 28).translate(x2, 0.03, z2), M2.altarOn), false);
+          const A3 = CONFIG2.ALTAR, disc = still2(r2, new Vn(new dl(A3.radius - A3.ringW, A3.radius, 48).rotateX(-Math.PI / 2).translate(x2, 0.04, z2), M2.altarOn), false);
           PIECE_DING.push({ x: x2, z: z2, y: 0, s: r2, mesh: disc, charge: A3.charge, emptyT: 0, src: p2, art: null });
         } else if (p2.type === "smoke") {
           if (p2.src === "crane") {
@@ -26160,7 +26177,10 @@ function stepPieces(dt2) {
   const A3 = CONFIG2.ALTAR, dry = decOn("dry");
   for (let i2 = 0; i2 < PIECE_DING.length; i2++) {
     const a2 = PIECE_DING[i2];
-    if (a2.s.lay === L2 && a2.s.state < 2 && !a2.s.fallen) altarStep(a2, dt2, A3, dry);
+    if (a2.s.lay !== L2 || a2.s.state >= 2 || a2.s.fallen) continue;
+    altarStep(a2, dt2, A3, dry);
+    const v2 = !dry && a2.mesh.material === M2.altarOn;
+    if (a2.mesh.visible !== v2) a2.mesh.visible = v2;
   }
 }
 function smokeBlocks(ax, az, bx, bz) {
@@ -34611,7 +34631,7 @@ function chrFrame(dt2) {
 }
 function artRoom(r2) {
   const A3 = LD.art, K3 = A3.kit, blocked = PAL.solids.filter((b2) => b2.s === r2);
-  const art = buildRoom(K3, r2, PAL.rooms, { pillars: r2.spots ? r2.spots.pillars : [], dais: r2.spots ? r2.spots.dais : null, blocked });
+  const art = buildRoom(K3, r2, PAL.rooms, { pillars: r2.spots ? r2.spots.pillars : [], dais: r2.spots ? r2.spots.dais : null, blocks: r2.spots ? r2.spots.blocks : [], blocked });
   const si3 = r2.school ? Math.max(0, CONFIG2.SCHOOLS.indexOf(r2.school)) : 0;
   if (PAL_ART.props) {
     for (const h2 of PIECE_HAZ) if (h2.s === r2 && h2.kind === "lion") h2.art = addTo(art, prop(K3, "beast", h2.x, h2.z, (h2.src && h2.src.fz || 1) > 0 ? 0 : Math.PI));
@@ -35632,6 +35652,8 @@ window.__game = {
       texN: A3 && A3.kit ? new Set(A3.kit.texList).size : 0,
       lodDropped: A3 && A3.kit ? A3.kit.lodDropped.slice() : [],
       que,
+      // Plain room parts still drawn with the art on (check 1739): per room, the box part keys that are visible (floors apart).
+      plain: A3 && A3.on ? A3.rooms.map((r2) => ({ room: r2.id, type: r2.type, keys: Object.keys(r2.box || {}).filter((k2) => r2.box[k2].visible && !k2.startsWith("floor:")), plinths: r2.art ? r2.art.counts.plinths : 0 })) : [],
       // Cut-away (check 1738): rooms whose north wall is lowered now (with the wall batches' height factor), doors lowered now.
       cut: A3 ? A3.rooms.filter((r2) => r2.art && r2.art.cutOn).map((r2) => ({ room: r2.id, n: r2.art.cut.length, k: r2.art.cut.length ? r2.art.cut[0].scale.y : 1 })) : [],
       cutDoors: A3 ? A3.doors.filter((d2) => d2.cutOn).map((d2) => ({ x: d2.x, z: d2.z, k: d2.art.root.scale.y })) : [],
