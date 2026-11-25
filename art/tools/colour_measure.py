@@ -4,7 +4,8 @@ Per figure and shot: share of outline pixels (the 2 px border of the figure's ID
 floor right behind them (floor pixels within about 10 px, shadows included) is >= 3:1 (WCAG relative luminance), the same share against the
 ring median (the suit_contrast.py formula), the body median contrast against the floor ring, and the share of school-coloured pixels.
 Per shot: the floor's on-screen luminance and its own p95/p5 contrast in the figure-free lower band.
-Gates (PASS/FAIL): the proposal (variant new_sil2) at both distances, per figure (outline rule; school colour share for the nine suits); the floor on-screen rules per floor.
+Gates (PASS/FAIL): the proposal (variant new_a) at both distances, per figure (outline rule; body median >= 2.5:1; school colour share for the
+nine suits); the floor on-screen rules per floor.
 Control (the measure's mutation): the old floor with the game's current dark outline must fail the outline rule, else MUT MISSED.
 Usage: python3 colour_measure.py SHOTDIR SHEETDIR"""
 import json, sys
@@ -21,11 +22,14 @@ FLOOR_Y = (0.125, 0.20)
 # Largest contrast between the floor's own light and dark marks on screen (p95 against p5).
 FLOOR_MARKS = 1.30
 # Variant that is the proposal (gated); the control that must fail.
-PROPOSAL, CONTROL = 'new_sil2', 'old_cur'
+PROPOSAL, CONTROL = 'new_a', 'old_cur'
+# Body median contrast against the floor each figure must reach on the hall floor (FINAL, lead 25 Nov).
+BODY = 2.5
 # Share of a suit's pixels that must be in its school colour at play size (round 2, lead 25 Nov).
 SCHOOL_SHARE = 0.08
-# School colour per suit: a hue (degrees, +- HUE_TOL, chroma >= 0.12, luminance >= 0.03), or 'pale' (lead white / silver: chroma <= 0.16 and
-# luminance >= 0.22), or 'black' (阴阳 bone black: luminance <= 0.035; always met by a black suit, printed for completeness).
+# School colour per suit: a hue (degrees, +- HUE_TOL, chroma >= 0.12, luminance >= 0.03), or 'pale' (lead white / silver: HSV saturation <= 0.40
+# and luminance >= 0.18; FINAL, set once: round 2's chroma <= 0.16 rejected lead white lit by the game's warm sun, where a white card shows a
+# saturation of 0.23 flat and about 0.37 on a sunlit upright face), or 'black' (阴阳 bone black: luminance <= 0.035; always met by a black suit, printed for completeness).
 SCHOOLS = {'fa': 'pale', 'ru': 34, 'dao': 44, 'mo': 10, 'yy': 'black', 'za': 'pale', 'ming': 260, 'zh': 150, 'nong': 216}
 HUE_TOL = 28
 S, OUT = sys.argv[1], sys.argv[2]
@@ -49,7 +53,7 @@ for sh in man['shots']:
     def school(m, sid):
         k = SCHOOLS.get(sid)
         if k is None: return None
-        if k == 'pale': return float(((ch[m] <= 0.16) & (Y[m] >= 0.22)).mean())
+        if k == 'pale': return float((((ch / np.maximum(mx, 1e-6))[m] <= 0.40) & (Y[m] >= 0.18)).mean())
         if k == 'black': return float((Y[m] <= 0.035).mean())
         dh = np.abs((hue[m] - k + 180) % 360 - 180); return float(((dh <= HUE_TOL) & (ch[m] >= 0.12) & (Y[m] >= 0.03)).mean())
     floorrows[sh['shot']] = (fy, marks, float(((mx - mn) / np.maximum(mx, 1e-6))[fb].mean()))
@@ -76,6 +80,9 @@ for sh in man['shots']:
         head = ('PASS' if ok else 'FAIL') if gate else ('CONTROL' if sh['variant'] == CONTROL else 'OPTION')
         if gate and not ok: fails += 1
         print(f"{head} {tag} {sid} outline >= {RATIO}:1 vs floor behind: {d['share']:.0%} (min {EDGE_SHARE:.0%}); ring formula {d['legacy']:.0%}; body median {d['body']:.2f}:1; area >= 3:1 {d['area']:.0%}" + (f"; school colour px {d['col']:.0%}" if d['col'] is not None else ''))
+        if gate and sh['kind'] == 'hall':
+            okb = d['body'] >= BODY; fails += 0 if okb else 1
+            print(f"{'PASS' if okb else 'FAIL'} {tag} {sid} body median vs floor: {d['body']:.2f}:1 (min {BODY}:1)")
         if gate and sh['kind'] == 'hall' and d['col'] is not None:
             oks = d['col'] >= SCHOOL_SHARE; fails += 0 if oks else 1
             print(f"{'PASS' if oks else 'FAIL'} {tag} {sid} school colour: {d['col']:.0%} of the figure's pixels (min {SCHOOL_SHARE:.0%})")
@@ -117,6 +124,8 @@ for d in (10.5, 14):
     stack([(label(by[(v, 'hall', d)]), bandcrop(by[(v, 'hall', d)]['shot'], by[(v, 'hall', d)]['id'])) for v in (CONTROL, PROPOSAL)], f'{OUT}/sheet_play{d}_old_vs_new.jpg')
     stack([(label(s), bandcrop(s['shot'], s['id'])) for s in man['shots'] if s['kind'] == 'hall' and s['dist'] == d], f'{OUT}/sheet_play{d}_all_variants.jpg')
 stack([(label(s), bandcrop(s['shot'], s['id'])) for s in man['shots'] if s['kind'] != 'hall'], f'{OUT}/sheet_play10.5_other_floors.jpg')
+for tag, nm in (('hall mock, 14 m, pitch 40', 'hall'), ('hall mock, low camera (pitch 14, 12 m)', 'hall_low')):
+    stack([(f'{tag}: {v}', Image.open(f'{S}/{nm}_{v}.png').convert('RGB')) for v in (CONTROL, PROPOSAL)], f'{OUT}/sheet_{nm}_old_vs_new.jpg')
 for i in range(len(man['groups'])):
     stack([(f'close-up, {v}: ' + ' '.join(man['groups'][i]), Image.open(f'{S}/close_{v}_{i}.png').convert('RGB').crop((0, 120, 1920, 1000))) for v in (CONTROL, PROPOSAL)], f'{OUT}/sheet_close_old_vs_new_{i}.jpg')
 print(f'FAIL lines: {fails}' if fails else 'all colour gates pass')

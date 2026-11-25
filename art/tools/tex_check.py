@@ -40,7 +40,6 @@ T = {
     'roof_tile': (256, 256, (0, 1024), 0.55),
     'tile_ends': (256, 256, (0, 1024), 0.55),
     'timber': (256, 256, (0, 1024), 0.55),
-    'bridge_deck': (256, 256, (0, 1024), 0.55),
     'timber_burnt': (256, 256, (0, 1024), 0.55),
     'mercury_matcap': (None, None, (212, 812), 0.12),
     'black_lake': (256, 256, (0, 1024), 0.55),
@@ -59,19 +58,13 @@ T = {
 X = {
     'rammed_earth': dict(repeat=True, value=(105, 145), wrap='xy'), 'rammed_earth_core': dict(repeat=True, value=(80, 120), wrap='xy'),
     'earth_burnt': dict(repeat=True, value=(60, 105), wrap='xy', redder='rammed_earth'), 'river_stone': dict(repeat=True, value=(90, 140), wrap='xy'),
-    'stone_paving': dict(repeat=True, value=(115, 150), wrap='xy'), 'floor_tiles': dict(walk=True, repeat=True, value=(95, 130), wrap='xy'), 'hollow_brick': dict(value=(100, 135), wrap='xy'),
+    'stone_paving': dict(repeat=True, value=(115, 150), wrap='xy'), 'floor_tiles': dict(repeat=True, value=(95, 130), wrap='xy'), 'hollow_brick': dict(value=(100, 135), wrap='xy'),
     'mural_wall': dict(value=(150, 185), wrap='x', ink=(60, 420)), 'wall_burnt': dict(value=(70, 125), wrap='x', darker='hall_wall'),
     'roof_tile': dict(value=(60, 95), wrap='xy'), 'tile_ends': dict(discs=True), 'timber': dict(value=(65, 100), wrap='xy'), 'timber_burnt': dict(value=(25, 55), wrap='xy'),
     'mercury_matcap': dict(value=(145, 190), matcap=True), 'black_lake': dict(repeat=True, value=(12, 35), wrap='xy', teal=True),
     'garden_ground': dict(repeat=True, value=(85, 125), wrap='xy'), 'garden_plants': dict(alpha=(0.06, 0.6), cells=4),
     'star_ceiling': dict(value=(22, 50), wrap='xy'), 'signal_flags': dict(alpha=(0.25, 0.7), cells=3), 'slips': dict(value=(120, 165), wrap='x'),
     'slips_burnt': dict(value=(28, 70), wrap='x'),
-    # COLOUR 25 Nov (owner 13:1x; art/Colour-Clarity-Study.md): the hall floor is repainted calm at a mid value on purpose: contrast band below 8
-    # (was the study's 8-30), value band, seams and repeat added. The other walkable-floor rules live in floor_rule_check.py.
-    # COLOUR round 2 (lead verdict 25 Nov): cinnabar again at screen 0.13-0.15 = mean lum 105-122; band 4.5-8 (5.5 could not be met together with
-    # the own-marks rule of floor_rule_check.py); same-tone step 4 instead of 6 for walkable floors; corridor tiles and the bridge deck join.
-    'hall_floor': dict(walk=True, value=(105, 122), wrap='xy', repeat=True),
-    'bridge_deck': dict(walk=True, value=(105, 135), wrap='xy'),
     'hall_wall': dict(value=(150, 185)),   # FIXB 25 Nov: approved A2 plaster value kept (owner 02:2x), study range updated to it
     'pond_water': dict(repeat=True, value=(115, 155), wrap='xy', teal=True), 'star_inlay': dict(alpha=(0.01, 0.08), cells=2, decal='hall_floor'),
 }
@@ -115,7 +108,7 @@ for n, (du, dv, (y0, y1), scap) in T.items():
     satm = np.where(mx > 0, (mx - mn) / np.maximum(mx, 1), 0)
     sat = satm[op].mean()
     stepok = op[:, 1:] & op[:, :-1]
-    eq = (np.abs(np.diff(lum, axis=1)) < (4 if x.get('walk') else 6))[stepok].mean()   # walkable floors: the same-tone step follows their lower contrast band (COLOUR round 2)
+    eq = (np.abs(np.diff(lum, axis=1)) < 6)[stepok].mean()
     sd = lum[op].std()
     MEANS[n] = lum[op].mean(); HI[n] = np.percentile(lum[op], 95)
     if x.get('discs'):  # ornament atlas: fine detail may run under 4 cm (study: rules, lozenges, masks); no brush-scale rule
@@ -130,7 +123,7 @@ for n, (du, dv, (y0, y1), scap) in T.items():
         res = [
             ('density', 0.8 * 256 <= du <= 1.25 * 256 and 0.8 * 256 <= dv <= 1.25 * 256, f'{du:.0f} x {dv:.0f} px/m'),
             ('brush scale', 4 <= run_cm <= 15, f'{run_cm:.1f} cm'),
-            ('contrast', (4.5 <= sd <= 8) if x.get('walk') else (8 <= sd <= 30), f'lum sd {sd:.1f}' + (' (walkable floor: 4.5-8)' if x.get('walk') else '')),
+            ('contrast', 8 <= sd <= 30, f'lum sd {sd:.1f}'),
             ('saturation', sat <= scap, f'{sat:.2f} (cap {scap})'),
         ]
     if 'value' in x:

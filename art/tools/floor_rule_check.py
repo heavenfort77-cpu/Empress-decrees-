@@ -14,9 +14,13 @@ MARKS = 1.30
 # Mean HSV saturation cap for every walkable floor; the hall floor's own band (still cinnabar, not grey).
 SAT_CAP = 0.55
 HALL_SAT = (0.48, 0.55)
-# Hall floor luminance sd band (sRGB luminance 0-255): calm, but not a flat fill. Round 2: was 5.5-8.0, which the marks rule above cannot meet
-# (p95/p5 1.30 at this value is an sd of about 5.5 for a normal spread; run 45553818769 had sd 5.8 at 1.30), so the band sits under it.
-HALL_SD = (4.5, 7.5)
+# Hall floor luminance sd band (sRGB luminance 0-255). FINAL round, set once: the lower bound is the palace study's own (tex_check.py: sd >= 8,
+# never to be lowered); the upper bound 12 keeps the floor well under the walls and doors (17 to 65). An evenly painted floor cannot meet
+# sd >= 8 and the marks rule together (run 45557070732: sd 4.4 at marks 1.26), so the sd is carried by sparse wear patches and scratches.
+HALL_SD = (8.0, 12.0)
+# Hall floor outliers: share of pixels darker than the median by 1.5:1 or more (dark flecks read as debris next to black figures), and share
+# lighter by 1.5:1 or more (wear patches), each at most this.
+HALL_DARK, HALL_LIGHT = 0.025, 0.05
 # Hall floor stroke scale: half-width of the luminance autocorrelation along x and y, px at 256 px/m (20 px = 8 cm), and the largest x:y ratio.
 HALL_AC = 20
 HALL_ANISO = 2.0
@@ -32,7 +36,8 @@ def measure(src):
     F = np.fft.fft2(L - L.mean()); ac = np.fft.ifft2(F * np.conj(F)).real; ac /= max(ac[0, 0], 1e-9)
     hx = next((i for i in range(1, 400) if ac[0, i] < 0.5), 400); hy = next((i for i in range(1, 400) if ac[i, 0] < 0.5), 400)
     eq = (np.abs(np.diff(L, axis=1)) < 6).mean(); eq4 = (np.abs(np.diff(L, axis=1)) < 4).mean()
-    return dict(Y=float(Y.mean()), lum=float(L.mean()), sd=float(L.std()), sat=float(((mx - mn) / np.maximum(mx, 1e-6)).mean()),
+    med = np.median(Y); dark = float(((med + 0.05) / (Y + 0.05) >= 1.5).mean()); light = float(((Y + 0.05) / (med + 0.05) >= 1.5).mean())
+    return dict(dark=dark, light=light, Y=float(Y.mean()), lum=float(L.mean()), sd=float(L.std()), sat=float(((mx - mn) / np.maximum(mx, 1e-6)).mean()),
                 marks=float((np.percentile(Y, 95) + 0.05) / (np.percentile(Y, 5) + 0.05)), acx=hx, acy=hy,
                 run_cm=float((1 / (1 - eq) if eq < 1 else 1e9) / 2.56), run4_cm=float((1 / (1 - eq4) if eq4 < 1 else 1e9) / 2.56), blk=float(L.reshape(8, L.shape[0] // 8, 8, L.shape[1] // 8).mean((1, 3)).std()))
 
@@ -41,10 +46,11 @@ def rules(name, m, kind):
     r = [('floor luminance', FLOOR_Y[0] <= m['Y'] <= FLOOR_Y[1], f"texture relative luminance {m['Y']:.3f} ({FLOOR_Y[0]}-{FLOOR_Y[1]}); mean lum {m['lum']:.0f}")]
     if kind == 'all':
         r += [('own marks', m['marks'] <= MARKS, f"p95/p5 contrast {m['marks']:.2f}:1 (max {MARKS})"),
-              ('calm contrast', HALL_SD[0] <= m['sd'] <= HALL_SD[1], f"lum sd {m['sd']:.1f} ({HALL_SD[0]}-{HALL_SD[1]})"),
+              ('contrast', HALL_SD[0] <= m['sd'] <= HALL_SD[1], f"lum sd {m['sd']:.1f} ({HALL_SD[0]}-{HALL_SD[1]})"),
               ('stroke scale', max(m['acx'], m['acy']) <= HALL_AC and max(m['acx'], m['acy']) / max(1, min(m['acx'], m['acy'])) <= HALL_ANISO,
                f"autocorrelation half-width {m['acx']} x {m['acy']} px (max {HALL_AC}, x:y max {HALL_ANISO})"),
-              ('saturation', HALL_SAT[0] <= m['sat'] <= HALL_SAT[1], f"{m['sat']:.2f} ({HALL_SAT[0]}-{HALL_SAT[1]})")]
+              ('saturation', HALL_SAT[0] <= m['sat'] <= HALL_SAT[1], f"{m['sat']:.2f} ({HALL_SAT[0]}-{HALL_SAT[1]})"),
+              ('outliers', m['dark'] <= HALL_DARK and m['light'] <= HALL_LIGHT, f"dark {m['dark']:.1%} (max {HALL_DARK:.1%}), light {m['light']:.1%} (max {HALL_LIGHT:.0%})")]
     else:
         r += [('saturation', m['sat'] <= SAT_CAP, f"{m['sat']:.2f} (cap {SAT_CAP})")]
     return r

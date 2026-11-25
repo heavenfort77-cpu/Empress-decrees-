@@ -2,16 +2,14 @@
 <!-- COLOUR review viewer (art tool, not shipped; art/Colour-Clarity-Study.md). Characters on a floor with the game's two lights
      (index.html: hemi 1.1, sun 2.2 from (-30, 60, 25)), FOV 50, pitch 40. Suits, guards and rebels in one row.
      ?ids=fa,ru,...,zu,ls   suits (assets/models/suits), guards (zu nu dun che wz), rebels (ls fs ss qs), &gap=m between figures (1.5)
-     &view=play (pitch 40, &dist= m: 10.5 = the game's close framing, 14 = CAM_DIST) | turn (pitch 15, close-up, &dist=)
+     &view=play (pitch 40, &dist= m: 10.5 = the game's close framing, 14 = CAM_DIST) | turn (pitch 15, close-up, &dist=), &pitch=deg
      &floor=path from the repo root (default assets/tex/hall_floor.png), &rep=repeats over the 30 m plane (7, as suits.html)
      &lam=sheet name for the suits' sLam material (default suit_lamellar; proposal suit_lamellar_qin)
      &ol=hex outline colour (inverted hull as src/chars.js outlineMaterial: back faces pushed out along the normal in clip space), &olpx=px
        (omit ol = no outline), drawn on every figure
-     &sil=1: outline on the OUTER silhouette only (round 2): every character material writes stencil 1, the outline is drawn after them
-       (renderOrder 1) where stencil != 1, so no outline shows over any part of a character. Same draws as the plain outline; the renderer
-       needs stencil: true.
-     &tint=1: per-school material tint on the suits' sLam sheet and cloth (study tint table); &rb=hex tint on the rebel cloth
-     &fres=strength (0-1) of a view-facing rim term added to lit materials at grazing angles (&fres0= start of the ramp, default 0.7), &fresc=hex
+     &ct=fa:hex,ru:hex,...: cloth tint per suit (replaces the colour in the GLB's sCloth material); &rb=hex tint on the rebel cloth
+     &hall=1: a hall mock behind the row: a plaster wall (assets/tex/hall_wall.png, 4 m high, the box walls' image) at z = -5 and black lacquer
+       pillars (assets/tex/pillar.png, 0.35 m radius, 4 m apart) at z = -4.2. A stand-in for the game's hall, to see the floor beside them.
      &mode=tex | id (each figure and its outline flat in an ID colour, red = 20 x (index + 1), no floor, black ground, no AA: masks) -->
 <html><head><meta charset="utf-8"><style>html,body{margin:0;background:#120d16;overflow:hidden}</style>
 <script type="importmap">{"imports":{"three":"../../lib/three.module.min.js"}}</script></head><body>
@@ -20,12 +18,10 @@ import * as THREE from 'three';
 import { GLTFLoader } from './vendor/loaders/GLTFLoader.js';
 const Q = new URLSearchParams(location.search), VIEW = Q.get('view') || 'play', MODE = Q.get('mode') || 'tex';
 const IDS = (Q.get('ids') || 'fa').split(','), GAP = +(Q.get('gap') || 1.5), LAM = Q.get('lam') || 'suit_lamellar';
-const OL = Q.get('ol'), OLPX = +(Q.get('olpx') || 2), FRES = +(Q.get('fres') || 0), FRES0 = +(Q.get('fres0') || 0.7), FRESC = new THREE.Color('#' + (Q.get('fresc') || 'e8c888'));
-const SIL = Q.get('sil') === '1', TINT = Q.get('tint') === '1', RB = Q.get('rb');
-// CONFIG (study tint table): school tint on the sLam sheet (black lacquer stays black, the neutral binding takes the colour) and on the cloth.
-const SCHOOL = { fa: 0xefe9dc, ru: 0xc88c3e, dao: 0xf0c450, mo: 0xe66044, yy: 0xefe9dc, za: 0xc4cede, ming: 0x9c7ae0, zh: 0x3cac74, nong: 0x5a92e4 };
+const OL = Q.get('ol'), OLPX = +(Q.get('olpx') || 2), RB = Q.get('rb'), HALL = Q.get('hall') === '1';
+const CT = Object.fromEntries((Q.get('ct') || '').split(',').filter((x) => x).map((x) => x.split(':')));
 const W = innerWidth, H = innerHeight, ID = MODE === 'id';
-const r = new THREE.WebGLRenderer({ antialias: !ID, stencil: true }); r.setPixelRatio(1); r.setSize(W, H); r.shadowMap.enabled = !ID; document.body.appendChild(r.domElement);
+const r = new THREE.WebGLRenderer({ antialias: !ID }); r.setPixelRatio(1); r.setSize(W, H); r.shadowMap.enabled = !ID; document.body.appendChild(r.domElement);
 const scene = new THREE.Scene(); scene.background = new THREE.Color(ID ? 0x000000 : 0x120d16);
 const cam = new THREE.PerspectiveCamera(50, W / H, 0.5, 200);
 scene.add(new THREE.HemisphereLight(0xd9c9ff, 0x3a2a22, 1.1));
@@ -36,37 +32,33 @@ const tl = new THREE.TextureLoader(); let texPending = 0;
 const tex = (f, rep, flip = true) => { texPending++; const t = tl.load(f, () => texPending--, undefined, () => { texPending--; window.__texErr = f; }); t.colorSpace = THREE.SRGBColorSpace; t.wrapS = t.wrapT = THREE.RepeatWrapping; t.anisotropy = 4; t.flipY = flip; if (rep) t.repeat.set(rep, rep); return t; };
 if (!ID) { const floor = new THREE.Mesh(new THREE.PlaneGeometry(30, 30), new THREE.MeshStandardMaterial({ map: tex('../../' + (Q.get('floor') || 'assets/tex/hall_floor.png'), +(Q.get('rep') || 7)), roughness: 0.9 }));
   floor.rotation.x = -Math.PI / 2; floor.receiveShadow = true; scene.add(floor); }
+if (HALL && !ID) {   // hall mock: plaster wall and black lacquer pillars behind the row
+  const wall = new THREE.Mesh(new THREE.PlaneGeometry(32, 4), new THREE.MeshStandardMaterial({ map: tex('../../assets/tex/hall_wall.png', 0), roughness: 0.9 }));
+  wall.material.map.repeat.set(8, 1); wall.position.set(0, 2, -5); wall.receiveShadow = true; scene.add(wall);
+  const pm = new THREE.MeshStandardMaterial({ map: tex('../../assets/tex/pillar.png', 0), roughness: 0.75 });
+  for (let x = -12; x <= 12; x += 4) { const p = new THREE.Mesh(new THREE.CylinderGeometry(0.35, 0.35, 4, 24), pm); p.position.set(x, 2, -4.2); p.castShadow = p.receiveShadow = true; scene.add(p); }
+}
 const GUARD = ['zu', 'nu', 'dun', 'che', 'wz'], REBEL = ['ls', 'fs', 'ss', 'qs'];
 // material values as src/chars.js charMaterials (suits, guards, rebels) and art/viewer/suits.html / fodder.html
 const DEF = { sLam: [LAM, 0, 0.5], sBronze: ['suit_bronze', 0.5, 0.45], sCloth: ['suit_cloth', 0, 0.85], gdBronze: ['bronze_trim_brass', 0.4, 0.6], gdLacquer: ['fodder_trim', 0.05, 0.8],
   treadBelt: ['tread_belt', 0.4, 0.6], rbCloth: ['fodder_trim', 0, 0.85], rbPatch: ['fodder_trim', 0, 0.85] };
 const maps = {}, cache = {};
-function rimTerm(m) {
-  if (FRES > 0) m.onBeforeCompile = (sh) => { sh.uniforms.uFres = { value: FRES }; sh.uniforms.uFresC = { value: FRESC }; sh.uniforms.uFres0 = { value: FRES0 };
-    sh.fragmentShader = sh.fragmentShader.replace('#include <common>', '#include <common>\nuniform float uFres;\nuniform float uFres0;\nuniform vec3 uFresC;')
-      .replace('#include <opaque_fragment>', '#include <opaque_fragment>\n  { float f = 1.0 - abs(dot(normalize(normal), normalize(vViewPosition))); gl_FragColor.rgb += uFresC * smoothstep(uFres0, 1.0, f) * uFres; }'); };
-  return m;
-}
-// silhouette route: character materials mark the stencil
-const mark = (m) => { if (SIL) { m.stencilWrite = true; m.stencilRef = 1; m.stencilFunc = THREE.AlwaysStencilFunc; m.stencilZPass = THREE.ReplaceStencilOp; } return m; };
 function mat(src, idCol, u) {
-  if (ID) return mark(new THREE.MeshBasicMaterial({ color: idCol }));
-  const name = src.name, base = name.startsWith('sCloth') ? 'sCloth' : name, key = name + (base === 'sCloth' ? src.color.getHexString() : '') + (TINT && base === 'sLam' ? u : '');
+  if (ID) return new THREE.MeshBasicMaterial({ color: idCol });
+  const name = src.name, base = name.startsWith('sCloth') ? 'sCloth' : name, key = name + (base === 'sCloth' ? src.color.getHexString() : '');
   if (cache[key]) return cache[key];
-  if (name === 'rbGlint') return (cache[key] = mark(new THREE.MeshBasicMaterial({ color: 0xffe066 })));
+  if (name === 'rbGlint') return (cache[key] = new THREE.MeshBasicMaterial({ color: 0xffe066 }));
   const [file, metal, rough] = DEF[base] || DEF.rbCloth;
   const map = maps[file] || (maps[file] = tex(`../../assets/tex/${file}.png`, 0, false));
   const sid = base === 'sCloth' ? name.slice(7) : u;
-  const color = base === 'sCloth' ? (TINT && sid !== 'yy' && SCHOOL[sid] ? new THREE.Color(SCHOOL[sid]) : src.color.clone()) : base === 'sLam' && TINT && SCHOOL[u] ? new THREE.Color(SCHOOL[u])
-    : name === 'rbPatch' ? new THREE.Color(0x6f6a34) : name === 'rbCloth' && RB ? new THREE.Color('#' + RB) : new THREE.Color(1, 1, 1);
-  return (cache[key] = mark(rimTerm(new THREE.MeshStandardMaterial({ map, color, metalness: metal, roughness: rough }))));
+  const color = base === 'sCloth' ? (CT[sid] ? new THREE.Color('#' + CT[sid]) : src.color.clone()) : name === 'rbPatch' ? new THREE.Color(0x6f6a34) : name === 'rbCloth' && RB ? new THREE.Color('#' + RB) : new THREE.Color(1, 1, 1);
+  return (cache[key] = new THREE.MeshStandardMaterial({ map, color, metalness: metal, roughness: rough }));
 }
 // inverted hull, as src/chars.js outlineMaterial(): one material, back faces pushed out by uOPx device pixels
 const OUT = { px: { value: OLPX }, res: { value: new THREE.Vector2(W, H) } }, olCache = {};
 function outlineMat(color) {
   const k = color.getHexString(); if (olCache[k]) return olCache[k];
   const m = new THREE.MeshBasicMaterial({ color, side: THREE.BackSide });
-  if (SIL) { m.stencilWrite = true; m.stencilRef = 1; m.stencilFunc = THREE.NotEqualStencilFunc; m.stencilZPass = THREE.KeepStencilOp; }
   m.onBeforeCompile = (sh) => {
     sh.uniforms.uOPx = OUT.px; sh.uniforms.uORes = OUT.res;
     sh.vertexShader = sh.vertexShader.replace('#include <common>', '#include <common>\nuniform float uOPx;\nuniform vec2 uORes;')
@@ -99,7 +91,7 @@ function place(u, x, idx) {
       const om = outlineMat(ID ? idCol : new THREE.Color('#' + OL));
       const h = o.isSkinnedMesh ? new THREE.SkinnedMesh(o.geometry, om) : new THREE.Mesh(o.geometry, om);
       if (o.isSkinnedMesh) h.bind(o.skeleton, o.bindMatrix);
-      h.position.copy(o.position); h.quaternion.copy(o.quaternion); h.scale.copy(o.scale); h.frustumCulled = o.frustumCulled; if (SIL) h.renderOrder = 1; o.parent.add(h);
+      h.position.copy(o.position); h.quaternion.copy(o.quaternion); h.scale.copy(o.scale); h.frustumCulled = o.frustumCulled; o.parent.add(h);
     }
     root.position.x = x; scene.add(root);
     if (--pending === 0) shoot();

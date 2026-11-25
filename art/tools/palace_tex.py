@@ -38,8 +38,15 @@ FLOOR_G = float(__import__('os').environ.get('FLOOR_G', '1.0'))
 FLOOR_C = float(__import__('os').environ.get('FLOOR_C', '1.0179'))
 # Hall floor broad tone-blot opacity scale (lower = less cloud at the 0.5 m scale, shorter stroke correlation).
 FLOOR_B = float(__import__('os').environ.get('FLOOR_B', '0.36'))
-# Hall floor pebble-burnish dab count (short chalk dabs; more dabs keep the brush-scale run inside 4-15 cm on a low-contrast floor).
+# Hall floor pebble-burnish dab count.
 FLOOR_N = int(__import__('os').environ.get('FLOOR_N', '1910'))
+# Hall floor wear patches (FINAL round): places where the paint is worn through to the pale earth. They carry the luminance sd the palace
+# study asks for (tex_check.py: sd >= 8) while the burnish marks stay calm (own marks p95/p5 <= 1.30): about 3% of the surface, light.
+FLOOR_W = int(__import__('os').environ.get('FLOOR_W', '26'))
+# Hall floor wear patch lightness (1.0 = the earth tones written in floor(); the sd is tuned here so the patch area can stay small).
+FLOOR_E = float(__import__('os').environ.get('FLOOR_E', '1.0'))
+# Hall floor fine burnish scratches (thin dark hairlines; they keep the brush-scale run of tex_check.py inside 4-15 cm).
+FLOOR_H = int(__import__('os').environ.get('FLOOR_H', '420'))
 # Colour gain for candidates of other textures (linear light on the background and every stroke colour; 1.0 = approved ops byte-identical).
 TEX_GAIN = float(__import__('os').environ.get('TEX_GAIN', '1.0'))
 # Mark contrast for candidates of other textures: every stroke colour pulled toward the background colour in linear light (1.0 = unchanged).
@@ -135,7 +142,7 @@ def band(t, y0, y1, color, brush='flat-bristle', size=60, opacity=1.0, step=None
 
 def floor():
     # 丹地: cinnabar earth floor, burnished with pebbles; one continuous painted surface (no tiles). 4 m per repeat (256 px/m).
-    # Round 4 (COLOUR round 2, 25 Nov, art/Colour-Clarity-Study.md): a mid-value cinnabar floor a black-lacquer figure reads on: texture
+    # Round 4 (COLOUR round 2 and FINAL, 25 Nov, art/Colour-Clarity-Study.md): a mid-value cinnabar floor a black-lacquer figure reads on: texture
     # relative luminance 0.185, saturation 0.50-0.55, own marks p95/p5 <= 1.30, calm broad burnish strokes (shorter and less one-way than
     # round 2), pebble dabs, no grit specks (round 3's read as sprinkles). Seed 101 kept. Round 2 (value 80, sd 9.1): art/round2/.
     c0 = [_lin(int(FLOOR_BASE[i:i + 2], 16)) * FLOOR_G for i in (1, 3, 5)]
@@ -160,15 +167,21 @@ def floor():
         x, y = r.uniform(0, 1024), r.uniform(0, 1024); a = r.uniform(0, math.tau); L = r.uniform(10, 30)
         t.stroke([(x, y), (x + math.cos(a) * L, y + math.sin(a) * L)], 'chalk', r.uniform(6, 11), r.choice(dabs), r.uniform(0.3, 0.45))
     t.stage = 3
-    scuff = [col(0.70, 0.18), col(-0.55)]
-    for _ in range(70):  # scuffs worn through to the earth
-        x, y = r.uniform(0, 1024), r.uniform(0, 1024); a = r.uniform(0, math.tau); L = r.uniform(10, 34)
-        t.stroke([(x, y), (x + math.cos(a) * L, y + math.sin(a) * L)], 'chalk', r.uniform(3, 6), r.choice(scuff), r.uniform(0.25, 0.4))
-    for _ in range(10):  # hairline cracks
+    earth = [col(1.50 * FLOOR_E, 0.35), col(1.25 * FLOOR_E, 0.28)]
+    for _ in range(FLOOR_W):  # wear patches: the paint worn through to the pale earth: a soft sponge patch (about 12 cm) with a chalk core
+        cx, cy = r.uniform(0, 1024), r.uniform(0, 1024); a0 = r.uniform(0, math.pi); e = r.choice(earth)
+        t.blot(cx, cy, r.uniform(10, 16), 'sponge', r.uniform(14, 22), e, r.uniform(0.7, 0.85), 3)
+        for _ in range(3):
+            x, y = cx + r.uniform(-12, 12), cy + r.uniform(-8, 8); a = a0 + r.uniform(-0.5, 0.5); L = r.uniform(14, 32)
+            t.stroke(t.wobble(x, y, x + math.cos(a) * L, y + math.sin(a) * L, 3, 2), 'chalk', r.uniform(7, 12), e, r.uniform(0.6, 0.85))
+    for _ in range(14):  # hairline cracks
         x, y = r.uniform(0, 1024), r.uniform(0, 1024); pts = [(x, y)]
-        for _ in range(r.randint(4, 8)):
+        for _ in range(r.randint(5, 9)):
             x += r.uniform(-30, 30); y += r.uniform(-30, 30); pts.append((x, y))
-        t.stroke(pts, 'pencil', 2.2, col(-0.7), 0.4)
+        t.stroke(pts, 'pencil', 2.4, col(-0.75), 0.6)
+    for _ in range(FLOOR_H):  # fine burnish scratches, 3-9 cm, every direction (last, so the count can change without moving a mark above)
+        x, y = r.uniform(0, 1024), r.uniform(0, 1024); a = r.uniform(0, math.tau); L = r.uniform(8, 24)
+        t.stroke([(x, y), (x + math.cos(a) * L, y + math.sin(a) * L)], 'pencil', 1.8, col(-0.6), r.uniform(0.45, 0.7))
     return t
 
 
