@@ -33,18 +33,18 @@ def pk(h):
 FLOOR_BASE = '#b26155'
 # Hall floor value gain on the base and every mark (linear light). The runner's calibration (art/tools/floor_calibrate.py) sets the env; the
 # default is the value the shipped texture was painted with.
-FLOOR_G = float(__import__('os').environ.get('FLOOR_G', '1.0'))
+FLOOR_G = float(__import__('os').environ.get('FLOOR_G', '0.9787'))
 # Hall floor mark contrast (1.0 = marks at the tones written in floor(); lower = calmer). Calibrated to the own-marks rule (p95/p5 <= 1.30).
-FLOOR_C = float(__import__('os').environ.get('FLOOR_C', '1.0179'))
+FLOOR_C = float(__import__('os').environ.get('FLOOR_C', '0.8589'))
 # Hall floor broad tone-blot opacity scale (lower = less cloud at the 0.5 m scale, shorter stroke correlation).
 FLOOR_B = float(__import__('os').environ.get('FLOOR_B', '0.36'))
 # Hall floor pebble-burnish dab count.
 FLOOR_N = int(__import__('os').environ.get('FLOOR_N', '1910'))
 # Hall floor wear patches (FINAL round): places where the paint is worn through to the pale earth. They carry the luminance sd the palace
 # study asks for (tex_check.py: sd >= 8) while the burnish marks stay calm (own marks p95/p5 <= 1.30): about 3% of the surface, light.
-FLOOR_W = int(__import__('os').environ.get('FLOOR_W', '26'))
+FLOOR_W = int(__import__('os').environ.get('FLOOR_W', '52'))
 # Hall floor wear patch lightness (1.0 = the earth tones written in floor(); the sd is tuned here so the patch area can stay small).
-FLOOR_E = float(__import__('os').environ.get('FLOOR_E', '1.0'))
+FLOOR_E = float(__import__('os').environ.get('FLOOR_E', '1.15'))
 # Hall floor fine burnish scratches (thin dark hairlines; they keep the brush-scale run of tex_check.py inside 4-15 cm).
 FLOOR_H = int(__import__('os').environ.get('FLOOR_H', '420'))
 # Colour gain for candidates of other textures (linear light on the background and every stroke colour; 1.0 = approved ops byte-identical).
