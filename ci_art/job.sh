@@ -1,11 +1,11 @@
 #!/bin/bash
-# SUITANIM art job (round 2: muted new tracks, rolling foot contact, front fall over the knees, dao bounding run, quaternion sign fix) (owner 25 Nov): run, hit and death clips for the nine school suits. Builder gates (budgets, weights, rig, reach,
+# SUITANIM art job (robe round: calm robe binding for dao/za/zh, robe-flare and weight-scope gates; OLD = the delivered 64b7bd5 GLBs) (owner 25 Nov): run, hit and death clips for the nine school suits. Builder gates (budgets, weights, rig, reach,
 # death floor solve, GLB re-read with all clips), silhouette gates (unchanged rest/windup), clip gates in three r171 on the rebuilt GLBs
-# and on the merged fallback (approved GLB + new clips) with mutations, contact strips and play-size shots, sheets. All results in $OUT.
+# and mutations, contact strips (plus a play-size run strip) and play-size shots, sheets. All results in $OUT.
 set -u
 export PYTHONDONTWRITEBYTECODE=1
 cd "$(dirname "$0")/.."
-O=$OUT; mkdir -p $O/suits $O/models/suits $O/models/merged
+O=$OUT; mkdir -p $O/suits $O/models/suits
 step() { echo "== $1 $(date +%H:%M:%S)"; }
 step "build"
 $BPY art/tools/suit_blender.py -- /tmp/suits all > $O/suits/blender.log 2>&1; grep -E "^(PASS|FAIL)|of .* pass|Error|Traceback|line [0-9]" $O/suits/blender.log | tee $O/suits/gates.txt
@@ -14,10 +14,6 @@ node art/tools/suit_clip_signfix.mjs /tmp/suits 2>&1 | tee $O/suits/signfix.txt
 cp /tmp/suits/*.glb /tmp/suits/suits_info.json $O/models/suits/
 step "clip gates: rebuilt"
 node art/tools/suit_clip_check.mjs /tmp/suits assets/models/suits /tmp/suits/suits_info.json --mutate 2>&1 | tee $O/suits/clip_gates.txt
-step "merge fallback"
-node art/tools/suit_clip_merge.mjs /tmp/suits assets/models/suits /tmp/merged 2>&1 | tee $O/suits/merge.txt
-cp /tmp/merged/*.glb $O/models/merged/ 2>/dev/null
-node art/tools/suit_clip_check.mjs /tmp/merged assets/models/suits /tmp/suits/suits_info.json 2>&1 | tee $O/suits/clip_gates_merged.txt
 step "shots"
 cp /tmp/suits/*.glb assets/models/suits/
 node art/tools/suitanim_shoot.mjs /tmp/ashots /tmp/suits/suits_info.json 2>&1 | tee $O/suits/shots.txt | grep -v " ok$" || true

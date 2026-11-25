@@ -25,6 +25,7 @@ for (const id of IDS) {
     [`${id}_strip_run_front`, `id=${id}&view=strip&clip=run&yaw=0&floorline=${fl}&ts=${ts(8, s.run_s)}`, 1600, 420],
     [`${id}_strip_hit`, `id=${id}&view=strip&clip=hit&yaw=60&floorline=${fl}&ts=0,0.033,0.067,0.1,0.15,0.2,0.25,${s.hit_s.toFixed(3)}`, 1600, 420],
     [`${id}_strip_death`, `id=${id}&view=strip&clip=death&yaw=90&dist=7&floorline=${fl}&ts=${ts(10, s.death_s, true)}`, 2400, 420],
+    [`${id}_strip_play_run`, `id=${id}&view=strip&clip=run&yaw=20&pitch=40&dist=10.5&move=${s.run_v}&ts=${ts(8, s.run_s)}`, 1920, 1080],
     [`${id}_play_run`, `id=${id}&view=play&yaw=20&clip=run&t=${(s.run_s * 0.3).toFixed(3)}`, 1920, 1080],
     [`${id}_play_hit`, `id=${id}&view=play&yaw=20&clip=hit&t=0.08`, 1920, 1080],
     [`${id}_play_death`, `id=${id}&view=play&yaw=20&clip=death&t=${s.death_s.toFixed(3)}`, 1920, 1080]);

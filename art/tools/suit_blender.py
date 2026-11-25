@@ -84,8 +84,10 @@ RUN = {
     # stance leg, feet tucked up under the robe in swing and swung forward from toe-off. Cause of the dip (runs 1-2: -122 / -76 mm): the robe's
     # front hem is weighted to the shins, so a shin pitched back behind the body (foot trailing low after toe-off) pulls the hem down and back.
     # Light estimate on the approved dao GLB (/home/claude/suitanim/robesim.py, 10-13 mm optimistic vs runs 1-2): robe 25-34 mm above the floor.
-    'dao': dict(tier='High', cad=6.0, duty=0.22, lean=0.1, bob=0.0, swing=(22, 22), elbow=(50, 50), kick=0.8, width=1.0, twist=4, out=0.3, head=0.03, sway=0.006,
-                m0k=-0.3, kreach=0.99, theta=20.0),
+    # robe round (calm binding): the robe no longer follows the shins, so the high heel tuck that kept it off the floor is not needed;
+    # kick 0.8 -> 0.4, m0k -0.3 -> 0.3 (feet stay under the robe; estimate: robe 45 mm above the floor, hem swing 0.151 m)
+    'dao': dict(tier='High', cad=6.0, duty=0.22, lean=0.1, bob=0.0, swing=(22, 22), elbow=(50, 50), kick=0.4, width=1.0, twist=4, out=0.3, head=0.03, sway=0.006,
+                m0k=0.3, kreach=0.99, theta=20.0),
     # 法 廷尉: rigid, upright, mechanical; sword held point-forward, short swing
     'fa': dict(tier='High', cad=3.6, duty=0.27, lean=0.06, bob=0.025, swing=(8, 30), elbow=(40, 85), kick=0.4, width=0.5, twist=3, out=0.18, head=0.0, sway=0.008),
     # 墨 墨守: heavy and stocky, short quick steps, low and forward, crossbow kept at the hip, wide track
@@ -118,6 +120,11 @@ DEATH = {'ru': dict(fall='back', s=1.0), 'dao': dict(fall='back', s=0.95), 'fa':
          'nong': dict(fall='front', s=1.1)}
 # Death key times at 1.0 s (recoil, buckle, impact, settle) and the gap kept above the floor once lying, m.
 DEATH_T, LIE_GAP = (0.12, 0.42, 0.72, 0.85), 0.002
+# Calm robe binding (owner 25 Nov "rebind robes calmer": dao, za, zh; meshes unchanged, only the robe's skin weights): after bone heat,
+# each robe vertex's shin weight moves to the thigh of the same side, mix = share of the leg weight spread evenly over both thighs (the
+# scissor cancels out), K = share of the leg weight kept (the rest goes to the hips). Estimate on the approved GLBs
+# (/home/claude/suitanim/robecalm.py): hem swing per run cycle dao 0.413 -> 0.151 m, za 0.454 -> 0.210 m, zh 0.538 -> 0.220 m.
+ROBE_CALM = {'dao': (0.2, 0.7), 'za': (0.4, 0.5), 'zh': (0.4, 0.5)}
 # Armour tier per school (index.html kits) for HIT_K.
 ARMOUR = {'ru': 'High', 'dao': 'Low', 'fa': 'Mid', 'mo': 'High', 'yy': 'Low', 'za': 'Mid', 'ming': 'Low', 'zh': 'Mid', 'nong': 'High'}
 
@@ -1101,12 +1108,28 @@ def heat_weights(ob, arm, allow):
     ob.parent = None
     return ok
 
+def calm_weights(ob, K, mix):
+    """robe round: stiffer robe binding on one robe part (see ROBE_CALM); only weights change, never positions."""
+    g = {vg.index: vg.name for vg in ob.vertex_groups}
+    for n in ('hips', 'thigh.R', 'thigh.L'):
+        if n not in ob.vertex_groups: ob.vertex_groups.new(name=n)
+    for v in ob.data.vertices:
+        w = {}
+        for e in v.groups: w[g[e.group]] = w.get(g[e.group], 0.0) + e.weight
+        tot = sum(w.values()) or 1.0
+        tR = (w.get('thigh.R', 0) + w.get('shin.R', 0)) / tot; tL = (w.get('thigh.L', 0) + w.get('shin.L', 0)) / tot; legs = tR + tL
+        tR, tL = ((1 - mix) * tR + mix * legs / 2) * K, ((1 - mix) * tL + mix * legs / 2) * K
+        for e in list(v.groups): ob.vertex_groups[g[e.group]].remove([v.index])
+        for n, x in (('hips', 1 - tR - tL), ('thigh.R', tR), ('thigh.L', tL)):
+            if x > 1e-6: ob.vertex_groups[n].add([v.index], x, 'REPLACE')
+
 def finish_lod0(sid, S, arm):
     heat_fail = []
     for P_ in PARTS:
         ob = P_['ob']; ob.data.materials.append(material(P_['mat'] if P_['mat'] != 'sCloth' else f'sCloth_{sid}', S))
         if P_['kind'] == 'cloth':
             if not heat_weights(ob, arm, P_['allow']): heat_fail.append(ob.name)
+            if sid in ROBE_CALM and ob.name in ('robe', 'robe_in'): calm_weights(ob, *ROBE_CALM[sid])
         else:
             vg = ob.vertex_groups.new(name=P_['bone']); vg.add(list(range(len(ob.data.vertices))), 1.0, 'REPLACE')
     bpy.ops.object.select_all(action='DESELECT')

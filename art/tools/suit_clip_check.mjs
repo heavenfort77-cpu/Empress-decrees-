@@ -44,6 +44,13 @@ const CFG = {
   wTol: 0.01,
   // New clips start at t = 0 (tolerance s).
   t0Tol: 1e-6,
+  // Robe round (owner 25 Nov "rebind robes calmer"): suits whose robe skin weights may change (nothing else may).
+  calm: ['dao', 'za', 'zh'],
+  // Robe flare: max horizontal swing of the lower-garment hem per run cycle vs the rest pose, m. Threshold = the calmest current suit before
+  // the robe round (64b7bd5, same measure): fa 0.379 (ru 0.541, dao 0.413, yy 0.690, za 0.454, zh 0.538; mo, ming, nong have no skinned hem).
+  flareMax: 0.379,
+  // Hem band: garment vertices (>= 2 influences of at least 0.02, all of hips/thigh/shin) within this height of the garment's lowest, m.
+  hemBand: 0.06,
 };
 
 const ROOT = new URL('../..', import.meta.url).pathname;
@@ -153,13 +160,22 @@ async function gates(sid, g, old, info, opt = {}) {
     gate(`${cn}_identical`, ok && diff === 0, `${a ? a.channels.length : 0} channels, ${diff} differ from the approved GLB`);
   }
   // 3. meshes byte-identical (positions, normals, UVs, joints, weights, indices) and the skin (joint names, inverse binds)
-  let md = 0, mc = 0;
+  let md = 0, mc = 0, wch = 0, wout = 0;
+  const jn = old.json.skins[0].joints.map((j) => old.json.nodes[j].name), legB = (n) => n === 'hips' || /^(thigh|shin)\./.test(n);
   for (const m of g.json.meshes) { const o = old.json.meshes.find((x) => x.name === m.name); if (!o || o.primitives.length !== m.primitives.length) { md++; continue; }
-    m.primitives.forEach((p, k) => { const q = o.primitives[k]; for (const [an, ai] of [...Object.entries(p.attributes), ['indices', p.indices]]) { mc++;
-      const qi = an === 'indices' ? q.indices : q.attributes[an]; if (qi === undefined || !eqBytes(accBytes(g, ai), accBytes(old, qi))) md++; } }); }
+    m.primitives.forEach((p, k) => { const q = o.primitives[k];
+      for (const [an, ai] of [...Object.entries(p.attributes), ['indices', p.indices]]) { if (an === 'JOINTS_0' || an === 'WEIGHTS_0') continue; mc++;
+        const qi = an === 'indices' ? q.indices : q.attributes[an]; if (qi === undefined || !eqBytes(accBytes(g, ai), accBytes(old, qi))) md++; }
+      // skin weights: identical, except robe vertices of the calm suits (cloth material, every approved influence on hips/thigh/shin)
+      const J1 = accF(g, p.attributes.JOINTS_0), W1 = accF(g, p.attributes.WEIGHTS_0), J0 = accF(old, q.attributes.JOINTS_0), W0 = accF(old, q.attributes.WEIGHTS_0);
+      const cloth = old.json.materials[q.material].name.startsWith('sCloth');
+      if (J1.length !== J0.length) { md++; return; }
+      for (let i = 0; i < J0.length; i += 4) { let same = true; for (let c = 0; c < 4; c++) if (J1[i + c] !== J0[i + c] || W1[i + c] !== W0[i + c]) same = false;
+        if (same) continue; wch++; let robe = cloth && CFG.calm.includes(sid); for (let c = 0; c < 4; c++) if (W0[i + c] > 0 && !legB(jn[J0[i + c]])) robe = false; if (!robe) wout++; } }); }
   const sj = (x) => x.json.skins[0].joints.map((j) => x.json.nodes[j].name).join(',');
   const ibm = eqBytes(accBytes(g, g.json.skins[0].inverseBindMatrices), accBytes(old, old.json.skins[0].inverseBindMatrices));
-  gate('mesh_identical', md === 0 && sj(g) === sj(old) && ibm, `${mc} accessors, ${md} differ; joints ${sj(g) === sj(old) ? 'same' : 'DIFFER'}; inverse binds ${ibm ? 'same' : 'DIFFER'}`);
+  gate('mesh_identical', md === 0 && sj(g) === sj(old) && ibm, `${mc} accessors (positions, normals, UVs, indices), ${md} differ; joints ${sj(g) === sj(old) ? 'same' : 'DIFFER'}; inverse binds ${ibm ? 'same' : 'DIFFER'}`);
+  gate('weights_scope', wout === 0, `${wch} vertices with changed skin weights, ${wout} outside the robe of a calm suit (${CFG.calm.includes(sid) ? 'calm suit' : 'no change allowed'})`);
   // 4. budgets and weights (from the GLB)
   for (const m of g.json.meshes) { const L = +/_lod(\d)/.exec(m.name)[1]; const tri = m.primitives.reduce((s, p) => s + g.json.accessors[p.indices].count / 3, 0);
     const [lo, hi] = CFG.budget[L]; gate(`lod${L}_tris`, tri >= lo && tri <= hi, `${tri} (budget ${lo}-${hi})`); }
@@ -215,6 +231,14 @@ async function gates(sid, g, old, info, opt = {}) {
     }
     const flight = con2flight(run, F);
     G.push([true, `${sid} run_info: ${flight} flight frames (both feet off) of ${N}; floor ref F = ${(F * 1000).toFixed(1)} mm`]);
+    // robe flare: lower-garment hem (rule in CFG) horizontal swing vs the rest pose (idle frame 0), max over the cycle, LOD0
+    { let ex = 0, nh = 0;
+      run.meshes.forEach((m, mi) => { const si = m.geometry.attributes.skinIndex, sw = m.geometry.attributes.skinWeight, R0 = idle.frames[0].l0[mi]; const gv = [];
+        for (let i = 0; i < si.count; i++) { let lw = 0, n = 0; for (let c = 0; c < 4; c++) { const w = sw.getComponent(i, c); if (w < 0.02) continue; n++; if (/^(hips|thigh|shin)/.test(m.skeleton.bones[si.getComponent(i, c)].name)) lw += w; } if (n >= 2 && lw >= 0.98) gv.push(i); }
+        if (!gv.length) return; let y0 = 1e9; gv.forEach((i) => { y0 = Math.min(y0, R0[i * 3 + 1]); }); const hem = gv.filter((i) => R0[i * 3 + 1] <= y0 + CFG.hemBand); nh += hem.length;
+        for (const f of fr) { const P = f.l0[mi]; hem.forEach((i) => { ex = Math.max(ex, Math.hypot(P[i * 3] - R0[i * 3], P[i * 3 + 2] - R0[i * 3 + 2])); }); } });
+      if (CFG.calm.includes(sid)) gate('robe_flare', nh > 0 && ex <= CFG.flareMax, `hem swing ${ex.toFixed(3)} m per cycle (${nh} hem vertices; max ${CFG.flareMax}, calmest suit before the robe round)`);
+      else G.push([true, `${sid} robe_info: hem swing ${nh ? ex.toFixed(3) + ' m' : 'no skinned hem'} (not gated)`]); }
     const dmin = Math.min(...fr.map((f) => f.ymin)); gate('run_floor', dmin >= F - CFG.dipMax, `lowest vertex ${((dmin - F) * 1000).toFixed(1)} mm vs floor ref, all LODs, all frames`);
   }
   // 7. hit: length, back to idle frame 0, feet planted, floor
@@ -259,20 +283,28 @@ const MUTS = [
   ['mesh_identical', 'one vertex moved', (g) => { const p = g.json.meshes[0].primitives[0]; accSet(g, p.attributes.POSITION, 0, 0.123); return g; }],
   // round 3: the chest is keyed every frame (spine was a 2-key constant: the mutant wrote past it and was missed)
   ['run_keys', 'one run key sign-flipped', (g) => { const s = chanOf(g, 'run', 'chest', 'rotation'); const q = accF(g, s.output); for (let c = 0; c < 4; c++) accSet(g, s.output, 8 + c, -q[8 + c]); return g; }],
+  ['weights_scope', 'one non-robe weight changed (sum kept)', (g) => { const p = g.json.meshes[0].primitives.find((q) => !g.json.materials[q.material].name.startsWith('sCloth'));
+    accSet(g, p.attributes.WEIGHTS_0, 0, 0.6); accSet(g, p.attributes.WEIGHTS_0, 1, 0.4); return g; }],
+  ['robe_flare', 'dao robe weights put back to the approved (pre-calm) binding', (g, old) => { for (const m of g.json.meshes) { const o = old.json.meshes.find((x) => x.name === m.name);
+    m.primitives.forEach((p, k) => { for (const a of ['JOINTS_0', 'WEIGHTS_0']) { const src = accBytes(old, o.primitives[k].attributes[a]); const ac = g.json.accessors[p.attributes[a]], bv = g.json.bufferViews[ac.bufferView];
+      g.bin.set(src, (bv.byteOffset || 0) + (ac.byteOffset || 0)); } }); } return g; }, {}, 'dao'],
   ['hit_length', 'hit stretched to 0.5 s', (g) => { const a = anim(g, 'hit'); const seen = new Set(); for (const s of a.samplers) { if (seen.has(s.input)) continue; seen.add(s.input); const t = accF(g, s.input); t.forEach((x, k) => accSet(g, s.input, k, x * 0.5 / 0.3)); g.json.accessors[s.input].max = [t[t.length - 1] * 0.5 / 0.3]; } return g; }],
 ];
 
-let all = []; const mres = [];
+let all = []; const mres = []; const DATA = {};
 for (const sid of IDS) {
   const info = INFO.find((s) => s.id === sid);
   const g = parseGLB(new Uint8Array(await readFile(join(NEW, `${sid}.glb`)))), old = parseGLB(new Uint8Array(await readFile(join(OLD, `${sid}.glb`))));
+  DATA[sid] = { g, old, info };
   const { G } = await gates(sid, g, old, info);
   for (const [ok, l] of G) console.log((ok ? 'PASS ' : 'FAIL ') + l);
   all = all.concat(G.filter(([ok, l]) => !l.includes('_info:')));
-  if (MUT && sid === IDS[0]) for (const [name, what, fn, opt] of MUTS) {
-    let caught; try { const r = await gates(sid, fn(clone(g)), old, info, opt); caught = r.R[name] === false; } catch (e) { caught = true; }
-    mres.push(caught); console.log(`MUT ${caught ? 'caught' : 'MISSED'} ${sid} ${name}: ${what}`);
-  }
+}
+// each mutation runs on its named suit (robe ones on dao) or the first suit; the named gate must fail
+if (MUT) for (const [name, what, fn, opt, want] of MUTS) {
+  const sid = want && DATA[want] ? want : IDS[0]; const { g, old, info } = DATA[sid];
+  let caught; try { const r = await gates(sid, fn(clone(g), old), old, info, opt); caught = r.R[name] === false; } catch (e) { caught = true; }
+  mres.push(caught); console.log(`MUT ${caught ? 'caught' : 'MISSED'} ${sid} ${name}: ${what}`);
 }
 const nf = all.filter(([ok]) => !ok).length;
 console.log(`${all.length - nf} of ${all.length} pass`);
