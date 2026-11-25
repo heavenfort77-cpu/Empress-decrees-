@@ -257,7 +257,8 @@ const MUTS = [
   ['hit_returns', 'hit last key of the chest moved', (g) => { const s = chanOf(g, 'hit', 'chest', 'rotation'); const n = g.json.accessors[s.output].count; accSet(g, s.output, (n - 1) * 4, 0.3); return g; }],
   ['weights', 'one weight scaled', (g) => { const p = g.json.meshes[0].primitives[0]; accSet(g, p.attributes.WEIGHTS_0, 0, 0.5); return g; }],
   ['mesh_identical', 'one vertex moved', (g) => { const p = g.json.meshes[0].primitives[0]; accSet(g, p.attributes.POSITION, 0, 0.123); return g; }],
-  ['run_keys', 'one run key sign-flipped', (g) => { const s = chanOf(g, 'run', 'chest', 'rotation');   // round 3: chest is keyed every frame (spine was a 2-key constant: the mutant wrote past it and was missed) const q = accF(g, s.output); for (let c = 0; c < 4; c++) accSet(g, s.output, 8 + c, -q[8 + c]); return g; }],
+  // round 3: the chest is keyed every frame (spine was a 2-key constant: the mutant wrote past it and was missed)
+  ['run_keys', 'one run key sign-flipped', (g) => { const s = chanOf(g, 'run', 'chest', 'rotation'); const q = accF(g, s.output); for (let c = 0; c < 4; c++) accSet(g, s.output, 8 + c, -q[8 + c]); return g; }],
   ['hit_length', 'hit stretched to 0.5 s', (g) => { const a = anim(g, 'hit'); const seen = new Set(); for (const s of a.samplers) { if (seen.has(s.input)) continue; seen.add(s.input); const t = accF(g, s.input); t.forEach((x, k) => accSet(g, s.input, k, x * 0.5 / 0.3)); g.json.accessors[s.input].max = [t[t.length - 1] * 0.5 / 0.3]; } return g; }],
 ];
 

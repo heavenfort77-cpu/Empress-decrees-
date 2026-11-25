@@ -74,12 +74,18 @@ SPEED = {'Low': 5.6, 'Mid': 6.0, 'High': 6.4}
 # lean = spine/chest forward lean (forward per unit up); bob = extra hip drop at mid-stance, m; swing = arm swing deg (right, left;
 # None keeps the carry pose of that arm); elbow = elbow bend deg (right, left); kick = heel lift in swing, m; width = foot track as a
 # share of the rest stance; twist = chest counter-turn deg; out = arm spread; head = head pitch forward; sway = hip side shift, m.
+# Optional per school: m0k = swing start speed as a share of the ground speed (1 = the foot leaves at ground speed, below 0 = it swings
+# forward at once); kreach = stance stretch (default K_REACH); theta = heel rise deg (default THETA_MAX); ahead = landing share (default AHEAD).
 RUN = {
     # 儒 君子: upright and measured, sword arm steady, bow arm swings
     'ru': dict(tier='Mid', cad=3.5, duty=0.28, lean=0.08, bob=0.03, swing=(14, 26), elbow=(60, 75), kick=0.36, width=0.6, twist=5, out=0.22, head=0.02, sway=0.012),
     # 道 真人: light and long, the most flight, loose open arms in the sleeves
-    # round 2: quick bounding steps with a short contact (round 1: cad 3.4, duty 0.26 dropped the hips 0.17 m and the robe hem went 12 cm under the floor)
-    'dao': dict(tier='High', cad=4.0, duty=0.19, lean=0.14, bob=0.02, swing=(38, 38), elbow=(55, 55), kick=0.3, width=0.45, twist=7, out=0.3, head=0.04, sway=0.01),
+    # round 3 (owner 25 Nov: "shorter, gliding stride", robe weights unchanged): short quick steps (1.07 m at 6.4 m/s), no bob, nearly straight
+    # stance leg, feet tucked up under the robe in swing and swung forward from toe-off. Cause of the dip (runs 1-2: -122 / -76 mm): the robe's
+    # front hem is weighted to the shins, so a shin pitched back behind the body (foot trailing low after toe-off) pulls the hem down and back.
+    # Light estimate on the approved dao GLB (/home/claude/suitanim/robesim.py, 10-13 mm optimistic vs runs 1-2): robe 25-34 mm above the floor.
+    'dao': dict(tier='High', cad=6.0, duty=0.22, lean=0.1, bob=0.0, swing=(22, 22), elbow=(50, 50), kick=0.8, width=1.0, twist=4, out=0.3, head=0.03, sway=0.006,
+                m0k=-0.3, kreach=0.99, theta=20.0),
     # 法 廷尉: rigid, upright, mechanical; sword held point-forward, short swing
     'fa': dict(tier='High', cad=3.6, duty=0.27, lean=0.06, bob=0.025, swing=(8, 30), elbow=(40, 85), kick=0.4, width=0.5, twist=3, out=0.18, head=0.0, sway=0.008),
     # 墨 墨守: heavy and stocky, short quick steps, low and forward, crossbow kept at the hip, wide track
@@ -856,24 +862,25 @@ class Legs:
 def run_clip(arm, b, sid, legs):
     R_ = RUN[sid]; v = SPEED[R_['tier']]
     N = int(round(2 * FPS / R_['cad'])); T = N / FPS; tc = R_['duty'] * T; tsw = T - tc; Lc = v * tc
+    THM, AHD, KRE, M0K = R_.get('theta', THETA_MAX), R_.get('ahead', AHEAD), R_.get('kreach', K_REACH), R_.get('m0k', 1.0)
     def stance(L, tau):
-        th = THETA_MAX * smooth((tau / tc - HEEL0) / (1 - HEEL0))
+        th = THM * smooth((tau / tc - HEEL0) / (1 - HEEL0))
         a, (pf, pz), off = [r for r in L['roll'] if r[0] <= th + 1e-9][-1]; f0, z0 = L['roll'][0][1]
         q = rotfz(Vector((0, pf, pz)), th)                   # active hull pivot, turned with the foot
-        cf = Lc * AHEAD - v * tau + f0 + off                 # its floor spot (moves back at ground speed: fixed on the floor)
+        cf = Lc * AHD - v * tau + f0 + off                 # its floor spot (moves back at ground speed: fixed on the floor)
         return Vector((L['ank'].x * R_['width'], cf - q.y, L['ank'].z + z0 - q.z)), rotfz(L['fd'], th)
     def foot(L, tau):
         if tau <= tc: return stance(L, tau) + (True,)
         s = (tau - tc) / tsw; A0, F0 = stance(L, tc); A1, F1 = stance(L, 0)
         # heel lift: eases up off the toe (squared sine) and comes down onto the floor with some speed (plain sine), so the frame before
         # touchdown is clear of the floor instead of skimming it
-        g = math.sin(math.pi * s ** 0.8); A = Vector((A0.x, herm(A0.y, A1.y, -v * tsw, -v * tsw, s), herm(A0.z, A1.z, 0, 0, s) + R_['kick'] * (g * g * (1 - s) + g * s)))
-        return A, rotfz(L['fd'], THETA_MAX * (1 - smooth(s))), False
+        g = math.sin(math.pi * s ** 0.8); A = Vector((A0.x, herm(A0.y, A1.y, -v * tsw * M0K, -v * tsw, s), herm(A0.z, A1.z, 0, 0, s) + R_['kick'] * (g * g * (1 - s) + g * s)))
+        return A, rotfz(L['fd'], THM * (1 - smooth(s))), False
     bump = lambda t: 0.5 * (1 + math.cos(2 * math.pi * (t - tc / 2) / (T / 2)))
     # base hip drop solved so the stance leg never stretches past K_REACH of thigh + shin
     drop = 0.02
     for side, ph in (('R', 0.0), ('L', T / 2)):
-        L = legs.L[side]; C = (L['Lt'] + L['Ls']) * K_REACH
+        L = legs.L[side]; C = (L['Lt'] + L['Ls']) * KRE
         for i in range(41):
             tau = tc * i / 40; A, _ = stance(L, tau); t = (tau + ph) % T
             dx, df = A.x - L['hip'].x, A.y - L['hip'].y; room = C * C - dx * dx - df * df
@@ -983,24 +990,29 @@ def death_clip(arm, sid, legs, lods, floor):
     else:
         K2 = full_key(arm, planted(dict(buckle), legs, D0(buckle['hips'])))
     K4 = lying(dict(settle)); K3 = lying(dict(impact))
-    snaps, lifted = [], 0.0
+    # round 3: the lying contact height differs from the knee-pivot height (mo's thick body and domes: the floor solve lifted 0.343 m in one
+    # step, run 45518008969); the pivot phase eases that difference in so the fall meets the lying pose without a jump
+    corr = (Vector(K3['hips']) - Vector(pivot_hips(K3, knees, legs))) if front else Vector((0, 0, 0))
+    snaps, lifted, lift_f = [], 0.0, -1
     for f in range(N + 1):
         t = f / FPS
         if t <= tr: pose = blend(K0, K1, 1 - (1 - t / tr) ** 2)
         elif t <= tb: pose = blend(K1, K2, smooth((t - tr) / (tb - tr)))
         elif t <= ti:
             u = (t - tb) / (ti - tb); pose = blend(K2, K3, u * u)                     # falling: accelerates
-            if front: pose['hips'] = pivot_hips(pose, knees, legs)                    # over the knees, which stay on the floor
+            if front: pose['hips'] = tuple(Vector(pivot_hips(pose, knees, legs)) + corr * (u * u))   # over the knees, which stay on the floor
         elif t <= ts: pose = blend(K3, K4, smooth((t - ti) / (ts - ti)))
         else: pose = dict(K4)
         if t <= (tr if front else tb): pose = planted(pose, legs, D0(pose['hips']))  # feet stay put until the legs give
         apply_pose(arm, pose)
         lo = lowest(lods)
         if t > ti: lift_hips(arm, floor + LIE_GAP - lo)                              # lying: exactly on the floor
-        elif lo < floor: lift_hips(arm, floor - lo + 0.0005); lifted = max(lifted, floor - lo)   # never through it
+        elif lo < floor:                                                             # never through it
+            lift_hips(arm, floor - lo + 0.0005)
+            if floor - lo > lifted: lifted, lift_f = floor - lo, f
         snaps.append(snap(arm))
     keyed_clip(arm, 'death', snaps)
-    return dict(death_s=N / FPS, death_fall=Dd['fall'], death_lift_max=round(lifted, 3))
+    return dict(death_s=N / FPS, death_fall=Dd['fall'], death_lift_max=round(lifted, 3), death_lift_frame=lift_f)
 
 def pivot_hips(p, knees, legs):
     """hip joint offset that keeps both knees where they are for the pose's thigh directions (front fall over the knees)."""
@@ -1231,7 +1243,7 @@ def build_suit(sid):
          f'{heads:.2f} heads tall (crown {b.zcrown:.2f} m, head {b.zcrown - b.zchin:.2f} m; band {HEADS_BAND}); mutation round-3 body {h3:.2f} heads caught')
     gate(clamped == 0, f"run stance legs within reach every frame ({clamped} stance frames clamped); hip drop {mv['run_drop']} m, lowest hip {mv['run_hip_min']} m, "
                        f"cycle {mv['run_s']} s ({mv['run_frames']} frames, {mv['run_cad']} steps/s, step {mv['run_step']} m) at {mv['run_v']} m/s")
-    gate(mv['death_lift_max'] < 0.25, f"death floor solve: largest lift {mv['death_lift_max']} m (fall {mv['death_fall']}, {mv['death_s']:.2f} s); floor ref {mv['floor_y']} m (rest sole)")
+    gate(mv['death_lift_max'] < 0.25, f"death floor solve: largest lift {mv['death_lift_max']} m at frame {mv['death_lift_frame']} (fall {mv['death_fall']}, {mv['death_s']:.2f} s); floor ref {mv['floor_y']} m (rest sole)")
     dmin = min([k for _, k in DENS], default=1.0); low = sorted(DENS, key=lambda d: d[1])[:4]
     gate(dmin >= 0.8, f'texel density min {dmin:.2f} of 256 px/m (min 0.8; {len(DENS)} parts squeezed; lowest {[(n, round(k, 2)) for n, k in low]})')
     # export: three LODs on one rig

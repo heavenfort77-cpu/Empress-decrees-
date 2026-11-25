@@ -53,4 +53,6 @@ jobs:
           git fetch -q origin ci-out && git checkout -q -B ci-out origin/ci-out
           mkdir -p $D && cp -r /tmp/o/. $D/
           git add out && git commit -qm "art $B ${GITHUB_RUN_ID}" || true
-          for k in 1 2 3 4 5 6; do git push -q origin ci-out && break; sleep $((RANDOM % 8 + 2)); git pull -q --rebase origin ci-out; done
+          # SUITANIM round 3: backoff (run 45518008969 lost its results to 6 quick GitHub 500s), then a fallback branch of its own
+          ok=0; for k in 1 2 3 4 5 6 7 8 9 10; do if git push -q origin ci-out; then ok=1; break; fi; s=$(( (k < 6 ? 2 ** k : 60) + RANDOM % 10 )); echo "ci-out push failed (try $k), retry in $s s"; sleep $s; git pull -q --rebase origin ci-out; done
+          if [ $ok = 0 ]; then for k in 1 2 3 4 5; do git push -q origin HEAD:refs/heads/ci-out-$B-${GITHUB_RUN_ID} && { echo "results on branch ci-out-$B-${GITHUB_RUN_ID}"; break; }; sleep $((20 * k)); done; fi
