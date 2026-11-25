@@ -15,6 +15,8 @@ EYE_BAND = {'zu': (0.585, 0.1, 0.4), 'g00': (0.4, 0.3, 0.45)}
 ASPECT = {'zu': 0.5, 'g00': 0.65}
 # How far the backing sits behind the shell, height units (also the wall depth of every cut edge and the outline).
 DEPTH = {'zu': 0.09, 'g00': 0.14}
+# Eyeball bulge of the backing behind the eye slits, height units at the eye centre (round 3: the eyes must show from the play camera).
+BULGE = {'zu': 0.075, 'g00': 0.12}
 # Backing margin beyond each cut, t units (so the wall always lands on the backing).
 BACK_MARGIN = {'zu': 0.03, 'g00': 0.03}
 
@@ -34,11 +36,14 @@ def tri_wave(x, period): return abs((x / period) % 2 - 1) * 2 - 1
 def zu_eye_t(a): return 0.585 + 0.09 * (a - 0.36)
 
 
+def zu_eye_r(s, t): a = abs(s); return math.hypot((a - 0.37) / 0.19, (t - zu_eye_t(a)) / 0.08)
+
+
 def zu_holes(s, t):
     """signed field of the cuts only (negative inside a cut): two almond eye slits (inner end pressed down by the brow)."""
     a = abs(s); A = ASPECT['zu']
     u, v = (a - 0.37) * A, t - zu_eye_t(a)
-    hh = 0.06 * (1 - 0.45 * clamp(abs(a - 0.37) / 0.19)) * (1 - 0.25 * (a < 0.37))
+    hh = 0.075 * (1 - 0.45 * clamp(abs(a - 0.37) / 0.19)) * (1 - 0.2 * (a < 0.37))
     return (math.hypot(u / (0.19 * A), v / hh) - 1) * hh
 
 
@@ -53,7 +58,7 @@ def zu_field(s, t):
 def zu_height(s, t):
     a = abs(s); d = 0.0
     d += 0.06 * (1 - sstep(0.75, 0.98, t)) * sstep(0.68, 0.8, t) * (1 - sstep(0.6, 0.95, a))         # forehead, set back under the rim
-    d += 0.15 * tent(seg_dist(a, t, 0.05, 0.685, 0.62, 0.775) / 0.06)                                   # angry brows, inner ends low
+    d += 0.11 * tent(seg_dist(a, t, 0.05, 0.69, 0.62, 0.78) / 0.055)                                    # angry brows, inner ends low
     d -= 0.04 * tent(s / 0.025) * sstep(0.66, 0.7, t) * (1 - sstep(0.76, 0.82, t))                    # frown crease between them
     r = math.hypot((a - 0.37) / 0.24, (t - zu_eye_t(a)) / 0.11)
     d -= 0.07 * (1 - sstep(0.5, 1.0, r))                                                                  # eye sockets
@@ -78,10 +83,13 @@ def g_eye_t(a): return 0.57 + 0.12 * (a - 0.37)
 def g_mouth_t(a): return 0.15 + 0.06 * a * a
 
 
+def g00_eye_r(s, t): a = abs(s); return math.hypot((a - 0.38) / 0.21, (t - g_eye_t(a)) / 0.1)
+
+
 def g00_holes(s, t):
     a = abs(s); A = ASPECT['g00']
     u, v = (a - 0.38) * A, t - g_eye_t(a)
-    hh = 0.075 * (1 - 0.4 * clamp(abs(a - 0.38) / 0.2))
+    hh = 0.09 * (1 - 0.4 * clamp(abs(a - 0.38) / 0.2))
     eye = (math.hypot(u / (0.21 * A), v / hh) - 1) * hh
     mouth = 1.0
     if a < 0.52:
@@ -102,7 +110,7 @@ def g00_field(s, t):
 
 def g00_height(s, t):
     a = abs(s); d = 0.0
-    d += 0.28 * tent(seg_dist(a, t, 0.05, 0.69, 0.72, 0.8) / 0.075)                                      # furrowed V brows
+    d += 0.2 * tent(seg_dist(a, t, 0.05, 0.71, 0.72, 0.82) / 0.07)                                        # furrowed V brows
     d += 0.05 * tent(seg_dist(a, t, 0.1, 0.8, 0.6, 0.88) / 0.04)                                           # second furrow above
     d += 0.14 * tent(s / 0.06) * sstep(0.74, 0.8, t)                                                        # forehead flange up to the rim
     r = math.hypot((a - 0.38) / 0.26, (t - g_eye_t(a)) / 0.13)
@@ -117,6 +125,14 @@ def g00_height(s, t):
 
 
 SHAPES = {'zu': (zu_height, zu_field, zu_holes), 'g00': (g00_height, g00_field, g00_holes)}
+EYE_R = {'zu': zu_eye_r, 'g00': g00_eye_r}
+# Eye probe (s, t) per group: the eyeball centre.
+EYE_C = {'zu': (0.37, 0.585), 'g00': (0.38, 0.57)}
+
+
+def bulge(group, s, t):
+    """backing relief: the eyeball under each eye slit, domed toward the slit."""
+    r = EYE_R[group](s, t); return BULGE[group] * max(0.0, 1 - r * r)
 
 
 def axes(group, k=1.0):

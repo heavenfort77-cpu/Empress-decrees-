@@ -4,8 +4,8 @@
 #       signed field (outline, eye slits, mouth), walls down every cut edge to a backing set deep behind the cuts, and a rim (the hood or
 #       crown edge) standing proud over the top and sides so the mask sits back under it. No new material: guard lacquer mask on the bronze
 #       hood with bronze behind the cuts; giant high-tin (pale) mask on the gold body with dark bronze behind the cuts.
-#   T = giant only: the same mask in high-tin bronze (pale) with dark bronze behind the cuts, no new material; M on the giant is black
-#       lacquer (the guards' gdLacquer material, +1 draw call per giant) with pale tin behind the cuts. Built side by side so the owner
+#   T = giant only: the same mask in high-tin bronze (pale) with dark bronze behind the cuts, no new material; M on the giant is glossy
+#       black lacquer (new palLacquer material on the fodder_trim lacquer band, +1 draw call per giant) with pale tin behind the cuts. Built side by side so the owner
 #       gets the measured play-size contrast of each for the draw-call trade.
 #   0 = the current face, built through the same path for the comparison column.
 # The real builders run unchanged except for their face function (read-only references): the guard (art/tools/guard_build.py head() on
@@ -126,7 +126,7 @@ def build_mask(A, head, group, M, bone):
     mg = K.BACK_MARGIN[group]
     st2, tris2, _ = march(U, T, lambda s, t: mg - holes(s, t))
     if tris2:
-        P2 = [head.point(s, t, lambda a, b: hgt(a, b) - depth) for s, t in st2]
+        P2 = [head.point(s, t, lambda a, b: hgt(a, b) - depth + K.bulge(group, a, b)) for s, t in st2]
         A.emit(f'fc_back_{group}', P2, tris2, *M['back'], bone)
     # the rim: up one side, along the top, down the other side, standing proud over the mask edge
     S = K.DOMAIN[group][0]; top = K.g_top if group == 'g00' else (lambda a: 1.0)
@@ -150,7 +150,9 @@ def build_mask(A, head, group, M, bone):
 def probes(head, group, to_b, zmap=lambda z: z):
     """rest-pose probe points in glTF space (Blender (x, y, z) -> glTF (x, z, -y)) for the viewer's contrast gate."""
     hgt = K.SHAPES[group][0]
-    for key, p in (('mask', head.point(*PROBE_MASK[group], hgt)), ('helm', PROBE_HELM[group])):
+    es, et = K.EYE_C[group]
+    eye = head.point(es, et, lambda a, b: hgt(a, b) - K.DEPTH[group] + K.bulge(group, a, b))
+    for key, p in (('mask', head.point(*PROBE_MASK[group], hgt)), ('helm', PROBE_HELM[group]), ('eye', eye)):
         v = to_b(*p); STATS['probes'][key] = [round(v.x, 5), round(zmap(v.z), 5), round(-v.y, 5)]
 
 
@@ -230,7 +232,7 @@ def face_giant(g, H, lod):
     def put(name, bm, mat, row, bone): return ns['put'](name, bm, mat, bone, row, True)
     Q = ns['Q']
     A = Adapter(ns['P'], put, lod0=lambda: Q['lod'] == 0, segf=lambda: Q['seg'], outward=ns['P'](0, 1, 0))
-    M = dict(shell=('gdLacquer', 'lacquer'), back=('palTin', 'plain'), rim=('palBronze', 'flange')) if OPT == 'M' else \
+    M = dict(shell=('palLacquer', 'lacquer'), back=('palTin', 'plain'), rim=('palBronze', 'flange')) if OPT == 'M' else \
         dict(shell=('palTin', 'plain'), back=('palBronze', 'inlay'), rim=('palBronze', 'flange'))
     build_mask(A, head, 'g00', M, 'head')
     if lod == 0: probes(head, 'g00', ns['P'], ns['Wz'])

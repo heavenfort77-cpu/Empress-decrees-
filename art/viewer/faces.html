@@ -2,7 +2,7 @@
 <!-- Face masks round 2 sample viewer (FACES worker, owner GO 25 Nov 10:47; art tool, not shipped, sample only). Loads art/faces/glb/<c>_<o>.glb
      (faces_sample.py) with the same lights, camera FOV and 丹 floor as fodder.html / giants.html.
      ?c=zu | g00   &o=0 (current face) | M (round-2 mask)   &view=close (head and shoulders, 3/4) | play (FOV 50, pitch 40, 10.5 m)
-     Contrast probes: the mask cheek and the hood / crown above it (rest-pose points from <c>_M_stats.json, moved with the head bone),
+     Contrast probes: the mask cheek, the hood / crown above it and the eyeball in the slit (rest-pose points from <c>_M_stats.json, moved with the head bone),
      sampled 5 x 5 px after the render; relative luminance and the contrast ratio go to window.__info.probe. -->
 <html><head><meta charset="utf-8"><style>html,body{margin:0;background:#120d16;overflow:hidden}</style>
 <script type="importmap">{"imports":{"three":"../../lib/three.module.min.js"}}</script></head><body>
@@ -32,6 +32,7 @@ const MK = {
   gdLacquer: () => new THREE.MeshStandardMaterial({ map: T('fodder_trim'), metalness: 0.05, roughness: 0.8 }),
   treadBelt: () => new THREE.MeshStandardMaterial({ map: T('tread_belt'), metalness: 0.4, roughness: 0.6 }),
   palBronze: () => new THREE.MeshStandardMaterial({ map: T('bronze_trim_brass'), metalness: 0.4, roughness: 0.6 }),
+  palLacquer: () => new THREE.MeshStandardMaterial({ map: T('fodder_trim'), metalness: 0.1, roughness: 0.35 }),
   palTin: () => new THREE.MeshStandardMaterial({ color: 0xd8cda8, metalness: 0.6, roughness: 0.35 }),
 };
 const made = {};
@@ -83,13 +84,18 @@ new GLTFLoader().load(`../faces/glb/${C}_${O}.glb`, (g) => {
   setTimeout(async () => {
     r.render(scene, cam); const i = r.info.render;
     const probes = await PROBES, gl = r.getContext(), probe = {};
-    if (probes) for (const k of ['mask', 'helm']) {
-      const [sx, sy] = px(probeWorld(probes[k])); const buf = new Uint8Array(4 * 25);
-      gl.readPixels(Math.round(sx) - 2, H - Math.round(sy) - 3, 5, 5, gl.RGBA, gl.UNSIGNED_BYTE, buf);
-      let L = 0; for (let q = 0; q < 25; q++) L += 0.2126 * lin(buf[4 * q]) + 0.7152 * lin(buf[4 * q + 1]) + 0.0722 * lin(buf[4 * q + 2]);
-      probe[k] = { px: [Math.round(sx), Math.round(sy)], L: +(L / 25).toFixed(4) };
+    const lum = (buf, q) => 0.2126 * lin(buf[4 * q]) + 0.7152 * lin(buf[4 * q + 1]) + 0.0722 * lin(buf[4 * q + 2]);
+    if (probes) for (const k of ['mask', 'helm', 'eye']) {
+      if (!probes[k]) continue;
+      // mask and above: 5 x 5 mean; eye: the brightest of 3 x 3 (a slit is 2-4 px at play size)
+      const [sx, sy] = px(probeWorld(probes[k])), n = k === 'eye' ? 3 : 5, buf = new Uint8Array(4 * n * n);
+      gl.readPixels(Math.round(sx) - (n >> 1), H - Math.round(sy) - 1 - (n >> 1), n, n, gl.RGBA, gl.UNSIGNED_BYTE, buf);
+      let L = 0; for (let q = 0; q < n * n; q++) L = k === 'eye' ? Math.max(L, lum(buf, q)) : L + lum(buf, q) / (n * n);
+      probe[k] = { px: [Math.round(sx), Math.round(sy)], L: +L.toFixed(4) };
     }
-    if (probe.mask && probe.helm) { const a = Math.max(probe.mask.L, probe.helm.L), b = Math.min(probe.mask.L, probe.helm.L); probe.ratio = +((a + 0.05) / (b + 0.05)).toFixed(2); }
+    const cr = (p, q) => +((Math.max(p.L, q.L) + 0.05) / (Math.min(p.L, q.L) + 0.05)).toFixed(2);
+    if (probe.mask && probe.helm) probe.ratio = cr(probe.mask, probe.helm);
+    if (probe.mask && probe.eye) probe.eye_ratio = cr(probe.mask, probe.eye);
     window.__info = { calls: i.calls, triangles: i.triangles, bbox: [x0, y0, x1, y1].map(Math.round), head: [Math.round(hx), Math.round(hy)], probe };
     window.__ready = true;
   }, 900);
