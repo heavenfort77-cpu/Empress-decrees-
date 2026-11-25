@@ -1,0 +1,33 @@
+ROW {"scene":"ref","fps":167.2,"p50":6.6,"p95":12.7,"worst":58.8,"over20":37,"frames":3351,"gpuMean":2.335,"cardGpuMean":0,"cardGpuP95":0,"liveMean":0,"liveMax":0,"calls":5,"tris":578,"progNew":0,"progs":3,"sndPerS":0,"evPerS":0,"unknown":0,"ctx":"none","sndReady":0,"sndTotal":0,"heapMB":0.7,"warmed":0,"long":"","loadMs":1444,"timer":true,"errs":0}
+ROW {"scene":"heavy","fps":175.1,"p50":6.4,"p95":11.7,"worst":34.6,"over20":8,"frames":3503,"gpuMean":1.955,"cardGpuMean":1.484,"cardGpuP95":1.958,"liveMean":34.4,"liveMax":50,"calls":8,"tris":898,"progNew":0,"progs":5,"sndPerS":54.8,"evPerS":58.5,"unknown":27,"ctx":"running","sndReady":140,"sndTotal":140,"heapMB":0.31,"warmed":13,"long":"","loadMs":731,"timer":true,"errs":0}
+ROW {"scene":"heavy#2","fps":184.3,"p50":6.3,"p95":11.1,"worst":41.5,"over20":15,"frames":3690,"gpuMean":1.84,"cardGpuMean":1.406,"cardGpuP95":1.823,"liveMean":34.2,"liveMax":52,"calls":8,"tris":898,"progNew":0,"progs":5,"sndPerS":54,"evPerS":58,"unknown":28,"ctx":"running","sndReady":140,"sndTotal":140,"heapMB":-1,"warmed":13,"long":"","loadMs":439,"timer":true,"errs":0}
+ROW {"scene":"ref#2","fps":189.4,"p50":6,"p95":11.4,"worst":37.2,"over20":11,"frames":3787,"gpuMean":1.825,"cardGpuMean":0,"cardGpuP95":0,"liveMean":0,"liveMax":0,"calls":5,"tris":578,"progNew":0,"progs":3,"sndPerS":0,"evPerS":0,"unknown":0,"ctx":"none","sndReady":0,"sndTotal":0,"heapMB":-0.97,"warmed":0,"long":"","loadMs":149,"timer":true,"errs":0}
+
+scene      fps     p50    p95   worst >20ms stageGPU cardGPU cardP95 live(mean/max) calls  tris newProg snd/s ev/s heapMB long
+ref         167.2    6.6   12.7   58.8    37    2.335       0       0            0/0     5    578       0     0     0    0.7  
+heavy       175.1    6.4   11.7   34.6     8    1.955   1.484   1.958        34.4/50     8    898       0  54.8  58.5   0.31  
+heavy#2     184.3    6.3   11.1   41.5    15     1.84   1.406   1.823        34.2/52     8    898       0    54    58     -1  
+ref#2       189.4      6   11.4   37.2    11    1.825       0       0            0/0     5    578       0     0     0  -0.97  
+GATE ref errors errors 0 PASS
+GATE ref budget calls 5 tris 578 PASS
+GATE ref warmup newPrograms 0 PASS
+GATE heavy errors errors 0 PASS
+GATE heavy budget calls 8 tris 898 PASS
+GATE heavy warmup newPrograms 0 PASS
+GATE heavy fps fps 175.1 p95 11.7 worst 34.6 PASS
+GATE heavy live cards 40-60 mean 34.4 max 50 FAIL
+GATE heavy card pass GPU mean 1.484 ms (<= 2.0) PASS
+GATE heavy sounds ctx running ready 140/140 54.8/s unknown 27 FAIL
+GATE heavy draws cards add 3 calls (<= 3) PASS
+GATE heavy#2 errors errors 0 PASS
+GATE heavy#2 budget calls 8 tris 898 PASS
+GATE heavy#2 warmup newPrograms 0 PASS
+GATE heavy#2 fps fps 184.3 p95 11.1 worst 41.5 PASS
+GATE heavy#2 live cards 40-60 mean 34.2 max 52 FAIL
+GATE heavy#2 card pass GPU mean 1.406 ms (<= 2.0) PASS
+GATE heavy#2 sounds ctx running ready 140/140 54/s unknown 28 FAIL
+GATE heavy#2 draws cards add 3 calls (<= 3) PASS
+GATE ref#2 errors errors 0 PASS
+GATE ref#2 budget calls 5 tris 578 PASS
+GATE ref#2 warmup newPrograms 0 PASS
+GATE heavy vs ref same job fps ratio 1.047 / 0.973 (mean >= 0.85) PASS
