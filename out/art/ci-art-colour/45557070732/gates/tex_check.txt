@@ -1,0 +1,44 @@
+PASS hall_floor density: 256 x 256 px/m
+PASS hall_floor brush scale: 9.6 cm
+FAIL hall_floor contrast: lum sd 4.4 (walkable floor: 4.5-8)
+PASS hall_floor saturation: 0.52 (cap 0.55)
+PASS hall_floor value: mean lum 114 (105-122)
+PASS hall_floor seam x: edge step 1.1 vs inside mean 1.0, p99 1.3
+PASS hall_floor seam y: edge step 1.2 vs inside mean 1.1, p99 1.4
+PASS hall_floor repeat: 50 cm block sd 1.3 (max 3.5)
+PASS floor_tiles density: 256 x 256 px/m
+PASS floor_tiles brush scale: 4.3 cm
+PASS floor_tiles contrast: lum sd 5.4 (walkable floor: 4.5-8)
+PASS floor_tiles saturation: 0.10 (cap 0.55)
+PASS floor_tiles value: mean lum 123 (95-130)
+PASS floor_tiles seam x: edge step 0.6 vs inside mean 1.3, p99 12.6
+PASS floor_tiles seam y: edge step 0.6 vs inside mean 1.8, p99 13.3
+PASS floor_tiles repeat: 50 cm block sd 1.2 (max 3.5)
+PASS bridge_deck density: 256 x 256 px/m
+PASS bridge_deck brush scale: 5.6 cm
+PASS bridge_deck contrast: lum sd 6.5 (walkable floor: 4.5-8)
+PASS bridge_deck saturation: 0.45 (cap 0.55)
+PASS bridge_deck value: mean lum 121 (105-135)
+PASS bridge_deck seam x: edge step 0.6 vs inside mean 1.1, p99 2.3
+PASS bridge_deck seam y: edge step 0.5 vs inside mean 0.5, p99 0.6
+PASS garden_ground density: 256 x 256 px/m
+PASS garden_ground brush scale: 8.4 cm
+PASS garden_ground contrast: lum sd 9.7
+PASS garden_ground saturation: 0.33 (cap 0.55)
+PASS garden_ground value: mean lum 122 (85-125)
+PASS garden_ground seam x: edge step 1.8 vs inside mean 1.6, p99 2.3
+PASS garden_ground seam y: edge step 1.5 vs inside mean 1.7, p99 2.5
+PASS garden_ground repeat: 50 cm block sd 2.1 (max 3.5)
+FAIL signal_flags contrast: lum sd 30.5
+PASS star_inlay density: 256 x 256 px/m
+PASS star_inlay saturation: 0.48 (cap 0.6)
+PASS star_inlay coverage: opaque share per cell 0.02-0.06 (0.01-0.08)
+PASS star_inlay alpha test: 0.17 of drawn pixels fall under the 0.5 alpha test (max 0.2)
+PASS star_inlay floor read: mean lum +2.4 (max 8), mean hue shift 1.3 deg (max 6) over hall_floor
+PASS star_inlay subtle: inlay minus floor lum 63 (25-75: seen, not loud)
+PASS star_inlay not hazard ring: nearest inlay pixel to #ff2a10 at 155 (min 120)
+PASS star_inlay not warned: nearest inlay pixel to #b33a2a at 116 (min 60)
+PASS star_inlay edge clear: opaque share in the 24 px border 0.0000 (0: cells turn without a seam)
+FAIL suit_bronze plain brush scale: 3.9 cm
+PASS mercury_matcap brightest highlights: p95 221 vs next star_inlay 190 (min +10)
+268 of 271 pass

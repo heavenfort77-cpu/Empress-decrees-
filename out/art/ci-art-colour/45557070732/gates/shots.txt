@@ -1,0 +1,1 @@
+PASS colour shots: all rendered

@@ -1,0 +1,278 @@
+CONTROL old_cur hall 10.5 m fa outline >= 3.0:1 vs floor behind: 0% (min 50%); ring formula 0%; body median 1.94:1; area >= 3:1 3%; school colour px 2%
+CONTROL old_cur hall 10.5 m ru outline >= 3.0:1 vs floor behind: 0% (min 50%); ring formula 0%; body median 1.96:1; area >= 3:1 0%; school colour px 11%
+CONTROL old_cur hall 10.5 m dao outline >= 3.0:1 vs floor behind: 10% (min 50%); ring formula 10%; body median 2.22:1; area >= 3:1 27%; school colour px 83%
+CONTROL old_cur hall 10.5 m mo outline >= 3.0:1 vs floor behind: 0% (min 50%); ring formula 0%; body median 1.67:1; area >= 3:1 0%; school colour px 17%
+CONTROL old_cur hall 10.5 m yy outline >= 3.0:1 vs floor behind: 0% (min 50%); ring formula 0%; body median 1.77:1; area >= 3:1 7%; school colour px 82%
+CONTROL old_cur hall 10.5 m za outline >= 3.0:1 vs floor behind: 0% (min 50%); ring formula 0%; body median 1.59:1; area >= 3:1 3%; school colour px 9%
+CONTROL old_cur hall 10.5 m ming outline >= 3.0:1 vs floor behind: 0% (min 50%); ring formula 0%; body median 1.65:1; area >= 3:1 2%; school colour px 2%
+CONTROL old_cur hall 10.5 m zh outline >= 3.0:1 vs floor behind: 0% (min 50%); ring formula 0%; body median 1.56:1; area >= 3:1 0%; school colour px 43%
+CONTROL old_cur hall 10.5 m nong outline >= 3.0:1 vs floor behind: 0% (min 50%); ring formula 0%; body median 1.65:1; area >= 3:1 0%; school colour px 9%
+CONTROL old_cur hall 10.5 m zu outline >= 3.0:1 vs floor behind: 0% (min 50%); ring formula 0%; body median 1.53:1; area >= 3:1 0%
+CONTROL old_cur hall 10.5 m ls outline >= 3.0:1 vs floor behind: 0% (min 50%); ring formula 0%; body median 1.11:1; area >= 3:1 0%
+MUT caught old_cur hall 10.5 m: 11 of 11 figures fail the outline rule on the old floor with the dark outline (control, min 6)
+CONTROL old_cur hall 10.5 m floor on-screen luminance 0.058 (0.125-0.2)
+CONTROL old_cur hall 10.5 m floor own marks p95/p5 contrast 1.41:1 (max 1.3); on-screen saturation 0.56
+CONTROL old_cur hall 14 m fa outline >= 3.0:1 vs floor behind: 0% (min 50%); ring formula 0%; body median 1.97:1; area >= 3:1 3%; school colour px 2%
+CONTROL old_cur hall 14 m ru outline >= 3.0:1 vs floor behind: 0% (min 50%); ring formula 0%; body median 1.95:1; area >= 3:1 0%; school colour px 11%
+CONTROL old_cur hall 14 m dao outline >= 3.0:1 vs floor behind: 11% (min 50%); ring formula 12%; body median 2.31:1; area >= 3:1 30%; school colour px 83%
+CONTROL old_cur hall 14 m mo outline >= 3.0:1 vs floor behind: 0% (min 50%); ring formula 0%; body median 1.67:1; area >= 3:1 0%; school colour px 17%
+CONTROL old_cur hall 14 m yy outline >= 3.0:1 vs floor behind: 0% (min 50%); ring formula 0%; body median 1.77:1; area >= 3:1 7%; school colour px 82%
+CONTROL old_cur hall 14 m za outline >= 3.0:1 vs floor behind: 0% (min 50%); ring formula 0%; body median 1.61:1; area >= 3:1 3%; school colour px 9%
+CONTROL old_cur hall 14 m ming outline >= 3.0:1 vs floor behind: 0% (min 50%); ring formula 0%; body median 1.70:1; area >= 3:1 2%; school colour px 1%
+CONTROL old_cur hall 14 m zh outline >= 3.0:1 vs floor behind: 0% (min 50%); ring formula 0%; body median 1.62:1; area >= 3:1 0%; school colour px 41%
+CONTROL old_cur hall 14 m nong outline >= 3.0:1 vs floor behind: 0% (min 50%); ring formula 0%; body median 1.71:1; area >= 3:1 0%; school colour px 9%
+CONTROL old_cur hall 14 m zu outline >= 3.0:1 vs floor behind: 0% (min 50%); ring formula 0%; body median 1.56:1; area >= 3:1 0%
+CONTROL old_cur hall 14 m ls outline >= 3.0:1 vs floor behind: 0% (min 50%); ring formula 0%; body median 1.13:1; area >= 3:1 0%
+MUT caught old_cur hall 14 m: 11 of 11 figures fail the outline rule on the old floor with the dark outline (control, min 6)
+CONTROL old_cur hall 14 m floor on-screen luminance 0.060 (0.125-0.2)
+CONTROL old_cur hall 14 m floor own marks p95/p5 contrast 1.41:1 (max 1.3); on-screen saturation 0.56
+OPTION old_sil2 hall 10.5 m fa outline >= 3.0:1 vs floor behind: 65% (min 50%); ring formula 66%; body median 1.79:1; area >= 3:1 12%; school colour px 2%
+OPTION old_sil2 hall 10.5 m ru outline >= 3.0:1 vs floor behind: 66% (min 50%); ring formula 65%; body median 1.93:1; area >= 3:1 11%; school colour px 19%
+OPTION old_sil2 hall 10.5 m dao outline >= 3.0:1 vs floor behind: 64% (min 50%); ring formula 65%; body median 2.14:1; area >= 3:1 12%; school colour px 92%
+OPTION old_sil2 hall 10.5 m mo outline >= 3.0:1 vs floor behind: 75% (min 50%); ring formula 74%; body median 1.80:1; area >= 3:1 8%; school colour px 12%
+OPTION old_sil2 hall 10.5 m yy outline >= 3.0:1 vs floor behind: 69% (min 50%); ring formula 68%; body median 1.73:1; area >= 3:1 11%; school colour px 79%
+OPTION old_sil2 hall 10.5 m za outline >= 3.0:1 vs floor behind: 75% (min 50%); ring formula 73%; body median 1.33:1; area >= 3:1 10%; school colour px 8%
+OPTION old_sil2 hall 10.5 m ming outline >= 3.0:1 vs floor behind: 79% (min 50%); ring formula 77%; body median 1.45:1; area >= 3:1 17%; school colour px 10%
+OPTION old_sil2 hall 10.5 m zh outline >= 3.0:1 vs floor behind: 75% (min 50%); ring formula 74%; body median 1.04:1; area >= 3:1 10%; school colour px 48%
+OPTION old_sil2 hall 10.5 m nong outline >= 3.0:1 vs floor behind: 67% (min 50%); ring formula 68%; body median 1.82:1; area >= 3:1 9%; school colour px 14%
+OPTION old_sil2 hall 10.5 m zu outline >= 3.0:1 vs floor behind: 53% (min 50%); ring formula 53%; body median 1.18:1; area >= 3:1 6%
+OPTION old_sil2 hall 10.5 m ls outline >= 3.0:1 vs floor behind: 54% (min 50%); ring formula 53%; body median 1.47:1; area >= 3:1 7%
+OPTION old_sil2 hall 14 m fa outline >= 3.0:1 vs floor behind: 66% (min 50%); ring formula 66%; body median 1.73:1; area >= 3:1 15%; school colour px 2%
+OPTION old_sil2 hall 14 m ru outline >= 3.0:1 vs floor behind: 67% (min 50%); ring formula 66%; body median 1.83:1; area >= 3:1 14%; school colour px 21%
+OPTION old_sil2 hall 14 m dao outline >= 3.0:1 vs floor behind: 62% (min 50%); ring formula 65%; body median 2.27:1; area >= 3:1 17%; school colour px 93%
+OPTION old_sil2 hall 14 m mo outline >= 3.0:1 vs floor behind: 77% (min 50%); ring formula 75%; body median 1.76:1; area >= 3:1 10%; school colour px 12%
+OPTION old_sil2 hall 14 m yy outline >= 3.0:1 vs floor behind: 70% (min 50%); ring formula 70%; body median 1.72:1; area >= 3:1 13%; school colour px 78%
+OPTION old_sil2 hall 14 m za outline >= 3.0:1 vs floor behind: 75% (min 50%); ring formula 73%; body median 1.27:1; area >= 3:1 13%; school colour px 8%
+OPTION old_sil2 hall 14 m ming outline >= 3.0:1 vs floor behind: 79% (min 50%); ring formula 75%; body median 1.37:1; area >= 3:1 21%; school colour px 9%
+OPTION old_sil2 hall 14 m zh outline >= 3.0:1 vs floor behind: 72% (min 50%); ring formula 72%; body median 1.07:1; area >= 3:1 12%; school colour px 47%
+OPTION old_sil2 hall 14 m nong outline >= 3.0:1 vs floor behind: 67% (min 50%); ring formula 67%; body median 1.83:1; area >= 3:1 11%; school colour px 15%
+OPTION old_sil2 hall 14 m zu outline >= 3.0:1 vs floor behind: 54% (min 50%); ring formula 54%; body median 1.17:1; area >= 3:1 8%
+OPTION old_sil2 hall 14 m ls outline >= 3.0:1 vs floor behind: 52% (min 50%); ring formula 52%; body median 1.41:1; area >= 3:1 9%
+OPTION new_norim hall 10.5 m fa outline >= 3.0:1 vs floor behind: 51% (min 50%); ring formula 51%; body median 3.26:1; area >= 3:1 64%; school colour px 2%
+OPTION new_norim hall 10.5 m ru outline >= 3.0:1 vs floor behind: 42% (min 50%); ring formula 57%; body median 3.44:1; area >= 3:1 69%; school colour px 16%
+OPTION new_norim hall 10.5 m dao outline >= 3.0:1 vs floor behind: 9% (min 50%); ring formula 4%; body median 1.19:1; area >= 3:1 2%; school colour px 93%
+OPTION new_norim hall 10.5 m mo outline >= 3.0:1 vs floor behind: 45% (min 50%); ring formula 71%; body median 3.25:1; area >= 3:1 70%; school colour px 13%
+OPTION new_norim hall 10.5 m yy outline >= 3.0:1 vs floor behind: 37% (min 50%); ring formula 52%; body median 3.14:1; area >= 3:1 65%; school colour px 80%
+OPTION new_norim hall 10.5 m za outline >= 3.0:1 vs floor behind: 38% (min 50%); ring formula 47%; body median 2.80:1; area >= 3:1 45%; school colour px 9%
+OPTION new_norim hall 10.5 m ming outline >= 3.0:1 vs floor behind: 31% (min 50%); ring formula 44%; body median 3.05:1; area >= 3:1 52%; school colour px 11%
+OPTION new_norim hall 10.5 m zh outline >= 3.0:1 vs floor behind: 21% (min 50%); ring formula 29%; body median 2.10:1; area >= 3:1 35%; school colour px 49%
+OPTION new_norim hall 10.5 m nong outline >= 3.0:1 vs floor behind: 47% (min 50%); ring formula 61%; body median 3.33:1; area >= 3:1 64%; school colour px 15%
+OPTION new_norim hall 10.5 m zu outline >= 3.0:1 vs floor behind: 24% (min 50%); ring formula 27%; body median 2.23:1; area >= 3:1 28%
+OPTION new_norim hall 10.5 m ls outline >= 3.0:1 vs floor behind: 24% (min 50%); ring formula 28%; body median 2.56:1; area >= 3:1 17%
+OPTION new_norim hall 14 m fa outline >= 3.0:1 vs floor behind: 44% (min 50%); ring formula 50%; body median 3.20:1; area >= 3:1 60%; school colour px 2%
+OPTION new_norim hall 14 m ru outline >= 3.0:1 vs floor behind: 40% (min 50%); ring formula 56%; body median 3.34:1; area >= 3:1 66%; school colour px 18%
+OPTION new_norim hall 14 m dao outline >= 3.0:1 vs floor behind: 8% (min 50%); ring formula 4%; body median 1.24:1; area >= 3:1 2%; school colour px 94%
+OPTION new_norim hall 14 m mo outline >= 3.0:1 vs floor behind: 45% (min 50%); ring formula 71%; body median 3.23:1; area >= 3:1 68%; school colour px 13%
+OPTION new_norim hall 14 m yy outline >= 3.0:1 vs floor behind: 42% (min 50%); ring formula 51%; body median 3.14:1; area >= 3:1 64%; school colour px 80%
+OPTION new_norim hall 14 m za outline >= 3.0:1 vs floor behind: 35% (min 50%); ring formula 44%; body median 2.72:1; area >= 3:1 42%; school colour px 10%
+OPTION new_norim hall 14 m ming outline >= 3.0:1 vs floor behind: 30% (min 50%); ring formula 43%; body median 3.02:1; area >= 3:1 51%; school colour px 9%
+OPTION new_norim hall 14 m zh outline >= 3.0:1 vs floor behind: 19% (min 50%); ring formula 28%; body median 2.15:1; area >= 3:1 34%; school colour px 49%
+OPTION new_norim hall 14 m nong outline >= 3.0:1 vs floor behind: 45% (min 50%); ring formula 60%; body median 3.29:1; area >= 3:1 63%; school colour px 16%
+OPTION new_norim hall 14 m zu outline >= 3.0:1 vs floor behind: 22% (min 50%); ring formula 27%; body median 2.23:1; area >= 3:1 27%
+OPTION new_norim hall 14 m ls outline >= 3.0:1 vs floor behind: 14% (min 50%); ring formula 24%; body median 2.53:1; area >= 3:1 13%
+OPTION new_dark hall 10.5 m fa outline >= 3.0:1 vs floor behind: 67% (min 50%); ring formula 67%; body median 3.38:1; area >= 3:1 71%; school colour px 1%
+OPTION new_dark hall 10.5 m ru outline >= 3.0:1 vs floor behind: 52% (min 50%); ring formula 69%; body median 3.54:1; area >= 3:1 76%; school colour px 13%
+OPTION new_dark hall 10.5 m dao outline >= 3.0:1 vs floor behind: 45% (min 50%); ring formula 53%; body median 1.11:1; area >= 3:1 10%; school colour px 89%
+OPTION new_dark hall 10.5 m mo outline >= 3.0:1 vs floor behind: 46% (min 50%); ring formula 76%; body median 3.37:1; area >= 3:1 76%; school colour px 10%
+OPTION new_dark hall 10.5 m yy outline >= 3.0:1 vs floor behind: 59% (min 50%); ring formula 75%; body median 3.18:1; area >= 3:1 68%; school colour px 80%
+OPTION new_dark hall 10.5 m za outline >= 3.0:1 vs floor behind: 55% (min 50%); ring formula 72%; body median 3.11:1; area >= 3:1 53%; school colour px 8%
+OPTION new_dark hall 10.5 m ming outline >= 3.0:1 vs floor behind: 45% (min 50%); ring formula 77%; body median 3.30:1; area >= 3:1 63%; school colour px 9%
+OPTION new_dark hall 10.5 m zh outline >= 3.0:1 vs floor behind: 57% (min 50%); ring formula 68%; body median 2.81:1; area >= 3:1 46%; school colour px 45%
+OPTION new_dark hall 10.5 m nong outline >= 3.0:1 vs floor behind: 59% (min 50%); ring formula 68%; body median 3.41:1; area >= 3:1 69%; school colour px 13%
+OPTION new_dark hall 10.5 m zu outline >= 3.0:1 vs floor behind: 52% (min 50%); ring formula 57%; body median 2.67:1; area >= 3:1 37%
+OPTION new_dark hall 10.5 m ls outline >= 3.0:1 vs floor behind: 52% (min 50%); ring formula 59%; body median 2.66:1; area >= 3:1 27%
+OPTION new_dark hall 14 m fa outline >= 3.0:1 vs floor behind: 64% (min 50%); ring formula 65%; body median 3.35:1; area >= 3:1 69%; school colour px 1%
+OPTION new_dark hall 14 m ru outline >= 3.0:1 vs floor behind: 53% (min 50%); ring formula 69%; body median 3.51:1; area >= 3:1 75%; school colour px 14%
+OPTION new_dark hall 14 m dao outline >= 3.0:1 vs floor behind: 43% (min 50%); ring formula 49%; body median 1.14:1; area >= 3:1 12%; school colour px 89%
+OPTION new_dark hall 14 m mo outline >= 3.0:1 vs floor behind: 45% (min 50%); ring formula 75%; body median 3.35:1; area >= 3:1 75%; school colour px 10%
+OPTION new_dark hall 14 m yy outline >= 3.0:1 vs floor behind: 58% (min 50%); ring formula 75%; body median 3.18:1; area >= 3:1 69%; school colour px 81%
+OPTION new_dark hall 14 m za outline >= 3.0:1 vs floor behind: 57% (min 50%); ring formula 73%; body median 3.11:1; area >= 3:1 54%; school colour px 7%
+OPTION new_dark hall 14 m ming outline >= 3.0:1 vs floor behind: 45% (min 50%); ring formula 77%; body median 3.29:1; area >= 3:1 65%; school colour px 8%
+OPTION new_dark hall 14 m zh outline >= 3.0:1 vs floor behind: 57% (min 50%); ring formula 66%; body median 2.91:1; area >= 3:1 48%; school colour px 43%
+OPTION new_dark hall 14 m nong outline >= 3.0:1 vs floor behind: 59% (min 50%); ring formula 68%; body median 3.40:1; area >= 3:1 69%; school colour px 13%
+OPTION new_dark hall 14 m zu outline >= 3.0:1 vs floor behind: 50% (min 50%); ring formula 57%; body median 2.67:1; area >= 3:1 36%
+OPTION new_dark hall 14 m ls outline >= 3.0:1 vs floor behind: 46% (min 50%); ring formula 58%; body median 2.64:1; area >= 3:1 27%
+PASS new_sil2 hall 10.5 m fa outline >= 3.0:1 vs floor behind: 54% (min 50%); ring formula 53%; body median 3.14:1; area >= 3:1 63%; school colour px 2%
+FAIL new_sil2 hall 10.5 m fa school colour: 2% of the figure's pixels (min 8%)
+PASS new_sil2 hall 10.5 m ru outline >= 3.0:1 vs floor behind: 53% (min 50%); ring formula 52%; body median 3.34:1; area >= 3:1 68%; school colour px 19%
+PASS new_sil2 hall 10.5 m ru school colour: 19% of the figure's pixels (min 8%)
+FAIL new_sil2 hall 10.5 m dao outline >= 3.0:1 vs floor behind: 49% (min 50%); ring formula 45%; body median 1.25:1; area >= 3:1 6%; school colour px 92%
+PASS new_sil2 hall 10.5 m dao school colour: 92% of the figure's pixels (min 8%)
+PASS new_sil2 hall 10.5 m mo outline >= 3.0:1 vs floor behind: 62% (min 50%); ring formula 54%; body median 3.25:1; area >= 3:1 70%; school colour px 12%
+PASS new_sil2 hall 10.5 m mo school colour: 12% of the figure's pixels (min 8%)
+PASS new_sil2 hall 10.5 m yy outline >= 3.0:1 vs floor behind: 58% (min 50%); ring formula 58%; body median 3.11:1; area >= 3:1 64%; school colour px 79%
+PASS new_sil2 hall 10.5 m yy school colour: 79% of the figure's pixels (min 8%)
+PASS new_sil2 hall 10.5 m za outline >= 3.0:1 vs floor behind: 57% (min 50%); ring formula 54%; body median 2.40:1; area >= 3:1 46%; school colour px 8%
+FAIL new_sil2 hall 10.5 m za school colour: 8% of the figure's pixels (min 8%)
+PASS new_sil2 hall 10.5 m ming outline >= 3.0:1 vs floor behind: 65% (min 50%); ring formula 57%; body median 2.60:1; area >= 3:1 53%; school colour px 10%
+PASS new_sil2 hall 10.5 m ming school colour: 10% of the figure's pixels (min 8%)
+PASS new_sil2 hall 10.5 m zh outline >= 3.0:1 vs floor behind: 55% (min 50%); ring formula 52%; body median 1.64:1; area >= 3:1 38%; school colour px 48%
+PASS new_sil2 hall 10.5 m zh school colour: 48% of the figure's pixels (min 8%)
+FAIL new_sil2 hall 10.5 m nong outline >= 3.0:1 vs floor behind: 49% (min 50%); ring formula 46%; body median 3.22:1; area >= 3:1 62%; school colour px 14%
+PASS new_sil2 hall 10.5 m nong school colour: 14% of the figure's pixels (min 8%)
+FAIL new_sil2 hall 10.5 m zu outline >= 3.0:1 vs floor behind: 43% (min 50%); ring formula 41%; body median 2.07:1; area >= 3:1 31%
+FAIL new_sil2 hall 10.5 m ls outline >= 3.0:1 vs floor behind: 47% (min 50%); ring formula 45%; body median 2.51:1; area >= 3:1 20%
+PASS new_sil2 hall 10.5 m floor on-screen luminance 0.138 (0.125-0.2)
+PASS new_sil2 hall 10.5 m floor own marks p95/p5 contrast 1.22:1 (max 1.3); on-screen saturation 0.57
+PASS new_sil2 hall 14 m fa outline >= 3.0:1 vs floor behind: 51% (min 50%); ring formula 50%; body median 2.97:1; area >= 3:1 59%; school colour px 2%
+FAIL new_sil2 hall 14 m fa school colour: 2% of the figure's pixels (min 8%)
+PASS new_sil2 hall 14 m ru outline >= 3.0:1 vs floor behind: 53% (min 50%); ring formula 49%; body median 3.17:1; area >= 3:1 65%; school colour px 21%
+PASS new_sil2 hall 14 m ru school colour: 21% of the figure's pixels (min 8%)
+FAIL new_sil2 hall 14 m dao outline >= 3.0:1 vs floor behind: 47% (min 50%); ring formula 42%; body median 1.31:1; area >= 3:1 6%; school colour px 93%
+PASS new_sil2 hall 14 m dao school colour: 93% of the figure's pixels (min 8%)
+PASS new_sil2 hall 14 m mo outline >= 3.0:1 vs floor behind: 62% (min 50%); ring formula 54%; body median 3.18:1; area >= 3:1 67%; school colour px 12%
+PASS new_sil2 hall 14 m mo school colour: 12% of the figure's pixels (min 8%)
+PASS new_sil2 hall 14 m yy outline >= 3.0:1 vs floor behind: 60% (min 50%); ring formula 59%; body median 3.07:1; area >= 3:1 63%; school colour px 78%
+PASS new_sil2 hall 14 m yy school colour: 78% of the figure's pixels (min 8%)
+PASS new_sil2 hall 14 m za outline >= 3.0:1 vs floor behind: 57% (min 50%); ring formula 53%; body median 2.27:1; area >= 3:1 44%; school colour px 8%
+PASS new_sil2 hall 14 m za school colour: 8% of the figure's pixels (min 8%)
+PASS new_sil2 hall 14 m ming outline >= 3.0:1 vs floor behind: 64% (min 50%); ring formula 56%; body median 2.44:1; area >= 3:1 52%; school colour px 9%
+PASS new_sil2 hall 14 m ming school colour: 9% of the figure's pixels (min 8%)
+PASS new_sil2 hall 14 m zh outline >= 3.0:1 vs floor behind: 53% (min 50%); ring formula 51%; body median 1.59:1; area >= 3:1 38%; school colour px 47%
+PASS new_sil2 hall 14 m zh school colour: 47% of the figure's pixels (min 8%)
+FAIL new_sil2 hall 14 m nong outline >= 3.0:1 vs floor behind: 49% (min 50%); ring formula 46%; body median 3.13:1; area >= 3:1 61%; school colour px 15%
+PASS new_sil2 hall 14 m nong school colour: 15% of the figure's pixels (min 8%)
+FAIL new_sil2 hall 14 m zu outline >= 3.0:1 vs floor behind: 46% (min 50%); ring formula 44%; body median 2.01:1; area >= 3:1 29%
+FAIL new_sil2 hall 14 m ls outline >= 3.0:1 vs floor behind: 46% (min 50%); ring formula 43%; body median 2.47:1; area >= 3:1 17%
+PASS new_sil2 hall 14 m floor on-screen luminance 0.138 (0.125-0.2)
+PASS new_sil2 hall 14 m floor own marks p95/p5 contrast 1.22:1 (max 1.3); on-screen saturation 0.57
+OPTION new_sil3 hall 10.5 m fa outline >= 3.0:1 vs floor behind: 66% (min 50%); ring formula 65%; body median 3.07:1; area >= 3:1 64%; school colour px 1%
+OPTION new_sil3 hall 10.5 m ru outline >= 3.0:1 vs floor behind: 63% (min 50%); ring formula 61%; body median 3.28:1; area >= 3:1 70%; school colour px 21%
+OPTION new_sil3 hall 10.5 m dao outline >= 3.0:1 vs floor behind: 57% (min 50%); ring formula 55%; body median 1.28:1; area >= 3:1 8%; school colour px 92%
+OPTION new_sil3 hall 10.5 m mo outline >= 3.0:1 vs floor behind: 75% (min 50%); ring formula 71%; body median 3.22:1; area >= 3:1 71%; school colour px 13%
+OPTION new_sil3 hall 10.5 m yy outline >= 3.0:1 vs floor behind: 71% (min 50%); ring formula 72%; body median 3.07:1; area >= 3:1 65%; school colour px 77%
+OPTION new_sil3 hall 10.5 m za outline >= 3.0:1 vs floor behind: 70% (min 50%); ring formula 67%; body median 2.24:1; area >= 3:1 48%; school colour px 7%
+OPTION new_sil3 hall 10.5 m ming outline >= 3.0:1 vs floor behind: 78% (min 50%); ring formula 73%; body median 2.38:1; area >= 3:1 57%; school colour px 9%
+OPTION new_sil3 hall 10.5 m zh outline >= 3.0:1 vs floor behind: 67% (min 50%); ring formula 66%; body median 1.53:1; area >= 3:1 40%; school colour px 47%
+OPTION new_sil3 hall 10.5 m nong outline >= 3.0:1 vs floor behind: 60% (min 50%); ring formula 58%; body median 3.15:1; area >= 3:1 64%; school colour px 13%
+OPTION new_sil3 hall 10.5 m zu outline >= 3.0:1 vs floor behind: 48% (min 50%); ring formula 48%; body median 2.02:1; area >= 3:1 33%
+OPTION new_sil3 hall 10.5 m ls outline >= 3.0:1 vs floor behind: 52% (min 50%); ring formula 52%; body median 2.50:1; area >= 3:1 22%
+OPTION new_sil3 hall 14 m fa outline >= 3.0:1 vs floor behind: 60% (min 50%); ring formula 59%; body median 2.88:1; area >= 3:1 61%; school colour px 1%
+OPTION new_sil3 hall 14 m ru outline >= 3.0:1 vs floor behind: 62% (min 50%); ring formula 58%; body median 3.06:1; area >= 3:1 66%; school colour px 25%
+OPTION new_sil3 hall 14 m dao outline >= 3.0:1 vs floor behind: 53% (min 50%); ring formula 50%; body median 1.33:1; area >= 3:1 9%; school colour px 93%
+OPTION new_sil3 hall 14 m mo outline >= 3.0:1 vs floor behind: 75% (min 50%); ring formula 70%; body median 3.14:1; area >= 3:1 69%; school colour px 13%
+OPTION new_sil3 hall 14 m yy outline >= 3.0:1 vs floor behind: 71% (min 50%); ring formula 71%; body median 3.05:1; area >= 3:1 64%; school colour px 76%
+OPTION new_sil3 hall 14 m za outline >= 3.0:1 vs floor behind: 71% (min 50%); ring formula 68%; body median 2.04:1; area >= 3:1 47%; school colour px 7%
+OPTION new_sil3 hall 14 m ming outline >= 3.0:1 vs floor behind: 76% (min 50%); ring formula 70%; body median 2.18:1; area >= 3:1 56%; school colour px 8%
+OPTION new_sil3 hall 14 m zh outline >= 3.0:1 vs floor behind: 65% (min 50%); ring formula 64%; body median 1.45:1; area >= 3:1 41%; school colour px 45%
+OPTION new_sil3 hall 14 m nong outline >= 3.0:1 vs floor behind: 64% (min 50%); ring formula 62%; body median 3.01:1; area >= 3:1 63%; school colour px 14%
+OPTION new_sil3 hall 14 m zu outline >= 3.0:1 vs floor behind: 51% (min 50%); ring formula 50%; body median 1.91:1; area >= 3:1 32%
+OPTION new_sil3 hall 14 m ls outline >= 3.0:1 vs floor behind: 50% (min 50%); ring formula 48%; body median 2.45:1; area >= 3:1 20%
+OPTION new_silbronze hall 10.5 m fa outline >= 3.0:1 vs floor behind: 7% (min 50%); ring formula 5%; body median 3.14:1; area >= 3:1 55%; school colour px 2%
+OPTION new_silbronze hall 10.5 m ru outline >= 3.0:1 vs floor behind: 13% (min 50%); ring formula 4%; body median 3.34:1; area >= 3:1 60%; school colour px 19%
+OPTION new_silbronze hall 10.5 m dao outline >= 3.0:1 vs floor behind: 10% (min 50%); ring formula 0%; body median 1.25:1; area >= 3:1 2%; school colour px 92%
+OPTION new_silbronze hall 10.5 m mo outline >= 3.0:1 vs floor behind: 25% (min 50%); ring formula 1%; body median 3.25:1; area >= 3:1 64%; school colour px 12%
+OPTION new_silbronze hall 10.5 m yy outline >= 3.0:1 vs floor behind: 17% (min 50%); ring formula 10%; body median 3.11:1; area >= 3:1 59%; school colour px 79%
+OPTION new_silbronze hall 10.5 m za outline >= 3.0:1 vs floor behind: 17% (min 50%); ring formula 3%; body median 2.40:1; area >= 3:1 39%; school colour px 8%
+OPTION new_silbronze hall 10.5 m ming outline >= 3.0:1 vs floor behind: 31% (min 50%); ring formula 3%; body median 2.60:1; area >= 3:1 42%; school colour px 10%
+OPTION new_silbronze hall 10.5 m zh outline >= 3.0:1 vs floor behind: 10% (min 50%); ring formula 1%; body median 1.65:1; area >= 3:1 31%; school colour px 48%
+OPTION new_silbronze hall 10.5 m nong outline >= 3.0:1 vs floor behind: 11% (min 50%); ring formula 3%; body median 3.22:1; area >= 3:1 57%; school colour px 14%
+OPTION new_silbronze hall 10.5 m zu outline >= 3.0:1 vs floor behind: 11% (min 50%); ring formula 7%; body median 2.08:1; area >= 3:1 28%
+OPTION new_silbronze hall 10.5 m ls outline >= 3.0:1 vs floor behind: 13% (min 50%); ring formula 8%; body median 2.51:1; area >= 3:1 15%
+OPTION new_silbronze hall 14 m fa outline >= 3.0:1 vs floor behind: 4% (min 50%); ring formula 1%; body median 2.97:1; area >= 3:1 49%; school colour px 2%
+OPTION new_silbronze hall 14 m ru outline >= 3.0:1 vs floor behind: 13% (min 50%); ring formula 1%; body median 3.17:1; area >= 3:1 54%; school colour px 21%
+OPTION new_silbronze hall 14 m dao outline >= 3.0:1 vs floor behind: 12% (min 50%); ring formula 0%; body median 1.30:1; area >= 3:1 2%; school colour px 93%
+OPTION new_silbronze hall 14 m mo outline >= 3.0:1 vs floor behind: 25% (min 50%); ring formula 1%; body median 3.18:1; area >= 3:1 60%; school colour px 12%
+OPTION new_silbronze hall 14 m yy outline >= 3.0:1 vs floor behind: 18% (min 50%); ring formula 10%; body median 3.07:1; area >= 3:1 57%; school colour px 78%
+OPTION new_silbronze hall 14 m za outline >= 3.0:1 vs floor behind: 15% (min 50%); ring formula 2%; body median 2.28:1; area >= 3:1 36%; school colour px 8%
+OPTION new_silbronze hall 14 m ming outline >= 3.0:1 vs floor behind: 29% (min 50%); ring formula 3%; body median 2.44:1; area >= 3:1 38%; school colour px 9%
+OPTION new_silbronze hall 14 m zh outline >= 3.0:1 vs floor behind: 8% (min 50%); ring formula 1%; body median 1.60:1; area >= 3:1 29%; school colour px 47%
+OPTION new_silbronze hall 14 m nong outline >= 3.0:1 vs floor behind: 11% (min 50%); ring formula 2%; body median 3.13:1; area >= 3:1 53%; school colour px 15%
+OPTION new_silbronze hall 14 m zu outline >= 3.0:1 vs floor behind: 15% (min 50%); ring formula 8%; body median 2.02:1; area >= 3:1 24%
+OPTION new_silbronze hall 14 m ls outline >= 3.0:1 vs floor behind: 16% (min 50%); ring formula 8%; body median 2.47:1; area >= 3:1 11%
+OPTION new_fres hall 10.5 m fa outline >= 3.0:1 vs floor behind: 37% (min 50%); ring formula 36%; body median 3.17:1; area >= 3:1 57%; school colour px 2%
+OPTION new_fres hall 10.5 m ru outline >= 3.0:1 vs floor behind: 28% (min 50%); ring formula 34%; body median 3.29:1; area >= 3:1 59%; school colour px 23%
+OPTION new_fres hall 10.5 m dao outline >= 3.0:1 vs floor behind: 13% (min 50%); ring formula 7%; body median 1.22:1; area >= 3:1 2%; school colour px 94%
+OPTION new_fres hall 10.5 m mo outline >= 3.0:1 vs floor behind: 26% (min 50%); ring formula 43%; body median 3.18:1; area >= 3:1 61%; school colour px 16%
+OPTION new_fres hall 10.5 m yy outline >= 3.0:1 vs floor behind: 28% (min 50%); ring formula 33%; body median 3.11:1; area >= 3:1 60%; school colour px 78%
+OPTION new_fres hall 10.5 m za outline >= 3.0:1 vs floor behind: 24% (min 50%); ring formula 27%; body median 2.33:1; area >= 3:1 37%; school colour px 10%
+OPTION new_fres hall 10.5 m ming outline >= 3.0:1 vs floor behind: 20% (min 50%); ring formula 27%; body median 2.66:1; area >= 3:1 42%; school colour px 10%
+OPTION new_fres hall 10.5 m zh outline >= 3.0:1 vs floor behind: 13% (min 50%); ring formula 17%; body median 1.67:1; area >= 3:1 29%; school colour px 49%
+OPTION new_fres hall 10.5 m nong outline >= 3.0:1 vs floor behind: 31% (min 50%); ring formula 37%; body median 3.16:1; area >= 3:1 55%; school colour px 15%
+OPTION new_fres hall 10.5 m zu outline >= 3.0:1 vs floor behind: 18% (min 50%); ring formula 19%; body median 2.11:1; area >= 3:1 26%
+OPTION new_fres hall 10.5 m ls outline >= 3.0:1 vs floor behind: 13% (min 50%); ring formula 10%; body median 2.51:1; area >= 3:1 13%
+OPTION new_fres hall 14 m fa outline >= 3.0:1 vs floor behind: 34% (min 50%); ring formula 37%; body median 3.07:1; area >= 3:1 52%; school colour px 2%
+OPTION new_fres hall 14 m ru outline >= 3.0:1 vs floor behind: 29% (min 50%); ring formula 38%; body median 3.17:1; area >= 3:1 55%; school colour px 25%
+OPTION new_fres hall 14 m dao outline >= 3.0:1 vs floor behind: 13% (min 50%); ring formula 6%; body median 1.26:1; area >= 3:1 2%; school colour px 95%
+OPTION new_fres hall 14 m mo outline >= 3.0:1 vs floor behind: 30% (min 50%); ring formula 49%; body median 3.15:1; area >= 3:1 59%; school colour px 17%
+OPTION new_fres hall 14 m yy outline >= 3.0:1 vs floor behind: 34% (min 50%); ring formula 39%; body median 3.11:1; area >= 3:1 60%; school colour px 78%
+OPTION new_fres hall 14 m za outline >= 3.0:1 vs floor behind: 26% (min 50%); ring formula 31%; body median 2.33:1; area >= 3:1 35%; school colour px 10%
+OPTION new_fres hall 14 m ming outline >= 3.0:1 vs floor behind: 19% (min 50%); ring formula 28%; body median 2.59:1; area >= 3:1 39%; school colour px 9%
+OPTION new_fres hall 14 m zh outline >= 3.0:1 vs floor behind: 14% (min 50%); ring formula 18%; body median 1.69:1; area >= 3:1 28%; school colour px 48%
+OPTION new_fres hall 14 m nong outline >= 3.0:1 vs floor behind: 32% (min 50%); ring formula 40%; body median 3.10:1; area >= 3:1 53%; school colour px 16%
+OPTION new_fres hall 14 m zu outline >= 3.0:1 vs floor behind: 18% (min 50%); ring formula 20%; body median 2.09:1; area >= 3:1 24%
+OPTION new_fres hall 14 m ls outline >= 3.0:1 vs floor behind: 9% (min 50%); ring formula 11%; body median 2.49:1; area >= 3:1 10%
+FAIL new_sil2 stone_paving 10.5 m fa outline >= 3.0:1 vs floor behind: 18% (min 50%); ring formula 10%; body median 3.78:1; area >= 3:1 66%; school colour px 2%
+FAIL new_sil2 stone_paving 10.5 m ru outline >= 3.0:1 vs floor behind: 34% (min 50%); ring formula 9%; body median 3.85:1; area >= 3:1 67%; school colour px 19%
+FAIL new_sil2 stone_paving 10.5 m dao outline >= 3.0:1 vs floor behind: 19% (min 50%); ring formula 0%; body median 1.04:1; area >= 3:1 5%; school colour px 92%
+FAIL new_sil2 stone_paving 10.5 m mo outline >= 3.0:1 vs floor behind: 38% (min 50%); ring formula 2%; body median 3.80:1; area >= 3:1 73%; school colour px 12%
+FAIL new_sil2 stone_paving 10.5 m yy outline >= 3.0:1 vs floor behind: 28% (min 50%); ring formula 12%; body median 3.69:1; area >= 3:1 68%; school colour px 79%
+FAIL new_sil2 stone_paving 10.5 m za outline >= 3.0:1 vs floor behind: 37% (min 50%); ring formula 3%; body median 2.79:1; area >= 3:1 47%; school colour px 8%
+FAIL new_sil2 stone_paving 10.5 m ming outline >= 3.0:1 vs floor behind: 41% (min 50%); ring formula 4%; body median 3.09:1; area >= 3:1 51%; school colour px 10%
+FAIL new_sil2 stone_paving 10.5 m zh outline >= 3.0:1 vs floor behind: 32% (min 50%); ring formula 1%; body median 1.94:1; area >= 3:1 38%; school colour px 48%
+FAIL new_sil2 stone_paving 10.5 m nong outline >= 3.0:1 vs floor behind: 20% (min 50%); ring formula 3%; body median 3.86:1; area >= 3:1 67%; school colour px 14%
+FAIL new_sil2 stone_paving 10.5 m zu outline >= 3.0:1 vs floor behind: 30% (min 50%); ring formula 11%; body median 2.43:1; area >= 3:1 42%
+FAIL new_sil2 stone_paving 10.5 m ls outline >= 3.0:1 vs floor behind: 28% (min 50%); ring formula 17%; body median 2.96:1; area >= 3:1 46%
+PASS new_sil2 stone_paving 10.5 m floor on-screen luminance 0.176 (0.125-0.2)
+PASS new_sil2 stone_paving 10.5 m floor own marks p95/p5 contrast 1.27:1 (max 1.3); on-screen saturation 0.20
+PASS new_sil2 floor_tiles_prop 10.5 m fa outline >= 3.0:1 vs floor behind: 54% (min 50%); ring formula 53%; body median 3.12:1; area >= 3:1 62%; school colour px 2%
+PASS new_sil2 floor_tiles_prop 10.5 m ru outline >= 3.0:1 vs floor behind: 54% (min 50%); ring formula 52%; body median 3.32:1; area >= 3:1 68%; school colour px 19%
+FAIL new_sil2 floor_tiles_prop 10.5 m dao outline >= 3.0:1 vs floor behind: 50% (min 50%); ring formula 45%; body median 1.27:1; area >= 3:1 6%; school colour px 92%
+PASS new_sil2 floor_tiles_prop 10.5 m mo outline >= 3.0:1 vs floor behind: 62% (min 50%); ring formula 54%; body median 3.22:1; area >= 3:1 69%; school colour px 12%
+PASS new_sil2 floor_tiles_prop 10.5 m yy outline >= 3.0:1 vs floor behind: 58% (min 50%); ring formula 58%; body median 3.08:1; area >= 3:1 62%; school colour px 79%
+PASS new_sil2 floor_tiles_prop 10.5 m za outline >= 3.0:1 vs floor behind: 58% (min 50%); ring formula 54%; body median 2.39:1; area >= 3:1 45%; school colour px 8%
+PASS new_sil2 floor_tiles_prop 10.5 m ming outline >= 3.0:1 vs floor behind: 65% (min 50%); ring formula 57%; body median 2.62:1; area >= 3:1 54%; school colour px 10%
+PASS new_sil2 floor_tiles_prop 10.5 m zh outline >= 3.0:1 vs floor behind: 55% (min 50%); ring formula 52%; body median 1.64:1; area >= 3:1 38%; school colour px 48%
+FAIL new_sil2 floor_tiles_prop 10.5 m nong outline >= 3.0:1 vs floor behind: 48% (min 50%); ring formula 46%; body median 3.22:1; area >= 3:1 62%; school colour px 14%
+FAIL new_sil2 floor_tiles_prop 10.5 m zu outline >= 3.0:1 vs floor behind: 43% (min 50%); ring formula 41%; body median 2.07:1; area >= 3:1 32%
+FAIL new_sil2 floor_tiles_prop 10.5 m ls outline >= 3.0:1 vs floor behind: 45% (min 50%); ring formula 43%; body median 2.44:1; area >= 3:1 17%
+PASS new_sil2 floor_tiles_prop 10.5 m floor on-screen luminance 0.139 (0.125-0.2)
+PASS new_sil2 floor_tiles_prop 10.5 m floor own marks p95/p5 contrast 1.24:1 (max 1.3); on-screen saturation 0.21
+PASS new_sil2 garden_ground_prop 10.5 m fa outline >= 3.0:1 vs floor behind: 54% (min 50%); ring formula 53%; body median 3.11:1; area >= 3:1 62%; school colour px 2%
+PASS new_sil2 garden_ground_prop 10.5 m ru outline >= 3.0:1 vs floor behind: 54% (min 50%); ring formula 51%; body median 3.26:1; area >= 3:1 67%; school colour px 19%
+FAIL new_sil2 garden_ground_prop 10.5 m dao outline >= 3.0:1 vs floor behind: 49% (min 50%); ring formula 45%; body median 1.26:1; area >= 3:1 6%; school colour px 92%
+PASS new_sil2 garden_ground_prop 10.5 m mo outline >= 3.0:1 vs floor behind: 62% (min 50%); ring formula 54%; body median 3.13:1; area >= 3:1 65%; school colour px 12%
+PASS new_sil2 garden_ground_prop 10.5 m yy outline >= 3.0:1 vs floor behind: 58% (min 50%); ring formula 56%; body median 2.99:1; area >= 3:1 54%; school colour px 79%
+PASS new_sil2 garden_ground_prop 10.5 m za outline >= 3.0:1 vs floor behind: 57% (min 50%); ring formula 54%; body median 2.36:1; area >= 3:1 44%; school colour px 8%
+PASS new_sil2 garden_ground_prop 10.5 m ming outline >= 3.0:1 vs floor behind: 65% (min 50%); ring formula 57%; body median 2.54:1; area >= 3:1 51%; school colour px 10%
+PASS new_sil2 garden_ground_prop 10.5 m zh outline >= 3.0:1 vs floor behind: 55% (min 50%); ring formula 52%; body median 1.65:1; area >= 3:1 38%; school colour px 48%
+FAIL new_sil2 garden_ground_prop 10.5 m nong outline >= 3.0:1 vs floor behind: 48% (min 50%); ring formula 46%; body median 3.16:1; area >= 3:1 61%; school colour px 14%
+FAIL new_sil2 garden_ground_prop 10.5 m zu outline >= 3.0:1 vs floor behind: 43% (min 50%); ring formula 41%; body median 2.07:1; area >= 3:1 31%
+FAIL new_sil2 garden_ground_prop 10.5 m ls outline >= 3.0:1 vs floor behind: 46% (min 50%); ring formula 45%; body median 2.51:1; area >= 3:1 20%
+PASS new_sil2 garden_ground_prop 10.5 m floor on-screen luminance 0.139 (0.125-0.2)
+PASS new_sil2 garden_ground_prop 10.5 m floor own marks p95/p5 contrast 1.27:1 (max 1.3); on-screen saturation 0.41
+PASS new_sil2 bridge_deck_prop 10.5 m fa outline >= 3.0:1 vs floor behind: 53% (min 50%); ring formula 53%; body median 3.15:1; area >= 3:1 63%; school colour px 2%
+PASS new_sil2 bridge_deck_prop 10.5 m ru outline >= 3.0:1 vs floor behind: 53% (min 50%); ring formula 52%; body median 3.31:1; area >= 3:1 68%; school colour px 19%
+FAIL new_sil2 bridge_deck_prop 10.5 m dao outline >= 3.0:1 vs floor behind: 50% (min 50%); ring formula 45%; body median 1.23:1; area >= 3:1 6%; school colour px 92%
+PASS new_sil2 bridge_deck_prop 10.5 m mo outline >= 3.0:1 vs floor behind: 61% (min 50%); ring formula 54%; body median 3.16:1; area >= 3:1 66%; school colour px 12%
+PASS new_sil2 bridge_deck_prop 10.5 m yy outline >= 3.0:1 vs floor behind: 59% (min 50%); ring formula 57%; body median 3.06:1; area >= 3:1 60%; school colour px 79%
+PASS new_sil2 bridge_deck_prop 10.5 m za outline >= 3.0:1 vs floor behind: 57% (min 50%); ring formula 54%; body median 2.41:1; area >= 3:1 46%; school colour px 8%
+PASS new_sil2 bridge_deck_prop 10.5 m ming outline >= 3.0:1 vs floor behind: 65% (min 50%); ring formula 57%; body median 2.49:1; area >= 3:1 49%; school colour px 10%
+PASS new_sil2 bridge_deck_prop 10.5 m zh outline >= 3.0:1 vs floor behind: 55% (min 50%); ring formula 52%; body median 1.65:1; area >= 3:1 38%; school colour px 48%
+FAIL new_sil2 bridge_deck_prop 10.5 m nong outline >= 3.0:1 vs floor behind: 48% (min 50%); ring formula 46%; body median 3.22:1; area >= 3:1 62%; school colour px 14%
+FAIL new_sil2 bridge_deck_prop 10.5 m zu outline >= 3.0:1 vs floor behind: 43% (min 50%); ring formula 41%; body median 2.03:1; area >= 3:1 27%
+FAIL new_sil2 bridge_deck_prop 10.5 m ls outline >= 3.0:1 vs floor behind: 47% (min 50%); ring formula 44%; body median 2.48:1; area >= 3:1 18%
+PASS new_sil2 bridge_deck_prop 10.5 m floor on-screen luminance 0.139 (0.125-0.2)
+PASS new_sil2 bridge_deck_prop 10.5 m floor own marks p95/p5 contrast 1.27:1 (max 1.3); on-screen saturation 0.51
+TABLE variant | dist | figures >= 50% | min outline share | mean outline share | median body contrast | floor Y | floor marks | min school colour px
+TABLE old_cur hall | 10.5 | 0 of 11 | 0% | 1% | 1.65:1 | 0.058 | 1.41:1 | 2%
+TABLE old_cur hall | 14 | 0 of 11 | 0% | 1% | 1.70:1 | 0.060 | 1.41:1 | 1%
+TABLE old_sil2 hall | 10.5 | 11 of 11 | 53% | 67% | 1.73:1 | 0.058 | 1.41:1 | 2%
+TABLE old_sil2 hall | 14 | 11 of 11 | 52% | 67% | 1.72:1 | 0.060 | 1.41:1 | 2%
+TABLE new_norim hall | 10.5 | 1 of 11 | 9% | 33% | 3.05:1 | 0.138 | 1.22:1 | 2%
+TABLE new_norim hall | 14 | 0 of 11 | 8% | 31% | 3.02:1 | 0.138 | 1.22:1 | 2%
+TABLE new_dark hall | 10.5 | 8 of 11 | 45% | 54% | 3.18:1 | 0.138 | 1.22:1 | 1%
+TABLE new_dark hall | 14 | 6 of 11 | 43% | 52% | 3.18:1 | 0.138 | 1.22:1 | 1%
+TABLE new_sil2 hall | 10.5 | 7 of 11 | 43% | 54% | 2.60:1 | 0.138 | 1.22:1 | 2%
+TABLE new_sil2 hall | 14 | 7 of 11 | 46% | 53% | 2.47:1 | 0.138 | 1.22:1 | 2%
+TABLE new_sil3 hall | 10.5 | 10 of 11 | 48% | 64% | 2.50:1 | 0.138 | 1.22:1 | 1%
+TABLE new_sil3 hall | 14 | 11 of 11 | 50% | 64% | 2.45:1 | 0.138 | 1.22:1 | 1%
+TABLE new_silbronze hall | 10.5 | 0 of 11 | 7% | 15% | 2.60:1 | 0.138 | 1.22:1 | 2%
+TABLE new_silbronze hall | 14 | 0 of 11 | 4% | 15% | 2.47:1 | 0.138 | 1.22:1 | 2%
+TABLE new_fres hall | 10.5 | 0 of 11 | 13% | 23% | 2.66:1 | 0.138 | 1.22:1 | 2%
+TABLE new_fres hall | 14 | 0 of 11 | 9% | 23% | 2.59:1 | 0.138 | 1.22:1 | 2%
+TABLE new_sil2 stone_paving | 10.5 | 0 of 11 | 18% | 29% | 3.09:1 | 0.176 | 1.27:1 | 2%
+TABLE new_sil2 floor_tiles_prop | 10.5 | 7 of 11 | 43% | 54% | 2.62:1 | 0.139 | 1.24:1 | 2%
+TABLE new_sil2 garden_ground_prop | 10.5 | 7 of 11 | 43% | 54% | 2.54:1 | 0.139 | 1.27:1 | 2%
+TABLE new_sil2 bridge_deck_prop | 10.5 | 7 of 11 | 43% | 54% | 2.49:1 | 0.139 | 1.27:1 | 2%
+FAIL lines: 34

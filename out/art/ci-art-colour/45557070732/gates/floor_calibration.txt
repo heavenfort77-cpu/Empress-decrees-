@@ -1,0 +1,4 @@
+pass 1: G 1.0000 C 1.0000 B 1.000 N 1400 -> Y 0.1876 marks 1.269 sd 4.80 run4 11.7 cm ac 22 x 11 px blk 1.93 sat 0.522 
+pass 2: G 1.0000 C 0.9307 B 0.600 N 1400 -> Y 0.1880 marks 1.229 sd 4.09 run4 15.0 cm ac 19 x 10 px blk 1.38 sat 0.522 
+pass 3: G 1.0000 C 1.0179 B 0.360 N 1910 -> Y 0.1883 marks 1.261 sd 4.43 run4 9.6 cm ac 15 x 8 px blk 1.25 sat 0.522 OK
+PASS hall_floor calibration: targets met with FLOOR_G=1.0 FLOOR_C=1.0179 FLOOR_B=0.36 FLOOR_N=1910

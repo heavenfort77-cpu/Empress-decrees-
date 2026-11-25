@@ -1,0 +1,34 @@
+id_px0_d10.5 ok
+id_px0_d14 ok
+id_px2_d10.5 ok
+id_px2_d14 ok
+id_px3_d10.5 ok
+id_px3_d14 ok
+old_cur_d10.5 ok
+old_cur_d14 ok
+old_sil2_d10.5 ok
+old_sil2_d14 ok
+new_norim_d10.5 ok
+new_norim_d14 ok
+new_dark_d10.5 ok
+new_dark_d14 ok
+new_sil2_d10.5 ok
+new_sil2_d14 ok
+new_sil3_d10.5 ok
+new_sil3_d14 ok
+new_silbronze_d10.5 ok
+new_silbronze_d14 ok
+new_fres_d10.5 ok
+new_fres_d14 ok
+close_old_cur_0 ok
+close_old_cur_1 ok
+close_old_cur_2 ok
+close_new_sil2_0 ok
+close_new_sil2_1 ok
+close_new_sil2_2 ok
+floor_stone_paving ok
+floor_floor_tiles_prop ok
+floor_garden_ground_prop ok
+floor_bridge_deck_prop ok
+shots 32 of 32 ok
+PASS colour shots: all rendered

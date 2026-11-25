@@ -1,0 +1,21 @@
+PASS suit_lamellar_qin fa cord: sheet x tint p70 relative luminance 0.618 (min 0.21)
+PASS suit_lamellar_qin ru cord: sheet x tint p70 relative luminance 0.239 (min 0.21)
+PASS suit_lamellar_qin dao cord: sheet x tint p70 relative luminance 0.445 (min 0.21)
+FAIL suit_lamellar_qin mo cord: sheet x tint p70 relative luminance 0.196 (min 0.21)
+PASS suit_lamellar_qin yy cord: sheet x tint p70 relative luminance 0.618 (min 0.21)
+PASS suit_lamellar_qin za cord: sheet x tint p70 relative luminance 0.461 (min 0.21)
+FAIL suit_lamellar_qin ming cord: sheet x tint p70 relative luminance 0.199 (min 0.21)
+PASS suit_lamellar_qin zh cord: sheet x tint p70 relative luminance 0.241 (min 0.21)
+PASS suit_lamellar_qin nong cord: sheet x tint p70 relative luminance 0.211 (min 0.21)
+FAIL suit_lamellar_qin lam_black binding: median relative luminance 0.40 (min 0.5)
+FAIL suit_lamellar_qin lam_brown binding: median relative luminance 0.40 (min 0.5)
+FAIL suit_lamellar_qin lam_cinnabar binding: median relative luminance 0.44 (min 0.5)
+PASS suit_lamellar_qin lam_white binding: median relative luminance 0.61 (min 0.5)
+PASS suit_lamellar_qin plate_brown lacquer value: mean lum 34 (20-45), saturation 0.35 (max 0.42)
+PASS suit_lamellar_qin lam_brown lacquer value: mean lum 31 (20-45), saturation 0.37 (max 0.42)
+PASS suit_lamellar_qin plate_black value: mean lum 36 (20-60)
+11 of 16 pass
+MUT caught approved sheet -> ming cord
+MUT caught approved sheet -> lam_black binding
+MUT caught approved sheet -> plate_brown lacquer value
+3 of 3 mutations caught

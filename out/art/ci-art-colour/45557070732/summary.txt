@@ -1,0 +1,72 @@
+FAIL hall_floor contrast: lum sd 4.4 (walkable floor: 4.5-8)
+FAIL signal_flags contrast: lum sd 30.5
+FAIL suit_bronze plain brush scale: 3.9 cm
+268 of 271 pass
+27 of 27 caught
+FAIL hall_floor calm contrast: lum sd 4.4 (4.5-7.5)
+13 of 18 pass
+3 of 3 mutations caught
+FAIL suit_lamellar_qin mo cord: sheet x tint p70 relative luminance 0.196 (min 0.21)
+FAIL suit_lamellar_qin ming cord: sheet x tint p70 relative luminance 0.199 (min 0.21)
+FAIL suit_lamellar_qin lam_black binding: median relative luminance 0.40 (min 0.5)
+FAIL suit_lamellar_qin lam_brown binding: median relative luminance 0.40 (min 0.5)
+FAIL suit_lamellar_qin lam_cinnabar binding: median relative luminance 0.44 (min 0.5)
+11 of 16 pass
+3 of 3 mutations caught
+FAIL new_sil2 hall 10.5 m fa school colour: 2% of the figure's pixels (min 8%)
+FAIL new_sil2 hall 10.5 m dao outline >= 3.0:1 vs floor behind: 49% (min 50%); ring formula 45%; body median 1.25:1; area >= 3:1 6%; school colour px 92%
+FAIL new_sil2 hall 10.5 m za school colour: 8% of the figure's pixels (min 8%)
+FAIL new_sil2 hall 10.5 m nong outline >= 3.0:1 vs floor behind: 49% (min 50%); ring formula 46%; body median 3.22:1; area >= 3:1 62%; school colour px 14%
+FAIL new_sil2 hall 10.5 m zu outline >= 3.0:1 vs floor behind: 43% (min 50%); ring formula 41%; body median 2.07:1; area >= 3:1 31%
+FAIL new_sil2 hall 10.5 m ls outline >= 3.0:1 vs floor behind: 47% (min 50%); ring formula 45%; body median 2.51:1; area >= 3:1 20%
+FAIL new_sil2 hall 14 m fa school colour: 2% of the figure's pixels (min 8%)
+FAIL new_sil2 hall 14 m dao outline >= 3.0:1 vs floor behind: 47% (min 50%); ring formula 42%; body median 1.31:1; area >= 3:1 6%; school colour px 93%
+FAIL new_sil2 hall 14 m nong outline >= 3.0:1 vs floor behind: 49% (min 50%); ring formula 46%; body median 3.13:1; area >= 3:1 61%; school colour px 15%
+FAIL new_sil2 hall 14 m zu outline >= 3.0:1 vs floor behind: 46% (min 50%); ring formula 44%; body median 2.01:1; area >= 3:1 29%
+FAIL new_sil2 hall 14 m ls outline >= 3.0:1 vs floor behind: 46% (min 50%); ring formula 43%; body median 2.47:1; area >= 3:1 17%
+FAIL new_sil2 stone_paving 10.5 m fa outline >= 3.0:1 vs floor behind: 18% (min 50%); ring formula 10%; body median 3.78:1; area >= 3:1 66%; school colour px 2%
+FAIL new_sil2 stone_paving 10.5 m ru outline >= 3.0:1 vs floor behind: 34% (min 50%); ring formula 9%; body median 3.85:1; area >= 3:1 67%; school colour px 19%
+FAIL new_sil2 stone_paving 10.5 m dao outline >= 3.0:1 vs floor behind: 19% (min 50%); ring formula 0%; body median 1.04:1; area >= 3:1 5%; school colour px 92%
+FAIL new_sil2 stone_paving 10.5 m mo outline >= 3.0:1 vs floor behind: 38% (min 50%); ring formula 2%; body median 3.80:1; area >= 3:1 73%; school colour px 12%
+FAIL new_sil2 stone_paving 10.5 m yy outline >= 3.0:1 vs floor behind: 28% (min 50%); ring formula 12%; body median 3.69:1; area >= 3:1 68%; school colour px 79%
+FAIL new_sil2 stone_paving 10.5 m za outline >= 3.0:1 vs floor behind: 37% (min 50%); ring formula 3%; body median 2.79:1; area >= 3:1 47%; school colour px 8%
+FAIL new_sil2 stone_paving 10.5 m ming outline >= 3.0:1 vs floor behind: 41% (min 50%); ring formula 4%; body median 3.09:1; area >= 3:1 51%; school colour px 10%
+FAIL new_sil2 stone_paving 10.5 m zh outline >= 3.0:1 vs floor behind: 32% (min 50%); ring formula 1%; body median 1.94:1; area >= 3:1 38%; school colour px 48%
+FAIL new_sil2 stone_paving 10.5 m nong outline >= 3.0:1 vs floor behind: 20% (min 50%); ring formula 3%; body median 3.86:1; area >= 3:1 67%; school colour px 14%
+FAIL new_sil2 stone_paving 10.5 m zu outline >= 3.0:1 vs floor behind: 30% (min 50%); ring formula 11%; body median 2.43:1; area >= 3:1 42%
+FAIL new_sil2 stone_paving 10.5 m ls outline >= 3.0:1 vs floor behind: 28% (min 50%); ring formula 17%; body median 2.96:1; area >= 3:1 46%
+FAIL new_sil2 floor_tiles_prop 10.5 m dao outline >= 3.0:1 vs floor behind: 50% (min 50%); ring formula 45%; body median 1.27:1; area >= 3:1 6%; school colour px 92%
+FAIL new_sil2 floor_tiles_prop 10.5 m nong outline >= 3.0:1 vs floor behind: 48% (min 50%); ring formula 46%; body median 3.22:1; area >= 3:1 62%; school colour px 14%
+FAIL new_sil2 floor_tiles_prop 10.5 m zu outline >= 3.0:1 vs floor behind: 43% (min 50%); ring formula 41%; body median 2.07:1; area >= 3:1 32%
+FAIL new_sil2 floor_tiles_prop 10.5 m ls outline >= 3.0:1 vs floor behind: 45% (min 50%); ring formula 43%; body median 2.44:1; area >= 3:1 17%
+FAIL new_sil2 garden_ground_prop 10.5 m dao outline >= 3.0:1 vs floor behind: 49% (min 50%); ring formula 45%; body median 1.26:1; area >= 3:1 6%; school colour px 92%
+FAIL new_sil2 garden_ground_prop 10.5 m nong outline >= 3.0:1 vs floor behind: 48% (min 50%); ring formula 46%; body median 3.16:1; area >= 3:1 61%; school colour px 14%
+FAIL new_sil2 garden_ground_prop 10.5 m zu outline >= 3.0:1 vs floor behind: 43% (min 50%); ring formula 41%; body median 2.07:1; area >= 3:1 31%
+FAIL new_sil2 garden_ground_prop 10.5 m ls outline >= 3.0:1 vs floor behind: 46% (min 50%); ring formula 45%; body median 2.51:1; area >= 3:1 20%
+FAIL new_sil2 bridge_deck_prop 10.5 m dao outline >= 3.0:1 vs floor behind: 50% (min 50%); ring formula 45%; body median 1.23:1; area >= 3:1 6%; school colour px 92%
+FAIL new_sil2 bridge_deck_prop 10.5 m nong outline >= 3.0:1 vs floor behind: 48% (min 50%); ring formula 46%; body median 3.22:1; area >= 3:1 62%; school colour px 14%
+FAIL new_sil2 bridge_deck_prop 10.5 m zu outline >= 3.0:1 vs floor behind: 43% (min 50%); ring formula 41%; body median 2.03:1; area >= 3:1 27%
+FAIL new_sil2 bridge_deck_prop 10.5 m ls outline >= 3.0:1 vs floor behind: 47% (min 50%); ring formula 44%; body median 2.48:1; area >= 3:1 18%
+TABLE variant | dist | figures >= 50% | min outline share | mean outline share | median body contrast | floor Y | floor marks | min school colour px
+TABLE old_cur hall | 10.5 | 0 of 11 | 0% | 1% | 1.65:1 | 0.058 | 1.41:1 | 2%
+TABLE old_cur hall | 14 | 0 of 11 | 0% | 1% | 1.70:1 | 0.060 | 1.41:1 | 1%
+TABLE old_sil2 hall | 10.5 | 11 of 11 | 53% | 67% | 1.73:1 | 0.058 | 1.41:1 | 2%
+TABLE old_sil2 hall | 14 | 11 of 11 | 52% | 67% | 1.72:1 | 0.060 | 1.41:1 | 2%
+TABLE new_norim hall | 10.5 | 1 of 11 | 9% | 33% | 3.05:1 | 0.138 | 1.22:1 | 2%
+TABLE new_norim hall | 14 | 0 of 11 | 8% | 31% | 3.02:1 | 0.138 | 1.22:1 | 2%
+TABLE new_dark hall | 10.5 | 8 of 11 | 45% | 54% | 3.18:1 | 0.138 | 1.22:1 | 1%
+TABLE new_dark hall | 14 | 6 of 11 | 43% | 52% | 3.18:1 | 0.138 | 1.22:1 | 1%
+TABLE new_sil2 hall | 10.5 | 7 of 11 | 43% | 54% | 2.60:1 | 0.138 | 1.22:1 | 2%
+TABLE new_sil2 hall | 14 | 7 of 11 | 46% | 53% | 2.47:1 | 0.138 | 1.22:1 | 2%
+TABLE new_sil3 hall | 10.5 | 10 of 11 | 48% | 64% | 2.50:1 | 0.138 | 1.22:1 | 1%
+TABLE new_sil3 hall | 14 | 11 of 11 | 50% | 64% | 2.45:1 | 0.138 | 1.22:1 | 1%
+TABLE new_silbronze hall | 10.5 | 0 of 11 | 7% | 15% | 2.60:1 | 0.138 | 1.22:1 | 2%
+TABLE new_silbronze hall | 14 | 0 of 11 | 4% | 15% | 2.47:1 | 0.138 | 1.22:1 | 2%
+TABLE new_fres hall | 10.5 | 0 of 11 | 13% | 23% | 2.66:1 | 0.138 | 1.22:1 | 2%
+TABLE new_fres hall | 14 | 0 of 11 | 9% | 23% | 2.59:1 | 0.138 | 1.22:1 | 2%
+TABLE new_sil2 stone_paving | 10.5 | 0 of 11 | 18% | 29% | 3.09:1 | 0.176 | 1.27:1 | 2%
+TABLE new_sil2 floor_tiles_prop | 10.5 | 7 of 11 | 43% | 54% | 2.62:1 | 0.139 | 1.24:1 | 2%
+TABLE new_sil2 garden_ground_prop | 10.5 | 7 of 11 | 43% | 54% | 2.54:1 | 0.139 | 1.27:1 | 2%
+TABLE new_sil2 bridge_deck_prop | 10.5 | 7 of 11 | 43% | 54% | 2.49:1 | 0.139 | 1.27:1 | 2%
+FAIL lines: 34
+FAIL lines: 44
