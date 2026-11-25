@@ -1,0 +1,31 @@
+SHARD 3 of 6: statements 495, prelude 13, always 18, valid cuts 205, cuts at lines 1922,3454,4018,4036,4072; weight ms
+RUNTIME 4 of 4 pass
+ok   01 load without errors 
+ok   02 budget follow view (calls<500, tris<500k) :: calls 27, tris 2842
+ok   03 budget overview, all sections (calls<500, tris<500k) :: calls 76, tris 8434
+ok   1007 full palace pieces II: a water clock per burning wing in its wing, the plan's vats, twelve giants on the approach, a wake works; the box keeps its own :: {"layout":"full","order":"southwest,southeast,west,east,south","clocks":"east,south,southeast,southwest,west","clockRoomsOk":true,"vatWant":7,"vats":7,"giants":12,"giantRooms":"fore,approach","woke":t
+STMT 41 100
+STMT 42 497
+STMT 45 15
+STMT 47 7
+STMT 49 3
+STMT 51 9
+STMT 52 6
+STMT 54 5
+STMT 56 3
+STMT 364 2
+STMT 625 3
+STMT 875 32
+STMT 1247 28
+STMT 1478 15
+STMT 1640 4
+STMT 1780 6
+STMT 1941 2
+STMT 2120 3
+STMT 2275 2
+STMT 2469 3
+STMT 2647 4
+STMT 2828 3
+STMT 3037 3
+STMT 4018 13
+STMT 4081 1459

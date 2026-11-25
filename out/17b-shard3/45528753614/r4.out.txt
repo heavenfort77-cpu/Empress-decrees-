@@ -1,0 +1,65 @@
+SHARD 4 of 6: statements 495, prelude 13, always 18, valid cuts 205, cuts at lines 1922,3454,4018,4036,4072; weight ms
+RUNTIME 33 of 33 pass
+ok   01 load without errors 
+ok   02 budget follow view (calls<500, tris<500k) :: calls 27, tris 2842
+ok   03 budget overview, all sections (calls<500, tris<500k) :: calls 76, tris 8434
+ok   500 door locks: a rival comes into sight as the door opens; inside and clear of the doors the court locks (all doors shut + locked); no way out (door, route); a hunter waits outside; broken = open :: {"open":{"door":true,"st":"live","room":"court","inScene":true,"locked":""},"lock":{"locked":"court","doors":true,"n":3,"lockN":1},"atDoor":{"open":false,"cur":"court","card":true},"route":false,"hunt
+ok   501 off-screen simulation deterministic per seed: same seed same results log; another seed differs; rivals settled out of sight within 150 s :: {"same":true,"differs":true,"outA":6,"outC":6,"killsA":6,"farms":0,"a":"kill|fa|za|court|18.30;kill|dao|mo|corridor|18.82;kill|zongheng|yinyang|garden|19.73;kill|ming|zongheng|garden|32.77;kill|nong|d
+ok   502 every rival out is announced on the banner from TEXT keys (winner, loser, room; none dropped) and leaves a trace in its room; the hunter is announced :: {"outN":6,"shownOut":6,"drop":0,"qn":0,"traces":6,"hunt":true,"named":true,"sample":["Fa suit broke Za suit in the Courtyard.","Dao suit broke Mo suit in the Corridor.","Zongheng suit broke Yinyang su
+ok   503 rivals come into sight in their simulated state (hp, meter) on a free point of their room, keep it out of sight; a hunter walks in at the door it came by :: {"live":{"st":"live","hp":37,"ch":55.01,"room":"court","walk":true},"parked":{"st":"sim","hp":37,"inScene":false,"room":"court"},"walkIn":{"st":"live","room":"hall","hp":50,"atDoor":1.2,"s":0}}
+ok   504 core sealed while rivals stand: no route, door shut and locked at arm's length, walking in keeps you on the bridge, card says sealed (count); all out = open, announced; walking in wakes the apex :: {"route":false,"sealed":{"open":false,"locked":true,"cur":"bridge","card":true,"standing":8},"pushed":{"cur":"bridge","phase":"palace"},"opened":{"open":true,"locked":false,"door":true},"line":true,"a
+ok   505 the last two: one rival left is announced and tracks the player; it walks into the hall, which locks with both inside; broken = hall open and the core unsealed :: {"final":{"final":true,"hunter":0,"line":true},"duel":{"st":"live","room":"hall","locked":"hall","doors":true,"s":7.4},"after":{"open":true,"locked":"","core":false,"standing":0,"alive":1}}
+ok   506 rivals in sight fight each other with the bot brain inside the palace (one broken within 60 s), never off the palace floors :: {"off":0,"live":"live,live","outN":1,"s":5.9}
+ok   507 budget: court with every rival in sight fighting the player (locked): calls<500, tris<500k, no shader compile, geometry flat :: {"pre":8,"pset":1,"live":8,"locked":"court","calls":26,"tris":826,"programs":[8,8],"geoms":[162,162]}
+ok   508 palace new run after rivals: same seeded start, no locks, traces, hunter, queue or results left; core sealed again :: {"midOut":5,"same":true,"locked":"","traces":0,"hunter":-1,"qn":0,"outN":0,"final":false,"open":false,"core":true,"standing":8}
+ok   509 burning + rivals + guard, 3 seeds (autopilot player; one run sees >= 3 wings fall): burnState().bad 0 every tick, never a locked warned/fallen room, no rival left in a fallen room, nothing dropped from her queue :: {"viol":[],"runs":[{"seed":12345,"s":93,"phase":"wake","pcause":"","falls":2,"out":8,"fellLog":1,"bad":0,"drop":0},{"seed":2,"s":173,"phase":"wake","pcause":"","falls":4,"out":8,"fellLog":0,"bad":0,"d
+ok   510 rooms and the guard: a squad appears when the door opens (not in the start hall); locked in with it; all broken = open; a rival fights it; off-screen farming :: {"start":{"guards":0,"hallLeft":0},"spawn":{"court":6,"left":0},"lock":"court","open":{"locked":"","court":0},"fight":{"kills":1,"s":35.5},"farm":{"before":1,"after":0,"log":1}}
+ok   511 full palace: rivals start in their own halls, squads from the escalation table (none in the start hall or core), rebels in some rooms; bot run with the burning: bad 0, no locked warned/fallen room, no rival in a fallen room, nothing dropped, >= 3 wings fall :: {"viol":[],"layout":"full","home":8,"rivals":8,"startLeft":0,"coreLeft":0,"escOk":true,"rebelRooms":7,"run":{"s":260,"phase":"palace","pcause":"","falls":5,"out":8,"bad":0,"drop":0,"giantLog":0}}
+ok   1100 giants killable by a suit: dormant takes nothing; the player's order hurts an awake one; the kill collapses it (fallS), gives giant.charge, her line once, frees its slot; bar only while awake; never acts again; shaders flat :: {"dormHp":400,"bars1":1,"hpAfterOrder":350,"blow":50,"max":400,"kill":{"st":6,"hp":0,"alive":false,"seen":false,"killer":"P","kills":1,"awake":0,"gain":50.008,"bars":1},"fallSteps":48,"lying":7,"after
+ok   1101 bots: an awake giant in sight is a creature target; a bot's basic attack hurts it; bots dodge its shown slam (inside: danger, 12 m off: none; in play every slam with the bot inside ends with it outside) :: {"picks":1,"tries":1,"botHit":10,"slam":true,"inside":true,"outside":false,"play":{"live":"live","slams":3,"inside":3,"dodged":3,"d":[5,4.88,4.82]}}
+ok   1102 the 皇家 guard and the 反贼 hurt an awake giant (their moves; it is their foe); the palace is a guard phase in CONFIG :: {"huangjia":{"id":0,"dmg":12,"steps":33,"blow":0},"fanzei":{"id":0,"dmg":5,"steps":38,"blow":0},"phases":"royale,palace"}
+ok   1103 pieces hurt an awake giant: a burning mercury channel it stands in, and a vat's splash (vat.giantDmg) :: {"merc":{"dmg":0.2,"steps":78},"vat":{"st":2,"dmg":60,"hp":340}}
+ok   1104 giants new run (twice) after a kill: all dormant at home with full health, none lying, counters zero, no bar; a fresh wake has full health :: {"runs":[{"home":true,"kills":0,"downNotes":0,"dmg":0,"bars":0},{"home":true,"kills":0,"downNotes":0,"dmg":0,"bars":0}],"before":{"st":7,"kills":1},"fresh":400}
+ok   1220 text warm-up: every CJK character of TEXT laid out off screen at load in each CONFIG.FONT_WARM style :: {"want":30,"missing":"","kids":4,"styles":4,"right":-9280,"w":720}
+ok   15 context lost and restored :: calls 27, new errors 
+ok   1701 palace set: 5 images from assets/c as KTX2 (flipped v), all on, warm draw under the card, within the cap, +5 textures :: {"shown":true,"led":{"kind":"palace","draws":51,"prog0":3,"prog1":7,"tex0":1,"tex1":6,"fmt":["hall_floor:ktx2","hall_wall:ktx2","pillar:ktx2","door:ktx2","lion_stone:ktx2"],"failed":[],"capped":false,
+ok   1702 no program or texture built in palace play after the card (600 steps drawn every 20) :: {"at0":{"geoms":111,"texs":6,"programs":7},"worst":null,"at1":{"geoms":111,"texs":6,"programs":7},"room":"hall","t":0.06666666666666667}
+ok   1703 memory flat over 5 Rumble/palace cycles (geometries, textures, programs); Rumble holds no palace image :: [{"r":{"geoms":111,"texs":1,"programs":7,"palace":"none","ptex":0},"p":{"geoms":111,"texs":6,"programs":7,"palace":"ready","ptex":5}},{"r":{"geoms":111,"texs":1,"programs":7,"palace":"none","ptex":0},
+ok   1704 fallback: blocked KTX2 -> its PNG; KTX2 and PNG blocked -> the whole set on box colours, ledger names it; recovers after; no page error :: {"f1":["ready",["hall_floor:ktx2","hall_wall:ktx2","pillar:ktx2","door:png","lion_stone:ktx2"]],"f2":["failed",["door"],[false,false,false,false,false]],"f3":"ready","errs":[]}
+ok   1711 page load event before the boot warm-up (2560x1080): loadEventStart < boot end :: {"load":218.60000000000582,"ready":15679.500000000015}
+ok   1705 context lost and restored in the palace: restore card ran (one draw under it), frames draw again, textures equal, no page error :: {"led":{"kind":"restore","draws":15,"prog0":0,"prog1":6,"tex0":0,"tex1":6,"fmt":[],"failed":[],"capped":false,"ms":109,"t0":100692.4,"n":1},"calls":15,"texs":[6,6],"errs":[]}
+ok   1706 tier changed in play: adjust card each time (one draw under it), programs back to the same count on the same tier :: [{"kind":"adjust","n":1,"draws":15,"programs":11},{"kind":"adjust","n":1,"draws":15,"programs":11},{"kind":"adjust","n":1,"draws":15,"programs":11},{"kind":"adjust","n":1,"draws":15,"programs":11}]
+ok   1707 tab hidden mid-load: card clock frozen while hidden (still busy), the set finishes after the tab shows :: {"h0":["busy",0],"h1":["busy",0],"h2":["idle","ready"]}
+ok   1708 old saves and garbage saves: page loads with no error, the palace set loads :: [{"errs":[],"palace":"ready"},{"errs":[],"palace":"ready"}]
+ok   1709 encode manifest fresh (file and source hashes), desktop and phone file for every palace image :: 136 files; 
+ok   1710 KTX2 look vs the PNG route in the start hall: mean dE2000 <= 2 (every 4th pixel) :: dE 0.684; png route hall_floor:png,hall_wall:png,pillar:png,door:png,lion_stone:png
+STMT 41 164
+STMT 42 2106
+STMT 45 36
+STMT 47 9
+STMT 49 9
+STMT 51 16
+STMT 52 10
+STMT 54 15
+STMT 56 7
+STMT 364 6
+STMT 625 4
+STMT 875 57
+STMT 1247 5
+STMT 1478 7
+STMT 1640 8
+STMT 1780 7
+STMT 1941 12
+STMT 2120 4
+STMT 2275 4
+STMT 2469 7
+STMT 2647 7
+STMT 2828 7
+STMT 3037 5
+STMT 4036 8965
+STMT 4037 24
+STMT 4038 326
+STMT 4043 15
+STMT 4057 6634
+STMT 4069 166464
+STMT 4081 3584
