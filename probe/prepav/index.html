@@ -163,6 +163,8 @@ r.compile(scene, cam); r.clear(); r.render(scene, cam);
 const warmed = MODE === 'ref' ? 0 : FX.fxWarm(r, cam);
 r.clear(); r.render(scene, cam); r.render(fxScene, cam);
 const gl = r.getContext(), ext = gl.getExtension('EXT_disjoint_timer_query_webgl2');
+// The graphics chip that drew (proof the timing ran on a real GPU, not a software renderer): the unmasked renderer string, read once.
+const dbg = gl.getExtension('WEBGL_debug_renderer_info'), GPU = String(gl.getParameter(dbg ? dbg.UNMASKED_RENDERER_WEBGL : gl.RENDERER) || '');
 const progs0 = r.info.programs.length;
 const FT = new Float32Array(1 << 15), GT = new Float32Array(1 << 15), GC = new Float32Array(1 << 15), LONG = new Float32Array(256), LIVE = new Float32Array(1024), PQ = [], PK = [];
 let nC = 0, nL = 0, nLive = 0, t0 = 0, calls = 0, tris = 0, arm = false, allF = 0, nF = 0, nG = 0, timing = false, last = performance.now(), simT = 0, q = null, liveAcc = 0;
@@ -175,7 +177,7 @@ window.__probe = {
     timing = false; const fs = MODE === 'ref' ? null : FX.fxStatus(), ss = MODE === 'ref' ? null : SND.status();
     return { ft: Array.from(FT.subarray(0, nF)), gt: Array.from(GT.subarray(0, nG)), gc: Array.from(GC.subarray(0, nC)), long: Array.from(LONG.subarray(0, nL)), live: Array.from(LIVE.subarray(0, nLive)),
       calls, tris, programs: r.info.programs.length, progsAtLoad: progs0, progsAtStart: window.__progsAtStart, textures: r.info.memory.textures, geometries: r.info.memory.geometries,
-      sounds: ss ? ss.played - snd0 : 0, events: fs ? fs.events - ev0 : 0, unknown: fs ? fs.unknown : 0, simS: simT - simStart, heapMB: (heap() - heap0) / 1048576, warmed, sndReady: ss ? ss.ready : 0, sndTotal: ss ? ss.total : 0, ctx: ss ? ss.ctx : 'none', timer: !!ext, mode: MODE, k: K };
+      sounds: ss ? ss.played - snd0 : 0, events: fs ? fs.events - ev0 : 0, unknown: fs ? fs.unknown : 0, simS: simT - simStart, heapMB: (heap() - heap0) / 1048576, warmed, sndReady: ss ? ss.ready : 0, sndTotal: ss ? ss.total : 0, ctx: ss ? ss.ctx : 'none', timer: !!ext, gpu: GPU, mode: MODE, k: K };
   },
 };
 // ---- runtime checks hook (test mode only): small, read-only where possible ----

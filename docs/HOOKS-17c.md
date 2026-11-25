@@ -2,6 +2,7 @@
 
 INT is the only writer of index.html and tests/. Everything below is a drop-in: the modules are done and tested on branch prep-av; this file says exactly what INT adds to index.html.
 Line numbers are from batches-3-5 ab0473f (before 17b). INT's 17b edits move them, so each place is also named by its function and anchor text.
+Checked against 874d217 (17b landed): every function named below still exists, about 19 lines lower (beginMove 5651, hitTarget 2100, guardBegin 6734, reset 7327, pickMode 7150, palEnter 3001). tests/static-check.mjs of 874d217 passes over these src modules (`node tests/static-check.mjs index.html <prep-av>/src`: STATIC PASS, 6 modules, 4 perframe blocks), and tests_draft/fx-map.mjs against 874d217's index.html passes 12 of 13: unit moves, guard moves and stinger keys pass; only "options keys in TEXT" fails until INT pastes the opt_* keys of section 6.
 
 ## 0. Modules (on batches-3-5 after the gates pass; nothing else to copy)
 | File | What |
@@ -43,12 +44,24 @@ The callable names are the keys of `fxTable()`; tests_draft/fx-map.mjs lists the
    if (CONFIG.SND.on) SND.init({ unlockEl: window, profile: CONFIG.SND.profile || (TOUCH ? 'phone' : 'desktop') });
    FX.initFx({ THREE, scene, snd: CONFIG.SND.on ? SND : null, tier, cfg: { cards: CONFIG.FX.on, base: CONFIG.FX.base, pool: CONFIG.FX.pool, dtMax: CONFIG.FX.dtMax, cardFwd: CONFIG.FX.cardFwd, pitchSin: CONFIG.FX.pitchSin, sphereR: CONFIG.FX.sphereR } });
    ```
-4. Card load and warm-up under the loading card (INTEGRATION.md section 3; 17b's job queue). Under card P (palace) and card R (Rumble): the cards are a shared set, loaded once and kept.
+4. Card load and warm-up under 17b's loader (LD, LD_JOBS, ldStart, ldNeed in 874d217). The painted cards are one shared set for both modes, loaded once and kept: never dispose them on a mode switch (ldDispose leaves them alone). Call `FX.fxDispose()` only on page teardown.
+   `FX.loadFx()` fetches the atlases (fetch + createImageBitmap, never `<img>`), parses the table and builds the 3 pools; it resolves to the parse error list (must be empty: a check). It is one promise, so calling it again returns the same load. `FX.fxWarm(renderer, camera)` uploads the 4 textures, compiles and draws all 13 cards once, then clears them; it returns 13, and `renderer.info.render.calls` right after it is that draw (3 calls).
+   One job, next to ldCompile:
    ```js
-   const fxErrs = await FX.loadFx();          // fetch + createImageBitmap (never <img>); builds 3 pools; parse errors list (must be empty: a check)
-   const fxDrawn = FX.fxWarm(renderer, camera); // initTexture x4, one draw of all 13 cards, compile; returns 13 (card ledger: draws > 0)
+   // Painted cards (17c): load once, then upload, compile and draw all 13 under the card; the draw goes to the ledger. Re-runs on 'restore'.
+   function ldFx() {
+     if (!CONFIG.FX.on || (LD.fx && LD.kind !== 'restore')) return true;
+     if (!LD.started) { LD.started = true; ldWait(FX.loadFx().then((e) => { LD.fxErrs = e; })); }
+     if (!LD.waitDone) return false;
+     LD.fx = FX.fxWarm(renderer, camera) > 0; LD.led.draws += renderer.info.render.calls; LD.led.n++;
+     return true;
+   }
    ```
-   Add `fxDrawn` to the card ledger (the draws, programs and textures it counts). The four card textures are kept: never dispose them on a mode switch. Call `FX.fxDispose()` only on page teardown.
+   - LD fields: add `fx: false, fxErrs: null` to `const LD = {...}`.
+   - LD_JOBS: `{ key: 'fx', run: ldFx }` as the first job of `palace` and the last job of `restore`, plus a card of its own: `fx: [{ key: 'fx', run: ldFx }]`.
+   - ldNeed(): after the palace line, `if (CONFIG.FX.on && !LD.fx && !LD.jobs) ldStart('fx');` (covers Royal Rumble and a palace run with CONFIG.TEX off; when the palace card runs, its own fx job does it).
+   - TEXT: `load_fx: 'Painting the strikes'` and `load_step_fx: 'Painting the strikes'` (the loader builds both keys at runtime, so static-check rule 6 cannot see them: add them by hand).
+   - A check: `LD.fxErrs` is an empty array and `LD.fx` is true after the first card (window.__game hook).
 5. Unlock (inside the gesture handlers; init also hooks the first pointerdown, touchend and keydown): add `SND.unlock();` as the first line of `pickMode(m)` (line 7130), `pickSchool(i)` (line 7102) and the `#btnHunt` click handler.
 6. Event ids for the kits, once at load after CONFIG.KITS is final (the `nameKey` 'sk_ru_q' gives item 'ru_q'; the attack item is '<prefix>_atk'):
    ```js
@@ -201,8 +214,9 @@ The inputs are plain numbers written where the game already computes them. stepI
 |---|---|---|
 | `static-src.mjs` | The PERFRAME rules of tests/static-check.mjs over src/**/*.js, unchanged, plus a stricter list inside src PERFRAME blocks: object and array literals, closures, template strings, copies, string concatenation, timers. Also mid-line comments, unseeded random and syntax. INT's 17b src scan can take these rules | see the report |
 | `fx-map.mjs` | The table parses; every sound exists in SOUNDS; every VFX map item is present (华表 dropped); tells are held >= 0.4 s on a looping card; every tell has a cue; the options keys have text. With index.html: every MOVES, GUARD.moves and bootleg key has an item, every stinger key and every opt_* key is in TEXT | 4 index.html checks SKIP on prep-av (no TEXT keys yet) |
-| `fx-runtime.mjs` | Headless Chromium (Linux) on probe/prepav: T1 unlock, T2 render, T3 sound + card, T4 pause, T5 hidden tab, T6 dt clamp, T7 every event and 0 new programs after the warm-up, T8 intensity levels and hold, T9 Esc/slider/save/mute, T10 reload, T12 errors, T13 storage blocked, T14 44 px on phone, T15 low tier | see the report |
-| `mutate.mjs` | 20 mutants, each named to the check that must catch it. Runs on a runner only | see the report |
+| `fx-runtime.mjs` | Headless Chromium (Linux) on probe/prepav: T1 unlock, T2 render, T3 sound + card, T4 pause, T5 hidden tab, T6 dt clamp, T7 every event and 0 new programs after the warm-up, T8 intensity levels and hold, T9 Esc/slider/save/mute, T10 reload, T12 errors, T13 storage blocked, T14 44 px on phone, T15 low tier, T16 played buffers equal the renders | see the report |
+| `mutate.mjs` | 31 mutants, each named to the check that must catch it: every check of static-src, fx-map (the 9 that run without index.html) and fx-runtime has at least one, and 'software GPU' proves the perf gate 'gpu real' fails on a software renderer. Runs on a runner only | see the report |
+| `ci_prepav/perfprepav.mjs` | Real-GPU timing (macOS runner): probe reference vs the heavy fight (40-60 live cards, about 70 sounds/s), forward and reversed in one job. Gates: frames measured, errors, budget, 0 new programs, fps/p95/worst, card pass GPU <= 2 ms, cards add <= 3 calls, heavy/ref fps ratio >= 0.85, and the renderer is a real GPU. A failed gate fails the step | see the report |
 After wiring, INT points fx-runtime at index.html (the same checks through `window.__game` hooks: `fxStatus`, `SND.status`, the menu), and the T9/T14 selectors stay the same.
 
 ## 8. Open items (not decided here)

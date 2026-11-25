@@ -42,7 +42,7 @@ for (const [name, qs] of SCENES) {
     over20: s.ft.filter((x) => x > 20).length, frames: s.ft.length, gpuMean: gt.length ? +mean(gt).toFixed(3) : null, cardGpuMean: gc.length ? +mean(gc).toFixed(3) : null, cardGpuP95: gc.length ? +qn(gc, 0.95).toFixed(3) : null,
     liveMean: s.live.length ? +mean(s.live).toFixed(1) : 0, liveMax: s.live.length ? Math.max(...s.live) : 0, calls: s.calls, tris: s.tris, progNew: s.programs - s.progsAtStart, progs: s.programs,
     sndPerS: s.simS > 0 ? +(s.sounds / s.simS).toFixed(1) : 0, evPerS: s.simS > 0 ? +(s.events / s.simS).toFixed(1) : 0, unknown: s.unknown, ctx: s.ctx, sndReady: s.sndReady, sndTotal: s.sndTotal,
-    heapMB: +s.heapMB.toFixed(2), warmed: s.warmed, long: s.long.reduce((o, x, i) => (i % 4 === 0 ? o.push([]) : 0, o[o.length - 1].push(+x.toFixed(i % 4 === 2 ? 2 : 0)), o), []).map((q) => `t${q[0]}:${q[1]}ms heap${q[2] >= 0 ? '+' : ''}${q[2]}MB ev${q[3]}`).join(' '), loadMs, timer: s.timer, errs: errs.length };
+    heapMB: +s.heapMB.toFixed(2), warmed: s.warmed, long: s.long.reduce((o, x, i) => (i % 4 === 0 ? o.push([]) : 0, o[o.length - 1].push(+x.toFixed(i % 4 === 2 ? 2 : 0)), o), []).map((q) => `t${q[0]}:${q[1]}ms heap${q[2] >= 0 ? '+' : ''}${q[2]}MB ev${q[3]}`).join(' '), loadMs, timer: s.timer, gpu: s.gpu, errs: errs.length };
   rows.push(row); console.log('ROW ' + JSON.stringify(row)); if (errs.length) console.log('ERRS ' + name + ' ' + errs.slice(0, 5).join(' | '));
   if (qs.includes('heavy') && !name.includes('#2')) await page.screenshot({ path: `${OUT}/heavy.jpg`, type: 'jpeg', quality: 80 });
   await page.close();
@@ -51,7 +51,11 @@ console.log('\nscene      fps     p50    p95   worst >20ms stageGPU cardGPU card
 for (const r of rows) console.log([r.scene.padEnd(9), String(r.fps).padStart(7), String(r.p50).padStart(6), String(r.p95).padStart(6), String(r.worst).padStart(6), String(r.over20).padStart(5),
   String(r.gpuMean).padStart(8), String(r.cardGpuMean).padStart(7), String(r.cardGpuP95).padStart(7), (r.liveMean + '/' + r.liveMax).padStart(14), String(r.calls).padStart(5), String(r.tris).padStart(6),
   String(r.progNew).padStart(7), String(r.sndPerS).padStart(5), String(r.evPerS).padStart(5), String(r.heapMB).padStart(6), ' ' + r.long].join(' '));
-const G = (name, ok, detail) => console.log(`GATE ${name} ${detail} ${ok ? 'PASS' : 'FAIL'}`);
+let nFail = 0;
+const G = (name, ok, detail) => { if (!ok) nFail++; console.log(`GATE ${name} ${detail} ${ok ? 'PASS' : 'FAIL'}`); };
+// Real fps only from a real graphics chip (owner rule 25): every scene drew on a renderer that is named and is not a software one.
+const SOFT_GPU = /swiftshader|llvmpipe|softpipe|software|basic render/i;
+G('gpu real', rows.length > 0 && rows.every((r) => r.gpu && !SOFT_GPU.test(r.gpu)), `renderer "${rows.length ? rows[0].gpu : ''}"`);
 // Passed on nothing is a FAIL: every scene measured, every scene with frames (and GPU samples when the timer exists).
 G('scenes measured', rows.length === 4, `rows ${rows.length} of 4`);
 for (const r of rows) G(`${r.scene} frames measured`, r.frames > 100 && (!r.timer || r.gpuMean !== null), `frames ${r.frames} gpu ${r.gpuMean}`);
@@ -70,4 +74,7 @@ const ratio = (a, b) => +(rows.find((x) => x.scene === a).fps / rows.find((x) =>
 const r1 = ratio('heavy', 'ref'), r2 = ratio('heavy#2', 'ref#2');
 G('heavy vs ref same job', (r1 + r2) / 2 >= 0.85, `fps ratio ${r1} / ${r2} (mean >= 0.85)`);
 await writeFile(`${OUT}/rows.json`, JSON.stringify(rows, null, 1));
+// A failed gate fails the step (the tick then means something; the FAIL lines stay the proof).
+console.log(`GATES ${nFail ? 'FAIL ' + nFail : 'PASS'}`);
+process.exitCode = nFail ? 1 : 0;
 await browser.close(); server.close();

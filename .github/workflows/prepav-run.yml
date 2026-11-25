@@ -21,18 +21,10 @@ jobs:
           node-version: 22
       - name: Tools
         run: npm install --no-save --no-audit --no-fund playwright@1.63.0 >/dev/null && npx playwright install --with-deps chromium >/dev/null
-      - name: Preflight
-        run: bash ci_prepav/preflight.sh o 2>&1 | tee preflight.txt; test ${PIPESTATUS[0]} -eq 0
-      - name: Checks and mutation round
-        if: ${{ !contains(github.event.head_commit.message, '[preflight-only]') }}
-        run: |
-          set +e
-          mkdir -p o
-          { echo "== static-src"; node tests_draft/static-src.mjs; echo "exit $?";
-            echo "== fx-map"; node tests_draft/fx-map.mjs /nonexistent; echo "exit $?";
-            echo "== fx-runtime"; node tests_draft/fx-runtime.mjs; echo "exit $?";
-            echo "== mutate"; node tests_draft/mutate.mjs; echo "exit $?"; } 2>&1 | tee o/checks.txt
-          git diff --stat | tee o/diff_after.txt
+      - name: Job (ci/job.sh linux; PREFLIGHT first)
+        env:
+          PREFLIGHT_ONLY: ${{ contains(github.event.head_commit.message, '[preflight-only]') && '1' || '0' }}
+        run: bash ci/job.sh linux
       - name: Commit to ci-out
         if: always()
         run: |
@@ -57,13 +49,10 @@ jobs:
         run: npm install --no-save --no-audit --no-fund playwright@1.63.0 && npx playwright install chromium
       - name: Machine
         run: (sysctl -n machdep.cpu.brand_string; system_profiler SPDisplaysDataType | grep -E "Chipset|Metal|Resolution" || true) | tee machine.txt
-      - name: Preflight
-        run: bash ci_prepav/preflight.sh mac_out 2>&1 | tee preflight.txt; test ${PIPESTATUS[0]} -eq 0
-      - name: Probe (real GPU, vsync off)
-        if: ${{ !contains(github.event.head_commit.message, '[preflight-only]') }}
-        run: |
-          set +e
-          mkdir -p mac_out && OUT=mac_out node ci_prepav/perfprepav.mjs 2>&1 | tee mac_out/perf.txt
+      - name: Job (ci/job.sh mac; PREFLIGHT first)
+        env:
+          PREFLIGHT_ONLY: ${{ contains(github.event.head_commit.message, '[preflight-only]') && '1' || '0' }}
+        run: bash ci/job.sh mac
       - name: Commit to ci-out
         if: always()
         run: |

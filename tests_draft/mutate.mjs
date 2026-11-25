@@ -24,6 +24,16 @@ const M = [
   { name: 'sound name typo', file: 'src/fx/fxmap.js', a: '~demon_claw_tell |', b: '~demon_claw_tel |', test: ['fx-map.mjs'], want: 'sounds' },
   { name: 'tell under 0.4 s', file: 'src/fx/fxmap.js', a: 'tell ring r1.7 h0.4 ~cub_bite_tell', b: 'tell ring r1.7 h0.3 ~cub_bite_tell', test: ['fx-map.mjs'], want: 'tell hold' },
   { name: 'map item dropped', file: 'src/fx/fxmap.js', a: "  r_stall: '*rebel_umber | rel impact s0.8 ~r_stall | state smoke s0.6',\n", b: '', test: ['fx-map.mjs'], want: 'vfx map items' },
+  { name: 'card name typo', file: 'src/fx/fxmap.js', a: '| rel slash s1.3 ~demon_claw |', b: '| rel slashx s1.3 ~demon_claw |', test: ['fx-map.mjs'], want: 'parse' },
+  { name: 'stinger sound typo', file: 'src/fx/fxmap.js', a: "voice_wake: 'st_wake'", b: "voice_wake: 'st_wak'", test: ['fx-map.mjs'], want: 'stinger sounds' },
+  { name: 'map card swapped', file: 'src/fx/fxmap.js', a: '~demon_claw | hit impact s1 ~demon_hit', b: '~demon_claw | hit heal s1 ~demon_hit', test: ['fx-map.mjs'], want: 'vfx map cards' },
+  { name: 'tell card without loop', file: 'src/fx/fxmap.js', a: 'tell ring r1.9 h0.5 ~cub_rend_tell', b: 'tell slash r1.9 h0.5 ~cub_rend_tell', test: ['fx-map.mjs'], want: 'tell loops' },
+  { name: 'tell with no cue', file: 'src/fx/fxmap.js', a: "'ash | tell - ~merc_warn |", b: "'ash | tell - |", test: ['fx-map.mjs'], want: 'tell cue' },
+  { name: 'options text missing', file: 'src/audio/options.js', a: "  opt_hint: 'Esc returns to the game',\n", b: '', test: ['fx-map.mjs'], want: 'options text' },
+  { name: 'one sound fails to render', file: 'src/audio/sound.js', a: 'try { S.buf[n] = await renderSoundBuffer(n, S.sr, S.profile);', b: "try { if (n === 'demon_hit') throw new Error('mutant'); S.buf[n] = await renderSoundBuffer(n, S.sr, S.profile);", test: ['fx-runtime.mjs', 'T2'], want: 'T2' },
+  { name: 'event plays no sound', file: 'src/fx/fxevent.js', a: "if (e.snd !== '' && F.snd !== null && F.snd.play(", b: "if (e.snd !== '' && F.snd !== null && false && F.snd.play(", test: ['fx-runtime.mjs', 'T3'], want: 'T3' },
+  { name: 'page error at boot', file: 'src/audio/options.js', a: "mk('p', 'opts__hint', box).textContent = T('opt_hint');", b: "mk('p', 'opts__hint', box).textContent = T('opt_hint'); setTimeout(() => { throw new Error('mutant'); }, 0);", test: ['fx-runtime.mjs', 'T12'], want: 'T12' },
+  { name: 'software GPU', file: 'ci_prepav/perfprepav.mjs', a: "const SOFT = process.argv.includes('--soft');", b: 'const SOFT = true;', test: ['../ci_prepav/perfprepav.mjs'], env: { SETTLE_S: '1', TIMED_S: '2', OUT: '/tmp/mut_perf' }, want: 'gpu real' },
   { name: 'object per event', file: 'src/fx/fxevent.js', a: '  F.events++;\n', b: '  F.events++; const tmp = { n: name };\n', test: ['static-src.mjs'], want: 'perframe object literal' },
   { name: 'closure per frame', file: 'src/fx/intensity.js', a: '  const want = levelOf(IN);', b: '  const want = [IN].map((v) => levelOf(v))[0];', test: ['static-src.mjs'], want: 'perframe' },
 ];
@@ -38,13 +48,13 @@ for (const m of M) {
   if (orig.split(m.a).length !== 2) { console.log(`MUT ERROR ${m.name}: anchor not found once in ${m.file}`); continue; }
   writeFileSync(p, orig.replace(m.a, m.b));
   let out = '';
-  try { out = execFileSync(process.execPath, [ROOT + 'tests_draft/' + m.test[0], ...m.test.slice(1)], { encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'], timeout: 600000 }); }
+  try { out = execFileSync(process.execPath, [ROOT + 'tests_draft/' + m.test[0], ...m.test.slice(1)], { encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'], timeout: 600000, env: { ...process.env, ...(m.env || {}) } }); }
   catch (e) { out = String(e.stdout || '') + String(e.stderr || ''); }
   finally { writeFileSync(p, orig); }
-  const hit = out.split('\n').some((l) => (l.startsWith('FAIL') || /:\d+ perframe/.test(l)) && l.includes(m.want));
+  const hit = out.split('\n').some((l) => (l.startsWith('FAIL') || (l.startsWith('GATE ') && l.endsWith(' FAIL')) || /:\d+ perframe/.test(l)) && l.includes(m.want));
   if (hit) caught++;
   console.log(`MUT ${hit ? 'CAUGHT' : 'MISSED'} ${m.name} (by ${m.want})`);
-  if (!hit) console.log(out.split('\n').filter((l) => /FAIL|PASS|ERR/.test(l)).slice(0, 8).join('\n'));
+  if (!hit) console.log(out.split('\n').filter((l) => /FAIL|PASS|ERR|GATE/.test(l)).slice(0, 8).join('\n'));
 }
 console.log(`MUTATIONS ${caught} of ${ran} caught`);
 process.exit(caught === ran && ran > 0 ? 0 : 1);
