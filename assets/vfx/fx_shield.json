@@ -52,6 +52,7 @@
  ],
  "ref": "pixelfx holy/divine-shield (shape and timing only)",
  "anchorHeightM": 0.0,
+ "ashMix": 0.0,
  "atlasSize": [
   1024,
   984

@@ -11,7 +11,7 @@ export function makeCards(THREE, meta, tex, ramp, opts = {}) {
   const VS = `#define NFX ${NFX}
 attribute vec4 iA; attribute vec4 iB; attribute vec4 iC;
 uniform float uTime; uniform vec4 uFxA[NFX]; uniform vec4 uFxB[NFX]; uniform vec4 uFxC[NFX]; uniform vec4 uFxD[NFX];
-varying vec2 vUv; varying float vRow; varying float vAlpha;
+varying vec2 vUv; varying float vRow; varying float vAlpha; varying float vAsh;
 #include <fog_pars_vertex>
 void main() {
   int k = int(iC.x + 0.5); vec4 A = uFxA[k]; vec4 B = uFxB[k]; vec4 C = uFxC[k]; vec4 D = uFxD[k];
@@ -27,15 +27,17 @@ void main() {
   if (dead) gl_Position = vec4(2.0, 2.0, 2.0, 1.0);
   vec2 cell = vec2(mod(f, B.z), floor(f / B.z));
   vUv = A.xy + cell * B.xy + vec2(position.x, 1.0 - position.y) * A.zw;
-  vRow = iC.y; vAlpha = iC.z;
+  vRow = iC.y; vAlpha = iC.z; vAsh = D.z;
   #include <fog_vertex>
 }`;
-  const FS = (cut) => `uniform sampler2D map; uniform sampler2D ramp; uniform float uRampW;
-varying vec2 vUv; varying float vRow; varying float vAlpha;
+  const FS = (cut) => `uniform sampler2D map; uniform sampler2D ramp; uniform float uRampW; uniform float uAshV;
+varying vec2 vUv; varying float vRow; varying float vAlpha; varying float vAsh;
 #include <fog_pars_fragment>
 void main() {
   vec2 va = texture2D(map, vUv).rg; float a = va.y * vAlpha;
-  vec3 col = texture2D(ramp, vec2(va.x * (uRampW - 1.0) / uRampW + 0.5 / uRampW, vRow)).rgb;
+  float rx = va.x * (uRampW - 1.0) / uRampW + 0.5 / uRampW;
+  // smoke: the ash row mixed over the caster's row (vAsh = the card's ashMix), so the school colour is only a tint
+  vec3 col = mix(texture2D(ramp, vec2(rx, vRow)).rgb, texture2D(ramp, vec2(rx, uAshV)).rgb, vAsh);
 #ifdef USE_FOG
   col = mix(col, fogColor, smoothstep(fogNear, fogFar, vFogDepth));
 #endif
@@ -56,7 +58,7 @@ ${cut ? `#ifdef ALPHA_TO_COVERAGE
     U.A.push(new THREE.Vector4(e.originPx[0] / W, e.originPx[1] / H, e.cellPx[0] / W, e.cellPx[1] / H));
     U.B.push(new THREE.Vector4(e.stridePx[0] / W, e.stridePx[1] / H, e.cols, e.frames));
     U.C.push(new THREE.Vector4(e.pivotPx[0] / e.cellPx[0], e.pivotPx[1] / e.cellPx[1], e.fps, e.loop ? e.loop[0] : 0));
-    U.D.push(new THREE.Vector4(e.loop ? e.loop[1] : 0, e.orient === 'ground' ? 1 : 0, 0, 0));
+    U.D.push(new THREE.Vector4(e.loop ? e.loop[1] : 0, e.orient === 'ground' ? 1 : 0, e.ashMix || 0, 0));
   }
   const pools = {}, uTime = { value: 0 };
   for (const an of Object.keys(meta.atlases)) {
@@ -69,7 +71,7 @@ ${cut ? `#ifdef ALPHA_TO_COVERAGE
     // culling: one sphere round the room (frustum culling stays on; the game moves it on a room change)
     g.boundingSphere = new THREE.Sphere(new THREE.Vector3(), opts.sphereR || 40);
     const mat = new THREE.ShaderMaterial({ vertexShader: VS, fragmentShader: FS(cut), fog: true, side: THREE.DoubleSide,
-      uniforms: THREE.UniformsUtils.merge([THREE.UniformsLib.fog, { map: { value: null }, ramp: { value: null }, uRampW: { value: meta.ramps.width },
+      uniforms: THREE.UniformsUtils.merge([THREE.UniformsLib.fog, { map: { value: null }, ramp: { value: null }, uRampW: { value: meta.ramps.width }, uAshV: { value: (rows.indexOf('ash') + 0.5) / nRows },
         uFxA: { value: U.A }, uFxB: { value: U.B }, uFxC: { value: U.C }, uFxD: { value: U.D } }]) });
     mat.uniforms.map.value = tex[an]; mat.uniforms.ramp.value = ramp; mat.uniforms.uTime = uTime;
     if (cut) { mat.alphaToCoverage = true; mat.transparent = false; mat.depthWrite = true; mat.polygonOffset = true; mat.polygonOffsetFactor = -2; mat.polygonOffsetUnits = -2; }

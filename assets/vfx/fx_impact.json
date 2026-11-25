@@ -47,6 +47,7 @@
  ],
  "ref": "pixelfx impacts/hit-spark (shape and timing only)",
  "anchorHeightM": 1.0,
+ "ashMix": 0.0,
  "atlasSize": [
   1024,
   956
