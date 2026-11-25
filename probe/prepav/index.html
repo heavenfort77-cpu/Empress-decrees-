@@ -21,7 +21,7 @@ const CONFIG = {
   // Suit, fodder and apex box sizes m.
   suit: [0.9, 2.05, 0.9], fodder: [0.7, 1.6, 0.7], apex: [1.5, 1.6, 4.0],
   // Fight script: s between a suit's attacks and its skills, a unit's moves, the apex's moves, the giant's slam, burn smoke.
-  atkS: 0.8, skillS: 3.2, unitS: 2.0, apexS: 1.7, giantS: 4.5, burnS: 0.6,
+  atkS: 0.6, skillS: 3.0, unitS: 1.6, apexS: 1.6, giantS: 4.5, burnS: 0.6,
   // Units fighting at once (of the 37 drawn), bolt flight s.
   unitsActive: 20, boltS: 0.45,
   // Frames longer than this (ms) are logged.
@@ -82,9 +82,10 @@ const UNITS = ['g_thrust', 'g_cut', 'g_shove', 'g_volley', 'g_charge', 'r_lunge'
 const UHOLD = [0.5, 0.5, 0.5, 0.8, 0.9, 0.6, 0.6, 0.8, 1.0, 0.8];
 const UROW = ['guard', 'guard', 'guard', 'guard', 'guard', 'rebel_umber', 'rebel_madder', 'rebel_olive', 'rebel_olive', 'rebel_olive'];
 const APEXM = ['claw', 'pounce', 'roar', 'claw'], APEXH = [0.45, 0.5, 0.7, 0.45];
-// All event names used, built once (a name index goes into the rings).
-const NAMES = [], NI = {};
-function nm(s) { if (!(s in NI)) { NI[s] = NAMES.length; NAMES.push(s); } return NI[s]; }
+// All event names used, built once from the table (a name index goes into the rings; a phase the item lacks maps to index 0 = '' and is skipped).
+const NAMES = [''], NI = { '': 0 };
+function nm(s) { const [it, ph] = s.split(':'); const n = MODE === 'ref' ? s : FX.fxIds(it)[ph]; if (!(n in NI)) { NI[n] = NAMES.length; NAMES.push(n); } return NI[n]; }
+function fire(i, x, z, row, o) { return i === 0 ? -1 : FX.fxEvent(NAMES[i], x, z, row, o); }
 const ATK_REL = PRE.map((p) => nm(p + '_atk:rel')), ATK_TRAIL = PRE.map((p) => nm(p + '_atk:trail')), ATK_HIT = PRE.map((p) => nm(p + '_atk:hit'));
 const SK_TELL = SKILL.map((s) => nm(s[0] + ':tell')), SK_REL = SKILL.map((s) => nm(s[0] + ':rel')), SK_HIT = SKILL.map((s) => nm(s[0] + ':hit')), SK_STATE = SKILL.map((s) => nm(s[0] + ':state'));
 const U_TELL = UNITS.map((u) => nm(u + ':tell')), U_REL = UNITS.map((u) => nm(u + ':rel')), U_HIT = UNITS.map((u) => nm(u + ':hit'));
@@ -102,17 +103,17 @@ function fight(t) {
     const x = SP[i][0], z = SP[i][1], sc = SCH[i];
     if (t >= nextAtk[i]) {
       nextAtk[i] = t + CONFIG.atkS / K;
-      if (MELEE[i]) { FX.fxEvent(NAMES[ATK_REL[i]], x, z, sc, FX.fxO(1, 0)); later(t + 0.12, ATK_HIT[i], x + 1.2, z + 0.2, 1, 0, i); }
+      if (MELEE[i]) { fire(ATK_REL[i], x, z, sc, FX.fxO(1, 0)); later(t + 0.12, ATK_HIT[i], x + 1.2, z + 0.2, 1, 0, i); }
       else if (bN < NB) {
         const dx = i % 2 ? 0.8 : -0.8, dz = -0.6;
-        bH[bN] = FX.fxEvent(NAMES[ATK_TRAIL[i]], x, z, sc, FX.fxO(dx, dz)); bT[bN] = t; bP[bN * 4] = x; bP[bN * 4 + 1] = z; bP[bN * 4 + 2] = dx * 6; bP[bN * 4 + 3] = dz * 6; bS[bN] = i; bN++;
+        bH[bN] = fire(ATK_TRAIL[i], x, z, sc, FX.fxO(dx, dz)); bT[bN] = t; bP[bN * 4] = x; bP[bN * 4 + 1] = z; bP[bN * 4 + 2] = dx * 6; bP[bN * 4 + 3] = dz * 6; bS[bN] = i; bN++;
       }
     }
     if (t >= nextSk[i]) {
       nextSk[i] = t + (CONFIG.skillS + i * 0.13) / K;
       const h = SKILL[i][1];
-      if (h > 0) { FX.fxEvent(NAMES[SK_TELL[i]], x + 1.5, z - 1, sc, FX.fxO(1, 0, 0, 0, h)); later(t + h, SK_REL[i], x + 1.5, z - 1, 1, 0, i); later(t + h + 0.05, SK_HIT[i], x + 1.8, z - 1, 1, 0, i); }
-      else { FX.fxEvent(NAMES[SK_REL[i]], x, z, sc, FX.fxO(0.7, -0.7)); FX.fxEvent(NAMES[SK_STATE[i]], x, z, sc, FX.fxO(0.7, -0.7)); later(t + 0.2, SK_HIT[i], x + 2, z - 2, 1, 0, i); }
+      if (h > 0) { fire(SK_TELL[i], x + 1.5, z - 1, sc, FX.fxO(1, 0, 0, 0, h)); later(t + h, SK_REL[i], x + 1.5, z - 1, 1, 0, i); later(t + h + 0.05, SK_HIT[i], x + 1.8, z - 1, 1, 0, i); }
+      else { fire(SK_REL[i], x, z, sc, FX.fxO(0.7, -0.7)); fire(SK_STATE[i], x, z, sc, FX.fxO(0.7, -0.7)); later(t + 0.2, SK_HIT[i], x + 2, z - 2, 1, 0, i); }
     }
   }
   for (let j = 0; j < CONFIG.unitsActive; j++) {
@@ -121,26 +122,26 @@ function fight(t) {
     nextAtk[i] = t + (CONFIG.unitS + (j % 5) * 0.21) / K;
     const dx = (j % 4) < 2 ? 1 : -1, dz = (j % 3) - 1;
     const l = Math.hypot(dx, dz);
-    FX.fxEvent(NAMES[U_TELL[u]], x, z, UROW[u], FX.fxO(dx / l, dz / l, 0, 0, UHOLD[u]));
+    fire(U_TELL[u], x, z, UROW[u], FX.fxO(dx / l, dz / l, 0, 0, UHOLD[u]));
     later(t + UHOLD[u], U_REL[u], x, z, dx / l, dz / l, -10 - u); later(t + UHOLD[u] + 0.08, U_HIT[u], x + dx * 1.5, z + dz * 1.5, dx, dz, -10 - u);
   }
-  if (ultH < 0) ultH = FX.fxEvent(NAMES[N_ULT], APEX[0], APEX[1], 'apex', FX.fxO(0, 1, 0, 0, 1e6));
+  if (ultH < 0) ultH = fire(N_ULT, APEX[0], APEX[1], 'apex', FX.fxO(0, 1, 0, 0, 1e6));
   if (t >= nextApex) {
     nextApex = t + CONFIG.apexS / K; const m = aN[0]++ % APEXM.length;
-    FX.fxEvent(NAMES[A_TELL[m]], APEX[0], APEX[1], 'apex', FX.fxO(0, 1, 0, 0, APEXH[m]));
+    fire(A_TELL[m], APEX[0], APEX[1], 'apex', FX.fxO(0, 1, 0, 0, APEXH[m]));
     later(t + APEXH[m], A_REL[m], APEX[0], APEX[1], 0, 1, -2); later(t + APEXH[m] + 0.1, A_HIT[m], APEX[0], APEX[1] + 2, 0, 1, -2);
   }
-  if (t >= nextGiant) { nextGiant = t + CONFIG.giantS / K; FX.fxEvent(NAMES[N_GT], GIANT[0], GIANT[1], '', FX.fxO(0, 1, 0, 0, 1)); later(t + 1, N_GR, GIANT[0], GIANT[1], 0, 1, -1); later(t + 1, N_GS, GIANT[0], GIANT[1], 0, 1, -1); }
+  if (t >= nextGiant) { nextGiant = t + CONFIG.giantS / K; fire(N_GT, GIANT[0], GIANT[1], '', FX.fxO(0, 1, 0, 0, 1)); later(t + 1, N_GR, GIANT[0], GIANT[1], 0, 1, -1); later(t + 1, N_GS, GIANT[0], GIANT[1], 0, 1, -1); }
   if (t >= nextBurn) {
     nextBurn = t + CONFIG.burnS / K;
-    if (burnLeft <= 0) { burnLeft = 8; FX.fxEvent(NAMES[N_BURN0], -7, -5, '', FX.fxO()); } else { burnLeft--; FX.fxEvent(NAMES[N_BURN], -7 + (burnLeft % 3) * 1.5, -5, '', FX.fxO()); }
+    if (burnLeft <= 0) { burnLeft = 8; fire(N_BURN0, -7, -5, '', FX.fxO()); } else { burnLeft--; fire(N_BURN, -7 + (burnLeft % 3) * 1.5, -5, '', FX.fxO()); }
   }
 }
 function runEvents(t) {
   let w = 0;
   for (let i = 0; i < evN; i++) {
     if (eT[i] > t) { if (w !== i) { eT[w] = eT[i]; eN[w] = eN[i]; eX[w] = eX[i]; eZ[w] = eZ[i]; eDX[w] = eDX[i]; eDZ[w] = eDZ[i]; eS[w] = eS[i]; } w++; continue; }
-    FX.fxEvent(NAMES[eN[i]], eX[i], eZ[i], rowName(eS[i]), FX.fxO(eDX[i], eDZ[i]));
+    fire(eN[i], eX[i], eZ[i], rowName(eS[i]), FX.fxO(eDX[i], eDZ[i]));
   }
   evN = w;
 }
@@ -148,7 +149,7 @@ function flyBolts(t) {
   let w = 0;
   for (let i = 0; i < bN; i++) {
     const u = (t - bT[i]) / CONFIG.boltS, x = bP[i * 4] + bP[i * 4 + 2] * u, z = bP[i * 4 + 1] + bP[i * 4 + 3] * u;
-    if (u >= 1) { FX.fxKill(bH[i]); FX.fxEvent(NAMES[ATK_HIT[bS[i]]], x, z, SCH[bS[i]], FX.fxO()); continue; }
+    if (u >= 1) { FX.fxKill(bH[i]); fire(ATK_HIT[bS[i]], x, z, SCH[bS[i]], FX.fxO()); continue; }
     FX.fxMove(bH[i], x, z, 0);
     if (w !== i) { bH[w] = bH[i]; bT[w] = bT[i]; bS[w] = bS[i]; bP[w * 4] = bP[i * 4]; bP[w * 4 + 1] = bP[i * 4 + 1]; bP[w * 4 + 2] = bP[i * 4 + 2]; bP[w * 4 + 3] = bP[i * 4 + 3]; }
     w++;

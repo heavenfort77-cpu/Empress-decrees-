@@ -34,6 +34,8 @@ const NONE = { dx: 0, dz: 1, a: 0, b: 0, hold: 0, rate: 0, y: 0 };
 // Load time: o = { THREE, scene, snd (the sound.js namespace), tier ('low' | 'medium'), base, pool }. Sounds work at once; cards after loadFx().
 export function initFx(o) {
   F.THREE = o.THREE; F.scene = o.scene; F.snd = o.snd || null; F.tier = o.tier || 'medium';
+  // The game's CONFIG.FX (one CONFIG block in index.html) overrides these defaults key by key.
+  if (o.cfg) for (const k in o.cfg) FX_CONFIG[k] = o.cfg[k];
   if (o.base) FX_CONFIG.base = o.base;
 }
 // Fetch the atlases and build the pools (under the loading card). Resolves with the table's parse errors (an empty array when clean).

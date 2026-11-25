@@ -8,7 +8,7 @@ const M = [
   { name: 'pause ignored by fxEvent', file: 'src/fx/fxevent.js', a: 'if (F.paused || !F.ev) return -1;', b: 'if (!F.ev) return -1;', test: ['fx-runtime.mjs', 'T4'], want: 'T4' },
   { name: 'card clock runs while paused', file: 'src/fx/fxevent.js', a: 'if (paused || F.paused) return;', b: 'if (false) return;', test: ['fx-runtime.mjs', 'T4'], want: 'T4' },
   { name: 'pause does not suspend audio', file: 'src/audio/sound.js', a: 'const p = (S.paused || S.hidden) ? S.ctx.suspend()', b: 'const p = (S.hidden) ? S.ctx.suspend()', test: ['fx-runtime.mjs', 'T4'], want: 'T4' },
-  { name: 'hidden tab ignored', file: 'src/audio/sound.js', a: "document.addEventListener('visibilitychange', () => { S.hidden = document.hidden; runState(); });", b: '', test: ['fx-runtime.mjs', 'T5'], want: 'T5' },
+  { name: 'hidden tab ignored', file: 'src/audio/sound.js', a: "document.addEventListener('visibilitychange', () => { S.hidden = document.hidden; runState(); });", b: "document.addEventListener('visibilitychange', () => { });", test: ['fx-runtime.mjs', 'T5'], want: 'T5' },
   { name: 'unlock never resumes', file: 'src/audio/sound.js', a: "if (S.ctx.state !== 'running' && !S.paused && !S.hidden) { const p = S.ctx.resume(); if (p && p.catch) p.catch(() => {}); }", b: '', test: ['fx-runtime.mjs', 'T1'], want: 'T1' },
   { name: 'dt not clamped', file: 'src/fx/fxevent.js', a: '  dtMax: 0.05,', b: '  dtMax: 50,', test: ['fx-runtime.mjs', 'T6'], want: 'T6' },
   { name: 'warm-up skipped', file: 'src/fx/fxevent.js', a: '  renderer.compile(F.scene, camera);\n  renderer.render(F.scene, camera);', b: '', test: ['fx-runtime.mjs', 'T7'], want: 'T7' },

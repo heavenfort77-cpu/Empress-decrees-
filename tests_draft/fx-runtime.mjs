@@ -15,7 +15,7 @@ const server = createServer(async (req, res) => {
 }).listen(0);
 const URL0 = `http://127.0.0.1:${server.address().port}/probe/prepav/index.html?mode=test`;
 const ONLY = process.argv.slice(2);
-const browser = await chromium.launch({ args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--ignore-gpu-blocklist'] });
+const browser = await chromium.launch({ args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--ignore-gpu-blocklist', '--autoplay-policy=user-gesture-required'] });
 const results = [];
 const rec = (id, ok, detail) => { results.push([id, ok]); console.log(`${ok ? 'PASS' : 'FAIL'} ${id}${ok ? '' : ' ' + detail}`); };
 
@@ -40,10 +40,11 @@ const want = (id) => !ONLY.length || ONLY.includes(id);
 // ---- main page: unlock, render, events, pause, visibility, dt clamp, warm-up, menu ----
 {
   const { ctx, page, errs } = await open();
-  // T1 unlock: no context before a gesture; the first click creates and resumes it.
+  // T1 unlock: no context before a gesture; a context made outside a gesture is held suspended by the autoplay policy; the first click resumes it.
   const before = await ev(page, () => window.__t.SND.status().ctx);
+  const early = await ev(page, () => { window.__t.SND.unlock(); return window.__t.SND.status().ctx; });
   const u = await unlockAndRender(page);
-  if (want('T1')) rec('T1 unlock', before === 'none' && u.run, `before=${before} running=${u.run}`);
+  if (want('T1')) rec('T1 unlock', before === 'none' && early === 'suspended' && u.run, `before=${before} early=${early} running=${u.run}`);
   if (want('T2')) rec('T2 every sound and loop renders', u.rendered, JSON.stringify(await ev(page, () => window.__t.SND.status())));
   // T3 one event: a sound starts and a card is drawn (handle >= 0, live up), position-culled sound beyond range is skipped.
   const t3 = await ev(page, () => {
@@ -73,15 +74,16 @@ const want = (id) => !ONLY.length || ONLY.includes(id);
   if (want('T5')) rec('T5 hidden tab suspends audio', t5 && hid && silent === false && back, JSON.stringify({ hid, silent, back }));
   // T6 dt clamp: one huge frame step advances the card clock by at most dtMax.
   const t6 = await ev(page, () => { const { FX } = window.__t; window.__t.setPaused(true); FX.fxPause(false); const a = FX.fxStatus().t; FX.fxStep(10, false); const b = FX.fxStatus().t; window.__t.setPaused(false); return { d: b - a, max: FX.FX_CONFIG.dtMax }; });
-  if (want('T6')) rec('T6 dt clamped', t6.d > 0 && t6.d <= t6.max + 1e-9, JSON.stringify(t6));
+  if (want('T6')) rec('T6 dt clamped', t6.d > 0 && t6.d <= 0.05 + 1e-9, JSON.stringify(t6));
   // T7 every event of the table fires (no unknown names, no page error) and no shader program is built after the warm-up.
   const t7 = await ev(page, async () => {
     const { FX } = window.__t, names = Object.keys(FX.fxTable()), p0 = window.__t.progs();
     let i = 0; for (const n of names) { FX.fxEvent(n, (i % 9) - 4, -(i % 5), 'ru', FX.fxO(1, 0, 0, 0, 0.5)); i++; }
+    const liveFired = FX.fxStatus().live;
     for (let k = 0; k < 20; k++) { window.__t.renderOnce(); await new Promise((r) => requestAnimationFrame(r)); }
-    return { n: names.length, unknown: FX.fxStatus().unknown, newProg: window.__t.progs() - p0, progsAfterWarm: window.__t.progs0, warmed: window.__t.warmed, live: FX.fxStatus().live };
+    return { n: names.length, unknown: FX.fxStatus().unknown, newProg: window.__t.progs() - p0, progsAfterWarm: window.__t.progs0, warmed: window.__t.warmed, liveFired };
   });
-  if (want('T7')) rec('T7 all events fire, warm-up complete', t7.n > 200 && t7.unknown === 0 && t7.newProg === 0 && t7.warmed === 13 && t7.live > 0, JSON.stringify(t7));
+  if (want('T7')) rec('T7 all events fire, warm-up complete', t7.n > 200 && t7.unknown === 0 && t7.newProg === 0 && t7.warmed === 13 && t7.liveFired >= 100, JSON.stringify(t7));
   // T8 intensity mapping: each condition gives its level; the fall waits holdS of game steps; sound.js gets the value.
   const t8 = await ev(page, () => {
     const { IN, levelOf, stepIntensity, resetIntensity, INT_CONFIG: C, SND } = window.__t, out = [];
