@@ -1,0 +1,43 @@
+PASS fa clips: attack,death,hit,idle,run
+PASS fa identity_info: rebuilt suit (CFG.rebuilt): approved-GLB identity gates not applied
+FAIL fa lod0_tris: 7540 (budget 10000-15000)
+PASS fa lod1_tris: 2600 (budget 2000-3000)
+PASS fa lod2_tris: 891 (budget 300-999)
+PASS fa weights: 10307 vertices, 0 sums off 1 (tol 0.01), max 4 influences (JOINTS_1 absent)
+PASS fa run_keys: first key t=0.0000 s, quaternion flips 0, max joint step 18.3 deg/frame at shin.L key 26 (max 70)
+PASS fa hit_keys: first key t=0.0000 s, quaternion flips 0, max joint step 37.8 deg/frame at forearm.L key 1 (max 70)
+PASS fa death_keys: first key t=0.0000 s, quaternion flips 0, max joint step 29.5 deg/frame at upper_arm.L key 38 (max 70)
+PASS fa run_length: 0.550 s (cycle 0.55 s at 6.4 m/s)
+PASS fa run_seam: closure 0.00 mm (max 1), seam accel 47.30 vs in-cycle max 76.65 mm/frame^2
+PASS fa run_contact_R: 1 contact(s) per cycle, longest 10 frames (min 4), sole min 0.3 mm vs floor ref (151 foot vertices)
+PASS fa run_slide_R: 0.64 cm per cycle (max 2)
+PASS fa run_contact_L: 1 contact(s) per cycle, longest 10 frames (min 4), sole min 0.2 mm vs floor ref (151 foot vertices)
+PASS fa run_slide_L: 0.61 cm per cycle (max 2)
+PASS fa run_info: 13 flight frames (both feet off) of 33; floor ref F = -43.1 mm
+PASS fa robe_info: hem swing 0.570 m (not gated)
+PASS fa run_floor: lowest vertex -1.4 mm vs floor ref, all LODs, all frames
+PASS fa hit_length: 0.300 s (0.25-0.35)
+PASS fa hit_returns: end vs idle frame 0: 1.08 mm (max 2)
+PASS fa hit_feet: feet move 0.29 cm during the flinch (max 2)
+PASS fa hit_floor: lowest vertex -0.0 mm vs floor ref
+PASS fa death_length: 0.900 s (0.8-1.2)
+PASS fa death_floor: lowest vertex 0.0 mm vs floor ref (frame 2), all LODs, all frames
+PASS fa death_still: last 0.1 s max move 0.00 mm (max 1)
+PASS fa death_lying: end: top 0.69 m above the floor ref (max 0.9), lowest 2.0 mm (touching <= 20)
+MUT caught fa run_slide_R: run played 20% faster than the ground speed
+MUT caught fa run_contact_R: run 5 cm above the floor
+MUT caught fa death_floor: death 5 cm into the floor
+MUT caught fa run_seam: run last key of the chest moved
+MUT n/a fa attack_identical: gate not applied to this suit (one attack key changed)
+MUT caught fa clips: hit clip dropped
+MUT caught fa death_still: death last key of the head moved
+MUT caught fa hit_returns: hit last key of the chest moved
+MUT caught fa weights: one weight scaled
+MUT n/a fa mesh_identical: gate not applied to this suit (one vertex moved)
+MUT caught fa run_keys: one run key sign-flipped
+MUT n/a fa weights_scope: gate not applied to this suit (one non-robe weight changed (sum kept))
+MUT n/a fa robe_flare: gate not applied to this suit (za robe weights put back to the pre-calm binding (64b7bd5))
+MUT n/a fa hit_frozen: gate not applied to this suit (one hit key changed)
+MUT caught fa hit_length: hit stretched to 0.5 s
+22 of 23 pass
+mutations 10 of 10 caught

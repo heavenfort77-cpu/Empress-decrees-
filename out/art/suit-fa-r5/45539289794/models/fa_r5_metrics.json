@@ -1,0 +1,16 @@
+{
+ "helm_top": 2.037235736846924,
+ "shell_bottom": 1.7549974918365479,
+ "mask_chin": 1.7549974918365479,
+ "shell_tris_cut": 1384,
+ "shell_mask_tris": 211,
+ "seg_scale": 0.826,
+ "tris_parts": 7540,
+ "sole": -0.0431,
+ "head": 0.2822,
+ "height": 2.0804,
+ "span": 0.978,
+ "bracer": 0.1593,
+ "greave": 0.1811,
+ "heads": 7.371
+}

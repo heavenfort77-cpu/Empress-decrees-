@@ -1,0 +1,142 @@
+{
+ "metrics": {
+  "helm_top": 2.037235736846924,
+  "shell_bottom": 1.7549974918365479,
+  "mask_chin": 1.7549974918365479,
+  "shell_tris_cut": 1384,
+  "shell_mask_tris": 211,
+  "seg_scale": 0.826,
+  "tris_parts": 7540,
+  "sole": -0.0431,
+  "head": 0.2822,
+  "height": 2.0804,
+  "span": 0.978,
+  "bracer": 0.1593,
+  "greave": 0.1811,
+  "heads": 7.371
+ },
+ "measures": {
+  "contrast_new": "FAIL fa lineup_play outline vs hall floor: 15% of outline pixels >= 3.0:1 (min 50%); body median 1.6:1",
+  "contrast_all_new": [
+   "FAIL fa lineup_play outline vs hall floor: 15% of outline pixels >= 3.0:1 (min 50%); body median 1.6:1",
+   "FAIL ru lineup_play outline vs hall floor: 0% of outline pixels >= 3.0:1 (min 50%); body median 1.8:1",
+   "FAIL dao lineup_play outline vs hall floor: 28% of outline pixels >= 3.0:1 (min 50%); body median 2.5:1",
+   "FAIL mo lineup_play outline vs hall floor: 0% of outline pixels >= 3.0:1 (min 50%); body median 1.6:1",
+   "FAIL yy lineup_play outline vs hall floor: 4% of outline pixels >= 3.0:1 (min 50%); body median 1.8:1",
+   "FAIL za lineup_play outline vs hall floor: 1% of outline pixels >= 3.0:1 (min 50%); body median 1.5:1",
+   "FAIL ming lineup_play outline vs hall floor: 1% of outline pixels >= 3.0:1 (min 50%); body median 1.6:1",
+   "FAIL zh lineup_play outline vs hall floor: 0% of outline pixels >= 3.0:1 (min 50%); body median 1.1:1",
+   "FAIL nong lineup_play outline vs hall floor: 0% of outline pixels >= 3.0:1 (min 50%); body median 1.6:1",
+   "0 of 9 pass"
+  ],
+  "contrast_old": "FAIL fa lineup_play outline vs hall floor: 1% of outline pixels >= 3.0:1 (min 50%); body median 1.9:1",
+  "contrast_all_old": [
+   "FAIL fa lineup_play outline vs hall floor: 1% of outline pixels >= 3.0:1 (min 50%); body median 1.9:1",
+   "FAIL ru lineup_play outline vs hall floor: 0% of outline pixels >= 3.0:1 (min 50%); body median 1.8:1",
+   "FAIL dao lineup_play outline vs hall floor: 28% of outline pixels >= 3.0:1 (min 50%); body median 2.5:1",
+   "FAIL mo lineup_play outline vs hall floor: 0% of outline pixels >= 3.0:1 (min 50%); body median 1.6:1",
+   "FAIL yy lineup_play outline vs hall floor: 4% of outline pixels >= 3.0:1 (min 50%); body median 1.8:1",
+   "FAIL za lineup_play outline vs hall floor: 1% of outline pixels >= 3.0:1 (min 50%); body median 1.5:1",
+   "FAIL ming lineup_play outline vs hall floor: 1% of outline pixels >= 3.0:1 (min 50%); body median 1.6:1",
+   "FAIL zh lineup_play outline vs hall floor: 0% of outline pixels >= 3.0:1 (min 50%); body median 1.1:1",
+   "FAIL nong lineup_play outline vs hall floor: 0% of outline pixels >= 3.0:1 (min 50%); body median 1.6:1",
+   "0 of 9 pass"
+  ],
+  "mask_px": 94,
+  "helm_px": 180,
+  "mask_Y": 0.111,
+  "helm_Y": 0.009,
+  "mask_vs_helm": 2.71,
+  "iou_front": {
+   "ru": 0.616,
+   "dao": 0.522,
+   "mo": 0.513,
+   "yy": 0.475,
+   "za": 0.439,
+   "ming": 0.306,
+   "zh": 0.345,
+   "nong": 0.366
+  },
+  "values_new": {
+   "p10": 25.6,
+   "p50": 130.9,
+   "p90": 179.4,
+   "dark": 0.153,
+   "bright": 0.026,
+   "kmeans": [
+    [
+     "#aa9484",
+     0.305
+    ],
+    [
+     "#ceb4a0",
+     0.157
+    ],
+    [
+     "#867470",
+     0.151
+    ],
+    [
+     "#69574c",
+     0.145
+    ],
+    [
+     "#251c17",
+     0.09
+    ],
+    [
+     "#0d090a",
+     0.077
+    ],
+    [
+     "#4a3b31",
+     0.075
+    ]
+   ]
+  },
+  "values_old": {
+   "p10": 7.4,
+   "p50": 27.1,
+   "p90": 115.3,
+   "dark": 0.706,
+   "bright": 0.0,
+   "kmeans": [
+    [
+     "#1f1714",
+     0.302
+    ],
+    [
+     "#2f231c",
+     0.172
+    ],
+    [
+     "#070506",
+     0.155
+    ],
+    [
+     "#140e0d",
+     0.138
+    ],
+    [
+     "#a8937e",
+     0.094
+    ],
+    [
+     "#49382b",
+     0.073
+    ],
+    [
+     "#695a58",
+     0.067
+    ]
+   ]
+  }
+ },
+ "gates": [
+  "FAIL fa floor contrast (suit_contrast.py, lineup_play): fa lineup_play outline vs hall floor: 15% of outline pixels >= 3.0:1 (min 50%); body median 1.6:1",
+  "FAIL fa mask vs helm at play size 2.7:1 (mask Y 0.111 over 94 px, helm Y 0.009 over 180 px; min 3.0:1)",
+  "PASS fa silhouette front at play size: most alike ru IoU 0.62 (max 0.75)",
+  "FAIL fa silhouette 34: 7 figures found, 9 expected",
+  "PASS fa value range P10 25.6 / P50 130.9 / P90 179.4 (spread min 120), dark share 15% (max 45%); round 4 fa: P10 7.4 / P50 27.1 / P90 115.3, dark 71%"
+ ]
+}

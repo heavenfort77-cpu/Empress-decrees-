@@ -1,0 +1,18 @@
+PASS fa_tex suit_fa_armour density 256 px/m (study 256)
+PASS fa_tex suit_fa_metal density 256 px/m (study 256)
+PASS fa_tex suit_fa_cloth density 256 px/m (study 256)
+PASS fa_tex plate median value 233 (band (205, 235))
+PASS fa_tex plate median saturation 0.09 (cap 0.12)
+PASS fa_tex lacq median value 31 (band (15, 45))
+PASS fa_tex lacq median saturation 0.18 (cap 0.25)
+PASS fa_tex mask median value 235 (band (210, 245))
+PASS fa_tex mask median saturation 0.06 (cap 0.1)
+PASS fa_tex silk_w median value 220 (band (205, 235))
+PASS fa_tex silk_w median saturation 0.12 (cap 0.15)
+PASS fa_tex silk_b median value 27 (band (15, 45))
+PASS fa_tex gold median value 178 (band (140, 200))
+PASS fa_tex lamella seams: 10.5% dark (6-25%: plates, seams and bindings told apart)
+PASS fa_tex lamella gold inlay and studs: 7.7% (3-15%)
+MUT caught fa_tex lamella seams: flat-filled strip
+MUT caught fa_tex plate value: black plate field
+fa_tex 15 of 15 pass
