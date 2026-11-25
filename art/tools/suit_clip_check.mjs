@@ -6,6 +6,7 @@
 //   (per suit: run speed v m/s and cycle s from suit_blender.py). Prints PASS/FAIL lines and 'N of M pass'; --mutate then runs each
 //   mutation (a broken copy of the data) and prints whether the named gate caught it.
 import { readFile, mkdir, writeFile } from 'node:fs/promises';
+import { existsSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { pathToFileURL } from 'node:url';
@@ -316,7 +317,7 @@ for (const sid of IDS) {
 // each mutation runs on its named suit (robe ones on dao) or the first suit; the named gate must fail
 if (MUT) for (const [name, what, fn, opt, want] of MUTS) {
   const sid = want && DATA[want] ? want : IDS[0]; const { g, old, info } = DATA[sid];
-  const pre = PRE ? parseGLB(new Uint8Array(await readFile(join(PRE, `${sid}.glb`)))) : null;
+  const pre = PRE && existsSync(join(PRE, `${sid}.glb`)) ? parseGLB(new Uint8Array(await readFile(join(PRE, `${sid}.glb`)))) : null;   // only the robe mutant's suit is needed
   let caught; try { const r = await gates(sid, fn(clone(g), old, pre), old, info, opt); caught = r.R[name] === false; } catch (e) { caught = true; }
   mres.push(caught); console.log(`MUT ${caught ? 'caught' : 'MISSED'} ${sid} ${name}: ${what}`);
 }

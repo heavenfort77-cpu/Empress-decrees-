@@ -11,7 +11,6 @@ Usage: python3 suit_colour_check.py GLBDIR TEXDIR APPROVED_TEXDIR SHOTDIR [--mut
 import sys, os, json, struct, itertools
 import numpy as np
 from PIL import Image
-from scipy import ndimage
 
 # CONFIG -----------------------------------------------------------------------------------------------------------------
 # School colours (owner's one mapping: W1a 鼎 pigments; 儒 #94622c and 杂 #b2bccb as on banners and effects), lineup order.
@@ -53,7 +52,7 @@ def lit_medians(shot, idimg):
     med = {}
     for i, sid in enumerate(IDS):
         c = np.array([int(round(x * 255)) for x in __import__('colorsys').hls_to_rgb((i * 40) / 360, 0.5, 1.0)], float)
-        m = ndimage.binary_erosion((np.abs(ids - c).max(2) <= ID_TOL), iterations=1)
+        m0 = np.abs(ids - c).max(2) <= ID_TOL; m = m0.copy(); m[1:-1, 1:-1] &= m0[:-2, 1:-1] & m0[2:, 1:-1] & m0[1:-1, :-2] & m0[1:-1, 2:]; m[[0, -1], :] = False; m[:, [0, -1]] = False   # 1 px erosion (no scipy on the runner)
         med[sid] = (np.median(img[m], 0) if m.sum() >= MIN_PX else None, int(m.sum()))
     return med
 def g_pairs(med):
