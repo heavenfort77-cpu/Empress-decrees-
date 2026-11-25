@@ -1,0 +1,56 @@
+# Heavy art work on GitHub runners (Blender via pip bpy, klad CLI, headless Chromium renders). Triggered by a push to any branch ci-art-*.
+# The pushed tree must hold ci_art/job.sh; it writes its results to $OUT. Results are committed to ci-out under out/art/<branch>/<run id>/.
+name: art-run
+on:
+  push:
+    branches: ['ci-art-**']
+permissions:
+  contents: write
+jobs:
+  art:
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+    env:
+      KLAD_SHA: 5c60e1d
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: klad cache
+        id: kc
+        uses: actions/cache@v4
+        with:
+          path: kladbin
+          key: klad-${{ env.KLAD_SHA }}-v1
+      - name: Build klad (first run only)
+        if: steps.kc.outputs.cache-hit != 'true'
+        run: |
+          sudo apt-get update -qq && sudo apt-get install -y -qq pkg-config libfreetype-dev libfontconfig1-dev libxkbcommon-dev libwayland-dev >/dev/null
+          git clone -q https://github.com/klad-app/klad kladsrc && git -C kladsrc checkout -q $KLAD_SHA
+          (cd kladsrc && CARGO_TARGET_DIR=target cargo build --release -p klad-cli -q)
+          mkdir -p kladbin && cp kladsrc/target/release/klad kladbin/klad
+      - name: Tools
+        run: |
+          python -m pip install -q bpy==5.3.0 pillow numpy
+          npm install --no-save --no-audit --no-fund playwright@1.63.0 >/dev/null && npx playwright install --with-deps chromium >/dev/null
+          ./kladbin/klad --version
+      - name: Job
+        env:
+          KLAD: ${{ github.workspace }}/kladbin/klad
+          BPY: python
+          OUT: ${{ github.workspace }}/ci_art_out
+        run: mkdir -p "$OUT" && bash ci_art/job.sh 2>&1 | tee "$OUT/job.log"
+      - name: Commit to ci-out
+        if: always()
+        run: |
+          B=${GITHUB_REF_NAME}; D=out/art/$B/${GITHUB_RUN_ID}
+          mkdir -p /tmp/o && cp -r ci_art_out/. /tmp/o/ 2>/dev/null || true
+          git config user.name Claude && git config user.email noreply@anthropic.com
+          git fetch -q origin ci-out && git checkout -q -B ci-out origin/ci-out
+          mkdir -p $D && cp -r /tmp/o/. $D/
+          git add out && git commit -qm "art $B ${GITHUB_RUN_ID}" || true
+          for k in 1 2 3 4 5 6; do git push -q origin ci-out && break; sleep $((RANDOM % 8 + 2)); git pull -q --rebase origin ci-out; done
