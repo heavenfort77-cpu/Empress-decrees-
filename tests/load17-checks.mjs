@@ -16,7 +16,7 @@ export async function load17Checks(g, check, page, browser, URL0) {
   page.on('pageerror', (e) => errs0.push(String(e).slice(0, 200)));
   const C = await g(() => ({ fmt: __game.config.LOAD.fmt, files: __game.config.TEX.files, cap: __game.config.LOAD.capS, mode: __game.config.PALACE.saveKey, school: __game.config.SELECT.saveKey }));
 
-  // 1701 The palace set: picking the palace loads the five images from assets/c (KTX2, top-first rows, v flipped by the texture transform), all or
+  // 1701 The palace set: picking the palace loads the five images from assets/c (KTX2, desktop set 1024 px, top-first rows, v flipped by the texture transform), all or
   // none; the card ran its warm draw (draws > 0 under it) and ended within the cap; five textures more on the GPU; the card was shown while it ran.
   await g(toRumble);
   await g(() => { __game.pickMode('palace'); __game.pickSchool(0); });
@@ -25,7 +25,7 @@ export async function load17Checks(g, check, page, browser, URL0) {
   const l1 = await g(() => __game.load());
   check('1701 palace set: 5 images from assets/c as KTX2 (flipped v), all on, warm draw under the card, within the cap, +5 textures',
     l1.palace === 'ready' && l1.led.kind === 'palace' && l1.led.failed.length === 0 && l1.led.fmt.length === 5 && l1.led.fmt.every((f) => f.endsWith(':ktx2'))
-    && l1.maps.every((m) => m.map && m.compressed && m.flipV === -1) && l1.led.n === 1 && l1.led.draws > 0 && !l1.led.capped && l1.led.ms <= C.cap * 1000
+    && l1.maps.every((m) => m.map && m.compressed && m.flipV === -1 && m.w === 1024) && l1.led.n === 1 && l1.led.draws > 0 && !l1.led.capped && l1.led.ms <= C.cap * 1000
     && l1.led.tex1 - l1.led.tex0 === 5 && l1.ptex === 5 && (shown === true || shown === 'palace'), JSON.stringify({ shown, led: l1.led, maps: l1.maps, palace: l1.palace }));
 
   // 1702 No shader program and no texture built in play after the card: 600 steps of a palace run (walking the start hall, the HUD and pieces
@@ -53,23 +53,37 @@ export async function load17Checks(g, check, page, browser, URL0) {
     eq(cyc[0].r, cyc[4].r) && eq(cyc[0].p, cyc[4].p) && cyc.every((x) => x.r.palace === 'none' && x.r.ptex === 0 && x.p.palace === 'ready' && x.p.texs - x.r.texs === 5),
     JSON.stringify(cyc));
 
-  // 1704 A missing file: door.ktx2 blocked = the door falls back to its PNG source (the rest stay KTX2); door.ktx2 and door.png both blocked = the
-  // whole set keeps its box colours (never half textured), the ledger names the file, no page error.
-  const errB = errs0.length;
-  await page.route('**/assets/c/desk/door.ktx2', (r) => r.abort());
-  await g(toRumble); await g(toPalace); await idle(page);
-  const f1 = await g(() => __game.load());
-  await page.route('**/assets/tex/door.png', (r) => r.abort());
-  await g(toRumble); await g(toPalace); await idle(page);
-  const f2 = await g(() => __game.load());
-  await page.unroute('**/assets/c/desk/door.ktx2'); await page.unroute('**/assets/tex/door.png');
-  await g(toRumble); await g(toPalace); await idle(page);
-  const f3 = await g(() => __game.load());
+  // 1704 A missing file (in its own page, so the blocked requests' console lines stay out of the main page's log): door.ktx2 blocked = the door
+  // falls back to its PNG source (the rest stay KTX2); door.ktx2 and door.png both blocked = the whole set keeps its box colours (never half
+  // textured), the ledger names the file; unblocked again = the set loads; no page error.
+  const f4 = {};
+  {
+    const ctx = await browser.newContext({ viewport: { width: 1366, height: 768 } }), pg = await ctx.newPage(), e = [];
+    pg.on('pageerror', (x) => e.push(String(x).slice(0, 160)));
+    await pg.goto(URL0); await pg.waitForFunction(() => window.__ready === true, null, { timeout: 120000 });
+    await pg.route('**/assets/c/desk/door.ktx2', (r) => r.abort());
+    await pg.evaluate(toPalace); await idle(pg); f4.f1 = await pg.evaluate(() => __game.load());
+    await pg.route('**/assets/tex/door.png', (r) => r.abort());
+    await pg.evaluate(toRumble); await pg.evaluate(toPalace); await idle(pg); f4.f2 = await pg.evaluate(() => __game.load());
+    await pg.unroute('**/assets/c/desk/door.ktx2'); await pg.unroute('**/assets/tex/door.png');
+    await pg.evaluate(toRumble); await pg.evaluate(toPalace); await idle(pg); f4.f3 = await pg.evaluate(() => __game.load());
+    f4.errs = e; await ctx.close();
+  }
+  const { f1, f2, f3 } = f4;
   check('1704 fallback: blocked KTX2 -> its PNG; KTX2 and PNG blocked -> the whole set on box colours, ledger names it; recovers after; no page error',
     f1.palace === 'ready' && f1.led.fmt.includes('door:png') && f1.led.fmt.filter((x) => x.endsWith(':ktx2')).length === 4
     && f2.palace === 'failed' && f2.led.failed.join() === 'door' && f2.maps.every((m) => !m.map) && f2.ptex === 0
-    && f3.palace === 'ready' && f3.maps.every((m) => m.map) && errs0.length === errB,
-    JSON.stringify({ f1: [f1.palace, f1.led.fmt], f2: [f2.palace, f2.led.failed, f2.maps.map((m) => m.map)], f3: f3.palace, errs: errs0.slice(errB) }));
+    && f3.palace === 'ready' && f3.maps.every((m) => m.map) && f4.errs.length === 0,
+    JSON.stringify({ f1: [f1.palace, f1.led.fmt], f2: [f2.palace, f2.led.failed, f2.maps.map((m) => m.map)], f3: f3.palace, errs: f4.errs }));
+
+  // 1711 The page's load event fires before the boot's warm-up (a top-level yield): load event start < the boot's end mark, in a fresh page.
+  {
+    const ctx = await browser.newContext({ viewport: { width: 2560, height: 1080 } }), pg = await ctx.newPage();
+    await pg.goto(URL0, { timeout: 120000 }); await pg.waitForFunction(() => window.__ready === true, null, { timeout: 120000 });
+    const t = await pg.evaluate(() => ({ load: performance.getEntriesByType('navigation')[0].loadEventStart, ready: window.__readyMs }));
+    check('1711 page load event before the boot warm-up (2560x1080): loadEventStart < boot end', t.load > 0 && t.load < t.ready, JSON.stringify(t));
+    await ctx.close();
+  }
 
   // 1705 Graphics context lost and restored in palace play: the 'restore' card runs (upload, compile, one draw), then frames draw again with the
   // same texture count and no page error.

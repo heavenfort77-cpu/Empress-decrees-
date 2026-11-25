@@ -8018,7 +8018,7 @@ window.__game = {
   loseContext() { const x = renderer.getContext().getExtension('WEBGL_lose_context'); x.loseContext(); return x; },
   // Batch 17b: loader state (read only), the player's mode pick (the real path: Royal Rumble disposes the palace set), a tier change in play.
   load: () => ({ phase: LD.jobs ? 'busy' : 'idle', kind: LD.kind, step: LD.step, palace: LD.palace, card: LD.card, visS: LD.visS, led: JSON.parse(JSON.stringify(LD.led)),
-    ptex: PTEX.list.length, maps: Object.keys(CONFIG.TEX.files).map((k) => ({ k, map: !!M[k].map, flipV: M[k].map ? M[k].map.repeat.y : 0, compressed: !!(M[k].map && M[k].map.isCompressedTexture) })),
+    ptex: PTEX.list.length, maps: Object.keys(CONFIG.TEX.files).map((k) => ({ k, map: !!M[k].map, flipV: M[k].map ? M[k].map.repeat.y : 0, compressed: !!(M[k].map && M[k].map.isCompressedTexture), w: M[k].map ? M[k].map.image.width : 0 })),
     mem: Object.assign({}, renderer.info.memory), programs: renderer.info.programs.length, shown: el.load.style.display !== 'none' && el.load.style.display !== '' }),
   loadBusy: () => !!LD.jobs,
   pickMode(m) { pickMode(m); },
@@ -8167,6 +8167,8 @@ Object.assign(window.__game, {
   palMarkState() { placeView(1); palMarks(); const out = []; for (let i = 0; i < PMK.n; i++) out.push([PMK.px[i], PMK.py[i], PMK.pa[i] / 100]); return { n: PMK.n, list: out, W: PMK.W, H: PMK.H }; },
   palMiniState: () => ({ draws: PAL.miniDraws, icons: PAL.miniIcons, scale: PAL.mS, ox: PAL.mOx, oy: PAL.mOy, W: MINI.W, H: MINI.H, cur: PAL.cur ? PAL.cur.id : '' }),
 });
+// Batch 17b test mark: when the boot finished (check 1711: the page's load event fires before the warm-up, not after it).
+window.__readyMs = performance.now();
 window.__ready = true;
 requestAnimationFrame(frame);
 </script>
