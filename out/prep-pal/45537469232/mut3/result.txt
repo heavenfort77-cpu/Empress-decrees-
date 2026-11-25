@@ -1,0 +1,6 @@
+PASS mutant wall-in -> P5: FAIL P5 672 wall segments; off [core:n centre 0.60 m in; core:n centre 0.60 m in; core:n centre 0.60 m in; core:n centre 0.60 m in; core:n centre 0.60 m in; core:n centre 0.60 m in] +666
+PASS mutant reset-vat -> P12: FAIL P12 229 state changes; wrong [reset vat]
+PASS mutant rack-no-solid -> P16: FAIL P16 31 new solids; wrong [hall_ru solids 3 vs racks 8 + props 3,hall_dao solids 3 vs racks 8 + props 3,hall_yinyang solids 3 vs racks 3 + props 3,hall_fa solids 3 vs racks 3 + props 3,hall_ming solids 3 vs racks 4 +
+PASS mutant pillar-off -> P6: FAIL P6 41 pillar and throne placements; off [core pillar 387,-90,core pillar 413,-90,core pillar 387,-75,core pillar 413,-75,hall_ru pillar 279,-67]
+PASS mutant replace-key -> P18: FAIL P18 14 replaced keys; unknown [core:throne]
+RESULT 5 of 5
