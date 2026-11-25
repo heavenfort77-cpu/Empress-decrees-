@@ -6,6 +6,7 @@ on:
     branches: ['ci-comfy-suitfa']
 permissions:
   contents: write
+  actions: write
 jobs:
   gen:
     runs-on: ubuntu-latest
@@ -19,13 +20,16 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.11'
-      - name: Free disk (SDXL fp16 files about 7 GB plus the cache archive)
+      - name: Free disk (SDXL fp16 files about 7 GB)
         run: sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc /opt/hostedtoolcache/CodeQL; df -h / | tail -1
-      - name: Model cache
-        uses: actions/cache@v4
-        with:
-          path: ckpt
-          key: sdxl-base-fp16-lightning8-v1
+      # lead 25 Nov: the ~7 GB SDXL cache pushed the repo past the 10 GB Actions cache limit; the model downloads in about 62 s instead
+      - name: Drop the SDXL actions cache and log cache totals
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          mkdir -p out_img
+          gh cache delete sdxl-base-fp16-lightning8-v1 --repo heavenfort77-cpu/Empress-decrees- || true
+          gh cache list --repo heavenfort77-cpu/Empress-decrees- --limit 100 --json key,sizeInBytes,ref --jq '"caches \(length), total \((map(.sizeInBytes) | add // 0) / 1048576 | floor) MB", (.[] | "\(.key) \(.ref) \(.sizeInBytes / 1048576 | floor) MB")' | tee out_img/cache_list.txt || echo "gh cache list failed" | tee out_img/cache_list.txt
       - name: Job
         run: |
           mkdir -p out_img; rc=0
