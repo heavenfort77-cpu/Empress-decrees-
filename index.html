@@ -731,10 +731,11 @@ const CONFIG = {
   // cranes, censers, mercury; solidProps = racks, lamps, bell stands and standards (they add collision, a gameplay change: off).
   // Pieces art (owner 25 Nov 18:44: the six round-4 pieces go in; models assets/models/pieces, materials in src/chars.js charMaterials): one
   // switch per piece (off or a failed file = the plain shape stays): crab and wanderer (rigs with the game outline), plate, crown, moWall,
-  // decree (the mark over a marked suit). kaymuse = her model on the throne (owner 18:42: off until the round-5 file is in; anchor = metres
-  // from the dais spot). lod = metres at which a static piece drops to its second and third level.
+  // decree (the mark over a marked suit). kaymuse = her model on the throne (owner 18:42; round-5 file, lead go 25 Nov 10:58Z): kaymuseAt =
+  // her seat in metres from the palace dais spot; kaymuseRumbleY = her seat height on Royal Rumble's box throne (the plain empress box is
+  // hidden while her model is attached). lod = metres at which a static piece drops to its second and third level.
   PIECES_ART: { dir: 'assets/models/pieces/', crab: true, wanderer: true, plate: true, crown: true, moWall: true, decree: true,
-    kaymuse: false, kaymuseAt: [0, 2.16, -0.84], lod: [25, 60] },
+    kaymuse: true, kaymuseAt: [0, 2.16, -0.84], kaymuseRumbleY: 3.8, lod: [25, 60] },
   // queClear = metres between the approach bridge's edge and each 阙 tower's inner face (owner 25 Nov 02:2x: towers north, flanking the bridge);
   // lodFloorM = a LOD level standing more than this off LOD0's floor is left out (que_pair LOD2 has no footing: lead 25 Nov, leave it out).
   PAL_ART: { arch: true, props: true, solidProps: false, queClear: 0.6, lodFloorM: 0.1 },
@@ -1628,6 +1629,8 @@ const DZ = NZ + 1;
 part('CORE', 'pillar', box(12, 3, 7, 0, 1.5, DZ + 3.5)); solid('CORE', -6, 6, DZ, DZ + 7);
 part('CORE', 'gold', box(3, 0.8, 2.4, 0, 3.4, DZ + 2.5)); part('CORE', 'gold', box(3, 3.2, 0.5, 0, 4.6, DZ + 1.2));
 part('CORE', 'empress', box(0.9, 1.4, 0.8, 0, 4.5, DZ + 2.6)); part('CORE', 'empress', box(0.5, 0.55, 0.5, 0, 5.5, DZ + 2.6));
+// Where the plain empress sits in Royal Rumble (x, z): Kaymuse's model takes this seat when it is attached (CONFIG.PIECES_ART.kaymuse).
+const EMPRESS_AT = [0, DZ + 2.6];
 part('CORE', 'gold', box(1.0, 0.5, 0.2, 0, 6.0, DZ + 2.6));
 const SZ = DZ + 9.5;
 const statueParts = [box(2.6, 1.5, 4.0, 0, 1.2, SZ - 0.5), box(1.6, 1.3, 1.4, 0, 1.9, SZ + 1.7),
@@ -1656,6 +1659,7 @@ for (const s of SECLIST) {
     const isFloor = key.startsWith('floor:');
     const m = isFloor ? M[key.slice(6)] : M[key];
     const mesh = new THREE.Mesh(mergeGeoms(s.parts[key]), m);
+    if (key === 'empress') s.empressBox = mesh;
     mesh.receiveShadow = true;
     mesh.castShadow = key !== 'camp' && key !== 'spawn' && key !== 'broken'; mesh.onBeforeShadow = depthSpy;
     mesh.matrixAutoUpdate = false; mesh.updateMatrix();
@@ -7770,7 +7774,7 @@ function chrSpawn() {
   for (const t of GUARD_TYPES) { const pool = GPOOL[t]; for (let i = 0; i < pool.length; i++) { pool[i].cs = CHRS.crowd.makeState(t, i); pool[i].chrClip = ''; } }
   // Pieces art last, each part on its own: a failure leaves that piece's plain shape and never the characters above.
   for (const u of NEUTRALS) if (T[u.kind]) { try { const r = CHR.spawnRig(T[u.kind], { lodK: k }); u.rig = r; u.chrSt = -1; u.chrMv = -1; CHRS.units.push(u); CHRS.rigs.push(r); } catch (e) { PCS.failed.push(u.kind); } }
-  if (T.kaymuse) { try { PCS.km = CHR.spawnRig(T.kaymuse, { lodK: k }); CHRS.rigs.push(PCS.km); } catch (e) { PCS.failed.push('kaymuse'); } }
+  if (T.kaymuse) { try { PCS.km = CHR.spawnRig(T.kaymuse, { lodK: k }); CHRS.rigs.push(PCS.km); if (SEC.CORE.empressBox) SEC.CORE.empressBox.visible = false; } catch (e) { PCS.km = null; PCS.failed.push('kaymuse'); } }
   try { pcsBuild(); } catch (e) { PCS.failed.push('build'); }
 }
 // Warm-up under the card: every rig level and both material states drawn once, every crowd batch drawn, then all hidden again.
@@ -7832,11 +7836,16 @@ function chrFrame(dt) {
     if (u.neutral) { const mv = u.x !== u.px || u.z !== u.pz ? 1 : 0; if (mv !== u.chrMv) { u.chrMv = mv; r.play(mv && r.actions.move ? 'move' : 'idle'); } }
     r.update(dt);
   }
-  // Kaymuse on the throne (CONFIG.PIECES_ART.kaymuse): shown while the palace's core hall is in the scene, at her seat on the dais.
+  // Kaymuse on the throne (CONFIG.PIECES_ART.kaymuse): in the palace while the core hall is in the scene, at her seat on the dais; in Royal
+  // Rumble on the box throne while the core section is in the scene (its plain empress box is hidden once her rig exists).
   if (PCS.km) {
     const r = PCS.km, c = PAL.on ? PAL.byId.core : null, A = CONFIG.PIECES_ART.kaymuseAt;
-    if (!c || !c.group.parent || !c.spots || !c.spots.dais) { if (r.on) r.hide(); }
-    else { if (!r.on) { r.show(scene); r.play('idle'); } r.place(c.spots.dais[0] + A[0], A[1], c.spots.dais[1] + A[2], 0, 1); r.update(dt); }
+    if (PAL.on ? !c || !c.group.parent || !c.spots || !c.spots.dais : !SEC.CORE.group.parent) { if (r.on) r.hide(); }
+    else {
+      if (!r.on) { r.show(scene); r.play('idle'); }
+      if (PAL.on) r.place(c.spots.dais[0] + A[0], A[1], c.spots.dais[1] + A[2], 0, 1); else r.place(EMPRESS_AT[0], CONFIG.PIECES_ART.kaymuseRumbleY, EMPRESS_AT[1], 0, 1);
+      r.update(dt);
+    }
   }
   for (let i = 0; i < P2.giants.length && i < CHRS.giants.length; i++) {
     const g = P2.giants[i], r = CHRS.giants[i];
@@ -8455,7 +8464,8 @@ window.__game = {
     const C = CONFIG.PIECES_ART, on = {}; for (const k in PCS_FILE) on[k] = !!C[k];
     const hostOf = { plate: ENEMIES.concat(CUBS, NEUTRALS).map((u) => u.plate), crown: [crown], decree: SUITS.map((s) => s.marker), moWall: SUITS.map((s) => s.wall.mesh) }, plain = {};
     for (const k in hostOf) plain[k] = hostOf[k].filter((h) => h.material !== PCS_HIDE || !h.children.some((c) => c.isLOD && c.levels.length > 0)).length;
-    return { on, built: PCS.built, failed: PCS.failed.slice(), hosts: PCS.hosts.length, plain, neutrals: NEUTRALS.map((u) => ({ kind: u.kind, rig: !!u.rig, body: u.body.visible, levels: u.rig ? u.rig.lod.levels.length : 0 })), km: !!PCS.km };
+    return { on, built: PCS.built, failed: PCS.failed.slice(), hosts: PCS.hosts.length, plain, neutrals: NEUTRALS.map((u) => ({ kind: u.kind, rig: !!u.rig, body: u.body.visible, levels: u.rig ? u.rig.lod.levels.length : 0 })), km: !!PCS.km, kmOn: !!(PCS.km && PCS.km.on),
+      empressBox: !!(SEC.CORE.empressBox && SEC.CORE.empressBox.visible) };
   },
   // Read-only, checks 306/907: what the main pass draws besides crowd batches, rig meshes and card batches, with the renderer's own visibility
   // and frustum test: tells = meshes on the two tell shapes; other = the rest by name or shape and material.

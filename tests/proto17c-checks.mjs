@@ -155,12 +155,12 @@ export async function proto17cChecks(g, check, page, browser, URL0) {
 
   // 1736 Pieces art (owner 25 Nov 18:44): with the switches on no piece draws its plain shape: every plate, the leader crown, every decree mark
   // and every 墨 wall carries its model (own draw hidden), the crab and the wanderer have rigs and hidden box bodies, no file or build failed;
-  // Kaymuse's switch is off until her file is in (no rig).
+  // Kaymuse's model is attached (her rig exists) and the plain empress box is hidden.
   const pc = await g(() => __game.pcs());
-  check('1736 pieces art: no plain shape drawn for plate, crown, decree mark, 墨 wall, crab, wanderer; nothing failed; Kaymuse off',
+  check('1736 pieces art: no plain shape drawn for plate, crown, decree mark, 墨 wall, crab, wanderer; nothing failed; Kaymuse attached, empress box hidden',
     pc.built && pc.failed.length === 0 && pc.on.plate && pc.on.crown && pc.on.decree && pc.on.moWall && pc.on.crab && pc.on.wanderer
     && pc.plain.plate === 0 && pc.plain.crown === 0 && pc.plain.decree === 0 && pc.plain.moWall === 0 && pc.hosts > 0
-    && pc.neutrals.length === 2 && pc.neutrals.every((u) => u.rig && !u.body && u.levels >= 1) && pc.on.kaymuse === false && pc.km === false, JSON.stringify(pc));
+    && pc.neutrals.length === 2 && pc.neutrals.every((u) => u.rig && !u.body && u.levels >= 1) && pc.on.kaymuse === true && pc.km === true && pc.empressBox === false, JSON.stringify(pc));
 
   check('1732 no page error during the 17c and prototype checks', errs.length === 0, errs.slice(0, 4).join(' | '));
 }
