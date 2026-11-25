@@ -214,6 +214,7 @@ SCENES.heavy_low = { ...SCENES.heavy, q: 'lock&tier=low&bots=8' };
 SCENES.palace_heavy_low = { ...SCENES.palace_heavy, q: 'lock&tier=low&bots=8&mode=palace' };
 // Batch 17b A/B: the build before 17b (index_base.html = ab0473f) in the same job.
 SCENES.room_base = { ...SCENES.palace_room, path: 'index_base.html' };
+SCENES.heavylow_base = { ...SCENES.palace_heavy_low, path: 'index_base.html' };
 SCENES.palace_garden = { ...SCENES.palace_heavy, pre: () => { window.__room = 'garden_se'; window.__stepN = 300; } };
 
 async function renderer(page) {
