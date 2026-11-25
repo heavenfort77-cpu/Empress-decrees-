@@ -1,0 +1,9 @@
+[
+ {
+  "i": 0,
+  "fails": [],
+  "tot": [],
+  "s": 219,
+  "tail": "H A live palace fps 6\nH A-live readyAt 49828 ms (shared:fx palace none) -> palace failed capped true ms 33597 kind palace failed [] wall 89.3 s\n  H timeline shared:fx@49.9s vis10.2 fr4 | shared:chr_fetch@50.1s vis10.4 fr14 | shared:chr_build@52.5s vis12.8 fr20 | palace:@55.7s vis0 fr25 | palace:chr_build@56.3s vis0.6 fr26 | palace:chr_warm@89.2s vis14.5 fr55 | :chr_warm@89.3s vis33.6 fr56\nH A-live+saves readyAt 44875 ms (shared:fx palace none) -> palace failed capped false ms 18095 kind shared failed [] wall 83.7 s\n  H timeline shared:fx@44.9s vis10.4 fr7 | shared:chr_fetch@45.2s vis10.6 fr18 | shared:chr_build@48.6s vis14 fr26 | palace:@49.9s vis0 fr27 | palace:chr_build@50.2s vis0.3 fr29 | shared:@65.6s vis0 fr61 | :chr_warm@83.7s vis0.5 fr62\nH A in menu fps 60\nH A-menu readyAt 934 ms (shared:fx palace none) -> palace ready capped false ms 3632 kind palace failed [] wall 7.3 s\n  H timeline shared:fx@1.0s vis0.1 fr4 | shared:chr_fetch@1.9s vis1 fr13 | shared:chr_build@2.6s vis1.7 fr50 | palace:@3.6s vis0 fr82 | palace:fetch@3.8s vis0.6 fr90 | palace:art_fetch@3.9s vis0.7 fr97 | palace:art_kit@4.3s vis1 fr118 | palace:art_rooms@5.1s vis1.9 fr163 | palace:compile@5.2s vis1.9 fr166 | :draw@7.3s vis2.1 fr169\n  H CONSOLE warning THREE.WebGLRenderer: KHR_parallel_shader_compile extension not supported.\n"
+ }
+]
