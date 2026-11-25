@@ -1,5 +1,5 @@
 {
- "_about": "SUITS fa round 5 concept references (owner GO 25 Nov 10:55): suit 法甲 廷尉 (Legalist law officer, assassin, bronze jian, pursuit). SDXL base 1.0 + SDXL-Lightning 8-step LoRA (diffusers, CPU), not SD1.5/LCM, not SDXL-Turbo. Full figure 832x1216. Jobs 0-1: txt2img 2 seeds each (4 seeds); jobs 2-3: img2img from the owner's armour-suit kit (sheet_knight front, sheet_rogue front) at strength 0.6 with the same Qin lamellar prompt. Reference only: never shipped, never traced. Licences: SDXL base 1.0 CreativeML Open RAIL++-M, SDXL-Lightning openrail++ (commercial use allowed). Guidance 0, so no negative prompt.",
+ "_about": "SUITS fa round 5 concept references (owner GO 25 Nov 10:55): suit 法甲 廷尉 (Legalist law officer, assassin, bronze jian, pursuit). SDXL base 1.0 + SDXL-Lightning 8-step LoRA (diffusers, CPU), not SD1.5/LCM, not SDXL-Turbo. Full figure 832x1216. Job 0: seeds 7101-7102 + img2img from sheet_knight; job 1: seeds 7103-7104 + img2img from sheet_rogue (4 seeds in all); img2img from the owner's armour-suit kit (sheet_knight front, sheet_rogue front) at strength 0.6 with the same Qin lamellar prompt. Reference only: never shipped, never traced. Licences: SDXL base 1.0 CreativeML Open RAIL++-M, SDXL-Lightning openrail++ (commercial use allowed). Guidance 0, so no negative prompt.",
  "width": 832,
  "height": 1216,
  "steps": 8,
@@ -12,19 +12,6 @@
     7101,
     7102
    ],
-   "img2img": []
-  },
-  {
-   "view": "ancient chinese qin warrior, lamellar armour of small pale polished bronze plates laced with white silk cord, gold inlay edges, broad shoulder guards, black lacquer helmet with one forward-curving horn, pale white war mask with narrow slanted eye slits, bronze sword held low",
-   "seeds": [
-    7103,
-    7104
-   ],
-   "img2img": []
-  },
-  {
-   "view": "ancient chinese qin warrior, lamellar armour of small pale polished bronze plates laced with white silk cord, gold inlay edges, broad shoulder guards, black lacquer helmet with one forward-curving horn, pale white war mask with narrow slanted eye slits, bronze sword held low",
-   "seeds": [],
    "img2img": [
     {
      "init": "ci_comfy/init/kit_knight_front.png",
@@ -35,7 +22,10 @@
   },
   {
    "view": "ancient chinese qin warrior, lamellar armour of small pale polished bronze plates laced with white silk cord, gold inlay edges, broad shoulder guards, black lacquer helmet with one forward-curving horn, pale white war mask with narrow slanted eye slits, bronze sword held low",
-   "seeds": [],
+   "seeds": [
+    7103,
+    7104
+   ],
    "img2img": [
     {
      "init": "ci_comfy/init/kit_rogue_full.png",
