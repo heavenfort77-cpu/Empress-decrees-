@@ -1,0 +1,33 @@
+PATCHED_EARLY true
+BASE {"calls":35,"tris":8464,"programs":17,"geoms":454,"texs":53} chars {"ready":true,"failed":[],"rigs":31,"on":1,"crowd":0,"crowdMeshes":0,"stats":{"mixers":1,"offscreen":0},"bodies":false}
+SCENE A_suits {"calls":35,"tris":8464,"programs":17,"geoms":454,"texs":53}
+SCENE B_cubs {"calls":122,"tris":184562,"programs":17,"geoms":454,"texs":53}
+SCENE C_hunt {"calls":41,"tris":35418,"programs":17,"geoms":454,"texs":53}
+SCENE C_reset {"calls":27,"tris":3102,"programs":17,"geoms":454,"texs":53}
+D_empty {"calls":33,"tris":4792,"programs":17,"geoms":454,"texs":53} D_full {"calls":62,"tris":69952,"programs":17,"geoms":454,"texs":53}
+  DRAW +10 Mesh<Scene | MeshStandardMaterial
+  DRAW +1 ru_l0_sLam<Group<LOD<ru_rig<chr_ru | sLam
+  DRAW +1 ru_l0_sCloth_ru<Group<LOD<ru_rig<chr_ru | sCloth_ru
+  DRAW +1 ru_l0_sBronze<Group<LOD<ru_rig<chr_ru | sBronze
+  DRAW +1 ru_l0_sLam_ol<Group<LOD<ru_rig<chr_ru | chrOutline
+  DRAW +1 ru_l0_sCloth_ru_ol<Group<LOD<ru_rig<chr_ru | chrOutline
+  DRAW +1 ru_l0_sBronze_ol<Group<LOD<ru_rig<chr_ru | chrOutline
+  DRAW +1 zu_l1_gdBronze<Scene | gdBronze
+  DRAW +1 zu_l1_gdLacquer<Scene | gdLacquer
+  DRAW +1 zu_l1_treadBelt<Scene | treadBelt
+  DRAW +1 nu_l0_gdBronze<Scene | gdBronze
+  DRAW +1 nu_l0_gdLacquer<Scene | gdLacquer
+  DRAW +1 nu_l0_treadBelt<Scene | treadBelt
+  DRAW +1 nu_l1_gdBronze<Scene | gdBronze
+  DRAW +1 nu_l1_gdLacquer<Scene | gdLacquer
+  DRAW +1 nu_l1_treadBelt<Scene | treadBelt
+  DRAW +1 dun_l1_gdBronze<Scene | gdBronze
+  DRAW +1 dun_l1_gdLacquer<Scene | gdLacquer
+  DRAW +1 dun_l1_treadBelt<Scene | treadBelt
+  DRAW +1 che_l1_gdBronze<Scene | gdBronze
+  DRAW +1 che_l1_gdLacquer<Scene | gdLacquer
+  DRAW +1 che_l1_treadBelt<Scene | treadBelt
+  DRAW +1 wz_l1_gdBronze<Scene | gdBronze
+  DRAW +1 wz_l1_gdLacquer<Scene | gdLacquer
+  DRAW +1 wz_l1_treadBelt<Scene | treadBelt
+SCENE D_guards {"calls":62,"tris":69952,"programs":17,"geoms":454,"texs":53}
