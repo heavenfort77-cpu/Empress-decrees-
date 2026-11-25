@@ -1,0 +1,24 @@
+GATE rows measured 7 PASS
+GATE gpu real "ANGLE (Apple, ANGLE Metal Renderer: Apple Paravirtual device, Unspecified Version" PASS
+GATE webglmin frames and no page error frames 4825 errs 0  PASS
+GATE reference frames and no page error frames 3132 errs 0  PASS
+GATE heavy_base frames and no page error frames 4489 errs 0  PASS
+GATE palace_heavy frames and no page error frames 3066 errs 0  PASS
+GATE reference frames and no page error frames 4454 errs 0  PASS
+GATE palace_heavy frames and no page error frames 3064 errs 0  PASS
+GATE heavy_base frames and no page error frames 3643 errs 0  PASS
+GATE heavy runs measured 2 PASS
+GATE heavy#1 calls < 500 97 PASS
+GATE heavy#1 tris < 500k 85564 PASS
+GATE heavy#1 p95 <= 20 ms 14.4 PASS
+GATE heavy#1 worst <= 100 ms 74.4 PASS
+GATE heavy#1 geometries and textures flat 717-717 / 87-87 PASS
+GATE heavy#1 heap growth <= 10 MB 202-202 PASS
+GATE heavy#2 calls < 500 99 PASS
+GATE heavy#2 tris < 500k 84448 PASS
+GATE heavy#2 p95 <= 20 ms 15.4 PASS
+GATE heavy#2 worst <= 100 ms 89.4 PASS
+GATE heavy#2 geometries and textures flat 717-717 / 87-87 PASS
+GATE heavy#2 heap growth <= 10 MB 202-202 PASS
+RATIO heavy/reference fps 0.808 (heavy 153.1, reference 189.4; reported, not gated)
+GATES 22 of 22 pass
