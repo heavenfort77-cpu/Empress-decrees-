@@ -646,7 +646,10 @@ Crowd.prototype.endBatches = function () {
 
 // ===== HIT (pure, allocation free; called from the fixed step) =====
 // u: a unit with x, z, fx, fz (unit facing), r, and u.hit = one of CHR.hit (null = a circle of radius u.r, as today).
+// PERFRAME-END
+// Scratch for the line test, built once at load (outside the per-frame block: it is not per-frame code).
 const HS = { ax: 0, az: 0, bx: 0, bz: 0, t0: 0, t1: 1 };
+// PERFRAME-BEGIN
 // Liang-Barsky step: keep the part of the segment where p * t <= q.
 function clipT(p, q) {
   if (p === 0) return q >= 0;

@@ -199,7 +199,9 @@ export async function fanzeiChecks(g, check, base) {
   check('906 three sides: 反贼 and 皇家 squads hurt each other; a bot with a bootleg charge uses it in a fight',
     !!d906 && d906.hurtA > 0 && d906.hurtB > 0 && d906.bot.casts === 1 && d906.bot.n === 0 && d906.bot.copy === 'bl_fa', JSON.stringify(d906));
 
-  // 907 Budget with a full 皇家 squad and a full 反贼 squad drawn: calls < 500, tris < 500k, at most one call per unit type in view (<= 9 beyond tells),
+  // 907 Budget with a full 皇家 squad and a full 反贼 squad drawn: calls < 500, tris < 500k, one instanced call per crowd batch in view and nothing else
+  // (prototype, game changed on purpose: models draw one batch per type x LOD x material x weapon, docs/HOOKS-17fgh.md section 4; calls beyond
+  // tells = the batches the crowd reports drawn, exactly; before the models it was one box batch per type, <= 9),
   // no shader compile, geometry flat; after all are broken none stays in the scene.
   const d907 = await g(() => {
     const G = __game, o = {}; const { A } = __fs(0);
@@ -211,7 +213,7 @@ export async function fanzeiChecks(g, check, base) {
       G.step(10);
       const r = G.guards(), rr = G.render(true), tells = r.list.filter((u) => u.alive && u.tellStaged).length + (G.fz().suits[0].zm.on ? 1 : 0);
       const seen = r.list.filter((u) => u.seen).length, counts = Object.values(r.draw).reduce((a, d) => a + d.count, 0);
-      const row = { calls: rr.calls, tris: rr.tris, programs: rr.programs, geoms: rr.geoms, tells, seen, counts, alive: r.n, extra: rr.calls - empty.calls - tells };
+      const row = { calls: rr.calls, tris: rr.tris, programs: rr.programs, geoms: rr.geoms, tells, seen, counts, alive: r.n, extra: rr.calls - empty.calls - tells, batches: G.chars().crowdMeshes };
       if (!best || row.calls > best.calls) best = row;
     }
     o.best = best;
@@ -220,8 +222,8 @@ export async function fanzeiChecks(g, check, base) {
     o.after = { n: ra.n, staged: Object.values(ra.draw).filter((d) => d.staged).length, tells: ra.list.filter((u) => u.tellStaged).length, geoms: after.geoms, programs: after.programs };
     G.reset(); return o;
   });
-  check('907 budget 皇家 + 反贼 full squads: calls<500, tris<500k, <=9 calls beyond tells, seen units drawn, no shader compile, geometry flat; none staged after',
-    !!d907 && d907.q.every((q) => q >= 0) && d907.best.calls < 500 && d907.best.tris < 500000 && d907.best.extra <= 9 && d907.best.counts === d907.best.seen && d907.best.alive >= 20
+  check('907 budget 皇家 + 反贼 full squads: calls<500, tris<500k, calls beyond tells = the crowd batches drawn, seen units drawn, no shader compile, geometry flat; none staged after',
+    !!d907 && d907.q.every((q) => q >= 0) && d907.best.calls < 500 && d907.best.tris < 500000 && d907.best.batches > 0 && d907.best.extra === d907.best.batches && d907.best.counts === d907.best.seen && d907.best.alive >= 20
     && d907.best.programs === base.programs && d907.best.geoms === base.geoms && d907.after.n === 0 && d907.after.staged === 0 && d907.after.tells === 0
     && d907.after.programs === base.programs && d907.after.geoms === base.geoms, JSON.stringify(d907));
 

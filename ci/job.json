@@ -1,1 +1,1 @@
-{"mode": "cmd", "label": "int17c-diag10", "cmd": "node tests/diag17f.mjs"}
+{"mode": "suite", "label": "int17c-r3"}

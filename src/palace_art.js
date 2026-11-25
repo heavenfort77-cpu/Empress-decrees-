@@ -189,7 +189,8 @@ export const PAL_ART = {
   // 阙 pairs: room id and side of the gate they mark, distance outside the edge, m (owner 25 Nov 02:2x: north, flanking the bridge entrance).
   // The model's passage (8 m) is narrower than the 12 m approach bridge, so each tower is moved out sideways until its inner face stands
   // clear m beyond the bridge's edge (the towers flank the entrance, never on the deck); the towers keep their shape (no scaling).
-  que: { at: [{ room: 'fore', side: 'n' }], out: 3.2, clear: 0.6 },
+  // body = the material of the tower bodies: the passage's inner faces are measured on it (the roof eaves and the footing reach further in).
+  que: { at: [{ room: 'fore', side: 'n' }], out: 3.2, clear: 0.6, body: 'palEarth' },
   // Star-map inlay cell size and margins (x from the core centre, z from the dais front and the south edge), m.
   inlay: { cell: 4, halfW: 12, zFromDais: 5, zSouth: 1, y: 0.003 },
   // Lamps: inset from the north corners of halls, offset beside the core dais, m; solid half size, m.
@@ -211,6 +212,8 @@ export const PAL_ART = {
   lod: { focalPx: 1158, nearPx: 200, farPx: 70, phoneK: 0.6 },
   // A LOD level whose floor is further than this from LOD0's is not used (it would float or sink), m.
   lodFloorM: 0.1,
+  // Radius each kit geometry is scaled to on the warm rack (m): small enough to sit inside the warm camera's view 2 m ahead.
+  warmGeoM: 0.05,
   // Props shorter than this cast no shadow (small props castShadow off), m.
   shadowMinH: 2.0,
   // Pieces that never cast shadows (small or below the floor).
@@ -652,9 +655,7 @@ function still(art, o) { o.matrixAutoUpdate = false; o.updateMatrix(); art.group
 // +-innerM: built once per width at load (its geometries join kit.geos, disposed with the kit). Returns the prop kind to place.
 function queWide(kit, innerM) {
   const P = kit.props['arch/que_pair'];
-  let inner = Infinity;
-  for (const p of P.levels[0]) { const a = p.geo.attributes.position; for (let i = 0; i < a.count; i++) { const y = a.getY(i), x = Math.abs(a.getX(i)); if (y > 0.6 && y < 6.9 && x > 0.05 && x < inner) inner = x; } }
-  const shift = inner === Infinity ? 0 : innerM - inner;
+  const inner = queInnerOf(P), shift = inner === Infinity ? 0 : innerM - inner;
   if (!(shift > 0.01)) return 'arch/que_pair';
   const key = 'arch/que_pair_w' + innerM.toFixed(2);
   if (kit.props[key]) return key;
@@ -666,6 +667,12 @@ function queWide(kit, innerM) {
   })) });
   W.queInner = innerM; W.queShift = shift; kit.props[key] = W;
   return key;
+}
+// The passage's half width: the tower bodies' vertex nearest the centre line in LOD0 (Infinity if the model has no body part).
+export function queInnerOf(P) {
+  let inner = Infinity;
+  for (const p of P.levels[0]) if (p.mat === PAL_ART.que.body) { const a = p.geo.attributes.position; for (let i = 0; i < a.count; i++) { const x = Math.abs(a.getX(i)); if (x < inner) inner = x; } }
+  return inner;
 }
 function addProp(art, h) { if (!h) return null; art.group.add(h.root); art.props.push(h); return h; }
 // Floor slab: top at 0, world UVs (top faces x / tile, -z / tile; sides along / tile, height / tile), one float geometry.
@@ -887,6 +894,15 @@ export function tick(kit, dt) {
 // Card P warm draw: the warm rack (every material, plain and instanced) in front of the camera, and every prop state shown, for one draw.
 export function warmOn(kit, scene, camera, arts) {
   const g = kit.warm; camera.updateMatrixWorld();
+  // Every kit geometry (each LOD level, state, pose and door part) joins the rack once, scaled to warmGeoM, so its buffers upload under the
+  // card: THREE.LOD shows one level per draw, so the levels the warm camera does not pick used to upload in play (check 401, diag 45551102363).
+  if (!kit.warmGeo) { kit.warmGeo = new THREE.Group(); kit.warmGeo.matrixAutoUpdate = false; kit.warmGeoN = 0; g.add(kit.warmGeo); }
+  for (; kit.warmGeoN < kit.geos.length; kit.warmGeoN++) {
+    const ge = kit.geos[kit.warmGeoN]; if (!ge.attributes.position) continue;
+    if (!ge.boundingSphere) ge.computeBoundingSphere();
+    const m = new THREE.Mesh(ge, kit.mats.palDark || kit.matList[0]), k = PAL_ART.warmGeoM / Math.max(ge.boundingSphere.radius, 1e-3), c = ge.boundingSphere.center;
+    m.scale.setScalar(k); m.position.set(-c.x * k, -c.y * k, -c.z * k); m.castShadow = false; m.updateMatrix(); m.matrixAutoUpdate = false; kit.warmGeo.add(m);
+  }
   _v.set(0, 0, -2).applyMatrix4(camera.matrixWorld); g.position.copy(_v); g.quaternion.copy(camera.quaternion); g.updateMatrix(); g.updateMatrixWorld(true);
   scene.add(g);
   for (const a of arts || []) {
