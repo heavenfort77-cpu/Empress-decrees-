@@ -1,0 +1,28 @@
+SHARD 2 of 5: statements 495, prelude 13, always 6, valid cuts 205, cuts at lines 853,1661,2469,3272; weight lines
+FAIL runner :: page.evaluate: TypeError: Cannot read properties of undefined (reading 'start')
+    at run (eval at evaluate (:311:30), <anonymous>:3:31)
+    at eval (eval at evaluate (:311:30), <anonymous>:5:15)
+    at UtilityScript.evaluate (<anonymous>:313:16)
+    at UtilityScript.<anonymous> (<anonymous>:1:44)
+    at g (/home/runner/work/Empress-decrees-/Empress-decrees-/tests/run_shard.mjs:40:163)
+    at async file:///home/runner/work/Empress-decrees-/Empress-decrees-/tests/run_shard.mjs:1663:36
+RUNTIME 3 of 4 pass
+ok   01 load without errors 
+ok   02 budget follow view (calls<500, tris<500k) :: calls 27, tris 2842
+ok   03 budget overview, all sections (calls<500, tris<500k) :: calls 76, tris 8434
+FAIL runner :: page.evaluate: TypeError: Cannot read properties of undefined (reading 'start')
+    at run (eval at evaluate (:311:30), <anonymous>:3:31)
+    at eval (eval at evaluate (:311:30), <anonymous>:5:15)
+   
+STMT 41 567
+STMT 42 27
+STMT 45 4
+STMT 47 8
+STMT 49 2
+STMT 51 14
+STMT 52 8
+STMT 54 3
+STMT 56 3
+STMT 875 26
+STMT 1478 6
+STMT 1661 1214

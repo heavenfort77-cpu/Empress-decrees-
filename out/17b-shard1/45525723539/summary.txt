@@ -1,0 +1,15 @@
+SHARDED RUNTIME 144 of 147 pass; shards 5; wall s [46, 6, 3, 11, 171]; failing ['42', '507', 'runner']
+cuts SHARD 0 of 5: statements 495, prelude 13, always 6, valid cuts 205, cuts at lines 853,1661,2469,3272; weight lines | SHARD 1 of 5: statements 495, prelude 13, always 6, valid cuts 205, cuts at lines 853,1661,2469,3272; weight lines | SHARD 2 of 5: statements 495, prelude 13, always 6, valid cuts 205, cuts at lines 853,1661,2469,3272; weight lines | SHARD 3 of 5: statements 495, prelude 13, always 6, valid cuts 205, cuts at lines 853,1661,2469,3272; weight lines | SHARD 4 of 5: statements 495, prelude 13, always 6, valid cuts 205, cuts at lines 853,1661,2469,3272; weight lines
+stmt times 146
+FAIL 42 bot sweep 9 runs: 0 broken invariants, every run ends, never-dodge always loses, 0.3 s and 0.15 s reaction each win at least once :: 99/012:lost 7s hp0 demon905 | 99/120:lost 8s hp0 demon915 | 99/210:lost 8s hp0 demon915 | 0.3/012:lost 16s hp0 demon745 | 0.3/120:lost 19s hp0 demon845 | 0.3/210:lost 50s hp0 demon245 | 0.15/012:lost 24s hp0 demon570 | 0.15/120:won 68s hp65 demon0 | 0.15/210:won 64s hp100 demon0
+FAIL 42 bot sweep 9 runs: 0 broken invariants, every run ends, never-dodge always loses, 0.3 s and 0.15 s reaction each win at least once :: 99/012:lost 7s hp0 demon905 | 99/120:lost 8s hp0 demon915 | 99/210:lost 8s hp0 demon915 | 0.3/012:lost 16s hp0 demon745 | 0.3/120:lost 19s hp0 demon845 | 0.3/210:lost 50s hp0 demon245 | 0.15/012:lost 
+FAIL runner :: page.evaluate: TypeError: Cannot read properties of undefined (reading 'sp')
+FAIL runner :: page.evaluate: TypeError: Cannot read properties of undefined (reading 'sp')
+FAIL runner :: page.evaluate: TypeError: Cannot read properties of undefined (reading 'start')
+FAIL runner :: page.evaluate: TypeError: Cannot read properties of undefined (reading 'start')
+FAIL runner :: page.evaluate: TypeError: Cannot read properties of undefined (reading 'mute')
+FAIL runner :: page.evaluate: TypeError: Cannot read properties of undefined (reading 'mute')
+FAIL 507 budget: court with every rival in sight fighting the player (locked): calls<500, tris<500k, no shader compile, geometry flat :: {"live":8,"locked":"court","calls":26,"tris":826,"programs":[8,8],"geoms":[346,346]}
+FAIL runner :: page.evaluate: ReferenceError: memNow is not defined
+FAIL 507 budget: court with every rival in sight fighting the player (locked): calls<500, tris<500k, no shader compile, geometry flat :: {"live":8,"locked":"court","calls":26,"tris":826,"programs":[8,8],"geoms":[346,346]}
+FAIL runner :: page.evaluate: ReferenceError: memNow is not defined
