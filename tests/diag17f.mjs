@@ -24,7 +24,7 @@ await page.addInitScript(() => {
     if (gl && /webgl/.test(kind) && !gl.__hooked) {
       gl.__hooked = true; const ct = gl.createTexture.bind(gl), dt = gl.deleteTexture.bind(gl);
       gl.createTexture = () => { const x = ct(); const t = window.__cur; window.__cur = null;
-        window.__live.set(x, { id: ++window.__tid, t, d: desc(t), by: window.__last ? chain(window.__last) : '?', st: t ? '' : new Error().stack.split('\n').slice(2, 7).map((s) => s.trim().slice(0, 90)).join(' < ') }); return x; };
+        window.__live.set(x, { id: ++window.__tid, t, d: desc(t), by: window.__last ? chain(window.__last) : '?', st: new Error().stack.split('\n').slice(2, 12).map((s) => s.trim().replace(/\(http[^)]*\/([^/)]*)\)/, '($1)').slice(0, 80)).join(' < ') }); return x; };
       gl.deleteTexture = (x) => { window.__live.delete(x); return dt(x); };
     }
     return gl;
@@ -49,7 +49,7 @@ const toPalace = () => { const G = __game; G.setSeed(12345); G.pickMode('palace'
 const toRumble = () => { const G = __game; G.setSeed(12345); G.pickMode('rumble'); G.pickSchool(0); };
 const mem = () => { const r = __game.render(true); return { geoms: r.geoms, texs: r.texs, programs: r.programs }; };
 const ids = () => [...window.__live.values()].map((v) => v.id);
-const rows = (known) => [...window.__live.values()].filter((v) => known.indexOf(v.id) < 0).map((v) => `#${v.id} ${v.t ? window.__desc(v.t) + ' disposed=' + (v.t.__disp || 0) : v.d} | first draw by ${v.by}${v.st ? ' | ' + v.st : ''}`);
+const rows = (known) => [...window.__live.values()].filter((v) => known.indexOf(v.id) < 0).map((v) => `#${v.id} ${v.t ? window.__desc(v.t) + ' disposed=' + (v.t.__disp || 0) : v.d} | first draw by ${v.by} | WHO ${v.t ? JSON.stringify(__game.texWho(v.t.uuid)) : '-'} | STACK ${v.st}`);
 await page.goto(URL0); await page.waitForFunction(() => window.__ready === true, null, { timeout: 120000 });
 console.log('PATCHED_EARLY ' + await page.evaluate(() => window.__patchedEarly));
 await g(() => { __game.setSeed(12345); __game.reset(); });
@@ -67,51 +67,4 @@ for (let c = 0; c < 3; c++) {
   known = await g(ids);
 }
 
-// ---- B: geometries first uploaded in check 401's round trips.
-await g(toPalace); await idle();
-const b = await g(() => {
-  const G = __game, o = {};
-  G.setSeed(12345); G.setMode('palace'); G.reset();
-  const d0 = G.palace().doors[0]; const r0 = G.render(true); window.__glog.length = 0; window.__gOn = true;
-  G.teleport(d0.x, d0.z + 1.6); G.step(1); G.render(true); o.near = window.__glog.splice(0);
-  G.setMove(0, -1); for (let i = 0; i < 120 && G.palace().cur !== 'court'; i++) G.step(1); G.step(60); G.clearMove(); G.render(true); o.court = window.__glog.splice(0);
-  for (let k = 0; k < 5; k++) { G.teleport(d0.x, d0.z + 1.6); G.step(2); G.teleport(d0.x, d0.z - 1.6); G.step(2); G.teleport(d0.x, d0.z - 9); G.step(2); G.teleport(d0.x, d0.z + 9); G.step(2); }
-  const r3 = G.render(true); o.trips = window.__glog.splice(0); window.__gOn = false; o.pg = [r0.programs, r3.programs, r0.geoms, r3.geoms]; return o;
-});
-console.log('B pg ' + JSON.stringify(b.pg));
-for (const k of ['near', 'court', 'trips']) { const c = {}; for (const s of b[k]) c[s] = (c[s] || 0) + 1; console.log(`B ${k}: ${b[k].length} new geometries`); for (const s in c) console.log(`  NEWGEO ${c[s]}x ${s}`); }
-
-// ---- C: context lost and restored in the palace.
-await g(toPalace); await idle();
-const c0 = await g(() => ({ mem: __game.render(true), rows: [...window.__live.values()].map((v) => (v.t ? v.t.uuid : 'rt' + v.id) + ' ## ' + (v.t ? window.__desc(v.t) : v.d) + ' | by ' + v.by) }));
-await page.evaluate(() => { window.__lc = __game.loseContext(); });
-await page.waitForFunction(() => __game.state().ctxLost === true, null, { timeout: 30000 });
-await page.evaluate(() => { window.__live.clear(); window.__lc.restoreContext(); });
-await page.waitForFunction(() => __game.state().ctxLost === false, null, { timeout: 60000 });
-await idle();
-const f0 = await g(() => __game.state().frames);
-await page.waitForFunction((f) => __game.state().frames > f + 5, f0, { timeout: 60000 });
-const c1 = await g(() => ({ led: __game.load().led, mem: __game.render(true), u: [...window.__live.values()].map((v) => (v.t ? v.t.uuid : 'rt' + v.id)) }));
-console.log(`C before ${JSON.stringify(c0.mem)} live ${c0.rows.length}; after ${JSON.stringify(c1.mem)} live ${c1.u.length}; led ${JSON.stringify(c1.led)}`);
-for (const r of c0.rows) { const u = r.split(' ## ')[0]; if (c1.u.indexOf(u) < 0) console.log('  NOTBACK ' + r.split(' ## ')[1]); }
-
-// ---- D: the 杂甲 bot in check 170's seeds: ticks with a stored skill, with a full meter, with both; meter peak.
-await g(toRumble); await idle();
-const d = await g(() => {
-  const G = __game, C = G.config, res = [];
-  for (const seed of [12345, 2, 3]) {
-    G.setSeed(seed); G.setBots(C.BOTS.count); G.setPkitP(true); G.pickSchool(0); G.autoPlayer(true); G.setWatch(true);
-    const zi = G.schools().suits.findIndex((q) => q.school === 'za') - 1, c0 = G.zaState(zi).copyN, o = { seed, zi, copyAtStart: c0, alive: 0, store: 0, full: 0, both: 0, chMax: 0, chEnd: 0, ultMode: '', stores: [] };
-    let last = '';
-    for (let t = 0; t < 300 / C.STEP; t++) {
-      G.step(1); if (G.royale().decidedAt >= 0) break;
-      const z = G.zaState(zi), q = G.bots().list[zi]; if (q.dead) continue;
-      o.alive++; const f = z.ch >= C.ULT.full; if (z.store) o.store++; if (f) o.full++; if (z.store && f) o.both++; if (z.ch > o.chMax) o.chMax = z.ch; o.chEnd = z.ch;
-      if (z.store !== last) { o.stores.push(z.store + '@' + (t * C.STEP).toFixed(0) + ' ch' + Math.round(z.ch)); last = z.store; }
-    }
-    o.copies = G.zaState(zi).copyN - c0; o.full100 = C.ULT.full; G.setWatch(false); G.autoPlayer(false); res.push(o);
-  }
-  G.setPkitP(true); G.pickSchool(0); G.setBots(0); G.reset(); return res;
-});
-for (const r of d) console.log('D ' + JSON.stringify(r));
 await browser.close(); server.close();

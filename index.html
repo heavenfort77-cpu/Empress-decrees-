@@ -8297,6 +8297,19 @@ window.__game = {
   // Read-only (memory diagnostics): the art kit's textures, and textures on kit materials that are not in its list.
   artTexIds() { const A = LD.art; if (!A || !A.kit) return null; const L = new Set(A.kit.texList), out = { list: [...L].map((t) => t.uuid), extra: [] };
     for (const m of A.kit.matList) for (const q in m) if (m[q] && m[q].isTexture && !L.has(m[q])) out.extra.push(q + ':' + m[q].uuid + ':' + (m[q].name || '')); return out; },
+  // Read-only (memory diagnostics): who holds the texture with this uuid: the loader's lists and every object (in the scene or in a room or door
+  // group) whose material carries it.
+  texWho(u) {
+    const out = [], A = LD.art, is = (t) => t && t.uuid === u;
+    PTEX.list.forEach((t, i) => { if (is(t)) out.push('PTEX.list[' + i + ']'); });
+    if (LD.files) LD.files.forEach((f, i) => { if (f && is(f.t)) out.push('LD.files[' + i + ']'); });
+    if (A) { A.own.forEach((t, i) => { if (is(t)) out.push('art.own[' + i + ']'); }); A.clones.forEach((t, i) => { if (is(t)) out.push('art.clones[' + i + ']'); }); if (A.kit) A.kit.texList.forEach((t, i) => { if (is(t)) out.push('kit.texList[' + i + ']'); }); }
+    for (const k in CHRS.tex) if (is(CHRS.tex[k])) out.push('CHRS.tex.' + k);
+    for (const k in M) for (const q in M[k]) if (is(M[k][q])) out.push('M.' + k + '.' + q);
+    const seen = new Set(), walk = (root, tag) => root.traverse((o) => { if (!o.material || seen.has(o)) return; seen.add(o); for (const m of Array.isArray(o.material) ? o.material : [o.material]) for (const q in m) if (is(m[q])) { const n = []; for (let x = o; x && n.length < 6; x = x.parent) n.push(x.name || x.type); out.push(tag + ' ' + n.join('<') + ' mat ' + (m.name || m.type) + '.' + q + ' vis ' + o.visible + ' cast ' + o.castShadow); } });
+    walk(scene, 'scene'); for (const r of PAL.rooms) walk(r.group, 'room ' + r.id); for (const d of PAL.doors) walk(d.group, 'door');
+    return out;
+  },
   // Read-only: the fog-of-war shader patch applied to a stand-in shader (check: it reads each instance's own position).
   fowSrc() { const m = { onBeforeCompile: null }; addFow(m); const sh = { uniforms: {}, vertexShader: '#include <common>\n#include <worldpos_vertex>', fragmentShader: '#include <common>\n#include <dithering_fragment>' }; m.onBeforeCompile(sh); return sh.vertexShader; },
   setMove(x, z) { testMove.on = true; testMove.x = x; testMove.z = z; },
