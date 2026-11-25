@@ -573,11 +573,13 @@ function rng(seed) { let s = seed >>> 0 || 1; return () => (s = (s * 16807) % 21
 // Returns art { group, floorMeshes, floorMats, solids [{ x0, x1, z0, z1 }] (new props only), replaces [box part keys], burn, inst, geos, props }.
 export function buildRoom(kit, r, rooms, spots) {
   const C = PAL_ART, art = { room: r, group: new THREE.Group(), floorMeshes: [], floorMats: [], solids: [], replaces: (C.replaces[r.type] || []).slice(),
-    burn: [], inst: [], geos: [], props: [], doors: [], skipped: 0, counts: { inst: 0, meshes: 0 } };
+    burn: [], inst: [], cut: [], cutOn: false, geos: [], props: [], doors: [], skipped: 0, counts: { inst: 0, meshes: 0 } };
   art.group.name = 'palArt_' + r.id; kit.rooms++;
   if (!C.arch) { art.replaces.length = 0; finish(art); return art; }
   const acc = {}, blocked = (spots && spots.blocked) || [];
-  const put = (piece, mats, over) => { if (!mats.length || !kit.pieces[piece]) return; (acc[piece] || (acc[piece] = { mats: [], over })).mats.push(...mats); };
+  // cut true = the north wall's pieces (wall, eave, tile ends): kept in batches of their own (art.cut), because seen from a room further
+  // north they stand between the camera and the player and the game lowers them (index.html palOcclude).
+  const put = (piece, mats, over, cut) => { if (!mats.length || !kit.pieces[piece]) return; const k = cut ? piece + '|cut' : piece; (acc[k] || (acc[k] = { piece, mats: [], over, cut: !!cut })).mats.push(...mats); };
   const tall = r.type === 'bridge' ? C.walls.bridge : C.walls[r.type] || C.walls.hall;
   const doorGaps = (side) => { const g = []; for (const d of r.doors) if (sideOf(r, d) === side) g.push([d.c - d.w / 2, d.c + d.w / 2]); return g; };
   // Walls exactly where index.html's box walls stand (north, west, east tall; south low; bridges low all round, long sides drawn by the bays).
@@ -586,10 +588,10 @@ export function buildRoom(kit, r, rooms, spots) {
     if (r.type === 'bridge' && ((longX && (side === 'n' || side === 's')) || (!longX && (side === 'w' || side === 'e')))) continue;
     const piece = side === 's' ? C.walls.low : tall, [lo, up] = edgeSpan(r, side), runs = free(lo, up, doorGaps(side));
     for (const [a, b] of runs) {
-      const ms = runMats(side, r, a, b, C.wallIn, C.segM); put(piece, ms);
+      const ms = runMats(side, r, a, b, C.wallIn, C.segM), cut = side === 'n'; put(piece, ms, undefined, cut);
       if (C.on.eaves && side !== 's' && (r.type === 'hall' || r.type === 'corridor')) {
-        put('eave_seg', ms);
-        if (r.type === 'hall') put('tile_end', tileEndMats(ms));
+        put('eave_seg', ms, undefined, cut);
+        if (r.type === 'hall') put('tile_end', tileEndMats(ms), undefined, cut);
       }
     }
   }
@@ -621,12 +623,12 @@ export function buildRoom(kit, r, rooms, spots) {
     }
   }
   // Instanced pieces: one InstancedMesh per piece and material for this room; matrices frozen; shared geometry from the kit.
-  for (const piece in acc) {
-    const P = kit.pieces[piece], ms = acc[piece].mats, cast = !C.noShadow.some((p) => piece.startsWith(p));
+  for (const key in acc) {
+    const piece = acc[key].piece, P = kit.pieces[piece], ms = acc[key].mats, cast = !C.noShadow.some((p) => piece.startsWith(p));
     for (const part of P.parts) {
       const im = new THREE.InstancedMesh(part.geo, kit.mats[part.mat] || kit.mats.palStone, ms.length);
       for (let i = 0; i < ms.length; i++) im.setMatrixAt(i, ms[i]);
-      im.castShadow = cast; im.receiveShadow = true; im.computeBoundingSphere(); still(art, im); art.inst.push(im);
+      im.castShadow = cast; im.receiveShadow = true; im.computeBoundingSphere(); still(art, im); art.inst.push(im); if (acc[key].cut) art.cut.push(im);
       if (kit.burnt[part.mat]) art.burn.push(im, kit.mats[part.mat], kit.burnt[part.mat]);
     }
   }
@@ -936,7 +938,7 @@ export function disposeRoom(art) {
   for (const g of art.geos) g.dispose();
   for (const p of art.props) if (p.geos) for (const g of p.geos) g.dispose();
   if (art.group.parent) art.group.parent.remove(art.group);
-  art.inst.length = 0; art.geos.length = 0; art.props.length = 0; art.doors.length = 0; art.burn.length = 0;
+  art.inst.length = 0; art.cut.length = 0; art.geos.length = 0; art.props.length = 0; art.doors.length = 0; art.burn.length = 0;
 }
 // The palace set leaves (Royal Rumble picked): every kit geometry, material and texture clone this module made.
 export function disposeKit(kit) {

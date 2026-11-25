@@ -31,7 +31,9 @@ body.touch #next{top:10px;right:12px}
 .sk{position:relative;width:52px;height:52px;border-radius:8px;background:#2a2030;border:2px solid #c9a040;color:#fff;font:bold 16px system-ui,sans-serif;display:flex;align-items:center;justify-content:center;pointer-events:none}
 .sk .cd{position:absolute;inset:0;background:#000a;border-radius:6px;display:none;align-items:center;justify-content:center;font:bold 18px system-ui}
 .sk .ch{position:absolute;inset:-6px;border-radius:inherit;z-index:-1;display:none;pointer-events:none}
-.sk .lb{position:absolute;bottom:-15px;font:11px system-ui;color:#ddd;white-space:nowrap}
+.sk .nm{font:bold 11px system-ui;text-align:center;line-height:1.05;padding:0 3px;pointer-events:none}
+.sk .key{position:absolute;left:3px;top:1px;font:10px system-ui;color:#c9a040;pointer-events:none}
+body.touch .sk .key{display:none}
 .sk .zs{position:absolute;top:-17px;left:50%;transform:translateX(-50%);font:10px system-ui;color:#9fe8d8;white-space:nowrap;display:none;pointer-events:none}
 .sk .fzl{display:block;color:#ffd21a}
 .sk.fz{position:fixed;left:calc(50% + 104px);bottom:10px}
@@ -39,7 +41,6 @@ body.touch .sk.fz{left:auto}
 body.touch #bar{left:auto;right:18px;bottom:18px;transform:none;width:230px;height:200px;display:block}
 body.touch .sk{position:absolute;width:64px;height:64px;border-radius:50%;pointer-events:auto;touch-action:none}
 body.touch .sk.atk{width:88px;height:88px;right:0;bottom:0;font-size:15px}
-body.touch .sk .lb{display:none}
 #boss{position:fixed;left:50%;top:8px;transform:translateX(-50%);width:min(46vw,420px);display:none;pointer-events:none;text-align:center;text-shadow:0 1px 2px #000}
 #bossname{font:15px Georgia,serif;color:#ffd98a}
 #bossbar{height:12px;background:#0008;border:1px solid #fff6;border-radius:3px;margin:3px 0}
@@ -760,6 +761,12 @@ const CONFIG = {
   // phone = on phones the floor is minPx / phone (characters larger on small screens, so phones sit closer) and close is x phone.
   // stepMax = the most the camera itself moves in one fixed step, m (ease and pan together; BP10M: they added to 0.511 m on a room change into a fight).
   PAL_CAM: { close: 0.75, minPx: 120, refH: 1080, margin: 0.04, easeS: 0.4, backS: 1.5, panS: 0.15, pad: 0.6, lagM: 1, leadMove: 3, leadOpen: 0.25, leadMax: 4, phone: 0.85, stepMax: 0.4 },
+  // Camera-side cut-away (owner 25 Nov 19:45: a wall and a door between the camera and the suit filled the view). The camera looks from the
+  // south: a drawn room's north wall (with its eaves) and a door on an east-west edge are lowered while they stand south of the player.
+  // nearM = lowered while this many metres or less south of the player; hystM = kept lowered this much further (and until the player is
+  // this far past it), so it does not flicker; sideM = only when the player is within the wall's or door's span plus this, m;
+  // lowK = height factor of a lowered wall or door (a stub stays, so a shut door still reads as shut). Collision is unchanged.
+  PAL_OCCL: { on: true, nearM: 10, hystM: 2, sideM: 4, lowK: 0.15 },
   // Dynamic combat framing (owner 24 Nov 19:33): wide while exploring, a two-shot of the player and the threat in a fight, damped spring
   // transitions, hysteresis, a weighted look point, zoom-in capped by the foes' spread, edge markers for foes off screen.
   PAL_FRAME: {
@@ -952,7 +959,7 @@ const TEXT = {
   voice_died: 'Thou art broken.',
   rule_died: 'Respawning in the centre courtyard (map test only)',
   hp: 'HP {n}',
-  atk: 'ATK',
+  atk: 'Attack',
   cancel: 'Cancel',
   help_desktop: 'Right-click move / attack · Q W R aim at cursor (release to cast) · S stop · N new run · H hunt (test)',
   help_touch: 'Left thumb move · ATK auto-targets · tap a skill to auto-aim, drag to aim, drag to Cancel to stop',
@@ -2098,8 +2105,12 @@ el.mini.addEventListener('pointerdown', (e) => {
 
 // Ability bar: display on desktop, buttons on phone. Built once.
 function buildBar() {
-  const mk = (label, cls) => { const b = document.createElement('div'); b.className = 'sk ' + cls; b.textContent = label;
-    const cd = document.createElement('div'); cd.className = 'cd'; b.appendChild(cd); el.bar.appendChild(b); return { b, cd }; };
+  // A button shows what it does (owner 25 Nov 19:45: the skill, not its key): nm = the skill's name (written by barNames on change); the key
+  // letter is a small corner hint on desktop only (hidden by CSS on touch).
+  const mk = (label, cls, key) => { const b = document.createElement('div'); b.className = 'sk ' + cls;
+    const nm = document.createElement('div'); nm.className = 'nm'; nm.textContent = label; b.appendChild(nm);
+    if (key) { const k = document.createElement('div'); k.className = 'key'; k.textContent = key; b.appendChild(k); }
+    const cd = document.createElement('div'); cd.className = 'cd'; b.appendChild(cd); el.bar.appendChild(b); return { b, cd, nm }; };
   if (TOUCH) {
     const a = mk(T('atk'), 'atk');
     a.b.addEventListener('pointerdown', (e) => { e.preventDefault(); ORD.atkHeld = true; ORD.attack = autoTarget(CONFIG.ATTACK.acquire); });
@@ -2107,9 +2118,8 @@ function buildBar() {
   }
   const pos = [[104, 4], [92, 92], [8, 108]];
   CONFIG.SKILLS.forEach((sk, i) => {
-    const x = mk(TOUCH ? sk.label : sk.label, 'skill');
-    if (!TOUCH) { const lb = document.createElement('div'); lb.className = 'lb'; lb.textContent = sk.name; x.b.appendChild(lb); SK[i].lb = lb; }
-    else {
+    const x = mk(sk.name, 'skill', sk.label); SK[i].lb = x.nm;
+    if (TOUCH) {
       x.b.style.right = pos[i][0] + 'px'; x.b.style.bottom = pos[i][1] + 'px';
       x.b.addEventListener('pointerdown', (e) => {
         e.preventDefault(); if (!playerReady(i)) return;
@@ -2123,8 +2133,11 @@ function buildBar() {
     // 杂甲's stored skill (ticket 10): its name above the R button, shown only while he holds one.
     if (i === 2) { const zs = document.createElement('div'); zs.className = 'zs'; x.b.appendChild(zs); SK[i].zsEl = zs; }
   });
-  fzButton();
+  fzButton(); barNames();
 }
+// The skill buttons' names for the player's current kit (text keys; written only when a name changes): called when the bar is built and
+// whenever the player's kit is set.
+function barNames() { for (let i = 0; i < SK.length; i++) if (SK[i].lb) { const sk = skillOf(P, i); setText(SK[i].lb, sk.nameKey ? T(sk.nameKey) : sk.name); } }
 // The 反贼 bootleg charge (ticket 07): F on desktop, a button on phones (beside the ability bar, not in it); hidden until a charge is held (fzHud).
 // Its name sits above it.
 function fzButton() {
@@ -7381,7 +7394,7 @@ function assignSchools() {
     const b = BOTLIST[k++]; applyKit(b, L[i]); b.nameKey = 'school_' + L[i]; b.mat.color.setHex(COL.schools[i]);
   }
   SCHOOL_VARS.who = T('school_' + L[G.school]); setText(el.school, T('hud_school', SCHOOL_VARS));
-  for (let i = 0; i < SK.length; i++) if (SK[i].lb) { const sk = skillOf(P, i); setText(SK[i].lb, sk.nameKey ? T(sk.nameKey) : sk.name); }
+  barNames();
 }
 function loadSchool() { try { const v = parseInt(localStorage.getItem(CONFIG.SELECT.saveKey), 10); return v >= 0 && v < CONFIG.SCHOOLS.length ? v : 0; } catch (e) { return 0; } }
 function saveSchool(i) { try { localStorage.setItem(CONFIG.SELECT.saveKey, String(i)); } catch (e) { G.saveFail = true; } }
@@ -7802,7 +7815,9 @@ function chrWarm() {
 }
 // Box bodies hidden while the models are on (their materials stay, so the game's material swaps and checks keep working).
 function chrBodies(on) {
-  playerBody.visible = !on;
+  // The white aim pointer is the box body's facing mark (a plain box at chest height in front of the body): it goes with the box body
+  // (owner 25 Nov 19:45: a white bar stuck out of the suit model; the model shows its own facing).
+  playerBody.visible = !on; playerAim.visible = !on;
   for (const b of BOTLIST) b.body.visible = !on;
   for (const u of CHRS.units) u.body.visible = !on;
   for (const t of GUARD_TYPES) GDRAW[t].material = on ? CHR_HIDE : guardMat;
@@ -7812,6 +7827,24 @@ function chrBodies(on) {
 function chrSuitClip(s, name) { if (!CHRS.ready) return; const r = CHRS.suit[s.school]; if (r) r.play(name); }
 function chrUnitClip(u, k) { if (!CHRS.ready || !u.rig) return; const a = u.rig.actions; u.rig.play(a[k] ? k : a.attack ? 'attack' : a.pounce ? 'pounce' : 'move'); }
 // PERFRAME-BEGIN
+// Once per drawn frame (palace art on): the cut-away of CONFIG.PAL_OCCL. Numbers only; a wall batch or door is written when its state changes.
+function palOcclude() {
+  const A = LD.art, O = CONFIG.PAL_OCCL; if (!A || !A.on || !O.on || !PAL.on) return;
+  let ch = false;
+  for (let i = 0; i < A.rooms.length; i++) {
+    const r = A.rooms[i], art = r.art; if (!art || art.cut.length === 0 || !r.group.parent) continue;
+    const d = r.z0 - P.z, inX = P.x > r.x0 - O.sideM && P.x < r.x1 + O.sideM;
+    const low = art.cutOn ? inX && d > -O.hystM && d < O.nearM + O.hystM : inX && d > 0 && d < O.nearM;
+    if (low !== art.cutOn) { art.cutOn = low; for (let k = 0; k < art.cut.length; k++) { const m = art.cut[k]; m.scale.y = low ? O.lowK : 1; m.updateMatrix(); } ch = true; }
+  }
+  for (let i = 0; i < A.doors.length; i++) {
+    const q = A.doors[i]; if (!q.art || q.vert || !q.group.parent) continue;
+    const d = q.z - P.z, inX = Math.abs(P.x - q.x) < q.w / 2 + O.sideM;
+    const low = q.cutOn ? inX && d > -O.hystM && d < O.nearM + O.hystM : inX && d > 0 && d < O.nearM;
+    if (low !== !!q.cutOn) { q.cutOn = low; q.art.root.scale.y = low ? O.lowK : 1; q.art.root.updateMatrix(); ch = true; }
+  }
+  if (ch) renderer.shadowMap.needsUpdate = true;
+}
 // Once per drawn frame after placeView: suits, hunt units and cubs, giants placed from the game's own positions; animation only on screen (chars.js).
 function chrFrame(dt) {
   if (!CHRS.ready) return;
@@ -7880,7 +7913,7 @@ function artRoom(r) {
   }
   r.art = art; A.arts.push(art); A.rooms.push(r);
 }
-function artDoors() { for (const d of PAL.doors) if (d.ra.art) { d.art = PA.door(LD.art.kit, d); PA.addTo(d.ra.art, d.art); LD.art.doors.push(d); } }
+function artDoors() { for (const d of PAL.doors) if (d.ra.art) { d.art = PA.door(LD.art.kit, d); d.cutOn = false; PA.addTo(d.ra.art, d.art); LD.art.doors.push(d); } }
 // All rooms at once (never half the art). Door panels keep their visible flag (it is the door state the checks read): an invisible material hides them.
 function artApply() {
   const K = LD.art.kit;
@@ -8300,7 +8333,7 @@ function frame(now) {
     if (CONFIG.SND.on) { SND.setListener(P.x, P.z); audInputs(); stepIntensity(dt, SND); }
     const pC = PERF.on ? performance.now() : 0;
     placeView(acc / CONFIG.STEP);
-    chrFrame(dt);
+    chrFrame(dt); palOcclude();
     if (LD.art && LD.art.on && PAL.on) PA.tick(LD.art.kit, dt);
     const pD = PERF.on ? performance.now() : 0;
     palMarks();
@@ -8440,7 +8473,10 @@ window.__game = {
   art() {
     const A = LD.art, que = [];
     if (A) for (const r of A.rooms) if (r.art) for (const h of r.art.props) if (h.kind.startsWith('arch/que_pair')) { const P = A.kit.props[h.kind]; que.push({ room: r.id, x: h.root.position.x, z: h.root.position.z, z0: r.z0, cx: r.cx, inner: PA.queInnerOf(P), shift: P.queShift || 0, levels: h.lod.levels.length }); }
-    return { on: !!(A && A.on), rooms: A ? A.rooms.length : 0, failed: A ? A.failed.slice() : null, doors: A ? A.doors.length : 0, texN: A && A.kit ? new Set(A.kit.texList).size : 0, lodDropped: A && A.kit ? A.kit.lodDropped.slice() : [], que };
+    return { on: !!(A && A.on), rooms: A ? A.rooms.length : 0, failed: A ? A.failed.slice() : null, doors: A ? A.doors.length : 0, texN: A && A.kit ? new Set(A.kit.texList).size : 0, lodDropped: A && A.kit ? A.kit.lodDropped.slice() : [], que,
+      // Cut-away (check 1738): rooms whose north wall is lowered now (with the wall batches' height factor), doors lowered now.
+      cut: A ? A.rooms.filter((r) => r.art && r.art.cutOn).map((r) => ({ room: r.id, n: r.art.cut.length, k: r.art.cut.length ? r.art.cut[0].scale.y : 1 })) : [],
+      cutDoors: A ? A.doors.filter((d) => d.cutOn).map((d) => ({ x: d.x, z: d.z, k: d.art.root.scale.y })) : [], cutRooms: A ? A.rooms.filter((r) => r.art && r.art.cut.length > 0).length : 0 };
   },
   // Read-only (memory diagnostics): the art kit's textures, and textures on kit materials that are not in its list.
   artTexIds() { const A = LD.art; if (!A || !A.kit) return null; const L = new Set(A.kit.texList), out = { list: [...L].map((t) => t.uuid), extra: [] };
@@ -8458,6 +8494,9 @@ window.__game = {
     walk(scene, 'scene'); for (const r of PAL.rooms) walk(r.group, 'room ' + r.id); for (const d of PAL.doors) walk(d.group, 'door');
     return out;
   },
+  // Read-only (check 1737): the ability bar's shown texts (name and key hint per button) and whether the box body's aim pointer shows.
+  barText: () => ({ touch: TOUCH, btns: [...document.querySelectorAll('#bar .sk')].map((b) => ({ nm: b.querySelector('.nm') ? b.querySelector('.nm').textContent : '', key: b.querySelector('.key') ? b.querySelector('.key').textContent : '' })),
+    want: SK.map((st, i) => { const sk = skillOf(P, i); return sk.nameKey ? T(sk.nameKey) : sk.name; }), aim: playerAim.visible, body: playerBody.visible }),
   // Read-only (check 1736): pieces art: switches, failed keys, hosts carrying a model and how many of them still draw their plain shape, the
   // buff creatures' rigs and box bodies, Kaymuse's rig.
   pcs() {
@@ -8704,7 +8743,7 @@ window.__game = {
     if (forceShadow) renderer.shadowMap.needsUpdate = true;
     // The draw the frame makes: placeView, then the character rigs shown, hidden and placed (chrFrame; dt 0 = no animation step), then the render.
     // Without chrFrame a rig left by the run before stayed in this draw until the next real frame (check 907 counted it).
-    CHRS.drawN = 0; CHRS.rigN = 0; CHRS.fxN = 0; placeView(1); chrFrame(0); renderer.render(scene, camera); renderer.shadowMap.needsUpdate = false;
+    CHRS.drawN = 0; CHRS.rigN = 0; CHRS.fxN = 0; placeView(1); chrFrame(0); palOcclude(); renderer.render(scene, camera); renderer.shadowMap.needsUpdate = false;
     return { crowd: CHRS.drawN, rigs: CHRS.rigN, fx: CHRS.fxN, calls: renderer.info.render.calls, tris: renderer.info.render.triangles, programs: renderer.info.programs.length,
       geoms: renderer.info.memory.geometries, texs: renderer.info.memory.textures };
   },

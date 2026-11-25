@@ -403,11 +403,15 @@ class Rig {
   // Loops become the base clip; others play once (hit, attack return to the base; death and wake hold their last pose).
   play(name, rate = 1) {
     const a = this.actions[name]; if (!a) return false;
-    const f = CHR.anim.fade, loop = CHR.loops.includes(name), prev = loop ? this.base : (this.once || this.base);
+    // The clip in view now is the one-shot if one plays, else the base loop: the new clip always fades from that one. (A loop started
+    // while a one-shot played used to fade from the hidden base and forget the one-shot, which then held its last frame at full weight
+    // for good and blended into every later clip: a suit that attacked while starting to run, or was broken and then began a new run,
+    // stood half in the attack's or the death's last pose. Owner 25 Nov 19:45.)
+    const f = CHR.anim.fade, loop = CHR.loops.includes(name), prev = this.once || this.base, old = this.base;
     if (loop && this.base === a && !this.once) { a.timeScale = rate; return true; }
     a.reset(); a.timeScale = rate; a.setEffectiveWeight(1); a.play();
     if (prev && prev !== a) a.crossFadeFrom(prev, f, false);
-    if (loop) { this.base = a; this.once = null; } else this.once = a;
+    if (loop) { if (old && old !== a && old !== prev) old.stop(); this.base = a; this.once = null; } else this.once = a;
     return true;
   }
   // Suits: idle below CHR.runMin m/s, else run at timeScale = speed / run_v (suits_info.json).

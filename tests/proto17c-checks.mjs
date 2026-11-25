@@ -162,5 +162,29 @@ export async function proto17cChecks(g, check, page, browser, URL0) {
     && pc.plain.plate === 0 && pc.plain.crown === 0 && pc.plain.decree === 0 && pc.plain.moWall === 0 && pc.hosts > 0
     && pc.neutrals.length === 2 && pc.neutrals.every((u) => u.rig && !u.body && u.levels >= 1) && pc.on.kaymuse === true && pc.km === true && pc.empressBox === false, JSON.stringify(pc));
 
+  // 1737 (owner 25 Nov 19:45) The ability bar shows each skill's name for the player's kit (text keys), on phone and desktop; the key letter
+  // is only a corner hint (desktop); a school change rewrites the names. The box body's white aim pointer is hidden while the model is on.
+  const bt = await g(() => { const G = __game, a = G.barText(); G.setPkitP(false); G.pickSchool(3); const b = G.barText(); G.setPkitP(true); G.pickSchool(0); return { a, b }; });
+  const skBtns = (x) => x.btns.filter((q) => q.nm !== '' && x.want.indexOf(q.nm) >= 0);
+  check('1737 skill buttons show the skill names of the current kit (rewritten on a kit change), key letters only as hints; no aim pointer on the model',
+    bt.a.want.length === 3 && skBtns(bt.a).length === 3 && skBtns(bt.b).length === 3 && bt.b.want.join() !== bt.a.want.join()
+    && bt.a.btns.every((q) => ['Q', 'W', 'R', 'ATK'].indexOf(q.nm) < 0) && bt.a.aim === false && bt.a.body === false, JSON.stringify(bt));
+
+  // 1738 (owner 25 Nov 19:45) Camera-side cut-away: standing in the court just north of the hall's door (the hall drawn through the open
+  // door), the hall's north wall batches and that door are lowered (height factor lowK); standing in the hall south of that wall they
+  // are back to full height; solids unchanged.
+  const oc = await g(() => {
+    const G = __game, K = G.config.PAL_OCCL, o = {};
+    G.setSeed(12345); G.setMode('palace'); G.reset(); const d0 = G.palace().doors[0], sol = G.palace().doors.length;
+    G.setHp(1e9); G.teleport(d0.x, d0.z - 1.2); G.step(2); G.render(true); const a = G.art();
+    o.near = { attached: G.palace().attached.join(','), cut: a.cut, doors: a.cutDoors, rooms: a.cutRooms };
+    G.teleport(d0.x, d0.z + K.hystM + 2); G.step(2); G.render(true); const b = G.art(); o.past = { cut: b.cut, doors: b.cutDoors };
+    o.lowK = K.lowK; o.inSolids = G.palace().doors.every((d) => d.inSolids) && G.palace().doors.length === sol;
+    G.setMode('rumble'); G.reset(); return o;
+  });
+  check('1738 cut-away: north wall of the room south of the player and its door are lowered when near, full height once passed; solids unchanged',
+    oc.near.rooms > 0 && oc.near.cut.length >= 1 && oc.near.cut.every((c) => c.n > 0 && Math.abs(c.k - oc.lowK) < 1e-6) && oc.near.doors.length >= 1
+    && oc.past.cut.length === 0 && oc.past.doors.length === 0 && oc.inSolids, JSON.stringify(oc));
+
   check('1732 no page error during the 17c and prototype checks', errs.length === 0, errs.slice(0, 4).join(' | '));
 }
