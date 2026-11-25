@@ -1,0 +1,59 @@
+{
+ "name": "aura",
+ "atlas": "soft_b",
+ "blend": "blend",
+ "orient": "bill",
+ "frames": 12,
+ "fps": 20,
+ "loop": [
+  0,
+  12
+ ],
+ "cellPx": [
+  84,
+  116
+ ],
+ "originPx": [
+  2,
+  242
+ ],
+ "stridePx": [
+  88,
+  120
+ ],
+ "cols": 11,
+ "pivotPx": [
+  42,
+  96
+ ],
+ "texelM": 0.03,
+ "sizeM": [
+  2.52,
+  3.48
+ ],
+ "pivotM": [
+  1.26,
+  0.6
+ ],
+ "durationS": 0.6,
+ "alphaSum": [
+  671.1,
+  679.2,
+  647.5,
+  604.1,
+  559.2,
+  531.3,
+  551.3,
+  601.5,
+  612.2,
+  611.7,
+  596.6,
+  627.7
+ ],
+ "ref": "pixelfx status/rage (shape and timing only)",
+ "anchorHeightM": 0.0,
+ "atlasSize": [
+  1024,
+  984
+ ]
+}
