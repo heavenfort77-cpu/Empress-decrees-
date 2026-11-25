@@ -132,6 +132,15 @@ DEATH_T, LIE_GAP = (0.12, 0.42, 0.72, 0.85), 0.002
 # (robecalm.py + a poke measure): thigh out through the robe front za 26.6 -> 15.7 cm, zh 27.1 -> 15.7 cm (approved binding 16.8 / 15.0),
 # hem swing za 0.284, zh 0.341 m (gate 0.379). dao unchanged.
 ROBE_CALM = {'dao': dict(K=0.2, mix=0.7), 'za': dict(K=0.4, Kf=0.8, mix=0.5, lat=0.25), 'zh': dict(K=0.35, Kf=0.8, mix=0.5, lat=0.35)}
+# School-colour trim (owner 25 Nov): 法 儒 墨 农 show little cloth at play size (ru 15 px), so they get a waist sash and sleeve cuffs in the
+# cloth material (school tint). Added after the LODs are made and joined onto the end of each LOD, so the approved meshes stay a
+# byte-identical prefix. Ring segment scale per LOD (LOD1/LOD2 get coarser copies of the same parts).
+TRIM_SUITS = ['fa', 'ru', 'mo', 'nong']
+TRIM_SEG = {0: 1.0, 1: 0.35, 2: 0.15}
+# Sash: height above / below the waist, m, and how far it stands out from the body profile (outside belt, torso rows and skirt top), m.
+SASH_UP, SASH_DN, SASH_OUT = 0.07, 0.07, 0.065
+# Cuffs: span along the forearm (elbow 0 -> wrist 1) and radius over the bracer (x limb scale L), m.
+CUFF_T, CUFF_R = (0.6, 0.97), (0.064, 0.056)
 # Armour tier per school (index.html kits) for HIT_K.
 ARMOUR = {'ru': 'High', 'dao': 'Low', 'fa': 'Mid', 'mo': 'High', 'yy': 'Low', 'za': 'Mid', 'ming': 'Low', 'zh': 'Mid', 'nong': 'High'}
 
@@ -1174,6 +1183,37 @@ def calm_weights(ob, K, mix, Kf=None, lat=0.0, r=1.0):
         for n, x in (('hips', 1 - tR - tL), ('thigh.R', tR), ('thigh.L', tL)):
             if x > 1e-6: ob.vertex_groups[n].add([v.index], x, 'REPLACE')
 
+def trim_loft(b, S, lvl):
+    """sash and cuffs as cloth lofts at one LOD's ring density (design coords)."""
+    za, zb = b.zwaist + SASH_UP, b.zwaist - SASH_DN; (aa, ba), (ab, bb) = b.torso_ab(za), b.torso_ab(zb)
+    loft('sash', [((0, 0, za), aa + SASH_OUT, ba + SASH_OUT, 2.4), ((0, 0, zb), ab + SASH_OUT + 0.005, bb + SASH_OUT + 0.005, 2.4)], 'sCloth', 'cloth', 'hips',
+         N=segs(SEG_BODY), caps=(False, False), kind='cloth', allow=['hips', 'spine'], flat=True)
+    if lvl < 2:
+        k = Vector((-aa * 0.55, ba + SASH_OUT, b.zwaist))
+        loft('sashknot', [(tuple(k + Vector((0, 0.005, 0.03))), 0.05, 0.025, 2.2), (tuple(k + Vector((0, 0.02, -0.12))), 0.035, 0.012, 2)], 'sCloth', 'cloth', 'hips',
+             N=segs(SEG_SMALL), kind='cloth', allow=['hips'])
+    L = b.L
+    for side, m in (('R', 1), ('L', -1)):
+        el = Vector((m * (b.sx + 0.05), 0, b.zelb)); wr = Vector((m * (b.sx + 0.08), 0.05, b.zwri)); p = lambda t: tuple(el + (wr - el) * t)
+        loft(f'cuff_{side}', [(p(CUFF_T[0]), CUFF_R[0] * L, CUFF_R[0] * L * 0.94, 2.2), (p(CUFF_T[1]), CUFF_R[1] * L, CUFF_R[1] * L * 0.93, 2.2)], 'sCloth', 'cloth',
+             f'forearm.{side}', N=segs(SEG_LIMB), caps=(False, False), kind='cloth', allow=[f'forearm.{side}'])
+
+def trim_parts(sid, S, b, arm, lods):
+    """school-colour sash and cuffs (TRIM_SUITS): built per LOD, cloth heat weights (limited to 4, normalised on the part alone), then joined
+    onto the END of each LOD mesh, so every approved vertex, weight and face keeps its place (checked by the prefix gate)."""
+    for lvl, ob0 in lods.items():
+        Q['seg'] = TRIM_SEG[lvl]; n0 = len(PARTS); trim_loft(b, S, lvl); new = [P_['ob'] for P_ in PARTS[n0:]]
+        for P_ in PARTS[n0:]:
+            ob = P_['ob']; ob.data.materials.append(material(f'sCloth_{sid}', S)); heat_weights(ob, arm, P_['allow'])
+            bpy.ops.object.select_all(action='DESELECT'); ob.select_set(True); bpy.context.view_layer.objects.active = ob
+            bpy.ops.object.mode_set(mode='WEIGHT_PAINT'); bpy.ops.object.vertex_group_limit_total(limit=4); bpy.ops.object.vertex_group_normalize_all(lock_active=False)
+            bpy.ops.object.mode_set(mode='OBJECT')
+        bpy.ops.object.select_all(action='DESELECT')
+        for ob in new: ob.select_set(True)
+        ob0.select_set(True); bpy.context.view_layer.objects.active = ob0; bpy.ops.object.join()
+        del PARTS[n0:]
+    Q['seg'] = 1.0
+
 def finish_lod0(sid, S, arm):
     heat_fail = []
     robe_r = max([-v.co.y for P_ in PARTS if P_['ob'].name in ('robe', 'robe_in') for v in P_['ob'].data.vertices] or [1.0])
@@ -1269,6 +1309,7 @@ def build_suit(sid):
     arm = make_armature(b, sid, wb)
     lod0, heat_fail = finish_lod0(sid, S, arm)
     lods = {0: lod0, 1: make_lod(lod0, arm, 1), 2: make_lod(lod0, arm, 2)}
+    if sid in TRIM_SUITS: trim_parts(sid, S, b, arm, lods)
     # clips
     rest = {}
     A = S['attack']; fw = 1 + round(A['windup'] * FPS); fs = fw + round(A['strike'] * FPS); fb = fs + round(A['back'] * FPS)

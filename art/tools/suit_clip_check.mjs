@@ -52,7 +52,9 @@ const CFG = {
   flareMax: 0.379,
   // Recolour + robe fix round (owner 25 Nov): run/hit/death must stay byte-identical to the approved GLBs, except these clips per suit
   // (za and zh robes re-bound: their death floor solve sees the new weights).
-  clipFree: { za: ['death'], zh: ['death'] },
+  clipFree: { za: ['death'], zh: ['death'], fa: ['death'], ru: ['death'], mo: ['death'], nong: ['death'] },
+  // Trim round (owner 25 Nov: school-colour sash and cuffs): suits whose cloth primitives may grow, with the approved data an exact prefix.
+  added: ['fa', 'ru', 'mo', 'nong'],
   // Hem band: garment vertices (>= 2 influences of at least 0.02, all of hips/thigh/shin) within this height of the garment's lowest, m.
   hemBand: 0.06,
 };
@@ -172,21 +174,26 @@ async function gates(sid, g, old, info, opt = {}) {
     gate(`${cn}_identical`, ok && diff === 0, `${a ? a.channels.length : 0} channels, ${diff} differ from the approved GLB`);
   }
   // 3. meshes byte-identical (positions, normals, UVs, joints, weights, indices) and the skin (joint names, inverse binds)
-  let md = 0, mc = 0, wch = 0, wout = 0;
+  let md = 0, mc = 0, wch = 0, wout = 0, added = 0;
   const jn = old.json.skins[0].joints.map((j) => old.json.nodes[j].name), legB = (n) => n === 'hips' || /^(thigh|shin)\./.test(n);
   for (const m of g.json.meshes) { const o = old.json.meshes.find((x) => x.name === m.name); if (!o || o.primitives.length !== m.primitives.length) { md++; continue; }
     m.primitives.forEach((p, k) => { const q = o.primitives[k];
+      const cloth0 = old.json.materials[q.material].name.startsWith('sCloth'), grow = cloth0 && CFG.added.includes(sid);
       for (const [an, ai] of [...Object.entries(p.attributes), ['indices', p.indices]]) { if (an === 'JOINTS_0' || an === 'WEIGHTS_0') continue; mc++;
-        const qi = an === 'indices' ? q.indices : q.attributes[an]; if (qi === undefined || !eqBytes(accBytes(g, ai), accBytes(old, qi))) md++; }
+        const qi = an === 'indices' ? q.indices : q.attributes[an]; if (qi === undefined) { md++; continue; }
+        const nb = accBytes(g, ai), ob = accBytes(old, qi);
+        // trim suits: the approved cloth data must be an exact prefix (new sash/cuff vertices and faces appended after it)
+        const same = grow ? nb.length >= ob.length && eqBytes(nb.subarray(0, ob.length), ob) : eqBytes(nb, ob);
+        if (!same) md++; else if (grow && nb.length > ob.length && an === 'POSITION') added += (nb.length - ob.length) / 12; }
       // skin weights: identical, except robe vertices of the calm suits (cloth material, every approved influence on hips/thigh/shin)
       const J1 = accF(g, p.attributes.JOINTS_0), W1 = accF(g, p.attributes.WEIGHTS_0), J0 = accF(old, q.attributes.JOINTS_0), W0 = accF(old, q.attributes.WEIGHTS_0);
       const cloth = old.json.materials[q.material].name.startsWith('sCloth');
-      if (J1.length !== J0.length) { md++; return; }
+      if (J1.length < J0.length || (J1.length > J0.length && !(cloth && CFG.added.includes(sid)))) { md++; return; }
       for (let i = 0; i < J0.length; i += 4) { let same = true; for (let c = 0; c < 4; c++) if (J1[i + c] !== J0[i + c] || W1[i + c] !== W0[i + c]) same = false;
         if (same) continue; wch++; let robe = cloth && CFG.calm.includes(sid); for (let c = 0; c < 4; c++) if (W0[i + c] > 0 && !legB(jn[J0[i + c]])) robe = false; if (!robe) wout++; } }); }
   const sj = (x) => x.json.skins[0].joints.map((j) => x.json.nodes[j].name).join(',');
   const ibm = eqBytes(accBytes(g, g.json.skins[0].inverseBindMatrices), accBytes(old, old.json.skins[0].inverseBindMatrices));
-  gate('mesh_identical', md === 0 && sj(g) === sj(old) && ibm, `${mc} accessors (positions, normals, UVs, indices), ${md} differ; joints ${sj(g) === sj(old) ? 'same' : 'DIFFER'}; inverse binds ${ibm ? 'same' : 'DIFFER'}`);
+  gate('mesh_identical', md === 0 && sj(g) === sj(old) && ibm, `${mc} accessors, ${md} differ${CFG.added.includes(sid) ? ` (trim suit: approved cloth data an exact prefix, ${added} vertices appended)` : ''}; joints ${sj(g) === sj(old) ? 'same' : 'DIFFER'}; inverse binds ${ibm ? 'same' : 'DIFFER'}`);
   gate('weights_scope', wout === 0, `${wch} vertices with changed skin weights, ${wout} outside the robe of a calm suit (${CFG.calm.includes(sid) ? 'calm suit' : 'no change allowed'})`);
   // 4. budgets and weights (from the GLB)
   for (const m of g.json.meshes) { const L = +/_lod(\d)/.exec(m.name)[1]; const tri = m.primitives.reduce((s, p) => s + g.json.accessors[p.indices].count / 3, 0);

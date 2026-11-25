@@ -3,7 +3,7 @@
 1. cloth: per suit, the cloth albedo median (GLB material tint x suit_cloth sheet, linear) within dE 10 of the school colour;
 2. floor: on the lineup at play size over the red hall floor (game lights), each suit's cloth median (masks from the clothid render),
    every school pair at least dE 10 apart;
-3. cords: each school's cord row on suit_lamellar (centre band median) within the tex_check distance (RGB 50) of the school colour;
+3. cords: each school's cord row on suit_lamellar (centre band median) within RGB 50 (tex_check) and dE 10 of the school colour;
 4. sheet: suit_lamellar outside the cord rows, suit_cloth and suit_bronze byte-identical to the approved sheets.
 --mutate: za tint set to fa's (gate 1), the shot with za's tint copied from fa (gate 2), za's cord row copied from fa's (gate 3), one pixel
 outside the cord rows changed (gate 4); each must fail. dE = CIE76 (as accent_check.py and standard_check.py).
@@ -22,6 +22,8 @@ CLOTH_DE = 10.0
 PAIR_DE = 10.0
 # Max RGB distance of a cord row's centre median from its school colour (tex_check.py CORD_DIST).
 CORD_DIST = 50.0
+# ... and within this dE of it (lead 25 Nov: tighter, RGB 50 could not tell fa's lead white from za's silver; run 45525874094 mutant).
+CORD_DE = 10.0
 # Cord rows: first row y, row height, school order (suit_tex.py).
 CORD_Y0, CORD_H, CORD_ORDER = 736, 32, ['fa', 'ru', 'dao', 'mo', 'yy', 'za', 'ming', 'zh', 'nong']
 # Mask pixels per suit needed for a lit median (after a 1 px erosion), and the ID colour tolerance (RGB, max channel).
@@ -70,7 +72,8 @@ def g_cords(L):
     out = []
     for i, sid in enumerate(CORD_ORDER):
         y = CORD_Y0 + CORD_H * i; med = np.median(L[y + 10:y + 22].reshape(-1, 3), 0); want = hexrgb(SCHOOL[sid]) * 255; dist = np.linalg.norm(med - want)
-        out.append((dist <= CORD_DIST, f'cord {sid} median #{"".join(f"{int(x):02x}" for x in med)} vs {SCHOOL[sid]}: RGB distance {dist:.0f} (max {CORD_DIST:.0f}), dE {dE(med / 255, want / 255):.1f}'))
+        d = dE(med / 255, want / 255)
+        out.append((dist <= CORD_DIST and d <= CORD_DE, f'cord {sid} median #{"".join(f"{int(x):02x}" for x in med)} vs {SCHOOL[sid]}: RGB distance {dist:.0f} (max {CORD_DIST:.0f}), dE {d:.1f} (max {CORD_DE:.0f})'))
     return out
 def g_sheets(L):
     out = []; L0 = np.asarray(Image.open(os.path.join(A, 'suit_lamellar.png')).convert('RGB'))

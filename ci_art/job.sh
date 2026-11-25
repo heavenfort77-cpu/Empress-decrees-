@@ -1,5 +1,5 @@
 #!/bin/bash
-# SUITANIM recolour + robe fix round (owner 25 Nov): suit cloth tints and cord rows to the one school colour mapping (klad repaints the
+# SUITANIM trim + recolour round (owner 25 Nov): school-colour sash and sleeve cuffs for fa/ru/mo/nong (new cloth parts appended to each LOD), cloth tints and cord rows to the one school colour mapping (klad repaints the
 # cord rows of suit_lamellar; outside them the approved sheet is kept), za/zh robes follow the legs more at the front. Gates: builder,
 # silhouettes, clip gates (frozen clips, robe flare, weight scope) with mutations, colour gates with mutations, tex_check, shots, sheets.
 set -u
