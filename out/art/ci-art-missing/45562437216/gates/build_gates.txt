@@ -1,0 +1,15 @@
+Traceback (most recent call last):
+  File "/home/runner/work/Empress-decrees-/Empress-decrees-/art/tools/pieces_kaymuse.py", line 346, in <module>
+  File "/home/runner/work/Empress-decrees-/Empress-decrees-/art/tools/pieces_kit.py", line 208, in build_rigged
+  File "/home/runner/work/Empress-decrees-/Empress-decrees-/art/tools/pieces_kit.py", line 61, in finish
+KeyError: 'bpy_struct[key]: key "bone" not found'
+Traceback (most recent call last):
+  File "/home/runner/work/Empress-decrees-/Empress-decrees-/art/tools/pieces_creatures.py", line 294, in <module>
+  File "/home/runner/work/Empress-decrees-/Empress-decrees-/art/tools/pieces_kit.py", line 208, in build_rigged
+  File "/home/runner/work/Empress-decrees-/Empress-decrees-/art/tools/pieces_kit.py", line 61, in finish
+KeyError: 'bpy_struct[key]: key "bone" not found'
+Traceback (most recent call last):
+  File "/home/runner/work/Empress-decrees-/Empress-decrees-/art/tools/pieces_small.py", line 196, in <module>
+  File "/home/runner/work/Empress-decrees-/Empress-decrees-/art/tools/pieces_kit.py", line 116, in lods_static
+  File "/home/runner/work/Empress-decrees-/Empress-decrees-/art/tools/pieces_kit.py", line 61, in finish
+KeyError: 'bpy_struct[key]: key "bone" not found'

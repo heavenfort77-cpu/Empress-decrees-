@@ -1,0 +1,8 @@
+FAIL kaymuse GLB missing (/tmp/pieces/kaymuse.glb)
+FAIL crab GLB missing (/tmp/pieces/crab.glb)
+FAIL wanderer GLB missing (/tmp/pieces/wanderer.glb)
+FAIL plate GLB missing (/tmp/pieces/plate.glb)
+FAIL leader_crown GLB missing (/tmp/pieces/leader_crown.glb)
+FAIL mo_wall GLB missing (/tmp/pieces/mo_wall.glb)
+FAIL decree_mark GLB missing (/tmp/pieces/decree_mark.glb)
+0 of 7 pass

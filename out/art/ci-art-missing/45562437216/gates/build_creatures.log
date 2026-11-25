@@ -1,0 +1,11 @@
+Traceback (most recent call last):
+  File "/home/runner/work/Empress-decrees-/Empress-decrees-/art/tools/pieces_creatures.py", line 294, in <module>
+    PK.build_rigged('crab', crab_build, crab_bones(), crab_clips, os.path.join(OUTDIR, 'crab.glb'), BUDGET, 2.6, extras={'r': CRAB_R, 'clips': 'idle,move'}, extra_gates=crab_gates)
+    ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/runner/work/Empress-decrees-/Empress-decrees-/art/tools/pieces_kit.py", line 208, in build_rigged
+    LEVEL['n'] = 1; K.Q['seg'] = 0.5; build(False); l1 = unskin(finish(f'{key}_lod1')); fit(l1, budget[1])
+                                                                ~~~~~~^^^^^^^^^^^^^^^
+  File "/home/runner/work/Empress-decrees-/Empress-decrees-/art/tools/pieces_kit.py", line 61, in finish
+    vg = ob.vertex_groups.new(name=ob['bone']); vg.add(list(range(len(ob.data.vertices))), 1.0, 'REPLACE')
+                                   ~~^^^^^^^^
+KeyError: 'bpy_struct[key]: key "bone" not found'

@@ -1,0 +1,390 @@
+== preflight 06:42:01
+PREFLIGHT PASS
+== build 06:42:04
+Traceback (most recent call last):
+  File "/home/runner/work/Empress-decrees-/Empress-decrees-/art/tools/pieces_kaymuse.py", line 346, in <module>
+  File "/home/runner/work/Empress-decrees-/Empress-decrees-/art/tools/pieces_kit.py", line 208, in build_rigged
+  File "/home/runner/work/Empress-decrees-/Empress-decrees-/art/tools/pieces_kit.py", line 61, in finish
+KeyError: 'bpy_struct[key]: key "bone" not found'
+Traceback (most recent call last):
+  File "/home/runner/work/Empress-decrees-/Empress-decrees-/art/tools/pieces_creatures.py", line 294, in <module>
+  File "/home/runner/work/Empress-decrees-/Empress-decrees-/art/tools/pieces_kit.py", line 208, in build_rigged
+  File "/home/runner/work/Empress-decrees-/Empress-decrees-/art/tools/pieces_kit.py", line 61, in finish
+KeyError: 'bpy_struct[key]: key "bone" not found'
+Traceback (most recent call last):
+  File "/home/runner/work/Empress-decrees-/Empress-decrees-/art/tools/pieces_small.py", line 196, in <module>
+  File "/home/runner/work/Empress-decrees-/Empress-decrees-/art/tools/pieces_kit.py", line 116, in lods_static
+  File "/home/runner/work/Empress-decrees-/Empress-decrees-/art/tools/pieces_kit.py", line 61, in finish
+KeyError: 'bpy_struct[key]: key "bone" not found'
+total 8
+drwxr-xr-x  2 runner runner 4096 Nov 25 06:42 .
+drwxrwxrwt 16 root   root   4096 Nov 25 06:42 ..
+== builder mutations 06:42:06
+MUT MISSED: pieces_kaymuse.py with LIPS_MAT='kmSkin' (no line 'FAIL kaymuse lower face')
+MUT MISSED: pieces_kaymuse.py with STR_LEN=0.35 (no line 'FAIL kaymuse 冕 veil')
+MUT MISSED: pieces_kaymuse.py with TORSO=[(0.60,0.0,0.37,0.27),(0.72,-0.01,0.39,0.27),(0.95,-0.02,0.45,0.26),(1.10,-0.02,0.47,0.24),(1.18,-0.02,0.40,0.21),(1.23,-0.02,0.20,0.15)] (no line 'FAIL kaymuse reads as a woman')
+MUT MISSED: pieces_kaymuse.py with BOARD_REAR=0.50 (no line 'FAIL kaymuse crown: board')
+MUT MISSED: pieces_kaymuse.py with FINGER=0.0001;HAND_C=(0.3,0.1,0.9) (no line 'FAIL kaymuse hands')
+MUT MISSED: pieces_kaymuse.py with BUDGET=(1000,2600,900) (no line 'FAIL kaymuse_lod0 tris')
+MUT MISSED: pieces_kaymuse.py with REST_X=2.4 (no line 'FAIL kaymuse sits within')
+MUT MISSED: pieces_creatures.py with C_KNEE=(0.84,1.35) (no line 'FAIL crab .* low and wide')
+MUT MISSED: pieces_creatures.py with W_HIP=(1.1,-0.05,1.40) (no line 'FAIL wanderer .* tall and narrow')
+MUT MISSED: pieces_creatures.py with C_MOVE=(0.6,0.0,0.0,0.0,0.0,0.0) (no line 'FAIL crab clip move')
+MUT MISSED: pieces_creatures.py with C_MOVE=(0.6,2.0,1.0,0.0,0.0,16.0) (no line 'FAIL crab move reads apart')
+MUT MISSED: pieces_creatures.py with C_STUDS=(4,0.665,0.03) (no line 'FAIL crab lid relief')
+MUT MISSED: pieces_creatures.py with DK='pcBlack' (no line 'FAIL crab is bronze')
+MUT MISSED: pieces_creatures.py with C_FINGER_B=[(0.63,0.78,0.83),(0.60,0.96,0.85),(0.52,1.06,0.83)] (no line 'FAIL crab pincers')
+MUT MISSED: pieces_creatures.py with W_LEG_W=(0.16,0.03,0.075) (no line 'FAIL wanderer limbs')
+MUT MISSED: pieces_creatures.py with W_BILL=((0.0,0.635,2.65),(0.0,0.85,2.62)) (no line 'FAIL wanderer bill')
+MUT MISSED: pieces_creatures.py with W_WHEEL=(0.47,0.40,0.035,15,6,0.14) (no line 'FAIL wanderer vessel')
+MUT MISSED: pieces_creatures.py with C_LEG_W=(0.13,0.11) (no line 'FAIL crab lower legs')
+MUT MISSED: pieces_small.py with PL_LEN=1.2 (no line 'FAIL plate [0-9]')
+MUT MISSED: pieces_small.py with PL_RAKE=(0.02,0.62) (no line 'FAIL plate reads as a curved')
+MUT MISSED: pieces_small.py with PL_SCALLOPS=0 (no line 'FAIL plate reads as a curved')
+MUT MISSED: pieces_small.py with CR_LID=1 (no line 'FAIL leader crown reads')
+MUT MISSED: pieces_small.py with CR_POINTS=[(0,0.17,0.9),(-38,0.14,0.22),(38,0.14,0.22),(-66,0.10,0.14),(66,0.10,0.14)] (no line 'FAIL leader crown [0-9]')
+MUT MISSED: pieces_small.py with MW_BRACES=3 (no line 'FAIL 墨 wall frame')
+MUT MISSED: pieces_small.py with MW_POSTS=(-1.88,-0.63,0.63,1.88) (no line 'FAIL 墨 wall frame')
+MUT MISSED: pieces_small.py with MW_POSTS=(-2.7,-0.9,0.55,2.7) (no line 'FAIL 墨 wall [0-9]')
+MUT MISSED: pieces_small.py with DM_TIGER=[(-0.05,-0.05),(0.05,-0.05),(0.05,0.05),(-0.05,0.05)] (no line 'FAIL decree seal')
+== glb gates 06:42:21
+FAIL kaymuse GLB missing (/tmp/pieces/kaymuse.glb)
+FAIL crab GLB missing (/tmp/pieces/crab.glb)
+FAIL wanderer GLB missing (/tmp/pieces/wanderer.glb)
+FAIL plate GLB missing (/tmp/pieces/plate.glb)
+FAIL leader_crown GLB missing (/tmp/pieces/leader_crown.glb)
+FAIL mo_wall GLB missing (/tmp/pieces/mo_wall.glb)
+FAIL decree_mark GLB missing (/tmp/pieces/decree_mark.glb)
+0 of 7 pass
+== shots 06:42:21
+cp: cannot stat '/tmp/pieces/*.glb': No such file or directory
+FAIL shot crab_turn_front: HTTP 404 pieces/crab.glb
+FAIL shot crab_turn_34: HTTP 404 pieces/crab.glb
+FAIL shot crab_turn_side: HTTP 404 pieces/crab.glb
+FAIL shot crab_turn_back: HTTP 404 pieces/crab.glb
+FAIL shot crab_top: HTTP 404 pieces/crab.glb
+FAIL shot crab_sil: HTTP 404 pieces/crab.glb
+FAIL shot crab_lods: HTTP 404 pieces/crab.glb
+FAIL shot wanderer_turn_front: HTTP 404 pieces/wanderer.glb
+FAIL shot wanderer_turn_34: HTTP 404 pieces/wanderer.glb
+FAIL shot wanderer_turn_side: HTTP 404 pieces/wanderer.glb
+FAIL shot wanderer_turn_back: HTTP 404 pieces/wanderer.glb
+FAIL shot wanderer_top: HTTP 404 pieces/wanderer.glb
+FAIL shot wanderer_sil: HTTP 404 pieces/wanderer.glb
+FAIL shot wanderer_lods: HTTP 404 pieces/wanderer.glb
+FAIL shot plate_turn_front: HTTP 404 pieces/plate.glb
+FAIL shot plate_turn_34: HTTP 404 pieces/plate.glb
+FAIL shot plate_turn_side: HTTP 404 pieces/plate.glb
+FAIL shot plate_turn_back: HTTP 404 pieces/plate.glb
+FAIL shot plate_top: HTTP 404 pieces/plate.glb
+FAIL shot plate_sil: HTTP 404 pieces/plate.glb
+FAIL shot plate_lods: HTTP 404 pieces/plate.glb
+FAIL shot leader_crown_turn_front: HTTP 404 pieces/leader_crown.glb
+FAIL shot leader_crown_turn_34: HTTP 404 pieces/leader_crown.glb
+FAIL shot leader_crown_turn_side: HTTP 404 pieces/leader_crown.glb
+FAIL shot leader_crown_turn_back: HTTP 404 pieces/leader_crown.glb
+FAIL shot leader_crown_top: HTTP 404 pieces/leader_crown.glb
+FAIL shot leader_crown_sil: HTTP 404 pieces/leader_crown.glb
+FAIL shot leader_crown_lods: HTTP 404 pieces/leader_crown.glb
+FAIL shot mo_wall_turn_front: HTTP 404 pieces/mo_wall.glb
+FAIL shot mo_wall_turn_34: HTTP 404 pieces/mo_wall.glb
+FAIL shot mo_wall_turn_side: HTTP 404 pieces/mo_wall.glb
+FAIL shot mo_wall_turn_back: HTTP 404 pieces/mo_wall.glb
+FAIL shot mo_wall_top: HTTP 404 pieces/mo_wall.glb
+FAIL shot mo_wall_sil: HTTP 404 pieces/mo_wall.glb
+FAIL shot mo_wall_lods: HTTP 404 pieces/mo_wall.glb
+FAIL shot decree_mark_turn_front: HTTP 404 pieces/decree_mark.glb
+FAIL shot decree_mark_turn_34: HTTP 404 pieces/decree_mark.glb
+FAIL shot decree_mark_turn_side: HTTP 404 pieces/decree_mark.glb
+FAIL shot decree_mark_turn_back: HTTP 404 pieces/decree_mark.glb
+FAIL shot decree_mark_top: HTTP 404 pieces/decree_mark.glb
+FAIL shot decree_mark_sil: HTTP 404 pieces/decree_mark.glb
+FAIL shot decree_mark_lods: HTTP 404 pieces/decree_mark.glb
+FAIL shot kaymuse_turn_front: HTTP 404 pieces/kaymuse.glb
+FAIL shot kaymuse_turn_34: HTTP 404 pieces/kaymuse.glb
+FAIL shot kaymuse_turn_side: HTTP 404 pieces/kaymuse.glb
+FAIL shot kaymuse_turn_back: HTTP 404 pieces/kaymuse.glb
+FAIL shot kaymuse_top: HTTP 404 pieces/kaymuse.glb
+FAIL shot kaymuse_sil: HTTP 404 pieces/kaymuse.glb
+FAIL shot kaymuse_lods: HTTP 404 pieces/kaymuse.glb
+FAIL shot crab_move_0: HTTP 404 pieces/crab.glb
+FAIL shot crab_move_1: HTTP 404 pieces/crab.glb
+FAIL shot crab_move_2: HTTP 404 pieces/crab.glb
+FAIL shot crab_move_3: HTTP 404 pieces/crab.glb
+FAIL shot crab_idle_0: HTTP 404 pieces/crab.glb
+FAIL shot crab_idle_1: HTTP 404 pieces/crab.glb
+FAIL shot crab_idle_2: HTTP 404 pieces/crab.glb
+FAIL shot crab_idle_3: HTTP 404 pieces/crab.glb
+FAIL shot wanderer_move_0: HTTP 404 pieces/wanderer.glb
+FAIL shot wanderer_move_1: HTTP 404 pieces/wanderer.glb
+FAIL shot wanderer_move_2: HTTP 404 pieces/wanderer.glb
+FAIL shot wanderer_move_3: HTTP 404 pieces/wanderer.glb
+FAIL shot wanderer_idle_0: HTTP 404 pieces/wanderer.glb
+FAIL shot wanderer_idle_1: HTTP 404 pieces/wanderer.glb
+FAIL shot wanderer_idle_2: HTTP 404 pieces/wanderer.glb
+FAIL shot wanderer_idle_3: HTTP 404 pieces/wanderer.glb
+FAIL shot sil_crab_0: HTTP 404 pieces/crab.glb
+FAIL shot sil_crab_90: HTTP 404 pieces/crab.glb
+FAIL shot sil_wanderer_0: HTTP 404 pieces/wanderer.glb
+FAIL shot sil_wanderer_90: HTTP 404 pieces/wanderer.glb
+FAIL shot lineup_light: HTTP 404 pieces/leader_crown.glb
+FAIL shot lineup_play: HTTP 404 pieces/leader_crown.glb
+FAIL shot lineup_wide: HTTP 404 pieces/leader_crown.glb
+FAIL shot lineup_move: HTTP 404 pieces/leader_crown.glb
+FAIL shot mask_crab: HTTP 404 pieces/leader_crown.glb
+FAIL shot mask_wanderer: HTTP 404 pieces/leader_crown.glb
+FAIL shot mask_plate: HTTP 404 pieces/leader_crown.glb
+FAIL shot mask_leader_crown: HTTP 404 pieces/leader_crown.glb
+FAIL shot mask_mo_wall: HTTP 404 pieces/leader_crown.glb
+FAIL shot mask_decree_mark: HTTP 404 pieces/leader_crown.glb
+FAIL shot mask_ding: HTTP 404 pieces/leader_crown.glb
+FAIL shot mat_ding: HTTP 404 pieces/leader_crown.glb
+FAIL shot mat_crab: HTTP 404 pieces/leader_crown.glb
+FAIL shot mat_wanderer: HTTP 404 pieces/leader_crown.glb
+FAIL shot mat_plate: HTTP 404 pieces/leader_crown.glb
+FAIL shot mat_leader_crown: HTTP 404 pieces/leader_crown.glb
+FAIL shot lineup_noline: HTTP 404 pieces/leader_crown.glb
+FAIL shot throne_play: HTTP 404 pieces/kaymuse.glb
+FAIL shot throne_approach: HTTP 404 pieces/kaymuse.glb
+FAIL shot throne_wide: HTTP 404 pieces/kaymuse.glb
+FAIL shot throne_play_light: HTTP 404 pieces/kaymuse.glb
+FAIL shot throne_approach_light: HTTP 404 pieces/kaymuse.glb
+FAIL shot alone_back: HTTP 404 pieces/kaymuse.glb
+FAIL shot alone_back34: HTTP 404 pieces/kaymuse.glb
+FAIL shot alone_side: HTTP 404 pieces/kaymuse.glb
+FAIL shot head_front: HTTP 404 pieces/kaymuse.glb
+FAIL shot head_34: HTTP 404 pieces/kaymuse.glb
+FAIL shot head_side: HTTP 404 pieces/kaymuse.glb
+FAIL shot head_back: HTTP 404 pieces/kaymuse.glb
+FAIL shot head_cam: HTTP 404 pieces/kaymuse.glb
+FAIL shot hand: HTTP 404 pieces/kaymuse.glb
+FAIL shot mask_kaymuse_play: HTTP 404 pieces/kaymuse.glb
+FAIL shot mask_kaymuse_approach: HTTP 404 pieces/kaymuse.glb
+FAIL shot throne_close_front: HTTP 404 pieces/kaymuse.glb
+FAIL shot throne_close_34: HTTP 404 pieces/kaymuse.glb
+FAIL shot throne_close_side: HTTP 404 pieces/kaymuse.glb
+FAIL shot throne_close_cam: HTTP 404 pieces/kaymuse.glb
+FAIL shot beads_front: HTTP 404 pieces/kaymuse.glb
+FAIL shot beads_side: HTTP 404 pieces/kaymuse.glb
+FAIL shot beads_34: HTTP 404 pieces/kaymuse.glb
+FAIL shot beads_idle_1: HTTP 404 pieces/kaymuse.glb
+FAIL shot beads_idle_3: HTTP 404 pieces/kaymuse.glb
+FAIL shots: 0 of 111 rendered in three's GLTFLoader without errors
+== measures and sheets 06:45:02
+/opt/hostedtoolcache/Python/3.13.18/x64/lib/python3.13/site-packages/numpy/_core/fromnumeric.py:3862: RuntimeWarning: Mean of empty slice
+  return _methods._mean(a, axis=axis, dtype=dtype,
+/opt/hostedtoolcache/Python/3.13.18/x64/lib/python3.13/site-packages/numpy/_core/_methods.py:134: RuntimeWarning: invalid value encountered in divide
+  ret = um.true_divide(
+INFO floor on screen (lineup, relative luminance, median of the lower third): lighter candidate 0.143, current 0.060
+FAIL crab with the game renderer outline (simulated, 2 px) at play size (0 px high, 0 px): 0% of outline pixels >= 3.0:1 on the lighter floor (min 50%); body median 0.0:1
+INFO crab without the outline (body only): outline share 0%, body median 0.0:1
+FAIL wanderer with the game renderer outline (simulated, 2 px) at play size (0 px high, 0 px): 0% of outline pixels >= 3.0:1 on the lighter floor (min 50%); body median 0.0:1
+INFO wanderer without the outline (body only): outline share 0%, body median 0.0:1
+INFO ding (the reference prop, no outline) on the lighter floor: bright part 1.0:1, dark part 2.8:1, body median 1.8:1 (floor 0.138)
+FAIL plate reads like the ding (0 px high, 0 px, no outline): bright part 0.0:1, dark part 0.0:1, body median 0.0:1 against the ding 1.0 / 2.8 / 1.8 (stronger part >= 0.9 x the ding: 0.0 against 2.5)
+INFO plate outline share at 3:1 (not a gate for static props): 0%
+FAIL leader_crown reads like the ding (0 px high, 0 px, no outline): bright part 0.0:1, dark part 0.0:1, body median 0.0:1 against the ding 1.0 / 2.8 / 1.8 (stronger part >= 0.9 x the ding: 0.0 against 2.5)
+INFO leader_crown outline share at 3:1 (not a gate for static props): 0%
+FAIL mo_wall reads like the ding (0 px high, 0 px, no outline): bright part 0.0:1, dark part 0.0:1, body median 0.0:1 against the ding 1.0 / 2.8 / 1.8 (stronger part >= 0.9 x the ding: 0.0 against 2.5)
+INFO mo_wall outline share at 3:1 (not a gate for static props): 0%
+FAIL decree_mark reads like the ding (0 px high, 0 px, no outline): bright part 0.0:1, dark part 0.0:1, body median 0.0:1 against the ding 1.0 / 2.8 / 1.8 (stronger part >= 0.9 x the ding: 0.0 against 2.5)
+INFO decree_mark outline share at 3:1 (not a gate for static props): 0%
+INFO ding brass mean colour rgb(87, 63, 35), relative luminance 0.069 (14148 px)
+FAIL crab brass mask empty
+FAIL wanderer brass mask empty
+FAIL plate brass mask empty
+FAIL leader_crown gold mask empty
+FAIL kaymuse on the throne, play framing (0 px high, 0 px, no outline): 0% of outline pixels >= 3.0:1 against the throne behind her (min 50%); body median 0.0:1
+FAIL kaymuse on the throne, approach framing (0 px high, 0 px, no outline): 0% of outline pixels >= 3.0:1 against the throne behind her (min 50%); body median 0.0:1
+FAIL crab against wanderer, game camera yaw 0: silhouette IoU 0.00 at the same scale, 0.00 scaled to one height (max 0.6)
+FAIL crab against wanderer, game camera yaw 90: silhouette IoU 0.00 at the same scale, 0.00 scaled to one height (max 0.6)
+0 of 14 pass
+MUT MISSED: character outline gate against the wanderer repainted in its surround colour -> outline 0% (unmutated 0%: the unmutated piece fails too, so this proves less)
+MUT caught: visibility gate against an empty mask -> 0 px
+MUT caught: reads-like-the-ding gate against the plate repainted in its surround colour -> stronger part 0.0:1 (needs 2.5)
+MUT caught: brass gate against the crab brass at half value -> 0.00 x the ding brass
+MUT MISSED: silhouette gate against the crab compared with itself -> IoU 0.00
+MUT MISSED: scaled silhouette gate against the crab compared with itself -> IoU 0.00
+3 of 6 mutations caught
+sheet kaymuse_close (1920, 1008)
+sheet kaymuse_head (2200, 928)
+sheet kaymuse_play (1280, 2976)
+sheet kaymuse_play_crop (3334, 624)
+sheet crab_close (1680, 1776)
+sheet wanderer_close (1680, 1776)
+sheet small_close (2280, 1616)
+sheet play_lineup (1280, 2976)
+sheet play_crops (2346, 928)
+== summary
+Traceback (most recent call last):
+Traceback (most recent call last):
+Traceback (most recent call last):
+MUT MISSED: pieces_kaymuse.py with LIPS_MAT='kmSkin' (no line 'FAIL kaymuse lower face')
+MUT MISSED: pieces_kaymuse.py with STR_LEN=0.35 (no line 'FAIL kaymuse 冕 veil')
+MUT MISSED: pieces_kaymuse.py with TORSO=[(0.60,0.0,0.37,0.27),(0.72,-0.01,0.39,0.27),(0.95,-0.02,0.45,0.26),(1.10,-0.02,0.47,0.24),(1.18,-0.02,0.40,0.21),(1.23,-0.02,0.20,0.15)] (no line 'FAIL kaymuse reads as a woman')
+MUT MISSED: pieces_kaymuse.py with BOARD_REAR=0.50 (no line 'FAIL kaymuse crown: board')
+MUT MISSED: pieces_kaymuse.py with FINGER=0.0001;HAND_C=(0.3,0.1,0.9) (no line 'FAIL kaymuse hands')
+MUT MISSED: pieces_kaymuse.py with BUDGET=(1000,2600,900) (no line 'FAIL kaymuse_lod0 tris')
+MUT MISSED: pieces_kaymuse.py with REST_X=2.4 (no line 'FAIL kaymuse sits within')
+MUT MISSED: pieces_creatures.py with C_KNEE=(0.84,1.35) (no line 'FAIL crab .* low and wide')
+MUT MISSED: pieces_creatures.py with W_HIP=(1.1,-0.05,1.40) (no line 'FAIL wanderer .* tall and narrow')
+MUT MISSED: pieces_creatures.py with C_MOVE=(0.6,0.0,0.0,0.0,0.0,0.0) (no line 'FAIL crab clip move')
+MUT MISSED: pieces_creatures.py with C_MOVE=(0.6,2.0,1.0,0.0,0.0,16.0) (no line 'FAIL crab move reads apart')
+MUT MISSED: pieces_creatures.py with C_STUDS=(4,0.665,0.03) (no line 'FAIL crab lid relief')
+MUT MISSED: pieces_creatures.py with DK='pcBlack' (no line 'FAIL crab is bronze')
+MUT MISSED: pieces_creatures.py with C_FINGER_B=[(0.63,0.78,0.83),(0.60,0.96,0.85),(0.52,1.06,0.83)] (no line 'FAIL crab pincers')
+MUT MISSED: pieces_creatures.py with W_LEG_W=(0.16,0.03,0.075) (no line 'FAIL wanderer limbs')
+MUT MISSED: pieces_creatures.py with W_BILL=((0.0,0.635,2.65),(0.0,0.85,2.62)) (no line 'FAIL wanderer bill')
+MUT MISSED: pieces_creatures.py with W_WHEEL=(0.47,0.40,0.035,15,6,0.14) (no line 'FAIL wanderer vessel')
+MUT MISSED: pieces_creatures.py with C_LEG_W=(0.13,0.11) (no line 'FAIL crab lower legs')
+MUT MISSED: pieces_small.py with PL_LEN=1.2 (no line 'FAIL plate [0-9]')
+MUT MISSED: pieces_small.py with PL_RAKE=(0.02,0.62) (no line 'FAIL plate reads as a curved')
+MUT MISSED: pieces_small.py with PL_SCALLOPS=0 (no line 'FAIL plate reads as a curved')
+MUT MISSED: pieces_small.py with CR_LID=1 (no line 'FAIL leader crown reads')
+MUT MISSED: pieces_small.py with CR_POINTS=[(0,0.17,0.9),(-38,0.14,0.22),(38,0.14,0.22),(-66,0.10,0.14),(66,0.10,0.14)] (no line 'FAIL leader crown [0-9]')
+MUT MISSED: pieces_small.py with MW_BRACES=3 (no line 'FAIL 墨 wall frame')
+MUT MISSED: pieces_small.py with MW_POSTS=(-1.88,-0.63,0.63,1.88) (no line 'FAIL 墨 wall frame')
+MUT MISSED: pieces_small.py with MW_POSTS=(-2.7,-0.9,0.55,2.7) (no line 'FAIL 墨 wall [0-9]')
+MUT MISSED: pieces_small.py with DM_TIGER=[(-0.05,-0.05),(0.05,-0.05),(0.05,0.05),(-0.05,0.05)] (no line 'FAIL decree seal')
+FAIL kaymuse GLB missing (/tmp/pieces/kaymuse.glb)
+FAIL crab GLB missing (/tmp/pieces/crab.glb)
+FAIL wanderer GLB missing (/tmp/pieces/wanderer.glb)
+FAIL plate GLB missing (/tmp/pieces/plate.glb)
+FAIL leader_crown GLB missing (/tmp/pieces/leader_crown.glb)
+FAIL mo_wall GLB missing (/tmp/pieces/mo_wall.glb)
+FAIL decree_mark GLB missing (/tmp/pieces/decree_mark.glb)
+0 of 7 pass
+FAIL shot crab_turn_front: HTTP 404 pieces/crab.glb
+FAIL shot crab_turn_34: HTTP 404 pieces/crab.glb
+FAIL shot crab_turn_side: HTTP 404 pieces/crab.glb
+FAIL shot crab_turn_back: HTTP 404 pieces/crab.glb
+FAIL shot crab_top: HTTP 404 pieces/crab.glb
+FAIL shot crab_sil: HTTP 404 pieces/crab.glb
+FAIL shot crab_lods: HTTP 404 pieces/crab.glb
+FAIL shot wanderer_turn_front: HTTP 404 pieces/wanderer.glb
+FAIL shot wanderer_turn_34: HTTP 404 pieces/wanderer.glb
+FAIL shot wanderer_turn_side: HTTP 404 pieces/wanderer.glb
+FAIL shot wanderer_turn_back: HTTP 404 pieces/wanderer.glb
+FAIL shot wanderer_top: HTTP 404 pieces/wanderer.glb
+FAIL shot wanderer_sil: HTTP 404 pieces/wanderer.glb
+FAIL shot wanderer_lods: HTTP 404 pieces/wanderer.glb
+FAIL shot plate_turn_front: HTTP 404 pieces/plate.glb
+FAIL shot plate_turn_34: HTTP 404 pieces/plate.glb
+FAIL shot plate_turn_side: HTTP 404 pieces/plate.glb
+FAIL shot plate_turn_back: HTTP 404 pieces/plate.glb
+FAIL shot plate_top: HTTP 404 pieces/plate.glb
+FAIL shot plate_sil: HTTP 404 pieces/plate.glb
+FAIL shot plate_lods: HTTP 404 pieces/plate.glb
+FAIL shot leader_crown_turn_front: HTTP 404 pieces/leader_crown.glb
+FAIL shot leader_crown_turn_34: HTTP 404 pieces/leader_crown.glb
+FAIL shot leader_crown_turn_side: HTTP 404 pieces/leader_crown.glb
+FAIL shot leader_crown_turn_back: HTTP 404 pieces/leader_crown.glb
+FAIL shot leader_crown_top: HTTP 404 pieces/leader_crown.glb
+FAIL shot leader_crown_sil: HTTP 404 pieces/leader_crown.glb
+FAIL shot leader_crown_lods: HTTP 404 pieces/leader_crown.glb
+FAIL shot mo_wall_turn_front: HTTP 404 pieces/mo_wall.glb
+FAIL shot mo_wall_turn_34: HTTP 404 pieces/mo_wall.glb
+FAIL shot mo_wall_turn_side: HTTP 404 pieces/mo_wall.glb
+FAIL shot mo_wall_turn_back: HTTP 404 pieces/mo_wall.glb
+FAIL shot mo_wall_top: HTTP 404 pieces/mo_wall.glb
+FAIL shot mo_wall_sil: HTTP 404 pieces/mo_wall.glb
+FAIL shot mo_wall_lods: HTTP 404 pieces/mo_wall.glb
+FAIL shot decree_mark_turn_front: HTTP 404 pieces/decree_mark.glb
+FAIL shot decree_mark_turn_34: HTTP 404 pieces/decree_mark.glb
+FAIL shot decree_mark_turn_side: HTTP 404 pieces/decree_mark.glb
+FAIL shot decree_mark_turn_back: HTTP 404 pieces/decree_mark.glb
+FAIL shot decree_mark_top: HTTP 404 pieces/decree_mark.glb
+FAIL shot decree_mark_sil: HTTP 404 pieces/decree_mark.glb
+FAIL shot decree_mark_lods: HTTP 404 pieces/decree_mark.glb
+FAIL shot kaymuse_turn_front: HTTP 404 pieces/kaymuse.glb
+FAIL shot kaymuse_turn_34: HTTP 404 pieces/kaymuse.glb
+FAIL shot kaymuse_turn_side: HTTP 404 pieces/kaymuse.glb
+FAIL shot kaymuse_turn_back: HTTP 404 pieces/kaymuse.glb
+FAIL shot kaymuse_top: HTTP 404 pieces/kaymuse.glb
+FAIL shot kaymuse_sil: HTTP 404 pieces/kaymuse.glb
+FAIL shot kaymuse_lods: HTTP 404 pieces/kaymuse.glb
+FAIL shot crab_move_0: HTTP 404 pieces/crab.glb
+FAIL shot crab_move_1: HTTP 404 pieces/crab.glb
+FAIL shot crab_move_2: HTTP 404 pieces/crab.glb
+FAIL shot crab_move_3: HTTP 404 pieces/crab.glb
+FAIL shot crab_idle_0: HTTP 404 pieces/crab.glb
+FAIL shot crab_idle_1: HTTP 404 pieces/crab.glb
+FAIL shot crab_idle_2: HTTP 404 pieces/crab.glb
+FAIL shot crab_idle_3: HTTP 404 pieces/crab.glb
+FAIL shot wanderer_move_0: HTTP 404 pieces/wanderer.glb
+FAIL shot wanderer_move_1: HTTP 404 pieces/wanderer.glb
+FAIL shot wanderer_move_2: HTTP 404 pieces/wanderer.glb
+FAIL shot wanderer_move_3: HTTP 404 pieces/wanderer.glb
+FAIL shot wanderer_idle_0: HTTP 404 pieces/wanderer.glb
+FAIL shot wanderer_idle_1: HTTP 404 pieces/wanderer.glb
+FAIL shot wanderer_idle_2: HTTP 404 pieces/wanderer.glb
+FAIL shot wanderer_idle_3: HTTP 404 pieces/wanderer.glb
+FAIL shot sil_crab_0: HTTP 404 pieces/crab.glb
+FAIL shot sil_crab_90: HTTP 404 pieces/crab.glb
+FAIL shot sil_wanderer_0: HTTP 404 pieces/wanderer.glb
+FAIL shot sil_wanderer_90: HTTP 404 pieces/wanderer.glb
+FAIL shot lineup_light: HTTP 404 pieces/leader_crown.glb
+FAIL shot lineup_play: HTTP 404 pieces/leader_crown.glb
+FAIL shot lineup_wide: HTTP 404 pieces/leader_crown.glb
+FAIL shot lineup_move: HTTP 404 pieces/leader_crown.glb
+FAIL shot mask_crab: HTTP 404 pieces/leader_crown.glb
+FAIL shot mask_wanderer: HTTP 404 pieces/leader_crown.glb
+FAIL shot mask_plate: HTTP 404 pieces/leader_crown.glb
+FAIL shot mask_leader_crown: HTTP 404 pieces/leader_crown.glb
+FAIL shot mask_mo_wall: HTTP 404 pieces/leader_crown.glb
+FAIL shot mask_decree_mark: HTTP 404 pieces/leader_crown.glb
+FAIL shot mask_ding: HTTP 404 pieces/leader_crown.glb
+FAIL shot mat_ding: HTTP 404 pieces/leader_crown.glb
+FAIL shot mat_crab: HTTP 404 pieces/leader_crown.glb
+FAIL shot mat_wanderer: HTTP 404 pieces/leader_crown.glb
+FAIL shot mat_plate: HTTP 404 pieces/leader_crown.glb
+FAIL shot mat_leader_crown: HTTP 404 pieces/leader_crown.glb
+FAIL shot lineup_noline: HTTP 404 pieces/leader_crown.glb
+FAIL shot throne_play: HTTP 404 pieces/kaymuse.glb
+FAIL shot throne_approach: HTTP 404 pieces/kaymuse.glb
+FAIL shot throne_wide: HTTP 404 pieces/kaymuse.glb
+FAIL shot throne_play_light: HTTP 404 pieces/kaymuse.glb
+FAIL shot throne_approach_light: HTTP 404 pieces/kaymuse.glb
+FAIL shot alone_back: HTTP 404 pieces/kaymuse.glb
+FAIL shot alone_back34: HTTP 404 pieces/kaymuse.glb
+FAIL shot alone_side: HTTP 404 pieces/kaymuse.glb
+FAIL shot head_front: HTTP 404 pieces/kaymuse.glb
+FAIL shot head_34: HTTP 404 pieces/kaymuse.glb
+FAIL shot head_side: HTTP 404 pieces/kaymuse.glb
+FAIL shot head_back: HTTP 404 pieces/kaymuse.glb
+FAIL shot head_cam: HTTP 404 pieces/kaymuse.glb
+FAIL shot hand: HTTP 404 pieces/kaymuse.glb
+FAIL shot mask_kaymuse_play: HTTP 404 pieces/kaymuse.glb
+FAIL shot mask_kaymuse_approach: HTTP 404 pieces/kaymuse.glb
+FAIL shot throne_close_front: HTTP 404 pieces/kaymuse.glb
+FAIL shot throne_close_34: HTTP 404 pieces/kaymuse.glb
+FAIL shot throne_close_side: HTTP 404 pieces/kaymuse.glb
+FAIL shot throne_close_cam: HTTP 404 pieces/kaymuse.glb
+FAIL shot beads_front: HTTP 404 pieces/kaymuse.glb
+FAIL shot beads_side: HTTP 404 pieces/kaymuse.glb
+FAIL shot beads_34: HTTP 404 pieces/kaymuse.glb
+FAIL shot beads_idle_1: HTTP 404 pieces/kaymuse.glb
+FAIL shot beads_idle_3: HTTP 404 pieces/kaymuse.glb
+FAIL shots: 0 of 111 rendered in three's GLTFLoader without errors
+FAIL crab with the game renderer outline (simulated, 2 px) at play size (0 px high, 0 px): 0% of outline pixels >= 3.0:1 on the lighter floor (min 50%); body median 0.0:1
+FAIL wanderer with the game renderer outline (simulated, 2 px) at play size (0 px high, 0 px): 0% of outline pixels >= 3.0:1 on the lighter floor (min 50%); body median 0.0:1
+FAIL plate reads like the ding (0 px high, 0 px, no outline): bright part 0.0:1, dark part 0.0:1, body median 0.0:1 against the ding 1.0 / 2.8 / 1.8 (stronger part >= 0.9 x the ding: 0.0 against 2.5)
+FAIL leader_crown reads like the ding (0 px high, 0 px, no outline): bright part 0.0:1, dark part 0.0:1, body median 0.0:1 against the ding 1.0 / 2.8 / 1.8 (stronger part >= 0.9 x the ding: 0.0 against 2.5)
+FAIL mo_wall reads like the ding (0 px high, 0 px, no outline): bright part 0.0:1, dark part 0.0:1, body median 0.0:1 against the ding 1.0 / 2.8 / 1.8 (stronger part >= 0.9 x the ding: 0.0 against 2.5)
+FAIL decree_mark reads like the ding (0 px high, 0 px, no outline): bright part 0.0:1, dark part 0.0:1, body median 0.0:1 against the ding 1.0 / 2.8 / 1.8 (stronger part >= 0.9 x the ding: 0.0 against 2.5)
+FAIL crab brass mask empty
+FAIL wanderer brass mask empty
+FAIL plate brass mask empty
+FAIL leader_crown gold mask empty
+FAIL kaymuse on the throne, play framing (0 px high, 0 px, no outline): 0% of outline pixels >= 3.0:1 against the throne behind her (min 50%); body median 0.0:1
+FAIL kaymuse on the throne, approach framing (0 px high, 0 px, no outline): 0% of outline pixels >= 3.0:1 against the throne behind her (min 50%); body median 0.0:1
+FAIL crab against wanderer, game camera yaw 0: silhouette IoU 0.00 at the same scale, 0.00 scaled to one height (max 0.6)
+FAIL crab against wanderer, game camera yaw 90: silhouette IoU 0.00 at the same scale, 0.00 scaled to one height (max 0.6)
+0 of 14 pass
+MUT MISSED: character outline gate against the wanderer repainted in its surround colour -> outline 0% (unmutated 0%: the unmutated piece fails too, so this proves less)
+MUT MISSED: silhouette gate against the crab compared with itself -> IoU 0.00
+MUT MISSED: scaled silhouette gate against the crab compared with itself -> IoU 0.00
+3 of 6 mutations caught
+FAIL lines: 166
+2.8M	/home/runner/work/Empress-decrees-/Empress-decrees-/ci_art_out
+RESULT done

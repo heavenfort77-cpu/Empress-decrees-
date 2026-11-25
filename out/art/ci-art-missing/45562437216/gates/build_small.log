@@ -1,0 +1,11 @@
+Traceback (most recent call last):
+  File "/home/runner/work/Empress-decrees-/Empress-decrees-/art/tools/pieces_small.py", line 196, in <module>
+    l0, l1, l2 = PK.lods_static(key, build, BUDGET)
+                 ~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^
+  File "/home/runner/work/Empress-decrees-/Empress-decrees-/art/tools/pieces_kit.py", line 116, in lods_static
+    LEVEL['n'] = 1; K.Q['seg'] = 0.5; build(False); l1 = unskin(finish(prefix + '_lod1')); fit(l1, budget[1])
+                                                                ~~~~~~^^^^^^^^^^^^^^^^^^
+  File "/home/runner/work/Empress-decrees-/Empress-decrees-/art/tools/pieces_kit.py", line 61, in finish
+    vg = ob.vertex_groups.new(name=ob['bone']); vg.add(list(range(len(ob.data.vertices))), 1.0, 'REPLACE')
+                                   ~~^^^^^^^^
+KeyError: 'bpy_struct[key]: key "bone" not found'
