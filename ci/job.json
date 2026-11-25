@@ -1,1 +1,1 @@
-{"mode": "shard", "shards": 12, "label": "int17c-r4"}
+{"mode": "cmd", "label": "int17c-diag11", "cmd": "node tests/diag17g.mjs"}
