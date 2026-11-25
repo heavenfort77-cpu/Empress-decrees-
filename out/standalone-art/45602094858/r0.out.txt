@@ -1,0 +1,36 @@
+INFO NET_desktop palace ready fmt [] failed [] capped false
+INFO NET_desktop requests ok {"html":1,"json":3,"png":45,"glb":71} bad {}
+INFO NET_desktop chars {"ready":true,"failed":[],"rigs":34,"on":1,"crowd":0,"crowdMeshes":0,"crowdDrawn":158,"stats":{"mixers":1,"offscreen":0},"bodies":false}
+PASS NET_desktop art loads: png 45, glb 71, ok 120, bad 0
+PASS NET_desktop no page error: 0 console/page errors
+INFO NET_phone palace ready fmt [] failed [] capped false
+INFO NET_phone requests ok {"html":1,"json":3,"png":45,"glb":71} bad {}
+INFO NET_phone chars {"ready":true,"failed":[],"rigs":34,"on":1,"crowd":0,"crowdMeshes":0,"crowdDrawn":158,"stats":{"mixers":1,"offscreen":0},"bodies":false}
+PASS NET_phone art loads: png 45, glb 71, ok 120, bad 0
+PASS NET_phone no page error: 0 console/page errors
+INFO OFF_phone palace failed fmt [] failed [] capped false
+INFO OFF_phone requests ok {"html":1} bad {"json":3,"glb":29,"png":32}
+INFO OFF_phone bad failed tent.com/heavenfort77-cpu/Empress-decrees-/cc4ce71/assets/vfx/vfx.json
+INFO OFF_phone bad failed m/heavenfort77-cpu/Empress-decrees-/cc4ce71/assets/models/suits/ru.glb
+INFO OFF_phone bad failed /heavenfort77-cpu/Empress-decrees-/cc4ce71/assets/models/suits/dao.glb
+INFO OFF_phone bad failed m/heavenfort77-cpu/Empress-decrees-/cc4ce71/assets/models/suits/fa.glb
+INFO OFF_phone bad failed m/heavenfort77-cpu/Empress-decrees-/cc4ce71/assets/models/suits/mo.glb
+INFO OFF_phone bad failed m/heavenfort77-cpu/Empress-decrees-/cc4ce71/assets/models/suits/yy.glb
+INFO OFF_phone bad failed m/heavenfort77-cpu/Empress-decrees-/cc4ce71/assets/models/suits/za.glb
+INFO OFF_phone bad failed heavenfort77-cpu/Empress-decrees-/cc4ce71/assets/models/suits/ming.glb
+INFO OFF_phone bad failed m/heavenfort77-cpu/Empress-decrees-/cc4ce71/assets/models/suits/zh.glb
+INFO OFF_phone bad failed heavenfort77-cpu/Empress-decrees-/cc4ce71/assets/models/suits/nong.glb
+INFO OFF_phone bad failed heavenfort77-cpu/Empress-decrees-/cc4ce71/assets/c/models/guard/zu.glb
+INFO OFF_phone bad failed heavenfort77-cpu/Empress-decrees-/cc4ce71/assets/c/models/guard/nu.glb
+INFO OFF_phone chars {"ready":false,"failed":["suit_ru","suit_dao","suit_fa","suit_mo","suit_yy","suit_za","suit_ming","suit_zh","suit_nong","zu","nu","dun","che","wz","ls","fs","ss","qs","tiger","stalker","howler","giants","suits_info","suit_lamellar_qin","suit_bronze","suit_cloth","bronze_trim_brass","bronze_trim_patina","fodder_trim","tread_belt","apex_patina"],"rigs":0,"on":0,"crowd":-1,"crowdMeshes":0,"crowdDrawn
+PASS OFF_phone blocked run: ok 1, bad 64 (expected: all blocked)
+INFO OFF_phone err console Failed to load resource: net::ERR_FAILED
+INFO OFF_phone err console Failed to load resource: net::ERR_FAILED
+INFO OFF_phone err console Failed to load resource: net::ERR_FAILED
+INFO OFF_phone err console Failed to load resource: net::ERR_FAILED
+INFO OFF_phone err console Failed to load resource: net::ERR_FAILED
+INFO OFF_phone err console Failed to load resource: net::ERR_FAILED
+INFO OFF_phone err console Failed to load resource: net::ERR_FAILED
+INFO OFF_phone err console Failed to load resource: net::ERR_FAILED
+PASS OFF_phone no page error: 64 console/page errors
+FAIL lines: 0
