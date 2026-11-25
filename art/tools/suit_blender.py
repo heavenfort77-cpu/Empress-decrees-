@@ -84,8 +84,10 @@ RUN = {
     # stance leg, feet tucked up under the robe in swing and swung forward from toe-off. Cause of the dip (runs 1-2: -122 / -76 mm): the robe's
     # front hem is weighted to the shins, so a shin pitched back behind the body (foot trailing low after toe-off) pulls the hem down and back.
     # Light estimate on the approved dao GLB (/home/claude/suitanim/robesim.py, 10-13 mm optimistic vs runs 1-2): robe 25-34 mm above the floor.
-    'dao': dict(tier='High', cad=6.0, duty=0.22, lean=0.1, bob=0.0, swing=(22, 22), elbow=(50, 50), kick=0.8, width=1.0, twist=4, out=0.3, head=0.03, sway=0.006,
-                m0k=-0.3, kreach=0.99, theta=20.0),
+    # robe round (calm binding): the robe no longer follows the shins, so the high heel tuck that kept it off the floor is not needed;
+    # kick 0.8 -> 0.4, m0k -0.3 -> 0.3 (feet stay under the robe; estimate: robe 45 mm above the floor, hem swing 0.151 m)
+    'dao': dict(tier='High', cad=6.0, duty=0.22, lean=0.1, bob=0.0, swing=(22, 22), elbow=(50, 50), kick=0.4, width=1.0, twist=4, out=0.3, head=0.03, sway=0.006,
+                m0k=0.3, kreach=0.99, theta=20.0),
     # 法 廷尉: rigid, upright, mechanical; sword held point-forward, short swing
     'fa': dict(tier='High', cad=3.6, duty=0.27, lean=0.06, bob=0.025, swing=(8, 30), elbow=(40, 85), kick=0.4, width=0.5, twist=3, out=0.18, head=0.0, sway=0.008),
     # 墨 墨守: heavy and stocky, short quick steps, low and forward, crossbow kept at the hip, wide track
@@ -113,11 +115,19 @@ HIT_K = {'Low': 1.0, 'Mid': 0.85, 'High': 0.7}
 # Long robes (legs 'robe'): the hit's hip drop is capped here, m (round 1: dao's hem went 33 mm under the floor at 0.07 m).
 HIT_ROBE_DROP = 0.02
 # Death per school: fall = 'back' or 'front'; s = length (1.0 s nominal; key times scale with it).
-DEATH = {'ru': dict(fall='back', s=1.0), 'dao': dict(fall='back', s=0.95), 'fa': dict(fall='front', s=0.9), 'mo': dict(fall='front', s=1.1),
+# dao (owner 25 Nov, after the calm robe binding): 'topple' = a stiff backward fall with no hip squat; the whole body turns as one piece
+# about a floor point under its rear-most part (the robe's back hem), so nothing can pass below the floor (run 45522030493: the squat put
+# the hips-bound robe into the floor and the floor solve lifted the body 0.364 m).
+DEATH = {'ru': dict(fall='back', s=1.0), 'dao': dict(fall='back', s=0.95, style='topple'), 'fa': dict(fall='front', s=0.9), 'mo': dict(fall='front', s=1.1),
          'yy': dict(fall='back', s=1.0), 'za': dict(fall='front', s=1.0), 'ming': dict(fall='back', s=0.95), 'zh': dict(fall='back', s=1.0),
          'nong': dict(fall='front', s=1.1)}
 # Death key times at 1.0 s (recoil, buckle, impact, settle) and the gap kept above the floor once lying, m.
 DEATH_T, LIE_GAP = (0.12, 0.42, 0.72, 0.85), 0.002
+# Calm robe binding (owner 25 Nov "rebind robes calmer": dao, za, zh; meshes unchanged, only the robe's skin weights): after bone heat,
+# each robe vertex's shin weight moves to the thigh of the same side, mix = share of the leg weight spread evenly over both thighs (the
+# scissor cancels out), K = share of the leg weight kept (the rest goes to the hips). Estimate on the approved GLBs
+# (/home/claude/suitanim/robecalm.py): hem swing per run cycle dao 0.413 -> 0.151 m, za 0.454 -> 0.210 m, zh 0.538 -> 0.220 m.
+ROBE_CALM = {'dao': (0.2, 0.7), 'za': (0.4, 0.5), 'zh': (0.4, 0.5)}
 # Armour tier per school (index.html kits) for HIT_K.
 ARMOUR = {'ru': 'High', 'dao': 'Low', 'fa': 'Mid', 'mo': 'High', 'yy': 'Low', 'za': 'Mid', 'ming': 'Low', 'zh': 'Mid', 'nong': 'High'}
 
@@ -972,7 +982,44 @@ def death_poses(fall):
                                  'upper_arm.L': (-0.7, 0.7, -0.02), 'forearm.L': (-0.35, 0.94, -0.03)})
     return recoil, buckle, impact, settle
 
+# Topple body pose (before turning): a small recoil with the legs straight (design directions; 'hips' = hip joint offset, m).
+TOPPLE_BODY = {'hips': (0, -0.02, -0.02), 'spine': (0, -0.08, 1), 'chest': (0, -0.15, 1), 'neck': (0, -0.1, 1), 'head': (0.05, -0.2, 1),
+               'upper_arm.R': (0.7, 0.2, -0.45), 'forearm.R': (0.55, 0.55, 0.3), 'upper_arm.L': (-0.7, 0.2, -0.45), 'forearm.L': (-0.55, 0.55, 0.3)}
+
+def topple_clip(arm, sid, legs, lods, floor):
+    """stiff backward topple: recoil, then the body turns as one piece about a floor point under its rear-most vertex (accelerating),
+    lands on its back at 90 deg, the head and arms settle to the floor; the floor solve only checks (it should not have to lift)."""
+    Dd = DEATH[sid]; dur = Dd['s']; N = int(round(dur * FPS)); tr, tb, ti, ts = (x * dur for x in DEATH_T)
+    def body_at(k, ph):
+        out = {n: rotfz(Vector(tuple(d)), ph) for n, d in k.items() if n != 'hips'}
+        h0 = Vector(legs.L['R']['hip']) - Vector((legs.L['R']['hip'].x, 0, 0)); hp = h0 + Vector(k['hips'])
+        out['hips'] = tuple(PIV + rotfz(hp - PIV, ph) - h0); return out
+    allv = [Vector((-v.co.x, -v.co.y, v.co.z)) for ob in lods for v in ob.data.vertices]
+    PIV = Vector((0, min(p.y for p in allv), floor))
+    K0 = full_key(arm, {}); B = full_key(arm, planted(dict(TOPPLE_BODY), legs, D0(TOPPLE_BODY['hips'])))
+    K3 = body_at(B, -90.0)
+    settle = dict(K3, **{'head': (0.3, -1, -0.2), 'neck': (0, -1, -0.08), 'upper_arm.R': (0.92, -0.3, 0.0), 'forearm.R': (0.6, 0.45, -0.03),
+                         'upper_arm.L': (-0.92, -0.3, 0.0), 'forearm.L': (-0.6, 0.45, -0.03)})
+    apply_pose(arm, settle); lift_hips(arm, floor + LIE_GAP - lowest(lods))
+    K4 = posed_dirs(arm); pb = arm.pose.bones['hips']; off = pb.bone.matrix_local.to_3x3() @ pb.location; K4['hips'] = (-off.x, -off.y, off.z)
+    snaps, lifted, lift_f = [], 0.0, -1
+    for f in range(N + 1):
+        t = f / FPS
+        if t <= tr: pose = planted(blend(K0, B, 1 - (1 - t / tr) ** 2), legs, D0(blend(K0, B, 1 - (1 - t / tr) ** 2)['hips']))
+        elif t <= ti: u = (t - tr) / (ti - tr); pose = body_at(B, -90.0 * u * u)        # falls as one piece, accelerating
+        elif t <= ts: pose = blend(K3, K4, smooth((t - ti) / (ts - ti)))
+        else: pose = dict(K4)
+        apply_pose(arm, pose); lo = lowest(lods)
+        if t > ts: lift_hips(arm, floor + LIE_GAP - lo)
+        elif lo < floor:
+            lift_hips(arm, floor - lo + 0.0005)
+            if floor - lo > lifted: lifted, lift_f = floor - lo, f
+        snaps.append(snap(arm))
+    keyed_clip(arm, 'death', snaps)
+    return dict(death_s=N / FPS, death_fall='topple', death_lift_max=round(lifted, 3), death_lift_frame=lift_f)
+
 def death_clip(arm, sid, legs, lods, floor):
+    if DEATH[sid].get('style') == 'topple': return topple_clip(arm, sid, legs, lods, floor)
     Dd = DEATH[sid]; dur = Dd['s']; N = int(round(dur * FPS)); tr, tb, ti, ts = (x * dur for x in DEATH_T)
     recoil, buckle, impact, settle = death_poses(Dd['fall']); front = Dd['fall'] == 'front'
     K0 = full_key(arm, {})
@@ -1101,12 +1148,28 @@ def heat_weights(ob, arm, allow):
     ob.parent = None
     return ok
 
+def calm_weights(ob, K, mix):
+    """robe round: stiffer robe binding on one robe part (see ROBE_CALM); only weights change, never positions."""
+    g = {vg.index: vg.name for vg in ob.vertex_groups}
+    for n in ('hips', 'thigh.R', 'thigh.L'):
+        if n not in ob.vertex_groups: ob.vertex_groups.new(name=n)
+    for v in ob.data.vertices:
+        w = {}
+        for e in v.groups: w[g[e.group]] = w.get(g[e.group], 0.0) + e.weight
+        tot = sum(w.values()) or 1.0
+        tR = (w.get('thigh.R', 0) + w.get('shin.R', 0)) / tot; tL = (w.get('thigh.L', 0) + w.get('shin.L', 0)) / tot; legs = tR + tL
+        tR, tL = ((1 - mix) * tR + mix * legs / 2) * K, ((1 - mix) * tL + mix * legs / 2) * K
+        for e in list(v.groups): ob.vertex_groups[g[e.group]].remove([v.index])
+        for n, x in (('hips', 1 - tR - tL), ('thigh.R', tR), ('thigh.L', tL)):
+            if x > 1e-6: ob.vertex_groups[n].add([v.index], x, 'REPLACE')
+
 def finish_lod0(sid, S, arm):
     heat_fail = []
     for P_ in PARTS:
         ob = P_['ob']; ob.data.materials.append(material(P_['mat'] if P_['mat'] != 'sCloth' else f'sCloth_{sid}', S))
         if P_['kind'] == 'cloth':
             if not heat_weights(ob, arm, P_['allow']): heat_fail.append(ob.name)
+            if sid in ROBE_CALM and ob.name in ('robe', 'robe_in'): calm_weights(ob, *ROBE_CALM[sid])
         else:
             vg = ob.vertex_groups.new(name=P_['bone']); vg.add(list(range(len(ob.data.vertices))), 1.0, 'REPLACE')
     bpy.ops.object.select_all(action='DESELECT')

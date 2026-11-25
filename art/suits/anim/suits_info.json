@@ -71,9 +71,9 @@
   "hit_s": 0.3,
   "hit_k": 1.0,
   "death_s": 0.95,
-  "death_fall": "back",
-  "death_lift_max": 0.151,
-  "death_lift_frame": 38,
+  "death_fall": "topple",
+  "death_lift_max": 0.0,
+  "death_lift_frame": 0,
   "floor_y": -0.023,
   "sole_R": -0.0224
  },
@@ -150,8 +150,8 @@
   "hit_k": 0.85,
   "death_s": 1.0,
   "death_fall": "front",
-  "death_lift_max": 0.044,
-  "death_lift_frame": 14,
+  "death_lift_max": 0.127,
+  "death_lift_frame": 16,
   "floor_y": -0.0315,
   "sole_R": -0.0309
  },

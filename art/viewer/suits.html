@@ -6,6 +6,7 @@
      &mode=tex | shade | flat | sil   &clip=attack|idle &t=seconds (omit = rest pose)
      &view=strip&ts=0,0.05,... (SUITANIM contact strip: one cell per time, side camera near the floor, &dist= m, &move=m/s carries the suit
      forward by move x t with the camera following, so a planted foot stays on the same floor tile) &floorline=y (a thin red line at y)
+     &pitch=deg overrides the camera pitch (strip at play size: pitch=40&dist=10.5, 1080 px high = 110 px/m)
      &rim=1: a pale view-facing rim (lead white, viewer-only demonstration of an outline option for the owner; not in the GLB, no game code)
      glTF UVs: sheets load with flipY false. Cloth materials keep the GLB colour (school tint) over the neutral cloth sheet. -->
 <html><head><meta charset="utf-8"><style>html,body{margin:0;background:#120d16;overflow:hidden}</style>
@@ -60,7 +61,7 @@ if (VIEW === 'lods') { place(IDS[0], -1.8, 0); place(IDS[0], 0, 1); place(IDS[0]
 else IDS.forEach((id, i) => place(id, (i - (IDS.length - 1) / 2) * 1.7, 0));
 const player = new THREE.Mesh(new THREE.BoxGeometry(0.9, 2.05, 0.9), new THREE.MeshStandardMaterial({ color: 0x3a7bd5, roughness: 0.6 })); player.position.set(1.6, 1.025, -1.2); player.castShadow = true;
 if ((VIEW === 'play' || VIEW === 'wide') && IDS.length === 1 && (MODE === 'tex' || MODE === 'shade')) scene.add(player);
-const pitch = (VIEW === 'turn' ? 15 : VIEW === 'strip' ? 6 : 40) * Math.PI / 180, look = new THREE.Vector3(0, VIEW === 'turn' ? 1.05 : VIEW === 'strip' ? 0.8 : 1.0, 0);
+const pitch = (Q.get('pitch') ? +Q.get('pitch') : VIEW === 'turn' ? 15 : VIEW === 'strip' ? 6 : 40) * Math.PI / 180, look = new THREE.Vector3(0, VIEW === 'turn' ? 1.05 : VIEW === 'strip' ? 0.8 : 1.0, 0);
 const dist = Q.get('dist') ? +Q.get('dist') : VIEW === 'play' ? 10.5 : VIEW === 'wide' ? 22 : VIEW === 'lods' ? 6 : VIEW === 'strip' ? 5.2 : 3.3, yaw = (+(Q.get('yaw') || 0)) * Math.PI / 180;
 if (Q.get('floorline') !== null) { const y = +Q.get('floorline'); const ln = new THREE.Mesh(new THREE.BoxGeometry(40, 0.006, 0.006), new THREE.MeshBasicMaterial({ color: 0xff2020 }));
   ln.position.set(0, y, 0); ln.rotation.y = yaw + Math.PI / 2; scene.add(ln); }
