@@ -115,7 +115,10 @@ HIT_K = {'Low': 1.0, 'Mid': 0.85, 'High': 0.7}
 # Long robes (legs 'robe'): the hit's hip drop is capped here, m (round 1: dao's hem went 33 mm under the floor at 0.07 m).
 HIT_ROBE_DROP = 0.02
 # Death per school: fall = 'back' or 'front'; s = length (1.0 s nominal; key times scale with it).
-DEATH = {'ru': dict(fall='back', s=1.0), 'dao': dict(fall='back', s=0.95), 'fa': dict(fall='front', s=0.9), 'mo': dict(fall='front', s=1.1),
+# dao (owner 25 Nov, after the calm robe binding): 'topple' = a stiff backward fall with no hip squat; the whole body turns as one piece
+# about a floor point under its rear-most part (the robe's back hem), so nothing can pass below the floor (run 45522030493: the squat put
+# the hips-bound robe into the floor and the floor solve lifted the body 0.364 m).
+DEATH = {'ru': dict(fall='back', s=1.0), 'dao': dict(fall='back', s=0.95, style='topple'), 'fa': dict(fall='front', s=0.9), 'mo': dict(fall='front', s=1.1),
          'yy': dict(fall='back', s=1.0), 'za': dict(fall='front', s=1.0), 'ming': dict(fall='back', s=0.95), 'zh': dict(fall='back', s=1.0),
          'nong': dict(fall='front', s=1.1)}
 # Death key times at 1.0 s (recoil, buckle, impact, settle) and the gap kept above the floor once lying, m.
@@ -979,7 +982,44 @@ def death_poses(fall):
                                  'upper_arm.L': (-0.7, 0.7, -0.02), 'forearm.L': (-0.35, 0.94, -0.03)})
     return recoil, buckle, impact, settle
 
+# Topple body pose (before turning): a small recoil with the legs straight (design directions; 'hips' = hip joint offset, m).
+TOPPLE_BODY = {'hips': (0, -0.02, -0.02), 'spine': (0, -0.08, 1), 'chest': (0, -0.15, 1), 'neck': (0, -0.1, 1), 'head': (0.05, -0.2, 1),
+               'upper_arm.R': (0.7, 0.2, -0.45), 'forearm.R': (0.55, 0.55, 0.3), 'upper_arm.L': (-0.7, 0.2, -0.45), 'forearm.L': (-0.55, 0.55, 0.3)}
+
+def topple_clip(arm, sid, legs, lods, floor):
+    """stiff backward topple: recoil, then the body turns as one piece about a floor point under its rear-most vertex (accelerating),
+    lands on its back at 90 deg, the head and arms settle to the floor; the floor solve only checks (it should not have to lift)."""
+    Dd = DEATH[sid]; dur = Dd['s']; N = int(round(dur * FPS)); tr, tb, ti, ts = (x * dur for x in DEATH_T)
+    def body_at(k, ph):
+        out = {n: rotfz(Vector(tuple(d)), ph) for n, d in k.items() if n != 'hips'}
+        h0 = Vector(legs.L['R']['hip']) - Vector((legs.L['R']['hip'].x, 0, 0)); hp = h0 + Vector(k['hips'])
+        out['hips'] = tuple(PIV + rotfz(hp - PIV, ph) - h0); return out
+    allv = [Vector((-v.co.x, -v.co.y, v.co.z)) for ob in lods for v in ob.data.vertices]
+    PIV = Vector((0, min(p.y for p in allv), floor))
+    K0 = full_key(arm, {}); B = full_key(arm, planted(dict(TOPPLE_BODY), legs, D0(TOPPLE_BODY['hips'])))
+    K3 = body_at(B, -90.0)
+    settle = dict(K3, **{'head': (0.3, -1, -0.2), 'neck': (0, -1, -0.08), 'upper_arm.R': (0.92, -0.3, 0.0), 'forearm.R': (0.6, 0.45, -0.03),
+                         'upper_arm.L': (-0.92, -0.3, 0.0), 'forearm.L': (-0.6, 0.45, -0.03)})
+    apply_pose(arm, settle); lift_hips(arm, floor + LIE_GAP - lowest(lods))
+    K4 = posed_dirs(arm); pb = arm.pose.bones['hips']; off = pb.bone.matrix_local.to_3x3() @ pb.location; K4['hips'] = (-off.x, -off.y, off.z)
+    snaps, lifted, lift_f = [], 0.0, -1
+    for f in range(N + 1):
+        t = f / FPS
+        if t <= tr: pose = planted(blend(K0, B, 1 - (1 - t / tr) ** 2), legs, D0(blend(K0, B, 1 - (1 - t / tr) ** 2)['hips']))
+        elif t <= ti: u = (t - tr) / (ti - tr); pose = body_at(B, -90.0 * u * u)        # falls as one piece, accelerating
+        elif t <= ts: pose = blend(K3, K4, smooth((t - ti) / (ts - ti)))
+        else: pose = dict(K4)
+        apply_pose(arm, pose); lo = lowest(lods)
+        if t > ts: lift_hips(arm, floor + LIE_GAP - lo)
+        elif lo < floor:
+            lift_hips(arm, floor - lo + 0.0005)
+            if floor - lo > lifted: lifted, lift_f = floor - lo, f
+        snaps.append(snap(arm))
+    keyed_clip(arm, 'death', snaps)
+    return dict(death_s=N / FPS, death_fall='topple', death_lift_max=round(lifted, 3), death_lift_frame=lift_f)
+
 def death_clip(arm, sid, legs, lods, floor):
+    if DEATH[sid].get('style') == 'topple': return topple_clip(arm, sid, legs, lods, floor)
     Dd = DEATH[sid]; dur = Dd['s']; N = int(round(dur * FPS)); tr, tb, ti, ts = (x * dur for x in DEATH_T)
     recoil, buckle, impact, settle = death_poses(Dd['fall']); front = Dd['fall'] == 'front'
     K0 = full_key(arm, {})
