@@ -75,6 +75,22 @@ body.touch #school{left:auto;right:12px;top:124px}
 #bar.silenced .skill{opacity:.35;border-color:#888}
 body.touch #msgs{top:26%}
 #cancel{position:fixed;right:20px;top:90px;width:90px;height:56px;border-radius:10px;background:#5a1a1a;color:#fff;font:15px system-ui;display:none;align-items:center;justify-content:center;border:2px solid #f88}
+/* Batch 17c: options menu (OPT_CSS of src/audio/options.js, pasted as text; owner 25 Nov "follow lol or dota"). */
+.opts{position:fixed;inset:0;z-index:10;display:flex;align-items:center;justify-content:center;background:#120d16e6}
+.opts.is-hidden{display:none}
+.opts__box{width:min(92vw,460px);padding:20px 18px;background:#1b1620;border:2px solid #c9a040;border-radius:10px;color:#f3e6c8;font:15px system-ui,sans-serif}
+.opts__title{margin:0 0 4px;font:italic 24px Georgia,serif;color:#ffd98a;text-align:center}
+.opts__sub{margin:10px 0 6px;font:bold 13px system-ui,sans-serif;color:#cfc2a8;text-transform:uppercase;letter-spacing:.08em}
+.opts__row{display:grid;grid-template-columns:1fr 2fr 3.2em;align-items:center;gap:10px;min-height:44px}
+.opts__range{width:100%;min-height:44px;margin:0;accent-color:#c9a040;touch-action:pan-x}
+.opts__val{text-align:right;font-variant-numeric:tabular-nums}
+.opts__btns{display:flex;gap:10px;justify-content:center;margin-top:14px;flex-wrap:wrap}
+.opts__btn{min-width:44px;min-height:44px;padding:10px 18px;font:15px system-ui,sans-serif;color:#fff;background:#2a2030;border:2px solid #6a5a7a;border-radius:8px}
+.opts__btn.is-on{background:#5a1a1a;border-color:#f88}
+.opts__hint{margin-top:10px;text-align:center;font:12px system-ui,sans-serif;color:#bbb}
+.opts-open{position:fixed;right:12px;top:10px;min-width:44px;min-height:44px;z-index:7;font:15px system-ui,sans-serif;background:#3a2a3a;color:#fff;border:1px solid #b99;border-radius:8px;display:none}
+body.touch .opts-open{display:block;top:auto;bottom:64px;right:auto;left:10px}
+body.touch .opts__hint{display:none}
 </style>
 <script type="importmap">{"imports":{"three":"./lib/three.module.min.js"}}</script>
 </head>
@@ -104,6 +120,15 @@ body.touch #msgs{top:26%}
 <script type="module">
 import * as THREE from 'three';
 import { KTX2Loader } from './lib/jsm/loaders/KTX2Loader.js';
+import * as SND from './src/audio/sound.js';
+import * as FX from './src/fx/fxevent.js';
+import { IN as AUD_IN, INT_CONFIG, stepIntensity, resetIntensity } from './src/fx/intensity.js';
+import { buildOptions } from './src/audio/options.js';
+import { UNIT_ITEM, GUARD_ITEM } from './src/fx/fxmap.js';
+import * as CHR from './src/chars.js';
+import * as PA from './src/palace_art.js';
+import { GLTFLoader } from './lib/jsm/loaders/GLTFLoader.js';
+import { MeshoptDecoder } from './lib/jsm/libs/meshopt_decoder.module.js';
 
 // ===================== CONFIG (all tunables) =====================
 const CONFIG = {
@@ -687,6 +712,27 @@ const CONFIG = {
     // Tries per file and route before its fallback (1 = one retry).
     retry: 1,
   },
+  // Sound (batch 17c, owner 25 Nov: wire src/audio/sound.js in): on = sounds play; profile '' = by pointer (coarse = phone).
+  SND: { on: true, profile: '' },
+  // Painted attack cards (batch 17c, owner 25 Nov: painted soft cards for all attacks): on = cards drawn (off = sounds only);
+  // pool per atlas (low tier halves it); dtMax s; cardFwd m toward the camera; pitchSin = sin(CAM_PITCH_DEG); sphereR m round the room;
+  // hitS s a looping card on a hit or boon shows (heal loops would otherwise run until killed); boltS s a ranged basic attack's bolt shows;
+  // stateS s longest a skill state card follows its suit when the skill gives no duration; healGapS s without healing that ends a 鼎/altar heal card;
+  // burnGapS s between the smoke puffs at each door of a warned wing.
+  FX: { on: true, base: './assets/vfx/', pool: { soft_a: 64, soft_b: 48, ground: 48 }, dtMax: 0.05, cardFwd: 0.6, pitchSin: 0.643, sphereR: 40,
+    hitS: 0.6, boltS: 0.2, stateS: 8, healGapS: 0.1, burnGapS: 0.6 },
+  // Music intensity levels and ambience (docs/HOOKS-17c.md section 5; a proposal from docs/AUDIO.md made concrete, not tuned): levels 0-1,
+  // fightS s a fight lasts after the last blow, lowHp share, lastSuits = peak at or under this many suits, holdS s before a level falls.
+  INTENSITY: { explore: 0.1, near: 0.3, fight: 0.5, danger: 0.7, peak: 1.0, fightS: 4, lowHp: 0.5, lastSuits: 2, holdS: 3 },
+  // Character models (prototype, owner 25 Nov 11:33: all existing art in play; src/chars.js): on = suits, hunt units, cubs, giants, guards and rebels
+  // drawn as models (off = the box bodies); dirSuits = the raw suit GLBs (encoded at 17f), dirModels = the 17a meshopt encodes.
+  CHARS: { on: true, dirSuits: 'assets/models/', dirModels: 'assets/c/models/' },
+  // Palace art (prototype, owner 25 Nov 11:33; src/palace_art.js): arch = walls, pillars, floors, doors, throne; props = beasts, 鼎, vats, clocks,
+  // cranes, censers, mercury; walkProps = racks, lamps, bell stands and standards drawn as walk-through art: no collision box, so bots and the
+  // walking rule are unchanged (lead item 2, 25 Nov: their solids were not in the bots' path grid; false = not drawn).
+  PAL_ART: { arch: true, props: true, walkProps: true },
+  // Options menu (owner 25 Nov "follow lol or dota"): Esc opens it in play and pauses; sliders for master, music, effects, voice/ambience, mute; no sound hotkey.
+  OPTIONS: { on: true },
   // Context camera in the palace (owner 24 Nov 13:18; ticket 10, owner 24 Nov 15:43-15:46). Field of view and pitch never change (no fisheye, no
   // squashed characters): the camera only moves back/up or in. Wide (no enemy within attack distance) = as far out as the floor allows: a room that
   // fits whole above the floor is shown whole, a bigger one is revealed as you walk ("reasonable larger character as room can show bit by bit as walk").
@@ -972,6 +1018,15 @@ const TEXT = {
   mode_rumble: 'Royal Rumble',
   load_palace: 'The palace is being raised',
   load_restore: 'The view returns',
+  // Batch 17c: the painted strike cards' load card (the loader builds 'load_' + kind and 'load_step_' + job key at runtime).
+  load_fx: 'Painting the strikes',
+  load_step_fx: 'Painting the strikes',
+  // Prototype (owner 25 Nov 11:33): the shared card (strikes, sounds, characters) and the palace art steps.
+  load_shared: 'The court assembles', load_step_chr_fetch: 'Summoning the suits', load_step_chr_build: 'Fitting the armour', load_step_chr_warm: 'The court takes its places',
+  load_step_art_fetch: 'Quarrying the palace', load_step_art_kit: 'Casting the bronze', load_step_art_rooms: 'Raising the halls',
+  // Batch 17c: options menu (src/audio/options.js; owner 25 Nov "follow lol or dota").
+  opt_title: 'Options', opt_sound: 'Sound', opt_master: 'Master volume', opt_music: 'Music', opt_sfx: 'Effects', opt_voice: 'Voice and ambience',
+  opt_mute: 'Mute all', opt_unmute: 'Sound on', opt_resume: 'Resume', opt_btn: 'Menu', opt_hint: 'Esc returns to the game',
   load_adjust: 'Adjusting the view',
   load_step_manifest: 'Reading the list',
   load_step_fetch: 'Fetching',
@@ -1293,6 +1348,9 @@ function T(key, vars) {
 const params = new URLSearchParams(location.search);
 const DEBUG = params.has('debug');
 const LOCK_TIER = params.has('lock');
+// Measurement only (?perf=1, real-GPU probe): per-part frame times in a ring of the last 4096 frames: [t, frame ms, logic, fx and sound,
+// view and characters, render submit, fx events so far, live cards]. Off in play (no reads of the clock).
+const PERF = { on: params.has('perf'), ring: new Float64Array(4096 * 8), i: 0, n: 0 };
 const TOUCH = matchMedia('(pointer: coarse)').matches;
 let tier = CONFIG.TIER[params.get('tier')] ? params.get('tier') : CONFIG.DEFAULT_TIER;
 
@@ -1307,6 +1365,93 @@ const scene = new THREE.Scene();
 scene.background = new THREE.Color(COL.sky);
 scene.fog = new THREE.Fog(COL.sky, CONFIG.FOG_NEAR, CONFIG.FOG_FAR);
 const camera = new THREE.PerspectiveCamera(CONFIG.CAM_FOV, innerWidth / innerHeight, 0.5, CONFIG.FAR_FOLLOW);
+
+// ===================== Sound, painted cards, options menu (batch 17c; docs/HOOKS-17c.md) =====================
+// One dispatcher (src/fx/fxevent.js) plays every game event's sound and painted card (one home per behaviour). The event table and the card
+// atlases load once under the loading card (ldFx) and are kept for both modes; sounds render after the first gesture (sound.js unlock).
+Object.assign(INT_CONFIG, CONFIG.INTENSITY);
+if (CONFIG.SND.on) SND.init({ unlockEl: window, profile: CONFIG.SND.profile || (TOUCH ? 'phone' : 'desktop') });
+FX.initFx({ THREE, scene, snd: CONFIG.SND.on ? SND : null, tier, cfg: { cards: CONFIG.FX.on, base: CONFIG.FX.base, pool: CONFIG.FX.pool, dtMax: CONFIG.FX.dtMax,
+  cardFwd: CONFIG.FX.cardFwd, pitchSin: CONFIG.FX.pitchSin, sphereR: CONFIG.FX.sphereR } });
+// Event ids per phase ('' = none) for the kits, the hunt units and the guard moves; every phase '' until the table has loaded (fxIdsAll).
+const FX_NONE = Object.freeze({ tell: '', rel: '', hit: '', whiff: '', trail: '', state: '', end: '' });
+const UEV = {}, GEV = {};
+// Item prefix per school (docs/HOOKS-17c.md 1.6): the attack item is '<prefix>_atk'; a skill's item is its nameKey without 'sk_'.
+const FX_PRE = { ru: 'ru', dao: 'dao', fa: 'fa', mo: 'mo', yinyang: 'yy', za: 'za', ming: 'ming', zongheng: 'zh', nong: 'nong' };
+const FXL = { p: null, errs: null };
+function fxIdsAll(on) {
+  const id = (item) => (on ? FX.fxIds(item) : FX_NONE);
+  CONFIG.ATTACK.fx = FX_NONE; for (const sk of CONFIG.SKILLS) sk.fx = FX_NONE;
+  for (const sc of CONFIG.SCHOOLS) {
+    const k = CONFIG.KITS[sc]; if (!k || !k.attack) continue;
+    k.attack.fx = id(FX_PRE[sc] + '_atk');
+    for (const sk of k.skills) sk.fx = sk.nameKey ? id(sk.nameKey.slice(3)) : FX_NONE;
+  }
+  for (const k in UNIT_ITEM) UEV[k] = id(UNIT_ITEM[k]);
+  for (const k in GUARD_ITEM) GEV[k] = id(GUARD_ITEM[k]);
+}
+fxIdsAll(false);
+// Palace art and character switches from CONFIG (one CONFIG block); racks, lamps, bell stands and standards drawn walk-through (palace_art.js
+// never adds a solid: every collision box stays the game's own).
+Object.assign(PA.PAL_ART, { arch: CONFIG.PAL_ART.arch, props: CONFIG.PAL_ART.props });
+for (const k of ['racks', 'lamps', 'bells', 'standards']) PA.PAL_ART.on[k] = CONFIG.PAL_ART.walkProps;
+CHR.CHR.on = CONFIG.CHARS.on;
+// The table and the atlases load once (one promise). A failed load leaves the game silent and card-free, never stopped (FXL.errs lists why).
+function fxLoad() {
+  if (!FXL.p) FXL.p = FX.loadFx().then((e) => { FXL.errs = e; fxIdsAll(true); }, (e) => { FXL.errs = ['load: ' + String(e && e.message || e)]; });
+  return FXL.p;
+}
+// Options / pause menu (owner 25 Nov "follow lol or dota": sliders in the Esc menu, no sound hotkey). Built once; every string is a TEXT key.
+const OPT = CONFIG.OPTIONS.on ? buildOptions(document.body, T, SND, closeOptions) : null;
+if (OPT) OPT.openBtn.addEventListener('click', () => openOptions());
+function openOptions() { if (!OPT || OPT.isOpen()) return; OPT.open(); G.paused = true; clearInput(); FX.fxPause(true); }
+function closeOptions() { if (!OPT || !OPT.isOpen()) return; OPT.close(); G.paused = document.hidden; FX.fxPause(G.paused); }
+// The menu opens in play only (not on the mode or school menus, not under a loading card).
+function canOpenMenu() { return !!OPT && !G.selecting && !G.modeOpen && !LD.card; }
+// PERFRAME-BEGIN
+// One event through the dispatcher; '' (a phase the item lacks, or the table not loaded yet) does nothing.
+function fxE(name, x, z, school, o) { return name === '' ? -1 : FX.fxEvent(name, x, z, school, o); }
+// Intensity inputs (docs/HOOKS-17c.md section 5): plain numbers written once per frame before stepIntensity (no objects).
+function audInputs() {
+  const I = AUD_IN;
+  I.sinceFight = G.time - (P.castAt > P.hurtAt ? P.castAt : P.hurtAt);
+  I.hpFrac = P.hp / CONFIG.MAX_HP;
+  I.apex = G.phase === 'wake' || G.phase === 'hunt' ? 1 : 0;
+  let left = 0, near = 0, units = 0, giants = 0;
+  for (let i = 0; i < SUITS.length; i++) { const s = SUITS[i]; if (s.dead) continue; left++; if (s !== P && s.seen) near++; }
+  for (let i = 0; i < GUARDS.length; i++) { const u = GUARDS[i]; if (u.alive && u.seen) units++; }
+  for (let i = 0; i < CUBS.length; i++) { const u = CUBS[i]; if (u.alive && u.seen) units++; }
+  const r = PAL.on ? PAL.cur : null;
+  if (r) for (let i = 0; i < P2.giants.length; i++) { const g = P2.giants[i]; if (g.st >= 1 && g.st <= 4 && g.home === r) giants++; }
+  I.suitsLeft = G.botN > 0 ? left : 10; I.rivalsNear = near; I.unitsNear = units; I.giantsAwake = giants;
+  I.burnMine = r && r.state === 1 ? 1 : 0; I.burnFalling = r && r.state === 2 ? 1 : 0; I.burnNear = PAL.on && BURN.st > 0 ? 1 : 0;
+  I.burnProgress = I.burnMine ? Math.min(1, (G.time - BURN.warnAt) / CONFIG.BURN.warnS) : 0;
+}
+// Following cards: a suit's state (aura, shield, ring) moves with it until the state ends; a 鼎/altar heal card ends healGapS after the last heal;
+// a 伍长's buff aura follows him.
+function fxFollow() {
+  for (let i = 0; i < SUITS.length; i++) {
+    const s = SUITS[i];
+    if (s.fxStateH >= 0) { if (G.time >= s.fxStateEnd) { s.fxStateH = -1; s.fxStateH2 = -1; } else { FX.fxMove(s.fxStateH, s.x, s.z, s.y); if (s.fxStateH2 >= 0) FX.fxMove(s.fxStateH2, s.x, s.z, s.y); } }
+    if (s.fxHealH >= 0 && G.time - s.fxHealAt > CONFIG.FX.healGapS) { FX.fxKill(s.fxHealH); s.fxHealH = -1; }
+  }
+  for (let i = 0; i < SQUADS.length; i++) { const sq = SQUADS[i]; if (sq.buffH >= 0 && sq.leader) FX.fxMove(sq.buffH, sq.leader.x, sq.leader.z, sq.leader.y); }
+}
+// PERFRAME-END
+// New run or scene change: every card off, intensity calm, every held handle forgotten (a stale handle would move or end another card).
+function fxResetRun() {
+  FX.fxClear(); resetIntensity();
+  for (const s of SUITS) { s.fxStateH = -1; s.fxStateH2 = -1; s.fxStateEnd = 0; s.fxTellH = -1; s.fxHealH = -1; s.fxHealAt = -99; s.hurtAt = -99; }
+  for (const u of ENEMIES) { u.fxH = -1; u.ultH = -1; }
+  for (const u of CUBS) u.fxH = -1;
+  for (const u of GUARDS) { u.fxH = -1; u.fxH2 = -1; }
+  for (const sq of SQUADS) sq.buffH = -1;
+  for (const g of P2.giants) g.fxH = -1;
+  for (const v of P2_VATS) v.fxH = -1;
+  for (const h of PIECE_HAZ) h.fxH = -1;
+  // Prototype: every suit model back to its idle loop (a death pose from the last run would hold).
+  if (CHRS.ready) for (const k in CHRS.suit) CHRS.suit[k].play('idle');
+}
 
 const hemi = new THREE.HemisphereLight(COL.skyLight, COL.groundLight, 1.1);
 const sun = new THREE.DirectionalLight(COL.sun, 2.2);
@@ -1354,7 +1499,7 @@ function addFow(m) {
   m.onBeforeCompile = (sh) => {
     sh.uniforms.uFowC = FOW.uFowC; sh.uniforms.uFowR = FOW.uFowR; sh.uniforms.uFowDim = FOW.uFowDim;
     sh.vertexShader = sh.vertexShader.replace('#include <common>', '#include <common>\nvarying vec3 vFowPos;')
-      .replace('#include <worldpos_vertex>', '#include <worldpos_vertex>\nvFowPos = (modelMatrix * vec4(transformed, 1.0)).xyz;');
+      .replace('#include <worldpos_vertex>', '#include <worldpos_vertex>\nvec4 fowP = vec4(transformed, 1.0);\n#ifdef USE_INSTANCING\nfowP = instanceMatrix * fowP;\n#endif\nvFowPos = (modelMatrix * fowP).xyz;');
     sh.fragmentShader = sh.fragmentShader.replace('#include <common>', '#include <common>\nvarying vec3 vFowPos;\nuniform vec3 uFowC;\nuniform float uFowR;\nuniform float uFowDim;')
       .replace('#include <dithering_fragment>', '#include <dithering_fragment>\ngl_FragColor.rgb *= mix(1.0, uFowDim, smoothstep(uFowR, uFowR + 3.0, distance(vFowPos.xz, uFowC.xz)));');
   };
@@ -1563,7 +1708,7 @@ scene.add(abyss);
 const WAVES = CONFIG.WAVES.map((ids, i) => ({
   i, secs: ids.map((id) => SEC[id]), state: 0, lastCount: -1,
   start: CONFIG.FIRST_WAVE_S + i * CONFIG.WAVE_INTERVAL_S,
-  voice: T('voice_wave' + i), names: ids.map((id) => SEC[id].name).join(', '),
+  voice: T('voice_wave' + i), voiceKey: 'voice_wave' + i, names: ids.map((id) => SEC[id].name).join(', '),
 }));
 
 // ===================== Player =====================
@@ -1704,10 +1849,12 @@ for (const t of GUARD_TYPES) {
 }
 // 反贼 tells: the 死士's lunge glints yellow, the 符水道人's mend mark is green (others keep the red unit tell).
 for (const u of GUARDS) { if (u.cfg.hunter) u.ring.material = u.line.material = M.fzY; if (u.cfg.healer) u.ring.material = u.line.material = M.fzHeal; }
+// Batch 17c: painted-card handles (-1 = none) and the ramp row of each pooled unit (set again at each spawn).
+for (const u of GUARDS) { u.fxH = -1; u.fxH2 = -1; u.fxRow = 'guard'; }
 // Squads (fixed): on, faction, leader (the 伍长 or null), n = units alive, facing, anchor, target, broken (no live 伍长), open = chariots allowed.
 const SQUADS = [];
 // school = the 反贼 squad's school (index in CONFIG.SCHOOLS; -1 for the 皇家 guard).
-for (let i = 0; i < GC.squadsMax; i++) SQUADS.push({ on: false, id: i, faction: '', leader: null, n: 0, fx: 0, fz: 1, x: 0, z: 0, y: 0, tgt: null, broken: false, open: false, school: -1 });
+for (let i = 0; i < GC.squadsMax; i++) SQUADS.push({ on: false, id: i, faction: '', leader: null, n: 0, fx: 0, fz: 1, x: 0, z: 0, y: 0, tgt: null, broken: false, open: false, school: -1, buffH: -1 });
 // Slot counter per type while a squad is placed; cosine of the 盾's block arc.
 const GSLOT = {}, GBLOCK_COS = Math.cos(GC.block.arc * Math.PI / 180);
 const SPOTS = CONFIG.BAGS.spots.map(([x, z, sec]) => [x * K, z * K, sec]);
@@ -1883,13 +2030,14 @@ cv.addEventListener('contextmenu', (e) => e.preventDefault());
 el.mini.addEventListener('contextmenu', (e) => e.preventDefault());
 addEventListener('keydown', (e) => {
   if (e.repeat || e.ctrlKey || e.metaKey || e.altKey) return;
+  if (OPT && OPT.isOpen()) { if (e.code === 'Escape') { closeOptions(); e.preventDefault(); } return; }
   if (G.modeOpen) { modeKey(e); return; }
   if (G.selecting) { selectKey(e); return; }
   for (let i = 0; i < CONFIG.SKILLS.length; i++) if (e.code === CONFIG.SKILLS[i].key) { startAim(i, 'key'); e.preventDefault(); return; }
   if (e.code === CONFIG.FANZEI.key) { fzKey(); e.preventDefault(); return; }
   if (e.code === 'KeyS') stopOrders();
   if (e.code === 'KeyA') ORD.attackMove = true;
-  if (e.code === 'Escape') { cancelAim(); ORD.attackMove = false; }
+  if (e.code === 'Escape') { if (ORD.aiming >= 0 || ORD.attackMove) { cancelAim(); ORD.attackMove = false; } else if (canOpenMenu()) openOptions(); }
   if (e.code === 'KeyN') newRun();
   if (e.code === 'KeyH') huntButton();
   if (e.code === 'KeyZ' && PAL.on) PAL.man = (PAL.man + 1) % 3;
@@ -2053,6 +2201,7 @@ function castSkill(slot, tx, tz) {
   P.faceX = dx; P.faceZ = dz;
   // The ultimate on the meter (royale) empties it and has no cooldown; every other cast starts its cooldown.
   if (slot === 2) spendUlt(P, sk); else st.cdT = sk.cd;
+  fxCast(P, sk, x, z, dx, dz);
   if (sk.self) castSelf(P, sk, true);
   else if (sk.link) tieCord(P, sk);
   else if (sk.swap) { }
@@ -2109,6 +2258,8 @@ function hitTarget(by, d, n, basic, sk) {
   if (boonOn(by, 0) || kb !== 1) n *= Math.min(CONFIG.BONUS_CAP, (boonOn(by, 0) ? 1 + by.bV[0] : 1) * kb);
   // 道甲's stances (ticket 08): one counter function for every blow from a suit; a countered blow lands nothing.
   if (d.kind === 'suit' && counterHit(d, !!basic, by, null, n)) return false;
+  // Batch 17c: the one home for every suit blow that lands (basic attacks and skills): its painted hit card and sound at the target.
+  if (by.kit) { const f = sk && sk.fx ? sk.fx : (by.kit.attack.fx || FX_NONE); fxE(f.hit, d.x, d.z, by.school, FX.fxO(d.x - by.x, d.z - by.z, 0, 0, CONFIG.FX.hitS, 0, d.y)); }
   if (sk && d.kind === 'suit') zaStore(d, sk);
   if (by.expArmT > 0) { if (d.kind === 'suit') expose(d, by.expS); by.expArmT = 0; }
   if (by.kit && by.kit.passive === 'halving') chainHit(by, d);
@@ -2138,7 +2289,9 @@ function ultCdK(s) { return (s.ultMode === 'lock' || s.ultMode === 'counters') &
 // Add charge to a suit (only on the meter and alive); the ult2x decree multiplies every gain.
 function gainCharge(s, v) {
   if (!onMeter(s) || s.dead || v <= 0) return;
+  const was = s.ch;
   s.ch = Math.min(CONFIG.ULT.full, s.ch + v * (decOn('ult2x') ? CONFIG.DECREES.ultK : 1));
+  if (s === P && was < CONFIG.ULT.full && s.ch >= CONFIG.ULT.full) fxE('ult_ready:rel', P.x, P.z, '', null);
 }
 function hitDummy(d, n, by) {
   // BP09: a bronze vat takes the blow (it cracks, then splashes); a bronze giant too (owner 24 Nov 15:41: killable).
@@ -2606,7 +2759,9 @@ for (const LK in PAL_LAYOUTS) {
       }
     }
     // Props per room type (boxes until the art stage): pillars, a dais, stones, shrubs, silk curtains (walk-through), the throne.
-    const pillar = (x, z) => { palPart(r, 'palPillar', cyl(0.6, PC.wallH, x, PC.wallH / 2, z)); palSolid(r, x - 0.6, x + 0.6, z - 0.6, z + 0.6); };
+    // Batch 17d: pillar spots and the core dais spot are kept for the palace art (src/palace_art.js builds on them).
+    r.spots = { pillars: [], dais: null };
+    const pillar = (x, z) => { palPart(r, 'palPillar', cyl(0.6, PC.wallH, x, PC.wallH / 2, z)); palSolid(r, x - 0.6, x + 0.6, z - 0.6, z + 0.6); r.spots.pillars.push([x, z]); };
     const block = (m, sx, sy, sz, x, z) => { palPart(r, m, box(sx, sy, sz, x, sy / 2, z)); palSolid(r, x - sx / 2, x + sx / 2, z - sz / 2, z + sz / 2); };
     const curtain = (x, z) => { palPart(r, 'silk', box(4, 3.5, 0.15, x, 1.75 + 0.3, z)); palPart(r, 'wall', box(4.4, 0.25, 0.25, x, 3.9, z)); };
     if (r.type === 'hall') {
@@ -2619,7 +2774,7 @@ for (const LK in PAL_LAYOUTS) {
       block('pillar', 1.6, 1, 1.6, r.x1 - 4, r.z1 - 6); block('pillar', 1.6, 1, 1.6, r.x1 - 4, r.z0 + 6); block('pillar', 1.6, 1, 1.6, r.x0 + 4, r.z0 + 6);
       curtain(r.cx - 4, r.cz); curtain(r.cx + 5, r.cz + 8); curtain(r.cx + 3, r.cz - 10);
     } else if (r.type === 'core') {
-      block('pillar', 12, 1.5, 6, r.cx, r.z0 + 4); palPart(r, 'gold', box(3, 3, 1, r.cx, 3, r.z0 + 2.5));
+      block('pillar', 12, 1.5, 6, r.cx, r.z0 + 4); palPart(r, 'gold', box(3, 3, 1, r.cx, 3, r.z0 + 2.5)); r.spots.dais = [r.cx, r.z0 + 4];
       pillar(r.x0 + 3, r.z0 + 10); pillar(r.x1 - 3, r.z0 + 10); pillar(r.x0 + 3, r.z1 - 5); pillar(r.x1 - 3, r.z1 - 5);
     }
     for (const key in r.parts) {
@@ -2628,7 +2783,7 @@ for (const LK in PAL_LAYOUTS) {
       mesh.receiveShadow = true; mesh.castShadow = key !== 'spawn';
       mesh.matrixAutoUpdate = false; mesh.updateMatrix();
       if (isFloor) { r.floorMeshes.push(mesh); r.floorMats.push(m); }
-      r.group.add(mesh);
+      r.group.add(mesh); r.box = r.box || {}; r.box[key] = mesh;
     }
     r.parts = null;
     r.group.matrixAutoUpdate = false; r.group.updateMatrix();
@@ -2703,7 +2858,7 @@ PIECE_SIDES.push({ list: P2_GIANT_T, hurt(u, n) { hitGiant(u, n, null, 'piece');
       if (p.type === 'mercury') {
         const x0 = POX + p.x0, x1 = POX + p.x1, z0 = POZ + p.z0, z1 = POZ + p.z1;
         const mesh = still(r, new THREE.Mesh(box(x1 - x0, 0.06, z1 - z0, (x0 + x1) / 2, 0.03, (z0 + z1) / 2), M.merc), false);
-        PIECE_MERC.push({ s: r, x0, x1, z0, z1, ph: p.ph || 0, t: 0, state: 0, stT: 0, mesh });
+        PIECE_MERC.push({ s: r, x0, x1, z0, z1, ph: p.ph || 0, t: 0, state: 0, stT: 0, mesh, src: p, art: null });
         continue;
       }
       const x = POX + p.x, z = POZ + p.z;
@@ -2712,20 +2867,20 @@ PIECE_SIDES.push({ list: P2_GIANT_T, hurt(u, n) { hitGiant(u, n, null, 'piece');
         add('palLion', box(1.6, 0.6, 2.2, x, 0.3, z)); add('palLion', box(1.2, 1.2, 1.6, x, 1.2, z)); add('palLion', box(1.0, 1.0, 0.8, x, 2.1, z + 0.6 * f));
         palSolid(r, x - 0.9, x + 0.9, z - 1.1, z + 1.1);
         const ring = addStatic(r.group, ringMesh(CONFIG.LION.radius, x, 0, z)); ring.visible = false;
-        PIECE_HAZ.push({ kind: 'lion', cfg: CONFIG.LION, x, z, y: 0, s: r, ring, state: 0, t: 0, statue: false, mark: false, eyes: null });
+        PIECE_HAZ.push({ kind: 'lion', cfg: CONFIG.LION, x, z, y: 0, s: r, ring, state: 0, t: 0, statue: false, mark: false, eyes: null, src: p, art: null, fxH: -1 });
       } else if (p.type === 'huabiao') {
         add('stone', box(1.4, 0.4, 1.4, x, 0.2, z)); add('stone', cyl(0.45, 5, x, 2.9, z)); add('stone', box(1.6, 0.25, 0.4, x, 4.4, z));
         add('stone', box(0.9, 0.6, 1.1, x, 5.7, z));
         palSolid(r, x - 0.7, x + 0.7, z - 0.7, z + 0.7);
         const eyes = still(r, new THREE.Mesh(box(0.7, 0.15, 0.1, x, 5.85, z + 0.56), M.hbEyeOff), false);
         const ring = addStatic(r.group, ringMesh(PP.huabiao.radius, x, 0, z)); ring.visible = false;
-        PIECE_HAZ.push({ kind: 'huabiao', cfg: PP.huabiao, x, z, y: 0, s: r, ring, state: 0, t: 0, statue: false, mark: true, eyes });
+        PIECE_HAZ.push({ kind: 'huabiao', cfg: PP.huabiao, x, z, y: 0, s: r, ring, state: 0, t: 0, statue: false, mark: true, eyes, src: p, art: null, fxH: -1 });
       } else if (p.type === 'ding') {
         add('bronze', cyl(0.85, 1.0, x, 0.75, z, 16)); add('bronze', cyl(0.95, 0.12, x, 1.3, z, 16));
         for (const [lx, lz] of [[0.5, 0.4], [-0.5, 0.4], [0, -0.6]]) add('bronze', cyl(0.12, 0.5, x + lx, 0.25, z + lz, 6));
         palSolid(r, x - 0.9, x + 0.9, z - 0.9, z + 0.9);
         const A = CONFIG.ALTAR, disc = still(r, new THREE.Mesh(new THREE.CylinderGeometry(A.radius, A.radius, 0.06, 28).translate(x, 0.03, z), M.altarOn), false);
-        PIECE_DING.push({ x, z, y: 0, s: r, mesh: disc, charge: A.charge, emptyT: 0 });
+        PIECE_DING.push({ x, z, y: 0, s: r, mesh: disc, charge: A.charge, emptyT: 0, src: p, art: null });
       } else if (p.type === 'smoke') {
         if (p.src === 'crane') {
           add('bronze', box(0.8, 0.8, 0.8, x, 0.4, z)); add('bronze', cyl(0.1, 1.2, x - 0.15, 1.4, z, 6)); add('bronze', cyl(0.1, 1.2, x + 0.15, 1.4, z, 6));
@@ -2736,10 +2891,11 @@ PIECE_SIDES.push({ list: P2_GIANT_T, hurt(u, n) { hitGiant(u, n, null, 'piece');
         for (const [ox, oy, oz] of [[-0.35, 1.5, 0], [0.35, 1.9, 0.2], [0, 2.3, -0.3]]) {
           const g = new THREE.IcosahedronGeometry(rr * 0.62, 1); g.scale(1, 0.55, 1); g.translate(x + ox * rr, oy, z + oz * rr); puffs.push(g);
         }
-        PIECE_SMOKE.push({ s: r, x, z, r: rr });
+        PIECE_SMOKE.push({ s: r, x, z, r: rr, src: p.src, art: null });
       }
     }
-    for (const k in parts) still(r, new THREE.Mesh(mergeGeoms(parts[k], PALUV[k]), M[k]), true);
+    r.pieceBox = {};
+    for (const k in parts) r.pieceBox[k] = still(r, new THREE.Mesh(mergeGeoms(parts[k], PALUV[k]), M[k]), true);
     if (puffs.length) { const sm = still(r, new THREE.Mesh(mergeGeoms(puffs), M.smoke), false); sm.receiveShadow = false; sm.renderOrder = 2; }
   }
   }
@@ -2764,11 +2920,18 @@ function warmPieces(on) {
 function hazardStep(h, dt) {
   const c = h.cfg;
   if (h.state === 0) {
-    if (hazardWakes(h)) { h.state = 1; h.t = 0; h.ring.visible = true; if (h.statue) M.eyes.emissiveIntensity = 3; if (h.eyes) h.eyes.material = M.hbEyeOn; }
+    if (hazardWakes(h)) {
+      h.state = 1; h.t = 0; h.ring.visible = true; if (h.statue) M.eyes.emissiveIntensity = 3; if (h.eyes) h.eyes.material = M.hbEyeOn;
+      // Batch 17c: the beast's or statue's painted tell for exactly the windup (the 华表 has no card: owner 25 Nov 02:25).
+      h.fxH = h.mark ? -1 : fxE(h.statue ? 'statue:tell' : 'lion:tell', h.x, h.z, '', FX.fxO(0, 1, c.radius, 0, c.windup, 0, h.y));
+      if (h.art) PA.setBeast(h.art, true);
+    }
   } else if (h.state === 1) {
     h.t += dt;
     if (h.t >= c.windup) {
       h.state = 2; h.t = 0; h.ring.visible = false; if (h.statue) M.eyes.emissiveIntensity = 0.4; if (h.eyes) h.eyes.material = M.hbEyeOff;
+      if (h.art) PA.setBeast(h.art, false);
+      if (!h.mark) { FX.fxRelease(h.fxH); h.fxH = -1; fxE(h.statue ? 'statue:rel' : 'lion:rel', h.x, h.z, '', FX.fxO(0, 1, c.radius, 0, 0, 0, h.y)); }
       if (h.mark) hazardMark(h); else hazardStrike(h);
     }
   } else if (h.state === 2) { h.t += dt; if (h.t >= c.cooldown) h.state = 0; }
@@ -2815,7 +2978,7 @@ function hazardMark(h) {
 }
 // An altar or a 鼎 heals whoever stands on it (suits, then other sides); a hit pauses a suit's healing; emptied, it refills later; none while dry.
 function altarStep(a, dt, A, dry) {
-  if (a.charge <= 0) { a.emptyT -= dt; if (a.emptyT <= 0) { a.charge = A.charge; a.mesh.material = dry ? M.altarOff : M.altarOn; } return; }
+  if (a.charge <= 0) { a.emptyT -= dt; if (a.emptyT <= 0) { a.charge = A.charge; a.mesh.material = dry ? M.altarOff : M.altarOn; if (a.art) PA.setDing(a.art, !dry); } return; }
   // "Our altars are dry." (decree): no healing while it is in force; charge is kept.
   if (dry) return;
   for (let k = 0; k < SUITS.length && a.charge > 0; k++) {
@@ -2824,14 +2987,17 @@ function altarStep(a, dt, A, dry) {
     if (Math.hypot(s.x - a.x, s.z - a.z) > A.radius || Math.abs(s.y - a.y) > 1) continue;
     const heal = Math.min(A.rate * dt, a.charge, CONFIG.MAX_HP - s.hp);
     s.hp += heal; a.charge -= heal;
-    if (a.charge <= 1e-6) { a.charge = 0; a.emptyT = A.emptyS; a.mesh.material = M.altarOff; }
+    // Batch 17c: the heal card starts when a suit starts healing here and ends healGapS after its last heal (fxFollow).
+    if (s.fxHealH < 0) s.fxHealH = fxE('ding:state', a.x, a.z, '', FX.fxO(0, 1, 0, 0, 0, 0, a.y));
+    s.fxHealAt = G.time;
+    if (a.charge <= 1e-6) { a.charge = 0; a.emptyT = A.emptyS; a.mesh.material = M.altarOff; if (a.art) PA.setDing(a.art, false); }
   }
   for (let j = 0; j < PIECE_SIDES.length && a.charge > 0; j++) {
     const side = PIECE_SIDES[j], L = side.list;
     for (let k = 0; k < L.length && a.charge > 0; k++) {
       const u = L[k]; if (!u.alive || Math.hypot(u.x - a.x, u.z - a.z) > A.radius || Math.abs(u.y - a.y) > 1) continue;
       a.charge -= side.heal(u, Math.min(A.rate * dt, a.charge));
-      if (a.charge <= 1e-6) { a.charge = 0; a.emptyT = A.emptyS; a.mesh.material = M.altarOff; }
+      if (a.charge <= 1e-6) { a.charge = 0; a.emptyT = A.emptyS; a.mesh.material = M.altarOff; if (a.art) PA.setDing(a.art, false); }
     }
   }
 }
@@ -2841,7 +3007,7 @@ function mercStep(m, dt) {
   const C = CONFIG.PIECES.mercury;
   m.t += dt; if (m.t >= C.period) m.t -= C.period;
   const st = m.t < C.period - C.warn - C.on ? 0 : m.t < C.period - C.on ? 1 : 2;
-  if (st !== m.state) { m.state = st; m.stT = 0; m.mesh.material = st === 0 ? M.merc : st === 1 ? M.mercWarn : M.mercHot; } else m.stT += dt;
+  if (st !== m.state) { m.state = st; m.stT = 0; m.mesh.material = st === 0 ? M.merc : st === 1 ? M.mercWarn : M.mercHot; if (m.art && LD.art) PA.setMerc(LD.art.kit, m.art, st === 0 ? 'idle' : st === 1 ? 'warn' : 'hot'); if (st > 0) fxE(st === 1 ? 'mercury:tell' : 'mercury:rel', (m.x0 + m.x1) * 0.5, (m.z0 + m.z1) * 0.5, '', null); } else m.stT += dt;
   if (st !== 2) return;
   const n = C.dps * dt;
   for (let k = 0; k < SUITS.length; k++) { const s = SUITS[k]; if (!s.dead && !s.air && s.y < 1 && mercIn(m, s.x, s.z, 0)) hurtSuit(s, n, 'hazard', null); }
@@ -2996,10 +3162,14 @@ function palSync() {
   palSimSync();
 }
 function palDoor(d, open) {
+  if (open && !d.open && G.phase === 'palace') fxE('door:rel', d.x, d.z, '', null);
   d.open = open; d.solid.off = open; d.panel.visible = !open; renderer.shadowMap.needsUpdate = true; palSync();
+  if (d.art) PA.setDoor(d.art, open, d.locked);
 }
 function palEnter(r) {
   PAL.cur = r; PAL.n++; palSync(); palSunAt(r);
+  // Batch 17c: the cards' culling sphere round this room (half-diagonal plus a margin) and the wind of its type.
+  FX.fxSetRoom(r.cx, r.cz, Math.hypot(r.x1 - r.x0, r.z1 - r.z0) * 0.5 + 6); AUD_IN.room = r.type;
   if (r.type === 'core') palApex();
 }
 // The door card: the room behind the nearest door of the current room (type, decree, reward, something stirs). Written on change only.
@@ -3023,7 +3193,7 @@ function enterPalace() {
   if (!PAL.lake.parent) scene.add(PAL.lake);
   if (FLOORS.length === NAV.NF) for (const f of PAL.floors) FLOORS.push(f);
   if (SOLIDS.indexOf(PAL.solids[0]) < 0) for (const b of PAL.solids) SOLIDS.push(b);
-  for (const d of PAL.doors) { d.open = false; d.locked = false; d.solid.off = false; d.panel.visible = true; }
+  for (const d of PAL.doors) { d.open = false; d.locked = false; d.solid.off = false; d.panel.visible = true; if (d.art) PA.setDoor(d.art, false, false); }
   PAL.start = palStartRoom(); PAL.miniSig = -1; PAL.miniSig2 = -1;
   PAL.cur = PAL.start; PAL.pv = null; PAL.man = 0; PAL.n = 1;
   palSimStart();
@@ -3062,6 +3232,7 @@ function endPalace(reached) {
   ORD.attack = null; ORD.atkHeld = false; ORD.rightHeld = false; PATH.n = 0; PATH.i = 0; cancelAim();
   PAL_END.s = Math.round(G.time); PAL_END.n = PAL.n; PAL_END.room = PAL.cur.name; PAL_END.retry = T(TOUCH ? 'retry_run_touch' : 'retry_run_desktop');
   G.bannerWave = -1; G.fellT = 0;
+  FX.fxVoice(reached ? 'pal_voice_core' : 'pal_voice_lost');
   setText(el.voice, T(reached ? 'pal_voice_core' : 'pal_voice_lost')); setText(el.rule, T(reached ? 'pal_rule_core' : 'pal_rule_lost', PAL_END)); setShow(el.banner, true);
   setHuntUi();
 }
@@ -3321,7 +3492,10 @@ function palDoorLocks() {
   const seal = PL.on && PL.sealCore && palStanding() > 0;
   for (let i = 0; i < PAL.doors.length; i++) {
     const d = PAL.doors[i], core = d.ra.type === 'core' || d.rb.type === 'core';
+    const was = d.locked;
     d.locked = d.ra.locked || d.rb.locked || (core && seal);
+    if (d.locked && !was && G.phase === 'palace') fxE('door:end', d.x, d.z, '', null);
+    if (d.art && d.locked !== was) PA.setDoor(d.art, d.open, d.locked);
     if (d.locked && d.open) palDoor(d, false);
   }
 }
@@ -3340,6 +3514,7 @@ function palAnnStep() {
   if (PSIM.qn === 0 || G.fellT > 0 || G.bannerWave >= 0 || G.phase !== 'palace') return;
   const e = PSIM.q[PSIM.qh]; PSIM.qh = (PSIM.qh + 1) % PSIM.q.length; PSIM.qn--; PSIM.annN++;
   ANN_VARS.a = e.a; ANN_VARS.b = e.b; ANN_VARS.room = e.room; ANN_VARS.n = e.n; ANN_VARS.wing = e.wing; ANN_VARS.s = e.s;
+  FX.fxVoice(e.v ? e.v : e.k);
   if (e.v) { setText(el.voice, T(e.v)); setText(el.rule, T(e.k, ANN_VARS)); } else { setText(el.voice, T(e.k, ANN_VARS)); setText(el.rule, ''); }
   setShow(el.banner, true); G.fellT = PS.annS;
 }
@@ -3618,7 +3793,7 @@ function palApex() {
 // Room fields owned here: warned, fallen, warnAt, fallAt (state: 0 standing, 1 warned, 2 falling, 3 gone). Read here: room.locked (owner BP03),
 // room.wing (owner BP05; BURN_WINGS until then). Entry points for BP09 and BP03: onWingWarn(wing), onWingFall(wing). Fairness monitor every tick:
 // no warned room is locked; every room falls >= warnS after its warning; every fall death comes from such a room (bad counts any break).
-const BURN = { i: 0, wing: '', st: 0, nextAt: 0, warnAt: -1, fallAt: -1, waiting: false, waits: 0, shownS: -1, nk: '', ns: -1,
+const BURN = { fxT: 0, i: 0, wing: '', st: 0, nextAt: 0, warnAt: -1, fallAt: -1, waiting: false, waits: 0, shownS: -1, nk: '', ns: -1,
   bad: 0, badWhy: '', badRoom: '', checks: 0, falls: 0, fellN: 0, names: {}, rooms: {}, writes: 0, order: CONFIG.BURN.order };
 const BURN_VARS = { wing: '', s: 0 };
 // Sentinel for G.bannerWave while her burning warning holds the banner (the fell-note timer then leaves it alone).
@@ -3643,11 +3818,14 @@ function onWingWarn(w) {
   BURN.st = 1; BURN.wing = w; BURN.warnAt = G.time; BURN.shownS = -1; BURN.waiting = false;
   const rs = BURN.rooms[w];
   for (let i = 0; i < rs.length; i++) {
-    const r = rs[i]; r.warned = true; r.state = 1; r.warnAt = G.time;
+    const r = rs[i]; r.warned = true; r.state = 1; r.warnAt = G.time; if (r.art) PA.setBurnt(r.art, true);
     for (let k = 0; k < r.floorMeshes.length; k++) r.floorMeshes[k].material = warnMat;
   }
   BURN_VARS.wing = BURN.names[w];
   G.bannerWave = BURN_BANNER; G.fellT = 0; setText(el.voice, T('burn_voice', BURN_VARS)); setShow(el.banner, true);
+  // Batch 17c: her burn stinger with the first smoke (the event's own sound is st_burn, so no separate fxVoice); then puffs at the doors (stepBurn).
+  if (rs.length) fxE('burn_warn:tell', rs[0].cx, rs[0].cz, '', null);
+  BURN.fxT = CONFIG.FX.burnGapS;
   renderer.shadowMap.needsUpdate = true; palCard();
 }
 // The wing falls: floors gone (suits on them drop), doors to it never open again, her line after the warning.
@@ -3658,6 +3836,7 @@ function onWingFall(w) {
     const r = rs[i];
     if (!r.warned || G.time - r.warnAt < need) { BURN.bad++; BURN.badWhy = 'nowarn'; BURN.badRoom = r.id; }
     r.fallen = true; r.state = 2; r.fallT = 0; r.fallAt = G.time;
+    fxE('burn_fall:rel', r.cx, r.cz, '', null); fxE('burn_fall:state', r.cx, r.cz, '', null);
     for (let k = 0; k < FLOORS.length; k++) if (FLOORS[k].s === r) FLOORS[k].active = false;
     for (let k = 0; k < r.doors.length; k++) if (r.doors[k].open) palDoor(r.doors[k], false);
   }
@@ -3682,7 +3861,7 @@ function burnFallCheck(s) {
 function burnReset() {
   burnBind();
   for (const k in PAL.sets) for (const r of PAL.sets[k].rooms) {
-    r.warned = false; r.fallen = false; r.warnAt = -1; r.fallAt = -1; r.state = 0; r.fallT = 0;
+    r.warned = false; r.fallen = false; r.warnAt = -1; r.fallAt = -1; r.state = 0; r.fallT = 0; if (r.art) PA.resetRoom(r.art);
     r.group.position.y = 0; r.group.updateMatrix();
     for (let k = 0; k < r.floorMeshes.length; k++) r.floorMeshes[k].material = r.floorMats[k];
   }
@@ -3708,6 +3887,8 @@ function stepBurn(dt) {
     if (!burnWingLocked(w)) onWingWarn(w);
     else if (!BURN.waiting) { BURN.waiting = true; BURN.waits++; }
   } else if (BURN.st === 1 && G.time >= BURN.warnAt + B.warnS) onWingFall(BURN.wing);
+  // Batch 17c: smoke at each door of the warned wing every burnGapS until the fall.
+  if (BURN.st === 1) { BURN.fxT -= dt; if (BURN.fxT <= 0) { BURN.fxT = CONFIG.FX.burnGapS; const ws = BURN.rooms[BURN.wing]; for (let i = 0; i < ws.length; i++) for (let k = 0; k < ws[i].doors.length; k++) { const d = ws[i].doors[k]; fxE('burn_warn:state', d.x, d.z, '', null); } } }
   else if (BURN.st === 2 && G.time >= BURN.fallAt + B.fallS) burnGone();
   for (let i = 0; i < rs.length; i++) {
     const r = rs[i];
@@ -3777,11 +3958,11 @@ function p2Static(r, geo, m) { const mesh = new THREE.Mesh(geo, m); mesh.castSha
   const S = P2.sets[LK] = { clocks: [], giants: [], byWake: [] };
   for (const c of p2Spots(LK, 'clock')) {
     const r = p2Room(c.room), x = ox + c.x, z = oz + c.z;
-    p2Static(r, mergeGeoms([box(1.4, 0.3, 1.4, x, 0.15, z), box(0.2, 2.4, 0.2, x - 0.6, 1.2, z - 0.6), box(0.2, 2.4, 0.2, x + 0.6, 1.2, z - 0.6), box(1.4, 0.2, 0.2, x, 2.4, z - 0.6)]), M.bronze);
+    const boxMesh = p2Static(r, mergeGeoms([box(1.4, 0.3, 1.4, x, 0.15, z), box(0.2, 2.4, 0.2, x - 0.6, 1.2, z - 0.6), box(0.2, 2.4, 0.2, x + 0.6, 1.2, z - 0.6), box(1.4, 0.2, 0.2, x, 2.4, z - 0.6)]), M.bronze);
     const water = new THREE.Mesh(new THREE.BoxGeometry(0.9, 2, 0.9).translate(0, 1, 0), p2WaterMat);
     water.position.set(x, 0.3, z); water.matrixAutoUpdate = false; water.updateMatrix(); r.group.add(water);
     palSolid(r, x - 0.7, x + 0.7, z - 0.7, z + 0.7);
-    S.clocks.push({ room: r, wing: r.wing, water, step: -1, level: 1, eta: 0, full: 1, writes: 0 });
+    S.clocks.push({ room: r, wing: r.wing, water, step: -1, level: 1, eta: 0, full: 1, writes: 0, x, z, boxMesh, art: null });
   }
   // Vats: bronze body (static until broken), its crack ring and the flood disk (hidden until used), a solid while whole.
   for (const v of P2_VATS) {
@@ -3823,6 +4004,7 @@ function p2Wake() {
     const g = P2.byWake[i];
     if (g.st !== 0 || g.home.state >= 2) continue;
     g.st = 1; g.t = G2.wakeS; P2.awake++; P2.wakes++; P2.note = true; P2.dirty = true;
+    fxE('giant_wake:tell', g.x, g.z, '', FX.fxO(0, 1, 0, 0, G2.wakeS));
     return true;
   }
   return false;
@@ -3834,6 +4016,8 @@ function hitVat(v, n) {
   if (v.hp > 0) return;
   v.st = 1; v.t = C2.vat.crackS; if (ORD.attack === v) ORD.attack = null;
   scene.add(v.ring);
+  if (v.art) PA.setVat(v.art, 1);
+  v.fxH = fxE('vat:tell', v.x, v.z, '', FX.fxO(0, 1, C2.vat.radius, 0, C2.vat.crackS, 0, v.y));
 }
 // A blow on a giant (owner 24 Nov 15:41: killable): only an awake one of the plan in use (1 waking .. 4 recovering) takes it; at 0 it collapses
 // (fallS), then lies there for the run; the suit that broke it takes giant.charge; her line waits for the banner; its awake slot frees (another may wake).
@@ -3845,6 +4029,7 @@ function hitGiant(g, n, by, src) {
   if (g.hp > 0) return;
   if (g.ring.parent) scene.remove(g.ring); if (g.line.parent) scene.remove(g.line);
   g.st = 6; g.t = G2.fallS; g.fallT = 0; g.killer = by; g.seen = false; g.alive = false; P2.awake--; P2.kills++; P2.downNote++;
+  FX.fxKill(g.fxH); g.fxH = -1; fxE('giant_fall:rel', g.x, g.z, '', null); fxE('giant_fall:state', g.x, g.z, '', null);
   if (ORD.attack === g) ORD.attack = null;
   if (by && by.kind === 'suit') gainCharge(by, G2.charge);
 }
@@ -3865,6 +4050,8 @@ function p2Danger(b, x, z, margin) {
 }
 // The splash: knockback for every suit inside; inside the wing that is burning now it holds the fall douseS seconds (once per wave).
 function p2Splash(v) {
+  if (v.art) PA.setVat(v.art, 2);
+  FX.fxRelease(v.fxH); v.fxH = -1; fxE('vat:rel', v.x, v.z, '', FX.fxO(0, 1, C2.vat.radius, 0, 0, 0, v.y)); fxE('vat:state', v.x, v.z, '', null);
   v.st = 2; v.t = C2.vat.floodS; v.seen = false; v.solid.off = true; v.body.visible = false; scene.remove(v.ring); v.r0.group.add(v.flood);
   for (let k = 0; k < SUITS.length; k++) {
     const s = SUITS[k];
@@ -3897,7 +4084,7 @@ function p2Reset() {
     if (g.ring.parent) scene.remove(g.ring); if (g.line.parent) scene.remove(g.line);
   }
   for (const v of P2_VATS) {
-    v.hp = C2.vat.hp; v.st = 0; v.t = 0; v.seen = false; v.solid.off = false; v.body.visible = true;
+    v.hp = C2.vat.hp; v.st = 0; v.t = 0; v.seen = false; v.solid.off = false; v.body.visible = !v.art; if (v.art) PA.setVat(v.art, 0);
     if (v.ring.parent) scene.remove(v.ring); if (v.flood.parent) v.flood.parent.remove(v.flood);
   }
   for (const c of P2.clocks) { c.step = -1; c.writes = 0; }
@@ -3962,16 +4149,22 @@ function p2Begin(g, k, dx, dz) {
   g.st = 3; g.cur = k; g.t = m.windup; g.tellT = 0; g.fx = dx; g.fz = dz;
   if (k === 'slam') { g.tx = g.x; g.tz = g.z; g.ring.position.set(g.x, 0.08, g.z); g.ring.scale.setScalar(m.radius); scene.add(g.ring); g.cdS = m.cd; }
   else { g.tl = m.len; g.line.position.set(g.x, 0.08, g.z); g.line.rotation.y = Math.atan2(-dx, -dz); g.line.scale.set(m.width, 1, m.len); scene.add(g.line); g.cdW = m.cd; }
+  // Batch 17c: the painted tell for exactly the windup, from the CONFIG shape (the sweep's strip is today's line until 17h; docs/HOOKS-17c.md 8.1).
+  g.fxH = fxE(k === 'slam' ? 'giant_slam:tell' : 'giant_sweep:tell', g.x, g.z, '', FX.fxO(dx, dz, k === 'slam' ? m.radius : m.len, m.width, m.windup));
 }
 // Windup over: every suit inside the shown shape is hit and knocked back; a vat inside it breaks (lure a giant onto one).
 function p2Resolve(g) {
   const k = g.cur, m = G2[k];
   if (k === 'slam') scene.remove(g.ring); else scene.remove(g.line);
+  FX.fxRelease(g.fxH); g.fxH = -1;
+  fxE(k === 'slam' ? 'giant_slam:rel' : 'giant_sweep:rel', g.x, g.z, '', FX.fxO(g.fx, g.fz, k === 'slam' ? m.radius : m.len, m.width));
+  if (k === 'slam') fxE('giant_slam:state', g.x, g.z, '', null);
   for (let i = 0; i < SUITS.length; i++) {
     const s = SUITS[i];
     if (s.dead || Math.abs(s.y) >= 3 || !p2In(g, k, s.x, s.z)) continue;
     if (s === P) { g.hits++; if (g.tellT < g.minTell) g.minTell = g.tellT; }
     hurtSuit(s, m.dmg, 'hazard', null);
+    fxE(k === 'slam' ? 'giant_slam:hit' : 'giant_sweep:hit', s.x, s.z, '', FX.fxO(g.fx, g.fz, 0, 0, 0, 0, s.y));
     const hx = s.x - g.x, hz = s.z - g.z, d = Math.hypot(hx, hz) || 1;
     s.kx += hx / d * m.kb; s.kz += hz / d * m.kb;
   }
@@ -3999,7 +4192,7 @@ function p2StepGiant(g, dt) {
   const here = palRoomAt(g.x, g.z);
   if (here && here.state >= 2) { if (g.ring.parent) scene.remove(g.ring); if (g.line.parent) scene.remove(g.line); g.st = 5; g.seen = false; g.alive = false; P2.awake--; P2.lost++; P2.dirty = true; return; }
   if (g.cdS > 0) g.cdS -= dt; if (g.cdW > 0) g.cdW -= dt; if (g.gapT > 0) g.gapT -= dt;
-  if (g.st === 1) { g.t -= dt; if (g.t <= 0) { g.st = 2; g.thinkT = 0; } return; }
+  if (g.st === 1) { g.t -= dt; if (g.t <= 0) { g.st = 2; g.thinkT = 0; fxE('giant_wake:state', g.x, g.z, '', null); } return; }
   if (g.st === 3) { g.t -= dt; g.tellT += dt; if (g.t <= 0) p2Resolve(g); return; }
   if (g.st === 4) { g.t -= dt; if (g.t <= 0) g.st = 2; return; }
   g.thinkT -= dt;
@@ -4025,7 +4218,7 @@ function stepPieces2(dt) {
     if (k === undefined) continue;
     c.full = B.firstS + k * B.everyS; c.eta = p2Eta(c.wing); c.level = Math.min(1, c.eta / c.full);
     const st = Math.ceil(c.level * C2.clock.steps);
-    if (st !== c.step) { c.step = st; c.water.scale.y = Math.max(0.001, st / C2.clock.steps); c.water.updateMatrix(); c.writes++; }
+    if (st !== c.step) { c.step = st; c.water.scale.y = Math.max(0.001, st / C2.clock.steps); c.water.updateMatrix(); c.writes++; if (c.art) PA.setClock(c.art, c.level); }
   }
   for (let i = 0; i < P2_VATS.length; i++) {
     const v = P2_VATS[i];
@@ -4103,13 +4296,15 @@ function step(dt) {
   // End screens freeze the whole simulation.
   if (G.phase === 'won' || G.phase === 'lost' || G.phase === 'palend') return;
   G.time += dt;
+  // Batch 17c: the card clock is game time in fixed steps (a paused frame never reaches step, so cards freeze).
+  FX.fxStep(dt, false);
   const roy = G.phase === 'royale';
   // Collapse waves (royale only; they stop for the apex phase).
   for (let i = 0; roy && i < WAVES.length; i++) {
     const w = WAVES[i];
     if (w.state === 0 && G.time >= w.start - CONFIG.COLLAPSE_WARN_S) {
       w.state = 1; for (let k = 0; k < w.secs.length; k++) warnSection(w.secs[k]);
-      G.bannerWave = i; w.lastCount = -1; setText(el.voice, w.voice); setShow(el.banner, true);
+      G.bannerWave = i; w.lastCount = -1; setText(el.voice, w.voice); setShow(el.banner, true); FX.fxVoice(w.voiceKey);
     } else if (w.state === 1 && G.time >= w.start) {
       w.state = 2; for (let k = 0; k < w.secs.length; k++) dropSection(w.secs[k]);
       if (G.bannerWave === i) { G.bannerWave = -1; setShow(el.banner, false); }
@@ -4317,7 +4512,7 @@ function stepCombat(dt) {
   const zs = P.kit.passive === 'store' ? P.storeSk : null;
   if (zs !== G.zaShown) { G.zaShown = zs; if (SK[2].zsEl) { if (zs) setText(SK[2].zsEl, T(zs.nameKey)); setShow(SK[2].zsEl, !!zs); } G.zaWrites++; }
   fzHud();
-  if (PEND.on) { PEND.t -= dt; if (PEND.t <= 0) { PEND.on = false; fxTele.visible = false; applySkill(PEND.slot, PEND.x, PEND.z, PEND.dx, PEND.dz); } }
+  if (PEND.on) { PEND.t -= dt; if (PEND.t <= 0) { PEND.on = false; fxTele.visible = false; fxPendRel(P, skillOf(P, PEND.slot), PEND.x, PEND.z, PEND.dx, PEND.dz); applySkill(PEND.slot, PEND.x, PEND.z, PEND.dx, PEND.dz); } }
   if (G.fxT > 0) { G.fxT -= dt; if (G.fxT <= 0) { fxLine.visible = false; fxRing.visible = false; } }
   const VR = G.visR;
   for (let i = 0; i < DUMMY_LIST.length; i++) {
@@ -4346,10 +4541,12 @@ function hurtSuit(s, n, cause, by, src) {
   if (n > 0) { breakUnseen(s); s.expArmT = 0; }
   const lost = Math.min(n, s.hp);
   s.hp -= n; s.noHealT = CONFIG.ALTAR.hitPauseS;
+  if (s === P && lost > 0) { P.hurtAt = G.time; fxE('p_hurt:hit', P.x, P.z, '', null); }
   // Charge (batch 15): the suit hit gains per health taken; a suit that hit another suit gains per health dealt.
   gainCharge(s, lost * CONFIG.ULT.taken);
   if (by && by.kind === 'suit' && by !== s) gainCharge(by, lost * CONFIG.ULT.dealt);
   if (s.bot && n >= 1) { s.flashT = 0.12; s.body.material = M.hit; }
+  if (n >= 1 && s.hp > 0) chrSuitClip(s, 'hit');
   if (by) { s.lastBy = by; s.lastByT = G.time; }
   if (s.hp <= 0) suitDown(s, cause, by);
   // 纵横甲's 合纵 (ticket 09): a share of what he lost goes to the enemy tied to him.
@@ -4359,6 +4556,11 @@ function hurtSuit(s, n, cause, by, src) {
 // A suit is broken. The player: a note and the map-test respawn in the royale, defeat in the hunt.
 function suitDown(s, cause, by) {
   s.hp = 0; s.dead = true; s.deadT = 0; s.kx = s.kz = 0; s.cause = cause; s.diedAt = G.time; s.killer = by;
+  chrSuitClip(s, 'death');
+  // Batch 17c: his state and tell cards end; the break burst and its smoke.
+  if (s.fxStateH >= 0) { FX.fxKill(s.fxStateH); FX.fxKill(s.fxStateH2); s.fxStateH = -1; s.fxStateH2 = -1; }
+  if (s.fxTellH >= 0) { FX.fxKill(s.fxTellH); s.fxTellH = -1; }
+  fxE('suit_break:rel', s.x, s.z, s.school, FX.fxO(0, 1, 0, 0, 0, 0, s.y)); fxE('suit_break:state', s.x, s.z, s.school, FX.fxO(0, 1, 0, 0, 0, 0, s.y));
   // Kills count suits only (cubs and creatures are not suits).
   if (by && by.kind === 'suit' && by !== s && G.phase === 'royale') { by.kills++; gainCharge(by, CONFIG.ULT.kill); }
   // The bounty: the suit that breaks the leader while the bounty is in force gets its ultimate back; the leader out ends the bounty (a fall pays nobody).
@@ -4481,7 +4683,7 @@ function beginWarning() {
   if (DEC.key === 'nodash') tintZone(DEC.zone);
   if (DEC.key === 'heights') G.warnGen++;
   DECREE_VARS.zone = DEC.zone ? DEC.zone.name : '';
-  setText(el.voice, T(DECREES[DEC.key].voice, DECREE_VARS)); setShow(el.banner, true);
+  setText(el.voice, T(DECREES[DEC.key].voice, DECREE_VARS)); setShow(el.banner, true); FX.fxVoice(DECREES[DEC.key].voice);
 }
 // The decree in force is key.
 function decOn(key) { return DEC.st === 3 && DEC.key === key; }
@@ -4588,6 +4790,26 @@ function kitBonus(by, d) {
   return k * fanOf(by);
 }
 // A self skill (type 'self'): 'unseen' (法甲 W), 'aura' (法甲 R 势), 'bells' (儒甲 R 编钟), 'jiu' (墨甲 R 九距之) or 'harvest' (农甲 R 百草生机). ord = cast by a player order (its hits follow the player's rule).
+// Batch 17c: one home for a cast's cue (player and bots): the tell for delayed or windup skills, else the release, plus the skill's state card
+// (it follows the suit until the skill's duration ends; fxFollow).
+function fxCast(s, sk, x, z, dx, dz) {
+  chrSuitClip(s, 'attack');
+  const f = sk.fx || FX_NONE, ln = sk.type === 'line';
+  const o = FX.fxO(dx, dz, ln ? sk.range : sk.radius, sk.width, sk.delay || sk.tellS || 0, 0, s.y);
+  if (f.tell !== '') s.fxTellH = fxE(f.tell, ln ? s.x : x, ln ? s.z : z, s.school, o);
+  else if (f.rel !== '') fxE(f.rel, s.x, s.z, s.school, o);
+  if (f.state !== '') {
+    const hold = sk.dur || sk.stance || 0;
+    if (s.fxStateH >= 0) { FX.fxKill(s.fxStateH); FX.fxKill(s.fxStateH2); }
+    s.fxStateH = fxE(f.state, s.x, s.z, s.school, FX.fxO(dx, dz, sk.radius, sk.width, hold, 0, s.y)); s.fxStateH2 = s.fxStateH >= 0 ? FX.fxSecond() : -1; s.fxStateName = f.state;
+    s.fxStateEnd = G.time + (hold > 0 ? hold : CONFIG.FX.stateS);
+  }
+}
+// A state that ends early (stance used, aura or circle over) ends its card, only when the card is that skill's (one state card per suit).
+function fxEndState(s, sk) {
+  if (!sk || s.fxStateH < 0 || s.fxStateName !== (sk.fx || FX_NONE).state) return;
+  FX.fxKill(s.fxStateH); FX.fxKill(s.fxStateH2); s.fxStateH = -1; s.fxStateH2 = -1;
+}
 function castSelf(s, sk, ord) {
   if (sk.self === 'bells') { if (s.bellT < 0) G.bellN++; s.bellT = 0; s.bellN = 0; s.bellSk = sk; s.bellOrd = !!ord; placeBell(s); if (!s.bellRing.parent) scene.add(s.bellRing); return; }
   if (sk.self === 'unseen') { goUnseen(s, sk.dur); s.expArmT = sk.dur + sk.armS; s.expS = sk.exposeS; return; }
@@ -4599,11 +4821,11 @@ function castSelf(s, sk, ord) {
   if (sk.self === 'zheng') { s.zhengT = sk.stance; s.zhengS = sk.stance; showStance(s, sk); return; }
   if (sk.self === 'fan') { s.fanT = sk.dur; s.fanK = 1 + Math.min(s.daoN, sk.maxN) * sk.step; s.daoN = 0; }
 }
-function endAura(s) { if (s.shiT <= 0 && !s.shiRing.parent) return; s.shiT = 0; s.shiSk = null; if (s.shiRing.parent) { scene.remove(s.shiRing); G.auraN--; } }
+function endAura(s) { if (s.shiT <= 0 && !s.shiRing.parent) return; fxEndState(s, s.shiSk); s.shiT = 0; s.shiSk = null; if (s.shiRing.parent) { scene.remove(s.shiRing); G.auraN--; } }
 // ----- 道甲 (batch 16 ticket 08): the stances, the one counter function, the flow, 反 and 无为.
 // A stance's water shimmer: a ring around him, in the scene while a stance is up (drawn where the player sees him).
 function showStance(s, sk) { s.stanceRing.scale.setScalar(sk.radius); s.stanceRing.position.set(s.x, s.y + 0.07, s.z); if (!s.stanceRing.parent) { scene.add(s.stanceRing); G.stanceN++; } }
-function hideStance(s) { if (s.stanceRing.parent) { scene.remove(s.stanceRing); G.stanceN--; } }
+function hideStance(s) { if (s.stanceRing.parent) { scene.remove(s.stanceRing); G.stanceN--; fxEndState(s, skillOf(s, 0)); fxEndState(s, skillOf(s, 1)); } }
 // The one counter function: every blow on a suit from a suit, cub or hunt unit passes here (basic attacks and skills; hazards, collapses and bleed do not).
 // by = the hitting suit, src = the hitting cub or hunt unit; n = the blow's damage. True = countered (the blow lands nothing on s).
 // Q (柔) takes the first basic attack: the attacker takes the blow instead and is pushed away. W (不争) takes the first skill: it misses and he flows to the caster.
@@ -4617,6 +4839,7 @@ function counterHit(s, basic, by, src, n) {
   s.daoN = Math.min(skillOf(s, 2).maxN, s.daoN + 1); s.counterN++; G.counterN++;
   // The player's cooldowns live in the bar; bots (and the checks' autopilot driving the player) keep theirs in cd.
   if (s === P && !G.autoP) SK[slot].cdT = Math.max(0, SK[slot].cdT - sk.cd / 2); else s.cd[slot] = Math.max(0, s.cd[slot] - sk.cd / 2);
+  fxE(basic ? 'dao_q:hit' : 'dao_w:hit', s.x, s.z, s.school, FX.fxO(0, 1, 0, 0, 0, 0, s.y));
   return true;
 }
 // 柔: the attacker takes the blow (its own armor applies) and is pushed away: a suit by knockback, a cub or minion unitM m, the demon demonM m.
@@ -4686,6 +4909,10 @@ function basicAttack(s, d) {
   const at = s.kit.attack;
   // 道甲's 无为 (ticket 08): an attack swing counts as acting.
   s.castAt = G.time;
+  chrSuitClip(s, 'attack');
+  // Batch 17c: the swing (melee) or the bolt toward the target (ranged: shown boltS, spanning the distance), from the attack's item.
+  { const f = at.fx || FX_NONE, ax = d.x - s.x, az = d.z - s.z, far = !!at.wheel || !!at.orb || (at.closeR ? Math.hypot(ax, az) > at.closeR + d.r : at.range > CONFIG.MELEE_M);
+    if (far && f.trail !== '') fxE(f.trail, s.x, s.z, s.school, FX.fxO(ax, az, Math.hypot(ax, az), 0, CONFIG.FX.boltS, 0, s.y)); else fxE(f.rel, s.x, s.z, s.school, FX.fxO(ax, az, 0, 0, 0, 0, s.y)); }
   // 名甲's wheel (ticket 05): thrown, it hits on its way out and back (a player order follows the player's targeting rule).
   if (at.wheel) { throwWheel(s, d, s === P && !G.autoP); return; }
   // 阴阳甲's 两仪 (ticket 06): an orb flies at the target and lands on the first target it reaches.
@@ -4702,7 +4929,7 @@ function basicAttack(s, d) {
 }
 // 儒甲's bells: the ground ring sits around him at the next ring's size.
 function placeBell(s) { s.bellRing.scale.setScalar(s.bellSk.radius); s.bellRing.position.set(s.x, s.y + 0.07, s.z); }
-function endBells(s) { if (s.bellT < 0) return; s.bellT = -1; s.bellN = 0; s.bellSk = null; if (s.bellRing.parent) scene.remove(s.bellRing); G.bellN--; }
+function endBells(s) { if (s.bellT < 0) return; fxEndState(s, s.bellSk); s.bellT = -1; s.bellN = 0; s.bellSk = null; if (s.bellRing.parent) scene.remove(s.bellRing); G.bellN--; }
 // 编钟 (fixed step): each ring is shown around him until it lands; then every target inside takes its damage and slow (the last ring also stuns),
 // and every suit hit heals him. The ring is drawn where the player can see the caster.
 function stepBells(dt) {
@@ -4719,6 +4946,8 @@ function stepBells(dt) {
 }
 // One ring of 编钟 lands around suit s.
 function ringBell(s, sk, last) {
+  // Batch 17c: each ring lands with the item's burst card (the bells' sound plays once, at the cast; docs/HOOKS-17c.md 8.4).
+  fxE((sk.fx || FX_NONE).rel, s.x, s.z, s.school, FX.fxO(0, 1, sk.radius, 0, 0, 0, s.y));
   for (let i = -1; i < TARGETS.length; i++) {
     const d = i < 0 ? P : TARGETS[i];
     if (!skillTargetOk(s, d, s.bellOrd) || Math.hypot(d.x - s.x, d.z - s.z) > sk.radius + d.r) continue;
@@ -4797,7 +5026,7 @@ function placeCord(c) {
   const a = c.a, b = c.b, dx = b.x - a.x, dz = b.z - a.z;
   c.mesh.position.set(a.x, Math.max(a.y, b.y) + 1, a.z); c.mesh.rotation.y = Math.atan2(-dx, -dz); c.mesh.scale.set(0.15, 1, Math.max(0.01, Math.hypot(dx, dz)));
 }
-function endCord(s) { const c = s.cord; if (!c.sk) return; c.t = -1; c.a = null; c.b = null; c.sk = null; if (c.mesh.parent) scene.remove(c.mesh); G.cordN--; }
+function endCord(s) { const c = s.cord; if (!c.sk) return; fxEndState(s, c.sk); c.t = -1; c.a = null; c.b = null; c.sk = null; if (c.mesh.parent) scene.remove(c.mesh); G.cordN--; }
 // Damage lost by d (suit, cub or hunt unit) is also dealt, by share, to the enemy tied to it (its armor applies; the share itself is not passed on again).
 function linkShare(d, lost, by) {
   if (G.linkBusy || lost <= 0) return;
@@ -4839,7 +5068,7 @@ function castCircle(s, sk, x, z) {
   r.t = sk.dur; r.sk = sk; r.x = x; r.z = z; r.y = topYUnder(x, z, s.y + 1);
   r.mesh.scale.setScalar(sk.radius); r.mesh.position.set(x, r.y + 0.07, z); if (!r.mesh.parent) scene.add(r.mesh);
 }
-function endCircle(s) { const r = s.circle; if (!r.sk) return; r.t = -1; r.sk = null; if (r.mesh.parent) scene.remove(r.mesh); G.circleN--; }
+function endCircle(s) { const r = s.circle; if (!r.sk) return; fxEndState(s, r.sk); r.t = -1; r.sk = null; if (r.mesh.parent) scene.remove(r.mesh); G.circleN--; }
 // o (suit or unit) stands inside suit s's circle.
 function inCircleOf(s, o) { const r = s.circle; return r.t > 0 && Math.abs(o.y - r.y) < 2 && Math.hypot(o.x - r.x, o.z - r.z) <= r.sk.radius; }
 // The 纵横甲 whose circle holds o (null = none).
@@ -5318,7 +5547,7 @@ function startTaiji(s, sk, x, z, dx, dz, ord) {
   t.dark.rotation.y = a; t.light.rotation.y = a + Math.PI;
   if (!t.dark.parent) { scene.add(t.dark, t.light); G.taijiN++; }
 }
-function endTaiji(s) { const t = s.taiji; if (t.t < 0) return; t.t = -1; t.sk = null; if (t.dark.parent) { scene.remove(t.dark, t.light); G.taijiN--; } }
+function endTaiji(s) { const t = s.taiji; if (t.t < 0) return; fxEndState(s, t.sk); t.t = -1; t.sk = null; if (t.dark.parent) { scene.remove(t.dark, t.light); G.taijiN--; } }
 // The point x, z lies in the disk's dark half now (the halves swap when the disk has turned).
 function inDark(t, x, z) { return ((x - t.x) * t.nx + (z - t.z) * t.nz >= 0) !== t.flip; }
 // 太极 disks (fixed step): shown for tellS s; then phaseS s of pull and slow in the dark half and burn pulses in the light half; then it turns
@@ -5393,7 +5622,7 @@ function layFurrow(s, sk) {
   f.mesh.position.set(f.ox, f.y + 0.05, f.oz); f.mesh.rotation.y = Math.atan2(-f.dx, -f.dz); f.mesh.scale.set(sk.width, 1, len);
   if (!f.mesh.parent) { scene.add(f.mesh); G.furrowN++; }
 }
-function endFurrow(s) { const f = s.furrow; if (f.t < 0) return; f.t = -1; f.sk = null; if (f.mesh.parent) { scene.remove(f.mesh); G.furrowN--; } }
+function endFurrow(s) { const f = s.furrow; if (f.t < 0) return; fxEndState(s, f.sk); f.t = -1; f.sk = null; if (f.mesh.parent) { scene.remove(f.mesh); G.furrowN--; } }
 // The point x, z (height y) lies on suit s's furrow.
 function onFurrow(s, x, z, y) {
   const f = s.furrow; if (f.t < 0 || Math.abs(y - f.y) > 1.5) return false;
@@ -5567,7 +5796,7 @@ function botOut(b) {
 }
 function showNote(voiceKey, ruleKey, vars) {
   if (G.bannerWave >= 0 || DEC.banner) return;
-  setText(el.voice, T(voiceKey)); setText(el.rule, T(ruleKey, vars)); setShow(el.banner, true); G.fellT = 2;
+  setText(el.voice, T(voiceKey)); setText(el.rule, T(ruleKey, vars)); setShow(el.banner, true); G.fellT = 2; FX.fxVoice(voiceKey);
 }
 function updateStatus() {
   const s0 = Math.ceil(P.pt[0]), s1 = Math.ceil(P.pt[1]);
@@ -5668,17 +5897,25 @@ function beginMove(u, k, dx, dz) {
     u.ring.material = tm; u.ring.position.set(u.tx, y, u.tz); u.ring.scale.setScalar(m.radius); u.ring.visible = true;
   }
   u.fx = dx; u.fz = dz; u.st = 1; u.cur = k; u.t = m.windup; u.tellT = 0; u.cd[k] = m.cd;
+  chrUnitClip(u, k === 'pounce' || k === 'roar' ? k : 'attack');
+  // Batch 17c: the painted tell for exactly the windup, sized from the move's own shape (docs/HOOKS-17c.md 3a).
+  const ln = m.shape === 'line';
+  u.fxH = fxE(UEV[k].tell, ln ? u.x : u.tx, ln ? u.z : u.tz, 'apex', FX.fxO(dx, dz, ln ? u.tl : m.radius, m.width, m.windup, u.cub ? 1.15 : 0, u.y));
   return true;
 }
 // Windup over: the hit lands on every suit still inside the shape that was shown.
 function resolveMove(u) {
   const k = u.cur;
   hideTell(u);
+  FX.fxRelease(u.fxH); u.fxH = -1;
   if (k === 'ult') {
     u.frenzyT = CONFIG.DEMON_ULT.dur; u.body.material = M.frenzy; u.st = 3; u.t = CONFIG.APEX.recoverS;
+    fxE(UEV.ult.rel, u.x, u.z, 'apex', FX.fxO(u.fx, u.fz, 0, 0, 0, 0, u.y));
+    FX.fxKill(u.ultH); u.ultH = fxE(UEV.ult.state, u.x, u.z, 'apex', FX.fxO(0, 1, 0, 0, CONFIG.DEMON_ULT.dur, 0, u.y));
     return;
   }
   const m = MOVES[k];
+  fxE(UEV[k].rel, u.x, u.z, 'apex', FX.fxO(u.fx, u.fz, m.shape === 'line' ? u.tl : m.radius, m.width, 0, u.cub ? 1.15 : 0, u.y));
   // A wall raised during the windup (墨甲's 距云梯) shortens a dash move: it stops there and hits only up to it.
   if (m.shape === 'line' && G.wallN > 0) u.tl = Math.min(u.tl, dashLen(u, u.fx, u.fz, u.tl));
   for (let i = 0; i < SUITS.length; i++) {
@@ -5700,7 +5937,7 @@ function resolveMove(u) {
     if (m.slow) { s.slowK = Math.max(s.slowT > 0 ? s.slowK : 0, m.slow); s.slowT = Math.max(s.slowT, m.slowS); }
     if (m.stun) s.stunT = Math.max(s.stunT, m.stun);
     if (m.bleed) { s.bleedN = Math.min(CONFIG.BLEED.max, s.bleedN + m.bleed); s.bleedT = CONFIG.BLEED.dur; }
-    if (dmg > 0) { u.atkAt = G.time; const lost = hurtSuit(s, dmg, 'hit', null, u); if (s === P) G.hitDmg += lost; }
+    if (dmg > 0) { u.atkAt = G.time; const lost = hurtSuit(s, dmg, 'hit', null, u); if (s === P) G.hitDmg += lost; fxE(UEV[k].hit, s.x, s.z, 'apex', FX.fxO(u.fx, u.fz, 0, 0, CONFIG.FX.hitS, 0, s.y)); }
   }
   // 纵横甲's 不攻自破 (ticket 09): a unit turned on another unit hits the units inside its move's shape too.
   if (u.hunt && u.tgt !== P) { hitUnitsIn(u, m); if (G.phase !== 'hunt') return; }
@@ -5775,7 +6012,7 @@ function stepHunt(dt) {
       u.plate.position.set(u.sx + (DEMON.hx - u.sx) * f, u.sy + 1 + (DEMON.y - u.sy) * f + Math.sin(f * Math.PI) * 4, u.sz + (DEMON.hz - u.sz) * f);
       if (f >= 1) { u.fuseOn = false; scene.remove(u.plate); }
     }
-    if (k >= 1) G.phase = 'hunt';
+    if (k >= 1) { G.phase = 'hunt'; fxE('apex_wake:rel', DEMON.x, DEMON.z, 'apex', FX.fxO(0, 1, 0, 0, 0, 0, DEMON.y)); }
   } else {
     G.huntT += dt;
     for (let i = 0; i < ENEMIES.length; i++) {
@@ -5810,6 +6047,7 @@ function hitEnemy(u, n, by) {
 }
 function killUnit(u) {
   u.alive = false; u.seen = false; u.st = 0; hideTell(u); scene.remove(u.group);
+  FX.fxKill(u.fxH); u.fxH = -1; if (u.ultH >= 0) { FX.fxKill(u.ultH); u.ultH = -1; }
   if (ORD.attack === u) ORD.attack = null;
   if (u.guard) { guardDown(u, true); return; }
   if (u === DEMON) { endHunt(true); return; }
@@ -5821,6 +6059,7 @@ function grantPlate(u) {
   u.plateOn = false; scene.remove(u.plate);
   if (!DEMON.alive) return;
   DEMON.skills.push(u.gain[0], u.gain[1]); G.plates++; G.bossDirty = true;
+  fxE('plate:hit', DEMON.x, DEMON.z, 'apex', FX.fxO(0, 1, 0, 0, CONFIG.FX.hitS, 0, DEMON.y));
   PLATE_VARS.a = T('move_' + u.gain[0]); PLATE_VARS.b = T('move_' + u.gain[1]);
   showNote('voice_plate', 'rule_plate', PLATE_VARS);
 }
@@ -5986,6 +6225,10 @@ function grantBoon(u) {
   else if (b === 'heal') { s.hp = Math.min(CONFIG.MAX_HP, s.hp + v); BOON_VARS.v = Math.round(v); }
   else { const k = BOON_IDX[b]; s.bT[k] = B.s; s.bV[k] = v; BOON_VARS.v = b === 'power' || b === 'speed' ? Math.round(v * 100) : v; }
   if (s === P) showNote('voice_boon', 'boon_' + b, BOON_VARS);
+  // Batch 17c: the boon's burst, and its glow for the boon's seconds (heal and charge: hitS).
+  fxE('boon:rel', s.x, s.z, '', FX.fxO(0, 1, 0, 0, 0, 0, s.y));
+  if (b === 'heal' || b === 'ult' || b === 'regen') fxE('boon:state', s.x, s.z, '', FX.fxO(0, 1, 0, 0, B.s || CONFIG.FX.hitS, 0, s.y));
+  else fxE('boon_buff:state', s.x, s.z, '', FX.fxO(0, 1, 0, 0, B.s || CONFIG.FX.hitS, 0, s.y));
 }
 function stepNeutrals(dt) {
   const VR = G.visR;
@@ -6328,6 +6571,7 @@ function botUseSkills(b, q, d, ultOnly) {
     if (sk.wall && !wallFits(b, sk, q.x + dx * sk.botBehind, q.z + dz * sk.botBehind, dx, dz)) continue;
     if (slot === 2) spendUlt(b, sk); else b.cd[slot] = sk.cd;
     b.faceX = dx; b.faceZ = dz; b.castT = CONFIG.BOT.castGapS; breakUnseen(b); b.castAt = G.time;
+    fxCast(b, sk, x, z, dx, dz);
     if (sk.self) castSelf(b, sk, false);
     else if (sk.link) tieCord(b, sk);
     else if (sk.circle) castCircle(b, sk, q.x, q.z);
@@ -6462,11 +6706,18 @@ function flingFrom(s, sk, d) {
   if (d.alive && !d.neutral) shoveUnit(d, s.x, s.z, d === DEMON ? sk.demonM : sk.unitM);
 }
 // Delayed bot skills (the ultimate): the ring stays for the whole delay, then the hit lands.
+// Batch 17c: a delayed skill lands (player PEND, bot pend): its tell ends and the release card and sound play at the aim point.
+function fxPendRel(s, sk, x, z, dx, dz) {
+  FX.fxRelease(s.fxTellH); s.fxTellH = -1;
+  const f = sk.fx || FX_NONE;
+  if (f.tell !== '') fxE(f.rel, x, z, s.school, FX.fxO(dx, dz, sk.radius, sk.width, 0, 0, s.y));
+}
 function stepBotPend(b, dt) {
   if (!b.pend) return;
   b.pendT -= dt; b.pendAge += dt;
   if (b.pendT > 0) return;
   b.pend = false; if (b.ring.parent) scene.remove(b.ring);
+  fxPendRel(b, skillOf(b, b.pendS), b.pendX, b.pendZ, b.pendDx, b.pendDz);
   botSkillHit(b, b.pendS, b.pendX, b.pendZ, b.pendDx, b.pendDz);
 }
 // Is the point inside a tell this bot has seen for at least its reaction time (radius + margin)? Leaves the escape direction in DNG.
@@ -6617,7 +6868,7 @@ function spawnSquad(f, list, x, z, opts) {
     let sx = x + fx * row[0] - fz * l, sz = z + fz * row[0] + fx * l;
     u.y = sq.y;
     if (!unitOk(u, sx, sz)) { sx = x; sz = z; }
-    u.faction = f; u.col = GUARD_COL[f][t]; u.sq = sq; u.slotF = row[0]; u.slotL = l;
+    u.faction = f; u.col = GUARD_COL[f][t]; u.sq = sq; u.slotF = row[0]; u.slotL = l; u.fxRow = f === 'fanzei' ? 'rebel_olive' : 'guard'; u.fxH = -1; u.fxH2 = -1;
     u.x = u.px = sx; u.z = u.pz = sz; u.y = topYUnder(sx, sz, sq.y + 0.5); u.fx = fx; u.fz = fz;
     u.hp = u.maxHp; u.alive = true; u.seen = false; u.st = 0; u.t = 0; u.cur = ''; u.tellT = 0; u.gcd = 0; u.flashT = 0; u.bleedT = 0; u.slowT = 0; u.sealT = 0;
     u.atkAt = -99; u.by = null; u.bleedBy = null; u.tgt = null; u.dmgK = 1; u.defK = 1; u.form = false;
@@ -6627,6 +6878,8 @@ function spawnSquad(f, list, x, z, opts) {
   }
   if (sq.n === 0) return -1;
   sq.on = true;
+  // Batch 17c: a squad with a 伍长 shows his buff aura (it follows him in fxFollow; killed when he is out or the guard is cleared).
+  sq.buffH = sq.leader && f !== 'fanzei' ? fxE('g_buff:state', sq.leader.x, sq.leader.z, 'guard', FX.fxO(0, 1, 0, 0, 0, 0, sq.leader.y)) : -1;
   return sq.id;
 }
 // A hostile of faction f on layer y: a live suit on the ground (when the faction fights suits), or a live guard of another faction.
@@ -6744,6 +6997,9 @@ function guardBegin(u, q, dx, dz) {
     u.ring.position.set(u.tx, u.ty + 0.07, u.tz); u.ring.scale.setScalar(m.radius); u.ring.visible = true; scene.add(u.ring);
   }
   u.fx = dx; u.fz = dz; u.st = 1; u.cur = u.atk; u.t = m.windup; u.tellT = 0; u.gcd = m.cd;
+  // Batch 17c: the painted tell for exactly the windup (the 死士's lunge brings its glint as the second card).
+  const ln = m.shape === 'line';
+  u.fxH = fxE(GEV[u.atk].tell, ln ? u.x : u.tx, ln ? u.z : u.tz, u.fxRow, FX.fxO(dx, dz, ln ? u.tl : m.radius, m.width, m.windup, 0, u.ty)); u.fxH2 = u.fxH >= 0 ? FX.fxSecond() : -1;
   // A 力士's bootleg 甲 wears out: after FANZEI.stallN moves it stalls.
   if (u.cfg.wear) fzWear(u);
   return true;
@@ -6762,6 +7018,8 @@ function guardCovers(u, m, o) {
 function guardResolve(u) {
   const m = GMV[u.cur], dmg = m.dmg * u.dmgK;
   guardHideTell(u);
+  FX.fxRelease(u.fxH); FX.fxRelease(u.fxH2); u.fxH = -1; u.fxH2 = -1;
+  fxE(GEV[u.cur].rel, u.x, u.z, u.fxRow, FX.fxO(u.fx, u.fz, m.shape === 'line' ? u.tl : m.radius, m.width, 0, 0, u.ty));
   // A mend (符水道人): heals its allies in the mark, hits no one.
   if (m.heal) { fzMend(u, m); return; }
   // A wall raised during the windup (墨甲's 距云梯) shortens a line: it stops there and hits only up to it.
@@ -6777,7 +7035,7 @@ function guardResolve(u) {
       if (l < 1e-3) { dx = u.fx; dz = u.fz; } else { dx /= l; dz /= l; }
       s.kx += dx * m.shove * CONFIG.KB_DECAY; s.kz += dz * m.shove * CONFIG.KB_DECAY;
     }
-    if (dmg > 0) { u.atkAt = G.time; hurtSuit(s, dmg, 'hit', null, u); }
+    if (dmg > 0) { u.atkAt = G.time; hurtSuit(s, dmg, 'hit', null, u); fxE(GEV[u.cur].hit, s.x, s.z, u.fxRow, FX.fxO(u.fx, u.fz, 0, 0, CONFIG.FX.hitS, 0, s.y)); }
     if (!u.alive) return;
   }
   for (let i = 0; i < GUARDS.length; i++) {
@@ -6795,7 +7053,7 @@ function guardTakenK(u, by, basic) {
   let k = u.defK;
   if (basic && u.gtype === 'dun' && by && u.alive) {
     const dx = by.x - u.x, dz = by.z - u.z, l = Math.hypot(dx, dz);
-    if (l > 1e-3 && (dx * u.fx + dz * u.fz) / l >= GBLOCK_COS) { k *= GC.block.k; G.guardBlocks++; }
+    if (l > 1e-3 && (dx * u.fx + dz * u.fz) / l >= GBLOCK_COS) { k *= GC.block.k; G.guardBlocks++; fxE('g_block:hit', u.x, u.z, 'guard', FX.fxO(dx / l, dz / l, 0, 0, 0, 0, u.y)); }
   }
   return k;
 }
@@ -6806,6 +7064,9 @@ function guardDown(u, rewarded) {
   if (ORD.attack === u) ORD.attack = null;
   G.guardN--;
   const sq = u.sq, lead = sq.leader === u;
+  FX.fxKill(u.fxH); FX.fxKill(u.fxH2); u.fxH = -1; u.fxH2 = -1;
+  fxE('unit_break:rel', u.x, u.z, u.fxRow, FX.fxO(0, 1, 0, 0, 0, 0, u.y));
+  if (lead) { fxE('g_break:rel', u.x, u.z, 'guard', FX.fxO(0, 1, 0, 0, 0, 0, u.y)); FX.fxKill(sq.buffH); sq.buffH = -1; }
   sq.n--;
   if (lead) { sq.broken = true; G.guardBreaks++; }
   if (sq.n <= 0) { sq.on = false; sq.leader = null; sq.tgt = null; }
@@ -6829,7 +7090,8 @@ function clearGuards() {
     guardHideTell(u);
     if (ORD.attack === u) ORD.attack = null;
   }
-  for (let i = 0; i < SQUADS.length; i++) { const sq = SQUADS[i]; sq.on = false; sq.leader = null; sq.tgt = null; sq.n = 0; sq.broken = false; }
+  for (let i = 0; i < SQUADS.length; i++) { const sq = SQUADS[i]; sq.on = false; sq.leader = null; sq.tgt = null; sq.n = 0; sq.broken = false; FX.fxKill(sq.buffH); sq.buffH = -1; }
+  for (let i = 0; i < GUARDS.length; i++) { const u = GUARDS[i]; FX.fxKill(u.fxH); FX.fxKill(u.fxH2); u.fxH = -1; u.fxH2 = -1; }
   for (let k = 0; k < GUARD_TYPES.length; k++) { const im = GDRAW[GUARD_TYPES[k]]; im.count = 0; if (im.parent) scene.remove(im); }
   G.guardN = 0; G.guardDrawn = false; G.guardKills = 0; G.guardBreaks = 0; G.guardBlocks = 0; G.guardHits = 0; G.guardMinTell = 99;
   fzClear();
@@ -6864,6 +7126,18 @@ function drawGuards(alpha) {
     else if (im.parent) scene.remove(im);
   }
   G.guardDrawn = any;
+  // Prototype: the guard and rebel models (chars.js crowd: one instanced draw per type, LOD and material); clips change on events only.
+  if (CHRS.ready) {
+    const C = CHRS.crowd; C.setTime(G.time); C.begin(camera);
+    for (let i = 0; i < GUARDS.length; i++) {
+      const u = GUARDS[i]; if (!u.seen) continue;
+      const want = u.st === 1 ? 'attack' : u.x !== u.px || u.z !== u.pz ? 'move' : 'idle';
+      if (want !== u.chrClip) { u.chrClip = want; C.setClip(u.cs, want, G.time); }
+      C.addTread(u.cs, Math.hypot(u.x - u.px, u.z - u.pz));
+      C.put(u.cs, u.px + (u.x - u.px) * alpha, u.y, u.pz + (u.z - u.pz) * alpha, u.fx, u.fz, u.flashT > 0 ? GUARD_FLASH : u.hid ? FZ_SHIMMER : null, u.gtype === 'ls' && u.sq ? FZ_SCH[u.sq.school] : null);
+    }
+    C.end();
+  }
 }
 // ----- 反贼 rebels (Burning Palace ticket 07): bootleg 甲, the 符水道人's mend, the 死士's lurk and prey, the 渠帅's bootleg charge.
 function fzRnd() {
@@ -6919,7 +7193,7 @@ function fzMend(u, m) {
   for (let i = 0; i < GUARDS.length; i++) {
     const o = GUARDS[i];
     if (!o.alive || o.faction !== u.faction || Math.abs(o.y - u.ty) >= 1.5 || Math.hypot(o.x - u.tx, o.z - u.tz) > m.radius) continue;
-    o.hp = Math.min(o.maxHp, o.hp + m.heal); G.fzHeals++;
+    o.hp = Math.min(o.maxHp, o.hp + m.heal); G.fzHeals++; fxE('r_talisman:hit', o.x, o.z, u.fxRow, FX.fxO(0, 1, 0, 0, CONFIG.FX.hitS, 0, o.y));
   }
   u.st = 3; u.t = CONFIG.APEX.recoverS;
 }
@@ -6928,10 +7202,12 @@ function fzWear(u) {
   u.uses++;
   if (u.uses < FZ.stallN) return;
   u.uses = 0; u.gcd += FZ.stallS; u.stallT = FZ.stallS; u.flashT = 0.3; G.fzStalls++;
+  fxE('r_stall:rel', u.x, u.z, u.fxRow, FX.fxO(0, 1, 0, 0, 0, 0, u.y)); fxE('r_stall:state', u.x, u.z, u.fxRow, FX.fxO(0, 1, 0, 0, 0, 0, u.y));
 }
 // The suit that broke a 渠帅 takes its school's bootleg charge (the player is told).
 function fzGrant(s, sq) {
   s.fzSk = FZ_SK[sq.school]; s.fzN = FZ.chargeN; G.fzCharges++;
+  fxE('r_charge:rel', s.x, s.z, s.school, FX.fxO(0, 1, 0, 0, 0, 0, s.y));
   if (s === P) { FZ_VARS.who = FZ_NAMES[sq.school]; showNote('fz_voice_charge', 'fz_rule_charge', FZ_VARS); }
 }
 // Suit s casts its charge toward tx, tz: the copied unit move (its tell for the whole windup, then the hit). ord = a player order. False = no cast.
@@ -7063,6 +7339,7 @@ function startHunt() {
   setText(el.next, T('next_hunt')); G.nextWave = -2;
   setText(el.bossname, T('boss_name'));
   setText(el.voice, T('voice_wake')); setText(el.rule, T('rule_wake')); setShow(el.banner, true); G.fellT = CONFIG.APEX.wakeS;
+  FX.fxVoice('voice_wake'); fxE('apex_wake:tell', DEMON.x, DEMON.z, 'apex', FX.fxO(0, 1, 0, 0, CONFIG.APEX.wakeS, 0, DEMON.y));
   setHuntUi(); updateBoss();
 }
 // Win or loss: the simulation freezes and the banner stays until the player retries or starts a new run.
@@ -7072,6 +7349,7 @@ function endHunt(win) {
   ORD.attack = null; ORD.atkHeld = false; ORD.rightHeld = false; PATH.n = 0; PATH.i = 0; cancelAim();
   END_VARS.s = Math.round(G.huntT); END_VARS.retry = T(TOUCH ? 'retry_touch' : 'retry_desktop');
   G.bannerWave = -1; G.fellT = 0;
+  FX.fxVoice(win ? 'voice_won' : 'voice_lost');
   setText(el.voice, T(win ? 'voice_won' : 'voice_lost')); setText(el.rule, T(win ? 'rule_won' : 'rule_lost', END_VARS)); setShow(el.banner, true);
   updateBoss(); setHuntUi();
 }
@@ -7119,6 +7397,7 @@ function openSelect() {
 }
 // Pick a school (-1 = let Heaven choose), remember it and start a new run with it.
 function pickSchool(i) {
+  SND.unlock();
   if (i < 0) i = (Date.now() >>> 0) % CONFIG.SCHOOLS.length;
   G.school = i; saveSchool(i); G.selecting = false; setShow(el.select, false); reset();
 }
@@ -7148,6 +7427,7 @@ function openMode() {
 }
 // Batch 17b: picking Royal Rumble disposes the palace set (geometry stays built; textures leave); picking the palace again after a failed load retries it.
 function pickMode(m) {
+  SND.unlock();
   if (m !== 'palace' && LD.palace !== 'none') ldDispose();
   if (m === 'palace' && LD.palace === 'failed') LD.palace = 'none';
   G.mode = m; saveMode(m); G.modeOpen = false; setShow(el.mode, false); openSelect();
@@ -7159,6 +7439,7 @@ function modeKey(e) {
   else if (e.code === 'Enter') pickMode(G.mode);
 }
 function huntButton() {
+  SND.unlock();
   if (G.phase === 'palend') { newRun(); return; }
   if (G.phase === 'palace') return;
   if (G.phase === 'lost' && G.lostIn === 'royale') { newRun(); return; }
@@ -7174,6 +7455,7 @@ function endRoyale() {
   let left = 0; for (let i = 0; i < BOTLIST.length; i++) if (!BOTLIST[i].dead) left++;
   ROYALE_VARS.place = left + 1; ROYALE_VARS.n = G.botN + 1; ROYALE_VARS.retry = T(TOUCH ? 'retry_run_touch' : 'retry_run_desktop');
   G.bannerWave = -1; G.fellT = 0;
+  FX.fxVoice('voice_royale_lost');
   setText(el.voice, T('voice_royale_lost')); setText(el.rule, T('rule_royale_lost', ROYALE_VARS)); setShow(el.banner, true);
   setHuntUi();
 }
@@ -7376,8 +7658,189 @@ function reset() {
   // BP01: the mode decides the map (Royal Rumble: the royale map as before; The Burning Palace: the rooms).
   if (G.mode === 'palace' && CONFIG.PALACE_ON) enterPalace(); else leavePalace();
   renderer.shadowMap.needsUpdate = true;
+  // Batch 17c: every card off and every handle forgotten; Royal Rumble's culling sphere covers its map (a palace run sets it per room in palEnter).
+  fxResetRun();
+  if (!PAL.on) { FX.fxSetRoom(0, 0, 60); AUD_IN.room = 'rumble'; } else if (PAL.cur) { const r = PAL.cur; FX.fxSetRoom(r.cx, r.cz, Math.hypot(r.x1 - r.x0, r.z1 - r.z0) * 0.5 + 6); AUD_IN.room = r.type; }
   // Batch 17b: a palace run whose set is not loaded starts its loading card.
   ldNeed();
+}
+
+
+// ===================== Characters and palace art (prototype, owner 25 Nov 11:33: all existing art in play; render only) =====================
+// Characters: src/chars.js (docs/HOOKS-17fgh.md). One shared set for both modes, loaded once under the first card and kept: nine suit rigs (one per
+// school; the nine suits of a run have nine schools), the Tiger Demon and the two hunt minions, the royale cubs, twelve giant rigs (one per head) and
+// the guard and rebel crowd. Gameplay, timers, collision and hit areas stay in this file; the box bodies stay built (hidden while the models are on).
+const CHRS = { tex: {}, gl: null, info: null, mat: null, tpl: {}, gi: [], steps: null, si: 0, suit: {}, units: [], giants: [], crowd: null, ready: false, failed: [], rigs: [] };
+const CHR_SHEETS = ['suit_lamellar', 'suit_bronze', 'suit_cloth', 'bronze_trim_brass', 'bronze_trim_patina', 'fodder_trim', 'tread_belt', 'apex_patina'];
+const CHR_HIDE = new THREE.MeshBasicMaterial({ visible: false });
+function chrFetch() {
+  const ld = new GLTFLoader().setMeshoptDecoder(MeshoptDecoder), gl = {}, fail = CHRS.failed;
+  const files = CHR.charFiles(CONFIG.CHARS.dirSuits).filter((f) => f.key.startsWith('suit_')).concat(CHR.charFiles(CONFIG.CHARS.dirModels).filter((f) => !f.key.startsWith('suit_')));
+  const jobs = files.map((f) => ld.loadAsync(f.url).then((x) => { gl[f.key] = x; }, () => fail.push(f.key)));
+  for (const n of CHR_SHEETS) jobs.push(ldOne(n).then((f) => {
+    if (!f.t) { fail.push(n); return; }
+    const t = f.t; t.colorSpace = THREE.SRGBColorSpace; t.wrapS = t.wrapT = THREE.RepeatWrapping; t.anisotropy = Math.min(4, renderer.capabilities.getMaxAnisotropy()); t.flipY = false; t.needsUpdate = true; CHRS.tex[n] = t;
+  }));
+  jobs.push(fetch(CHR.CHR.suitInfo).then((r) => r.json()).then((j) => { CHRS.info = {}; for (const s of j) CHRS.info[s.id] = s; }, () => fail.push('suits_info')));
+  return Promise.all(jobs).then(() => { CHRS.gl = gl; });
+}
+// One template (or the spawn step) per call: false = more to do (the card asks again inside its slice).
+function chrBuildStep() {
+  if (CHRS.failed.length) return true;
+  const C = CHR.CHR, GL = CHRS.gl, T = CHRS.tpl;
+  if (!CHRS.steps) {
+    CHRS.mat = CHR.charMaterials((n) => CHRS.tex[n] || null);
+    const mat = CHRS.mat, S = CHRS.steps = [], variantOf = (n) => { const m = /_w_([a-z]+)/.exec(n); return m ? m[1] : null; };
+    for (const k in C.suitIds) { const id = C.suitIds[k]; S.push(() => { T['suit_' + id] = CHR.makeTemplate(GL['suit_' + id], { kind: 'suit', id, mat, outline: true, floorY: CHRS.info[id].floor_y, runV: CHRS.info[id].run_v, lodDist: C.lod.suit }); }); }
+    for (const t of C.guardTypes.concat(C.rebelTypes)) S.push(() => { T[t] = CHR.makeTemplate(GL[t], { kind: 'crowd', id: t, mat, lodDist: C.lod.guard, variantOf }); });
+    S.push(() => { T.tiger = CHR.makeTemplate(GL.tiger, { kind: 'tiger', id: 'tiger', mat, states: ['dormant', 'awake'], lodDist: C.lod.tiger }); });
+    for (const k of ['stalker', 'howler']) S.push(() => { T[k] = CHR.makeTemplate(GL[k], { kind: k, id: k, mat, states: ['dormant', 'awake'], lodDist: C.lod.cub }); });
+    for (let i = 0; i < 12; i++) { const h = 'giant_g' + String(i).padStart(2, '0') + '_'; S.push(() => { CHRS.gi.push(CHR.makeTemplate(GL.giants, { kind: 'giant', id: 'g' + i, mat, states: ['dormant', 'awake'], lodDist: C.lod.giant, keep: (n) => n.startsWith('giant_body') || n === 'giant_flakes' || n.startsWith(h) })); }); }
+    S.push(chrSpawn);
+  }
+  if (CHRS.si < CHRS.steps.length) { CHRS.steps[CHRS.si++](); return CHRS.si >= CHRS.steps.length; }
+  return true;
+}
+// Pools, spawned once under the card (never in play).
+function chrSpawn() {
+  const C = CHR.CHR, T = CHRS.tpl, k = TOUCH ? C.phoneK : 1;
+  for (const sc of CONFIG.SCHOOLS) { const r = CHR.spawnRig(T['suit_' + C.suitIds[sc]], { lodK: k }); CHRS.suit[sc] = r; CHRS.rigs.push(r); }
+  for (const u of ENEMIES.concat(CUBS)) { u.rig = CHR.spawnRig(u.kind === 'demon' ? T.tiger : T[u.kind], { lodK: k }); u.chrSt = -1; CHRS.units.push(u); CHRS.rigs.push(u.rig); }
+  for (let i = 0; i < 12; i++) { const r = CHR.spawnRig(CHRS.gi[i], { lodK: k }); CHRS.giants.push(r); CHRS.rigs.push(r); }
+  const CT = {}; for (const t of C.guardTypes.concat(C.rebelTypes)) CT[t] = T[t];
+  CHRS.crowd = CHR.makeCrowd(CT, { pool: GC.pool, lodK: k });
+  for (const m of CHRS.crowd.meshes) scene.add(m);
+  for (const t of GUARD_TYPES) { const pool = GPOOL[t]; for (let i = 0; i < pool.length; i++) { pool[i].cs = CHRS.crowd.makeState(t, i); pool[i].chrClip = ''; } }
+}
+// Warm-up under the card: every rig level and both material states drawn once, every crowd batch drawn, then all hidden again.
+function chrWarm() {
+  if (CHRS.failed.length || !CHRS.crowd) return 0;
+  // Every rig stands in view on the ground point the camera looks at (8 per row, 2 m apart), so each level, material and texture is drawn here.
+  const R = CHRS.rigs, d = camera.getWorldDirection(tmpV), reach = d.y < -0.05 ? Math.min(30, camera.position.y / -d.y) : 12;
+  const x = camera.position.x + d.x * reach, z = camera.position.z + d.z * reach;
+  CHR.beginFrame(camera);
+  for (let i = 0; i < R.length; i++) { R[i].place(x + ((i % 8) - 3.5) * 2, 0, z + (Math.floor(i / 8) - 1.5) * 2, 0, 1); R[i].show(scene); R[i].play(R[i].actions.idle ? 'idle' : R[i].actions.move ? 'move' : 'dormant'); R[i].update(0.016); }
+  CHRS.crowd.setTime(0); CHRS.crowd.warmAll(x, 0, z);
+  CHR.lodHold(R, true); renderer.compile(scene, camera); renderer.render(scene, camera);
+  let calls = renderer.info.render.calls;
+  for (const r of R) r.setState(1);
+  renderer.compile(scene, camera); renderer.render(scene, camera); calls += renderer.info.render.calls;
+  for (const r of R) r.setState(0);
+  CHR.lodHold(R, false);
+  for (const r of R) r.hide();
+  CHRS.crowd.begin(camera); CHRS.crowd.end();
+  CHRS.ready = true; chrBodies(true);
+  return calls;
+}
+// Box bodies hidden while the models are on (their materials stay, so the game's material swaps and checks keep working).
+function chrBodies(on) {
+  playerBody.visible = !on;
+  for (const b of BOTLIST) b.body.visible = !on;
+  for (const u of CHRS.units) u.body.visible = !on;
+  for (const t of GUARD_TYPES) GDRAW[t].material = on ? CHR_HIDE : guardMat;
+  P2.dorm.material = on ? CHR_HIDE : M.bronze; P2.wake.material = on ? CHR_HIDE : p2GlowMat;
+}
+// Clip cues (events only): a suit attacks, is hit, breaks; a unit begins a move.
+function chrSuitClip(s, name) { if (!CHRS.ready) return; const r = CHRS.suit[s.school]; if (r) r.play(name); }
+function chrUnitClip(u, k) { if (!CHRS.ready || !u.rig) return; const a = u.rig.actions; u.rig.play(a[k] ? k : a.attack ? 'attack' : a.pounce ? 'pounce' : 'move'); }
+// PERFRAME-BEGIN
+// Once per drawn frame after placeView: suits, hunt units and cubs, giants placed from the game's own positions; animation only on screen (chars.js).
+function chrFrame(dt) {
+  if (!CHRS.ready) return;
+  CHR.beginFrame(camera);
+  for (let i = 0; i < SUITS.length; i++) {
+    const s = SUITS[i], r = CHRS.suit[s.school]; if (!r) continue;
+    const g = s === P ? playerGroup : s.group, vis = !!g.parent && g.visible !== false && (s === P || s.seen);
+    if (!vis) { if (r.on) r.hide(); continue; }
+    if (!r.on) { r.show(scene); r.play(s.dead ? 'death' : 'idle'); }
+    r.place(g.position.x, g.position.y, g.position.z, s.faceX, s.faceZ);
+    if (!s.dead) r.setRun(Math.hypot(s.x - s.px, s.z - s.pz) / CONFIG.STEP);
+    r.update(dt);
+  }
+  for (let i = 0; i < CHRS.units.length; i++) {
+    const u = CHRS.units[i], r = u.rig, vis = u.alive && !!u.group.parent;
+    if (!vis) { if (r.on) r.hide(); continue; }
+    if (!r.on) { r.show(scene); u.chrSt = -1; }
+    const st = u === DEMON && G.phase !== 'hunt' && G.phase !== 'wake' ? 0 : 1;
+    if (st !== u.chrSt) { u.chrSt = st; r.setState(st); r.play(st === 0 && r.actions.dormant ? 'dormant' : r.actions.move ? 'move' : 'idle'); }
+    r.place(u.group.position.x, u.y, u.group.position.z, u.fx, u.fz);
+    if (r.tpl.tread) r.addTread(Math.hypot(u.x - u.px, u.z - u.pz));
+    r.update(dt);
+  }
+  for (let i = 0; i < P2.giants.length && i < CHRS.giants.length; i++) {
+    const g = P2.giants[i], r = CHRS.giants[i];
+    if (!g.vis || !PAL.on) { if (r.on) r.hide(); continue; }
+    if (!r.on) { r.show(scene); g.chrSt = -1; }
+    if (g.st !== g.chrSt) {
+      const was = g.chrSt; g.chrSt = g.st; r.setState(g.st >= 1 && g.st <= 4 ? 1 : 0);
+      if (g.st === 0) r.play(r.actions.dormant ? 'dormant' : 'idle'); else if (g.st === 1) r.play('wake'); else if (g.st === 2 && was !== 3 && was !== 4) r.play('walk');
+      else if (g.st === 3) r.play(g.cur === 'slam' ? 'slam' : 'sweep'); else if (g.st === 4) r.play('walk'); else if (g.st === 6) r.play('fall');
+    }
+    r.place(g.x, 0, g.z, Math.sin(g.ry), Math.cos(g.ry));
+    r.update(dt);
+  }
+}
+// PERFRAME-END
+// Palace art: src/palace_art.js (docs/HOOKS-17de.md), built under card P on the plan in use and applied all at once; Royal Rumble takes it away
+// (ldDispose). The box palace stays built: it is the fallback when a file fails or the card is capped, and every solid stays the game's own.
+// Racks, lamps, bell stands and standards are walk-through art (CONFIG.PAL_ART.walkProps): their boxes only keep the art's own props apart.
+function artRoom(r) {
+  const A = LD.art, K = A.kit, blocked = PAL.solids.filter((b) => b.s === r);
+  const art = PA.buildRoom(K, r, PAL.rooms, { pillars: r.spots ? r.spots.pillars : [], dais: r.spots ? r.spots.dais : null, blocked });
+  const si = r.school ? Math.max(0, CONFIG.SCHOOLS.indexOf(r.school)) : 0;
+  if (PA.PAL_ART.props) {
+    for (const h of PIECE_HAZ) if (h.s === r && h.kind === 'lion') h.art = PA.addTo(art, PA.prop(K, 'beast', h.x, h.z, (h.src && h.src.fz || 1) > 0 ? 0 : Math.PI));
+    for (const h of PIECE_HAZ) if (h.s === r && h.kind === 'huabiao') h.art = PA.addTo(art, PA.prop(K, 'huabiao', h.x, h.z, 0));
+    for (const a of PIECE_DING) if (a.s === r) { a.art = PA.addTo(art, PA.ding(K, a.x, a.z, si)); PA.standard(K, art, r, a.x, a.z, si, blocked); }
+    for (const s of PIECE_SMOKE) if (s.s === r) s.art = PA.addTo(art, PA.prop(K, s.src === 'crane' ? 'crane' : 'censer', s.x, s.z, 0));
+    for (const m of PIECE_MERC) if (m.s === r) m.art = PA.addTo(art, PA.mercury(K, m.x0, m.x1, m.z0, m.z1));
+    const P2S = P2.sets[PAL.layout];
+    if (P2S) for (const c of P2S.clocks) if (c.room === r) c.art = PA.addTo(art, PA.prop(K, 'clock', c.x, c.z, 0));
+    for (const v of P2_VATS) if (v.lay === PAL.layout && v.r0 === r) v.art = PA.addTo(art, PA.prop(K, 'vat', v.x, v.z, 0));
+  }
+  r.art = art; A.arts.push(art); A.rooms.push(r);
+}
+function artDoors() { for (const d of PAL.doors) if (d.ra.art) { d.art = PA.door(LD.art.kit, d); PA.addTo(d.ra.art, d.art); LD.art.doors.push(d); } }
+// All rooms at once (never half the art). Door panels keep their visible flag (it is the door state the checks read): an invisible material hides them.
+function artApply() {
+  const K = LD.art.kit;
+  for (const r of LD.art.rooms) {
+    const a = r.art; r.group.add(a.group);
+    for (const k of a.replaces) if (r.box && r.box[k]) r.box[k].visible = false;
+    if (a.floorMeshes.length) { r.boxFloor = [r.floorMeshes, r.floorMats]; r.floorMeshes = a.floorMeshes; r.floorMats = a.floorMats; }
+    if (PA.PAL_ART.props && r.pieceBox) for (const k of ['palLion', 'stone', 'bronze']) if (r.pieceBox[k]) r.pieceBox[k].visible = false;
+  }
+  for (const m of PIECE_MERC) if (m.art) m.mesh.visible = false;
+  const P2S = P2.sets[PAL.layout];
+  if (P2S) for (const c of P2S.clocks) if (c.art) { c.water.visible = false; c.boxMesh.visible = false; }
+  for (const v of P2_VATS) if (v.art) v.body.visible = false;
+  for (const d of PAL.doors) if (d.art) { d.group.add(d.art.root); d.panelMat = d.panel.material; d.panel.material = CHR_HIDE; PA.setDoor(d.art, d.open, d.locked); }
+  PA.lakeApply(K, PAL.lake); LD.art.on = true; renderer.shadowMap.needsUpdate = true;
+}
+// Royal Rumble (or a failed card): every box look back, the art disposed (GPU memory back to its count).
+function artRevert() {
+  const A = LD.art; if (!A) return;
+  if (A.on) {
+    for (const r of A.rooms) {
+      if (r.box) for (const k in r.box) r.box[k].visible = true;
+      if (r.boxFloor) { r.floorMeshes = r.boxFloor[0]; r.floorMats = r.boxFloor[1]; r.boxFloor = null; }
+      if (r.pieceBox) for (const k in r.pieceBox) r.pieceBox[k].visible = true;
+    }
+    for (const m of PIECE_MERC) if (m.art) m.mesh.visible = true;
+    for (const LK in P2.sets) for (const c of P2.sets[LK].clocks) if (c.art) { c.water.visible = true; c.boxMesh.visible = true; }
+    for (const v of P2_VATS) if (v.art) v.body.visible = v.st !== 2;
+    for (const d of A.doors) if (d.art) { if (d.art.root.parent) d.art.root.parent.remove(d.art.root); d.panel.material = d.panelMat; }
+  }
+  for (const r of A.rooms) { if (r.art) { if (r.art.group.parent) r.art.group.parent.remove(r.art.group); PA.disposeRoom(r.art); } r.art = null; }
+  for (const h of PIECE_HAZ) h.art = null; for (const a of PIECE_DING) a.art = null; for (const s of PIECE_SMOKE) s.art = null; for (const m of PIECE_MERC) m.art = null;
+  for (const LK in P2.sets) for (const c of P2.sets[LK].clocks) c.art = null;
+  for (const v of P2_VATS) v.art = null; for (const d of A.doors) d.art = null;
+  if (A.kit) PA.disposeKit(A.kit);
+  // Textures embedded in the parsed art files (never drawn: the kit builds its own materials) are freed with them.
+  for (const k in A.gl) A.gl[k].scene.traverse((o) => { if (!o.material) return; for (const m of Array.isArray(o.material) ? o.material : [o.material]) { for (const q in m) if (m[q] && m[q].isTexture) ldFree(m[q]); m.dispose(); } if (o.geometry) o.geometry.dispose(); });
+  for (const t of A.own) ldFree(t);
+  for (const t of A.clones) t.dispose();
+  LD.art = null; renderer.shadowMap.needsUpdate = true;
 }
 
 // ===================== Loading cards (batch 17b; docs/INTEGRATION.md section 3) =====================
@@ -7389,7 +7852,7 @@ function reset() {
 // Cards 'restore' (graphics context back) and 'adjust' (tier changed in play) re-upload, compile and draw once under the card.
 const ktx2 = new KTX2Loader().setTranscoderPath(CONFIG.LOAD.transcoder).detectSupport(renderer);
 const LD = { kind: '', titleKey: '', jobs: null, ji: 0, gen: 0, visS: 0, card: false, step: '', started: false, man: null, files: null, waitDone: false, warm: false,
-  palace: 'none', led: { kind: '', draws: 0, prog0: 0, prog1: 0, tex0: 0, tex1: 0, fmt: [], failed: [], capped: false, ms: 0, t0: 0, n: 0 } };
+  palace: 'none', fx: false, fxDrawn: 0, art: null, led: { kind: '', draws: 0, prog0: 0, prog1: 0, tex0: 0, tex1: 0, fmt: [], failed: [], capped: false, ms: 0, t0: 0, n: 0 } };
 const LD_CAM = { p: new THREE.Vector3(), q: new THREE.Quaternion(), far: 0 };
 // A promise the current job waits on; a promise from an older card (LD.gen moved on) is ignored.
 function ldWait(p) {
@@ -7423,6 +7886,7 @@ function ldApply() {
 }
 // Palace materials back to their box colours and every palace image freed (Royal Rumble picked, a failed or capped load).
 function ldRevert() {
+  artRevert();
   for (const k in CONFIG.TEX.files) { const m = M[k]; if (m.map) { m.map = null; m.color.setHex(TEXCOL[k]); m.needsUpdate = true; } }
   for (const t of PTEX.list) ldFree(t);
   if (LD.files) for (const f of LD.files) if (f && f.t && PTEX.list.indexOf(f.t) < 0) ldFree(f.t);
@@ -7437,6 +7901,7 @@ function ldWarmOn() {
   camera.position.set(PAL.cx, 90, PAL.cz + 60); camera.lookAt(PAL.cx, 0, PAL.cz); camera.updateMatrixWorld();
 }
 function ldWarmOff() {
+  if (LD.art && LD.art.warm) { PA.warmOff(LD.art.kit, scene, LD.art.arts); LD.art.warm = false; }
   if (!LD.warm) return;
   LD.warm = false;
   if (PAL.on) palSync(); else { for (const r of PAL.rooms) scene.remove(r.group); for (const d of PAL.doors) scene.remove(d.group); }
@@ -7447,13 +7912,35 @@ function ldCompile() {
   if (!LD.started) { LD.started = true; if (renderer.compileAsync) ldWait(renderer.compileAsync(scene, camera)); else { renderer.compile(scene, camera); LD.waitDone = true; } }
   return LD.waitDone;
 }
-function ldUpload() { for (const t of PTEX.list) renderer.initTexture(t); return true; }
+function ldUpload() {
+  for (const t of PTEX.list) renderer.initTexture(t);
+  if (LD.art && LD.art.kit) for (const t of LD.art.kit.texList) renderer.initTexture(t);
+  // After a context loss every kept texture uploads again under the restore card (characters' sheets too), never in play.
+  if (LD.kind === 'restore') for (const k in CHRS.tex) renderer.initTexture(CHRS.tex[k]);
+  return true;
+}
+// Painted cards (17c): the table and atlases load once (fxLoad), then upload, compile and draw all 13 cards under the card; that draw goes to
+// the ledger. One shared set for both modes, never disposed on a mode switch (ldDispose leaves it); re-drawn under the restore card.
+function ldFx() {
+  if ((!CONFIG.FX.on && !CONFIG.SND.on) || (LD.fx && LD.kind !== 'restore')) return true;
+  if (!LD.started) { LD.started = true; ldWait(fxLoad()); }
+  if (!LD.waitDone) return false;
+  LD.fxDrawn = FX.fxWarm(renderer, camera); LD.fx = true;
+  if (LD.fxDrawn > 0) LD.led.draws += FX.fxStatus().warmCalls;
+  return true;
+}
+// Characters (shared set, prototype): files, templates one per slice, then the warm draw (counted in the ledger).
+function ldChrFetch() { if (!CONFIG.CHARS.on || CHRS.gl || CHRS.failed.length) return true; if (!LD.started) { LD.started = true; ldWait(chrFetch()); } return LD.waitDone; }
+function ldChrBuild() { if (!CONFIG.CHARS.on || CHRS.ready || !CHRS.gl) return true; return chrBuildStep(); }
+function ldChrWarm() { if (!CONFIG.CHARS.on || CHRS.ready || !CHRS.crowd) return true; LD.led.draws += chrWarm(); return true; }
+const LD_SHARED = [{ key: 'fx', run: ldFx }, { key: 'chr_fetch', run: ldChrFetch }, { key: 'chr_build', run: ldChrBuild }, { key: 'chr_warm', run: ldChrWarm }];
 function ldDraw() {
   renderer.render(scene, camera); LD.led.draws += renderer.info.render.calls; LD.led.n++;
   ldWarmOff(); return true;
 }
 const LD_JOBS = {
-  palace: [
+  shared: LD_SHARED,
+  palace: LD_SHARED.concat([
     { key: 'manifest', run() {
       if (!LD.started) { LD.started = true; ldWait(fetch(CONFIG.LOAD.manifest).then((r) => (r.ok ? r.json() : null)).catch(() => null).then((j) => { LD.man = j; })); }
       return LD.waitDone;
@@ -7471,11 +7958,32 @@ const LD_JOBS = {
       if (LD.led.failed.length) { ldRevert(); ldEnd(false); return false; }
       ldApply(); ldWarmOn(); return true;
     } },
+    { key: 'art_fetch', run() {
+      if (!CONFIG.PAL_ART.arch && !CONFIG.PAL_ART.props) return true;
+      if (!LD.started) {
+        LD.started = true; const g = LD.gen, gl = {}, tx = {}, own = [], clones = [], failed = [], ld = new GLTFLoader().setMeshoptDecoder(MeshoptDecoder);
+        Object.values(CONFIG.TEX.files).forEach((n, i) => { const f = LD.files && LD.files[i]; if (f && f.t) { const c = f.t.clone(); c.repeat.set(1, 1); c.offset.set(0, 0); c.needsUpdate = true; tx[n] = c; clones.push(c); } });
+        ldWait(Promise.all(PA.files('./').map((f) => ld.loadAsync(f.url).then((x) => { gl[f.key] = x; }, () => failed.push(f.key)))
+          .concat(PA.textureNames().filter((n) => !tx[n]).map((n) => ldOne(n).then((f) => { if (f.t) { tx[n] = f.t; own.push(f.t); } else failed.push(n); }))))
+          .then(() => { if (g === LD.gen) LD.art = { gl, tx, own, clones, failed, it: null, kit: null, ri: 0, arts: [], rooms: [], doors: [], on: false, warm: false }; else { for (const t of own) ldFree(t); for (const t of clones) t.dispose(); } }));
+      }
+      return LD.waitDone;
+    } },
+    { key: 'art_kit', run() {
+      const A = LD.art; if (!A || A.failed.length) return true;
+      if (!A.it) A.it = PA.kitSteps(A.gl, (n) => A.tx[n] || null, { fow: FOW, schools: CONFIG.SCHOOLS, phone: TOUCH, maxAniso: renderer.capabilities.getMaxAnisotropy() });
+      const st = A.it.next(); if (!st.done) return false; A.kit = st.value; return true;
+    } },
+    { key: 'art_rooms', run() {
+      const A = LD.art; if (!A || !A.kit) return true;
+      if (A.ri < PAL.rooms.length) { artRoom(PAL.rooms[A.ri++]); return false; }
+      artDoors(); artApply(); PA.warmOn(A.kit, scene, camera, A.arts); A.warm = true; return true;
+    } },
     { key: 'compile', run: ldCompile },
     { key: 'upload', run: ldUpload },
     { key: 'draw', run: ldDraw },
-  ],
-  restore: [{ key: 'upload', run: ldUpload }, { key: 'compile', run: ldCompile }, { key: 'draw', run: ldDraw }],
+  ]),
+  restore: [{ key: 'upload', run: ldUpload }, { key: 'compile', run: ldCompile }, { key: 'draw', run: ldDraw }, { key: 'fx', run: ldFx }],
   adjust: [{ key: 'compile', run: ldCompile }, { key: 'draw', run: ldDraw }],
 };
 function ldStart(kind) {
@@ -7489,6 +7997,8 @@ function ldEnd(ok) {
   const L = LD.led; L.ms = Math.round(performance.now() - L.t0); L.prog1 = renderer.info.programs.length; L.tex1 = renderer.info.memory.textures;
   if (LD.kind === 'palace') LD.palace = ok ? 'ready' : 'failed';
   LD.jobs = null; LD.kind = ''; LD.card = false; setShow(el.load, false); renderer.shadowMap.needsUpdate = true;
+  // Prototype: a set asked for while another card ran (the palace picked during the shared card) starts its card now.
+  ldNeed();
 }
 // Past the cap: a palace set whose images are not on yet goes back to box colours; one already applied keeps them (its first play frame compiles).
 function ldCapped() {
@@ -7505,6 +8015,8 @@ function ldDispose() {
 // A run that needs a set not loaded yet starts its card (called by reset).
 function ldNeed() {
   if (G.mode === 'palace' && CONFIG.PALACE_ON && CONFIG.TEX.on && LD.palace === 'none' && !LD.jobs) ldStart('palace');
+  // Batch 17c / prototype: the shared card (cards, sounds, characters) for Royal Rumble or a palace run with CONFIG.TEX off; a palace card runs it first.
+  if ((!LD.fx || (CONFIG.CHARS.on && !CHRS.ready && !CHRS.failed.length)) && !LD.jobs) ldStart('shared');
 }
 // PERFRAME-BEGIN
 // Called by every frame before anything else: shows or hides the card (on change), counts visible time against the cap, runs jobs in a slice.
@@ -7544,7 +8056,7 @@ function setView(v) {
 }
 // card true (a change during play): the recompile happens under the 'adjust' card (three.js frees unused programs, so both tiers cannot stay warm).
 function applyTier(name, card) {
-  tier = name; const t = CONFIG.TIER[name];
+  tier = name; const t = CONFIG.TIER[name]; FX.fxSetTier(name);
   renderer.setPixelRatio(Math.min(devicePixelRatio, t.pr));
   renderer.setSize(innerWidth, innerHeight);
   if (renderer.shadowMap.enabled !== t.shadows) { renderer.shadowMap.enabled = t.shadows; for (const k in M) M[k].needsUpdate = true; warnMat.needsUpdate = true; }
@@ -7552,12 +8064,14 @@ function applyTier(name, card) {
   if (sun.shadow.map) { sun.shadow.map.dispose(); sun.shadow.map = null; }
   renderer.shadowMap.needsUpdate = true;
   if (card && !LD.jobs) ldStart('adjust');
+  CHR.setOutlineSize(innerWidth, innerHeight, renderer.getPixelRatio());
 }
 addEventListener('resize', () => {
   renderer.setSize(innerWidth, innerHeight);
   camera.aspect = innerWidth / innerHeight; camera.updateProjectionMatrix();
+  CHR.setOutlineSize(innerWidth, innerHeight, renderer.getPixelRatio());
 });
-document.addEventListener('visibilitychange', () => { G.paused = document.hidden; if (G.paused) clearInput(); });
+document.addEventListener('visibilitychange', () => { G.paused = document.hidden || (!!OPT && OPT.isOpen()); if (G.paused) clearInput(); });
 cv.addEventListener('webglcontextlost', (e) => { e.preventDefault(); G.ctxLost = true; });
 // Batch 17b: a restored context re-uploads, compiles and draws once under the 'restore' card (a load in progress carries on and does that itself).
 cv.addEventListener('webglcontextrestored', () => { G.ctxLost = false; renderer.shadowMap.needsUpdate = true; if (!LD.jobs) ldStart('restore'); });
@@ -7631,13 +8145,23 @@ function frame(now) {
     loadTick(realMs);
     if (G.paused || G.ctxLost || G.selecting || LD.card) return;
     const dt = Math.min(realMs / 1000, CONFIG.MAX_DT);
+    const pA = PERF.on ? performance.now() : 0;
     acc += dt;
     while (acc >= CONFIG.STEP) { step(CONFIG.STEP); acc -= CONFIG.STEP; }
+    const pB = PERF.on ? performance.now() : 0;
+    // Batch 17c: following cards, the listener at the player, music intensity and ambience (sound.js is called only on a change).
+    fxFollow();
+    if (CONFIG.SND.on) { SND.setListener(P.x, P.z); audInputs(); stepIntensity(dt, SND); }
+    const pC = PERF.on ? performance.now() : 0;
     placeView(acc / CONFIG.STEP);
+    chrFrame(dt);
+    if (LD.art && LD.art.on && PAL.on) PA.tick(LD.art.kit, dt);
+    const pD = PERF.on ? performance.now() : 0;
     palMarks();
     if (ORD.rightHeld) { ORD.repathT -= dt; if (ORD.repathT <= 0) { ORD.repathT = CONFIG.REPATH_S; rightOrder(); } }
     G.miniT -= dt; if (G.miniT <= 0) { G.miniT = 1 / CONFIG.MINI_HZ; if (PAL.on) palMini(); else drawMini(); }
     renderer.render(scene, camera);
+    if (PERF.on) { const pE = performance.now(), R = PERF.ring, k = PERF.i * 8; R[k] = pA; R[k + 1] = realMs; R[k + 2] = pB - pA; R[k + 3] = pC - pB; R[k + 4] = pD - pC; R[k + 5] = pE - pD; R[k + 6] = FX.fxEvents(); R[k + 7] = FX.fxLive(); PERF.i = (PERF.i + 1) % 4096; if (PERF.n < 4096) PERF.n++; }
     renderer.shadowMap.needsUpdate = false;
     frameMs += (realMs - frameMs) * 0.1;
     if (!LOCK_TIER && tier !== 'low') {
@@ -7754,6 +8278,29 @@ function tellsOf(list) {
 function onStage(o) { while (o) { if (o === scene) return true; o = o.parent; } return false; }
 window.__game = {
   step(n) { for (let i = 0; i < n; i++) step(CONFIG.STEP); },
+  // Batch 17c / prototype hooks (read-only except fxFire and the menu): sound, cards, options, characters, palace art.
+  av() { return { fx: FX.fxStatus(), snd: SND.status(), fxOn: LD.fx, fxErrs: FXL.errs, fxDrawn: LD.fxDrawn, kitIds: CONFIG.SCHOOLS.filter((sc) => { const k = CONFIG.KITS[sc]; return !!(k && k.attack && k.attack.fx && Object.values(k.attack.fx).some((v) => v !== '')); }).length, opt: OPT ? OPT.isOpen() : null, paused: G.paused, aud: Object.assign({}, AUD_IN) }; },
+  fxFire(name, x, z) { return FX.fxEvent(name, x === undefined ? P.x : x, z === undefined ? P.z : z, 'ru', FX.fxO(0, 1, 0, 0, 0.5)); },
+  fxNames() { return Object.keys(FX.fxTable() || {}); },
+  fxStepFrames(n, dt) { for (let i = 0; i < n; i++) { FX.fxStep(dt, false); fxFollow(); if (CONFIG.SND.on) { audInputs(); stepIntensity(dt, SND); } } },
+  openOptions() { if (canOpenMenu()) openOptions(); return !!OPT && OPT.isOpen(); },
+  closeOptions() { closeOptions(); return !!OPT && OPT.isOpen(); },
+  chars() { return { ready: CHRS.ready, failed: CHRS.failed.slice(), rigs: CHRS.rigs.length, on: CHRS.rigs.filter((r) => r.on).length, crowd: CHRS.crowd ? CHRS.crowd.drawn : -1, crowdMeshes: CHRS.crowd ? CHRS.crowd.meshes.filter((m) => m.visible && m.count > 0).length : 0, stats: CHR.stats(), bodies: playerBody.visible }; },
+  chrFrame(dt) { placeView(1); chrFrame(dt); },
+  // Read-only: shader programs in use (name and the start of the cache key) and GPU memory counts, for the memory checks' diagnostics.
+  progs() { return { p: renderer.info.programs.map((q) => q.name + '|' + q.usedTimes + '|' + String(q.cacheKey).slice(0, 60)), m: Object.assign({}, renderer.info.memory) }; },
+  // Measurement only (?perf=1): the ring's frames from t0 on, oldest first, as rows [t, frame, logic, fxsnd, view, render, events, live].
+  perfRing(t0) { const out = [], R = PERF.ring; for (let j = 0; j < PERF.n; j++) { const k = ((PERF.i - PERF.n + j + 4096) % 4096) * 8; if (R[k] >= t0) out.push(Array.from(R.subarray(k, k + 8))); } return out; },
+  art() {
+    const A = LD.art, que = [];
+    if (A) for (const r of A.rooms) if (r.art) for (const h of r.art.props) if (h.kind.startsWith('arch/que_pair')) { const P = A.kit.props[h.kind]; que.push({ room: r.id, x: h.root.position.x, z: h.root.position.z, z0: r.z0, cx: r.cx, inner: P.queInner || 0, shift: P.queShift || 0 }); }
+    return { on: !!(A && A.on), rooms: A ? A.rooms.length : 0, failed: A ? A.failed.slice() : null, doors: A ? A.doors.length : 0, texN: A && A.kit ? new Set(A.kit.texList).size : 0, que };
+  },
+  // Read-only (memory diagnostics): the art kit's textures, and textures on kit materials that are not in its list.
+  artTexIds() { const A = LD.art; if (!A || !A.kit) return null; const L = new Set(A.kit.texList), out = { list: [...L].map((t) => t.uuid), extra: [] };
+    for (const m of A.kit.matList) for (const q in m) if (m[q] && m[q].isTexture && !L.has(m[q])) out.extra.push(q + ':' + m[q].uuid + ':' + (m[q].name || '')); return out; },
+  // Read-only: the fog-of-war shader patch applied to a stand-in shader (check: it reads each instance's own position).
+  fowSrc() { const m = { onBeforeCompile: null }; addFow(m); const sh = { uniforms: {}, vertexShader: '#include <common>\n#include <worldpos_vertex>', fragmentShader: '#include <common>\n#include <dithering_fragment>' }; m.onBeforeCompile(sh); return sh.vertexShader; },
   setMove(x, z) { testMove.on = true; testMove.x = x; testMove.z = z; },
   clearMove() { testMove.on = false; testMove.x = testMove.z = 0; },
   teleport(x, z) { P.x = P.px = x; P.z = P.pz = z; P.y = P.py = topY(x, z); P.air = false; P.vy = 0; P.kx = P.kz = 0; P.dead = false; },

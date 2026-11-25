@@ -26,6 +26,7 @@ const URL0 = `http://127.0.0.1:${server.address().port}/?lock&tier=medium&bots=0
 import { guardChecks } from './guard-checks.mjs';
 import { fanzeiChecks } from './fanzei-checks.mjs';
 import { load17Checks } from './load17-checks.mjs';
+import { proto17cChecks } from './proto17c-checks.mjs';
 const results = [], SIMS = [];
 function check(name, ok, detail) { results.push({ name, ok: !!ok, detail }); }
 
@@ -4067,6 +4068,8 @@ try {
 
   // 1701-1710 Batch 17b: loading cards, the palace set, dispose, restore and adjust cards, hidden tab, old saves, manifest, KTX2 look: tests/load17-checks.mjs.
   await load17Checks(g, check, page, browser, URL0);
+  // Batch 17c + prototype (owner 25 Nov 11:33): cards, sounds, options menu, characters, palace art.
+  await proto17cChecks(g, check, page, browser, URL0);
 
   // 16 OpenGame resolutions: canvas follows the window, no errors.
   const sizes = [[1920, 1080], [1366, 768], [2560, 1440], [3440, 1440], [1024, 640]], bad = [];

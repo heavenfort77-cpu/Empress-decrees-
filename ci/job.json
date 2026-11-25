@@ -1,1 +1,1 @@
-{"mode": "shard", "shards": 6, "label": "17b-final"}
+{"mode": "cmd", "cmd": "cp idx_head.html index.html && node ci/shard.mjs 6 12 -v 2>&1 | grep -E \"^(ok|FAIL) +1(6[0-9]|70) |^SHARD|RUNTIME\"", "label": "int17c-diag8"}

@@ -31,6 +31,9 @@ for (const id of IDS) {
     [`${id}_play_death`, `id=${id}&view=play&yaw=20&clip=death&t=${s.death_s.toFixed(3)}`, 1920, 1080]);
 }
 const all = IDS.join(',');
+// colour gates (suit_colour_check.py): lit lineup over the floor, cloth ID masks, and the za-as-fa mutant
+SHOTS.push(['lineup_colour', `ids=${all}&view=play`, 1920, 1080], ['lineup_clothid', `ids=${all}&view=play&mode=clothid`, 1920, 1080],
+  ['lineup_colour_mut', `ids=${all}&view=play&tintas=za:fa`, 1920, 1080]);
 SHOTS.push(['lineup_run', `ids=${all}&view=play&clip=run&t=0.12`, 1920, 1080], ['lineup_death', `ids=${all}&view=play&clip=death&t=1.2`, 1920, 1080]);
 let errN = 0;
 for (const [name, q, w, h] of SHOTS) {

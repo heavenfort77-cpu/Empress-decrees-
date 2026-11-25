@@ -7,6 +7,8 @@
      &view=strip&ts=0,0.05,... (SUITANIM contact strip: one cell per time, side camera near the floor, &dist= m, &move=m/s carries the suit
      forward by move x t with the camera following, so a planted foot stays on the same floor tile) &floorline=y (a thin red line at y)
      &pitch=deg overrides the camera pitch (strip at play size: pitch=40&dist=10.5, 1080 px high = 110 px/m)
+     &mode=clothid: each suit's cloth flat in an ID colour (hue 40 deg x lineup index), everything else black, no floor (colour masks)
+     &tintas=za:fa: za's cloth tint set to fa's after loading (colour-gate mutation)
      &rim=1: a pale view-facing rim (lead white, viewer-only demonstration of an outline option for the owner; not in the GLB, no game code)
      glTF UVs: sheets load with flipY false. Cloth materials keep the GLB colour (school tint) over the neutral cloth sheet. -->
 <html><head><meta charset="utf-8"><style>html,body{margin:0;background:#120d16;overflow:hidden}</style>
@@ -18,8 +20,9 @@ const Q = new URLSearchParams(location.search), VIEW = Q.get('view') || 'play', 
 const IDS = (Q.get('ids') || Q.get('id') || 'fa').split(','), RIM = Q.get('rim') === '1';
 const TS = (Q.get('ts') || '').split(',').filter((x) => x !== '').map(Number), MOVE = +(Q.get('move') || 0);
 const W = VIEW === 'strip' ? Math.round(innerWidth / Math.max(TS.length, 1)) : innerWidth, H = innerHeight;
-const r = new THREE.WebGLRenderer({ antialias: MODE !== 'sil' }); r.setPixelRatio(1); r.setSize(W, H); r.shadowMap.enabled = MODE === 'tex' || MODE === 'shade'; document.body.appendChild(r.domElement);
-const scene = new THREE.Scene(); scene.background = new THREE.Color(MODE === 'sil' ? 0xffffff : 0x120d16);
+const r = new THREE.WebGLRenderer({ antialias: MODE !== 'sil' && MODE !== 'clothid' }); r.setPixelRatio(1); r.setSize(W, H); r.shadowMap.enabled = MODE === 'tex' || MODE === 'shade'; document.body.appendChild(r.domElement);
+const scene = new THREE.Scene(); scene.background = new THREE.Color(MODE === 'sil' ? 0xffffff : MODE === 'clothid' ? 0x000000 : 0x120d16);
+const clothMat = {};
 const cam = new THREE.PerspectiveCamera(50, W / H, 0.5, 200);
 scene.add(new THREE.HemisphereLight(0xd9c9ff, 0x3a2a22, 1.1));
 const sun = new THREE.DirectionalLight(0xffe2b8, 2.2); sun.position.set(-30, 60, 25); sun.target.position.set(0, 0, -12); sun.castShadow = true;
@@ -37,12 +40,14 @@ function mat(m) {
   const tint = base === 'sCloth' ? m.color.clone() : new THREE.Color(1, 1, 1);
   let out;
   if (MODE === 'sil') out = new THREE.MeshBasicMaterial({ color: 0x000000 });
+  else if (MODE === 'clothid') out = new THREE.MeshBasicMaterial({ color: base === 'sCloth' ? new THREE.Color().setHSL((IDS.indexOf(m.name.slice(7)) * 40) / 360, 1, 0.5, THREE.SRGBColorSpace) : 0x000000 });
   else if (MODE === 'flat') out = new THREE.MeshBasicMaterial({ color: base === 'sCloth' ? tint : new THREE.Color(flat) });
   else if (MODE === 'shade') out = new THREE.MeshStandardMaterial({ color: base === 'sCloth' ? tint : new THREE.Color(flat), metalness: metal, roughness: rough });
   else out = new THREE.MeshStandardMaterial({ map: tex(`../../assets/tex/${file}.png`, 0, false), color: tint, metalness: metal, roughness: rough });
   if (RIM && out.isMeshStandardMaterial) out.onBeforeCompile = (sh) => {
     sh.fragmentShader = sh.fragmentShader.replace('#include <opaque_fragment>', '#include <opaque_fragment>\n  { float f = 1.0 - abs(dot(normalize(normal), normalize(vViewPosition))); gl_FragColor.rgb += vec3(0.89, 0.87, 0.82) * smoothstep(0.55, 0.95, f) * 0.9; }');
   };
+  if (base === 'sCloth') clothMat[m.name.slice(7)] = out;
   return (cache[key] = out);
 }
 const loader = new GLTFLoader(); let pending = 0; const mixers = [];
@@ -67,6 +72,7 @@ if (Q.get('floorline') !== null) { const y = +Q.get('floorline'); const ln = new
   ln.position.set(0, y, 0); ln.rotation.y = yaw + Math.PI / 2; scene.add(ln); }
 cam.position.set(look.x + Math.sin(yaw) * Math.cos(pitch) * dist, look.y + Math.sin(pitch) * dist, look.z + Math.cos(yaw) * Math.cos(pitch) * dist); cam.lookAt(look);
 function shoot() {
+  if (Q.get('tintas')) { const [a, b] = Q.get('tintas').split(':'); if (clothMat[a] && clothMat[b]) clothMat[a].color.copy(clothMat[b].color); }
   if (VIEW !== 'strip') { setTimeout(() => { r.render(scene, cam); window.__ready = true; }, 900); return; }
   // contact strip: render each time into one row; the camera keeps its offset to the (moving) suit
   setTimeout(() => {
